@@ -1,352 +1,560 @@
-// Example Daggerheart Character Creation
-// Demonstrates how to use the character types and validation
+/**
+ * Example Character: Enhanced Daggerheart Model Demonstration
+ * 
+ * This demonstrates the complete enhanced character model including:
+ * - All core SRD mechanics
+ * - Death moves and advancement systems
+ * - Dynamic state tracking
+ * - Enhanced equipment and domain systems
+ */
 
 import type {
-  DaggerheartCharacter,
-  Heritage,
-  CharacterClass,
-  Subclass,
-  TraitModifier,
-  Experience,
-  DomainCard
+  PlayerCharacter,
+  WeaponFeature,
+  ArmorFeature,
+  Weapon,
+  Armor,
+  DomainCard,
+  Consumable,
+  InventoryItem,
+  Condition,
+  TemporaryEffect,
+  AdvancementChoice,
+  DeathMove,
+  SessionState,
 } from './daggerheartCharacter';
 
 import {
-  validateCharacter,
-  calculateDerivedStats
-} from './daggerheartValidation';
+  DEFAULT_HIT_POINTS,
+  DEFAULT_STRESS,
+  DEFAULT_FEAR_STATE,
+  DEFAULT_MORTALITY_STATE,
+  DEFAULT_ACTION_ECONOMY,
+  deriveTier,
+} from './daggerheartCharacter';
 
-// ============================================================================
-// EXAMPLE CHARACTER: ELARA THE ELVEN BARD
-// ============================================================================
+///////////////////////////
+// Example Equipment     //
+///////////////////////////
 
-/**
- * Creates an example Daggerheart character following the SRD rules
- */
-export function createExampleCharacter(): DaggerheartCharacter {
-  // Heritage: Elf from Loreborne community
-  const heritage: Heritage = {
-    ancestry: {
-      name: 'Elf',
-      description: 'Graceful and long-lived people with a deep connection to magic',
-      firstFeature: {
-        name: 'Elven Grace',
-        description: 'Natural agility and connection to the magical realm',
-        position: 'top',
-        featureType: 'reaction_bonus'
-      },
-      secondFeature: {
-        name: 'Keen Senses',
-        description: 'Enhanced perception and awareness of surroundings',
-        position: 'bottom',
-        featureType: 'information'
-      }
+const rapierFeature: WeaponFeature = {
+  name: "Quick",
+  type: "Quick",
+  description: "When you make an attack, you can mark a Stress to target another creature within range.",
+  mechanicalEffect: "Mark 1 stress for additional attack",
+  trigger: "On attack",
+  cost: "1 stress"
+};
+
+const pairedDaggerFeature: WeaponFeature = {
+  name: "Paired",
+  type: "Paired",
+  description: "+2 to primary weapon damage to targets within Melee range",
+  mechanicalEffect: "+2 damage when paired with primary"
+};
+
+const examplePrimaryWeapon: Weapon = {
+  id: "weapon-rapier-001",
+  name: "Elegant Rapier",
+  category: "Primary",
+  trait: "Presence",
+  range: "Melee",
+  damageDie: "d8",
+  damageType: "phy",
+  burden: "One-Handed",
+  features: [rapierFeature],
+  tags: ["finesse", "dueling"],
+  data: {
+    description: "A finely crafted blade favored by duelists",
+    value: "50 gold handfuls"
+  }
+};
+
+const exampleSecondaryWeapon: Weapon = {
+  id: "weapon-dagger-001",
+  name: "Paired Dagger",
+  category: "Secondary",
+  trait: "Finesse",
+  range: "Melee",
+  damageDie: "d8",
+  damageType: "phy",
+  burden: "One-Handed",
+  features: [pairedDaggerFeature],
+  tags: ["light", "thrown"],
+  data: {}
+};
+
+const flexibleFeature: ArmorFeature = {
+  name: "Flexible",
+  description: "+1 to Evasion",
+  mechanicalEffect: "+1 evasion"
+};
+
+const exampleArmor: Armor = {
+  id: "armor-gambeson-001",
+  name: "Fine Gambeson",
+  baseMajorThreshold: 5,
+  baseSevereThreshold: 11,
+  baseArmorScore: 3,
+  features: [flexibleFeature],
+  tags: ["light", "padded"],
+  data: {
+    description: "Well-made padded armor that doesn't restrict movement"
+  }
+};
+
+const healthPotion: Consumable = {
+  id: "consumable-health-001",
+  name: "Minor Health Potion",
+  type: "Health Potion",
+  effect: "Clear 1d4 Hit Points",
+  useAction: "Major Action",
+  quantity: 2,
+  tags: ["healing", "consumable"],
+  data: {}
+};
+
+const staminaPotion: Consumable = {
+  id: "consumable-stamina-001",
+  name: "Minor Stamina Potion",
+  type: "Stamina Potion",
+  effect: "Clear 1d4 Stress",
+  useAction: "Major Action",
+  quantity: 1,
+  tags: ["recovery", "consumable"],
+  data: {}
+};
+
+const torch: InventoryItem = {
+  id: "item-torch-001",
+  name: "Torch",
+  quantity: 3,
+  description: "Provides light in dark areas",
+  tags: ["light", "utility"],
+  data: {}
+};
+
+const rope: InventoryItem = {
+  id: "item-rope-001",
+  name: "Rope (50 ft)",
+  quantity: 1,
+  description: "Strong hemp rope",
+  tags: ["utility", "climbing"],
+  data: {}
+};
+
+///////////////////////////
+// Example Domain Cards  //
+///////////////////////////
+
+const inspiringWordsCard: DomainCard = {
+  id: "grace-inspiring-words-001",
+  level: 1,
+  domain: "Grace",
+  type: "ability",
+  title: "Inspiring Words",
+  recallCost: 1,
+  text: "Spend a Hope to give an ally within Close range a +2 bonus to their next roll.",
+  usage: {
+    usesPerSession: 3,
+    usesPerRest: 1,
+    currentUses: 2,
+    unlimited: false
+  },
+  inVault: false,
+  tags: ["support", "ally"],
+  data: {}
+};
+
+const mockingTauntCard: DomainCard = {
+  id: "grace-mocking-taunt-001",
+  level: 2,
+  domain: "Grace",
+  type: "ability",
+  title: "Mocking Taunt",
+  recallCost: 2,
+  text: "Target within Far range must make a Presence reaction roll or become temporarily Distracted.",
+  usage: {
+    unlimited: true,
+    currentUses: 0
+  },
+  inVault: true,
+  tags: ["control", "debuff"],
+  data: {}
+};
+
+///////////////////////////
+// Example Dynamic State //
+///////////////////////////
+
+const distractedCondition: Condition = {
+  type: "Distracted",
+  duration: "temporary",
+  source: "Mocking Taunt",
+  effect: "-2 penalty to Difficulty"
+};
+
+const bardInspiration: TemporaryEffect = {
+  id: "temp-bard-inspiration-001",
+  name: "Bard's Inspiration",
+  description: "Feeling inspired by an ally's performance",
+  duration: "scene",
+  source: "Ally's Rally ability",
+  mechanicalEffect: "+1 to next action roll",
+  tags: ["inspiration", "ally"]
+};
+
+const currentSession: SessionState = {
+  sessionNumber: 5,
+  startDate: new Date('2025-08-05T19:00:00'),
+  restsTaken: 1,
+  majorMilestones: [
+    "Defeated the Shadow Bandits",
+    "Discovered the ancient library",
+    "Made alliance with local merchants"
+  ],
+  notes: "Party investigating mysterious disappearances in the trading post"
+};
+
+///////////////////////////
+// Example Advancement   //
+///////////////////////////
+
+const traitAdvancement: AdvancementChoice = {
+  type: "trait_bonus",
+  description: "Gain a +1 bonus to two unmarked character traits",
+  taken: true,
+  level: 2,
+  tier: 2,
+  data: { traitsChosen: ["Presence", "Knowledge"] }
+};
+
+const domainCardAdvancement: AdvancementChoice = {
+  type: "domain_card",
+  description: "Choose an additional domain card of your level or lower",
+  taken: false,
+  level: 3,
+  tier: 2,
+  requirements: ["Must be from accessible domain"]
+};
+
+///////////////////////////
+// Example Death Move    //
+///////////////////////////
+
+// Example death move available for character if needed
+export const inspiringSacrifice: DeathMove = {
+  type: "Inspiring Sacrifice",
+  description: "In your final moments, you inspire your allies with a rousing speech",
+  mechanicalEffect: "All allies gain 2 Hope and advantage on their next roll",
+  narrativeOutcome: "Your words echo in your companions' hearts",
+  affectedCharacters: ["all-allies"],
+  data: {}
+};
+
+///////////////////////////
+// Complete Example Character //
+///////////////////////////
+
+export const elaraTheBard: PlayerCharacter = {
+  // Core Identity
+  id: "char-elara-moonwhisper-001",
+  name: "Elara Moonwhisper",
+  pronouns: "she/her",
+  description: "A charismatic half-elf bard with silver hair and eyes like starlight, carrying an ornate lute and dressed in traveling clothes adorned with small bells.",
+
+  // Core Stats  
+  level: 3,
+  tier: deriveTier(3),
+  evasion: 11, // Base 10 + 1 from flexible armor
+  proficiency: 2,
+
+  // Character Building
+  traits: {
+    Agility: 0,
+    Strength: -1,
+    Finesse: 1,
+    Instinct: 0,
+    Presence: 3, // 2 base + 1 from advancement
+    Knowledge: 2, // 1 base + 1 from advancement
+  },
+
+  experiences: [
+    {
+      id: "exp-performer-001",
+      name: "Traveling Performer",
+      modifier: 2,
+      timesUsed: 4,
+      notes: "Experience performing in taverns and courts across the realm"
     },
-    community: {
-      name: 'Loreborne',
-      description: 'People dedicated to preserving knowledge and ancient wisdom',
-      feature: {
-        name: 'Scholar\'s Mind',
-        description: 'Enhanced ability to recall and analyze information'
-      }
+    {
+      id: "exp-silver-tongue-001",
+      name: "Silver Tongue",
+      modifier: 2,
+      timesUsed: 2,
+      notes: "Natural talent for persuasion and deception"
     }
-  };
+  ],
 
-  // Class: Bard (Codex & Grace domains)
-  const characterClass: CharacterClass = {
-    name: 'Bard',
-    description: 'Masters of captivation who specialize in performance and social situations',
-    domains: ['Codex', 'Grace'],
-    startingEvasion: 12,
-    startingHitPoints: 18,
-    classFeatures: [
+  domains: {
+    deck: {
+      "grace-inspiring-words-001": inspiringWordsCard,
+      "grace-mocking-taunt-001": mockingTauntCard
+    },
+    loadout: {
+      active: ["grace-inspiring-words-001"],
+      vault: ["grace-mocking-taunt-001"]
+    }
+  },
+
+  // Heritage & Class
+  heritage: {
+    ancestry: "Elf",
+    ancestryFeatures: [
       {
-        name: 'Bardic Inspiration',
-        description: 'Inspire allies with magical performances',
-        level: 1,
-        type: 'Class'
+        name: "Quick Reactions",
+        text: "When you fail a roll with Fear, you may immediately reroll that die."
+      },
+      {
+        name: "Otherworldly",
+        text: "You have an innate connection to magic that flows through everything."
       }
     ],
-    hopeFeature: {
-      name: 'Encore',
-      description: 'Spend 3 Hope to repeat a performance with enhanced effect',
-      level: 1,
-      type: 'Hope'
+    community: "Wanderborne",
+    communityFeature: {
+      name: "Nomadic Pack",
+      text: "Once per session, spend a Hope to pull out a useful mundane item from your pack."
     },
-    startingEquipment: ['Musical instrument', 'Scholar\'s pack']
-  };
+    notes: "Grew up traveling between elven courts and human settlements"
+  },
 
-  // Subclass: College of Eloquence (example)
-  const subclass: Subclass = {
-    name: 'College of Eloquence',
-    parentClass: 'Bard',
-    description: 'Masters of persuasive speech and compelling storytelling',
-    spellcastTrait: 'Presence',
-    foundationFeature: {
-      name: 'Silver Tongue',
-      description: 'Enhanced persuasion and social manipulation abilities',
-      level: 1,
-      type: 'Foundation'
+  classKit: {
+    className: "Bard",
+    startingEvasion: 10,
+    startingHP: 5,
+    classItems: ["Romance Novel"],
+    classFeature: {
+      name: "Rally",
+      text: "Once per session, describe how you rally the party and give yourself and each of your allies a Rally Die.",
+      actionType: "Major Action",
+      cost: "Once per session"
     },
-    specializationFeature: {
-      name: 'Compelling Speech',
-      description: 'Force opponents to listen and be affected by your words',
-      level: 3,
-      type: 'Specialization'
+    classHopeFeature: {
+      name: "Make a Scene",
+      cost: 3,
+      text: "Spend 3 Hope to temporarily Distract a target within Close range, giving them a −2 penalty to their Difficulty.",
+      timesUsed: 0
     },
-    masteryFeature: {
-      name: 'Master Orator',
-      description: 'Ultimate mastery of language and crowd control',
-      level: 7,
-      type: 'Mastery'
-    }
-  };
-
-  // Trait assignment: +2, +1, +1, +0, +0, -1 (flexible to any trait names)
-  const traits: Record<string, TraitModifier> = {
-    'Presence': 2,    // Primary trait for Bard
-    'Knowledge': 1,   // Secondary for Codex domain
-    'Finesse': 1,     // For precise performances
-    'Agility': 0,     // Neutral
-    'Instinct': 0,    // Neutral
-    'Strength': -1    // Dump stat
-  };
-
-  // Experiences (2 at character creation, each +2)
-  const experiences: Experience[] = [
-    {
-      name: 'Court Musician',
-      modifier: 2,
-      description: 'Performed for nobility and learned courtly etiquette'
-    },
-    {
-      name: 'Traveling Storyteller',
-      modifier: 2,
-      description: 'Wandered the realm collecting and sharing tales'
-    }
-  ];
-
-  // Example domain cards (2 level 1 cards from Codex and Grace)
-  const loadout: DomainCard[] = [
-    {
-      name: 'Inspiring Words',
-      domain: 'Grace',
-      level: 1,
-      type: 'Ability',
-      recallCost: 0,
-      description: 'Use compelling speech to inspire allies in combat',
-      features: [
-        {
-          description: 'Spend Hope to give an ally advantage on their next roll',
-          usageLimit: {
-            uses: 3,
-            reset: 'Rest'
-          }
-        }
-      ]
-    },
-    {
-      name: 'Lore Recall',
-      domain: 'Codex',
-      level: 1,
-      type: 'Ability',
-      recallCost: 1,
-      description: 'Draw upon extensive knowledge to aid the party',
-      features: [
-        {
-          description: 'Automatically succeed on Knowledge rolls about history, magic, or cultures'
-        }
-      ]
-    }
-  ];
-
-  // Calculate derived stats
-  const exampleArmor = {
-    baseThresholds: { minor: 3, major: 8 },
-    baseScore: 11
-  };
-
-  const derivedStats = calculateDerivedStats(18, 12, 1, exampleArmor); // hitPoints, evasion, level, armor
-
-  // Create the complete character
-  const character: DaggerheartCharacter = {
-    name: 'Elara Moonwhisper',
-    pronouns: 'she/her',
-    description: 'A graceful elf with silver hair and eyes that sparkle with ancient wisdom',
-    level: 1,
-
-    heritage,
-    class: characterClass,
-    subclass,
-    traits,
-
-    hitPoints: {
-      current: derivedStats.hitPoints,
-      maximum: derivedStats.hitPoints
-    },
-    evasion: derivedStats.evasion,
-    stress: derivedStats.stress,
-    hope: derivedStats.hope,
-    proficiency: derivedStats.proficiency,
-
-    damageThresholds: derivedStats.damageThresholds,
-    armorScore: derivedStats.armorScore,
-
-    activeWeapon: {
-      primary: {
-        name: 'Rapier',
-        tier: 1,
-        damageDie: 'd6+1',
-        properties: ['Finesse', 'Light'],
-        isOneHanded: true,
-        isTwoHanded: false
-      }
-    },
-    activeArmor: {
-      name: 'Leather Armor',
-      tier: 1,
-      baseScore: 11,
-      baseThresholds: { minor: 3, major: 8 },
-      properties: ['Light'],
-      description: 'Supple leather armor that doesn\'t restrict movement'
-    },
-    inventory: [
+    subclasses: [
       {
-        name: 'Lute',
-        type: 'Tool',
-        description: 'A finely crafted musical instrument'
+        name: "Troubadour",
+        foundation: {
+          name: "Social Butterfly",
+          text: "When you succeed on a Presence roll during a social interaction, gain a Hope."
+        }
       },
       {
-        name: 'Scholar\'s Pack',
-        type: 'Other',
-        description: 'Contains books, parchment, ink, and writing supplies'
-      },
-      {
-        name: 'Minor Health Potion',
-        type: 'Consumable',
-        description: 'Restores 1d4 Hit Points'
+        name: "Wordsmith",
+        foundation: {
+          name: "Inspiring Word",
+          text: "Spend a Hope to give an ally within Close range a +2 to their next roll."
+        }
       }
     ],
+    domains: ["Grace", "Codex"]
+  },
+
+  subclass: {
+    name: "Troubadour",
+    foundation: {
+      name: "Social Butterfly",
+      text: "When you succeed on a Presence roll during a social interaction, gain a Hope."
+    }
+  },
+
+  // Resources
+  resources: {
+    hp: {
+      ...DEFAULT_HIT_POINTS,
+      maxSlots: 5,
+      marked: 1,
+      temporaryBonus: 0
+    },
+    stress: {
+      ...DEFAULT_STRESS,
+      maxSlots: 6,
+      marked: 2,
+      temporaryBonus: 0
+    },
+    armor: {
+      majorThreshold: 8, // 5 base + 3 level
+      severeThreshold: 14, // 11 base + 3 level  
+      armorScore: 3,
+      markedSlots: 0,
+      temporaryBonus: 0
+    },
+    hope: {
+      current: 3,
+      maximum: 6,
+      sessionGenerated: 2
+    },
+    fear: {
+      ...DEFAULT_FEAR_STATE,
+      current: 1,
+      sessionGenerated: 1,
+      effects: ["Slightly on edge from recent encounters"]
+    },
+    classMeters: {
+      rally: {
+        die: "d6",
+        distributed: false,
+        sessionUsed: false
+      }
+    },
     gold: {
-      handfuls: 1
+      handfuls: 3,
+      bags: 0,
+      chests: 0
+    }
+  },
+
+  // Equipment
+  equipment: {
+    activeWeapons: {
+      primary: examplePrimaryWeapon,
+      secondary: exampleSecondaryWeapon
     },
+    inventoryWeapons: [],
+    activeArmor: exampleArmor,
+    inventory: [torch, rope, {
+      id: "item-lute-001",
+      name: "Masterwork Lute",
+      quantity: 1,
+      description: "A beautiful lute made of moonwood with silver strings",
+      tags: ["instrument", "focus", "valuable"],
+      data: { spellcastingFocus: true }
+    }],
+    consumables: [healthPotion, staminaPotion]
+  },
 
-    loadout,
-    vault: [],
-    experiences,
-
-    background: {
-      description: 'Raised in the grand libraries of the Loreborne, trained as both scholar and performer',
-      questions: [
-        {
-          question: 'What song or story first made you want to become a bard?',
-          answer: 'The Ballad of the Silver Phoenix - a tale of hope triumphing over despair'
-        },
-        {
-          question: 'What knowledge do you seek in your adventures?',
-          answer: 'The location of the Lost Archive, said to contain songs that can reshape reality'
-        },
-        {
-          question: 'Who was your most important teacher?',
-          answer: 'Master Theron, an ancient elf who taught me that every story has power'
-        }
-      ]
-    },
-
-    connections: [
+  // Narrative
+  background: {
+    notes: "Elara was born to an elven mother and human father in a traveling caravan. She learned music and storytelling from the diverse cultures she encountered.",
+    questions: [
       {
-        targetCharacterName: 'Gareth',
-        question: 'Which of your songs does this character know by heart?',
-        answer: 'The Warrior\'s Lament - I sang it after his first battle when he lost a close friend'
+        question: "What song reminds you of home?",
+        answer: "A lullaby my mother sang, mixing elven and human melodies"
+      },
+      {
+        question: "Who taught you your most important lesson?",
+        answer: "An old human bard named Marcus, who showed me that stories can heal or harm"
       }
     ],
+    bonds: ["The safety of traveling merchants", "Preserving cultural stories"],
+    ideals: ["Art should bring people together, not divide them"],
+    flaws: ["Sometimes too trusting of charming strangers"],
+    secrets: ["Carries a letter from her elven grandmother she's never opened"]
+  },
 
-    notes: 'Seeks to collect lost songs and stories from across the realm. Has a particular interest in magical music.'
-  };
+  connections: [
+    {
+      pcId: "char-thorin-001",
+      pcName: "Thorin Ironforge",
+      description: "Met when Elara talked us out of a bar fight. He's surprisingly gentle for a warrior.",
+      strength: "strong",
+      type: "friendly",
+      notes: "He seems to appreciate her music after long days"
+    },
+    {
+      pcId: "char-zara-001",
+      pcName: "Zara Nightwhisper",
+      description: "Fellow performer, but they compete for attention. Complicated relationship.",
+      strength: "moderate",
+      type: "rival",
+      notes: "Professional rivalry that might be turning into friendship"
+    }
+  ],
 
-  return character;
-}
+  // Advancement
+  advancement: {
+    availableChoices: [domainCardAdvancement],
+    choicesMade: [traitAdvancement],
+    milestones: [
+      "First successful performance in a major city",
+      "Helped resolve merchant dispute peacefully",
+      "Learned a song from an ancient culture"
+    ]
+  },
 
-// ============================================================================
-// VALIDATION EXAMPLE
-// ============================================================================
+  // Mortality
+  mortality: {
+    ...DEFAULT_MORTALITY_STATE,
+    deathMoveUsed: undefined // Available if needed
+  },
 
-/**
- * Demonstrates character validation
- */
-export function validateExampleCharacter(): void {
-  const character = createExampleCharacter();
-  const validation = validateCharacter(character);
+  // Dynamic State
+  dynamicState: {
+    currentSession: currentSession,
+    conditions: [distractedCondition],
+    temporaryEffects: [bardInspiration],
+    actionEconomy: {
+      ...DEFAULT_ACTION_ECONOMY,
+      majorActionsUsed: 1,
+      minorActionsUsed: 0,
+      reactionsUsed: 0,
+      canAct: true
+    },
+    lastRollResult: {
+      type: "Presence (Social Interaction)",
+      total: 16,
+      hopeGenerated: 1,
+      fearGenerated: 0,
+      timestamp: new Date('2025-08-05T21:30:00')
+    }
+  },
 
-  console.log('Character Validation Results:');
-  console.log('Valid:', validation.isValid);
+  // Extensibility
+  tags: ["social", "support", "performer", "traveler"],
+  data: {
+    playerNotes: "Focus on social encounters and ally support",
+    gmNotes: "Good source of information about different cultures",
+    favoriteSpells: ["Inspiring Words", "Rally"],
+    personalQuest: "Find her elven grandmother and deliver the letter"
+  }
+};
 
-  if (validation.errors.length > 0) {
-    console.log('Errors:');
-    validation.errors.forEach(error => console.log('  -', error));
+///////////////////////////
+// Character Validation  //
+///////////////////////////
+
+// Example of validating the character
+import { validateCharacter, getSRDCompliance } from './daggerheartValidation';
+
+export function validateElaraExample(): void {
+  console.log('=== Validating Example Character: Elara Moonwhisper ===');
+
+  const validation = validateCharacter(elaraTheBard);
+  console.log('Overall Validation:', validation);
+
+  const srdCompliance = getSRDCompliance(elaraTheBard);
+  console.log('SRD Compliance:', srdCompliance);
+
+  if (validation.valid) {
+    console.log('✅ Elara is a valid character!');
+  } else {
+    console.log('❌ Validation errors found:');
+    validation.errors.forEach(error => console.log(`  - ${error}`));
   }
 
   if (validation.warnings.length > 0) {
-    console.log('Warnings:');
-    validation.warnings.forEach(warning => console.log('  -', warning));
+    console.log('⚠️ Warnings:');
+    validation.warnings.forEach(warning => console.log(`  - ${warning}`));
   }
 
-  if (validation.isValid) {
-    console.log('✅ Character is valid according to Daggerheart SRD rules!');
-  } else {
-    console.log('❌ Character has validation errors that need to be fixed.');
-  }
-}
-
-// ============================================================================
-// HELPER FUNCTIONS
-// ============================================================================
-
-/**
- * Gets the available domains for a character class from standard mapping
- */
-export function showClassDomains(className: string): void {
-  const standardClasses = {
-    'Bard': ['Codex', 'Grace'],
-    'Druid': ['Arcana', 'Sage'],
-    'Guardian': ['Blade', 'Valor'],
-    'Ranger': ['Bone', 'Sage'],
-    'Rogue': ['Grace', 'Midnight'],
-    'Seraph': ['Splendor', 'Valor'],
-    'Sorcerer': ['Arcana', 'Midnight'],
-    'Warrior': ['Blade', 'Bone'],
-    'Wizard': ['Codex', 'Splendor']
-  };
-
-  const domains = standardClasses[className as keyof typeof standardClasses];
-  if (domains) {
-    console.log(`${className} class domains: ${domains[0]} & ${domains[1]}`);
-  } else {
-    console.log(`No standard domains found for class: ${className}`);
+  if (validation.info.length > 0) {
+    console.log('ℹ️ Info:');
+    validation.info.forEach(info => console.log(`  - ${info}`));
   }
 }
 
-/**
- * Example of displaying all class-domain combinations
- */
-export function showAllClassDomains(): void {
-  console.log('Daggerheart Class-Domain Combinations:');
-  const standardClasses = {
-    'Bard': ['Codex', 'Grace'],
-    'Druid': ['Arcana', 'Sage'],
-    'Guardian': ['Blade', 'Valor'],
-    'Ranger': ['Bone', 'Sage'],
-    'Rogue': ['Grace', 'Midnight'],
-    'Seraph': ['Splendor', 'Valor'],
-    'Sorcerer': ['Arcana', 'Midnight'],
-    'Warrior': ['Blade', 'Bone'],
-    'Wizard': ['Codex', 'Splendor']
-  };
-
-  Object.entries(standardClasses).forEach(([className, domains]) => {
-    console.log(`  ${className}: ${domains[0]} & ${domains[1]}`);
-  });
-}
-
-// Export the example for use
-export const exampleCharacter = createExampleCharacter();
+export default elaraTheBard;

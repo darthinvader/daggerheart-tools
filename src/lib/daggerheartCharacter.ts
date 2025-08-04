@@ -1,502 +1,733 @@
-// Daggerheart Character Types
-// Based on the Daggerheart SRD v1.0 - Character Creation and Core Mechanics
+/**
+ * Enhanced Daggerheart Character Model
+ * 
+ * This model builds upon external AI analysis, combining excellent SRD accuracy
+ * with missing critical mechanics like death moves, advancement, and dynamic state.
+ * 
+ * Design Philosophy:
+ * - SRD-accurate core mechanics
+ * - Strong TypeScript safety with flexibility
+ * - Extensible for homebrew content
+ * - Complete gameplay system representation
+ */
 
-// ============================================================================
-// CORE GAME MECHANICS
-// ============================================================================
+///////////////////////////
+// Core Game Types       //
+///////////////////////////
 
-/** The six core character traits used for action rolls */
-export type CoreTrait = 'Agility' | 'Strength' | 'Finesse' | 'Instinct' | 'Presence' | 'Knowledge';
+export type RangeBand =
+  | "Melee"
+  | "Very Close"
+  | "Close"
+  | "Far"
+  | "Very Far"
+  | "Out of Range";
 
-/** Trait modifier values - flexible number type to handle any homebrew values */
-export type TraitModifier = number;
+export type DamageType = "phy" | "mag";
 
-/** Standard starting trait modifiers for character creation (can be customized) */
-export const STANDARD_TRAIT_MODIFIERS = [2, 1, 1, 0, 0, -1] as const;
+export type Tier = 1 | 2 | 3 | 4;
+export type Level = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 
-/** The nine available character classes (extendable for homebrew) */
-export type ClassName = 'Bard' | 'Druid' | 'Guardian' | 'Ranger' | 'Rogue' | 'Seraph' | 'Sorcerer' | 'Warrior' | 'Wizard' | string;
+export type TraitName =
+  | "Agility"
+  | "Strength"
+  | "Finesse"
+  | "Instinct"
+  | "Presence"
+  | "Knowledge";
 
-/** The nine domains available in Daggerheart (extendable for homebrew) */
-export type DomainName = 'Arcana' | 'Blade' | 'Bone' | 'Codex' | 'Grace' | 'Midnight' | 'Sage' | 'Splendor' | 'Valor' | string;
+export type TraitValue = -3 | -2 | -1 | 0 | 1 | 2 | 3 | 4;
 
-/** Available ancestries in the core rules (extendable for homebrew) */
-export type AncestryName = 'Clank' | 'Drakona' | 'Dwarf' | 'Elf' | 'Faerie' | 'Faun' | 'Firbolg' | 'Fungril' | 'Galapa' | 'Giant' | 'Goblin' | 'Halfling' | 'Human' | 'Infernis' | 'Katari' | 'Orc' | 'Ribbet' | 'Simiah' | string;
+export type ClassName =
+  | "Bard"
+  | "Druid"
+  | "Guardian"
+  | "Ranger"
+  | "Rogue"
+  | "Seraph"
+  | "Sorcerer"
+  | "Warrior"
+  | "Wizard";
 
-/** Available communities in the core rules (extendable for homebrew) */
-export type CommunityName = 'Highborne' | 'Loreborne' | 'Orderborne' | 'Ridgeborne' | 'Seaborne' | 'Slyborne' | 'Underborne' | 'Wanderborne' | 'Wildborne' | string;
+export type SubclassName =
+  | "Troubadour"
+  | "Wordsmith"
+  | "Warden of the Elements"
+  | "Warden of Renewal"
+  | "Stalwart"
+  | "Vengeance"
+  | "Beastbound"
+  | "Wayfinder"
+  | "Nightwalker"
+  | "Syndicate"
+  | "Divine Wielder"
+  | "Winged Sentinel"
+  | "Elemental Origin"
+  | "Primal Origin"
+  | "Call of the Brave"
+  | "Call of the Slayer"
+  | "School of Knowledge"
+  | "School of War";
 
-/** Domain card types (extendable for homebrew) */
-export type DomainCardType = 'Ability' | 'Spell' | 'Grimoire' | string;
+export type DomainName =
+  | "Arcana"
+  | "Blade"
+  | "Bone"
+  | "Codex"
+  | "Grace"
+  | "Midnight"
+  | "Sage"
+  | "Splendor"
+  | "Valor";
 
-/** Usage limit reset conditions (extendable for homebrew) */
-export type UsageLimitReset = 'Rest' | 'Long Rest' | 'Session' | 'Encounter' | 'Turn' | string;
+export type AncestryName =
+  | "Clank"
+  | "Drakona"
+  | "Dwarf"
+  | "Elf"
+  | "Faerie"
+  | "Faun"
+  | "Firbolg"
+  | "Fungril"
+  | "Galapa"
+  | "Giant"
+  | "Goblin"
+  | "Halfling"
+  | "Human"
+  | "Infernis"
+  | "Katari"
+  | "Orc"
+  | "Ribbet"
+  | "Simiah"
+  | "Mixed";
 
-// ============================================================================
-// CORE GAME CONSTANTS (STARTER/DEFAULT VALUES)
-// ============================================================================
+export type CommunityName =
+  | "Highborne"
+  | "Loreborne"
+  | "Orderborne"
+  | "Ridgeborne"
+  | "Seaborne"
+  | "Slyborne"
+  | "Underborne"
+  | "Wanderborne"
+  | "Wildborne";
 
-/** Standard character classes from the core rules */
-export const CORE_CLASSES = ['Bard', 'Druid', 'Guardian', 'Ranger', 'Rogue', 'Seraph', 'Sorcerer', 'Warrior', 'Wizard'] as const;
+///////////////////////////
+// Enhanced Game State   //
+///////////////////////////
 
-/** Standard domains from the core rules */
-export const CORE_DOMAINS = ['Arcana', 'Blade', 'Bone', 'Codex', 'Grace', 'Midnight', 'Sage', 'Splendor', 'Valor'] as const;
+export type ConditionType =
+  | "Afraid"
+  | "Angry"
+  | "Blinded"
+  | "Cloaked"
+  | "Confused"
+  | "Dazed"
+  | "Distracted"
+  | "Hidden"
+  | "Immobilized"
+  | "Poisoned"
+  | "Restrained"
+  | "Stunned"
+  | "Vulnerable"
+  | "Wounded";
 
-/** Standard ancestries from the core rules */
-export const CORE_ANCESTRIES = ['Clank', 'Drakona', 'Dwarf', 'Elf', 'Faerie', 'Faun', 'Firbolg', 'Fungril', 'Galapa', 'Giant', 'Goblin', 'Halfling', 'Human', 'Infernis', 'Katari', 'Orc', 'Ribbet', 'Simiah'] as const;
-
-/** Standard communities from the core rules */
-export const CORE_COMMUNITIES = ['Highborne', 'Loreborne', 'Orderborne', 'Ridgeborne', 'Seaborne', 'Slyborne', 'Underborne', 'Wanderborne', 'Wildborne'] as const;
-
-// ============================================================================
-// HERITAGE SYSTEM
-// ============================================================================
-
-/** Character ancestry with its two features */
-export interface Ancestry {
-  name: AncestryName;
-  description: string;
-  firstFeature: AncestryFeature;
-  secondFeature: AncestryFeature;
+export interface Condition {
+  type: ConditionType;
+  duration?: "temporary" | "session" | "permanent" | "until_cleared";
+  source?: string;
+  effect?: string;
+  data?: Record<string, unknown>;
 }
 
-/** Individual ancestry feature */
-export interface AncestryFeature {
+export type ActionType =
+  | "Major Action"
+  | "Minor Action"
+  | "Reaction"
+  | "Free Action";
+
+export interface ActionEconomy {
+  majorActionsUsed: number;
+  minorActionsUsed: number;
+  reactionsUsed: number;
+  canAct: boolean;
+}
+
+///////////////////////////
+// Death & Mortality     //
+///////////////////////////
+
+export type DeathMoveType =
+  | "Last Words"
+  | "Inspiring Sacrifice"
+  | "Unfinished Business"
+  | "Moment of Clarity"
+  | "Final Strike"
+  | "Protective Instinct";
+
+export interface DeathMove {
+  type: DeathMoveType;
+  description: string;
+  mechanicalEffect?: string;
+  narrativeOutcome?: string;
+  affectedCharacters?: string[];
+  data?: Record<string, unknown>;
+}
+
+export interface MortalityState {
+  lastHitPointMarked: boolean;
+  deathMoveUsed?: DeathMove;
+  dying: boolean;
+  stabilized: boolean;
+  resurrectionCount: number;
+}
+
+///////////////////////////
+// Character Advancement //
+///////////////////////////
+
+export type AdvancementType =
+  | "trait_bonus"
+  | "hit_point_slot"
+  | "stress_slot"
+  | "experience_bonus"
+  | "domain_card"
+  | "evasion_bonus"
+  | "subclass_card"
+  | "proficiency_increase"
+  | "multiclass";
+
+export interface AdvancementChoice {
+  type: AdvancementType;
+  description: string;
+  taken: boolean;
+  level: Level;
+  tier: Tier;
+  requirements?: string[];
+  data?: Record<string, unknown>;
+}
+
+export interface MulticlassInfo {
+  isMulticlassed: boolean;
+  primaryClass: ClassName;
+  secondaryClass?: ClassName;
+  primarySubclass: SubclassName;
+  secondarySubclass?: SubclassName;
+  levelsSplit?: { primary: number; secondary: number };
+}
+
+///////////////////////////
+// Enhanced Equipment    //
+///////////////////////////
+
+export type WeaponCategory = "Primary" | "Secondary";
+export type WeaponFeatureType =
+  | "Reliable" | "Heavy" | "Light" | "Reach" | "Thrown"
+  | "Quick" | "Paired" | "Protective" | "Flexible" | "Brutal";
+
+export interface WeaponFeature {
+  name: string;
+  type: WeaponFeatureType;
+  description: string;
+  mechanicalEffect?: string;
+  trigger?: string;
+  cost?: string;
+}
+
+export interface Weapon {
+  id: string;
+  name: string;
+  category: WeaponCategory;
+  trait: TraitName | "Spellcast";
+  range: RangeBand;
+  damageDie: string;
+  damageType: DamageType;
+  burden: "One-Handed" | "Two-Handed";
+  features: WeaponFeature[];
+  tags?: string[];
+  data?: Record<string, unknown>;
+}
+
+export interface ArmorFeature {
   name: string;
   description: string;
-  /** Feature position - affects mixed ancestry combinations */
-  position?: 'top' | 'bottom';
-  /** Feature type for design guidance */
-  featureType?: 'movement' | 'reaction_bonus' | 'roll_manipulation' | 'communication' | 'hp_stress' | 'hope_generation' | 'damage_mitigation' | 'downtime' | 'attack' | 'defense' | 'evasion' | 'flight' | 'stress_management' | 'information' | 'reroll' | 'social';
+  mechanicalEffect?: string;
+  penalty?: string;
 }
 
-/** Character community with its feature */
-export interface Community {
-  name: CommunityName;
-  description: string;
-  feature: CommunityFeature;
-  /** Whether this is a core community or homebrew/setting-specific */
-  isCore?: boolean;
-  /** Setting or campaign frame this community belongs to */
-  setting?: string;
-  /** Community type for design guidance */
-  communityType?: 'location_based' | 'ideal_based' | 'circumstance_based';
+export interface Armor {
+  id: string;
+  name: string;
+  baseMajorThreshold: number;
+  baseSevereThreshold: number;
+  baseArmorScore: number;
+  features: ArmorFeature[];
+  tags?: string[];
+  data?: Record<string, unknown>;
 }
 
-/** Community feature */
-export interface CommunityFeature {
+export type ConsumableType =
+  | "Health Potion" | "Stamina Potion" | "Antidote"
+  | "Scroll" | "Bomb" | "Food" | "Other";
+
+export interface Consumable {
+  id: string;
+  name: string;
+  type: ConsumableType;
+  effect: string;
+  useAction: ActionType;
+  quantity: number;
+  tags?: string[];
+  data?: Record<string, unknown>;
+}
+
+///////////////////////////
+// Domain Cards Enhanced //
+///////////////////////////
+
+export type DomainCardType = "ability" | "spell" | "grimoire";
+
+export interface DomainCardUsage {
+  usesPerSession?: number;
+  usesPerRest?: number;
+  currentUses: number;
+  unlimited: boolean;
+}
+
+export interface DomainCard {
+  id: string;
+  level: Level;
+  domain: DomainName;
+  type: DomainCardType;
+  title: string;
+  recallCost: number;
+  text: string;
+  usage?: DomainCardUsage;
+  inVault: boolean;
+  tags?: string[];
+  data?: Record<string, unknown>;
+}
+
+export interface Loadout {
+  active: string[]; // up to 5 domain card ids
+  vault: string[]; // all other acquired domain card ids
+}
+
+///////////////////////////
+// Resources Enhanced    //
+///////////////////////////
+
+export interface HitPoints {
+  maxSlots: number;
+  marked: number;
+  temporaryBonus: number;
+}
+
+export interface StressTrack {
+  maxSlots: number;
+  marked: number;
+  temporaryBonus: number;
+}
+
+export interface ArmorState {
+  majorThreshold: number;
+  severeThreshold: number;
+  armorScore: number;
+  markedSlots: number;
+  temporaryBonus: number;
+}
+
+export interface HopeState {
+  current: number;
+  maximum: number;
+  sessionGenerated: number;
+}
+
+export interface FearState {
+  current: number;
+  sessionGenerated: number;
+  effects: string[];
+}
+
+///////////////////////////
+// Class Meters Enhanced //
+///////////////////////////
+
+export interface RallyState {
+  die: "d6" | "d8" | "d10" | "d12";
+  distributed: boolean;
+  sessionUsed: boolean;
+}
+
+export interface UnstoppableState {
+  die?: "d4" | "d6";
+  value?: number;
+  active: boolean;
+  generatedThisSession: number;
+}
+
+export interface PrayerDiceState {
+  dice: number[];
+  maxStored: number;
+  generatedThisSession: number;
+}
+
+export interface SlayerDiceState {
+  pool: number[];
+  max: number;
+  usedThisSession: number;
+}
+
+export interface ClassMeters {
+  rally?: RallyState;
+  unstoppable?: UnstoppableState;
+  prayerDice?: PrayerDiceState;
+  slayer?: SlayerDiceState;
+  data?: Record<string, unknown>;
+}
+
+///////////////////////////
+// Session & Dynamic State //
+///////////////////////////
+
+export interface SessionState {
+  sessionNumber: number;
+  startDate: Date;
+  endDate?: Date;
+  restsTaken: number;
+  majorMilestones: string[];
+  notes?: string;
+}
+
+export interface TemporaryEffect {
+  id: string;
   name: string;
   description: string;
+  duration: "round" | "scene" | "session" | "rest" | "permanent";
+  remainingDuration?: number;
+  source: string;
+  mechanicalEffect?: string;
+  tags?: string[];
 }
 
-/** Complete heritage (ancestry + community) */
-export interface Heritage {
-  ancestry: Ancestry;
-  community: Community;
-  /** True if this is a mixed ancestry (features from two different ancestries) */
-  isMixedAncestry?: boolean;
-  mixedAncestrySource?: {
-    firstFeatureFrom: AncestryName;
-    secondFeatureFrom: AncestryName;
+export interface DynamicState {
+  currentSession: SessionState;
+  conditions: Condition[];
+  temporaryEffects: TemporaryEffect[];
+  actionEconomy: ActionEconomy;
+  lastRollResult?: {
+    type: string;
+    total: number;
+    hopeGenerated: number;
+    fearGenerated: number;
+    timestamp: Date;
   };
 }
 
-// ============================================================================
-// CLASS SYSTEM
-// ============================================================================
+///////////////////////////
+// Core Character Types  //
+///////////////////////////
 
-/** Character class definition */
-export interface CharacterClass {
-  name: string; // Flexible string to allow homebrew classes
-  description: string;
-  domains: [string, string]; // Each class has exactly 2 domains (flexible strings)
-  startingEvasion: number;
-  startingHitPoints: number;
-  classFeatures: ClassFeature[];
-  hopeFeature: ClassFeature; // Special feature that costs 3 Hope
-  startingEquipment: string[];
+export type Traits = Record<TraitName, TraitValue>;
+
+export interface Experience {
+  id: string;
+  name: string;
+  modifier: number;
+  timesUsed: number;
+  notes?: string;
+  data?: Record<string, unknown>;
 }
 
-/** Class feature */
+export interface FeatureRef {
+  name: string;
+  text: string;
+  tags?: string[];
+  data?: Record<string, unknown>;
+}
+
+export interface Heritage {
+  ancestry: AncestryName;
+  ancestryFeatures: FeatureRef[];
+  community: CommunityName;
+  communityFeature: FeatureRef;
+  notes?: string;
+  data?: Record<string, unknown>;
+}
+
 export interface ClassFeature {
   name: string;
-  description: string;
-  level: number;
-  type: string; // Flexible to allow custom feature types
+  text: string;
+  actionType?: ActionType;
+  cost?: string;
+  trigger?: string;
 }
 
-/** Subclass definition */
+export interface HopeFeature {
+  name: string;
+  cost: number;
+  text: string;
+  timesUsed: number;
+}
+
 export interface Subclass {
-  name: string;
-  parentClass: string; // Flexible string to allow homebrew classes
-  description: string;
-  spellcastTrait: string; // Flexible string to allow custom traits
-  foundationFeature: ClassFeature;
-  specializationFeature: ClassFeature;
-  masteryFeature: ClassFeature;
+  name: SubclassName;
+  spellcastTrait?: TraitName;
+  foundation: FeatureRef;
+  specialization?: FeatureRef;
+  mastery?: FeatureRef;
 }
 
-// ============================================================================
-// DOMAIN SYSTEM
-// ============================================================================
-
-/** Domain card definition */
-export interface DomainCard {
-  name: string;
-  domain: string; // Flexible string to allow homebrew domains
-  level: number; // Flexible number for any level system
-  type: string; // Flexible string to allow custom card types
-  recallCost: number; // Cost in Stress to swap from vault to loadout
-  description: string;
-  features: DomainCardFeature[];
-  /** Recall cost guidelines from Homebrew Kit */
-  recallCostGuidance?: {
-    reasoning: 'basic' | 'powerful' | 'grimoire' | 'vault_tax' | 'high_level';
-    notes?: string;
-  };
-  /** Loadout bonus - level 7 cards that provide bonuses for domain focus */
-  loadoutBonus?: {
-    minimumCards: number; // Usually 4
-    bonusType: string;
-    bonusDescription: string;
-  };
+export interface ClassKit {
+  className: ClassName;
+  startingEvasion: number;
+  startingHP: number;
+  classItems: string[];
+  classFeature: ClassFeature;
+  classHopeFeature: HopeFeature;
+  subclasses: Subclass[];
+  domains: DomainName[];
 }
 
-/** Individual feature on a domain card */
-export interface DomainCardFeature {
-  name?: string;
-  description: string;
-  usageLimit?: UsageLimit;
-  /** Token system for tracking usage or effects */
-  tokenSystem?: {
-    maxTokens: number;
-    currentTokens: number;
-    tokenSource: 'trait' | 'tier' | 'level' | 'proficiency' | 'roll' | 'fixed';
-    tokenSourceValue?: string; // e.g., 'Agility', '1-4', 'Spellcast Roll'
-    spendCondition?: string;
-    removeCondition?: string;
-  };
-  /** Whether this card can be placed in vault (temporarily or permanently) */
-  vaultPlacement?: {
-    canPlace: boolean;
-    permanent?: boolean; // If true, can only be used once per campaign
-    reason?: string;
-  };
+export interface Gold {
+  handfuls: number;
+  bags: number;
+  chests: number;
 }
 
-/** Usage limit for domain card features */
-export interface UsageLimit {
-  uses: number;
-  reset: string; // Flexible string to allow custom reset conditions
-  description?: string;
-}
-
-// ============================================================================
-// EQUIPMENT SYSTEM
-// ============================================================================
-
-/** Weapon tiers (flexible number for any tier system) */
-export type WeaponTier = number;
-
-/** Armor tiers (flexible number for any tier system) */
-export type ArmorTier = number;
-
-/** Standard weapon tiers from core rules */
-export const STANDARD_WEAPON_TIERS = [1, 2, 3, 4, 5] as const;
-
-/** Standard armor tiers from core rules */
-export const STANDARD_ARMOR_TIERS = [1, 2, 3, 4, 5] as const;
-
-/** Weapon definition */
-export interface Weapon {
-  name: string;
-  tier: WeaponTier;
-  damageDie: string; // e.g., "d6+1", "2d4"
-  properties: string[];
-  isOneHanded: boolean;
-  isTwoHanded: boolean;
-  description?: string;
-}
-
-/** Armor definition */
-export interface Armor {
-  name: string;
-  tier: ArmorTier;
-  baseScore: number;
-  baseThresholds: {
-    minor: number;
-    major: number;
-  };
-  properties: string[];
-  description?: string;
-}
-
-/** Generic equipment item */
 export interface Equipment {
+  activeWeapons: {
+    primary?: Weapon | null;
+    secondary?: Weapon | null;
+  };
+  inventoryWeapons: Weapon[];
+  activeArmor?: Armor | null;
+  inventory: InventoryItem[];
+  consumables: Consumable[];
+}
+
+export interface InventoryItem {
+  id: string;
   name: string;
-  type: string; // Flexible string to allow custom equipment types
-  description: string;
-  properties?: string[];
   quantity?: number;
-}
-
-// ============================================================================
-// EXPERIENCE SYSTEM
-// ============================================================================
-
-/** Character experience - skills/backgrounds that provide bonuses */
-export interface Experience {
-  name: string;
-  modifier: number; // Usually +2 at character creation
   description?: string;
+  tags?: string[];
+  data?: Record<string, unknown>;
 }
 
-// ============================================================================
-// CHARACTER CONNECTIONS
-// ============================================================================
+export interface Background {
+  notes?: string;
+  questions?: { question: string; answer: string }[];
+  bonds?: string[];
+  ideals?: string[];
+  flaws?: string[];
+  secrets?: string[];
+}
 
-/** Character connection to another PC */
 export interface Connection {
-  targetCharacterName: string;
-  question: string;
-  answer: string;
+  pcId: string;
+  pcName: string;
+  description: string;
+  strength: "weak" | "moderate" | "strong";
+  type: "friendly" | "romantic" | "rival" | "family" | "professional" | "mysterious";
+  notes?: string;
 }
 
-// ============================================================================
-// MAIN CHARACTER INTERFACE
-// ============================================================================
+///////////////////////////
+// Main Character Interface //
+///////////////////////////
 
-/** Complete Daggerheart character */
-export interface DaggerheartCharacter {
-  // ===== BASIC INFORMATION =====
+export interface PlayerCharacter {
+  // Core Identity
+  id: string;
   name: string;
   pronouns?: string;
   description?: string;
-  level: number; // 1-10
 
-  // ===== HERITAGE =====
+  // Core Stats
+  level: Level;
+  tier: Tier;
+  evasion: number;
+  proficiency: number;
+
+  // Character Building
+  traits: Traits;
+  experiences: Experience[];
+  domains: {
+    deck: Record<string, DomainCard>;
+    loadout: Loadout;
+  };
+
+  // Heritage & Class
   heritage: Heritage;
-
-  // ===== CLASS & SUBCLASS =====
-  class: CharacterClass;
+  classKit: ClassKit;
   subclass: Subclass;
+  multiclass?: MulticlassInfo;
 
-  // ===== TRAITS =====
-  /** Core trait modifiers - flexible to handle any custom trait system */
-  traits: Record<string, TraitModifier>;
-
-  // ===== DERIVED STATS =====
-  hitPoints: {
-    current: number;
-    maximum: number;
-  };
-  evasion: number;
-  stress: {
-    current: number; // Number of stress marked (0-6)
-    maximum: number; // Usually 6
-  };
-  hope: number; // Current Hope tokens
-  proficiency: number; // Usually equal to level
-
-  // ===== DAMAGE THRESHOLDS =====
-  damageThresholds: {
-    minor: number; // Base threshold + level
-    major: number; // Base threshold + level
-  };
-  armorScore: number;
-
-  // ===== EQUIPMENT =====
-  activeWeapon: {
-    primary?: Weapon;
-    secondary?: Weapon; // For one-handed weapons
-  };
-  activeArmor: Armor;
-  inventory: Equipment[];
-  gold: {
-    handfuls: number; // Each handful represents a unit of wealth
+  // Resources
+  resources: {
+    hp: HitPoints;
+    stress: StressTrack;
+    armor: ArmorState;
+    hope: HopeState;
+    fear?: FearState;
+    classMeters?: ClassMeters;
+    gold?: Gold;
   };
 
-  // ===== DOMAIN CARDS =====
-  /** Active domain cards (max 5) */
-  loadout: DomainCard[];
-  /** Inactive domain cards */
-  vault: DomainCard[];
+  // Equipment
+  equipment: Equipment;
 
-  // ===== EXPERIENCES =====
-  experiences: Experience[];
-
-  // ===== BACKGROUND =====
-  background?: {
-    description: string;
-    questions: Array<{
-      question: string;
-      answer: string;
-    }>;
-  };
-
-  // ===== CONNECTIONS =====
-  connections: Connection[];
-
-  // ===== OPTIONAL FEATURES =====
-  /** For Rangers and other classes with companions */
-  companion?: Companion;
-
-  // ===== NOTES =====
-  notes?: string;
-  characterDescription?: string;
-}
-
-// ============================================================================
-// COMPANION SYSTEM (for Rangers, etc.)
-// ============================================================================
-
-/** Animal companion or similar */
-export interface Companion {
-  name: string;
-  type: string; // e.g., "Wolf", "Eagle", "Bear"
-  description?: string;
-  evasion: number;
-  experiences: Experience[];
-  attack: {
-    name: string;
-    damageDie: string;
-    description: string;
-  };
-  notes?: string;
-}
-
-// ============================================================================
-// CHARACTER CREATION HELPERS
-// ============================================================================
-
-/** Helper interface for character creation process */
-export interface CharacterCreationData {
-  // Step 1: Class selection
-  selectedClass?: string;
-  selectedSubclass?: string;
-
-  // Step 2: Heritage selection
-  selectedAncestry?: string;
-  selectedCommunity?: string;
-  isMixedAncestry?: boolean;
-
-  // Step 3: Trait assignment (flexible for any trait system)
-  traitAssignments?: Record<string, TraitModifier>;
-
-  // Step 5: Equipment selection
-  selectedPrimaryWeapon?: string;
-  selectedSecondaryWeapon?: string;
-  selectedArmor?: string;
-  selectedClassItem?: string;
-  selectedPotion?: string; // Flexible string for any potion type
-
-  // Step 6: Background
-  backgroundAnswers?: Array<{
-    question: string;
-    answer: string;
-  }>;
-
-  // Step 7: Experiences
-  selectedExperiences?: Array<{
-    name: string;
-    modifier: number;
-  }>;
-
-  // Step 8: Domain cards
-  selectedDomainCards?: string[];
-
-  // Step 9: Connections
+  // Narrative
+  background?: Background;
   connections?: Connection[];
+
+  // Advancement
+  advancement: {
+    availableChoices: AdvancementChoice[];
+    choicesMade: AdvancementChoice[];
+    experiencePoints?: number;
+    milestones: string[];
+  };
+
+  // Mortality
+  mortality: MortalityState;
+
+  // Dynamic State
+  dynamicState: DynamicState;
+
+  // Extensibility
+  tags?: string[];
+  data?: Record<string, unknown>;
 }
 
-// ============================================================================
-// VALIDATION HELPERS
-// ============================================================================
+///////////////////////////
+// Default Values        //
+///////////////////////////
 
-/** Validation result for character creation */
-export interface CharacterValidation {
-  isValid: boolean;
-  errors: string[];
-  warnings: string[];
+export const DEFAULT_TRAIT_DISTRIBUTION = [2, 1, 1, 0, 0, -1] as const;
+
+export const DEFAULT_TRAITS: Traits = {
+  Agility: 0,
+  Strength: 0,
+  Finesse: 0,
+  Instinct: 0,
+  Presence: 0,
+  Knowledge: 0,
+} as const;
+
+export const DEFAULT_HIT_POINTS: HitPoints = {
+  maxSlots: 0,
+  marked: 0,
+  temporaryBonus: 0,
+} as const;
+
+export const DEFAULT_STRESS: StressTrack = {
+  maxSlots: 6,
+  marked: 0,
+  temporaryBonus: 0,
+} as const;
+
+export const DEFAULT_ARMOR_STATE: ArmorState = {
+  majorThreshold: 0,
+  severeThreshold: 0,
+  armorScore: 0,
+  markedSlots: 0,
+  temporaryBonus: 0,
+} as const;
+
+export const DEFAULT_HOPE_STATE: HopeState = {
+  current: 2,
+  maximum: 6,
+  sessionGenerated: 0,
+} as const;
+
+export const DEFAULT_FEAR_STATE: FearState = {
+  current: 0,
+  sessionGenerated: 0,
+  effects: [],
+} as const;
+
+export const DEFAULT_MORTALITY_STATE: MortalityState = {
+  lastHitPointMarked: false,
+  dying: false,
+  stabilized: false,
+  resurrectionCount: 0,
+} as const;
+
+export const DEFAULT_ACTION_ECONOMY: ActionEconomy = {
+  majorActionsUsed: 0,
+  minorActionsUsed: 0,
+  reactionsUsed: 0,
+  canAct: true,
+} as const;
+
+///////////////////////////
+// Builder Functions     //
+///////////////////////////
+
+export function deriveTier(level: Level): Tier {
+  if (level === 1) return 1;
+  if (level <= 4) return 2;
+  if (level <= 7) return 3;
+  return 4;
 }
 
-// ============================================================================
-// EXPORT UTILITY TYPES & STARTER CONFIGURATIONS
-// ============================================================================
+export function calculateEvasion(
+  character: PlayerCharacter,
+  includeTemporary: boolean = true
+): number {
+  let evasion = character.evasion;
 
-/** Standard class-domain combinations from the core rules */
-export const STANDARD_CLASS_DOMAINS = {
-  'Bard': ['Codex', 'Grace'],
-  'Druid': ['Arcana', 'Sage'],
-  'Guardian': ['Blade', 'Valor'],
-  'Ranger': ['Bone', 'Sage'],
-  'Rogue': ['Grace', 'Midnight'],
-  'Seraph': ['Splendor', 'Valor'],
-  'Sorcerer': ['Arcana', 'Midnight'],
-  'Warrior': ['Blade', 'Bone'],
-  'Wizard': ['Codex', 'Splendor']
-} as const;
+  if (character.equipment.activeArmor?.features) {
+    // Apply armor evasion modifiers
+    character.equipment.activeArmor.features.forEach(feature => {
+      if (feature.name.includes("Flexible")) evasion += 1;
+      if (feature.name.includes("Heavy")) evasion -= 1;
+    });
+  }
 
-/** Starting values for new characters */
-export const CHARACTER_DEFAULTS = {
-  level: 1,
-  startingStressSlots: 6,
-  startingHope: 2,
-  maxLoadoutSize: 5,
-  startingProficiency: 1,
-  startingExperienceModifier: 2,
-  numberOfStartingExperiences: 2,
-  numberOfStartingDomainCards: 2
-} as const;
+  if (includeTemporary && character.dynamicState.temporaryEffects) {
+    // Apply temporary evasion bonuses
+    character.dynamicState.temporaryEffects.forEach(effect => {
+      if (effect.mechanicalEffect?.includes("evasion")) {
+        // Parse evasion bonus from effect
+        const match = effect.mechanicalEffect.match(/([+-]\d+) evasion/i);
+        if (match) evasion += parseInt(match[1]);
+      }
+    });
+  }
 
-// ============================================================================
-// HOMEBREW DESIGN GUIDELINES (from Homebrew Kit)
-// ============================================================================
+  return evasion;
+}
 
-/** Recall cost guidelines from the Homebrew Kit */
-export const RECALL_COST_GUIDELINES = {
-  BASIC: { cost: 0, description: 'Cards intended to be easily usable' },
-  MODERATE: { cost: 1, description: 'Standard utility cards' },
-  POWERFUL: { cost: 2, description: 'More specific or powerful cards' },
-  HIGH_LEVEL: { cost: 3, description: 'Most powerful, higher-level cards' },
-  EXCEPTIONAL: { cost: 4, description: 'Exceptional power or complexity' }
-} as const;
+export function canUseDeathMove(character: PlayerCharacter): boolean {
+  return character.mortality.lastHitPointMarked &&
+    !character.mortality.deathMoveUsed &&
+    !character.mortality.dying;
+}
 
-/** Top Feature types from Homebrew Kit design guidance */
-export const TOP_FEATURE_TYPES = [
-  'experience_bonus',      // Bonuses to experience (clank's "Purposeful Design")
-  'movement',             // Special movement or terrain navigation
-  'reaction_bonus',       // Bonuses on reaction rolls
-  'roll_manipulation',    // Manipulating rolls or roll results
-  'communication',        // Communication or connection to others
-  'hp_stress_bonus',      // Additional HP or Stress slots
-  'hope_generation',      // Gaining Hope
-  'damage_mitigation'     // Damage mitigation and healing
-] as const;
+export function hasAdvancementChoice(
+  character: PlayerCharacter,
+  level: Level
+): boolean {
+  return character.advancement.availableChoices.some(
+    choice => choice.level === level && !choice.taken
+  );
+}
 
-/** Bottom Feature types from Homebrew Kit design guidance */
-export const BOTTOM_FEATURE_TYPES = [
-  'downtime_benefit',     // Downtime move benefits
-  'innate_attack',        // Innate attack capabilities
-  'specialty_defense',    // Specialty defenses
-  'evasion_manipulation', // Evasion manipulation
-  'flight',              // Flight capability
-  'stress_management',    // Stress management
-  'information_gathering', // Information gathering
-  'rerolls',             // Re-rolls
-  'social_bonus'         // Social bonuses
-] as const;
+export function getDomainCardsInLoadout(character: PlayerCharacter): DomainCard[] {
+  return character.domains.loadout.active
+    .map(id => character.domains.deck[id])
+    .filter(Boolean);
+}
 
-/** Community feature types from Homebrew Kit */
-export const COMMUNITY_FEATURE_TYPES = [
-  'skill_advantage',      // Advantage on certain actions or situations
-  'world_interaction',    // Particular way of interacting with the world
-  'cultural_knowledge'    // Cultural practices and collective knowledge
-] as const;
+export function canRecallCard(
+  character: PlayerCharacter,
+  cardId: string
+): boolean {
+  const card = character.domains.deck[cardId];
+  if (!card || !card.inVault) return false;
 
-/** Domain card scaling options from Homebrew Kit */
-export const SCALING_MECHANICS = {
-  SMALL: { source: 'tier', range: '1-4', description: 'Small scale for powerful features' },
-  MEDIUM: { source: 'trait_or_proficiency', range: '1-6', description: 'Medium range scaling' },
-  LARGE: { source: 'level', range: '1-10', description: 'Full level range scaling' }
-} as const;
+  return character.resources.stress.marked >= card.recallCost;
+}

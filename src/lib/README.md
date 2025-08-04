@@ -1,231 +1,202 @@
-# Daggerheart Character Type System
+# Enhanced Daggerheart Character Model
 
-This directory contains flexible TypeScript interfaces and utilities for creating and validating Daggerheart characters based on the official SRD (System Reference Document). The system is designed to handle both standard SRD content and homebrew extensions.
+A comprehensive TypeScript implementation of Daggerheart characters that combines excellent SRD accuracy with missing critical mechanics like death moves, advancement systems, and dynamic state tracking.
 
-## Files Overview
+## Overview
 
-### `daggerheartCharacter.ts`
-The main type definitions file containing comprehensive TypeScript interfaces for:
+This enhanced model builds upon analysis of existing implementations to provide:
 
-- **Core Game Mechanics**: Flexible traits, classes, domains, ancestries, communities
-- **Heritage System**: Ancestry and community definitions with their features
-- **Class System**: Character classes, subclasses, and class features
-- **Domain System**: Domain cards with recall costs and usage limits
-- **Equipment System**: Weapons, armor, and general equipment with flexible tiers
-- **Character Interface**: Complete character definition with all required fields
-- **Standard Constants**: Default values from the SRD that can be customized
+- **Complete SRD Coverage**: All core mechanics from the official Daggerheart SRD
+- **Missing Critical Systems**: Death moves, advancement choices, dynamic state
+- **Strong Type Safety**: Comprehensive TypeScript interfaces with validation
+- **Extensibility**: Homebrew-friendly design with clear extension points
+- **Real Gameplay Support**: Session tracking, conditions, temporary effects
 
-### `daggerheartValidation.ts`
-Validation utilities and helper functions:
+## Files
 
-- **Flexible Character Validation**: Ensures characters follow rules (customizable)
-- **Trait Assignment Validation**: Verifies modifier distribution (customizable)
-- **Domain Validation**: Checks domain cards match class restrictions
-- **Experience Validation**: Validates experience appropriateness
-- **Helper Functions**: Stat calculation, domain lookups, creation utilities
+### Core Model (`daggerheartCharacter.ts`)
+- **Complete Character Interface**: All aspects of a Daggerheart character
+- **Enhanced Equipment**: Structured weapon/armor features with mechanical effects
+- **Dynamic State Tracking**: Conditions, temporary effects, action economy
+- **Death & Mortality**: Death moves and character mortality mechanics
+- **Character Advancement**: Level-up choices and multiclassing support
+- **Session Management**: Session state, rest tracking, resource management
 
-### `exampleCharacter.ts`
-Working example demonstrating:
+### Validation System (`daggerheartValidation.ts`)
+- **Flexible Validation**: Customizable rules for different campaign styles
+- **SRD Compliance**: Strict validation against official rules
+- **Homebrew Support**: Relaxed validation for custom content
+- **Comprehensive Checks**: Characters, equipment, advancement, resources
+- **Custom Rules**: Framework for adding campaign-specific validation
 
-- Complete character creation process
-- Proper type usage with flexible system
-- Validation in action
-- Best practices for character data structure
+### Example Character (`exampleCharacter.ts`)
+- **Complete Demo**: "Elara Moonwhisper" - fully realized character
+- **All Systems**: Demonstrates every aspect of the enhanced model
+- **Best Practices**: Proper usage patterns and data structures
+- **Validation Example**: Shows validation in action
 
-## Key Features
+## Key Enhancements Over Previous Models
 
-### ✅ Flexible & Homebrew-Friendly
-All types are designed to handle extensions beyond the SRD:
-- **Trait modifiers**: Any number (-∞ to +∞), not just standard -1 to +2
-- **Classes & Domains**: Extendable strings, not limited enums
-- **Equipment Tiers**: Any number, not just 1-5
-- **Custom Content**: Easy to add homebrew ancestries, classes, domains, etc.
+### 🆕 Death & Mortality System
+```typescript
+interface MortalityState {
+  lastHitPointMarked: boolean;
+  deathMoveUsed?: DeathMove;
+  dying: boolean;
+  stabilized: boolean;
+  resurrectionCount: number;
+}
 
-### ✅ Standard SRD Defaults
-While flexible, the system provides all standard SRD values:
-- **STANDARD_TRAIT_MODIFIERS**: [2, 1, 1, 0, 0, -1] for character creation
-- **STANDARD_CLASS_DOMAINS**: Core class-domain combinations
-- **CHARACTER_DEFAULTS**: Starting values (level 1, 6 stress, 2 Hope, etc.)
-- **Core Constants**: Standard classes, domains, ancestries, communities
+type DeathMoveType = 
+  | "Last Words" | "Inspiring Sacrifice" 
+  | "Unfinished Business" | "Final Strike"
+  // ... more death move types
+```
 
-### ✅ Type Safety with Flexibility
-- Strict TypeScript interfaces prevent invalid combinations
-- Flexible string types allow custom content
-- Comprehensive validation functions with customizable rules
-- Optional validation - use as much or as little as needed
+### 🆕 Character Advancement
+```typescript
+interface AdvancementChoice {
+  type: AdvancementType;
+  description: string;
+  taken: boolean;
+  level: Level;
+  tier: Tier;
+  requirements?: string[];
+}
+```
 
-### ✅ Character Creation Support
-- Step-by-step creation process support
-- Validation at each creation step with customizable rules
-- Helper functions for stat calculation
-- Error reporting with specific guidance
+### 🆕 Dynamic State Tracking
+```typescript
+interface DynamicState {
+  currentSession: SessionState;
+  conditions: Condition[];
+  temporaryEffects: TemporaryEffect[];
+  actionEconomy: ActionEconomy;
+  lastRollResult?: RollResult;
+}
+```
+
+### 🆕 Enhanced Equipment
+```typescript
+interface WeaponFeature {
+  name: string;
+  type: WeaponFeatureType;
+  description: string;
+  mechanicalEffect?: string;
+  trigger?: string;
+  cost?: string;
+}
+```
+
+### 🆕 Resource Management
+```typescript
+interface HopeState {
+  current: number;
+  maximum: number;
+  sessionGenerated: number;
+}
+
+interface FearState {
+  current: number;
+  sessionGenerated: number;
+  effects: string[];
+}
+```
+
+## Comparison with External Model
+
+### What We Kept ✅
+- Excellent SRD accuracy and type coverage
+- Strong TypeScript patterns and unions
+- Good extensibility with data/tags fields
+- Class-specific meters (Rally, Prayer Dice, etc.)
+- Comprehensive trait and domain systems
+
+### What We Enhanced 🚀
+- **Death Moves**: Complete mortality system
+- **Advancement**: Level-up choices and multiclassing
+- **Dynamic State**: Conditions, temporary effects, action economy
+- **Equipment**: Structured features with mechanical effects
+- **Resources**: Enhanced tracking with temporary bonuses
+- **Session Management**: Complete session and rest tracking
+- **Validation**: Flexible validation with multiple modes
+
+### What We Added 🆕
+- Fear system mechanics
+- Consumable items system
+- Enhanced social/narrative systems
+- Real-time state management
+- Campaign integration support
 
 ## Usage Examples
 
-### Creating a Flexible Character
+### Creating a Character
 ```typescript
-import { DaggerheartCharacter } from './daggerheartCharacter';
-import { validateCharacter } from './daggerheartValidation';
+import { PlayerCharacter, deriveTier } from './daggerheartCharacter';
 
-// Create character with any traits/classes (not limited to SRD)
-const character: DaggerheartCharacter = {
-  name: 'Custom Character',
+const character: PlayerCharacter = {
+  id: "char-001",
+  name: "Adventurer",
   level: 1,
-  heritage: {
-    ancestry: { name: 'Homebrew Ancestry', /* ... */ },
-    community: { name: 'Custom Community', /* ... */ }
-  },
-  class: { name: 'Homebrew Class', domains: ['Custom Domain', 'Another Domain'], /* ... */ },
-  traits: {
-    'Custom Trait': 5,      // Any number allowed
-    'Another Trait': -3,    // Negative values ok
-    'Magic Power': 10       // High values for epic campaigns
-  },
-  // ... other fields
+  tier: deriveTier(1),
+  // ... complete character definition
 };
-
-// Validate with custom rules or skip validation entirely
-const validation = validateCharacter(character);
 ```
 
-### Using Standard SRD Values
+### Validation
 ```typescript
-import { STANDARD_TRAIT_MODIFIERS, STANDARD_CLASS_DOMAINS } from './daggerheartCharacter';
-import { validateTraitAssignment } from './daggerheartValidation';
+import { validateCharacter, getSRDCompliance } from './daggerheartValidation';
 
-// Use standard SRD trait distribution
-const traits = {
-  'Presence': 2, 'Knowledge': 1, 'Finesse': 1,
-  'Agility': 0, 'Instinct': 0, 'Strength': -1
-};
+// Standard validation
+const result = validateCharacter(character);
 
-// Validate against standard rules
-const validation = validateTraitAssignment(traits, STANDARD_TRAIT_MODIFIERS);
+// Strict SRD compliance
+const srdResult = getSRDCompliance(character);
 
-// Get standard class domains
-const bardDomains = STANDARD_CLASS_DOMAINS['Bard']; // ['Codex', 'Grace']
+// Homebrew-friendly validation
+const homebrewResult = getHomebrewFriendlyValidation(character);
 ```
 
-### Custom Validation Rules
+### Dynamic State Management
 ```typescript
-import { validateTraitAssignment, validateDomainCards } from './daggerheartValidation';
+// Add a condition
+character.dynamicState.conditions.push({
+  type: "Distracted",
+  duration: "temporary", 
+  source: "Mocking Taunt"
+});
 
-// Custom trait distribution for high-power campaign
-const customTraits = { 'Strength': 5, 'Magic': 8, 'Luck': 3 };
-const customModifiers = [8, 5, 3]; // High-power modifiers
-
-const validation = validateTraitAssignment(customTraits, customModifiers);
-
-// Custom class-domain mapping for homebrew
-const homebrewDomains = {
-  'Technomancer': ['Arcane', 'Technology'],
-  'Voidwalker': ['Shadow', 'Space']
-};
-
-const domainValidation = validateDomainCards('Technomancer', ['Arcane'], homebrewDomains);
+// Track action economy
+character.dynamicState.actionEconomy.majorActionsUsed = 1;
 ```
 
-## Flexibility Examples
-
-### Trait System
+### Death Moves
 ```typescript
-// Standard SRD traits
-const standardTraits = {
-  'Agility': 2, 'Strength': 1, 'Finesse': 1,
-  'Instinct': 0, 'Presence': 0, 'Knowledge': -1
-};
+import { canUseDeathMove } from './daggerheartCharacter';
 
-// Homebrew traits with any names/values
-const homebrewTraits = {
-  'Cybernetics': 8,
-  'Psionics': 5,
-  'Social Media Influence': 12,
-  'Quantum Physics': -2
-};
-
-// Epic campaign traits
-const epicTraits = {
-  'Divine Power': 25,
-  'Cosmic Awareness': 18,
-  'Reality Manipulation': 30
-};
+if (canUseDeathMove(character)) {
+  character.mortality.deathMoveUsed = {
+    type: "Inspiring Sacrifice",
+    description: "Rally allies with final words",
+    mechanicalEffect: "All allies gain 2 Hope"
+  };
+}
 ```
 
-### Equipment System
-```typescript
-// Standard weapons (tier 1-5)
-const standardSword: Weapon = {
-  name: 'Longsword',
-  tier: 3,
-  damageDie: 'd8+2',
-  // ...
-};
+## Integration Ready
 
-// Homebrew legendary weapons
-const cosmicSword: Weapon = {
-  name: 'Sword of Stars',
-  tier: 15,           // Any tier number
-  damageDie: '3d12+10',
-  // ...
-};
-```
+This enhanced model is built for integration with React applications and provides clear patterns for:
 
-### Classes and Domains
-```typescript
-// Standard class
-const standardBard: CharacterClass = {
-  name: 'Bard',
-  domains: ['Codex', 'Grace'], // Standard domains
-  // ...
-};
+- Character creation wizards
+- Character sheet interfaces  
+- Session management systems
+- Campaign tools
+- Homebrew content creation
 
-// Homebrew class
-const technoMage: CharacterClass = {
-  name: 'Technomancer',
-  domains: ['Cybernetics', 'Digital Magic'], // Custom domains
-  // ...
-};
-```
+## License & Attribution
 
-## Character Creation Rules (Customizable)
+This enhanced model builds upon analysis of external AI-generated code while adding significant original enhancements. Compatible with Daggerheart SRD design principles.
 
-### Default SRD Rules
-- **Trait Assignment**: +2, +1, +1, +0, +0, -1 distribution
-- **Starting Level**: 1
-- **Starting Equipment**: Based on class
-- **Domain Cards**: 2 level-1 cards from class domains
-- **Experiences**: 2 at +2 modifier each
+---
 
-### Customization Options
-- Override any validation rule
-- Use custom trait distributions
-- Allow any equipment tier
-- Create homebrew classes/domains/ancestries
-- Set custom starting values
-- Skip validation entirely for narrative games
-
-## Integration and Migration
-
-### From rpgModels.ts
-The old `rpgModels.ts` has been replaced with this more flexible system:
-- More accurate to Daggerheart SRD
-- Supports homebrew content
-- Better type safety with flexibility
-- Easier to extend and customize
-
-### Extension Points
-- Add homebrew content by extending string types
-- Create custom validation rules
-- Implement character sheet generators
-- Build character creation wizards
-- Add campaign-specific modifications
-
-## Example Character
-
-See `exampleCharacter.ts` for "Elara Moonwhisper", a complete, valid character demonstrating:
-- Standard SRD character creation
-- Proper type usage
-- Validation patterns
-- Flexible trait system usage
-
-The example passes all standard validations while demonstrating the system's flexibility for future extensions.
+*Enhanced Daggerheart Character Model - Complete, Accurate, Extensible*
