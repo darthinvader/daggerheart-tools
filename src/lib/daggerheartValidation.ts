@@ -1,24 +1,22 @@
 /**
  * Enhanced Daggerheart Validation System
- * 
+ *
  * Provides comprehensive validation for Daggerheart characters with customizable rules.
  * Combines strict SRD compliance with flexibility for homebrew content.
  */
-
 import type {
-  PlayerCharacter,
-  TraitValue,
-  Level,
-  Tier,
   ClassName,
   DomainName,
   Equipment,
+  Level,
+  PlayerCharacter,
+  Tier,
+  TraitValue,
 } from './daggerheartCharacter';
-
 import {
   DEFAULT_TRAIT_DISTRIBUTION,
-  deriveTier,
   canUseDeathMove,
+  deriveTier,
   hasAdvancementChoice,
 } from './daggerheartCharacter';
 
@@ -52,19 +50,28 @@ export interface ValidationRule {
 ///////////////////////////
 
 export const STANDARD_CLASS_DOMAINS: Record<ClassName, DomainName[]> = {
-  Bard: ["Codex", "Grace"],
-  Druid: ["Arcana", "Sage"],
-  Guardian: ["Splendor", "Valor"],
-  Ranger: ["Bone", "Sage"],
-  Rogue: ["Midnight", "Blade"],
-  Seraph: ["Grace", "Splendor"],
-  Sorcerer: ["Arcana", "Midnight"],
-  Warrior: ["Blade", "Bone"],
-  Wizard: ["Codex", "Arcana"],
+  Bard: ['Codex', 'Grace'],
+  Druid: ['Arcana', 'Sage'],
+  Guardian: ['Splendor', 'Valor'],
+  Ranger: ['Bone', 'Sage'],
+  Rogue: ['Midnight', 'Blade'],
+  Seraph: ['Grace', 'Splendor'],
+  Sorcerer: ['Arcana', 'Midnight'],
+  Warrior: ['Blade', 'Bone'],
+  Wizard: ['Codex', 'Arcana'],
 };
 
 export const LEVEL_PROFICIENCY_MAP: Record<Level, number> = {
-  1: 1, 2: 2, 3: 2, 4: 3, 5: 3, 6: 4, 7: 4, 8: 5, 9: 5, 10: 6
+  1: 1,
+  2: 2,
+  3: 2,
+  4: 3,
+  5: 3,
+  6: 4,
+  7: 4,
+  8: 5,
+  9: 5,
+  10: 6,
 };
 
 export const TIER_LEVEL_RANGES: Record<Tier, Level[]> = {
@@ -126,7 +133,9 @@ export function validateTraitAssignment(
   return result;
 }
 
-export function validateCharacterLevel(character: PlayerCharacter): ValidationResult {
+export function validateCharacterLevel(
+  character: PlayerCharacter
+): ValidationResult {
   const result: ValidationResult = {
     valid: true,
     errors: [],
@@ -177,7 +186,7 @@ export function validateDomainAccess(
       result.valid = false;
       result.errors.push(
         `Class ${characterClass} cannot access domains: ${invalidDomains.join(', ')}. ` +
-        `Valid domains: ${standardDomains.join(', ')}`
+          `Valid domains: ${standardDomains.join(', ')}`
       );
     }
   }
@@ -185,7 +194,9 @@ export function validateDomainAccess(
   return result;
 }
 
-export function validateDomainCards(character: PlayerCharacter): ValidationResult {
+export function validateDomainCards(
+  character: PlayerCharacter
+): ValidationResult {
   const result: ValidationResult = {
     valid: true,
     errors: [],
@@ -203,7 +214,7 @@ export function validateDomainCards(character: PlayerCharacter): ValidationResul
       result.valid = false;
       result.errors.push(
         `Character has access to card "${card.title}" from domain "${card.domain}" ` +
-        `but class ${classKit.className} only has access to: ${classKit.domains.join(', ')}`
+          `but class ${classKit.className} only has access to: ${classKit.domains.join(', ')}`
       );
     }
 
@@ -247,21 +258,21 @@ export function validateEquipment(equipment: Equipment): ValidationResult {
   const primary = equipment.activeWeapons.primary;
   const secondary = equipment.activeWeapons.secondary;
 
-  if (primary?.burden === "Two-Handed" && secondary) {
+  if (primary?.burden === 'Two-Handed' && secondary) {
     result.valid = false;
     result.errors.push(
-      "Cannot equip secondary weapon when primary weapon is two-handed"
+      'Cannot equip secondary weapon when primary weapon is two-handed'
     );
   }
 
   // Validate weapon categories
-  if (primary && primary.category !== "Primary") {
+  if (primary && primary.category !== 'Primary') {
     result.warnings.push(
       `Primary weapon "${primary.name}" has category "${primary.category}"`
     );
   }
 
-  if (secondary && secondary.category !== "Secondary") {
+  if (secondary && secondary.category !== 'Secondary') {
     result.warnings.push(
       `Secondary weapon "${secondary.name}" has category "${secondary.category}"`
     );
@@ -271,14 +282,16 @@ export function validateEquipment(equipment: Equipment): ValidationResult {
   if (equipment.inventoryWeapons.length > 2) {
     result.warnings.push(
       `Character has ${equipment.inventoryWeapons.length} inventory weapons ` +
-      `(SRD recommends maximum 2)`
+        `(SRD recommends maximum 2)`
     );
   }
 
   return result;
 }
 
-export function validateMortality(character: PlayerCharacter): ValidationResult {
+export function validateMortality(
+  character: PlayerCharacter
+): ValidationResult {
   const result: ValidationResult = {
     valid: true,
     errors: [],
@@ -292,27 +305,31 @@ export function validateMortality(character: PlayerCharacter): ValidationResult 
   // Validate death state consistency
   if (mortality.dying && !mortality.lastHitPointMarked) {
     result.valid = false;
-    result.errors.push("Character is dying but last hit point not marked");
+    result.errors.push('Character is dying but last hit point not marked');
   }
 
   if (mortality.stabilized && !mortality.dying) {
-    result.warnings.push("Character is stabilized but not marked as dying");
+    result.warnings.push('Character is stabilized but not marked as dying');
   }
 
   if (hp.marked >= hp.maxSlots && !mortality.lastHitPointMarked) {
     result.valid = false;
-    result.errors.push("All hit points marked but character not at death's door");
+    result.errors.push(
+      "All hit points marked but character not at death's door"
+    );
   }
 
   // Validate death move availability
   if (canUseDeathMove(character)) {
-    result.info.push("Character can use a death move");
+    result.info.push('Character can use a death move');
   }
 
   return result;
 }
 
-export function validateAdvancement(character: PlayerCharacter): ValidationResult {
+export function validateAdvancement(
+  character: PlayerCharacter
+): ValidationResult {
   const result: ValidationResult = {
     valid: true,
     errors: [],
@@ -325,7 +342,9 @@ export function validateAdvancement(character: PlayerCharacter): ValidationResul
 
   // Check for available advancement choices
   if (hasAdvancementChoice(character, level)) {
-    result.info.push(`Character has unused advancement choices for level ${level}`);
+    result.info.push(
+      `Character has unused advancement choices for level ${level}`
+    );
   }
 
   // Validate advancement choice consistency
@@ -334,7 +353,7 @@ export function validateAdvancement(character: PlayerCharacter): ValidationResul
       result.valid = false;
       result.errors.push(
         `Advancement choice "${choice.description}" is for level ${choice.level} ` +
-        `but character is only level ${level}`
+          `but character is only level ${level}`
       );
     }
 
@@ -349,14 +368,16 @@ export function validateAdvancement(character: PlayerCharacter): ValidationResul
   if (character.multiclass?.isMulticlassed) {
     if (level < 5) {
       result.valid = false;
-      result.errors.push("Multiclassing not available until level 5");
+      result.errors.push('Multiclassing not available until level 5');
     }
   }
 
   return result;
 }
 
-export function validateResources(character: PlayerCharacter): ValidationResult {
+export function validateResources(
+  character: PlayerCharacter
+): ValidationResult {
   const result: ValidationResult = {
     valid: true,
     errors: [],
@@ -400,7 +421,7 @@ export function validateResources(character: PlayerCharacter): ValidationResult 
 
   if (resources.hope.current < 0) {
     result.valid = false;
-    result.errors.push("Hope cannot be negative");
+    result.errors.push('Hope cannot be negative');
   }
 
   return result;
@@ -418,7 +439,13 @@ export function validateCharacter(
 
   // Core validations
   results.push(validateCharacterLevel(character));
-  results.push(validateTraitAssignment(character.traits, DEFAULT_TRAIT_DISTRIBUTION, options));
+  results.push(
+    validateTraitAssignment(
+      character.traits,
+      DEFAULT_TRAIT_DISTRIBUTION,
+      options
+    )
+  );
   results.push(validateDomainCards(character));
   results.push(validateEquipment(character.equipment));
   results.push(validateResources(character));
@@ -426,11 +453,13 @@ export function validateCharacter(
   results.push(validateAdvancement(character));
 
   // Domain access validation
-  results.push(validateDomainAccess(
-    character.classKit.className,
-    character.classKit.domains,
-    options.allowHomebrew
-  ));
+  results.push(
+    validateDomainAccess(
+      character.classKit.className,
+      character.classKit.domains,
+      options.allowHomebrew
+    )
+  );
 
   // Custom rules
   if (options.customRules) {
@@ -478,7 +507,9 @@ export function getSRDCompliance(character: PlayerCharacter): ValidationResult {
   });
 }
 
-export function getHomebrewFriendlyValidation(character: PlayerCharacter): ValidationResult {
+export function getHomebrewFriendlyValidation(
+  character: PlayerCharacter
+): ValidationResult {
   return validateCharacter(character, {
     strict: false,
     allowHomebrew: true,

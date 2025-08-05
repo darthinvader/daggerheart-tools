@@ -1,31 +1,25 @@
 /**
  * Validation Utilities and Factory Functions
- * 
+ *
  * Provides validation, character creation, and utility functions
  * for both SRD-compliant and homebrew character management.
- * 
+ *
  * @author Proper Software Architecture Team
  */
-
 import { z } from 'zod';
-import {
-  TraitsSchema,
-  SRDTraitsSchema
-} from './core';
+
+import { PlayerCharacterSchema, SRDPlayerCharacterSchema } from './character';
+import type { PlayerCharacter } from './character';
+import { SRDTraitsSchema, TraitsSchema } from './core';
 import type {
-  Traits,
-  TraitName,
+  AncestryName,
+  ClassName,
+  CommunityName,
   Level,
   Tier,
-  AncestryName,
-  CommunityName,
-  ClassName
+  TraitName,
+  Traits,
 } from './core';
-import {
-  PlayerCharacterSchema,
-  SRDPlayerCharacterSchema
-} from './character';
-import type { PlayerCharacter } from './character';
 
 ///////////////////////////
 // Validation Utilities  //
@@ -34,19 +28,25 @@ import type { PlayerCharacter } from './character';
 export class CharacterValidator {
   static validate(
     character: unknown
-  ): { success: true; data: PlayerCharacter } | { success: false; error: z.ZodError } {
+  ):
+    | { success: true; data: PlayerCharacter }
+    | { success: false; error: z.ZodError } {
     return PlayerCharacterSchema.safeParse(character);
   }
 
   static validateSRD(
     character: unknown
-  ): { success: true; data: PlayerCharacter } | { success: false; error: z.ZodError } {
+  ):
+    | { success: true; data: PlayerCharacter }
+    | { success: false; error: z.ZodError } {
     return SRDPlayerCharacterSchema.safeParse(character);
   }
 
   static validatePartial(
     character: unknown
-  ): { success: true; data: Partial<PlayerCharacter> } | { success: false; error: z.ZodError } {
+  ):
+    | { success: true; data: Partial<PlayerCharacter> }
+    | { success: false; error: z.ZodError } {
     return PlayerCharacterSchema.partial().safeParse(character);
   }
 
@@ -55,8 +55,8 @@ export class CharacterValidator {
     const result = schema.safeParse(character);
     if (result.success) return [];
 
-    return result.error.issues.map(issue =>
-      `${issue.path.join('.')}: ${issue.message}`
+    return result.error.issues.map(
+      issue => `${issue.path.join('.')}: ${issue.message}`
     );
   }
 }
@@ -68,18 +68,27 @@ export class CharacterValidator {
 export class CharacterFactory {
   static createDefaultTraits(): Traits {
     return TraitsSchema.parse({
-      Agility: 0, Strength: 0, Finesse: 0,
-      Instinct: 0, Presence: 0, Knowledge: 0
+      Agility: 0,
+      Strength: 0,
+      Finesse: 0,
+      Instinct: 0,
+      Presence: 0,
+      Knowledge: 0,
     });
   }
 
   static createSRDTraits(
     distribution: [number, number, number, number, number, number]
   ): Traits {
-    const [agility, strength, finesse, instinct, presence, knowledge] = distribution;
+    const [agility, strength, finesse, instinct, presence, knowledge] =
+      distribution;
     return SRDTraitsSchema.parse({
-      Agility: agility, Strength: strength, Finesse: finesse,
-      Instinct: instinct, Presence: presence, Knowledge: knowledge
+      Agility: agility,
+      Strength: strength,
+      Finesse: finesse,
+      Instinct: instinct,
+      Presence: presence,
+      Knowledge: knowledge,
     });
   }
 
@@ -96,7 +105,15 @@ export class CharacterFactory {
     traits?: Traits;
     homebrewMode?: boolean;
   }): PlayerCharacter {
-    const { name, level, ancestry, community, className, traits, homebrewMode = false } = params;
+    const {
+      name,
+      level,
+      ancestry,
+      community,
+      className,
+      traits,
+      homebrewMode = false,
+    } = params;
 
     const tier = CharacterUtilities.deriveTier(level);
 
@@ -117,7 +134,7 @@ export class CharacterFactory {
       conditions: [],
       temporaryEffects: [],
       homebrewMode,
-      rulesVersion: homebrewMode ? "Homebrew" : "SRD-1.0"
+      rulesVersion: homebrewMode ? 'Homebrew' : 'SRD-1.0',
     });
   }
 
@@ -135,13 +152,13 @@ export class CharacterFactory {
     return PlayerCharacterSchema.parse({
       id: crypto.randomUUID(),
       homebrewMode: true,
-      rulesVersion: "Homebrew",
+      rulesVersion: 'Homebrew',
       hitPoints: { maxSlots: 20, marked: 0, temporaryBonus: 0 },
       stress: { maxSlots: 6, marked: 0, temporaryBonus: 0 },
       hope: { current: 2, maximum: 6, sessionGenerated: 0 },
       conditions: [],
       temporaryEffects: [],
-      ...params
+      ...params,
     });
   }
 }
@@ -164,8 +181,8 @@ export class CharacterUtilities {
     if (character.armor) {
       // Apply armor modifiers
       for (const feature of character.armor.features) {
-        if (feature === "Flexible") evasion += 1;
-        if (feature === "Heavy") evasion -= 1;
+        if (feature === 'Flexible') evasion += 1;
+        if (feature === 'Heavy') evasion -= 1;
       }
     }
 

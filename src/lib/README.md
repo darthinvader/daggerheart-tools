@@ -15,6 +15,7 @@ This enhanced model builds upon analysis of existing implementations to provide:
 ## Files
 
 ### Core Model (`daggerheartCharacter.ts`)
+
 - **Complete Character Interface**: All aspects of a Daggerheart character
 - **Enhanced Equipment**: Structured weapon/armor features with mechanical effects
 - **Dynamic State Tracking**: Conditions, temporary effects, action economy
@@ -23,6 +24,7 @@ This enhanced model builds upon analysis of existing implementations to provide:
 - **Session Management**: Session state, rest tracking, resource management
 
 ### Validation System (`daggerheartValidation.ts`)
+
 - **Flexible Validation**: Customizable rules for different campaign styles
 - **SRD Compliance**: Strict validation against official rules
 - **Homebrew Support**: Relaxed validation for custom content
@@ -30,6 +32,7 @@ This enhanced model builds upon analysis of existing implementations to provide:
 - **Custom Rules**: Framework for adding campaign-specific validation
 
 ### Example Character (`exampleCharacter.ts`)
+
 - **Complete Demo**: "Elara Moonwhisper" - fully realized character
 - **All Systems**: Demonstrates every aspect of the enhanced model
 - **Best Practices**: Proper usage patterns and data structures
@@ -38,6 +41,7 @@ This enhanced model builds upon analysis of existing implementations to provide:
 ## Key Enhancements Over Previous Models
 
 ### 🆕 Death & Mortality System
+
 ```typescript
 interface MortalityState {
   lastHitPointMarked: boolean;
@@ -47,13 +51,16 @@ interface MortalityState {
   resurrectionCount: number;
 }
 
-type DeathMoveType = 
-  | "Last Words" | "Inspiring Sacrifice" 
-  | "Unfinished Business" | "Final Strike"
-  // ... more death move types
+type DeathMoveType =
+  | 'Last Words'
+  | 'Inspiring Sacrifice'
+  | 'Unfinished Business'
+  | 'Final Strike';
+// ... more death move types
 ```
 
 ### 🆕 Character Advancement
+
 ```typescript
 interface AdvancementChoice {
   type: AdvancementType;
@@ -66,6 +73,7 @@ interface AdvancementChoice {
 ```
 
 ### 🆕 Dynamic State Tracking
+
 ```typescript
 interface DynamicState {
   currentSession: SessionState;
@@ -77,6 +85,7 @@ interface DynamicState {
 ```
 
 ### 🆕 Enhanced Equipment
+
 ```typescript
 interface WeaponFeature {
   name: string;
@@ -89,6 +98,7 @@ interface WeaponFeature {
 ```
 
 ### 🆕 Resource Management
+
 ```typescript
 interface HopeState {
   current: number;
@@ -106,6 +116,7 @@ interface FearState {
 ## Comparison with External Model
 
 ### What We Kept ✅
+
 - Excellent SRD accuracy and type coverage
 - Strong TypeScript patterns and unions
 - Good extensibility with data/tags fields
@@ -113,6 +124,7 @@ interface FearState {
 - Comprehensive trait and domain systems
 
 ### What We Enhanced 🚀
+
 - **Death Moves**: Complete mortality system
 - **Advancement**: Level-up choices and multiclassing
 - **Dynamic State**: Conditions, temporary effects, action economy
@@ -122,6 +134,7 @@ interface FearState {
 - **Validation**: Flexible validation with multiple modes
 
 ### What We Added 🆕
+
 - Fear system mechanics
 - Consumable items system
 - Enhanced social/narrative systems
@@ -131,12 +144,13 @@ interface FearState {
 ## Usage Examples
 
 ### Creating a Character
+
 ```typescript
 import { PlayerCharacter, deriveTier } from './daggerheartCharacter';
 
 const character: PlayerCharacter = {
-  id: "char-001",
-  name: "Adventurer",
+  id: 'char-001',
+  name: 'Adventurer',
   level: 1,
   tier: deriveTier(1),
   // ... complete character definition
@@ -144,8 +158,9 @@ const character: PlayerCharacter = {
 ```
 
 ### Validation
+
 ```typescript
-import { validateCharacter, getSRDCompliance } from './daggerheartValidation';
+import { getSRDCompliance, validateCharacter } from './daggerheartValidation';
 
 // Standard validation
 const result = validateCharacter(character);
@@ -158,12 +173,13 @@ const homebrewResult = getHomebrewFriendlyValidation(character);
 ```
 
 ### Dynamic State Management
+
 ```typescript
 // Add a condition
 character.dynamicState.conditions.push({
-  type: "Distracted",
-  duration: "temporary", 
-  source: "Mocking Taunt"
+  type: 'Distracted',
+  duration: 'temporary',
+  source: 'Mocking Taunt',
 });
 
 // Track action economy
@@ -171,14 +187,15 @@ character.dynamicState.actionEconomy.majorActionsUsed = 1;
 ```
 
 ### Death Moves
+
 ```typescript
 import { canUseDeathMove } from './daggerheartCharacter';
 
 if (canUseDeathMove(character)) {
   character.mortality.deathMoveUsed = {
-    type: "Inspiring Sacrifice",
-    description: "Rally allies with final words",
-    mechanicalEffect: "All allies gain 2 Hope"
+    type: 'Inspiring Sacrifice',
+    description: 'Rally allies with final words',
+    mechanicalEffect: 'All allies gain 2 Hope',
   };
 }
 ```
@@ -188,7 +205,7 @@ if (canUseDeathMove(character)) {
 This enhanced model is built for integration with React applications and provides clear patterns for:
 
 - Character creation wizards
-- Character sheet interfaces  
+- Character sheet interfaces
 - Session management systems
 - Campaign tools
 - Homebrew content creation
@@ -199,4 +216,4 @@ This enhanced model builds upon analysis of external AI-generated code while add
 
 ---
 
-*Enhanced Daggerheart Character Model - Complete, Accurate, Extensible*
+_Enhanced Daggerheart Character Model - Complete, Accurate, Extensible_

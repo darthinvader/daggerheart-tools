@@ -1,18 +1,14 @@
 /**
  * Equipment and Inventory Schemas
- * 
+ *
  * Handles weapons, armor, consumables, and general inventory items
  * with support for homebrew content and extensible features.
- * 
+ *
  * @author Proper Software Architecture Team
  */
-
 import { z } from 'zod';
-import {
-  TraitNameSchema,
-  RangeBandSchema,
-  DamageTypeSchema
-} from './core';
+
+import { DamageTypeSchema, RangeBandSchema, TraitNameSchema } from './core';
 
 ///////////////////////////
 // Equipment Schemas     //
@@ -21,12 +17,12 @@ import {
 export const WeaponSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
-  trait: z.union([TraitNameSchema, z.literal("Spellcast")]),
+  trait: z.union([TraitNameSchema, z.literal('Spellcast')]),
   range: RangeBandSchema,
   damageDie: z.string().regex(/^d\d+$/),
   damageType: DamageTypeSchema,
-  burden: z.enum(["One-Handed", "Two-Handed"]),
-  features: z.array(z.string())
+  burden: z.enum(['One-Handed', 'Two-Handed']),
+  features: z.array(z.string()),
 });
 
 export const ArmorSchema = z.object({
@@ -35,19 +31,24 @@ export const ArmorSchema = z.object({
   majorThreshold: z.number().min(0).int(),
   severeThreshold: z.number().min(0).int(),
   armorScore: z.number().min(0).int(),
-  features: z.array(z.string())
+  features: z.array(z.string()),
 });
 
 export const ConsumableSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
   type: z.enum([
-    "Health Potion", "Stamina Potion", "Antidote",
-    "Scroll", "Bomb", "Food", "Other"
+    'Health Potion',
+    'Stamina Potion',
+    'Antidote',
+    'Scroll',
+    'Bomb',
+    'Food',
+    'Other',
   ]),
   effect: z.string().min(1),
   quantity: z.number().min(0).int(),
-  tags: z.array(z.string()).optional()
+  tags: z.array(z.string()).optional(),
 });
 
 export const InventoryItemSchema = z.object({
@@ -56,7 +57,7 @@ export const InventoryItemSchema = z.object({
   quantity: z.number().min(0).int().optional(),
   description: z.string().optional(),
   tags: z.array(z.string()).optional(),
-  data: z.record(z.string(), z.unknown()).optional()
+  data: z.record(z.string(), z.unknown()).optional(),
 });
 
 ///////////////////////////

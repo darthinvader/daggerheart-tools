@@ -1,7 +1,9 @@
 ---
-applyTo: "**"
+applyTo: '**'
 ---
+
 # api
+
 ## TanStack Router: API
 
 # ActiveLinkOptions type
@@ -12,11 +14,11 @@ The `ActiveLinkOptions` type extends the [`LinkOptions`](../LinkOptionsType.md) 
 type ActiveLinkOptions = LinkOptions & {
   activeProps?:
     | React.AnchorHTMLAttributes<HTMLAnchorElement>
-    | (() => React.AnchorHTMLAttributes<HTMLAnchorElement>)
+    | (() => React.AnchorHTMLAttributes<HTMLAnchorElement>);
   inactiveProps?:
     | React.AnchorHTMLAttributes<HTMLAnchorElement>
-    | (() => React.AnchorHTMLAttributes<HTMLAnchorElement>)
-}
+    | (() => React.AnchorHTMLAttributes<HTMLAnchorElement>);
+};
 ```
 
 ## ActiveLinkOptions properties
@@ -41,8 +43,8 @@ The `AsyncRouteComponent` type is used to describe a code-split route component 
 
 ```tsx
 type AsyncRouteComponent<TProps> = SyncRouteComponent<TProps> & {
-  preload?: () => Promise<void>
-}
+  preload?: () => Promise<void>;
+};
 ```
 
 # FileRoute class
@@ -91,18 +93,18 @@ A [`Route`](../RouteType.md) instance that can be used to configure the route to
 ### Examples
 
 ```tsx
-import { FileRoute } from '@tanstack/react-router'
+import { FileRoute } from '@tanstack/react-router';
 
 export const Route = new FileRoute('/').createRoute({
   loader: () => {
-    return 'Hello World'
+    return 'Hello World';
   },
   component: IndexComponent,
-})
+});
 
 function IndexComponent() {
-  const data = Route.useLoaderData()
-  return <div>{data}</div>
+  const data = Route.useLoaderData();
+  return <div>{data}</div>;
 }
 ```
 
@@ -112,12 +114,12 @@ The `LinkOptions` type extends the [`NavigateOptions`](../NavigateOptionsType.md
 
 ```tsx
 type LinkOptions = NavigateOptions & {
-  target?: HTMLAnchorElement['target']
-  activeOptions?: ActiveOptions
-  preload?: false | 'intent'
-  preloadDelay?: number
-  disabled?: boolean
-}
+  target?: HTMLAnchorElement['target'];
+  activeOptions?: ActiveOptions;
+  preload?: false | 'intent';
+  preloadDelay?: number;
+  disabled?: boolean;
+};
 ```
 
 ## LinkOptions properties
@@ -164,8 +166,8 @@ type LinkProps = ActiveLinkOptions &
   Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'children'> & {
     children?:
       | React.ReactNode
-      | ((state: { isActive: boolean }) => React.ReactNode)
-  }
+      | ((state: { isActive: boolean }) => React.ReactNode);
+  };
 ```
 
 ## LinkProps properties
@@ -185,10 +187,10 @@ The `MatchRouteOptions` type is used to describe the options that can be used wh
 
 ```tsx
 interface MatchRouteOptions {
-  pending?: boolean
-  caseSensitive?: boolean
-  includeSearch?: boolean
-  fuzzy?: boolean
+  pending?: boolean;
+  caseSensitive?: boolean;
+  includeSearch?: boolean;
+  fuzzy?: boolean;
 }
 ```
 
@@ -226,14 +228,14 @@ The `NavigateOptions` type is used to describe the options that can be used when
 
 ```tsx
 type NavigateOptions = ToOptions & {
-  replace?: boolean
-  resetScroll?: boolean
-  hashScrollIntoView?: boolean | ScrollIntoViewOptions
-  viewTransition?: boolean | ViewTransitionOptions
-  ignoreBlocker?: boolean
-  reloadDocument?: boolean
-  href?: string
-}
+  replace?: boolean;
+  resetScroll?: boolean;
+  hashScrollIntoView?: boolean | ScrollIntoViewOptions;
+  viewTransition?: boolean | ViewTransitionOptions;
+  ignoreBlocker?: boolean;
+  reloadDocument?: boolean;
+  href?: string;
+};
 ```
 
 ## NavigateOptions properties
@@ -302,11 +304,11 @@ The `NotFoundError` type is used to represent a not-found error in TanStack Rout
 
 ```tsx
 export type NotFoundError = {
-  global?: boolean
-  data?: any
-  throw?: boolean
-  routeId?: string
-}
+  global?: boolean;
+  data?: any;
+  throw?: boolean;
+  routeId?: string;
+};
 ```
 
 ## NotFoundError properties
@@ -361,7 +363,7 @@ Omit<
   | 'caseSensitive'
   | 'parseParams'
   | 'stringifyParams'
->
+>;
 ```
 
 - [RouteOptions](../RouteOptionsType.md)
@@ -371,19 +373,20 @@ Omit<
 ## Examples
 
 ```tsx
-import { NotFoundRoute, createRouter } from '@tanstack/react-router'
-import { Route as rootRoute } from './routes/__root'
-import { routeTree } from './routeTree.gen'
+import { NotFoundRoute, createRouter } from '@tanstack/react-router';
+
+import { routeTree } from './routeTree.gen';
+import { Route as rootRoute } from './routes/__root';
 
 const notFoundRoute = new NotFoundRoute({
   getParentRoute: () => rootRoute,
   component: () => <div>Not found!!!</div>,
-})
+});
 
 const router = createRouter({
   routeTree,
   notFoundRoute,
-})
+});
 
 // ... other code
 ```
@@ -394,10 +397,10 @@ The `ParsedHistoryState` type represents a parsed state object. Additionally to 
 
 ```tsx
 export type ParsedHistoryState = HistoryState & {
-  key?: string // TODO: Remove in v2 - use __TSR_key instead
-  __TSR_key?: string
-  __TSR_index: number
-}
+  key?: string; // TODO: Remove in v2 - use __TSR_key instead
+  __TSR_key?: string;
+  __TSR_index: number;
+};
 ```
 
 # ParsedLocation type
@@ -406,14 +409,14 @@ The `ParsedLocation` type represents a parsed location in TanStack Router. It co
 
 ```tsx
 interface ParsedLocation {
-  href: string
-  pathname: string
-  search: TFullSearchSchema
-  searchStr: string
-  state: ParsedHistoryState
-  hash: string
-  maskedLocation?: ParsedLocation
-  unmaskOnReload?: boolean
+  href: string;
+  pathname: string;
+  search: TFullSearchSchema;
+  searchStr: string;
+  state: ParsedHistoryState;
+  hash: string;
+  maskedLocation?: ParsedLocation;
+  unmaskOnReload?: boolean;
 }
 ```
 
@@ -423,10 +426,10 @@ The `Redirect` type is used to represent a redirect action in TanStack Router.
 
 ```tsx
 export type Redirect = {
-  statusCode?: number
-  throw?: any
-  headers?: HeadersInit
-} & NavigateOptions
+  statusCode?: number;
+  throw?: any;
+  headers?: HeadersInit;
+} & NavigateOptions;
 ```
 
 - [`NavigateOptions`](../NavigateOptionsType.md)
@@ -469,7 +472,7 @@ This type is used to register a route tree with a router instance. Doing so unlo
 ```tsx
 export type Register = {
   // router: [Your router type here]
-}
+};
 ```
 
 To register a route tree with a router instance, use declaration merging to add the type of your router instance to the Register interface under the `router` property:
@@ -479,11 +482,11 @@ To register a route tree with a router instance, use declaration merging to add 
 ```tsx
 const router = createRouter({
   // ...
-})
+});
 
 declare module '@tanstack/react-router' {
   interface Register {
-    router: typeof router
+    router: typeof router;
   }
 }
 ```
@@ -515,7 +518,7 @@ Omit<
   | 'caseSensitive'
   | 'parseParams'
   | 'stringifyParams'
->
+>;
 ```
 
 - [`RouteOptions`](../RouteOptionsType.md)
@@ -528,20 +531,20 @@ A new [`Route`](../RouteType.md) instance.
 ## Examples
 
 ```tsx
-import { RootRoute, createRouter, Outlet } from '@tanstack/react-router'
+import { Outlet, RootRoute, createRouter } from '@tanstack/react-router';
 
 const rootRoute = new RootRoute({
   component: () => <Outlet />,
   // ... root route options
-})
+});
 
 const routeTree = rootRoute.addChildren([
   // ... other routes
-])
+]);
 
 const router = createRouter({
   routeTree,
-})
+});
 ```
 
 # RouteApi class
@@ -569,12 +572,12 @@ The `RouteApi` constructor accepts a single argument: the `options` that will be
 ## Examples
 
 ```tsx
-import { RouteApi } from '@tanstack/react-router'
+import { RouteApi } from '@tanstack/react-router';
 
-const routeApi = new RouteApi({ id: '/posts' })
+const routeApi = new RouteApi({ id: '/posts' });
 
 export function PostsPage() {
-  const posts = routeApi.useLoaderData()
+  const posts = routeApi.useLoaderData();
   // ...
 }
 ```
@@ -753,21 +756,22 @@ A new [`Route`](../RouteType.md) instance.
 ## Examples
 
 ```tsx
-import { Route } from '@tanstack/react-router'
-import { rootRoute } from './__root'
+import { Route } from '@tanstack/react-router';
+
+import { rootRoute } from './__root';
 
 const indexRoute = new Route({
   getParentRoute: () => rootRoute,
   path: '/',
   loader: () => {
-    return 'Hello World'
+    return 'Hello World';
   },
   component: IndexComponent,
-})
+});
 
 function IndexComponent() {
-  const data = indexRoute.useLoaderData()
-  return <div>{data}</div>
+  const data = indexRoute.useLoaderData();
+  return <div>{data}</div>;
 }
 ```
 
@@ -803,25 +807,25 @@ The `RouteMatch` type represents a route match in TanStack Router.
 
 ```tsx
 interface RouteMatch {
-  id: string
-  routeId: string
-  pathname: string
-  params: Route['allParams']
-  status: 'pending' | 'success' | 'error' | 'redirected' | 'notFound'
-  isFetching: false | 'beforeLoad' | 'loader'
-  showPending: boolean
-  error: unknown
-  paramsError: unknown
-  searchError: unknown
-  updatedAt: number
-  loadPromise?: Promise<void>
-  loaderData?: Route['loaderData']
-  context: Route['allContext']
-  search: Route['fullSearchSchema']
-  fetchedAt: number
-  abortController: AbortController
-  cause: 'enter' | 'stay'
-  ssr?: boolean | 'data-only'
+  id: string;
+  routeId: string;
+  pathname: string;
+  params: Route['allParams'];
+  status: 'pending' | 'success' | 'error' | 'redirected' | 'notFound';
+  isFetching: false | 'beforeLoad' | 'loader';
+  showPending: boolean;
+  error: unknown;
+  paramsError: unknown;
+  searchError: unknown;
+  updatedAt: number;
+  loadPromise?: Promise<void>;
+  loaderData?: Route['loaderData'];
+  context: Route['allContext'];
+  search: Route['fullSearchSchema'];
+  fetchedAt: number;
+  abortController: AbortController;
+  cause: 'enter' | 'stay';
+  ssr?: boolean | 'data-only';
 }
 ```
 
@@ -919,17 +923,17 @@ The `RouteOptions` type accepts an object with the following properties:
 ```tsx
 type beforeLoad = (
   opts: RouteMatch & {
-    search: TFullSearchSchema
-    abortController: AbortController
-    preload: boolean
-    params: TAllParams
-    context: TParentContext
-    location: ParsedLocation
-    navigate: NavigateFn<AnyRoute> // @deprecated
-    buildLocation: BuildLocationFn<AnyRoute>
-    cause: 'enter' | 'stay'
-  },
-) => Promise<TRouteContext> | TRouteContext | void
+    search: TFullSearchSchema;
+    abortController: AbortController;
+    preload: boolean;
+    params: TAllParams;
+    context: TParentContext;
+    location: ParsedLocation;
+    navigate: NavigateFn<AnyRoute>; // @deprecated
+    buildLocation: BuildLocationFn<AnyRoute>;
+    cause: 'enter' | 'stay';
+  }
+) => Promise<TRouteContext> | TRouteContext | void;
 ```
 
 - Optional
@@ -948,18 +952,18 @@ type beforeLoad = (
 ```tsx
 type loader = (
   opts: RouteMatch & {
-    abortController: AbortController
-    cause: 'preload' | 'enter' | 'stay'
-    context: TAllContext
-    deps: TLoaderDeps
-    location: ParsedLocation
-    params: TAllParams
-    preload: boolean
-    parentMatchPromise: Promise<MakeRouteMatchFromRoute<TParentRoute>>
-    navigate: NavigateFn<AnyRoute> // @deprecated
-    route: AnyRoute
-  },
-) => Promise<TLoaderData> | TLoaderData | void
+    abortController: AbortController;
+    cause: 'preload' | 'enter' | 'stay';
+    context: TAllContext;
+    deps: TLoaderDeps;
+    location: ParsedLocation;
+    params: TAllParams;
+    preload: boolean;
+    parentMatchPromise: Promise<MakeRouteMatchFromRoute<TParentRoute>>;
+    navigate: NavigateFn<AnyRoute>; // @deprecated
+    route: AnyRoute;
+  }
+) => Promise<TLoaderData> | TLoaderData | void;
 ```
 
 - Optional
@@ -976,7 +980,7 @@ type loader = (
 - Type:
 
 ```tsx
-type loaderDeps = (opts: { search: TFullSearchSchema }) => Record<string, any>
+type loaderDeps = (opts: { search: TFullSearchSchema }) => Record<string, any>;
 ```
 
 - Optional
@@ -1098,7 +1102,7 @@ type loaderDeps = (opts: { search: TFullSearchSchema }) => Record<string, any>
 - Type:
 
 ```tsx
-type remountDeps = (opts: RemountDepsOptions) => any
+type remountDeps = (opts: RemountDepsOptions) => any;
 
 interface RemountDepsOptions<
   in out TRouteId,
@@ -1106,10 +1110,10 @@ interface RemountDepsOptions<
   in out TAllParams,
   in out TLoaderDeps,
 > {
-  routeId: TRouteId
-  search: TFullSearchSchema
-  params: TAllParams
-  loaderDeps: TLoaderDeps
+  routeId: TRouteId;
+  search: TFullSearchSchema;
+  params: TAllParams;
+  loaderDeps: TLoaderDeps;
 }
 ```
 
@@ -1122,7 +1126,7 @@ Example:
 If you want to configure to remount a route component upon `params` change, use:
 
 ```tsx
-remountDeps: ({ params }) => params
+remountDeps: ({ params }) => params;
 ```
 
 ### `headers` method
@@ -1131,11 +1135,11 @@ remountDeps: ({ params }) => params
 
 ```tsx
 type headers = (opts: {
-  matches: Array<RouteMatch>
-  match: RouteMatch
-  params: TAllParams
-  loaderData?: TLoaderData
-}) => Promise<Record<string, string>> | Record<string, string>
+  matches: Array<RouteMatch>;
+  match: RouteMatch;
+  params: TAllParams;
+  loaderData?: TLoaderData;
+}) => Promise<Record<string, string>> | Record<string, string>;
 ```
 
 - Optional
@@ -1147,23 +1151,23 @@ type headers = (opts: {
 
 ```tsx
 type head = (ctx: {
-  matches: Array<RouteMatch>
-  match: RouteMatch
-  params: TAllParams
-  loaderData?: TLoaderData
+  matches: Array<RouteMatch>;
+  match: RouteMatch;
+  params: TAllParams;
+  loaderData?: TLoaderData;
 }) =>
   | Promise<{
-      links?: RouteMatch['links']
-      scripts?: RouteMatch['headScripts']
-      meta?: RouteMatch['meta']
-      styles?: RouteMatch['styles']
+      links?: RouteMatch['links'];
+      scripts?: RouteMatch['headScripts'];
+      meta?: RouteMatch['meta'];
+      styles?: RouteMatch['styles'];
     }>
   | {
-      links?: RouteMatch['links']
-      scripts?: RouteMatch['headScripts']
-      meta?: RouteMatch['meta']
-      styles?: RouteMatch['styles']
-    }
+      links?: RouteMatch['links'];
+      scripts?: RouteMatch['headScripts'];
+      meta?: RouteMatch['meta'];
+      styles?: RouteMatch['styles'];
+    };
 ```
 
 - Optional
@@ -1175,11 +1179,11 @@ type head = (ctx: {
 
 ```tsx
 type scripts = (ctx: {
-  matches: Array<RouteMatch>
-  match: RouteMatch
-  params: TAllParams
-  loaderData?: TLoaderData
-}) => Promise<RouteMatch['scripts']> | RouteMatch['scripts']
+  matches: Array<RouteMatch>;
+  match: RouteMatch;
+  params: TAllParams;
+  loaderData?: TLoaderData;
+}) => Promise<RouteMatch['scripts']> | RouteMatch['scripts'];
 ```
 
 - Optional
@@ -1245,16 +1249,17 @@ The `Router` constructor accepts a single argument: the `options` that will be u
 ## Examples
 
 ```tsx
-import { Router, RouterProvider } from '@tanstack/react-router'
-import { routeTree } from './routeTree.gen'
+import { Router, RouterProvider } from '@tanstack/react-router';
+
+import { routeTree } from './routeTree.gen';
 
 const router = new Router({
   routeTree,
   defaultPreload: 'intent',
-})
+});
 
 export default function App() {
-  return <RouterProvider router={router} />
+  return <RouterProvider router={router} />;
 }
 ```
 
@@ -1265,50 +1270,50 @@ The `RouterEvents` type contains all of the events that the router can emit. Eac
 ```tsx
 type RouterEvents = {
   onBeforeNavigate: {
-    type: 'onBeforeNavigate'
-    fromLocation?: ParsedLocation
-    toLocation: ParsedLocation
-    pathChanged: boolean
-    hrefChanged: boolean
-  }
+    type: 'onBeforeNavigate';
+    fromLocation?: ParsedLocation;
+    toLocation: ParsedLocation;
+    pathChanged: boolean;
+    hrefChanged: boolean;
+  };
   onBeforeLoad: {
-    type: 'onBeforeLoad'
-    fromLocation?: ParsedLocation
-    toLocation: ParsedLocation
-    pathChanged: boolean
-    hrefChanged: boolean
-  }
+    type: 'onBeforeLoad';
+    fromLocation?: ParsedLocation;
+    toLocation: ParsedLocation;
+    pathChanged: boolean;
+    hrefChanged: boolean;
+  };
   onLoad: {
-    type: 'onLoad'
-    fromLocation?: ParsedLocation
-    toLocation: ParsedLocation
-    pathChanged: boolean
-    hrefChanged: boolean
-  }
+    type: 'onLoad';
+    fromLocation?: ParsedLocation;
+    toLocation: ParsedLocation;
+    pathChanged: boolean;
+    hrefChanged: boolean;
+  };
   onResolved: {
-    type: 'onResolved'
-    fromLocation?: ParsedLocation
-    toLocation: ParsedLocation
-    pathChanged: boolean
-    hrefChanged: boolean
-  }
+    type: 'onResolved';
+    fromLocation?: ParsedLocation;
+    toLocation: ParsedLocation;
+    pathChanged: boolean;
+    hrefChanged: boolean;
+  };
   onBeforeRouteMount: {
-    type: 'onBeforeRouteMount'
-    fromLocation?: ParsedLocation
-    toLocation: ParsedLocation
-    pathChanged: boolean
-    hrefChanged: boolean
-  }
+    type: 'onBeforeRouteMount';
+    fromLocation?: ParsedLocation;
+    toLocation: ParsedLocation;
+    pathChanged: boolean;
+    hrefChanged: boolean;
+  };
   onInjectedHtml: {
-    type: 'onInjectedHtml'
-    promise: Promise<string>
-  }
+    type: 'onInjectedHtml';
+    promise: Promise<string>;
+  };
   onRendered: {
-    type: 'onRendered'
-    fromLocation?: ParsedLocation
-    toLocation: ParsedLocation
-  }
-}
+    type: 'onRendered';
+    fromLocation?: ParsedLocation;
+    toLocation: ParsedLocation;
+  };
+};
 ```
 
 ## RouterEvents properties
@@ -1344,14 +1349,15 @@ Once an event is emitted, the following properties will be present on the event 
 ## Example
 
 ```tsx
-import { createRouter } from '@tanstack/react-router'
-import { routeTree } from './routeTree.gen'
+import { createRouter } from '@tanstack/react-router';
 
-const router = createRouter({ routeTree })
+import { routeTree } from './routeTree.gen';
 
-const unsub = router.subscribe('onResolved', (evt) => {
+const router = createRouter({ routeTree });
+
+const unsub = router.subscribe('onResolved', evt => {
   // ...
-})
+});
 ```
 
 # RouterOptions
@@ -1647,7 +1653,7 @@ const router = createRouter({
 - Type:
 
 ```tsx
-type defaultRemountDeps = (opts: RemountDepsOptions) => any
+type defaultRemountDeps = (opts: RemountDepsOptions) => any;
 
 interface RemountDepsOptions<
   in out TRouteId,
@@ -1655,10 +1661,10 @@ interface RemountDepsOptions<
   in out TAllParams,
   in out TLoaderDeps,
 > {
-  routeId: TRouteId
-  search: TFullSearchSchema
-  params: TAllParams
-  loaderDeps: TLoaderDeps
+  routeId: TRouteId;
+  search: TFullSearchSchema;
+  params: TAllParams;
+  loaderDeps: TLoaderDeps;
 }
 ```
 
@@ -1671,7 +1677,7 @@ Example:
 If you want to configure to remount all route components upon `params` change, use:
 
 ```tsx
-remountDeps: ({ params }) => params
+remountDeps: ({ params }) => params;
 ```
 
 # RouterState type
@@ -1680,14 +1686,14 @@ The `RouterState` type represents shape of the internal state of the router. The
 
 ```tsx
 type RouterState = {
-  status: 'pending' | 'idle'
-  isLoading: boolean
-  isTransitioning: boolean
-  matches: Array<RouteMatch>
-  pendingMatches: Array<RouteMatch>
-  location: ParsedLocation
-  resolvedLocation: ParsedLocation
-}
+  status: 'pending' | 'idle';
+  isLoading: boolean;
+  isTransitioning: boolean;
+  matches: Array<RouteMatch>;
+  pendingMatches: Array<RouteMatch>;
+  location: ParsedLocation;
+  resolvedLocation: ParsedLocation;
+};
 ```
 
 ## RouterState properties
@@ -1819,12 +1825,12 @@ Commits a new location object to the browser history.
   ```tsx
   type commitLocation = (
     location: ParsedLocation & {
-      replace?: boolean
-      resetScroll?: boolean
-      hashScrollIntoView?: boolean | ScrollIntoViewOptions
-      ignoreBlocker?: boolean
-    },
-  ) => Promise<void>
+      replace?: boolean;
+      resetScroll?: boolean;
+      hashScrollIntoView?: boolean | ScrollIntoViewOptions;
+      ignoreBlocker?: boolean;
+    }
+  ) => Promise<void>;
   ```
 - Properties
   - `location`
@@ -1860,7 +1866,7 @@ Navigates to a new location.
 
 - Type
   ```tsx
-  type navigate = (options: NavigateOptions) => Promise<void>
+  type navigate = (options: NavigateOptions) => Promise<void>;
   ```
 
 ### `.invalidate` method
@@ -1957,8 +1963,8 @@ The `ToMaskOptions` type extends the [`ToOptions`](../ToOptionsType.md) type and
 
 ```tsx
 type ToMaskOptions = ToOptions & {
-  unmaskOnReload?: boolean
-}
+  unmaskOnReload?: boolean;
+};
 ```
 
 - [`ToOptions`](../ToOptionsType.md)
@@ -1969,20 +1975,20 @@ The `ToOptions` type contains several properties that can be used to describe a 
 
 ```tsx
 type ToOptions = {
-  from?: ValidRoutePath | string
-  to?: ValidRoutePath | string
-  hash?: true | string | ((prev?: string) => string)
-  state?: true | HistoryState | ((prev: HistoryState) => HistoryState)
+  from?: ValidRoutePath | string;
+  to?: ValidRoutePath | string;
+  hash?: true | string | ((prev?: string) => string);
+  state?: true | HistoryState | ((prev: HistoryState) => HistoryState);
 } & SearchParamOptions &
-  PathParamOptions
+  PathParamOptions;
 
 type SearchParamOptions = {
-  search?: true | TToSearch | ((prev: TFromSearch) => TToSearch)
-}
+  search?: true | TToSearch | ((prev: TFromSearch) => TToSearch);
+};
 
 type PathParamOptions = {
-  path?: true | Record<string, TPathParam> | ((prev: TFromParams) => TToParams)
-}
+  path?: true | Record<string, TPathParam> | ((prev: TFromParams) => TToParams);
+};
 ```
 
 # UseMatchRouteOptions type
@@ -1990,7 +1996,7 @@ type PathParamOptions = {
 The `UseMatchRouteOptions` type extends the [`ToOptions`](../ToOptionsType.md) type and describes additional options available when using the [`useMatchRoute`](../useMatchRouteHook.md) hook.
 
 ```tsx
-export type UseMatchRouteOptions = ToOptions & MatchRouteOptions
+export type UseMatchRouteOptions = ToOptions & MatchRouteOptions;
 ```
 
 - [`ToOptions`](../ToOptionsType.md)
@@ -2003,7 +2009,7 @@ The `ViewTransitionOptions` type is used to define a
 
 ```tsx
 interface ViewTransitionOptions {
-  types: Array<string>
+  types: Array<string>;
 }
 ```
 
@@ -2048,16 +2054,16 @@ The `Await` component accepts the following props:
 ## Examples
 
 ```tsx
-import { Await } from '@tanstack/react-router'
+import { Await } from '@tanstack/react-router';
 
 function Component() {
-  const { deferredPromise } = route.useLoaderData()
+  const { deferredPromise } = route.useLoaderData();
 
   return (
     <Await promise={deferredPromise}>
-      {(data) => <div>{JSON.stringify(data)}</div>}
+      {data => <div>{JSON.stringify(data)}</div>}
     </Await>
-  )
+  );
 }
 ```
 
@@ -2101,17 +2107,17 @@ The `CatchBoundary` component accepts the following props:
 ## Examples
 
 ```tsx
-import { CatchBoundary } from '@tanstack/react-router'
+import { CatchBoundary } from '@tanstack/react-router';
 
 function Component() {
   return (
     <CatchBoundary
       getResetKey={() => 'reset'}
-      onCatch={(error) => console.error(error)}
+      onCatch={error => console.error(error)}
     >
       <div>My Component</div>
     </CatchBoundary>
-  )
+  );
 }
 ```
 
@@ -2149,16 +2155,16 @@ The `CatchNotFound` component accepts the following props:
 ## Examples
 
 ```tsx
-import { CatchNotFound } from '@tanstack/react-router'
+import { CatchNotFound } from '@tanstack/react-router';
 
 function Component() {
   return (
     <CatchNotFound
-      fallback={(error) => <p>Not found error! {JSON.stringify(error)}</p>}
+      fallback={error => <p>Not found error! {JSON.stringify(error)}</p>}
     >
       <ComponentThatMightThrowANotFoundError />
     </CatchNotFound>
-  )
+  );
 }
 ```
 
@@ -2187,16 +2193,17 @@ The component to render if the JS is loaded in the client.
 
 ```tsx
 // src/routes/dashboard.tsx
-import { ClientOnly, createFileRoute } from '@tanstack/react-router'
+import { ClientOnly, createFileRoute } from '@tanstack/react-router';
+
 import {
   Charts,
   FallbackCharts,
-} from './charts-that-break-server-side-rendering'
+} from './charts-that-break-server-side-rendering';
 
 export const Route = createFileRoute('/dashboard')({
   component: Dashboard,
   // ... other route options
-})
+});
 
 function Dashboard() {
   return (
@@ -2206,7 +2213,7 @@ function Dashboard() {
         <Charts />
       </ClientOnly>
     </div>
-  )
+  );
 }
 ```
 
@@ -2233,18 +2240,18 @@ A new function that accepts a single argument of type [`RouteOptions`](../RouteO
 ## Examples
 
 ```tsx
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/')({
   loader: () => {
-    return 'Hello World'
+    return 'Hello World';
   },
   component: IndexComponent,
-})
+});
 
 function IndexComponent() {
-  const data = Route.useLoaderData()
-  return <div>{data}</div>
+  const data = Route.useLoaderData();
+  return <div>{data}</div>;
 }
 ```
 
@@ -2272,7 +2279,7 @@ A new function that accepts a single argument of partial of the type [`RouteOpti
 Pick<
   RouteOptions,
   'component' | 'pendingComponent' | 'errorComponent' | 'notFoundComponent'
->
+>;
 ```
 
 - [`RouteOptions`](../RouteOptionsType.md)
@@ -2282,15 +2289,15 @@ Pick<
 ### Examples
 
 ```tsx
-import { createLazyFileRoute } from '@tanstack/react-router'
+import { createLazyFileRoute } from '@tanstack/react-router';
 
 export const Route = createLazyFileRoute('/')({
   component: IndexComponent,
-})
+});
 
 function IndexComponent() {
-  const data = Route.useLoaderData()
-  return <div>{data}</div>
+  const data = Route.useLoaderData();
+  return <div>{data}</div>;
 }
 ```
 
@@ -2318,7 +2325,7 @@ A new function that accepts a single argument of partial of the type [`RouteOpti
 Pick<
   RouteOptions,
   'component' | 'pendingComponent' | 'errorComponent' | 'notFoundComponent'
->
+>;
 ```
 
 - [`RouteOptions`](../RouteOptionsType.md)
@@ -2329,38 +2336,37 @@ Pick<
 
 ```tsx
 // src/route-pages/index.tsx
-import { createLazyRoute } from '@tanstack/react-router'
+import { createLazyRoute } from '@tanstack/react-router';
+// src/routeTree.tsx
+import {
+  Outlet,
+  createRootRouteWithContext,
+  createRoute,
+} from '@tanstack/react-router';
 
 export const Route = createLazyRoute('/')({
   component: IndexComponent,
-})
+});
 
 function IndexComponent() {
-  const data = Route.useLoaderData()
-  return <div>{data}</div>
+  const data = Route.useLoaderData();
+  return <div>{data}</div>;
 }
 
-// src/routeTree.tsx
-import {
-  createRootRouteWithContext,
-  createRoute,
-  Outlet,
-} from '@tanstack/react-router'
-
 interface MyRouterContext {
-  foo: string
+  foo: string;
 }
 
 const rootRoute = createRootRouteWithContext<MyRouterContext>()({
   component: () => <Outlet />,
-})
+});
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
-}).lazy(() => import('./route-pages/index').then((d) => d.Route))
+}).lazy(() => import('./route-pages/index').then(d => d.Route));
 
-export const routeTree = rootRoute.addChildren([indexRoute])
+export const routeTree = rootRoute.addChildren([indexRoute]);
 ```
 
 # createRootRoute function
@@ -2382,7 +2388,7 @@ Omit<
   | 'caseSensitive'
   | 'parseParams'
   | 'stringifyParams'
->
+>;
 ```
 
 - [`RouteOptions`](../RouteOptionsType.md)
@@ -2395,20 +2401,20 @@ A new [`Route`](../RouteType.md) instance.
 ## Examples
 
 ```tsx
-import { createRootRoute, createRouter, Outlet } from '@tanstack/react-router'
+import { Outlet, createRootRoute, createRouter } from '@tanstack/react-router';
 
 const rootRoute = createRootRoute({
   component: () => <Outlet />,
   // ... root route options
-})
+});
 
 const routeTree = rootRoute.addChildren([
   // ... other routes
-])
+]);
 
 const router = createRouter({
   routeTree,
-})
+});
 ```
 
 # createRootRouteWithContext function
@@ -2433,33 +2439,33 @@ The `createRootRouteWithContext` function accepts a single generic argument:
 ## Examples
 
 ```tsx
+import { QueryClient } from '@tanstack/react-query';
 import {
   createRootRouteWithContext,
   createRouter,
-} from '@tanstack/react-router'
-import { QueryClient } from '@tanstack/react-query'
+} from '@tanstack/react-router';
 
 interface MyRouterContext {
-  queryClient: QueryClient
+  queryClient: QueryClient;
 }
 
 const rootRoute = createRootRouteWithContext<MyRouterContext>()({
   component: () => <Outlet />,
   // ... root route options
-})
+});
 
 const routeTree = rootRoute.addChildren([
   // ... other routes
-])
+]);
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient();
 
 const router = createRouter({
   routeTree,
   context: {
     queryClient,
   },
-})
+});
 ```
 
 # createRoute function
@@ -2479,21 +2485,22 @@ A new [`Route`](../RouteType.md) instance.
 ## Examples
 
 ```tsx
-import { createRoute } from '@tanstack/react-router'
-import { rootRoute } from './__root'
+import { createRoute } from '@tanstack/react-router';
+
+import { rootRoute } from './__root';
 
 const Route = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
   loader: () => {
-    return 'Hello World'
+    return 'Hello World';
   },
   component: IndexComponent,
-})
+});
 
 function IndexComponent() {
-  const data = Route.useLoaderData()
-  return <div>{data}</div>
+  const data = Route.useLoaderData();
+  return <div>{data}</div>;
 }
 ```
 
@@ -2514,20 +2521,20 @@ The `createRouteMask` function is a helper function that can be used to create a
 ## Examples
 
 ```tsx
-import { createRouteMask, createRouter } from '@tanstack/react-router'
+import { createRouteMask, createRouter } from '@tanstack/react-router';
 
 const photoModalToPhotoMask = createRouteMask({
   routeTree,
   from: '/photos/$photoId/modal',
   to: '/photos/$photoId',
   params: true,
-})
+});
 
 // Set up a Router instance
 const router = createRouter({
   routeTree,
   routeMasks: [photoModalToPhotoMask],
-})
+});
 ```
 
 # createRouter function
@@ -2547,16 +2554,17 @@ The `createRouter` function accepts a [`RouterOptions`](../RouterOptionsType.md)
 ## Examples
 
 ```tsx
-import { createRouter, RouterProvider } from '@tanstack/react-router'
-import { routeTree } from './routeTree.gen'
+import { RouterProvider, createRouter } from '@tanstack/react-router';
+
+import { routeTree } from './routeTree.gen';
 
 const router = createRouter({
   routeTree,
   defaultPreload: 'intent',
-})
+});
 
 export default function App() {
-  return <RouterProvider router={router} />
+  return <RouterProvider router={router} />;
 }
 ```
 
@@ -2592,28 +2600,28 @@ The `defer` function accepts a single argument, the `promise` to wrap with a def
 ## Examples
 
 ```tsx
-import { defer } from '@tanstack/react-router'
+import { defer } from '@tanstack/react-router';
 
 const route = createRoute({
   loader: () => {
-    const deferredPromise = defer(fetch('/api/data'))
-    return { deferredPromise }
+    const deferredPromise = defer(fetch('/api/data'));
+    return { deferredPromise };
   },
   component: MyComponent,
-})
+});
 
 function MyComponent() {
-  const { deferredPromise } = Route.useLoaderData()
+  const { deferredPromise } = Route.useLoaderData();
 
-  const data = useAwaited({ promise: deferredPromise })
+  const data = useAwaited({ promise: deferredPromise });
 
   // or
 
   return (
     <Await promise={deferredPromise}>
-      {(data) => <div>{JSON.stringify(data)}</div>}
+      {data => <div>{JSON.stringify(data)}</div>}
     </Await>
-  )
+  );
 }
 ```
 
@@ -2668,12 +2676,12 @@ The `getRouteApi` function accepts a single argument, a `routeId` string literal
 ## Examples
 
 ```tsx
-import { getRouteApi } from '@tanstack/react-router'
+import { getRouteApi } from '@tanstack/react-router';
 
-const routeApi = getRouteApi('/posts')
+const routeApi = getRouteApi('/posts');
 
 export function PostsPage() {
-  const posts = routeApi.useLoaderData()
+  const posts = routeApi.useLoaderData();
   // ...
 }
 ```
@@ -2690,8 +2698,8 @@ declare module '@tanstack/react-router' {
   // ...
 
   interface HistoryState {
-    additionalRequiredProperty: number
-    additionalProperty?: string
+    additionalRequiredProperty: number;
+    additionalProperty?: string;
   }
 }
 ```
@@ -2719,7 +2727,7 @@ The `isNotFound` function accepts a single argument, an `input`.
 ## Examples
 
 ```tsx
-import { isNotFound } from '@tanstack/react-router'
+import { isNotFound } from '@tanstack/react-router';
 
 function somewhere(obj: unknown) {
   if (isNotFound(obj)) {
@@ -2751,7 +2759,7 @@ The `isRedirect` function accepts a single argument, an `input`.
 ## Examples
 
 ```tsx
-import { isRedirect } from '@tanstack/react-router'
+import { isRedirect } from '@tanstack/react-router';
 
 function somewhere(obj: unknown) {
   if (isRedirect(obj)) {
@@ -2828,18 +2836,18 @@ An anchor element that can be used to navigate to a new location.
 ## Examples
 
 ```tsx
-import { Link } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router';
 
 function Component() {
   return (
     <Link
       to="/somewhere/$somewhereId"
       params={{ somewhereId: 'baz' }}
-      search={(prev) => ({ ...prev, foo: 'bar' })}
+      search={prev => ({ ...prev, foo: 'bar' })}
     >
       Click me
     </Link>
-  )
+  );
 }
 ```
 
@@ -2872,10 +2880,10 @@ const userLinkOptions = linkOptions({
     },
     userId: 0,
   },
-})
+});
 
 function DashboardComponent() {
-  return <Link {...userLinkOptions} />
+  return <Link {...userLinkOptions} />;
 }
 ```
 
@@ -2906,16 +2914,16 @@ Either the `children` prop or the return value of the `children` function.
 ## Examples
 
 ```tsx
-import { MatchRoute } from '@tanstack/react-router'
+import { MatchRoute } from '@tanstack/react-router';
 
 function Component() {
   return (
     <div>
       <MatchRoute to="/posts/$postId" params={{ postId: '123' }} pending>
-        {(match) => <Spinner show={!!match} wait="delay-50" />}
+        {match => <Spinner show={!!match} wait="delay-50" />}
       </MatchRoute>
     </div>
-  )
+  );
 }
 ```
 
@@ -2954,23 +2962,23 @@ The `notFound` function accepts a single optional argument, the `options` to cre
 ## Examples
 
 ```tsx
-import { notFound, createFileRoute, rootRouteId } from '@tanstack/react-router'
+import { createFileRoute, notFound, rootRouteId } from '@tanstack/react-router';
 
 const Route = new createFileRoute('/posts/$postId')({
   // throwing a not-found object
   loader: ({ context: { post } }) => {
     if (!post) {
-      throw notFound()
+      throw notFound();
     }
   },
   // or if you want to show a not-found on the whole page
   loader: ({ context: { team } }) => {
     if (!team) {
-      throw notFound({ routeId: rootRouteId })
+      throw notFound({ routeId: rootRouteId });
     }
   },
   // ... other route options
-})
+});
 ```
 
 # Outlet component
@@ -3005,7 +3013,7 @@ The `redirect` function accepts a single argument, the `options` to determine th
 ## Examples
 
 ```tsx
-import { redirect } from '@tanstack/react-router'
+import { redirect } from '@tanstack/react-router';
 
 const route = createRoute({
   // throwing an internal redirect object using 'to' property
@@ -3013,7 +3021,7 @@ const route = createRoute({
     if (!user) {
       throw redirect({
         to: '/login',
-      })
+      });
     }
   },
   // throwing an external redirect object using 'href' property
@@ -3021,7 +3029,7 @@ const route = createRoute({
     if (needsExternalAuth) {
       throw redirect({
         href: 'https://authprovider.com/login',
-      })
+      });
     }
   },
   // or forcing `redirect` to throw itself
@@ -3030,11 +3038,11 @@ const route = createRoute({
       redirect({
         to: '/login',
         throw: true,
-      })
+      });
     }
   },
   // ... other route options
-})
+});
 ```
 
 # Search middleware to retain search params
@@ -3049,38 +3057,40 @@ If `true` is passed in, all search params will be retained.
 ## Examples
 
 ```tsx
-import { z } from 'zod'
-import { createRootRoute, retainSearchParams } from '@tanstack/react-router'
-import { zodValidator } from '@tanstack/zod-adapter'
+import { z } from 'zod';
+
+import { createRootRoute, retainSearchParams } from '@tanstack/react-router';
+import { zodValidator } from '@tanstack/zod-adapter';
 
 const searchSchema = z.object({
   rootValue: z.string().optional(),
-})
+});
 
 export const Route = createRootRoute({
   validateSearch: zodValidator(searchSchema),
   search: {
     middlewares: [retainSearchParams(['rootValue'])],
   },
-})
+});
 ```
 
 ```tsx
-import { z } from 'zod'
-import { createFileRoute, retainSearchParams } from '@tanstack/react-router'
-import { zodValidator } from '@tanstack/zod-adapter'
+import { z } from 'zod';
+
+import { createFileRoute, retainSearchParams } from '@tanstack/react-router';
+import { zodValidator } from '@tanstack/zod-adapter';
 
 const searchSchema = z.object({
   one: z.string().optional(),
   two: z.string().optional(),
-})
+});
 
 export const Route = createFileRoute('/')({
   validateSearch: zodValidator(searchSchema),
   search: {
     middlewares: [retainSearchParams(true)],
   },
-})
+});
 ```
 
 # rootRouteWithContext function
@@ -3109,30 +3119,30 @@ The `rootRouteWithContext` function accepts a single generic argument:
 ## Examples
 
 ```tsx
-import { rootRouteWithContext, createRouter } from '@tanstack/react-router'
-import { QueryClient } from '@tanstack/react-query'
+import { QueryClient } from '@tanstack/react-query';
+import { createRouter, rootRouteWithContext } from '@tanstack/react-router';
 
 interface MyRouterContext {
-  queryClient: QueryClient
+  queryClient: QueryClient;
 }
 
 const rootRoute = rootRouteWithContext<MyRouterContext>()({
   component: () => <Outlet />,
   // ... root route options
-})
+});
 
 const routeTree = rootRoute.addChildren([
   // ... other routes
-])
+]);
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient();
 
 const router = createRouter({
   routeTree,
   context: {
     queryClient,
   },
-})
+});
 ```
 
 # Search middleware to strip search params
@@ -3150,19 +3160,20 @@ const router = createRouter({
 ## Examples
 
 ```tsx
-import { z } from 'zod'
-import { createFileRoute, stripSearchParams } from '@tanstack/react-router'
-import { zodValidator } from '@tanstack/zod-adapter'
+import { z } from 'zod';
+
+import { createFileRoute, stripSearchParams } from '@tanstack/react-router';
+import { zodValidator } from '@tanstack/zod-adapter';
 
 const defaultValues = {
   one: 'abc',
   two: 'xyz',
-}
+};
 
 const searchSchema = z.object({
   one: z.string().default(defaultValues.one),
   two: z.string().default(defaultValues.two),
-})
+});
 
 export const Route = createFileRoute('/')({
   validateSearch: zodValidator(searchSchema),
@@ -3170,18 +3181,19 @@ export const Route = createFileRoute('/')({
     // strip default values
     middlewares: [stripSearchParams(defaultValues)],
   },
-})
+});
 ```
 
 ```tsx
-import { z } from 'zod'
-import { createRootRoute, stripSearchParams } from '@tanstack/react-router'
-import { zodValidator } from '@tanstack/zod-adapter'
+import { z } from 'zod';
+
+import { createRootRoute, stripSearchParams } from '@tanstack/react-router';
+import { zodValidator } from '@tanstack/zod-adapter';
 
 const searchSchema = z.object({
   hello: z.string().default('world'),
   requiredParam: z.string(),
-})
+});
 
 export const Route = createRootRoute({
   validateSearch: zodValidator(searchSchema),
@@ -3189,18 +3201,19 @@ export const Route = createRootRoute({
     // always remove `hello`
     middlewares: [stripSearchParams(['hello'])],
   },
-})
+});
 ```
 
 ```tsx
-import { z } from 'zod'
-import { createFileRoute, stripSearchParams } from '@tanstack/react-router'
-import { zodValidator } from '@tanstack/zod-adapter'
+import { z } from 'zod';
+
+import { createFileRoute, stripSearchParams } from '@tanstack/react-router';
+import { zodValidator } from '@tanstack/zod-adapter';
 
 const searchSchema = z.object({
   one: z.string().default('abc'),
   two: z.string().default('xyz'),
-})
+});
 
 export const Route = createFileRoute('/')({
   validateSearch: zodValidator(searchSchema),
@@ -3208,7 +3221,7 @@ export const Route = createFileRoute('/')({
     // remove all search params
     middlewares: [stripSearchParams(true)],
   },
-})
+});
 ```
 
 # useAwaited hook
@@ -3234,12 +3247,12 @@ The `useAwaited` hook accepts a single argument, an `options` object.
 ## Examples
 
 ```tsx
-import { useAwaited } from '@tanstack/react-router'
+import { useAwaited } from '@tanstack/react-router';
 
 function Component() {
-  const { deferredPromise } = route.useLoaderData()
+  const { deferredPromise } = route.useLoaderData();
 
-  const data = useAwaited({ promise: myDeferredPromise })
+  const data = useAwaited({ promise: myDeferredPromise });
   // ...
 }
 ```
@@ -3330,14 +3343,14 @@ Two common use cases for the `useBlocker` hook are:
 ### Basic usage
 
 ```tsx
-import { useBlocker } from '@tanstack/react-router'
+import { useBlocker } from '@tanstack/react-router';
 
 function MyComponent() {
-  const [formIsDirty, setFormIsDirty] = useState(false)
+  const [formIsDirty, setFormIsDirty] = useState(false);
 
   useBlocker({
     shouldBlockFn: () => formIsDirty,
-  })
+  });
 
   // ...
 }
@@ -3376,15 +3389,15 @@ function MyComponent() {
 ### Conditional blocking
 
 ```tsx
-import { useBlocker } from '@tanstack/react-router'
+import { useBlocker } from '@tanstack/react-router';
 
 function MyComponent() {
   const { proceed, reset, status } = useBlocker({
     shouldBlockFn: ({ next }) => {
-      return !next.pathname.includes('step/')
+      return !next.pathname.includes('step/');
     },
     withResolver: true,
-  })
+  });
 
   // ...
 
@@ -3399,28 +3412,28 @@ function MyComponent() {
         </div>
       )}
     </>
-  )
+  );
 }
 ```
 
 ### Without resolver
 
 ```tsx
-import { useBlocker } from '@tanstack/react-router'
+import { useBlocker } from '@tanstack/react-router';
 
 function MyComponent() {
-  const [formIsDirty, setFormIsDirty] = useState(false)
+  const [formIsDirty, setFormIsDirty] = useState(false);
 
   useBlocker({
     shouldBlockFn: ({ next }) => {
       if (next.pathname.includes('step/')) {
-        return false
+        return false;
       }
 
-      const shouldLeave = confirm('Are you sure you want to leave?')
-      return !shouldLeave
+      const shouldLeave = confirm('Are you sure you want to leave?');
+      return !shouldLeave;
     },
-  })
+  });
 
   // ...
 }
@@ -3429,10 +3442,10 @@ function MyComponent() {
 ### Type narrowing
 
 ```tsx
-import { useBlocker } from '@tanstack/react-router'
+import { useBlocker } from '@tanstack/react-router';
 
 function MyComponent() {
-  const [formIsDirty, setFormIsDirty] = useState(false)
+  const [formIsDirty, setFormIsDirty] = useState(false);
 
   // block going from editor-1 to /foo/123?hello=world
   const { proceed, reset, status } = useBlocker({
@@ -3443,13 +3456,13 @@ function MyComponent() {
         next.params.id === '123' &&
         next.search.hello === 'world'
       ) {
-        return true
+        return true;
       }
-      return false
+      return false;
     },
     enableBeforeUnload: false,
     withResolver: true,
-  })
+  });
 
   // ...
 }
@@ -3475,11 +3488,11 @@ The router history index is reset after a navigation with [`reloadDocument`](../
 ### Showing a back button
 
 ```tsx
-import { useRouter, useCanGoBack } from '@tanstack/react-router'
+import { useCanGoBack, useRouter } from '@tanstack/react-router';
 
 function Component() {
-  const router = useRouter()
-  const canGoBack = useCanGoBack()
+  const router = useRouter();
+  const canGoBack = useCanGoBack();
 
   return (
     <div>
@@ -3489,7 +3502,7 @@ function Component() {
 
       {/* ... */}
     </div>
-  )
+  );
 }
 ```
 
@@ -3525,10 +3538,10 @@ The `useChildMatches` hook accepts a single _optional_ argument, an `options` ob
 ## Examples
 
 ```tsx
-import { useChildMatches } from '@tanstack/react-router'
+import { useChildMatches } from '@tanstack/react-router';
 
 function Component() {
-  const childMatches = useChildMatches()
+  const childMatches = useChildMatches();
   // ...
 }
 ```
@@ -3541,7 +3554,7 @@ The `useLinkProps` hook that takes an object as its argument and returns a `Reac
 
 ```tsx
 type UseLinkPropsOptions = ActiveLinkOptions &
-  React.AnchorHTMLAttributes<HTMLAnchorElement>
+  React.AnchorHTMLAttributes<HTMLAnchorElement>;
 ```
 
 - [`ActiveLinkOptions`](../ActiveLinkOptionsType.md)
@@ -3595,10 +3608,10 @@ The `useLoaderData` hook accepts an `options` object.
 ## Examples
 
 ```tsx
-import { useLoaderData } from '@tanstack/react-router'
+import { useLoaderData } from '@tanstack/react-router';
 
 function Component() {
-  const loaderData = useLoaderData({ from: '/posts/$postId' })
+  const loaderData = useLoaderData({ from: '/posts/$postId' });
   //     ^? { postId: string, body: string, ... }
   // ...
 }
@@ -3638,23 +3651,23 @@ The `useLoaderDepsHook` hook accepts an `options` object.
 ## Examples
 
 ```tsx
-import { useLoaderDeps } from '@tanstack/react-router'
+import { useLoaderDeps } from '@tanstack/react-router';
 
-const routeApi = getRouteApi('/posts/$postId')
+const routeApi = getRouteApi('/posts/$postId');
 
 function Component() {
-  const deps = useLoaderDeps({ from: '/posts/$postId' })
+  const deps = useLoaderDeps({ from: '/posts/$postId' });
 
   // OR
 
-  const routeDeps = routeApi.useLoaderDeps()
+  const routeDeps = routeApi.useLoaderDeps();
 
   // OR
 
   const postId = useLoaderDeps({
     from: '/posts',
-    select: (deps) => deps.view,
-  })
+    select: deps => deps.view,
+  });
 
   // ...
 }
@@ -3681,17 +3694,17 @@ The `useLocation` hook accepts an optional `options` object.
 ## Examples
 
 ```tsx
-import { useLocation } from '@tanstack/react-router'
+import { useLocation } from '@tanstack/react-router';
 
 function Component() {
-  const location = useLocation()
+  const location = useLocation();
   //    ^ ParsedLocation
 
   // OR
 
   const pathname = useLocation({
-    select: (location) => location.pathname,
-  })
+    select: location => location.pathname,
+  });
   //    ^ string
 
   // ...
@@ -3751,10 +3764,10 @@ The `useMatch` hook accepts a single argument, an `options` object.
 ### Accessing a route match
 
 ```tsx
-import { useMatch } from '@tanstack/react-router'
+import { useMatch } from '@tanstack/react-router';
 
 function Component() {
-  const match = useMatch({ from: '/posts/$postId' })
+  const match = useMatch({ from: '/posts/$postId' });
   //     ^? strict match for RouteMatch
   // ...
 }
@@ -3764,12 +3777,13 @@ function Component() {
 
 ```tsx
 import {
+  rootRouteId,
+  // <<<< use this token!
   useMatch,
-  rootRouteId, // <<<< use this token!
-} from '@tanstack/react-router'
+} from '@tanstack/react-router';
 
 function Component() {
-  const match = useMatch({ from: rootRouteId })
+  const match = useMatch({ from: rootRouteId });
   //     ^? strict match for RouteMatch
   // ...
 }
@@ -3778,10 +3792,10 @@ function Component() {
 ### Checking if a specific route is currently rendered
 
 ```tsx
-import { useMatch } from '@tanstack/react-router'
+import { useMatch } from '@tanstack/react-router';
 
 function Component() {
-  const match = useMatch({ from: '/posts', shouldThrow: false })
+  const match = useMatch({ from: '/posts', shouldThrow: false });
   //     ^? RouteMatch | undefined
   if (match !== undefined) {
     // ...
@@ -3935,10 +3949,10 @@ The `useMatches` hook accepts a single _optional_ argument, an `options` object.
 ## Examples
 
 ```tsx
-import { useMatches } from '@tanstack/react-router'
+import { useMatches } from '@tanstack/react-router';
 
 function Component() {
-  const matches = useMatches()
+  const matches = useMatches();
   //     ^? [RouteMatch, RouteMatch, ...]
   // ...
 }
@@ -3979,16 +3993,16 @@ The `navigate` function accepts a single argument, an `options` object.
 ## Examples
 
 ```tsx
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate } from '@tanstack/react-router';
 
 function PostsPage() {
-  const navigate = useNavigate({ from: '/posts' })
-  const handleClick = () => navigate({ search: { page: 2 } })
+  const navigate = useNavigate({ from: '/posts' });
+  const handleClick = () => navigate({ search: { page: 2 } });
   // ...
 }
 
 function Component() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   return (
     <div>
       <button
@@ -4031,7 +4045,7 @@ function Component() {
         Posts (State)
       </button>
     </div>
-  )
+  );
 }
 ```
 
@@ -4076,27 +4090,27 @@ The `useParams` hook accepts an optional `options` object.
 ## Examples
 
 ```tsx
-import { useParams } from '@tanstack/react-router'
+import { useParams } from '@tanstack/react-router';
 
-const routeApi = getRouteApi('/posts/$postId')
+const routeApi = getRouteApi('/posts/$postId');
 
 function Component() {
-  const params = useParams({ from: '/posts/$postId' })
+  const params = useParams({ from: '/posts/$postId' });
 
   // OR
 
-  const routeParams = routeApi.useParams()
+  const routeParams = routeApi.useParams();
 
   // OR
 
   const postId = useParams({
     from: '/posts/$postId',
-    select: (params) => params.postId,
-  })
+    select: params => params.postId,
+  });
 
   // OR
 
-  const looseParams = useParams({ strict: false })
+  const looseParams = useParams({ strict: false });
 
   // ...
 }
@@ -4134,10 +4148,10 @@ The `useParentMatches` hook accepts an optional `options` object.
 ## Examples
 
 ```tsx
-import { useParentMatches } from '@tanstack/react-router'
+import { useParentMatches } from '@tanstack/react-router';
 
 function Component() {
-  const parentMatches = useParentMatches()
+  const parentMatches = useParentMatches();
   //    ^ [RouteMatch, RouteMatch, ...]
 }
 ```
@@ -4169,18 +4183,18 @@ The `useRouteContext` hook accepts an `options` object.
 ## Examples
 
 ```tsx
-import { useRouteContext } from '@tanstack/react-router'
+import { useRouteContext } from '@tanstack/react-router';
 
 function Component() {
-  const context = useRouteContext({ from: '/posts/$postId' })
+  const context = useRouteContext({ from: '/posts/$postId' });
   //    ^ RouteContext
 
   // OR
 
   const selected = useRouteContext({
     from: '/posts/$postId',
-    select: (context) => context.postId,
-  })
+    select: context => context.postId,
+  });
   //    ^ string
 
   // ...
@@ -4200,10 +4214,10 @@ The `useRouter` method is a hook that returns the current instance of [`Router`]
 ## Examples
 
 ```tsx
-import { useRouter } from '@tanstack/react-router'
+import { useRouter } from '@tanstack/react-router';
 
 function Component() {
-  const router = useRouter()
+  const router = useRouter();
   //    ^ Router
 
   // ...
@@ -4241,17 +4255,17 @@ The `useRouterState` hook accepts an optional `options` object.
 ## Examples
 
 ```tsx
-import { useRouterState } from '@tanstack/react-router'
+import { useRouterState } from '@tanstack/react-router';
 
 function Component() {
-  const state = useRouterState()
+  const state = useRouterState();
   //    ^ RouterState
 
   // OR
 
   const selected = useRouterState({
-    select: (state) => state.location,
-  })
+    select: state => state.location,
+  });
   //    ^ ParsedLocation
 
   // ...
@@ -4306,26 +4320,25 @@ The `useSearch` hook accepts an `options` object.
 ## Examples
 
 ```tsx
-import { useSearch } from '@tanstack/react-router'
+import { useSearch } from '@tanstack/react-router';
 
 function Component() {
-  const search = useSearch({ from: '/posts/$postId' })
+  const search = useSearch({ from: '/posts/$postId' });
   //    ^ FullSearchSchema
 
   // OR
 
   const selected = useSearch({
     from: '/posts/$postId',
-    select: (search) => search.postView,
-  })
+    select: search => search.postView,
+  });
   //    ^ string
 
   // OR
 
-  const looseSearch = useSearch({ strict: false })
+  const looseSearch = useSearch({ strict: false });
   //    ^ Partial<FullSearchSchema>
 
   // ...
 }
 ```
-

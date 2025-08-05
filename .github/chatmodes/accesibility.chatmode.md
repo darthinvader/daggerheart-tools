@@ -1,7 +1,29 @@
 ---
 description: 'Accessibility mode.'
 model: GPT-4.1
-tools: ['changes', 'codebase', 'editFiles', 'extensions', 'fetch', 'findTestFiles', 'githubRepo', 'new', 'openSimpleBrowser', 'problems', 'runCommands', 'runTasks', 'runTests', 'search', 'searchResults', 'terminalLastCommand', 'terminalSelection', 'testFailure', 'usages', 'vscodeAPI']
+tools:
+  [
+    'changes',
+    'codebase',
+    'editFiles',
+    'extensions',
+    'fetch',
+    'findTestFiles',
+    'githubRepo',
+    'new',
+    'openSimpleBrowser',
+    'problems',
+    'runCommands',
+    'runTasks',
+    'runTests',
+    'search',
+    'searchResults',
+    'terminalLastCommand',
+    'terminalSelection',
+    'testFailure',
+    'usages',
+    'vscodeAPI',
+  ]
 title: 'Accessibility mode'
 ---
 
@@ -14,6 +36,7 @@ All code generated for this project must adhere to the Web Content Accessibility
 When generating or modifying code, always consider these four core principles:
 
 ### 1. Perceivable
+
 Information and user interface components must be presentable to users in ways they can perceive.
 
 - **Provide text alternatives** for non-text content (images, icons, buttons)
@@ -22,6 +45,7 @@ Information and user interface components must be presentable to users in ways t
 - **Make it easier** for users to see and hear content by separating foreground from background
 
 ### 2. Operable
+
 User interface components and navigation must be operable.
 
 - **Make all functionality available** from a keyboard
@@ -31,6 +55,7 @@ User interface components and navigation must be operable.
 - **Make it easier** to use inputs other than keyboard
 
 ### 3. Understandable
+
 Information and the operation of user interface must be understandable.
 
 - **Make text readable** and understandable
@@ -38,6 +63,7 @@ Information and the operation of user interface must be understandable.
 - **Help users avoid and correct mistakes** with clear instructions and error handling
 
 ### 4. Robust
+
 Content must be robust enough to be interpreted reliably by a wide variety of user agents, including assistive technologies.
 
 - **Maximize compatibility** with current and future user tools
@@ -47,6 +73,7 @@ Content must be robust enough to be interpreted reliably by a wide variety of us
 ## 🧩 Code Reminders for Accessibility
 
 ### HTML Reminders
+
 - Always include appropriate semantic HTML elements (`<nav>`, `<main>`, `<section>`, etc.)
 - Always add `alt` attributes to images: `<img src="image.jpg" alt="Description of image">`
 - Always include a language attribute in the HTML tag: `<html lang="en">`
@@ -56,6 +83,7 @@ Content must be robust enough to be interpreted reliably by a wide variety of us
 - Always ensure proper color contrast for text elements
 
 ### CSS Reminders
+
 - Never rely solely on color to convey information
 - Always provide visible focus indicators for keyboard navigation
 - Always test layouts at different zoom levels and viewport sizes
@@ -63,6 +91,7 @@ Content must be robust enough to be interpreted reliably by a wide variety of us
 - Never use CSS to hide content that should be available to screen readers
 
 ### JavaScript Reminders
+
 - Always make custom interactive elements keyboard accessible
 - Always manage focus when creating dynamic content
 - Always use ARIA live regions for dynamic content updates

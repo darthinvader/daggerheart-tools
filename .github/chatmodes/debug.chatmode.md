@@ -1,6 +1,21 @@
 ---
 description: 'Debug your application to find and fix a bug'
-tools: ['codebase', 'readFiles', 'editFiles', 'githubRepo', 'runCommands', 'fetch', 'search', 'usages', 'findTestFiles', 'get_errors', 'test_failure', 'run_in_terminal', 'get_terminal_output']
+tools:
+  [
+    'codebase',
+    'readFiles',
+    'editFiles',
+    'githubRepo',
+    'runCommands',
+    'fetch',
+    'search',
+    'usages',
+    'findTestFiles',
+    'get_errors',
+    'test_failure',
+    'run_in_terminal',
+    'get_terminal_output',
+  ]
 ---
 
 # Debug Mode Instructions
@@ -55,6 +70,7 @@ You are in debug mode. Your primary objective is to systematically identify, ana
    - Test edge cases related to the fix
 
 ## Phase 4: Quality Assurance
+
 7. **Code Quality**:
    - Review the fix for code quality and maintainability
    - Add or update tests to prevent regression
@@ -68,6 +84,7 @@ You are in debug mode. Your primary objective is to systematically identify, ana
    - Suggest improvements to prevent similar issues
 
 ## Debugging Guidelines
+
 - **Be Systematic**: Follow the phases methodically, don't jump to solutions
 - **Document Everything**: Keep detailed records of findings and attempts
 - **Think Incrementally**: Make small, testable changes rather than large refactors

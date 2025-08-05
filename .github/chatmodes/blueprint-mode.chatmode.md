@@ -27,7 +27,7 @@ Execute as an autonomous engineering agent. Follow specification-first developme
 
 ## Quality and Engineering Protocol
 
-- Adhere to SOLID principles and Clean Code practices (DRY, KISS, YAGNI). Justify design choices in comments, focusing on *why*.
+- Adhere to SOLID principles and Clean Code practices (DRY, KISS, YAGNI). Justify design choices in comments, focusing on _why_.
 - Define unambiguous system boundaries and interfaces. Use correct design patterns. Integrate threat modeling.
 - Conduct continuous self-assessment. Align with user goals. Log task-agnostic patterns in `.github/instructions/memory.instruction.md`.
 - Update documentation (e.g., READMEs, code comments) to reflect changes before marking tasks complete.
@@ -79,9 +79,10 @@ Execute as an autonomous engineering agent. Follow specification-first developme
 
   ```markdown
   ## Proposed Requirements
+
   - [ ] Requirement 1: [Description]
   - [ ] Requirement 2: [Description]
-  Please confirm or provide clarifications.
+        Please confirm or provide clarifications.
   ```
 
 ## Workflow Definitions
@@ -232,9 +233,10 @@ For tasks involving multiple files, new dependencies, or high risk.
 
      ```markdown
      ## Proposed Requirements
+
      - [ ] Requirement 1: [Description]
      - [ ] Requirement 2: [Description]
-     Please confirm or clarify.
+           Please confirm or clarify.
      ```
 
    - Log analysis, user response, and edge cases (likelihood, impact, risk_score, mitigation) in `activity.yml` and `specifications.yml`.
@@ -313,7 +315,8 @@ artifacts:
   - name: activity
     path: docs/specs/activity.yml
     type: log
-    format: [date, description, outcome, reflection, issues, next_steps, tool_calls]
+    format:
+      [date, description, outcome, reflection, issues, next_steps, tool_calls]
     purpose: Logs rationale, actions, outcomes.
   - name: memory
     path: .github/instructions/memory.instruction.md
@@ -431,7 +434,7 @@ tasks:
     checkpoint: passed
     validation_criteria:
       test_types: [unit]
-      expected_outcomes: ["Input validation passes for valid JSON"]
+      expected_outcomes: ['Input validation passes for valid JSON']
   - id: task-002
     description: Add API endpoint /generate in src/server/api.ts
     task_dependencies: [task-001]
@@ -469,7 +472,7 @@ activity:
         action: Validate changes with unit tests
 ```
 
-#### steering/*.yml
+#### steering/\*.yml
 
 ```yaml
 steering:

@@ -1,7 +1,31 @@
 ---
 description: 'Generate an implementation plan for new features or refactoring existing code.'
-tools: ['changes', 'codebase', 'editFiles', 'extensions', 'fetch', 'findTestFiles', 'githubRepo', 'new', 'openSimpleBrowser', 'problems', 'runCommands', 'runTasks', 'runTests', 'search', 'searchResults', 'terminalLastCommand', 'terminalSelection', 'testFailure', 'usages', 'vscodeAPI', 'github']
+tools:
+  [
+    'changes',
+    'codebase',
+    'editFiles',
+    'extensions',
+    'fetch',
+    'findTestFiles',
+    'githubRepo',
+    'new',
+    'openSimpleBrowser',
+    'problems',
+    'runCommands',
+    'runTasks',
+    'runTests',
+    'search',
+    'searchResults',
+    'terminalLastCommand',
+    'terminalSelection',
+    'testFailure',
+    'usages',
+    'vscodeAPI',
+    'github',
+  ]
 ---
+
 # Implementation Plan Generation Mode
 
 ## Primary Directive

@@ -1,5 +1,5 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -51,7 +51,7 @@
 }
 
 a {
-  font-weight: 500; 
+  font-weight: 500;
   color: #646cff;
   text-decoration: inherit;
 }
