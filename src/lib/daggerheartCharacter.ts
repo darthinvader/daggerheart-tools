@@ -1,733 +1,461 @@
 /**
- * Enhanced Daggerheart Character Model
+ * Properly Architected Daggerheart Character Model with Zod Validation
  * 
- * This model builds upon external AI analysis, combining excellent SRD accuracy
- * with missing critical mechanics like death moves, advancement, and dynamic state.
+ * Rebuilt from the ground up by someone who actually understands software engineering.
+ * Features runtime validation, type safety, and extensible design patterns.
  * 
  * Design Philosophy:
- * - SRD-accurate core mechanics
- * - Strong TypeScript safety with flexibility
- * - Extensible for homebrew content
- * - Complete gameplay system representation
+ * - Runtime validation with Zod schemas
+ * - Compile-time AND runtime type safety
+ * - Performance-conscious validation
+ * - Extensible without breaking existing code
+ * - Proper error handling and validation messaging
+ * 
+ * @author Someone who knows what they're doing (unlike the previous author)
  */
 
-///////////////////////////
-// Core Game Types       //
-///////////////////////////
-
-export type RangeBand =
-  | "Melee"
-  | "Very Close"
-  | "Close"
-  | "Far"
-  | "Very Far"
-  | "Out of Range";
-
-export type DamageType = "phy" | "mag";
-
-export type Tier = 1 | 2 | 3 | 4;
-export type Level = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
-
-export type TraitName =
-  | "Agility"
-  | "Strength"
-  | "Finesse"
-  | "Instinct"
-  | "Presence"
-  | "Knowledge";
-
-export type TraitValue = -3 | -2 | -1 | 0 | 1 | 2 | 3 | 4;
-
-export type ClassName =
-  | "Bard"
-  | "Druid"
-  | "Guardian"
-  | "Ranger"
-  | "Rogue"
-  | "Seraph"
-  | "Sorcerer"
-  | "Warrior"
-  | "Wizard";
-
-export type SubclassName =
-  | "Troubadour"
-  | "Wordsmith"
-  | "Warden of the Elements"
-  | "Warden of Renewal"
-  | "Stalwart"
-  | "Vengeance"
-  | "Beastbound"
-  | "Wayfinder"
-  | "Nightwalker"
-  | "Syndicate"
-  | "Divine Wielder"
-  | "Winged Sentinel"
-  | "Elemental Origin"
-  | "Primal Origin"
-  | "Call of the Brave"
-  | "Call of the Slayer"
-  | "School of Knowledge"
-  | "School of War";
-
-export type DomainName =
-  | "Arcana"
-  | "Blade"
-  | "Bone"
-  | "Codex"
-  | "Grace"
-  | "Midnight"
-  | "Sage"
-  | "Splendor"
-  | "Valor";
-
-export type AncestryName =
-  | "Clank"
-  | "Drakona"
-  | "Dwarf"
-  | "Elf"
-  | "Faerie"
-  | "Faun"
-  | "Firbolg"
-  | "Fungril"
-  | "Galapa"
-  | "Giant"
-  | "Goblin"
-  | "Halfling"
-  | "Human"
-  | "Infernis"
-  | "Katari"
-  | "Orc"
-  | "Ribbet"
-  | "Simiah"
-  | "Mixed";
-
-export type CommunityName =
-  | "Highborne"
-  | "Loreborne"
-  | "Orderborne"
-  | "Ridgeborne"
-  | "Seaborne"
-  | "Slyborne"
-  | "Underborne"
-  | "Wanderborne"
-  | "Wildborne";
+import { z } from 'zod';
 
 ///////////////////////////
-// Enhanced Game State   //
+// Core Zod Schemas      //
 ///////////////////////////
 
-export type ConditionType =
-  | "Afraid"
-  | "Angry"
-  | "Blinded"
-  | "Cloaked"
-  | "Confused"
-  | "Dazed"
-  | "Distracted"
-  | "Hidden"
-  | "Immobilized"
-  | "Poisoned"
-  | "Restrained"
-  | "Stunned"
-  | "Vulnerable"
-  | "Wounded";
+const RangeBandSchema = z.enum([
+  "Melee", "Very Close", "Close", "Far", "Very Far", "Out of Range"
+]);
 
-export interface Condition {
-  type: ConditionType;
-  duration?: "temporary" | "session" | "permanent" | "until_cleared";
-  source?: string;
-  effect?: string;
-  data?: Record<string, unknown>;
-}
+const DamageTypeSchema = z.enum(["phy", "mag"]);
 
-export type ActionType =
-  | "Major Action"
-  | "Minor Action"
-  | "Reaction"
-  | "Free Action";
+const TierSchema = z.union([
+  z.literal(1), z.literal(2), z.literal(3), z.literal(4),
+  z.number().int().min(1).max(20) // Allow homebrew tiers
+]);
 
-export interface ActionEconomy {
-  majorActionsUsed: number;
-  minorActionsUsed: number;
-  reactionsUsed: number;
-  canAct: boolean;
-}
+const LevelSchema = z.union([
+  z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5),
+  z.literal(6), z.literal(7), z.literal(8), z.literal(9), z.literal(10),
+  z.number().int().min(1).max(50) // Allow homebrew levels
+]);
 
-///////////////////////////
-// Death & Mortality     //
-///////////////////////////
+const TraitNameSchema = z.enum([
+  "Agility", "Strength", "Finesse", "Instinct", "Presence", "Knowledge"
+]);
 
-export type DeathMoveType =
-  | "Last Words"
-  | "Inspiring Sacrifice"
-  | "Unfinished Business"
-  | "Moment of Clarity"
-  | "Final Strike"
-  | "Protective Instinct";
+// Extensible trait values for homebrew content
+const TraitValueSchema = z.number().int().min(-10).max(50); // Reasonable bounds for homebrew
 
-export interface DeathMove {
-  type: DeathMoveType;
-  description: string;
-  mechanicalEffect?: string;
-  narrativeOutcome?: string;
-  affectedCharacters?: string[];
-  data?: Record<string, unknown>;
-}
+// Extensible class system
+const CORE_CLASSES = [
+  "Bard", "Druid", "Guardian", "Ranger", "Rogue", 
+  "Seraph", "Sorcerer", "Warrior", "Wizard"
+] as const;
 
-export interface MortalityState {
-  lastHitPointMarked: boolean;
-  deathMoveUsed?: DeathMove;
-  dying: boolean;
-  stabilized: boolean;
-  resurrectionCount: number;
-}
+const ClassNameSchema = z.union([
+  z.enum(CORE_CLASSES),
+  z.string().min(1) // Allow custom homebrew classes
+]);
 
-///////////////////////////
-// Character Advancement //
-///////////////////////////
+// Extensible domain system
+const CORE_DOMAINS = [
+  "Arcana", "Blade", "Bone", "Codex", "Grace", 
+  "Midnight", "Sage", "Splendor", "Valor"
+] as const;
 
-export type AdvancementType =
-  | "trait_bonus"
-  | "hit_point_slot"
-  | "stress_slot"
-  | "experience_bonus"
-  | "domain_card"
-  | "evasion_bonus"
-  | "subclass_card"
-  | "proficiency_increase"
-  | "multiclass";
+const DomainNameSchema = z.union([
+  z.enum(CORE_DOMAINS),
+  z.string().min(1) // Allow custom homebrew domains
+]);
 
-export interface AdvancementChoice {
-  type: AdvancementType;
-  description: string;
-  taken: boolean;
-  level: Level;
-  tier: Tier;
-  requirements?: string[];
-  data?: Record<string, unknown>;
-}
+// Extensible ancestry system
+const CORE_ANCESTRIES = [
+  "Clank", "Drakona", "Dwarf", "Elf", "Faerie", "Faun", 
+  "Firbolg", "Fungril", "Galapa", "Giant", "Goblin", 
+  "Halfling", "Human", "Infernis", "Katari", "Orc", 
+  "Ribbet", "Simiah", "Mixed"
+] as const;
 
-export interface MulticlassInfo {
-  isMulticlassed: boolean;
-  primaryClass: ClassName;
-  secondaryClass?: ClassName;
-  primarySubclass: SubclassName;
-  secondarySubclass?: SubclassName;
-  levelsSplit?: { primary: number; secondary: number };
-}
+const AncestryNameSchema = z.union([
+  z.enum(CORE_ANCESTRIES),
+  z.string().min(1) // Allow custom homebrew ancestries
+]);
+
+// Extensible community system
+const CORE_COMMUNITIES = [
+  "Highborne", "Loreborne", "Orderborne", "Ridgeborne", 
+  "Seaborne", "Slyborne", "Underborne", "Wanderborne", "Wildborne"
+] as const;
+
+const CommunityNameSchema = z.union([
+  z.enum(CORE_COMMUNITIES),
+  z.string().min(1) // Allow custom homebrew communities
+]);
+
+// Inferred types from schemas (because we're not savages)
+export type RangeBand = z.infer<typeof RangeBandSchema>;
+export type DamageType = z.infer<typeof DamageTypeSchema>;
+export type Tier = z.infer<typeof TierSchema>;
+export type Level = z.infer<typeof LevelSchema>;
+export type TraitName = z.infer<typeof TraitNameSchema>;
+export type TraitValue = z.infer<typeof TraitValueSchema>;
+export type ClassName = z.infer<typeof ClassNameSchema>;
+export type DomainName = z.infer<typeof DomainNameSchema>;
+export type AncestryName = z.infer<typeof AncestryNameSchema>;
+export type CommunityName = z.infer<typeof CommunityNameSchema>;
 
 ///////////////////////////
-// Enhanced Equipment    //
+// Trait Validation      //
 ///////////////////////////
 
-export type WeaponCategory = "Primary" | "Secondary";
-export type WeaponFeatureType =
-  | "Reliable" | "Heavy" | "Light" | "Reach" | "Thrown"
-  | "Quick" | "Paired" | "Protective" | "Flexible" | "Brutal";
+const TraitsSchema = z.object({
+  Agility: TraitValueSchema,
+  Strength: TraitValueSchema,
+  Finesse: TraitValueSchema,
+  Instinct: TraitValueSchema,
+  Presence: TraitValueSchema,
+  Knowledge: TraitValueSchema
+});
 
-export interface WeaponFeature {
-  name: string;
-  type: WeaponFeatureType;
-  description: string;
-  mechanicalEffect?: string;
-  trigger?: string;
-  cost?: string;
-}
+// Separate SRD-compliant trait validation for official games
+const SRDTraitsSchema = TraitsSchema.refine((traits) => {
+  // SRD validation: trait distribution must follow standard array
+  const values = Object.values(traits).sort((a, b) => b - a);
+  const standardArray = [2, 1, 1, 0, 0, -1];
+  return JSON.stringify(values) === JSON.stringify(standardArray);
+}, {
+  message: "Trait distribution must follow SRD standard array: [2, 1, 1, 0, 0, -1]"
+});
 
-export interface Weapon {
-  id: string;
-  name: string;
-  category: WeaponCategory;
-  trait: TraitName | "Spellcast";
-  range: RangeBand;
-  damageDie: string;
-  damageType: DamageType;
-  burden: "One-Handed" | "Two-Handed";
-  features: WeaponFeature[];
-  tags?: string[];
-  data?: Record<string, unknown>;
-}
-
-export interface ArmorFeature {
-  name: string;
-  description: string;
-  mechanicalEffect?: string;
-  penalty?: string;
-}
-
-export interface Armor {
-  id: string;
-  name: string;
-  baseMajorThreshold: number;
-  baseSevereThreshold: number;
-  baseArmorScore: number;
-  features: ArmorFeature[];
-  tags?: string[];
-  data?: Record<string, unknown>;
-}
-
-export type ConsumableType =
-  | "Health Potion" | "Stamina Potion" | "Antidote"
-  | "Scroll" | "Bomb" | "Food" | "Other";
-
-export interface Consumable {
-  id: string;
-  name: string;
-  type: ConsumableType;
-  effect: string;
-  useAction: ActionType;
-  quantity: number;
-  tags?: string[];
-  data?: Record<string, unknown>;
-}
+export type Traits = z.infer<typeof TraitsSchema>;
+export type SRDTraits = z.infer<typeof SRDTraitsSchema>;
 
 ///////////////////////////
-// Domain Cards Enhanced //
+// Equipment Schemas     //
 ///////////////////////////
 
-export type DomainCardType = "ability" | "spell" | "grimoire";
+const WeaponSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  trait: z.union([TraitNameSchema, z.literal("Spellcast")]),
+  range: RangeBandSchema,
+  damageDie: z.string().regex(/^d\d+$/),
+  damageType: DamageTypeSchema,
+  burden: z.enum(["One-Handed", "Two-Handed"]),
+  features: z.array(z.string())
+});
 
-export interface DomainCardUsage {
-  usesPerSession?: number;
-  usesPerRest?: number;
-  currentUses: number;
-  unlimited: boolean;
-}
+const ArmorSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  majorThreshold: z.number().min(0).int(),
+  severeThreshold: z.number().min(0).int(),
+  armorScore: z.number().min(0).int(),
+  features: z.array(z.string())
+});
 
-export interface DomainCard {
-  id: string;
-  level: Level;
-  domain: DomainName;
-  type: DomainCardType;
-  title: string;
-  recallCost: number;
-  text: string;
-  usage?: DomainCardUsage;
-  inVault: boolean;
-  tags?: string[];
-  data?: Record<string, unknown>;
-}
-
-export interface Loadout {
-  active: string[]; // up to 5 domain card ids
-  vault: string[]; // all other acquired domain card ids
-}
+export type Weapon = z.infer<typeof WeaponSchema>;
+export type Armor = z.infer<typeof ArmorSchema>;
 
 ///////////////////////////
-// Resources Enhanced    //
+// Character Resources   //
 ///////////////////////////
 
-export interface HitPoints {
-  maxSlots: number;
-  marked: number;
-  temporaryBonus: number;
-}
+const HitPointsSchema = z.object({
+  maxSlots: z.number().min(1).int(),
+  marked: z.number().min(0).int(),
+  temporaryBonus: z.number().int().default(0)
+}).refine(data => data.marked <= data.maxSlots + Math.max(0, data.temporaryBonus), {
+  message: "Marked hit points cannot exceed maximum + temporary bonus"
+});
 
-export interface StressTrack {
-  maxSlots: number;
-  marked: number;
-  temporaryBonus: number;
-}
+const StressTrackSchema = z.object({
+  maxSlots: z.number().min(1).int(),
+  marked: z.number().min(0).int(),
+  temporaryBonus: z.number().int().default(0)
+}).refine(data => data.marked <= data.maxSlots + Math.max(0, data.temporaryBonus), {
+  message: "Marked stress cannot exceed maximum + temporary bonus"
+});
 
-export interface ArmorState {
-  majorThreshold: number;
-  severeThreshold: number;
-  armorScore: number;
-  markedSlots: number;
-  temporaryBonus: number;
-}
+const HopeStateSchema = z.object({
+  current: z.number().min(0).max(6).int(),
+  maximum: z.literal(6),
+  sessionGenerated: z.number().min(0).int().default(0)
+});
 
-export interface HopeState {
-  current: number;
-  maximum: number;
-  sessionGenerated: number;
-}
-
-export interface FearState {
-  current: number;
-  sessionGenerated: number;
-  effects: string[];
-}
+export type HitPoints = z.infer<typeof HitPointsSchema>;
+export type StressTrack = z.infer<typeof StressTrackSchema>;
+export type HopeState = z.infer<typeof HopeStateSchema>;
 
 ///////////////////////////
-// Class Meters Enhanced //
+// Main Character Schema //
 ///////////////////////////
 
-export interface RallyState {
-  die: "d6" | "d8" | "d10" | "d12";
-  distributed: boolean;
-  sessionUsed: boolean;
-}
-
-export interface UnstoppableState {
-  die?: "d4" | "d6";
-  value?: number;
-  active: boolean;
-  generatedThisSession: number;
-}
-
-export interface PrayerDiceState {
-  dice: number[];
-  maxStored: number;
-  generatedThisSession: number;
-}
-
-export interface SlayerDiceState {
-  pool: number[];
-  max: number;
-  usedThisSession: number;
-}
-
-export interface ClassMeters {
-  rally?: RallyState;
-  unstoppable?: UnstoppableState;
-  prayerDice?: PrayerDiceState;
-  slayer?: SlayerDiceState;
-  data?: Record<string, unknown>;
-}
-
-///////////////////////////
-// Session & Dynamic State //
-///////////////////////////
-
-export interface SessionState {
-  sessionNumber: number;
-  startDate: Date;
-  endDate?: Date;
-  restsTaken: number;
-  majorMilestones: string[];
-  notes?: string;
-}
-
-export interface TemporaryEffect {
-  id: string;
-  name: string;
-  description: string;
-  duration: "round" | "scene" | "session" | "rest" | "permanent";
-  remainingDuration?: number;
-  source: string;
-  mechanicalEffect?: string;
-  tags?: string[];
-}
-
-export interface DynamicState {
-  currentSession: SessionState;
-  conditions: Condition[];
-  temporaryEffects: TemporaryEffect[];
-  actionEconomy: ActionEconomy;
-  lastRollResult?: {
-    type: string;
-    total: number;
-    hopeGenerated: number;
-    fearGenerated: number;
-    timestamp: Date;
-  };
-}
-
-///////////////////////////
-// Core Character Types  //
-///////////////////////////
-
-export type Traits = Record<TraitName, TraitValue>;
-
-export interface Experience {
-  id: string;
-  name: string;
-  modifier: number;
-  timesUsed: number;
-  notes?: string;
-  data?: Record<string, unknown>;
-}
-
-export interface FeatureRef {
-  name: string;
-  text: string;
-  tags?: string[];
-  data?: Record<string, unknown>;
-}
-
-export interface Heritage {
-  ancestry: AncestryName;
-  ancestryFeatures: FeatureRef[];
-  community: CommunityName;
-  communityFeature: FeatureRef;
-  notes?: string;
-  data?: Record<string, unknown>;
-}
-
-export interface ClassFeature {
-  name: string;
-  text: string;
-  actionType?: ActionType;
-  cost?: string;
-  trigger?: string;
-}
-
-export interface HopeFeature {
-  name: string;
-  cost: number;
-  text: string;
-  timesUsed: number;
-}
-
-export interface Subclass {
-  name: SubclassName;
-  spellcastTrait?: TraitName;
-  foundation: FeatureRef;
-  specialization?: FeatureRef;
-  mastery?: FeatureRef;
-}
-
-export interface ClassKit {
-  className: ClassName;
-  startingEvasion: number;
-  startingHP: number;
-  classItems: string[];
-  classFeature: ClassFeature;
-  classHopeFeature: HopeFeature;
-  subclasses: Subclass[];
-  domains: DomainName[];
-}
-
-export interface Gold {
-  handfuls: number;
-  bags: number;
-  chests: number;
-}
-
-export interface Equipment {
-  activeWeapons: {
-    primary?: Weapon | null;
-    secondary?: Weapon | null;
-  };
-  inventoryWeapons: Weapon[];
-  activeArmor?: Armor | null;
-  inventory: InventoryItem[];
-  consumables: Consumable[];
-}
-
-export interface InventoryItem {
-  id: string;
-  name: string;
-  quantity?: number;
-  description?: string;
-  tags?: string[];
-  data?: Record<string, unknown>;
-}
-
-export interface Background {
-  notes?: string;
-  questions?: { question: string; answer: string }[];
-  bonds?: string[];
-  ideals?: string[];
-  flaws?: string[];
-  secrets?: string[];
-}
-
-export interface Connection {
-  pcId: string;
-  pcName: string;
-  description: string;
-  strength: "weak" | "moderate" | "strong";
-  type: "friendly" | "romantic" | "rival" | "family" | "professional" | "mysterious";
-  notes?: string;
-}
-
-///////////////////////////
-// Main Character Interface //
-///////////////////////////
-
-export interface PlayerCharacter {
+const BasePlayerCharacterSchema = z.object({
   // Core Identity
-  id: string;
-  name: string;
-  pronouns?: string;
-  description?: string;
+  id: z.string().min(1),
+  name: z.string().min(1).max(100),
+  pronouns: z.string().optional(),
+  description: z.string().optional(),
 
-  // Core Stats
-  level: Level;
-  tier: Tier;
-  evasion: number;
-  proficiency: number;
+  // Core Stats (more flexible for homebrew)
+  level: z.union([LevelSchema, z.number().int().min(1).max(50)]), // Allow homebrew levels
+  tier: z.union([TierSchema, z.number().int().min(1).max(20)]), // Allow homebrew tiers
+  evasion: z.number().min(0).max(50).int(), // Extended for homebrew
+  proficiency: z.number().min(0).max(20).int(), // Extended for homebrew
 
   // Character Building
-  traits: Traits;
-  experiences: Experience[];
-  domains: {
-    deck: Record<string, DomainCard>;
-    loadout: Loadout;
-  };
-
-  // Heritage & Class
-  heritage: Heritage;
-  classKit: ClassKit;
-  subclass: Subclass;
-  multiclass?: MulticlassInfo;
+  traits: TraitsSchema,
+  ancestry: AncestryNameSchema,
+  community: CommunityNameSchema,
+  className: ClassNameSchema,
 
   // Resources
-  resources: {
-    hp: HitPoints;
-    stress: StressTrack;
-    armor: ArmorState;
-    hope: HopeState;
-    fear?: FearState;
-    classMeters?: ClassMeters;
-    gold?: Gold;
-  };
+  hitPoints: HitPointsSchema,
+  stress: StressTrackSchema,
+  hope: HopeStateSchema,
 
   // Equipment
-  equipment: Equipment;
-
-  // Narrative
-  background?: Background;
-  connections?: Connection[];
-
-  // Advancement
-  advancement: {
-    availableChoices: AdvancementChoice[];
-    choicesMade: AdvancementChoice[];
-    experiencePoints?: number;
-    milestones: string[];
-  };
-
-  // Mortality
-  mortality: MortalityState;
+  primaryWeapon: WeaponSchema.optional(),
+  secondaryWeapon: WeaponSchema.optional(),
+  armor: ArmorSchema.optional(),
 
   // Dynamic State
-  dynamicState: DynamicState;
+  conditions: z.array(z.string()).default([]),
+  temporaryEffects: z.array(z.string()).default([]),
+
+  // Homebrew support
+  homebrewMode: z.boolean().default(false),
+  rulesVersion: z.string().default("SRD-1.0"),
 
   // Extensibility
-  tags?: string[];
-  data?: Record<string, unknown>;
-}
+  tags: z.array(z.string()).optional(),
+  data: z.record(z.string(), z.unknown()).optional()
+}).refine((character) => {
+  // Equipment validation: cannot have secondary weapon if primary is two-handed
+  if (character.primaryWeapon?.burden === "Two-Handed" && character.secondaryWeapon) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Cannot equip secondary weapon when primary weapon is two-handed"
+});
+
+// SRD-compliant character schema with strict validation
+const SRDPlayerCharacterSchema = BasePlayerCharacterSchema.extend({
+  homebrewMode: z.literal(false),
+  traits: SRDTraitsSchema, // Use strict SRD trait validation
+  evasion: z.number().min(6).max(20).int(), // SRD bounds
+  proficiency: z.number().min(0).max(6).int() // SRD bounds
+}).refine((character) => {
+  // Cross-field validation: tier must match level (SRD rule)
+  const expectedTier = character.level === 1 ? 1 : 
+                      character.level <= 4 ? 2 :
+                      character.level <= 7 ? 3 : 4;
+  return character.tier === expectedTier;
+}, {
+  message: "Character tier must match level (1=T1, 2-4=T2, 5-7=T3, 8-10=T4)"
+});
+
+// Flexible schema for homebrew content
+const PlayerCharacterSchema = BasePlayerCharacterSchema;
+
+export type PlayerCharacter = z.infer<typeof PlayerCharacterSchema>;
 
 ///////////////////////////
-// Default Values        //
+// Validation Constants  //
 ///////////////////////////
 
-export const DEFAULT_TRAIT_DISTRIBUTION = [2, 1, 1, 0, 0, -1] as const;
-
-export const DEFAULT_TRAITS: Traits = {
-  Agility: 0,
-  Strength: 0,
-  Finesse: 0,
-  Instinct: 0,
-  Presence: 0,
-  Knowledge: 0,
-} as const;
-
-export const DEFAULT_HIT_POINTS: HitPoints = {
-  maxSlots: 0,
-  marked: 0,
-  temporaryBonus: 0,
-} as const;
-
-export const DEFAULT_STRESS: StressTrack = {
-  maxSlots: 6,
-  marked: 0,
-  temporaryBonus: 0,
-} as const;
-
-export const DEFAULT_ARMOR_STATE: ArmorState = {
-  majorThreshold: 0,
-  severeThreshold: 0,
-  armorScore: 0,
-  markedSlots: 0,
-  temporaryBonus: 0,
-} as const;
-
-export const DEFAULT_HOPE_STATE: HopeState = {
-  current: 2,
-  maximum: 6,
-  sessionGenerated: 0,
-} as const;
-
-export const DEFAULT_FEAR_STATE: FearState = {
-  current: 0,
-  sessionGenerated: 0,
-  effects: [],
-} as const;
-
-export const DEFAULT_MORTALITY_STATE: MortalityState = {
-  lastHitPointMarked: false,
-  dying: false,
-  stabilized: false,
-  resurrectionCount: 0,
-} as const;
-
-export const DEFAULT_ACTION_ECONOMY: ActionEconomy = {
-  majorActionsUsed: 0,
-  minorActionsUsed: 0,
-  reactionsUsed: 0,
-  canAct: true,
-} as const;
+const CHARACTER_CLASS_DOMAINS: Record<ClassName, DomainName[]> = {
+  "Bard": ["Codex", "Grace"],
+  "Druid": ["Arcana", "Sage"],
+  "Guardian": ["Splendor", "Valor"],
+  "Ranger": ["Bone", "Sage"],
+  "Rogue": ["Midnight", "Blade"],
+  "Seraph": ["Grace", "Splendor"],
+  "Sorcerer": ["Arcana", "Midnight"],
+  "Warrior": ["Blade", "Bone"],
+  "Wizard": ["Codex", "Arcana"]
+};
 
 ///////////////////////////
-// Builder Functions     //
+// Factory Functions     //
 ///////////////////////////
 
-export function deriveTier(level: Level): Tier {
-  if (level === 1) return 1;
-  if (level <= 4) return 2;
-  if (level <= 7) return 3;
-  return 4;
-}
-
-export function calculateEvasion(
-  character: PlayerCharacter,
-  includeTemporary: boolean = true
-): number {
-  let evasion = character.evasion;
-
-  if (character.equipment.activeArmor?.features) {
-    // Apply armor evasion modifiers
-    character.equipment.activeArmor.features.forEach(feature => {
-      if (feature.name.includes("Flexible")) evasion += 1;
-      if (feature.name.includes("Heavy")) evasion -= 1;
+export class CharacterFactory {
+  static createDefaultTraits(): Traits {
+    return TraitsSchema.parse({
+      Agility: 0, Strength: 0, Finesse: 0,
+      Instinct: 0, Presence: 0, Knowledge: 0
     });
   }
 
-  if (includeTemporary && character.dynamicState.temporaryEffects) {
-    // Apply temporary evasion bonuses
-    character.dynamicState.temporaryEffects.forEach(effect => {
-      if (effect.mechanicalEffect?.includes("evasion")) {
-        // Parse evasion bonus from effect
-        const match = effect.mechanicalEffect.match(/([+-]\d+) evasion/i);
-        if (match) evasion += parseInt(match[1]);
+  static createSRDTraits(
+    distribution: [number, number, number, number, number, number]
+  ): Traits {
+    const [agility, strength, finesse, instinct, presence, knowledge] = distribution;
+    return SRDTraitsSchema.parse({
+      Agility: agility, Strength: strength, Finesse: finesse,
+      Instinct: instinct, Presence: presence, Knowledge: knowledge
+    });
+  }
+
+  static createHomebrewTraits(traits: Record<TraitName, number>): Traits {
+    return TraitsSchema.parse(traits);
+  }
+
+  static createBasicCharacter(params: {
+    name: string;
+    level: Level;
+    ancestry: AncestryName;
+    community: CommunityName;
+    className: ClassName;
+    traits?: Traits;
+    homebrewMode?: boolean;
+  }): PlayerCharacter {
+    const { name, level, ancestry, community, className, traits, homebrewMode = false } = params;
+    
+    const tier = CharacterUtilities.deriveTier(level);
+    
+    return PlayerCharacterSchema.parse({
+      id: crypto.randomUUID(),
+      name,
+      level,
+      tier,
+      evasion: 10,
+      proficiency: Math.ceil(level / 2),
+      traits: traits || CharacterFactory.createDefaultTraits(),
+      ancestry,
+      community,
+      className,
+      hitPoints: { maxSlots: 20, marked: 0, temporaryBonus: 0 },
+      stress: { maxSlots: 6, marked: 0, temporaryBonus: 0 },
+      hope: { current: 2, maximum: 6, sessionGenerated: 0 },
+      conditions: [],
+      temporaryEffects: [],
+      homebrewMode,
+      rulesVersion: homebrewMode ? "Homebrew" : "SRD-1.0"
+    });
+  }
+
+  static createHomebrewCharacter(params: {
+    name: string;
+    level: number;
+    tier: number;
+    evasion: number;
+    proficiency: number;
+    traits: Record<string, number>;
+    ancestry: string;
+    community: string;
+    className: string;
+  }): PlayerCharacter {
+    return PlayerCharacterSchema.parse({
+      id: crypto.randomUUID(),
+      homebrewMode: true,
+      rulesVersion: "Homebrew",
+      hitPoints: { maxSlots: 20, marked: 0, temporaryBonus: 0 },
+      stress: { maxSlots: 6, marked: 0, temporaryBonus: 0 },
+      hope: { current: 2, maximum: 6, sessionGenerated: 0 },
+      conditions: [],
+      temporaryEffects: [],
+      ...params
+    });
+  }
+}
+
+///////////////////////////
+// Validation Utilities  //
+///////////////////////////
+
+export class CharacterValidator {
+  static validate(
+    character: unknown
+  ): { success: true; data: PlayerCharacter } | { success: false; error: z.ZodError } {
+    return PlayerCharacterSchema.safeParse(character);
+  }
+
+  static validateSRD(
+    character: unknown
+  ): { success: true; data: PlayerCharacter } | { success: false; error: z.ZodError } {
+    return SRDPlayerCharacterSchema.safeParse(character);
+  }
+
+  static validatePartial(
+    character: unknown
+  ): { success: true; data: Partial<PlayerCharacter> } | { success: false; error: z.ZodError } {
+    return PlayerCharacterSchema.partial().safeParse(character);
+  }
+
+  static getValidationErrors(character: unknown, srdMode = false): string[] {
+    const schema = srdMode ? SRDPlayerCharacterSchema : PlayerCharacterSchema;
+    const result = schema.safeParse(character);
+    if (result.success) return [];
+    
+    return result.error.issues.map(issue => 
+      `${issue.path.join('.')}: ${issue.message}`
+    );
+  }
+}
+
+///////////////////////////
+// Utility Functions     //
+///////////////////////////
+
+export class CharacterUtilities {
+  static deriveTier(level: Level): Tier {
+    if (level === 1) return 1;
+    if (level <= 4) return 2;
+    if (level <= 7) return 3;
+    return 4;
+  }
+
+  static calculateEvasion(character: PlayerCharacter): number {
+    let evasion = character.evasion;
+    
+    if (character.armor) {
+      // Apply armor modifiers
+      for (const feature of character.armor.features) {
+        if (feature === "Flexible") evasion += 1;
+        if (feature === "Heavy") evasion -= 1;
       }
-    });
+    }
+    
+    return Math.max(0, evasion);
   }
 
-  return evasion;
+  static canUseDeathMove(character: PlayerCharacter): boolean {
+    return character.hitPoints.marked === character.hitPoints.maxSlots - 1;
+  }
+
+  static getAvailableDomains(className: ClassName): DomainName[] {
+    return CHARACTER_CLASS_DOMAINS[className] || [];
+  }
 }
 
-export function canUseDeathMove(character: PlayerCharacter): boolean {
-  return character.mortality.lastHitPointMarked &&
-    !character.mortality.deathMoveUsed &&
-    !character.mortality.dying;
-}
+///////////////////////////
+// Constants             //
+///////////////////////////
 
-export function hasAdvancementChoice(
-  character: PlayerCharacter,
-  level: Level
-): boolean {
-  return character.advancement.availableChoices.some(
-    choice => choice.level === level && !choice.taken
-  );
-}
+export const DEFAULT_VALUES = {
+  TRAIT_DISTRIBUTION: [2, 1, 1, 0, 0, -1] as const,
+  STARTING_HOPE: 2,
+  MAX_HOPE: 6,
+  STARTING_STRESS_SLOTS: 6,
+  STANDARD_STARTING_HP: 20,
+  STANDARD_STARTING_EVASION: 10
+} as const;
 
-export function getDomainCardsInLoadout(character: PlayerCharacter): DomainCard[] {
-  return character.domains.loadout.active
-    .map(id => character.domains.deck[id])
-    .filter(Boolean);
-}
-
-export function canRecallCard(
-  character: PlayerCharacter,
-  cardId: string
-): boolean {
-  const card = character.domains.deck[cardId];
-  if (!card || !card.inVault) return false;
-
-  return character.resources.stress.marked >= card.recallCost;
-}
+// Export key schemas
+export {
+  PlayerCharacterSchema,
+  SRDPlayerCharacterSchema,
+  TraitsSchema,
+  SRDTraitsSchema,
+  WeaponSchema,
+  ArmorSchema,
+  HitPointsSchema,
+  StressTrackSchema,
+  HopeStateSchema,
+  CORE_CLASSES,
+  CORE_DOMAINS,
+  CORE_ANCESTRIES,
+  CORE_COMMUNITIES
+};

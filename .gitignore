@@ -23,6 +23,66 @@ dist-ssr
 *.sln
 *.sw?
 
+# Test coverage reports
+coverage/
+*.lcov
+.nyc_output/
 
-# SRD
+# Build artifacts
+build/
+out/
+.next/
+.nuxt/
+.cache/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Package manager files
+.pnpm-debug.log*
+.yarn-integrity
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# TypeScript
+*.tsbuildinfo
+.tsbuildinfo
+
+# Vitest
+.vitest/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# SRD (keeping your existing entry)
 SRD
+
+# Legacy/backup files
+*.bak
+*.backup
+*.old
+*.tmp
+*.temp
+
+# IDE specific
+.vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json
+.vscode/*.code-workspace
+
+# Development files
+.dev/
+temp/
+scratch/
