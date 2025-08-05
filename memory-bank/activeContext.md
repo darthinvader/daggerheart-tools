@@ -1,41 +1,47 @@
 # Active Context
 
-## Current Task
+## Current Task: Schema Architecture Cleanup (August 2025)
 
-Creating enhanced Daggerheart character model by learning from external TypeScript implementation and improving upon it.
+Successfully completed major schema refactoring to eliminate over-engineering and improve maintainability.
 
-## Immediate Plan
+## Recent Accomplishments
 
-**Phase 1: Foundation** (Next)
+**Schema Cleanup Completed:**
 
-1. Create enhanced character model combining external model strengths with identified gaps
-2. Implement missing critical mechanics (death moves, advancement, dynamic state)
-3. Add strong TypeScript validation with flexible rules
-4. Build example characters demonstrating capabilities
+- ✅ Removed unnecessary factory classes (CharacterFactory, CharacterValidator)
+- ✅ Consolidated duplicate SRD/Homebrew schemas into single conditional schema
+- ✅ Simplified validation.ts from 196 lines to 80 lines of actual utility
+- ✅ Streamlined core.ts by removing excessive constants and comments
+- ✅ Extracted character utility functions to separate file
+- ✅ Updated systemPatterns.md with new architecture decisions
 
-**Phase 2: Integration**
+**Performance Improvements:**
 
-1. Connect models to React components
-2. Build character creation wizard
-3. Implement character sheet interface
-4. Add save/load functionality
+- Eliminated object instantiation overhead from factory patterns
+- Reduced schema parsing complexity
+- Removed redundant validation layers
 
-## Key Insights from Analysis
+## Next Steps
 
-**External Model Strengths:**
+**Phase 2: Testing and Validation**
 
-- Excellent SRD accuracy and core type coverage
-- Strong TypeScript patterns and extensibility
-- Good class-specific meters (Rally, Prayer Dice, etc.)
+1. Run existing tests to ensure refactoring didn't break functionality
+2. Update any dependent code that used old factory patterns
+3. Validate character creation still works correctly
 
-**Critical Gaps to Address:**
+**Phase 3: Documentation Updates**
 
-- Death moves and character mortality system
-- Level advancement choices and multiclassing
-- Dynamic state tracking (conditions, sessions)
-- Fear system and action economy
-- Enhanced equipment features and consumables
+1. Update any API documentation referencing old patterns
+2. Create migration guide for breaking changes
+3. Update README with simplified usage examples
 
-## Implementation Strategy
+## Key Decisions Made
 
-Start with external model as foundation, then systematically add missing mechanics while maintaining their excellent type safety and extensibility patterns.
+- **Single Schema Approach**: Conditional validation based on `homebrewMode` flag instead of separate schemas
+- **Function-First**: Replaced classes with simple functions for better tree-shaking and simplicity
+- **Utility Separation**: Moved calculation functions out of schema files for better organization
+- **Minimal Abstraction**: Direct use of Zod instead of wrapping it in unnecessary layers
+
+## Current State
+
+Schema architecture is now clean, maintainable, and follows modern TypeScript patterns. Ready to proceed with testing and integration work.

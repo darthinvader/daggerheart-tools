@@ -1,10 +1,5 @@
 /**
  * Character Schema and Resource Management
- *
- * Main character definition with resources, equipment, and game state.
- * Supports both SRD-compliant and homebrew character creation.
- *
- * @author Proper Software Architecture Team
  */
 import { z } from 'zod';
 
@@ -19,10 +14,7 @@ import {
 } from './core';
 import { ArmorSchema, WeaponSchema } from './equipment';
 
-///////////////////////////
-// Character Resources   //
-///////////////////////////
-
+// Character resources
 export const HitPointsSchema = z
   .object({
     maxSlots: z.number().min(1).int(),
@@ -31,9 +23,7 @@ export const HitPointsSchema = z
   })
   .refine(
     data => data.marked <= data.maxSlots + Math.max(0, data.temporaryBonus),
-    {
-      message: 'Marked hit points cannot exceed maximum + temporary bonus',
-    }
+    { message: 'Marked hit points cannot exceed maximum + temporary bonus' }
   );
 
 export const StressTrackSchema = z
@@ -44,9 +34,7 @@ export const StressTrackSchema = z
   })
   .refine(
     data => data.marked <= data.maxSlots + Math.max(0, data.temporaryBonus),
-    {
-      message: 'Marked stress cannot exceed maximum + temporary bonus',
-    }
+    { message: 'Marked stress cannot exceed maximum + temporary bonus' }
   );
 
 export const HopeStateSchema = z.object({
@@ -55,25 +43,22 @@ export const HopeStateSchema = z.object({
   sessionGenerated: z.number().min(0).int().default(0),
 });
 
-///////////////////////////
-// Character Schema      //
-///////////////////////////
-
-const BasePlayerCharacterSchema = z
+// Main character schema with conditional validation
+export const PlayerCharacterSchema = z
   .object({
-    // Core Identity
+    // Core identity
     id: z.string().min(1),
     name: z.string().min(1).max(100),
     pronouns: z.string().optional(),
     description: z.string().optional(),
 
-    // Core Stats (more flexible for homebrew)
+    // Core stats
     level: LevelSchema,
     tier: TierSchema,
-    evasion: z.number().min(0).max(50).int(), // Extended for homebrew
-    proficiency: z.number().min(0).max(20).int(), // Extended for homebrew
+    evasion: z.number().min(0).max(50).int(),
+    proficiency: z.number().min(0).max(20).int(),
 
-    // Character Building
+    // Character building
     traits: TraitsSchema,
     ancestry: AncestryNameSchema,
     community: CommunityNameSchema,
@@ -89,11 +74,11 @@ const BasePlayerCharacterSchema = z
     secondaryWeapon: WeaponSchema.optional(),
     armor: ArmorSchema.optional(),
 
-    // Dynamic State
+    // Dynamic state
     conditions: z.array(z.string()).default([]),
     temporaryEffects: z.array(z.string()).default([]),
 
-    // Homebrew support
+    // Mode and versioning
     homebrewMode: z.boolean().default(false),
     rulesVersion: z.string().default('SRD-1.0'),
 
@@ -103,7 +88,7 @@ const BasePlayerCharacterSchema = z
   })
   .refine(
     character => {
-      // Equipment validation: cannot have secondary weapon if primary is two-handed
+      // Equipment validation: no secondary weapon with two-handed primary
       if (
         character.primaryWeapon?.burden === 'Two-Handed' &&
         character.secondaryWeapon
@@ -116,39 +101,46 @@ const BasePlayerCharacterSchema = z
       message:
         'Cannot equip secondary weapon when primary weapon is two-handed',
     }
+  )
+  .refine(
+    character => {
+      // SRD mode validations
+      if (!character.homebrewMode) {
+        // Validate traits follow SRD rules
+        const traitValidation = SRDTraitsSchema.safeParse(character.traits);
+        if (!traitValidation.success) return false;
+
+        // Validate tier matches level
+        const expectedTier =
+          character.level === 1
+            ? 1
+            : character.level <= 4
+              ? 2
+              : character.level <= 7
+                ? 3
+                : 4;
+        if (character.tier !== expectedTier) return false;
+
+        // Validate stat bounds for SRD
+        if (character.evasion < 6 || character.evasion > 20) return false;
+        if (character.proficiency < 0 || character.proficiency > 6)
+          return false;
+      }
+      return true;
+    },
+    {
+      message:
+        'Character violates SRD rules (check traits, tier/level match, and stat bounds)',
+    }
   );
 
-// SRD-compliant character schema with strict validation
-export const SRDPlayerCharacterSchema = BasePlayerCharacterSchema.extend({
-  homebrewMode: z.literal(false),
-  traits: SRDTraitsSchema, // Use strict SRD trait validation
-  evasion: z.number().min(6).max(20).int(), // SRD bounds
-  proficiency: z.number().min(0).max(6).int(), // SRD bounds
-}).refine(
-  character => {
-    // Cross-field validation: tier must match level (SRD rule)
-    const expectedTier =
-      character.level === 1
-        ? 1
-        : character.level <= 4
-          ? 2
-          : character.level <= 7
-            ? 3
-            : 4;
-    return character.tier === expectedTier;
-  },
-  {
-    message: 'Character tier must match level (1=T1, 2-4=T2, 5-7=T3, 8-10=T4)',
-  }
+// Convenience schema for SRD validation
+export const SRDPlayerCharacterSchema = PlayerCharacterSchema.refine(
+  character => !character.homebrewMode,
+  { message: 'Character must not be in homebrew mode for SRD validation' }
 );
 
-// Flexible schema for homebrew content
-export const PlayerCharacterSchema = BasePlayerCharacterSchema;
-
-///////////////////////////
-// Type Exports          //
-///////////////////////////
-
+// Type exports
 export type PlayerCharacter = z.infer<typeof PlayerCharacterSchema>;
 export type SRDPlayerCharacter = z.infer<typeof SRDPlayerCharacterSchema>;
 export type HitPoints = z.infer<typeof HitPointsSchema>;

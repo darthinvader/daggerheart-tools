@@ -1,18 +1,9 @@
 /**
  * Equipment and Inventory Schemas
- *
- * Handles weapons, armor, consumables, and general inventory items
- * with support for homebrew content and extensible features.
- *
- * @author Proper Software Architecture Team
  */
 import { z } from 'zod';
 
 import { DamageTypeSchema, RangeBandSchema, TraitNameSchema } from './core';
-
-///////////////////////////
-// Equipment Schemas     //
-///////////////////////////
 
 export const WeaponSchema = z.object({
   id: z.string().min(1),
@@ -59,10 +50,6 @@ export const InventoryItemSchema = z.object({
   tags: z.array(z.string()).optional(),
   data: z.record(z.string(), z.unknown()).optional(),
 });
-
-///////////////////////////
-// Type Exports          //
-///////////////////////////
 
 export type Weapon = z.infer<typeof WeaponSchema>;
 export type Armor = z.infer<typeof ArmorSchema>;

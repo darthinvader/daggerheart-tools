@@ -123,7 +123,6 @@ describe('Validation Functions', () => {
       ancestry: 'Human',
       community: 'Wanderborne',
       className: 'Warrior',
-      traits: createSRDTraits([2, 1, 1, 0, 0, -1]),
     });
     const result = validateCharacter(character);
     expect(result.success).toBe(true);

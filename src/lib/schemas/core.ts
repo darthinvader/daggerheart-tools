@@ -1,19 +1,9 @@
 /**
  * Core Daggerheart Type Definitions and Base Schemas
- *
- * Contains the fundamental building blocks for the Daggerheart system:
- * - Core enums and primitives
- * - Range, damage, and tier systems
- * - Character attributes and traits
- *
- * @author Proper Software Architecture Team
  */
 import { z } from 'zod';
 
-///////////////////////////
-// Core Game Primitives  //
-///////////////////////////
-
+// Core game primitives
 export const RangeBandSchema = z.enum([
   'Melee',
   'Very Close',
@@ -24,14 +14,12 @@ export const RangeBandSchema = z.enum([
 ]);
 
 export const DamageTypeSchema = z.enum(['phy', 'mag']);
-
 export const TierSchema = z.union([
   z.literal(1),
   z.literal(2),
   z.literal(3),
   z.literal(4),
 ]);
-
 export const LevelSchema = z.union([
   z.literal(1),
   z.literal(2),
@@ -54,15 +42,10 @@ export const TraitNameSchema = z.enum([
   'Knowledge',
 ]);
 
-// Extensible trait values for homebrew content
-export const TraitValueSchema = z.number().int().min(-10).max(50); // Reasonable bounds for homebrew
+export const TraitValueSchema = z.number().int().min(-10).max(50);
 
-///////////////////////////
-// Character Identity    //
-///////////////////////////
-
-// Extensible class system
-export const CORE_CLASSES = [
+// Character identity
+const CORE_CLASSES = [
   'Bard',
   'Druid',
   'Guardian',
@@ -73,14 +56,7 @@ export const CORE_CLASSES = [
   'Warrior',
   'Wizard',
 ] as const;
-
-export const ClassNameSchema = z.union([
-  z.enum(CORE_CLASSES),
-  z.string().min(1), // Allow custom homebrew classes
-]);
-
-// Extensible domain system
-export const CORE_DOMAINS = [
+const CORE_DOMAINS = [
   'Arcana',
   'Blade',
   'Bone',
@@ -91,14 +67,7 @@ export const CORE_DOMAINS = [
   'Splendor',
   'Valor',
 ] as const;
-
-export const DomainNameSchema = z.union([
-  z.enum(CORE_DOMAINS),
-  z.string().min(1), // Allow custom homebrew domains
-]);
-
-// Extensible ancestry system
-export const CORE_ANCESTRIES = [
+const CORE_ANCESTRIES = [
   'Clank',
   'Drakona',
   'Dwarf',
@@ -119,14 +88,7 @@ export const CORE_ANCESTRIES = [
   'Simiah',
   'Mixed',
 ] as const;
-
-export const AncestryNameSchema = z.union([
-  z.enum(CORE_ANCESTRIES),
-  z.string().min(1), // Allow custom homebrew ancestries
-]);
-
-// Extensible community system
-export const CORE_COMMUNITIES = [
+const CORE_COMMUNITIES = [
   'Highborne',
   'Loreborne',
   'Orderborne',
@@ -138,15 +100,24 @@ export const CORE_COMMUNITIES = [
   'Wildborne',
 ] as const;
 
+export const ClassNameSchema = z.union([
+  z.enum(CORE_CLASSES),
+  z.string().min(1),
+]);
+export const DomainNameSchema = z.union([
+  z.enum(CORE_DOMAINS),
+  z.string().min(1),
+]);
+export const AncestryNameSchema = z.union([
+  z.enum(CORE_ANCESTRIES),
+  z.string().min(1),
+]);
 export const CommunityNameSchema = z.union([
   z.enum(CORE_COMMUNITIES),
-  z.string().min(1), // Allow custom homebrew communities
+  z.string().min(1),
 ]);
 
-///////////////////////////
-// Trait System          //
-///////////////////////////
-
+// Trait system
 export const TraitsSchema = z.object({
   Agility: TraitValueSchema,
   Strength: TraitValueSchema,
@@ -156,10 +127,9 @@ export const TraitsSchema = z.object({
   Knowledge: TraitValueSchema,
 });
 
-// Separate SRD-compliant trait validation for official games
+// SRD trait validation
 export const SRDTraitsSchema = TraitsSchema.refine(
   traits => {
-    // SRD validation: trait distribution must follow standard array
     const values = Object.values(traits).sort((a, b) => b - a);
     const standardArray = [2, 1, 1, 0, 0, -1];
     return JSON.stringify(values) === JSON.stringify(standardArray);
@@ -170,10 +140,7 @@ export const SRDTraitsSchema = TraitsSchema.refine(
   }
 );
 
-///////////////////////////
-// Type Exports          //
-///////////////////////////
-
+// Type exports
 export type RangeBand = z.infer<typeof RangeBandSchema>;
 export type DamageType = z.infer<typeof DamageTypeSchema>;
 export type Tier = z.infer<typeof TierSchema>;
@@ -186,28 +153,3 @@ export type AncestryName = z.infer<typeof AncestryNameSchema>;
 export type CommunityName = z.infer<typeof CommunityNameSchema>;
 export type Traits = z.infer<typeof TraitsSchema>;
 export type SRDTraits = z.infer<typeof SRDTraitsSchema>;
-
-///////////////////////////
-// Constants             //
-///////////////////////////
-
-export const CHARACTER_CLASS_DOMAINS: Record<string, string[]> = {
-  Bard: ['Codex', 'Grace'],
-  Druid: ['Arcana', 'Sage'],
-  Guardian: ['Splendor', 'Valor'],
-  Ranger: ['Bone', 'Sage'],
-  Rogue: ['Midnight', 'Blade'],
-  Seraph: ['Grace', 'Splendor'],
-  Sorcerer: ['Arcana', 'Midnight'],
-  Warrior: ['Blade', 'Bone'],
-  Wizard: ['Codex', 'Arcana'],
-};
-
-export const DEFAULT_VALUES = {
-  TRAIT_DISTRIBUTION: [2, 1, 1, 0, 0, -1] as const,
-  STARTING_HOPE: 2,
-  MAX_HOPE: 6,
-  STARTING_STRESS_SLOTS: 6,
-  STANDARD_STARTING_HP: 20,
-  STANDARD_STARTING_EVASION: 10,
-} as const;
