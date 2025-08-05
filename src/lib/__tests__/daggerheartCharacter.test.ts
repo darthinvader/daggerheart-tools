@@ -8,6 +8,13 @@
  */
 import { describe, expect, test } from 'vitest';
 
+import type {
+  Armor,
+  ClassName,
+  Level,
+  PlayerCharacter,
+  Weapon,
+} from '../daggerheartCharacter';
 import {
   ArmorSchema,
   CORE_ANCESTRIES,
@@ -25,13 +32,6 @@ import {
   SRDTraitsSchema,
   TraitsSchema,
   WeaponSchema,
-} from '../daggerheartCharacter';
-import type {
-  Armor,
-  ClassName,
-  Level,
-  PlayerCharacter,
-  Weapon,
 } from '../daggerheartCharacter';
 
 describe('Core Schema Validation', () => {

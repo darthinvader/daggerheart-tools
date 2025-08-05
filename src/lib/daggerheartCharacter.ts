@@ -555,17 +555,17 @@ export const DEFAULT_VALUES = {
 
 // Export key schemas
 export {
+  ArmorSchema,
+  CORE_ANCESTRIES,
+  CORE_CLASSES,
+  CORE_COMMUNITIES,
+  CORE_DOMAINS,
+  HitPointsSchema,
+  HopeStateSchema,
   PlayerCharacterSchema,
   SRDPlayerCharacterSchema,
-  TraitsSchema,
   SRDTraitsSchema,
-  WeaponSchema,
-  ArmorSchema,
-  HitPointsSchema,
   StressTrackSchema,
-  HopeStateSchema,
-  CORE_CLASSES,
-  CORE_DOMAINS,
-  CORE_ANCESTRIES,
-  CORE_COMMUNITIES,
+  TraitsSchema,
+  WeaponSchema,
 };
