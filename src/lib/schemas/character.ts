@@ -8,10 +8,10 @@
  */
 
 import { z } from 'zod';
-import { 
-  TraitsSchema, 
-  SRDTraitsSchema, 
-  LevelSchema, 
+import {
+  TraitsSchema,
+  SRDTraitsSchema,
+  LevelSchema,
   TierSchema,
   AncestryNameSchema,
   CommunityNameSchema,
@@ -107,9 +107,9 @@ export const SRDPlayerCharacterSchema = BasePlayerCharacterSchema.extend({
   proficiency: z.number().min(0).max(6).int() // SRD bounds
 }).refine((character) => {
   // Cross-field validation: tier must match level (SRD rule)
-  const expectedTier = character.level === 1 ? 1 : 
-                      character.level <= 4 ? 2 :
-                      character.level <= 7 ? 3 : 4;
+  const expectedTier = character.level === 1 ? 1 :
+    character.level <= 4 ? 2 :
+      character.level <= 7 ? 3 : 4;
   return character.tier === expectedTier;
 }, {
   message: "Character tier must match level (1=T1, 2-4=T2, 5-7=T3, 8-10=T4)"

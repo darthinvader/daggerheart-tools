@@ -27,10 +27,10 @@ import {
   CORE_ANCESTRIES,
   CORE_COMMUNITIES
 } from '../daggerheartCharacter';
-import type { 
-  PlayerCharacter, 
-  Traits, 
-  Weapon, 
+import type {
+  PlayerCharacter,
+  Traits,
+  Weapon,
   Armor,
   Level,
   ClassName,
@@ -49,7 +49,7 @@ describe('Core Schema Validation', () => {
         Presence: 30,
         Knowledge: -5
       };
-      
+
       expect(() => TraitsSchema.parse(validTraits)).not.toThrow();
     });
 
@@ -62,7 +62,7 @@ describe('Core Schema Validation', () => {
         Presence: 0,
         Knowledge: 0
       };
-      
+
       expect(() => TraitsSchema.parse(invalidTraits)).toThrow();
     });
 
@@ -72,7 +72,7 @@ describe('Core Schema Validation', () => {
         Strength: 0
         // Missing other traits
       };
-      
+
       expect(() => TraitsSchema.parse(incompleteTraits)).toThrow();
     });
   });
@@ -87,7 +87,7 @@ describe('Core Schema Validation', () => {
         Presence: 0,
         Knowledge: -1
       };
-      
+
       expect(() => SRDTraitsSchema.parse(srdTraits)).not.toThrow();
     });
 
@@ -100,7 +100,7 @@ describe('Core Schema Validation', () => {
         Presence: 0,
         Knowledge: -1
       };
-      
+
       expect(() => SRDTraitsSchema.parse(nonStandardTraits)).toThrow();
       expect(() => SRDTraitsSchema.parse(nonStandardTraits)).toThrow(/standard array/);
     });
@@ -114,7 +114,7 @@ describe('Core Schema Validation', () => {
         Presence: 0,
         Knowledge: 0 // Should be -1
       };
-      
+
       expect(() => SRDTraitsSchema.parse(wrongCountTraits)).toThrow();
     });
   });
@@ -131,7 +131,7 @@ describe('Core Schema Validation', () => {
         burden: 'One-Handed',
         features: ['Reliable']
       };
-      
+
       expect(() => WeaponSchema.parse(basicSword)).not.toThrow();
     });
 
@@ -146,7 +146,7 @@ describe('Core Schema Validation', () => {
         burden: 'Two-Handed',
         features: ['Focus']
       };
-      
+
       expect(() => WeaponSchema.parse(spellWeapon)).not.toThrow();
     });
 
@@ -161,7 +161,7 @@ describe('Core Schema Validation', () => {
         burden: 'One-Handed',
         features: []
       };
-      
+
       expect(() => WeaponSchema.parse(invalidWeapon)).toThrow();
     });
   });
@@ -176,7 +176,7 @@ describe('Core Schema Validation', () => {
         armorScore: 2,
         features: ['Flexible']
       };
-      
+
       expect(() => ArmorSchema.parse(basicArmor)).not.toThrow();
     });
 
@@ -189,7 +189,7 @@ describe('Core Schema Validation', () => {
         armorScore: 2,
         features: []
       };
-      
+
       expect(() => ArmorSchema.parse(invalidArmor)).toThrow();
     });
   });
@@ -201,7 +201,7 @@ describe('Core Schema Validation', () => {
         marked: 5,
         temporaryBonus: 0
       };
-      
+
       expect(() => HitPointsSchema.parse(validHP)).not.toThrow();
     });
 
@@ -211,7 +211,7 @@ describe('Core Schema Validation', () => {
         marked: 25, // More than max
         temporaryBonus: 0
       };
-      
+
       expect(() => HitPointsSchema.parse(invalidHP)).toThrow(/exceed maximum/);
     });
 
@@ -221,7 +221,7 @@ describe('Core Schema Validation', () => {
         maximum: 6,
         sessionGenerated: 0
       };
-      
+
       expect(() => HopeStateSchema.parse(invalidHope)).toThrow();
     });
   });
@@ -256,7 +256,7 @@ describe('Character Creation and Validation', () => {
         homebrewMode: true,
         rulesVersion: 'Homebrew'
       };
-      
+
       expect(() => PlayerCharacterSchema.parse(homebrewCharacter)).not.toThrow();
     });
 
@@ -300,7 +300,7 @@ describe('Character Creation and Validation', () => {
         homebrewMode: false,
         rulesVersion: 'SRD-1.0'
       };
-      
+
       expect(() => PlayerCharacterSchema.parse(invalidCharacter)).toThrow(/two-handed/);
     });
   });
@@ -326,7 +326,7 @@ describe('Character Creation and Validation', () => {
         homebrewMode: false,
         rulesVersion: 'SRD-1.0'
       };
-      
+
       expect(() => SRDPlayerCharacterSchema.parse(srdCharacter)).not.toThrow();
     });
 
@@ -350,7 +350,7 @@ describe('Character Creation and Validation', () => {
         homebrewMode: true, // This should fail
         rulesVersion: 'Homebrew'
       };
-      
+
       expect(() => SRDPlayerCharacterSchema.parse(homebrewCharacter)).toThrow();
     });
 
@@ -374,7 +374,7 @@ describe('Character Creation and Validation', () => {
         homebrewMode: false,
         rulesVersion: 'SRD-1.0'
       };
-      
+
       expect(() => SRDPlayerCharacterSchema.parse(invalidTierCharacter)).toThrow(/tier must match level/);
     });
   });
@@ -384,7 +384,7 @@ describe('CharacterFactory', () => {
   describe('createDefaultTraits', () => {
     test('creates traits with all zeros', () => {
       const traits = CharacterFactory.createDefaultTraits();
-      
+
       expect(traits.Agility).toBe(0);
       expect(traits.Strength).toBe(0);
       expect(traits.Finesse).toBe(0);
@@ -398,21 +398,21 @@ describe('CharacterFactory', () => {
     test('creates valid SRD trait distribution', () => {
       const distribution: [number, number, number, number, number, number] = [2, 1, 1, 0, 0, -1];
       const traits = CharacterFactory.createSRDTraits(distribution);
-      
+
       expect(traits.Agility).toBe(2);
       expect(traits.Strength).toBe(1);
       expect(traits.Finesse).toBe(1);
       expect(traits.Instinct).toBe(0);
       expect(traits.Presence).toBe(0);
       expect(traits.Knowledge).toBe(-1);
-      
+
       // Should pass SRD validation
       expect(() => SRDTraitsSchema.parse(traits)).not.toThrow();
     });
 
     test('throws on invalid SRD distribution', () => {
       const invalidDistribution: [number, number, number, number, number, number] = [3, 2, 1, 0, 0, -1];
-      
+
       expect(() => CharacterFactory.createSRDTraits(invalidDistribution)).toThrow();
     });
   });
@@ -427,7 +427,7 @@ describe('CharacterFactory', () => {
         Presence: 30,
         Knowledge: 8
       });
-      
+
       expect(homebrewTraits.Strength).toBe(50);
       expect(homebrewTraits.Finesse).toBe(-5);
       expect(() => TraitsSchema.parse(homebrewTraits)).not.toThrow();
@@ -443,14 +443,14 @@ describe('CharacterFactory', () => {
         community: 'Wanderborne',
         className: 'Warrior'
       });
-      
+
       expect(character.name).toBe('Test Hero');
       expect(character.level).toBe(3);
       expect(character.tier).toBe(2); // Auto-derived
       expect(character.homebrewMode).toBe(false);
       expect(character.rulesVersion).toBe('SRD-1.0');
       expect(character.id).toBeDefined();
-      
+
       // Should validate successfully
       expect(() => PlayerCharacterSchema.parse(character)).not.toThrow();
     });
@@ -474,7 +474,7 @@ describe('CharacterFactory', () => {
         traits: customTraits,
         homebrewMode: true
       });
-      
+
       expect(character.homebrewMode).toBe(true);
       expect(character.rulesVersion).toBe('Homebrew');
       expect(character.traits.Strength).toBe(20);
@@ -501,7 +501,7 @@ describe('CharacterFactory', () => {
         community: 'Multiverse',
         className: 'Reality Shaper'
       });
-      
+
       expect(character.homebrewMode).toBe(true);
       expect(character.level).toBe(25);
       expect(character.tier).toBe(5);
@@ -546,10 +546,10 @@ describe('CharacterValidator', () => {
       traits: { Agility: 10, Strength: 20, Finesse: 5, Instinct: 8, Presence: 15, Knowledge: 3 },
       homebrewMode: true
     };
-    
+
     const standardResult = CharacterValidator.validate(homebrewCharacter);
     const srdResult = CharacterValidator.validateSRD(homebrewCharacter);
-    
+
     expect(standardResult.success).toBe(true); // Should pass standard validation
     expect(srdResult.success).toBe(false); // Should fail SRD validation
   });
@@ -561,7 +561,7 @@ describe('CharacterValidator', () => {
       tier: 1, // Wrong for level
       traits: { Agility: 100 } // Incomplete and out of range
     };
-    
+
     const errors = CharacterValidator.getValidationErrors(invalidCharacter);
     expect(errors.length).toBeGreaterThan(0);
     expect(errors.some(error => error.includes('name'))).toBe(true);
@@ -573,7 +573,7 @@ describe('CharacterValidator', () => {
       level: 5
       // Missing other required fields
     };
-    
+
     const result = CharacterValidator.validatePartial(partialCharacter);
     expect(result.success).toBe(true);
   });
@@ -601,7 +601,7 @@ describe('CharacterUtilities', () => {
         community: 'Wanderborne',
         className: 'Rogue'
       });
-      
+
       const evasion = CharacterUtilities.calculateEvasion(character);
       expect(evasion).toBe(10); // Base evasion
     });
@@ -614,7 +614,7 @@ describe('CharacterUtilities', () => {
         community: 'Wanderborne',
         className: 'Guardian'
       });
-      
+
       character.armor = {
         id: 'chainmail',
         name: 'Chainmail',
@@ -623,7 +623,7 @@ describe('CharacterUtilities', () => {
         armorScore: 3,
         features: ['Heavy'] // Should reduce evasion
       };
-      
+
       const evasion = CharacterUtilities.calculateEvasion(character);
       expect(evasion).toBe(9); // 10 - 1 for Heavy
     });
@@ -636,7 +636,7 @@ describe('CharacterUtilities', () => {
         community: 'Wanderborne',
         className: 'Guardian'
       });
-      
+
       character.evasion = 2;
       character.armor = {
         id: 'platemail',
@@ -646,7 +646,7 @@ describe('CharacterUtilities', () => {
         armorScore: 5,
         features: ['Heavy', 'Heavy', 'Heavy'] // Multiple penalties
       };
-      
+
       const evasion = CharacterUtilities.calculateEvasion(character);
       expect(evasion).toBe(0); // Should not go negative
     });
@@ -661,9 +661,9 @@ describe('CharacterUtilities', () => {
         community: 'Wanderborne',
         className: 'Warrior'
       });
-      
+
       character.hitPoints.marked = 19; // 19 out of 20
-      
+
       expect(CharacterUtilities.canUseDeathMove(character)).toBe(true);
     });
 
@@ -675,9 +675,9 @@ describe('CharacterUtilities', () => {
         community: 'Wanderborne',
         className: 'Warrior'
       });
-      
+
       character.hitPoints.marked = 10;
-      
+
       expect(CharacterUtilities.canUseDeathMove(character)).toBe(false);
     });
   });
@@ -752,7 +752,7 @@ describe('Edge Cases and Error Handling', () => {
       community: 'Beyond Mortal Comprehension',
       className: 'Concept Incarnate'
     });
-    
+
     expect(() => PlayerCharacterSchema.parse(extremeCharacter)).not.toThrow();
     expect(extremeCharacter.traits.Strength).toBe(50);
   });
@@ -763,10 +763,10 @@ describe('Edge Cases and Error Handling', () => {
       level: 'not a number',
       traits: 'not an object'
     };
-    
+
     const result = CharacterValidator.validate(malformedInput);
     expect(result.success).toBe(false);
-    
+
     const errors = CharacterValidator.getValidationErrors(malformedInput);
     expect(errors.length).toBeGreaterThan(0);
   });
@@ -794,7 +794,7 @@ describe('Edge Cases and Error Handling', () => {
       rulesVersion: 'SRD-1.0'
       // No ID field
     };
-    
+
     expect(() => PlayerCharacterSchema.parse(characterWithoutId)).toThrow();
   });
 });
@@ -802,7 +802,7 @@ describe('Edge Cases and Error Handling', () => {
 describe('Performance and Memory', () => {
   test('validation performance with large character', () => {
     const start = performance.now();
-    
+
     // Create a character with lots of data
     const largeCharacter = CharacterFactory.createHomebrewCharacter({
       name: 'Large Character',
@@ -822,7 +822,7 @@ describe('Performance and Memory', () => {
       community: 'Detailed Community',
       className: 'Elaborate Class'
     });
-    
+
     // Add extensive data
     largeCharacter.conditions = Array(50).fill('test condition');
     largeCharacter.temporaryEffects = Array(50).fill('test effect');
@@ -830,19 +830,19 @@ describe('Performance and Memory', () => {
     largeCharacter.data = Object.fromEntries(
       Array(100).fill(0).map((_, i) => [`key${i}`, `value${i}`])
     );
-    
+
     // Validate it
     const result = CharacterValidator.validate(largeCharacter);
-    
+
     const end = performance.now();
-    
+
     expect(result.success).toBe(true);
     expect(end - start).toBeLessThan(100); // Should validate in under 100ms
   });
 
   test('memory usage stays reasonable with multiple characters', () => {
     const characters: PlayerCharacter[] = [];
-    
+
     // Create 100 characters
     for (let i = 0; i < 100; i++) {
       characters.push(CharacterFactory.createBasicCharacter({
@@ -853,11 +853,11 @@ describe('Performance and Memory', () => {
         className: 'Warrior'
       }));
     }
-    
+
     expect(characters.length).toBe(100);
     expect(characters[0].name).toBe('Character 0');
     expect(characters[99].name).toBe('Character 99');
-    
+
     // All should be valid
     characters.forEach(char => {
       const result = CharacterValidator.validate(char);

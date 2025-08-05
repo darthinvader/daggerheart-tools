@@ -12,7 +12,7 @@
 export * from './schemas';
 
 // Legacy exports for backward compatibility
-export { 
+export {
   PlayerCharacterSchema as default,
   CharacterFactory,
   CharacterValidator,

@@ -8,10 +8,10 @@
  */
 
 import { z } from 'zod';
-import { 
-  TraitNameSchema, 
-  RangeBandSchema, 
-  DamageTypeSchema 
+import {
+  TraitNameSchema,
+  RangeBandSchema,
+  DamageTypeSchema
 } from './core';
 
 ///////////////////////////

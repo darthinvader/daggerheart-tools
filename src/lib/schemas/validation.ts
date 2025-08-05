@@ -8,22 +8,22 @@
  */
 
 import { z } from 'zod';
-import { 
-  TraitsSchema, 
-  SRDTraitsSchema 
+import {
+  TraitsSchema,
+  SRDTraitsSchema
 } from './core';
-import type { 
+import type {
   Traits,
-  TraitName, 
-  Level, 
+  TraitName,
+  Level,
   Tier,
   AncestryName,
   CommunityName,
   ClassName
 } from './core';
-import { 
-  PlayerCharacterSchema, 
-  SRDPlayerCharacterSchema 
+import {
+  PlayerCharacterSchema,
+  SRDPlayerCharacterSchema
 } from './character';
 import type { PlayerCharacter } from './character';
 
@@ -54,8 +54,8 @@ export class CharacterValidator {
     const schema = srdMode ? SRDPlayerCharacterSchema : PlayerCharacterSchema;
     const result = schema.safeParse(character);
     if (result.success) return [];
-    
-    return result.error.issues.map(issue => 
+
+    return result.error.issues.map(issue =>
       `${issue.path.join('.')}: ${issue.message}`
     );
   }
@@ -97,9 +97,9 @@ export class CharacterFactory {
     homebrewMode?: boolean;
   }): PlayerCharacter {
     const { name, level, ancestry, community, className, traits, homebrewMode = false } = params;
-    
+
     const tier = CharacterUtilities.deriveTier(level);
-    
+
     return PlayerCharacterSchema.parse({
       id: crypto.randomUUID(),
       name,
@@ -160,7 +160,7 @@ export class CharacterUtilities {
 
   static calculateEvasion(character: PlayerCharacter): number {
     let evasion = character.evasion;
-    
+
     if (character.armor) {
       // Apply armor modifiers
       for (const feature of character.armor.features) {
@@ -168,7 +168,7 @@ export class CharacterUtilities {
         if (feature === "Heavy") evasion -= 1;
       }
     }
-    
+
     return Math.max(0, evasion);
   }
 

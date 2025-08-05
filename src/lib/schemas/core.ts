@@ -41,7 +41,7 @@ export const TraitValueSchema = z.number().int().min(-10).max(50); // Reasonable
 
 // Extensible class system
 export const CORE_CLASSES = [
-  "Bard", "Druid", "Guardian", "Ranger", "Rogue", 
+  "Bard", "Druid", "Guardian", "Ranger", "Rogue",
   "Seraph", "Sorcerer", "Warrior", "Wizard"
 ] as const;
 
@@ -52,7 +52,7 @@ export const ClassNameSchema = z.union([
 
 // Extensible domain system
 export const CORE_DOMAINS = [
-  "Arcana", "Blade", "Bone", "Codex", "Grace", 
+  "Arcana", "Blade", "Bone", "Codex", "Grace",
   "Midnight", "Sage", "Splendor", "Valor"
 ] as const;
 
@@ -63,9 +63,9 @@ export const DomainNameSchema = z.union([
 
 // Extensible ancestry system
 export const CORE_ANCESTRIES = [
-  "Clank", "Drakona", "Dwarf", "Elf", "Faerie", "Faun", 
-  "Firbolg", "Fungril", "Galapa", "Giant", "Goblin", 
-  "Halfling", "Human", "Infernis", "Katari", "Orc", 
+  "Clank", "Drakona", "Dwarf", "Elf", "Faerie", "Faun",
+  "Firbolg", "Fungril", "Galapa", "Giant", "Goblin",
+  "Halfling", "Human", "Infernis", "Katari", "Orc",
   "Ribbet", "Simiah", "Mixed"
 ] as const;
 
@@ -76,7 +76,7 @@ export const AncestryNameSchema = z.union([
 
 // Extensible community system
 export const CORE_COMMUNITIES = [
-  "Highborne", "Loreborne", "Orderborne", "Ridgeborne", 
+  "Highborne", "Loreborne", "Orderborne", "Ridgeborne",
   "Seaborne", "Slyborne", "Underborne", "Wanderborne", "Wildborne"
 ] as const;
 

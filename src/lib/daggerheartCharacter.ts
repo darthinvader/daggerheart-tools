@@ -46,7 +46,7 @@ const TraitValueSchema = z.number().int().min(-10).max(50); // Reasonable bounds
 
 // Extensible class system
 const CORE_CLASSES = [
-  "Bard", "Druid", "Guardian", "Ranger", "Rogue", 
+  "Bard", "Druid", "Guardian", "Ranger", "Rogue",
   "Seraph", "Sorcerer", "Warrior", "Wizard"
 ] as const;
 
@@ -57,7 +57,7 @@ const ClassNameSchema = z.union([
 
 // Extensible domain system
 const CORE_DOMAINS = [
-  "Arcana", "Blade", "Bone", "Codex", "Grace", 
+  "Arcana", "Blade", "Bone", "Codex", "Grace",
   "Midnight", "Sage", "Splendor", "Valor"
 ] as const;
 
@@ -68,9 +68,9 @@ const DomainNameSchema = z.union([
 
 // Extensible ancestry system
 const CORE_ANCESTRIES = [
-  "Clank", "Drakona", "Dwarf", "Elf", "Faerie", "Faun", 
-  "Firbolg", "Fungril", "Galapa", "Giant", "Goblin", 
-  "Halfling", "Human", "Infernis", "Katari", "Orc", 
+  "Clank", "Drakona", "Dwarf", "Elf", "Faerie", "Faun",
+  "Firbolg", "Fungril", "Galapa", "Giant", "Goblin",
+  "Halfling", "Human", "Infernis", "Katari", "Orc",
   "Ribbet", "Simiah", "Mixed"
 ] as const;
 
@@ -81,7 +81,7 @@ const AncestryNameSchema = z.union([
 
 // Extensible community system
 const CORE_COMMUNITIES = [
-  "Highborne", "Loreborne", "Orderborne", "Ridgeborne", 
+  "Highborne", "Loreborne", "Orderborne", "Ridgeborne",
   "Seaborne", "Slyborne", "Underborne", "Wanderborne", "Wildborne"
 ] as const;
 
@@ -247,9 +247,9 @@ const SRDPlayerCharacterSchema = BasePlayerCharacterSchema.extend({
   proficiency: z.number().min(0).max(6).int() // SRD bounds
 }).refine((character) => {
   // Cross-field validation: tier must match level (SRD rule)
-  const expectedTier = character.level === 1 ? 1 : 
-                      character.level <= 4 ? 2 :
-                      character.level <= 7 ? 3 : 4;
+  const expectedTier = character.level === 1 ? 1 :
+    character.level <= 4 ? 2 :
+      character.level <= 7 ? 3 : 4;
   return character.tier === expectedTier;
 }, {
   message: "Character tier must match level (1=T1, 2-4=T2, 5-7=T3, 8-10=T4)"
@@ -312,9 +312,9 @@ export class CharacterFactory {
     homebrewMode?: boolean;
   }): PlayerCharacter {
     const { name, level, ancestry, community, className, traits, homebrewMode = false } = params;
-    
+
     const tier = CharacterUtilities.deriveTier(level);
-    
+
     return PlayerCharacterSchema.parse({
       id: crypto.randomUUID(),
       name,
@@ -388,8 +388,8 @@ export class CharacterValidator {
     const schema = srdMode ? SRDPlayerCharacterSchema : PlayerCharacterSchema;
     const result = schema.safeParse(character);
     if (result.success) return [];
-    
-    return result.error.issues.map(issue => 
+
+    return result.error.issues.map(issue =>
       `${issue.path.join('.')}: ${issue.message}`
     );
   }
@@ -409,7 +409,7 @@ export class CharacterUtilities {
 
   static calculateEvasion(character: PlayerCharacter): number {
     let evasion = character.evasion;
-    
+
     if (character.armor) {
       // Apply armor modifiers
       for (const feature of character.armor.features) {
@@ -417,7 +417,7 @@ export class CharacterUtilities {
         if (feature === "Heavy") evasion -= 1;
       }
     }
-    
+
     return Math.max(0, evasion);
   }
 
