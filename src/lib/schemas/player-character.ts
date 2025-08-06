@@ -2,19 +2,19 @@ import { z } from 'zod';
 
 import {
   ARCANA_DOMAIN_CARD_NAMES,
-  BLADE_DOMAIN_CARDS,
+  BLADE_DOMAIN_CARD_NAMES,
   BLOOD_DOMAIN_CARDS,
-  BONE_DOMAIN_CARDS,
+  BONE_DOMAIN_CARD_NAMES,
   CHAOS_DOMAIN_CARDS,
-  CODEX_DOMAIN_CARDS,
+  CODEX_DOMAIN_CARD_NAMES,
   FATE_DOMAIN_CARDS,
-  GRACE_DOMAIN_CARDS,
-  MIDNIGHT_DOMAIN_CARDS,
+  GRACE_DOMAIN_CARD_NAMES,
+  MIDNIGHT_DOMAIN_CARD_NAMES,
   MOON_DOMAIN_CARDS,
-  SAGE_DOMAIN_CARDS,
-  SPLENDOR_DOMAIN_CARDS,
+  SAGE_DOMAIN_CARD_NAMES,
+  SPLENDOR_DOMAIN_CARD_NAMES,
   SUN_DOMAIN_CARDS,
-  VALOR_DOMAIN_CARDS,
+  VALOR_DOMAIN_CARD_NAMES,
 } from '../domains';
 
 // Core Character Stats
@@ -301,28 +301,28 @@ export const PlayerCharacterSchema = z
           cardList = ARCANA_DOMAIN_CARD_NAMES;
           break;
         case 'Blade':
-          cardList = BLADE_DOMAIN_CARDS;
+          cardList = BLADE_DOMAIN_CARD_NAMES;
           break;
         case 'Bone':
-          cardList = BONE_DOMAIN_CARDS;
+          cardList = BONE_DOMAIN_CARD_NAMES;
           break;
         case 'Codex':
-          cardList = CODEX_DOMAIN_CARDS;
+          cardList = CODEX_DOMAIN_CARD_NAMES;
           break;
         case 'Grace':
-          cardList = GRACE_DOMAIN_CARDS;
+          cardList = GRACE_DOMAIN_CARD_NAMES;
           break;
         case 'Sage':
-          cardList = SAGE_DOMAIN_CARDS;
+          cardList = SAGE_DOMAIN_CARD_NAMES;
           break;
         case 'Midnight':
-          cardList = MIDNIGHT_DOMAIN_CARDS;
+          cardList = MIDNIGHT_DOMAIN_CARD_NAMES;
           break;
         case 'Splendor':
-          cardList = SPLENDOR_DOMAIN_CARDS;
+          cardList = SPLENDOR_DOMAIN_CARD_NAMES;
           break;
         case 'Valor':
-          cardList = VALOR_DOMAIN_CARDS;
+          cardList = VALOR_DOMAIN_CARD_NAMES;
           break;
         case 'Chaos':
           cardList = CHAOS_DOMAIN_CARDS;
