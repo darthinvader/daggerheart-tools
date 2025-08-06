@@ -3,6 +3,7 @@
 // New detailed domain card implementations are in the domains/ folder.
 import { ARCANA_DOMAIN_CARD_NAMES } from './domains/arcana-domain-cards';
 import { BONE_DOMAIN_CARD_NAMES } from './domains/bone-domain-cards';
+import { GRACE_DOMAIN_CARD_NAMES } from './domains/grace-domain-cards';
 
 export const ARCANA_DOMAIN_CARDS = ARCANA_DOMAIN_CARD_NAMES;
 
@@ -56,29 +57,7 @@ export const CODEX_DOMAIN_CARDS = [
   'TRANSCENDENT UNION',
 ] as const;
 
-export const GRACE_DOMAIN_CARDS = [
-  'DEFT DECEIVER',
-  'ENRAPTURE',
-  'INSPIRATIONAL WORDS',
-  'TELL NO LIES',
-  'TROUBLEMAKER',
-  'HYPNOTIC SHIMMER',
-  'INVISIBILITY',
-  'SOOTHING SPEECH',
-  'THROUGH YOUR EYES',
-  'THOUGHT DELVER',
-  'WORDS OF DISCORD',
-  'NEVER UPSTAGED',
-  'SHARE THE BURDEN',
-  'ENDLESS CHARISMA',
-  'GRACE-TOUCHED',
-  'ASTRAL PROJECTION',
-  'MASS ENRAPTURE',
-  'COPYCAT',
-  'MASTER OF THE CRAFT',
-  'ENCORE',
-  'NOTORIOUS',
-] as const;
+export const GRACE_DOMAIN_CARDS = GRACE_DOMAIN_CARD_NAMES;
 
 export const MIDNIGHT_DOMAIN_CARDS = [
   'PICK AND PULL',
