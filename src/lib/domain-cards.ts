@@ -4,6 +4,7 @@
 import { ARCANA_DOMAIN_CARD_NAMES } from './domains/arcana-domain-cards';
 import { BONE_DOMAIN_CARD_NAMES } from './domains/bone-domain-cards';
 import { GRACE_DOMAIN_CARD_NAMES } from './domains/grace-domain-cards';
+import { MIDNIGHT_DOMAIN_CARD_NAMES } from './domains/midnight-domain-cards';
 
 export const ARCANA_DOMAIN_CARDS = ARCANA_DOMAIN_CARD_NAMES;
 
@@ -59,29 +60,7 @@ export const CODEX_DOMAIN_CARDS = [
 
 export const GRACE_DOMAIN_CARDS = GRACE_DOMAIN_CARD_NAMES;
 
-export const MIDNIGHT_DOMAIN_CARDS = [
-  'PICK AND PULL',
-  'RAIN OF BLADES',
-  'UNCANNY DISGUISE',
-  'MIDNIGHT SPIRIT',
-  'SHADOWBIND',
-  'CHOKEHOLD',
-  'VEIL OF NIGHT',
-  'STEALTH EXPERTISE',
-  'GLYPH OF NIGHTFALL',
-  'HUSH',
-  'PHANTOM RETREAT',
-  'DARK WHISPERS',
-  'MASS DISGUISE',
-  'MIDNIGHT-TOUCHED',
-  'VANISHING DODGE',
-  'SHADOWHUNTER',
-  'SPELLCHARGE',
-  'NIGHT TERROR',
-  'TWILIGHT TOLL',
-  'ECLIPSE',
-  'SPECTER OF THE DARK',
-] as const;
+export const MIDNIGHT_DOMAIN_CARDS = MIDNIGHT_DOMAIN_CARD_NAMES;
 
 export const SAGE_DOMAIN_CARDS = [
   'GIFTED TRACKER',
