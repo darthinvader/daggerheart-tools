@@ -5,6 +5,7 @@ export * from './domain-card.schema';
 export * from './arcana-domain-cards';
 export * from './bone-domain-cards';
 export * from './codex-domain-cards';
+export * from './sage-domain-cards';
 
 // Re-export existing domain card arrays for backward compatibility
 export {

@@ -5,6 +5,7 @@ import { ARCANA_DOMAIN_CARD_NAMES } from './domains/arcana-domain-cards';
 import { BONE_DOMAIN_CARD_NAMES } from './domains/bone-domain-cards';
 import { GRACE_DOMAIN_CARD_NAMES } from './domains/grace-domain-cards';
 import { MIDNIGHT_DOMAIN_CARD_NAMES } from './domains/midnight-domain-cards';
+import { SAGE_DOMAIN_CARD_NAMES } from './domains/sage-domain-cards';
 
 export const ARCANA_DOMAIN_CARDS = ARCANA_DOMAIN_CARD_NAMES;
 
@@ -62,29 +63,7 @@ export const GRACE_DOMAIN_CARDS = GRACE_DOMAIN_CARD_NAMES;
 
 export const MIDNIGHT_DOMAIN_CARDS = MIDNIGHT_DOMAIN_CARD_NAMES;
 
-export const SAGE_DOMAIN_CARDS = [
-  'GIFTED TRACKER',
-  'NATURE’S TONGUE',
-  'VICIOUS ENTANGLE',
-  'CONJURE SWARM',
-  'NATURAL FAMILIAR',
-  'CORROSIVE PROJECTILE',
-  'TOWERING STALK',
-  'DEATH GRIP',
-  'HEALING FIELD',
-  'THORN SKIN',
-  'WILD FORTRESS',
-  'CONJURED STEEDS',
-  'FORAGER',
-  'SAGE-TOUCHED',
-  'WILD SURGE',
-  'FOREST SPRITES',
-  'REJUVENATION BARRIER',
-  'FANE OF THE WILDS',
-  'PLANT DOMINION',
-  'FORCE OF NATURE',
-  'TEMPEST',
-] as const;
+export const SAGE_DOMAIN_CARDS = SAGE_DOMAIN_CARD_NAMES;
 
 export const SPLENDOR_DOMAIN_CARDS = [
   'BOLT BEACON',
