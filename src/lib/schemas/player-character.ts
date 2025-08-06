@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import {
-  ARCANA_DOMAIN_CARDS,
+  ARCANA_DOMAIN_CARD_NAMES,
   BLADE_DOMAIN_CARDS,
   BLOOD_DOMAIN_CARDS,
   BONE_DOMAIN_CARDS,
@@ -15,7 +15,7 @@ import {
   SPLENDOR_DOMAIN_CARDS,
   SUN_DOMAIN_CARDS,
   VALOR_DOMAIN_CARDS,
-} from '../domain-cards';
+} from '../domains';
 
 // Core Character Stats
 // ======================================================================================
@@ -279,7 +279,7 @@ export const PlayerCharacterSchema = z
       characterClass: z.literal('Sorcerer'),
       subclass: SorcererSubclassEnum,
       classFeatures: z.array(ClassFeatureSchema),
-      spellcastingTrait: z.enum(['Knowledge', 'Instinct']), // Depends on subclass
+      spellcastingTrait: z.literal('Instinct'), // Both subclasses use Instinct
     }),
     BaseCharacterSchema.extend({
       characterClass: z.literal('Warrior'),
@@ -298,7 +298,7 @@ export const PlayerCharacterSchema = z
       let cardList: readonly string[] = [];
       switch (domain.name) {
         case 'Arcana':
-          cardList = ARCANA_DOMAIN_CARDS;
+          cardList = ARCANA_DOMAIN_CARD_NAMES;
           break;
         case 'Blade':
           cardList = BLADE_DOMAIN_CARDS;
@@ -343,7 +343,7 @@ export const PlayerCharacterSchema = z
       domain.cards.forEach((card, cardIndex) => {
         if (!cardList.includes(card)) {
           ctx.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: 'custom',
             message: `Invalid card "${card}" for domain "${domain.name}"`,
             path: ['domains', index, 'cards', cardIndex],
           });

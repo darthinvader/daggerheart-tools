@@ -1,28 +1,9 @@
 // This file contains constants for the Daggerheart domain cards.
+// This file is maintained for backward compatibility.
+// New detailed domain card implementations are in the domains/ folder.
+import { ARCANA_DOMAIN_CARD_NAMES } from './domains/arcana-domain-cards';
 
-export const ARCANA_DOMAIN_CARDS = [
-  'RUNE WARD',
-  'UNLEASH CHAOS',
-  'WALL WALK',
-  'CINDER GRASP',
-  'FLOATING EYE',
-  'COUNTERSPELL',
-  'FLIGHT',
-  'BLINK OUT',
-  'PRESERVATION BLAST',
-  'CHAIN LIGHTNING',
-  'PREMONITION',
-  'RIFT WALKER',
-  'TELEKINESIS',
-  'ARCANA-TOUCHED',
-  'CLOAKING BLAST',
-  'ARCANE REFLECTION',
-  'CONFUSING AURA',
-  'EARTHQUAKE',
-  'SENSORY PROJECTION',
-  'ADJUST REALITY',
-  'FALLING SKY',
-] as const;
+export const ARCANA_DOMAIN_CARDS = ARCANA_DOMAIN_CARD_NAMES;
 
 export const BLADE_DOMAIN_CARDS = [
   'GET BACK UP',
