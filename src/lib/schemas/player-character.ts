@@ -1,20 +1,16 @@
 import { z } from 'zod';
 
 import {
-  ARCANA_DOMAIN_CARD_NAMES,
-  BLADE_DOMAIN_CARD_NAMES,
-  BLOOD_DOMAIN_CARDS,
-  BONE_DOMAIN_CARD_NAMES,
-  CHAOS_DOMAIN_CARDS,
-  CODEX_DOMAIN_CARD_NAMES,
-  FATE_DOMAIN_CARDS,
-  GRACE_DOMAIN_CARD_NAMES,
-  MIDNIGHT_DOMAIN_CARD_NAMES,
-  MOON_DOMAIN_CARDS,
-  SAGE_DOMAIN_CARD_NAMES,
-  SPLENDOR_DOMAIN_CARD_NAMES,
-  SUN_DOMAIN_CARDS,
-  VALOR_DOMAIN_CARD_NAMES,
+  ARCANA_DOMAIN_CARDS,
+  BLADE_DOMAIN_CARDS,
+  BONE_DOMAIN_CARDS,
+  CODEX_DOMAIN_CARDS,
+  DomainCardCollectionSchema,
+  GRACE_DOMAIN_CARDS,
+  MIDNIGHT_DOMAIN_CARDS,
+  SAGE_DOMAIN_CARDS,
+  SPLENDOR_DOMAIN_CARDS,
+  VALOR_DOMAIN_CARDS,
 } from '../domains';
 
 // Core Character Stats
@@ -228,7 +224,15 @@ const BaseCharacterSchema = z.object({
   evasion: z.number().int(),
   hope: z.number().int().min(0),
   proficiency: z.number().int().min(1),
-  domains: z.array(DomainSchema),
+
+  // Domain card collections
+  domainCards: DomainCardCollectionSchema, // All available domain cards
+  vault: DomainCardCollectionSchema, // Stored/inactive domain cards
+  loadout: DomainCardCollectionSchema, // Active domain cards ready for use
+
+  // Legacy domains field for backward compatibility
+  domains: z.array(DomainSchema).optional(),
+
   weapons: z.array(WeaponSchema),
   armor: z.array(ArmorSchema),
   inventory: z.array(InventoryItemSchema),
@@ -294,62 +298,59 @@ export const PlayerCharacterSchema = z
     }),
   ])
   .superRefine((val, ctx) => {
-    val.domains.forEach((domain, index) => {
-      let cardList: readonly string[] = [];
-      switch (domain.name) {
-        case 'Arcana':
-          cardList = ARCANA_DOMAIN_CARD_NAMES;
-          break;
-        case 'Blade':
-          cardList = BLADE_DOMAIN_CARD_NAMES;
-          break;
-        case 'Bone':
-          cardList = BONE_DOMAIN_CARD_NAMES;
-          break;
-        case 'Codex':
-          cardList = CODEX_DOMAIN_CARD_NAMES;
-          break;
-        case 'Grace':
-          cardList = GRACE_DOMAIN_CARD_NAMES;
-          break;
-        case 'Sage':
-          cardList = SAGE_DOMAIN_CARD_NAMES;
-          break;
-        case 'Midnight':
-          cardList = MIDNIGHT_DOMAIN_CARD_NAMES;
-          break;
-        case 'Splendor':
-          cardList = SPLENDOR_DOMAIN_CARD_NAMES;
-          break;
-        case 'Valor':
-          cardList = VALOR_DOMAIN_CARD_NAMES;
-          break;
-        case 'Chaos':
-          cardList = CHAOS_DOMAIN_CARDS;
-          break;
-        case 'Moon':
-          cardList = MOON_DOMAIN_CARDS;
-          break;
-        case 'Sun':
-          cardList = SUN_DOMAIN_CARDS;
-          break;
-        case 'Blood':
-          cardList = BLOOD_DOMAIN_CARDS;
-          break;
-        case 'Fate':
-          cardList = FATE_DOMAIN_CARDS;
-          break;
-      }
-      domain.cards.forEach((card, cardIndex) => {
-        if (!cardList.includes(card)) {
-          ctx.addIssue({
-            code: 'custom',
-            message: `Invalid card "${card}" for domain "${domain.name}"`,
-            path: ['domains', index, 'cards', cardIndex],
-          });
+    // Legacy domains validation for backward compatibility
+    if (val.domains) {
+      val.domains.forEach((domain, index) => {
+        let cardNames: string[] = [];
+        switch (domain.name) {
+          case 'Arcana':
+            cardNames = ARCANA_DOMAIN_CARDS.map(card => card.name);
+            break;
+          case 'Blade':
+            cardNames = BLADE_DOMAIN_CARDS.map(card => card.name);
+            break;
+          case 'Bone':
+            cardNames = BONE_DOMAIN_CARDS.map(card => card.name);
+            break;
+          case 'Codex':
+            cardNames = CODEX_DOMAIN_CARDS.map(card => card.name);
+            break;
+          case 'Grace':
+            cardNames = GRACE_DOMAIN_CARDS.map(card => card.name);
+            break;
+          case 'Sage':
+            cardNames = SAGE_DOMAIN_CARDS.map(card => card.name);
+            break;
+          case 'Midnight':
+            cardNames = MIDNIGHT_DOMAIN_CARDS.map(card => card.name);
+            break;
+          case 'Splendor':
+            cardNames = SPLENDOR_DOMAIN_CARDS.map(card => card.name);
+            break;
+          case 'Valor':
+            cardNames = VALOR_DOMAIN_CARDS.map(card => card.name);
+            break;
+          case 'Chaos':
+          case 'Moon':
+          case 'Sun':
+          case 'Blood':
+          case 'Fate':
+            // These domains have no cards yet, so any card name is invalid
+            cardNames = [];
+            break;
         }
+
+        domain.cards.forEach((card, cardIndex) => {
+          if (cardNames.length > 0 && !cardNames.includes(card)) {
+            ctx.addIssue({
+              code: 'custom',
+              message: `Invalid card "${card}" for domain "${domain.name}"`,
+              path: ['domains', index, 'cards', cardIndex],
+            });
+          }
+        });
       });
-    });
+    }
   });
 
 export type PlayerCharacter = z.infer<typeof PlayerCharacterSchema>;

@@ -31,19 +31,24 @@ export const DomainCardSchema = z.object({
   description: z.string(),
 });
 
-// Schema for domain card collections (simplified for character sheets)
+// Schema for domain card collections on character sheets
+export const DomainCardCollectionSchema = z.array(DomainCardSchema);
+
+// Schema for domain card reference (lighter weight)
 export const DomainCardReferenceSchema = z.object({
   name: z.string(),
   level: z.number().int().min(1).max(10),
+  domain: DomainNameEnum,
 });
 
-// Schema for domains on character sheets
+// Schema for domains on character sheets (legacy support)
 export const CharacterDomainSchema = z.object({
   name: DomainNameEnum,
-  cards: z.array(z.string()), // Just card names for character loadout
+  cards: z.array(z.string()), // Just card names for backward compatibility
 });
 
 export type DomainCard = z.infer<typeof DomainCardSchema>;
+export type DomainCardCollection = z.infer<typeof DomainCardCollectionSchema>;
 export type DomainCardReference = z.infer<typeof DomainCardReferenceSchema>;
 export type CharacterDomain = z.infer<typeof CharacterDomainSchema>;
 export type DomainName = z.infer<typeof DomainNameEnum>;
