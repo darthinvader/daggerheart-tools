@@ -198,3 +198,5 @@ Additionally, when a creature within your weapon's range deals damage to an ally
 export const BLADE_DOMAIN_CARD_NAMES = BLADE_DOMAIN_CARDS.map(
   card => card.name
 );
+
+export type BladeDomainCardName = (typeof BLADE_DOMAIN_CARD_NAMES)[number];

@@ -2,33 +2,6 @@
 // Domain focused on stealth, shadows, and nighttime abilities
 import type { DomainCard } from './domain-card.schema';
 
-export const MIDNIGHT_DOMAIN_CARD_NAMES = [
-  'PICK AND PULL',
-  'RAIN OF BLADES',
-  'UNCANNY DISGUISE',
-  'MIDNIGHT SPIRIT',
-  'SHADOWBIND',
-  'CHOKEHOLD',
-  'VEIL OF NIGHT',
-  'STEALTH EXPERTISE',
-  'GLYPH OF NIGHTFALL',
-  'HUSH',
-  'PHANTOM RETREAT',
-  'DARK WHISPERS',
-  'MASS DISGUISE',
-  'MIDNIGHT-TOUCHED',
-  'VANISHING DODGE',
-  'SHADOWHUNTER',
-  'SPELLCHARGE',
-  'NIGHT TERROR',
-  'TWILIGHT TOLL',
-  'ECLIPSE',
-  'SPECTER OF THE DARK',
-] as const;
-
-export type MidnightDomainCardName =
-  (typeof MIDNIGHT_DOMAIN_CARD_NAMES)[number];
-
 // Complete Midnight Domain Cards from the SRD
 export const MIDNIGHT_DOMAIN_CARDS: DomainCard[] = [
   {
@@ -221,3 +194,11 @@ export const MIDNIGHT_DOMAIN_CARDS: DomainCard[] = [
       "Mark a Stress to become Spectral until you make an action roll targeting another creature. While Spectral, you're immune to physical damage and can float and pass through solid objects. Other creatures can still see you while you're in this form.",
   },
 ];
+
+// Export just the card names for backward compatibility
+export const MIDNIGHT_DOMAIN_CARD_NAMES = MIDNIGHT_DOMAIN_CARDS.map(
+  card => card.name
+);
+
+export type MidnightDomainCardName =
+  (typeof MIDNIGHT_DOMAIN_CARD_NAMES)[number];

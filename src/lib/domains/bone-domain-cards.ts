@@ -193,26 +193,6 @@ Additionally on a success, you can mark a Stress to remove a Fear from the GM's 
 ];
 
 // Export just the names for backward compatibility
-export const BONE_DOMAIN_CARD_NAMES = [
-  'DEFT MANEUVERS',
-  'I SEE IT COMING',
-  'UNTOUCHABLE',
-  'FEROCITY',
-  'STRATEGIC APPROACH',
-  'BRACE',
-  'TACTICIAN',
-  'BOOST',
-  'REDIRECT',
-  'KNOW THY ENEMY',
-  'SIGNATURE MOVE',
-  'RAPID RIPOSTE',
-  'RECOVERY',
-  'BONE-TOUCHED',
-  'CRUEL PRECISION',
-  'BREAKING BLOW',
-  'WRANGLE',
-  'ON THE BRINK',
-  'SPLINTERING STRIKE',
-  'DEATHRUN',
-  'SWIFT STEP',
-] as const;
+export const BONE_DOMAIN_CARD_NAMES = BONE_DOMAIN_CARDS.map(card => card.name);
+
+export type BoneDomainCardName = (typeof BONE_DOMAIN_CARD_NAMES)[number];

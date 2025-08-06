@@ -187,26 +187,8 @@ When you mark 1 or more Hit Points from an attack, clear a Stress.`,
 ];
 
 // Export just the names for backward compatibility
-export const VALOR_DOMAIN_CARD_NAMES = [
-  'BARE BONES',
-  'FORCEFUL PUSH',
-  'I AM YOUR SHIELD',
-  'BODY BASHER',
-  'BOLD PRESENCE',
-  'CRITICAL INSPIRATION',
-  'LEAN ON ME',
-  'GOAD THEM ON',
-  'SUPPORT TANK',
-  'ARMORER',
-  'ROUSING STRIKE',
-  'INEVITABLE',
-  'RISE UP',
-  'SHRUG IT OFF',
-  'VALOR-TOUCHED',
-  'FULL SURGE',
-  'GROUND POUND',
-  'HOLD THE LINE',
-  'LEAD BY EXAMPLE',
-  'UNBREAKABLE',
-  'UNYIELDING ARMOR',
-] as const;
+export const VALOR_DOMAIN_CARD_NAMES = VALOR_DOMAIN_CARDS.map(
+  card => card.name
+);
+
+export type ValorDomainCardName = (typeof VALOR_DOMAIN_CARD_NAMES)[number];

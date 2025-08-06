@@ -195,26 +195,9 @@ On a failure, you can't cast Resurrection again for a week.`,
 ];
 
 // Export just the card names for backward compatibility
-export const SPLENDOR_DOMAIN_CARD_NAMES = [
-  'BOLT BEACON',
-  'MENDING TOUCH',
-  'REASSURANCE',
-  'FINAL WORDS',
-  'HEALING HANDS',
-  'SECOND WIND',
-  'VOICE OF REASON',
-  'DIVINATION',
-  'LIFE WARD',
-  'SHAPE MATERIAL',
-  'SMITE',
-  'RESTORATION',
-  'ZONE OF PROTECTION',
-  'HEALING STRIKE',
-  'SPLENDOR-TOUCHED',
-  'SHIELD AURA',
-  'STUNNING SUNLIGHT',
-  'OVERWHELMING AURA',
-  'SALVATION BEAM',
-  'INVIGORATION',
-  'RESURRECTION',
-] as const;
+export const SPLENDOR_DOMAIN_CARD_NAMES = SPLENDOR_DOMAIN_CARDS.map(
+  card => card.name
+);
+
+export type SplendorDomainCardName =
+  (typeof SPLENDOR_DOMAIN_CARD_NAMES)[number];

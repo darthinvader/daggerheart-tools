@@ -229,26 +229,6 @@ Before you make an action roll, you must spend a Hope. If you can't, you revert 
 ];
 
 // Export just the card names for backward compatibility with existing character schema
-export const SAGE_DOMAIN_CARD_NAMES = [
-  'GIFTED TRACKER',
-  "NATURE'S TONGUE",
-  'VICIOUS ENTANGLE',
-  'CONJURE SWARM',
-  'NATURAL FAMILIAR',
-  'CORROSIVE PROJECTILE',
-  'TOWERING STALK',
-  'DEATH GRIP',
-  'HEALING FIELD',
-  'THORN SKIN',
-  'WILD FORTRESS',
-  'CONJURED STEEDS',
-  'FORAGER',
-  'SAGE-TOUCHED',
-  'WILD SURGE',
-  'FOREST SPRITES',
-  'REJUVENATION BARRIER',
-  'FANE OF THE WILDS',
-  'PLANT DOMINION',
-  'FORCE OF NATURE',
-  'TEMPEST',
-] as const;
+export const SAGE_DOMAIN_CARD_NAMES = SAGE_DOMAIN_CARDS.map(card => card.name);
+
+export type SageDomainCardName = (typeof SAGE_DOMAIN_CARD_NAMES)[number];

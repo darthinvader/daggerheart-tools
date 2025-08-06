@@ -1,29 +1,6 @@
 import type { DomainCard } from './domain-card.schema';
 
-export const GRACE_DOMAIN_CARD_NAMES = [
-  'DEFT DECEIVER',
-  'ENRAPTURE',
-  'INSPIRATIONAL WORDS',
-  'TELL NO LIES',
-  'TROUBLEMAKER',
-  'HYPNOTIC SHIMMER',
-  'INVISIBILITY',
-  'SOOTHING SPEECH',
-  'THROUGH YOUR EYES',
-  'THOUGHT DELVER',
-  'WORDS OF DISCORD',
-  'NEVER UPSTAGED',
-  'SHARE THE BURDEN',
-  'ENDLESS CHARISMA',
-  'GRACE-TOUCHED',
-  'ASTRAL PROJECTION',
-  'MASS ENRAPTURE',
-  'COPYCAT',
-  'MASTER OF THE CRAFT',
-  'ENCORE',
-  'NOTORIOUS',
-] as const;
-
+// Complete Grace domain cards with full details from the SRD
 export const GRACE_DOMAIN_CARDS: DomainCard[] = [
   {
     name: 'DEFT DECEIVER',
@@ -215,3 +192,10 @@ export const GRACE_DOMAIN_CARDS: DomainCard[] = [
       "Your reputation precedes you. When you enter a new location where people might know of you, the GM will tell you how you are known and whether that reputation is helpful or harmful in the current situation. Additionally, once per rest, you can spend a Hope to have someone recognize you in a way that's beneficial to your current goals.",
   },
 ];
+
+// Export just the card names for backward compatibility
+export const GRACE_DOMAIN_CARD_NAMES = GRACE_DOMAIN_CARDS.map(
+  card => card.name
+);
+
+export type GraceDomainCardName = (typeof GRACE_DOMAIN_CARD_NAMES)[number];

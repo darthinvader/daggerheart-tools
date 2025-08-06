@@ -247,6 +247,8 @@ export const CODEX_DOMAIN_CARD_NAMES = [
   'TRANSCENDENT UNION',
 ] as const;
 
+export type CodexDomainCardName = (typeof CODEX_DOMAIN_CARD_NAMES)[number];
+
 // Export all individual cards
 export const CODEX_DOMAIN_CARDS = [
   BOOK_OF_AVA,

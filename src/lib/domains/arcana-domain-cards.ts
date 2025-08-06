@@ -187,26 +187,8 @@ Additionally, when you succeed on the Spellcast Roll, all terrain within Very Fa
 ];
 
 // Export just the card names for backward compatibility with existing character schema
-export const ARCANA_DOMAIN_CARD_NAMES = [
-  'RUNE WARD',
-  'UNLEASH CHAOS',
-  'WALL WALK',
-  'CINDER GRASP',
-  'FLOATING EYE',
-  'COUNTERSPELL',
-  'FLIGHT',
-  'BLINK OUT',
-  'PRESERVATION BLAST',
-  'CHAIN LIGHTNING',
-  'PREMONITION',
-  'RIFT WALKER',
-  'TELEKINESIS',
-  'ARCANA-TOUCHED',
-  'CLOAKING BLAST',
-  'ARCANE REFLECTION',
-  'CONFUSING AURA',
-  'EARTHQUAKE',
-  'SENSORY PROJECTION',
-  'ADJUST REALITY',
-  'FALLING SKY',
-] as const;
+export const ARCANA_DOMAIN_CARD_NAMES = ARCANA_DOMAIN_CARDS.map(
+  card => card.name
+);
+
+export type ArcanaDomainCardName = (typeof ARCANA_DOMAIN_CARD_NAMES)[number];
