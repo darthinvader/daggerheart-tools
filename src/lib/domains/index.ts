@@ -3,6 +3,8 @@ export * from './domain-card.schema';
 
 // Specific domain card implementations
 export * from './arcana-domain-cards';
+export * from './bone-domain-cards';
+export * from './codex-domain-cards';
 
 // Re-export existing domain card arrays for backward compatibility
 export {
@@ -11,7 +13,7 @@ export {
   BLOOD_DOMAIN_CARDS,
   BONE_DOMAIN_CARDS,
   CHAOS_DOMAIN_CARDS,
-  CODEX_DOMAIN_CARDS,
+  CODEX_DOMAIN_CARDS as CODEX_DOMAIN_CARD_NAMES_LEGACY,
   FATE_DOMAIN_CARDS,
   GRACE_DOMAIN_CARDS,
   MIDNIGHT_DOMAIN_CARDS,

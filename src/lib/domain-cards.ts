@@ -2,6 +2,7 @@
 // This file is maintained for backward compatibility.
 // New detailed domain card implementations are in the domains/ folder.
 import { ARCANA_DOMAIN_CARD_NAMES } from './domains/arcana-domain-cards';
+import { BONE_DOMAIN_CARD_NAMES } from './domains/bone-domain-cards';
 
 export const ARCANA_DOMAIN_CARDS = ARCANA_DOMAIN_CARD_NAMES;
 
@@ -9,13 +10,13 @@ export const BLADE_DOMAIN_CARDS = [
   'GET BACK UP',
   'NOT GOOD ENOUGH',
   'WHIRLWIND',
-  'A SOLDIER’S BOND',
+  "A SOLDIER'S BOND",
   'RECKLESS',
   'SCRAMBLE',
   'VERSATILE FIGHTER',
   'DEADLY FOCUS',
   'FORTIFIED ARMOR',
-  'CHAMPION’S EDGE',
+  "CHAMPION'S EDGE",
   'VITALITY',
   'BATTLE-HARDENED',
   'RAGE UP',
@@ -24,34 +25,12 @@ export const BLADE_DOMAIN_CARDS = [
   'BATTLE CRY',
   'FRENZY',
   'GORE AND GLORY',
-  'REAPER’S STRIKE',
+  "REAPER'S STRIKE",
   'BATTLE MONSTER',
   'ONSLAUGHT',
 ] as const;
 
-export const BONE_DOMAIN_CARDS = [
-  'DEFT MANEUVERS',
-  'I SEE IT COMING',
-  'UNTOUCHABLE',
-  'FEROCITY',
-  'STRATEGIC APPROACH',
-  'BRACE',
-  'TACTICIAN',
-  'BOOST',
-  'REDIRECT',
-  'KNOW THY ENEMY',
-  'SIGNATURE MOVE',
-  'RAPID RIPOSTE',
-  'RECOVERY',
-  'BONE-TOUCHED',
-  'CRUEL PRECISION',
-  'BREAKING BLOW',
-  'WRANGLE',
-  'ON THE BRINK',
-  'SPLINTERING STRIKE',
-  'DEATHRUN',
-  'SWIFT STEP',
-] as const;
+export const BONE_DOMAIN_CARDS = BONE_DOMAIN_CARD_NAMES;
 
 export const CODEX_DOMAIN_CARDS = [
   'BOOK OF AVA',
