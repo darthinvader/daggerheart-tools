@@ -6,6 +6,7 @@ export * from './arcana-domain-cards';
 export * from './bone-domain-cards';
 export * from './codex-domain-cards';
 export * from './sage-domain-cards';
+export * from './splendor-domain-cards';
 
 // Re-export existing domain card arrays for backward compatibility
 export {

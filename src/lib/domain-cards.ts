@@ -6,6 +6,7 @@ import { BONE_DOMAIN_CARD_NAMES } from './domains/bone-domain-cards';
 import { GRACE_DOMAIN_CARD_NAMES } from './domains/grace-domain-cards';
 import { MIDNIGHT_DOMAIN_CARD_NAMES } from './domains/midnight-domain-cards';
 import { SAGE_DOMAIN_CARD_NAMES } from './domains/sage-domain-cards';
+import { SPLENDOR_DOMAIN_CARD_NAMES } from './domains/splendor-domain-cards';
 
 export const ARCANA_DOMAIN_CARDS = ARCANA_DOMAIN_CARD_NAMES;
 
@@ -65,29 +66,7 @@ export const MIDNIGHT_DOMAIN_CARDS = MIDNIGHT_DOMAIN_CARD_NAMES;
 
 export const SAGE_DOMAIN_CARDS = SAGE_DOMAIN_CARD_NAMES;
 
-export const SPLENDOR_DOMAIN_CARDS = [
-  'BOLT BEACON',
-  'MENDING TOUCH',
-  'REASSURANCE',
-  'FINAL WORDS',
-  'HEALING HANDS',
-  'SECOND WIND',
-  'VOICE OF REASON',
-  'DIVINATION',
-  'LIFE WARD',
-  'SHAPE MATERIAL',
-  'SMITE',
-  'RESTORATION',
-  'ZONE OF PROTECTION',
-  'HEALING STRIKE',
-  'SPLENDOR-TOUCHED',
-  'SHIELD AURA',
-  'STUNNING SUNLIGHT',
-  'OVERWHELMING AURA',
-  'SALVATION BEAM',
-  'INVIGORATION',
-  'RESURRECTION',
-] as const;
+export const SPLENDOR_DOMAIN_CARDS = SPLENDOR_DOMAIN_CARD_NAMES;
 
 export const VALOR_DOMAIN_CARDS = [
   'BARE BONES',
