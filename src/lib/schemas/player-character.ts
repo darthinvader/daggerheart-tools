@@ -18,6 +18,15 @@ import {
   SPLENDOR_DOMAIN_CARDS,
   VALOR_DOMAIN_CARDS,
 } from './domains';
+// Import equipment schemas
+import {
+  ArmorSchema,
+  ArmorStatusSchema,
+  DamageThresholdsSchema as EquipmentDamageThresholdsSchema,
+  EquipmentLoadoutSchema,
+  InventorySchema,
+  WeaponSchema,
+} from './equipment';
 
 // Create enums that align with the subclass schemas from the classes system
 // NOTE: These enum values must match the discriminated union schemas in each class file
@@ -38,15 +47,10 @@ const WizardSubclassEnum = z.enum(['School of Knowledge', 'School of War']);
 // Core Character Stats
 // ======================================================================================
 
-const DamageThresholdsSchema = z.object({
-  major: z.number().int(),
-  severe: z.number().int(),
-});
-
 const HitPointsSchema = z.object({
   current: z.number().int(),
   max: z.number().int(),
-  thresholds: DamageThresholdsSchema,
+  thresholds: EquipmentDamageThresholdsSchema,
 });
 
 const StressSchema = z.object({
@@ -129,31 +133,6 @@ const DomainSchema = z.object({
   cards: z.array(z.string()),
 });
 
-const WeaponSchema = z.object({
-  name: z.string(),
-  type: z.enum(['primary', 'secondary']),
-  trait: CharacterTraitEnum,
-  range: z.string(),
-  damage: z.string(),
-  damageType: z.enum(['physical', 'magic']),
-  burden: z.enum(['one-handed', 'two-handed']),
-  feature: z.string().optional(),
-  properties: z.array(z.string()).optional(),
-});
-
-const ArmorSchema = z.object({
-  name: z.string(),
-  baseThresholds: DamageThresholdsSchema,
-  baseScore: z.number().int(),
-  feature: z.string().optional(),
-});
-
-const InventoryItemSchema = z.object({
-  name: z.string(),
-  description: z.string().optional(),
-  quantity: z.number().int().min(1).default(1),
-});
-
 // Advancement
 // ======================================================================================
 
@@ -192,9 +171,15 @@ const BaseCharacterSchema = z.object({
   // Legacy domains field for backward compatibility
   domains: z.array(DomainSchema).optional(),
 
+  // Equipment using modern schemas
+  equipment: EquipmentLoadoutSchema,
+  inventory: InventorySchema,
+  armorStatus: ArmorStatusSchema.optional(),
+
+  // Individual equipment arrays for direct access
   weapons: z.array(WeaponSchema),
   armor: z.array(ArmorSchema),
-  inventory: z.array(InventoryItemSchema),
+
   gold: GoldSchema,
   experience: z.array(ExperienceSchema),
   connections: z.array(z.string()).optional(),
