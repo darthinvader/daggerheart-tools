@@ -45,35 +45,134 @@ export const LEVEL_PROGRESSION = {
 } as const;
 
 export const LEVEL_UP_OPTIONS = {
-  TIER_2: [
-    'Gain a +1 bonus to two unmarked character traits and mark them',
-    'Permanently gain a +1 bonus to two Experiences',
-    'Choose an additional domain card of your level or lower from a domain you have access to (up to level 4)',
-    'Permanently gain a +1 bonus to your Evasion',
-    'Permanently gain one Hit Point slot',
-    'Permanently gain one Stress slot',
-  ],
-  TIER_3: [
-    'Gain a +1 bonus to two unmarked character traits and mark them',
-    'Permanently gain a +1 bonus to two Experiences',
-    'Choose an additional domain card of your level or lower from a domain you have access to',
-    'Permanently gain a +1 bonus to your Evasion',
-    'Permanently gain one Hit Point slot',
-    'Permanently gain one Stress slot',
-    'Take an upgraded subclass card. Then cross out the multiclass option for this tier',
-    'Multiclass: Choose an additional class for your character, then cross out an unused "Take an upgraded subclass card" and the other multiclass option on this sheet',
-  ],
-  TIER_4: [
-    'Gain a +1 bonus to two unmarked character traits and mark them',
-    'Permanently gain a +1 bonus to two Experiences',
-    'Choose an additional domain card of your level or lower from a domain you have access to (up to level 7)',
-    'Permanently gain a +1 bonus to your Evasion',
-    'Permanently gain one Hit Point slot',
-    'Permanently gain one Stress slot',
-    'Take an upgraded subclass card. Then cross out the multiclass option for this tier',
-    'Multiclass: Choose an additional class for your character, then cross out an unused "Take an upgraded subclass card" and the other multiclass option on this sheet',
-  ],
+  POINTS_PER_LEVEL: 2,
+  TIER_2: {
+    'Gain a +1 bonus to two unmarked character traits and mark them': {
+      cost: 1,
+      maxSelections: 3,
+    },
+    'Permanently gain a +1 bonus to two Experiences': {
+      cost: 1,
+      maxSelections: 1,
+    },
+    'Choose an additional domain card of your level or lower from a domain you have access to (up to level 4)':
+      {
+        cost: 1,
+        maxSelections: 1,
+      },
+    'Permanently gain a +1 bonus to your Evasion': {
+      cost: 1,
+      maxSelections: 1,
+    },
+    'Permanently gain one Hit Point slot': {
+      cost: 1,
+      maxSelections: 2,
+    },
+    'Permanently gain one Stress slot': {
+      cost: 1,
+      maxSelections: 2,
+    },
+  },
+  TIER_3: {
+    'Gain a +1 bonus to two unmarked character traits and mark them': {
+      cost: 1,
+      maxSelections: 3,
+    },
+    'Permanently gain a +1 bonus to two Experiences': {
+      cost: 1,
+      maxSelections: 1,
+    },
+    'Choose an additional domain card of your level or lower from a domain you have access to':
+      {
+        cost: 1,
+        maxSelections: 1,
+      },
+    'Permanently gain a +1 bonus to your Evasion': {
+      cost: 1,
+      maxSelections: 1,
+    },
+    'Permanently gain one Hit Point slot': {
+      cost: 1,
+      maxSelections: 2,
+    },
+    'Permanently gain one Stress slot': {
+      cost: 1,
+      maxSelections: 2,
+    },
+    'Take an upgraded subclass card. Then cross out the multiclass option for this tier':
+      {
+        cost: 2,
+        maxSelections: 1,
+      },
+    'Multiclass: Choose an additional class for your character, then cross out an unused "Take an upgraded subclass card" and the other multiclass option on this sheet':
+      {
+        cost: 2,
+        maxSelections: 1,
+      },
+  },
+  TIER_4: {
+    'Gain a +1 bonus to two unmarked character traits and mark them': {
+      cost: 1,
+      maxSelections: 3,
+    },
+    'Permanently gain a +1 bonus to two Experiences': {
+      cost: 1,
+      maxSelections: 1,
+    },
+    'Choose an additional domain card of your level or lower from a domain you have access to (up to level 7)':
+      {
+        cost: 1,
+        maxSelections: 1,
+      },
+    'Permanently gain a +1 bonus to your Evasion': {
+      cost: 1,
+      maxSelections: 1,
+    },
+    'Permanently gain one Hit Point slot': {
+      cost: 1,
+      maxSelections: 2,
+    },
+    'Permanently gain one Stress slot': {
+      cost: 1,
+      maxSelections: 2,
+    },
+    'Take an upgraded subclass card. Then cross out the multiclass option for this tier':
+      {
+        cost: 2,
+        maxSelections: 1,
+      },
+    'Multiclass: Choose an additional class for your character, then cross out an unused "Take an upgraded subclass card" and the other multiclass option on this sheet':
+      {
+        cost: 2,
+        maxSelections: 1,
+      },
+  },
 } as const;
+
+// Level-Up Point System Schemas
+// ======================================================================================
+
+const LevelUpOptionSchema = z.object({
+  cost: z.number().int().min(1),
+  maxSelections: z.number().int().min(1),
+});
+
+const TierLevelUpOptionsSchema = z.record(z.string(), LevelUpOptionSchema);
+
+const LevelUpPointSystemSchema = z.object({
+  POINTS_PER_LEVEL: z.literal(2),
+  TIER_2: TierLevelUpOptionsSchema,
+  TIER_3: TierLevelUpOptionsSchema,
+  TIER_4: TierLevelUpOptionsSchema,
+});
+
+// Character Progression Tracking
+const CharacterProgressionSchema = z.object({
+  currentLevel: z.number().int().min(1).max(10),
+  currentTier: z.enum(['1', '2', '3', '4']),
+  availablePoints: z.number().int().min(0),
+  spentOptions: z.record(z.string(), z.number().int().min(0)),
+});
 
 // Base Types
 // ======================================================================================
@@ -1904,3 +2003,15 @@ export type DaggerheartClass = z.infer<typeof ClassSchema>;
 export type ClassFeature = z.infer<typeof ClassFeatureSchema>;
 export type SubclassFeature = z.infer<typeof SubclassFeatureSchema>;
 export type HopeFeature = z.infer<typeof HopeFeatureSchema>;
+export type LevelUpOption = z.infer<typeof LevelUpOptionSchema>;
+export type TierLevelUpOptions = z.infer<typeof TierLevelUpOptionsSchema>;
+export type LevelUpPointSystem = z.infer<typeof LevelUpPointSystemSchema>;
+export type CharacterProgression = z.infer<typeof CharacterProgressionSchema>;
+
+// Schema exports
+export {
+  CharacterProgressionSchema,
+  LevelUpOptionSchema,
+  LevelUpPointSystemSchema,
+  TierLevelUpOptionsSchema,
+};
