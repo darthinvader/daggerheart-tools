@@ -1,6 +1,38 @@
 import { z } from 'zod';
 
+import { CharacterTraitEnum } from '../core/base-schemas';
+// Base schemas for different item types
+// ======================================================================================
+
 import { ItemSchema } from './base-equipment';
+
+// Shared schemas for equipment features and bonuses
+
+const TraitBonusSchema = z.object({
+  trait: CharacterTraitEnum,
+  bonus: z.number().min(1),
+});
+
+const TraitBonusWithDurationSchema = TraitBonusSchema.extend({
+  duration: z.enum(['next_roll', 'until_rest', 'permanent']),
+});
+
+const ExperienceBonusSchema = z.object({
+  experience: z.string(),
+  bonus: z.number().min(1),
+});
+
+const TraitChangeSchema = z.object({
+  trait: CharacterTraitEnum,
+  description: z.string(),
+});
+
+const FeatureAddedSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+});
+
+// ======================================================================================
 
 // Extended item schemas for different item categories
 export const UtilityItemSchema = ItemSchema.extend({
@@ -25,25 +57,8 @@ export const ConsumableSchema = ItemSchema.extend({
 export const RelicSchema = ItemSchema.extend({
   category: z.literal('Relic'),
   rarity: z.literal('Legendary'),
-  traitBonus: z
-    .object({
-      trait: z.enum([
-        'Agility',
-        'Strength',
-        'Finesse',
-        'Instinct',
-        'Presence',
-        'Knowledge',
-      ]),
-      bonus: z.number().min(1),
-    })
-    .optional(),
-  experienceBonus: z
-    .object({
-      experience: z.string(),
-      bonus: z.number().min(1),
-    })
-    .optional(),
+  traitBonus: TraitBonusSchema.optional(),
+  experienceBonus: ExperienceBonusSchema.optional(),
   exclusivity: z.string().default('You can only carry one relic.'),
 });
 
@@ -51,37 +66,15 @@ export const WeaponModificationSchema = ItemSchema.extend({
   category: z.literal('Weapon Modification'),
   modificationType: z.enum(['gem', 'stone', 'charm', 'enhancement']),
   compatibleWeapons: z.array(z.string()).default([]), // Weapon types this can modify
-  traitChange: z
-    .object({
-      trait: z.enum([
-        'Agility',
-        'Strength',
-        'Finesse',
-        'Instinct',
-        'Presence',
-        'Knowledge',
-      ]),
-      description: z.string(),
-    })
-    .optional(),
-  featureAdded: z
-    .object({
-      name: z.string(),
-      description: z.string(),
-    })
-    .optional(),
+  traitChange: TraitChangeSchema.optional(),
+  featureAdded: FeatureAddedSchema.optional(),
 });
 
 export const ArmorModificationSchema = ItemSchema.extend({
   category: z.literal('Armor Modification'),
   modificationType: z.enum(['stone', 'enhancement', 'enchantment']),
   compatibleArmor: z.array(z.string()).default([]), // Armor types this can modify
-  featureAdded: z
-    .object({
-      name: z.string(),
-      description: z.string(),
-    })
-    .optional(),
+  featureAdded: FeatureAddedSchema.optional(),
 });
 
 export const RecipeSchema = ItemSchema.extend({
@@ -105,20 +98,7 @@ export const PotionSchema = ConsumableSchema.extend({
   subcategory: z.literal('Potion'),
   potionType: PotionTypeEnum,
   healingAmount: z.string().optional(), // e.g., "1d4", "1d4+1"
-  traitBonus: z
-    .object({
-      trait: z.enum([
-        'Agility',
-        'Strength',
-        'Finesse',
-        'Instinct',
-        'Presence',
-        'Knowledge',
-      ]),
-      bonus: z.number(),
-      duration: z.enum(['next_roll', 'until_rest', 'permanent']),
-    })
-    .optional(),
+  traitBonus: TraitBonusWithDurationSchema.optional(),
 });
 
 // Complete item collection schema

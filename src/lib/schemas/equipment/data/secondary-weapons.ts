@@ -1,3 +1,4 @@
+import { getProtectiveFeature } from '../common-features';
 import type { SecondaryWeapon } from '../weapons';
 
 // Tier 1 Secondary Weapons
@@ -26,12 +27,7 @@ export const TIER_1_SECONDARY_WEAPONS: SecondaryWeapon[] = [
     range: 'Melee',
     damage: { diceType: 4, count: 1, modifier: 0, type: 'phy' },
     burden: 'One-Handed',
-    features: [
-      {
-        name: 'Protective',
-        description: '+1 to Armor Score',
-      },
-    ],
+    features: [getProtectiveFeature(1)],
   },
   {
     name: 'Tower Shield',

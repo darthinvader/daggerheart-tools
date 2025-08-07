@@ -1,3 +1,4 @@
+import { getBrutalFeature, getReliableFeature } from '../common-features';
 import type { PrimaryWeapon } from '../weapons';
 
 // Arcana Domain Primary Weapons
@@ -11,7 +12,7 @@ export const ARCANA_PRIMARY_WEAPONS: PrimaryWeapon[] = [
     damage: { diceType: 6, count: 1, modifier: 0, type: 'mag' },
     burden: 'One-Handed',
     domainAffinity: 'Arcana',
-    features: [{ name: 'Reliable', description: '+1 to attack rolls' }],
+    features: [getReliableFeature()],
   },
   {
     name: 'Improved Crystal Wand',
@@ -22,7 +23,7 @@ export const ARCANA_PRIMARY_WEAPONS: PrimaryWeapon[] = [
     damage: { diceType: 6, count: 1, modifier: 3, type: 'mag' },
     burden: 'One-Handed',
     domainAffinity: 'Arcana',
-    features: [{ name: 'Reliable', description: '+1 to attack rolls' }],
+    features: [getReliableFeature()],
   },
   {
     name: 'Advanced Crystal Wand',
@@ -107,13 +108,7 @@ export const BONE_PRIMARY_WEAPONS: PrimaryWeapon[] = [
     damage: { diceType: 10, count: 1, modifier: 0, type: 'phy' },
     burden: 'Two-Handed',
     domainAffinity: 'Bone',
-    features: [
-      {
-        name: 'Brutal',
-        description:
-          'When you roll the maximum value on a damage die, roll an additional damage die',
-      },
-    ],
+    features: [getBrutalFeature()],
   },
   {
     name: 'Improved Bone Club',

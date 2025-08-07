@@ -1,16 +1,8 @@
 import { z } from 'zod';
 
-// Enums for equipment
-export const WeaponTraitEnum = z.enum([
-  'Agility',
-  'Strength',
-  'Finesse',
-  'Presence',
-  'Knowledge',
-  'Instinct',
-  'Spellcast',
-]);
+import { EquipmentFeatureSchema, WeaponTraitEnum } from '../core/base-schemas';
 
+// Enums for equipment (using shared trait enum from core)
 export const RangeEnum = z.enum([
   'Melee',
   'Very Close',
@@ -38,13 +30,6 @@ export const DamageSchema = z.object({
   count: z.number().min(1).default(1),
   modifier: z.number().default(0),
   type: DamageTypeEnum,
-});
-
-// Base equipment feature schema
-export const EquipmentFeatureSchema = z.object({
-  name: z.string(),
-  description: z.string(),
-  type: z.enum(['passive', 'active', 'triggered']).optional(),
 });
 
 // Base equipment schema
@@ -107,7 +92,6 @@ export type WeaponType = z.infer<typeof WeaponTypeEnum>;
 export type EquipmentTier = z.infer<typeof EquipmentTierEnum>;
 export type Rarity = z.infer<typeof RarityEnum>;
 export type Damage = z.infer<typeof DamageSchema>;
-export type EquipmentFeature = z.infer<typeof EquipmentFeatureSchema>;
 export type BaseEquipment = z.infer<typeof BaseEquipmentSchema>;
 export type Weapon = z.infer<typeof WeaponSchema>;
 export type DamageThresholds = z.infer<typeof DamageThresholdsSchema>;
