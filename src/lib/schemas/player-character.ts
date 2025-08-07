@@ -1,17 +1,39 @@
 import { z } from 'zod';
 
+import { ANCESTRIES } from './ancestry';
+import { COMMUNITIES } from './community';
+// Import shared schemas from core
+import { CharacterTraitEnum, ClassFeatureSchema } from './core/base-schemas';
+import { RangerCompanionSchema } from './core/companion-system';
 import {
   ARCANA_DOMAIN_CARDS,
   BLADE_DOMAIN_CARDS,
   BONE_DOMAIN_CARDS,
   CODEX_DOMAIN_CARDS,
   DomainCardCollectionSchema,
+  DomainNameEnum,
   GRACE_DOMAIN_CARDS,
   MIDNIGHT_DOMAIN_CARDS,
   SAGE_DOMAIN_CARDS,
   SPLENDOR_DOMAIN_CARDS,
   VALOR_DOMAIN_CARDS,
 } from './domains';
+
+// Create enums that align with the subclass schemas from the classes system
+// NOTE: These enum values must match the discriminated union schemas in each class file
+// TODO: Consider creating utility to automatically extract these values from class schemas
+const BardSubclassEnum = z.enum(['Troubadour', 'Wordsmith']);
+const DruidSubclassEnum = z.enum([
+  'Warden of the Elements',
+  'Warden of Renewal',
+]);
+const GuardianSubclassEnum = z.enum(['Stalwart', 'Vengeance']);
+const RangerSubclassEnum = z.enum(['Beastbound', 'Wayfinder']);
+const RogueSubclassEnum = z.enum(['Nightwalker', 'Syndicate']);
+const SeraphSubclassEnum = z.enum(['Divine Wielder', 'Winged Sentinel']);
+const SorcererSubclassEnum = z.enum(['Elemental Origin', 'Primal Origin']);
+const WarriorSubclassEnum = z.enum(['Call of the Brave', 'Call of the Slayer']);
+const WizardSubclassEnum = z.enum(['School of Knowledge', 'School of War']);
 
 // Core Character Stats
 // ======================================================================================
@@ -43,15 +65,6 @@ const GoldSchema = z.object({
   chests: z.number().int().min(0).default(0),
 });
 
-const CharacterTraitEnum = z.enum([
-  'Agility',
-  'Strength',
-  'Finesse',
-  'Instinct',
-  'Presence',
-  'Knowledge',
-]);
-
 const CharacterTraitSchema = z.object({
   value: z.number().int(),
   marked: z.boolean().default(false),
@@ -65,39 +78,20 @@ const CharacterTraitsSchema = z.record(
 // Identity & Background
 // ======================================================================================
 
-const AncestryEnum = z.enum([
-  'Clank',
-  'Drakona',
-  'Dwarf',
-  'Elf',
-  'Faerie',
-  'Faun',
-  'Firbolg',
-  'Fungril',
-  'Galapa',
-  'Giant',
-  'Goblin',
-  'Halfling',
-  'Human',
-  'Infernis',
-  'Katari',
-  'Orc',
-  'Ribbet',
-  'Simiah',
+// Create enums from imported ancestry and community data
+const ancestryNames = ANCESTRIES.map(ancestry => ancestry.name).concat([
   'Mixed',
 ]);
-
-const CommunityEnum = z.enum([
-  'Highborne',
-  'Loreborne',
-  'Orderborne',
-  'Ridgeborne',
-  'Seaborne',
-  'Slyborne',
-  'Underborne',
-  'Wanderborne',
-  'Wildborne',
+const AncestryEnum = z.enum([ancestryNames[0], ...ancestryNames.slice(1)] as [
+  string,
+  ...string[],
 ]);
+
+const communityNames = COMMUNITIES.map(community => community.name);
+const CommunityEnum = z.enum([
+  communityNames[0],
+  ...communityNames.slice(1),
+] as [string, ...string[]]);
 
 const AbilitySchema = z.object({
   name: z.string(),
@@ -130,44 +124,9 @@ const CharacterDescriptionSchema = z.object({
 // Class, Abilities & Equipment
 // ======================================================================================
 
-const BardSubclassEnum = z.enum(['Troubadour', 'Wordsmith']);
-const DruidSubclassEnum = z.enum([
-  'Warden of the Elements',
-  'Warden of Renewal',
-]);
-const GuardianSubclassEnum = z.enum(['Stalwart', 'Vengeance']);
-const RangerSubclassEnum = z.enum(['Beastbound', 'Wayfinder']);
-const RogueSubclassEnum = z.enum(['Nightwalker', 'Syndicate']);
-const SeraphSubclassEnum = z.enum(['Divine Wielder', 'Winged Sentinel']);
-const SorcererSubclassEnum = z.enum(['Elemental Origin', 'Primal Origin']);
-const WarriorSubclassEnum = z.enum(['Call of the Brave', 'Call of the Slayer']);
-const WizardSubclassEnum = z.enum(['School of Knowledge', 'School of War']);
-
-const DomainNameEnum = z.enum([
-  'Arcana',
-  'Blade',
-  'Bone',
-  'Codex',
-  'Grace',
-  'Sage',
-  'Midnight',
-  'Splendor',
-  'Valor',
-  'Chaos',
-  'Moon',
-  'Sun',
-  'Blood',
-  'Fate',
-]);
-
 const DomainSchema = z.object({
   name: DomainNameEnum,
   cards: z.array(z.string()),
-});
-
-const ClassFeatureSchema = z.object({
-  name: z.string(),
-  description: z.string(),
 });
 
 const WeaponSchema = z.object({
@@ -262,18 +221,20 @@ export const PlayerCharacterSchema = z
       characterClass: z.literal('Guardian'),
       subclass: GuardianSubclassEnum,
       classFeatures: z.array(ClassFeatureSchema),
+      spellcastingTrait: z.never().optional(),
     }),
     BaseCharacterSchema.extend({
       characterClass: z.literal('Ranger'),
       subclass: RangerSubclassEnum,
       classFeatures: z.array(ClassFeatureSchema),
       spellcastingTrait: z.literal('Agility'),
+      companion: RangerCompanionSchema.optional(), // Optional for Beastbound subclass
     }),
     BaseCharacterSchema.extend({
       characterClass: z.literal('Rogue'),
       subclass: RogueSubclassEnum,
       classFeatures: z.array(ClassFeatureSchema),
-      spellcastingTrait: z.literal('Finesse').optional(),
+      spellcastingTrait: z.literal('Finesse'),
     }),
     BaseCharacterSchema.extend({
       characterClass: z.literal('Seraph'),
@@ -291,6 +252,7 @@ export const PlayerCharacterSchema = z
       characterClass: z.literal('Warrior'),
       subclass: WarriorSubclassEnum,
       classFeatures: z.array(ClassFeatureSchema),
+      spellcastingTrait: z.never().optional(),
     }),
     BaseCharacterSchema.extend({
       characterClass: z.literal('Wizard'),
