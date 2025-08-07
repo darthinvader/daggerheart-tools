@@ -11,7 +11,7 @@ import {
   SAGE_DOMAIN_CARDS,
   SPLENDOR_DOMAIN_CARDS,
   VALOR_DOMAIN_CARDS,
-} from '../domains';
+} from './domains';
 
 // Core Character Stats
 // ======================================================================================
