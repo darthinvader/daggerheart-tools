@@ -135,13 +135,13 @@ const DruidSubclassEnum = z.enum([
   'Warden of the Elements',
   'Warden of Renewal',
 ]);
-const GuardianSubclassEnum = z.enum(['Stalwart', 'Valiant']);
-const RangerSubclassEnum = z.enum(['Beast-Tamer', 'Hunter']);
-const RogueSubclassEnum = z.enum(['Shadow', 'Trickster']);
-const SeraphSubclassEnum = z.enum(['Empyrean', 'Protector']);
-const SorcererSubclassEnum = z.enum(['Cinder', 'Storm']);
-const WarriorSubclassEnum = z.enum(['Commander', 'Duelist']);
-const WizardSubclassEnum = z.enum(['Cronomancer', 'Transmuter']);
+const GuardianSubclassEnum = z.enum(['Stalwart', 'Vengeance']);
+const RangerSubclassEnum = z.enum(['Beastbound', 'Wayfinder']);
+const RogueSubclassEnum = z.enum(['Nightwalker', 'Syndicate']);
+const SeraphSubclassEnum = z.enum(['Divine Wielder', 'Winged Sentinel']);
+const SorcererSubclassEnum = z.enum(['Elemental Origin', 'Primal Origin']);
+const WarriorSubclassEnum = z.enum(['Call of the Brave', 'Call of the Slayer']);
+const WizardSubclassEnum = z.enum(['School of Knowledge', 'School of War']);
 
 const DomainNameEnum = z.enum([
   'Arcana',
@@ -267,23 +267,25 @@ export const PlayerCharacterSchema = z
       characterClass: z.literal('Ranger'),
       subclass: RangerSubclassEnum,
       classFeatures: z.array(ClassFeatureSchema),
+      spellcastingTrait: z.literal('Agility'),
     }),
     BaseCharacterSchema.extend({
       characterClass: z.literal('Rogue'),
       subclass: RogueSubclassEnum,
       classFeatures: z.array(ClassFeatureSchema),
+      spellcastingTrait: z.literal('Finesse').optional(),
     }),
     BaseCharacterSchema.extend({
       characterClass: z.literal('Seraph'),
       subclass: SeraphSubclassEnum,
       classFeatures: z.array(ClassFeatureSchema),
-      spellcastingTrait: z.literal('Presence'),
+      spellcastingTrait: z.literal('Strength'),
     }),
     BaseCharacterSchema.extend({
       characterClass: z.literal('Sorcerer'),
       subclass: SorcererSubclassEnum,
       classFeatures: z.array(ClassFeatureSchema),
-      spellcastingTrait: z.literal('Instinct'), // Both subclasses use Instinct
+      spellcastingTrait: z.literal('Instinct'),
     }),
     BaseCharacterSchema.extend({
       characterClass: z.literal('Warrior'),
