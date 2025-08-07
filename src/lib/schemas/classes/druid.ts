@@ -1,26 +1,24 @@
 import { z } from 'zod';
 
-import { BaseClassSchema, SubclassFeatureSchema } from '../core';
+import { BaseClassSchema, BaseSubclassSchema } from '../core';
 
 // Druid Subclass Schemas
 // ======================================================================================
 
 export const DruidSubclassSchema = z.discriminatedUnion('name', [
-  z.object({
+  BaseSubclassSchema.extend({
     name: z.literal('Warden of the Elements'),
     description: z.literal(
       'Play the Warden of the Elements if you want to embody the natural elements of the wild.'
     ),
     spellcastTrait: z.literal('Instinct'),
-    features: z.array(SubclassFeatureSchema),
   }),
-  z.object({
+  BaseSubclassSchema.extend({
     name: z.literal('Warden of Renewal'),
     description: z.literal(
       'Play the Warden of Renewal if you want to use powerful magic to heal your party.'
     ),
     spellcastTrait: z.literal('Instinct'),
-    features: z.array(SubclassFeatureSchema),
   }),
 ]);
 

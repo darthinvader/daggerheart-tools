@@ -1,26 +1,24 @@
 import { z } from 'zod';
 
-import { BaseClassSchema, SubclassFeatureSchema } from '../core';
+import { BaseClassSchema, BaseSubclassSchema } from '../core';
 
 // Wizard Subclass Schemas
 // ======================================================================================
 
 export const WizardSubclassSchema = z.discriminatedUnion('name', [
-  z.object({
+  BaseSubclassSchema.extend({
     name: z.literal('School of Knowledge'),
     description: z.literal(
       'Play the School of Knowledge if you want a keen understanding of the world around you.'
     ),
     spellcastTrait: z.literal('Knowledge'),
-    features: z.array(SubclassFeatureSchema),
   }),
-  z.object({
+  BaseSubclassSchema.extend({
     name: z.literal('School of War'),
     description: z.literal(
       'Play the School of War if you want to utilize trained magic for violence.'
     ),
     spellcastTrait: z.literal('Knowledge'),
-    features: z.array(SubclassFeatureSchema),
   }),
 ]);
 

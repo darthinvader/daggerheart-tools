@@ -3,26 +3,15 @@ import { z } from 'zod';
 import { ANCESTRIES } from './ancestry';
 import { COMMUNITIES } from './community';
 // Import shared schemas from core
-import { CharacterTraitEnum, ClassFeatureSchema } from './core/base-schemas';
+import { BaseFeatureSchema } from './core/base-schemas';
 import { RangerCompanionSchema } from './core/companion-system';
-import {
-  ARCANA_DOMAIN_CARDS,
-  BLADE_DOMAIN_CARDS,
-  BONE_DOMAIN_CARDS,
-  CODEX_DOMAIN_CARDS,
-  DomainCardCollectionSchema,
-  DomainNameEnum,
-  GRACE_DOMAIN_CARDS,
-  MIDNIGHT_DOMAIN_CARDS,
-  SAGE_DOMAIN_CARDS,
-  SPLENDOR_DOMAIN_CARDS,
-  VALOR_DOMAIN_CARDS,
-} from './domains';
+import { CharacterTraitEnum, DomainNameEnum } from './core/enums';
+import { DomainCardCollectionSchema } from './domains';
 // Import equipment schemas
 import {
   ArmorSchema,
   ArmorStatusSchema,
-  DamageThresholdsSchema as EquipmentDamageThresholdsSchema,
+  DamageThresholdsSchema,
   EquipmentLoadoutSchema,
   InventorySchema,
   WeaponSchema,
@@ -50,7 +39,7 @@ const WizardSubclassEnum = z.enum(['School of Knowledge', 'School of War']);
 const HitPointsSchema = z.object({
   current: z.number().int(),
   max: z.number().int(),
-  thresholds: EquipmentDamageThresholdsSchema,
+  thresholds: DamageThresholdsSchema,
 });
 
 const StressSchema = z.object({
@@ -67,6 +56,11 @@ const GoldSchema = z.object({
   handfuls: z.number().int().min(0).default(0),
   bags: z.number().int().min(0).default(0),
   chests: z.number().int().min(0).default(0),
+});
+
+const PlayerDomainSchema = z.object({
+  name: DomainNameEnum,
+  cards: DomainCardCollectionSchema,
 });
 
 const CharacterTraitSchema = z.object({
@@ -102,59 +96,55 @@ const AbilitySchema = z.object({
   description: z.string(),
 });
 
-const AncestrySchema = z.object({
-  name: AncestryEnum,
-  abilities: z.array(AbilitySchema),
-});
-
-const CommunitySchema = z.object({
-  name: CommunityEnum,
-  abilities: z.array(AbilitySchema),
-});
-
-const ExperienceSchema = z.object({
+const IdentitySchema = z.object({
   name: z.string(),
-  modifier: z.number().int(),
-});
-
-const CharacterDescriptionSchema = z.object({
-  clothes: z.string().optional(),
-  eyes: z.string().optional(),
-  body: z.string().optional(),
-  skin: z.string().optional(),
-  attitude: z.string().optional(),
-});
-
-// Class, Abilities & Equipment
-// ======================================================================================
-
-const DomainSchema = z.object({
-  name: DomainNameEnum,
-  cards: z.array(z.string()),
-});
-
-// Advancement
-// ======================================================================================
-
-const TierOptionSchema = z.object({
+  pronouns: z.string(),
+  ancestry: AncestryEnum,
+  community: CommunityEnum,
   description: z.string(),
-  selected: z.boolean().default(false),
+  calling: z.string(),
+  abilities: z.array(AbilitySchema),
 });
 
-const TierAdvancementSchema = z.object({
-  levelRange: z.string(),
-  options: z.array(TierOptionSchema),
-});
-
-// Player Character Schema
+// Class & Subclass
 // ======================================================================================
 
-const BaseCharacterSchema = z.object({
-  name: z.string(),
-  pronouns: z.string().optional(),
+const ClassDetailsSchema = z.object({
+  name: z.enum([
+    'Bard',
+    'Druid',
+    'Guardian',
+    'Ranger',
+    'Rogue',
+    'Seraph',
+    'Sorcerer',
+    'Warrior',
+    'Wizard',
+  ]),
+  subclass: z.union([
+    BardSubclassEnum,
+    DruidSubclassEnum,
+    GuardianSubclassEnum,
+    RangerSubclassEnum,
+    RogueSubclassEnum,
+    SeraphSubclassEnum,
+    SorcererSubclassEnum,
+    WarriorSubclassEnum,
+    WizardSubclassEnum,
+  ]),
+  features: z.array(BaseFeatureSchema),
+  domains: z.array(PlayerDomainSchema),
+});
+
+// Full Player Character Schema
+// ======================================================================================
+
+export const PlayerCharacterSchema = z.object({
+  // Core Identity
+  identity: IdentitySchema,
   level: z.number().int().min(1).max(10),
-  ancestry: AncestrySchema,
-  community: CommunitySchema,
+
+  // Core Stats
   traits: CharacterTraitsSchema,
   hp: HitPointsSchema,
   stress: StressSchema,
@@ -163,143 +153,28 @@ const BaseCharacterSchema = z.object({
   hope: z.number().int().min(0),
   proficiency: z.number().int().min(1),
 
+  // Class & Domains
+  classDetails: ClassDetailsSchema,
+
   // Domain card collections
   domainCards: DomainCardCollectionSchema, // All available domain cards
   vault: DomainCardCollectionSchema, // Stored/inactive domain cards
   loadout: DomainCardCollectionSchema, // Active domain cards ready for use
 
-  // Legacy domains field for backward compatibility
-  domains: z.array(DomainSchema).optional(),
-
-  // Equipment using modern schemas
+  // Equipment
   equipment: EquipmentLoadoutSchema,
   inventory: InventorySchema,
   armorStatus: ArmorStatusSchema.optional(),
-
-  // Individual equipment arrays for direct access
   weapons: z.array(WeaponSchema),
   armor: z.array(ArmorSchema),
-
   gold: GoldSchema,
-  experience: z.array(ExperienceSchema),
+
+  // Experience & Connections
+  experience: z.number().int().min(0).default(0),
   connections: z.array(z.string()).optional(),
-  backgroundQuestions: z.array(z.string()).optional(),
-  characterDescription: CharacterDescriptionSchema.optional(),
-  tierAdvancement: z.record(z.string(), TierAdvancementSchema), // e.g. "Tier 2", "Tier 3"
+
+  // Ranger Companion
+  companion: RangerCompanionSchema.optional(), // Optional for Beastbound subclass
 });
-
-export const PlayerCharacterSchema = z
-  .discriminatedUnion('characterClass', [
-    BaseCharacterSchema.extend({
-      characterClass: z.literal('Bard'),
-      subclass: BardSubclassEnum,
-      classFeatures: z.array(ClassFeatureSchema),
-      spellcastingTrait: z.literal('Presence'),
-    }),
-    BaseCharacterSchema.extend({
-      characterClass: z.literal('Druid'),
-      subclass: DruidSubclassEnum,
-      classFeatures: z.array(ClassFeatureSchema),
-      spellcastingTrait: z.literal('Instinct'),
-    }),
-    BaseCharacterSchema.extend({
-      characterClass: z.literal('Guardian'),
-      subclass: GuardianSubclassEnum,
-      classFeatures: z.array(ClassFeatureSchema),
-      spellcastingTrait: z.never().optional(),
-    }),
-    BaseCharacterSchema.extend({
-      characterClass: z.literal('Ranger'),
-      subclass: RangerSubclassEnum,
-      classFeatures: z.array(ClassFeatureSchema),
-      spellcastingTrait: z.literal('Agility'),
-      companion: RangerCompanionSchema.optional(), // Optional for Beastbound subclass
-    }),
-    BaseCharacterSchema.extend({
-      characterClass: z.literal('Rogue'),
-      subclass: RogueSubclassEnum,
-      classFeatures: z.array(ClassFeatureSchema),
-      spellcastingTrait: z.literal('Finesse'),
-    }),
-    BaseCharacterSchema.extend({
-      characterClass: z.literal('Seraph'),
-      subclass: SeraphSubclassEnum,
-      classFeatures: z.array(ClassFeatureSchema),
-      spellcastingTrait: z.literal('Strength'),
-    }),
-    BaseCharacterSchema.extend({
-      characterClass: z.literal('Sorcerer'),
-      subclass: SorcererSubclassEnum,
-      classFeatures: z.array(ClassFeatureSchema),
-      spellcastingTrait: z.literal('Instinct'),
-    }),
-    BaseCharacterSchema.extend({
-      characterClass: z.literal('Warrior'),
-      subclass: WarriorSubclassEnum,
-      classFeatures: z.array(ClassFeatureSchema),
-      spellcastingTrait: z.never().optional(),
-    }),
-    BaseCharacterSchema.extend({
-      characterClass: z.literal('Wizard'),
-      subclass: WizardSubclassEnum,
-      classFeatures: z.array(ClassFeatureSchema),
-      spellcastingTrait: z.literal('Knowledge'),
-    }),
-  ])
-  .superRefine((val, ctx) => {
-    // Legacy domains validation for backward compatibility
-    if (val.domains) {
-      val.domains.forEach((domain, index) => {
-        let cardNames: string[] = [];
-        switch (domain.name) {
-          case 'Arcana':
-            cardNames = ARCANA_DOMAIN_CARDS.map(card => card.name);
-            break;
-          case 'Blade':
-            cardNames = BLADE_DOMAIN_CARDS.map(card => card.name);
-            break;
-          case 'Bone':
-            cardNames = BONE_DOMAIN_CARDS.map(card => card.name);
-            break;
-          case 'Codex':
-            cardNames = CODEX_DOMAIN_CARDS.map(card => card.name);
-            break;
-          case 'Grace':
-            cardNames = GRACE_DOMAIN_CARDS.map(card => card.name);
-            break;
-          case 'Sage':
-            cardNames = SAGE_DOMAIN_CARDS.map(card => card.name);
-            break;
-          case 'Midnight':
-            cardNames = MIDNIGHT_DOMAIN_CARDS.map(card => card.name);
-            break;
-          case 'Splendor':
-            cardNames = SPLENDOR_DOMAIN_CARDS.map(card => card.name);
-            break;
-          case 'Valor':
-            cardNames = VALOR_DOMAIN_CARDS.map(card => card.name);
-            break;
-          case 'Chaos':
-          case 'Moon':
-          case 'Sun':
-          case 'Blood':
-          case 'Fate':
-            // These domains have no cards yet, so any card name is invalid
-            cardNames = [];
-            break;
-        }
-
-        domain.cards.forEach((card, cardIndex) => {
-          if (cardNames.length > 0 && !cardNames.includes(card)) {
-            ctx.addIssue({
-              code: 'custom',
-              message: `Invalid card "${card}" for domain "${domain.name}"`,
-              path: ['domains', index, 'cards', cardIndex],
-            });
-          }
-        });
-      });
-    }
-  });
 
 export type PlayerCharacter = z.infer<typeof PlayerCharacterSchema>;

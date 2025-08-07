@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { CharacterTraitEnum } from '../core/base-schemas';
+import { CharacterTraitEnum } from '../core/enums';
 // Base schemas for different item types
 // ======================================================================================
 

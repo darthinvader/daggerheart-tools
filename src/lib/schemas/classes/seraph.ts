@@ -1,26 +1,24 @@
 import { z } from 'zod';
 
-import { BaseClassSchema, SubclassFeatureSchema } from '../core';
+import { BaseClassSchema, BaseSubclassSchema } from '../core';
 
 // Seraph Subclass Schemas
 // ======================================================================================
 
 export const SeraphSubclassSchema = z.discriminatedUnion('name', [
-  z.object({
+  BaseSubclassSchema.extend({
     name: z.literal('Divine Wielder'),
     description: z.literal(
       'Play the Divine Wielder if you want to dominate the battlefield with a legendary weapon.'
     ),
     spellcastTrait: z.literal('Strength'),
-    features: z.array(SubclassFeatureSchema),
   }),
-  z.object({
+  BaseSubclassSchema.extend({
     name: z.literal('Winged Sentinel'),
     description: z.literal(
       'Play the Winged Sentinel if you want to take flight and strike crushing blows from the sky.'
     ),
     spellcastTrait: z.literal('Strength'),
-    features: z.array(SubclassFeatureSchema),
   }),
 ]);
 

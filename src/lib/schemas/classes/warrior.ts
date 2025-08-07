@@ -1,26 +1,24 @@
 import { z } from 'zod';
 
-import { BaseClassSchema, SubclassFeatureSchema } from '../core';
+import { BaseClassSchema, BaseSubclassSchema } from '../core';
 
 // Warrior Subclass Schemas
 // ======================================================================================
 
 export const WarriorSubclassSchema = z.discriminatedUnion('name', [
-  z.object({
+  BaseSubclassSchema.extend({
     name: z.literal('Call of the Brave'),
     description: z.literal(
       'Play the Call of the Brave if you want to use the might of your enemies to fuel your own power.'
     ),
     spellcastTrait: z.never().optional(),
-    features: z.array(SubclassFeatureSchema),
   }),
-  z.object({
+  BaseSubclassSchema.extend({
     name: z.literal('Call of the Slayer'),
     description: z.literal(
       'Play the Call of the Slayer if you want to strike down adversaries with immense force.'
     ),
     spellcastTrait: z.never().optional(),
-    features: z.array(SubclassFeatureSchema),
   }),
 ]);
 

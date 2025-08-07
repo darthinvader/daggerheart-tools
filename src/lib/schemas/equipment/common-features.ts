@@ -1,11 +1,11 @@
-import type { EquipmentFeature } from '../core/base-schemas';
+import type { BaseFeature } from '../core/base-schemas';
 
 // Common Equipment Features
 // ======================================================================================
 // These are frequently reused equipment features that appear across multiple items.
 // By centralizing them, we eliminate duplication and ensure consistency.
 
-export const COMMON_EQUIPMENT_FEATURES: Record<string, EquipmentFeature> = {
+export const COMMON_EQUIPMENT_FEATURES: Record<string, BaseFeature> = {
   // Weapon Features
   RELIABLE: {
     name: 'Reliable',

@@ -1,26 +1,24 @@
 import { z } from 'zod';
 
-import { BaseClassSchema, SubclassFeatureSchema } from '../core';
+import { BaseClassSchema, BaseSubclassSchema } from '../core';
 
 // Bard Subclass Schemas
 // ======================================================================================
 
 export const BardSubclassSchema = z.discriminatedUnion('name', [
-  z.object({
+  BaseSubclassSchema.extend({
     name: z.literal('Troubadour'),
     description: z.literal(
       'Play the Troubadour if you want to play music to bolster your allies.'
     ),
     spellcastTrait: z.literal('Presence'),
-    features: z.array(SubclassFeatureSchema),
   }),
-  z.object({
+  BaseSubclassSchema.extend({
     name: z.literal('Wordsmith'),
     description: z.literal(
       'Play the Wordsmith if you want to use clever wordplay and captivate crowds.'
     ),
     spellcastTrait: z.literal('Presence'),
-    features: z.array(SubclassFeatureSchema),
   }),
 ]);
 

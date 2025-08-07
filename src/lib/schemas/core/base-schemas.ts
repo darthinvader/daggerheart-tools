@@ -1,43 +1,11 @@
 import { z } from 'zod';
 
-// Domain and Trait Enums
-// ======================================================================================
-
-export const DomainNameEnum = z.enum([
-  'Arcana',
-  'Blade',
-  'Bone',
-  'Codex',
-  'Grace',
-  'Midnight',
-  'Sage',
-  'Splendor',
-  'Valor',
-]);
-
-// Core character traits used for rolls and abilities
-export const CharacterTraitEnum = z.enum([
-  'Agility',
-  'Strength',
-  'Finesse',
-  'Instinct',
-  'Presence',
-  'Knowledge',
-]);
-
-// Extended trait enum for weapons and equipment (includes Spellcast)
-export const WeaponTraitEnum = z.enum([
-  'Agility',
-  'Strength',
-  'Finesse',
-  'Instinct',
-  'Presence',
-  'Knowledge',
-  'Spellcast',
-]);
-
-// Character tier levels (based on character sheet analysis)
-export const CharacterTierSchema = z.enum(['1', '2-4', '5-7', '8-10']);
+import {
+  CharacterTierSchema,
+  CharacterTraitEnum,
+  DomainNameEnum,
+  WeaponTraitEnum,
+} from './enums';
 
 // Base Feature Schemas
 // ======================================================================================
@@ -47,15 +15,6 @@ export const BaseFeatureSchema = z.object({
   name: z.string(),
   description: z.string(),
   type: z.enum(['passive', 'active', 'triggered']).optional(),
-});
-
-// Specialized feature schemas extending base
-export const ClassFeatureSchema = BaseFeatureSchema.extend({
-  // Class features inherit all base properties
-});
-
-export const EquipmentFeatureSchema = BaseFeatureSchema.extend({
-  // Equipment features inherit all base properties
 });
 
 // Feature availability based on character tier and specific unlock conditions
@@ -109,7 +68,7 @@ export const BaseClassSchema = z.object({
   startingHitPoints: z.number().int(),
   classItems: z.array(z.string()),
   hopeFeature: HopeFeatureSchema,
-  classFeatures: z.array(ClassFeatureSchema),
+  classFeatures: z.array(BaseFeatureSchema),
   backgroundQuestions: z.array(z.string()),
   connections: z.array(z.string()),
 });
@@ -120,8 +79,6 @@ export type CharacterTrait = z.infer<typeof CharacterTraitEnum>;
 export type WeaponTrait = z.infer<typeof WeaponTraitEnum>;
 export type CharacterTier = z.infer<typeof CharacterTierSchema>;
 export type BaseFeature = z.infer<typeof BaseFeatureSchema>;
-export type ClassFeature = z.infer<typeof ClassFeatureSchema>;
-export type EquipmentFeature = z.infer<typeof EquipmentFeatureSchema>;
 export type SubclassFeature = z.infer<typeof SubclassFeatureSchema>;
 export type HopeFeature = z.infer<typeof HopeFeatureSchema>;
 export type BaseSubclass = z.infer<typeof BaseSubclassSchema>;

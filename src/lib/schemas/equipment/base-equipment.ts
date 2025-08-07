@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
-import { EquipmentFeatureSchema, WeaponTraitEnum } from '../core/base-schemas';
+import { BaseFeatureSchema } from '../core/base-schemas';
+import { WeaponTraitEnum } from '../core/enums';
 
 // Enums for equipment (using shared trait enum from core)
 export const RangeEnum = z.enum([
@@ -37,7 +38,7 @@ export const BaseEquipmentSchema = z.object({
   name: z.string(),
   tier: EquipmentTierEnum,
   description: z.string().optional(),
-  features: z.array(EquipmentFeatureSchema).default([]),
+  features: z.array(BaseFeatureSchema).default([]),
 });
 
 // Weapon-specific schemas

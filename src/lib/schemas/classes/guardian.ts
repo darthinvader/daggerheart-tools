@@ -1,26 +1,24 @@
 import { z } from 'zod';
 
-import { BaseClassSchema, SubclassFeatureSchema } from '../core';
+import { BaseClassSchema, BaseSubclassSchema } from '../core';
 
 // Guardian Subclass Schemas
 // ======================================================================================
 
 export const GuardianSubclassSchema = z.discriminatedUnion('name', [
-  z.object({
+  BaseSubclassSchema.extend({
     name: z.literal('Stalwart'),
     description: z.literal(
       'Play the Stalwart if you want to take heavy blows and keep fighting.'
     ),
     spellcastTrait: z.never().optional(),
-    features: z.array(SubclassFeatureSchema),
   }),
-  z.object({
+  BaseSubclassSchema.extend({
     name: z.literal('Vengeance'),
     description: z.literal(
       'Play the Vengeance if you want to strike down enemies who harm you or your allies.'
     ),
     spellcastTrait: z.never().optional(),
-    features: z.array(SubclassFeatureSchema),
   }),
 ]);
 
