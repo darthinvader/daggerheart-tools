@@ -1,22 +1,22 @@
 import { z } from 'zod';
 
 import { EquipmentFeatureTypeEnum } from '../core/enums';
-import { WeaponSchema } from './base-equipment';
+import { WeaponSchema, WeaponTypeSchema } from './base-equipment';
 
 // Extended weapon schemas for specific weapon categories
 export const PrimaryWeaponSchema = WeaponSchema.extend({
-  type: z.literal('Primary'),
+  type: z.union([z.literal('Primary'), WeaponTypeSchema]),
   domainAffinity: z.string().optional(), // Optional for primary weapons (SRD doesn't bind by domain)
 });
 
 export const SecondaryWeaponSchema = WeaponSchema.extend({
-  type: z.literal('Secondary'),
+  type: z.union([z.literal('Secondary'), WeaponTypeSchema]),
   domainAffinity: z.string().optional(), // Optional for secondary weapons
 });
 
 export const CombatWheelchairSchema = WeaponSchema.extend({
-  type: z.literal('Primary'),
-  frameType: z.enum(['Light', 'Heavy', 'Arcane']),
+  type: z.union([z.literal('Primary'), WeaponTypeSchema]),
+  frameType: z.union([z.enum(['Light', 'Heavy', 'Arcane']), z.string()]),
   wheelchairFeatures: z.array(z.string()).default([]),
 });
 

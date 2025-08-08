@@ -1,11 +1,25 @@
 import { z } from 'zod';
 
-import { ANCESTRIES } from './ancestry';
-import { COMMUNITIES } from './community';
+// identity data imports no longer needed here; using explicit enums instead
 // Import shared schemas from core
 import { BaseFeatureSchema } from './core/base-schemas';
 import { RangerCompanionSchema } from './core/companion-system';
-import { CharacterTraitEnum, DomainNameEnum } from './core/enums';
+import {
+  AncestryNameEnum,
+  BardSubclassEnum,
+  CharacterTraitEnum,
+  ClassNameEnum,
+  CommunityNameEnum,
+  DomainNameEnum,
+  DruidSubclassEnum,
+  GuardianSubclassEnum,
+  RangerSubclassEnum,
+  RogueSubclassEnum,
+  SeraphSubclassEnum,
+  SorcererSubclassEnum,
+  WarriorSubclassEnum,
+  WizardSubclassEnum,
+} from './core/enums';
 import { DomainCardCollectionSchema } from './domains';
 // Import equipment schemas
 import {
@@ -17,20 +31,7 @@ import {
   WeaponSchema,
 } from './equipment';
 
-// Create enums that align with the subclass schemas from the classes system
-// NOTE: These enum values must match the discriminated union schemas in each class file
-const BardSubclassEnum = z.enum(['Troubadour', 'Wordsmith']);
-const DruidSubclassEnum = z.enum([
-  'Warden of the Elements',
-  'Warden of Renewal',
-]);
-const GuardianSubclassEnum = z.enum(['Stalwart', 'Vengeance']);
-const RangerSubclassEnum = z.enum(['Beastbound', 'Wayfinder']);
-const RogueSubclassEnum = z.enum(['Nightwalker', 'Syndicate']);
-const SeraphSubclassEnum = z.enum(['Divine Wielder', 'Winged Sentinel']);
-const SorcererSubclassEnum = z.enum(['Elemental Origin', 'Primal Origin']);
-const WarriorSubclassEnum = z.enum(['Call of the Brave', 'Call of the Slayer']);
-const WizardSubclassEnum = z.enum(['School of Knowledge', 'School of War']);
+// Subclass enums are centralized in core/enums.ts
 
 // Core Character Stats
 // ======================================================================================
@@ -75,20 +76,9 @@ const CharacterTraitsSchema = z.record(
 // Identity & Background
 // ======================================================================================
 
-// Create enums from imported ancestry and community data
-const ancestryNames = ANCESTRIES.map(ancestry => ancestry.name).concat([
-  'Mixed',
-]);
-const AncestryEnum = z.enum([ancestryNames[0], ...ancestryNames.slice(1)] as [
-  string,
-  ...string[],
-]);
-
-const communityNames = COMMUNITIES.map(community => community.name);
-const CommunityEnum = z.enum([
-  communityNames[0],
-  ...communityNames.slice(1),
-] as [string, ...string[]]);
+// Use explicit enums to avoid runtime coupling to data arrays
+const AncestryEnum = AncestryNameEnum;
+const CommunityEnum = CommunityNameEnum;
 
 const AbilitySchema = z.object({
   name: z.string(),
@@ -109,17 +99,7 @@ const IdentitySchema = z.object({
 // ======================================================================================
 
 const ClassDetailsSchema = z.object({
-  name: z.enum([
-    'Bard',
-    'Druid',
-    'Guardian',
-    'Ranger',
-    'Rogue',
-    'Seraph',
-    'Sorcerer',
-    'Warrior',
-    'Wizard',
-  ]),
+  name: ClassNameEnum,
   subclass: z.union([
     BardSubclassEnum,
     DruidSubclassEnum,

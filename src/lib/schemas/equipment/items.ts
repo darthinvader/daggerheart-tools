@@ -13,8 +13,10 @@ const TraitBonusSchema = z.object({
   bonus: z.number().min(1),
 });
 
+const DurationEnum = z.enum(['next_roll', 'until_rest', 'permanent']);
+const DurationSchema = z.union([DurationEnum, z.string()]);
 const TraitBonusWithDurationSchema = TraitBonusSchema.extend({
-  duration: z.enum(['next_roll', 'until_rest', 'permanent']),
+  duration: DurationSchema,
 });
 
 const ExperienceBonusSchema = z.object({
@@ -37,11 +39,18 @@ const FeatureAddedSchema = z.object({
 // Extended item schemas for different item categories
 export const UtilityItemSchema = ItemSchema.extend({
   category: z.literal('Utility'),
-  usageType: z.enum(['unlimited', 'limited', 'consumable']),
+  usageType: z.union([
+    z.enum(['unlimited', 'limited', 'consumable']),
+    z.string(),
+  ]),
   charges: z.number().min(0).optional(), // For limited use items
   rechargePeriod: z
-    .enum(['short_rest', 'long_rest', 'session', 'never'])
+    .union([
+      z.enum(['short_rest', 'long_rest', 'session', 'never']),
+      z.string(),
+    ])
     .optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const ConsumableSchema = ItemSchema.extend({
@@ -50,8 +59,12 @@ export const ConsumableSchema = ItemSchema.extend({
   effect: z.string(),
   duration: z.string().optional(),
   targetType: z
-    .enum(['self', 'ally', 'enemy', 'area', 'weapon', 'armor'])
+    .union([
+      z.enum(['self', 'ally', 'enemy', 'area', 'weapon', 'armor']),
+      z.string(),
+    ])
     .optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const RelicSchema = ItemSchema.extend({
@@ -60,21 +73,30 @@ export const RelicSchema = ItemSchema.extend({
   traitBonus: TraitBonusSchema.optional(),
   experienceBonus: ExperienceBonusSchema.optional(),
   exclusivity: z.string().default('You can only carry one relic.'),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const WeaponModificationSchema = ItemSchema.extend({
   category: z.literal('Weapon Modification'),
-  modificationType: z.enum(['gem', 'stone', 'charm', 'enhancement']),
+  modificationType: z.union([
+    z.enum(['gem', 'stone', 'charm', 'enhancement']),
+    z.string(),
+  ]),
   compatibleWeapons: z.array(z.string()).default([]), // Weapon types this can modify
   traitChange: TraitChangeSchema.optional(),
   featureAdded: FeatureAddedSchema.optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const ArmorModificationSchema = ItemSchema.extend({
   category: z.literal('Armor Modification'),
-  modificationType: z.enum(['stone', 'enhancement', 'enchantment']),
+  modificationType: z.union([
+    z.enum(['stone', 'enhancement', 'enchantment']),
+    z.string(),
+  ]),
   compatibleArmor: z.array(z.string()).default([]), // Armor types this can modify
   featureAdded: FeatureAddedSchema.optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const RecipeSchema = ItemSchema.extend({
@@ -83,6 +105,7 @@ export const RecipeSchema = ItemSchema.extend({
   materials: z.array(z.string()).default([]), // Required materials
   downtimeRequired: z.boolean().default(true),
   instructions: z.string(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 // Potion subcategories
@@ -93,12 +116,14 @@ export const PotionTypeEnum = z.enum([
   'Major Trait Boost',
   'Special Effect',
 ]);
+export const PotionTypeId = z.union([PotionTypeEnum, z.string()]);
 
 export const PotionSchema = ConsumableSchema.extend({
   subcategory: z.literal('Potion'),
-  potionType: PotionTypeEnum,
+  potionType: PotionTypeId,
   healingAmount: z.string().optional(), // e.g., "1d4", "1d4+1"
   traitBonus: TraitBonusWithDurationSchema.optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 // Complete item collection schema
@@ -118,8 +143,9 @@ export const InventorySlotSchema = z.object({
   quantity: z.number().min(1).default(1),
   isEquipped: z.boolean().default(false),
   location: z
-    .enum(['backpack', 'belt', 'equipped', 'stored'])
+    .union([z.enum(['backpack', 'belt', 'equipped', 'stored']), z.string()])
     .default('backpack'),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const InventorySchema = z.object({
@@ -127,6 +153,7 @@ export const InventorySchema = z.object({
   maxItems: z.number().min(1).default(50), // Configurable inventory limit
   weightCapacity: z.number().min(0).optional(),
   currentWeight: z.number().min(0).default(0),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 // Type exports

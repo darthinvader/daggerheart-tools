@@ -5,6 +5,7 @@ import {
   CharacterTierSchema,
   CharacterTraitEnum,
   DomainNameEnum,
+  EquipmentFeatureTypeSchema,
   WeaponTraitEnum,
 } from './enums';
 
@@ -15,25 +16,40 @@ import {
 export const BaseFeatureSchema = z.object({
   name: z.string(),
   description: z.string(),
-  type: z.enum(['passive', 'active', 'triggered']).optional(),
+  // Allow homebrew feature types beyond the standard three
+  type: z
+    .union([z.enum(['passive', 'active', 'triggered']), z.string()])
+    .optional(),
+  // Optional tag(s) for indexing or equipment feature categories
+  tags: z.array(EquipmentFeatureTypeSchema).optional(),
+  // Arbitrary metadata for homebrew module authors
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 // Feature availability based on character tier and specific unlock conditions
 export const FeatureAvailabilitySchema = z.object({
   tier: CharacterTierSchema,
   minLevel: z.number().int().min(1).max(10),
+  // Accept known strings or any custom condition label
   unlockCondition: z
-    .enum([
-      'Starting feature',
-      'Take an upgraded subclass card',
-      'Automatic at level',
-      'Choose from level-up options',
+    .union([
+      z.enum([
+        'Starting feature',
+        'Take an upgraded subclass card',
+        'Automatic at level',
+        'Choose from level-up options',
+      ]),
+      z.string(),
     ])
     .optional(),
 });
 
 export const SubclassFeatureSchema = BaseFeatureSchema.extend({
-  type: z.enum(['foundation', 'specialization', 'mastery']),
+  // Permit custom tiers/feature categories beyond the standard three
+  type: z.union([
+    z.enum(['foundation', 'specialization', 'mastery']),
+    z.string(),
+  ]),
   level: z.number().int().min(1).max(10).optional(),
   availability: FeatureAvailabilitySchema.optional(),
 });
@@ -53,6 +69,7 @@ export const BaseSubclassSchema = z.object({
       CharacterTraitEnum,
       z.literal('Spellcast'),
       z.never(), // For non-spellcasting classes
+      z.string(), // Allow custom/setting-specific spellcasting trait names
     ])
     .optional(),
   features: z.array(SubclassFeatureSchema),
@@ -66,7 +83,8 @@ export const BaseSubclassSchema = z.object({
 export const BaseClassSchema = z.object({
   name: z.string(),
   description: z.string(),
-  domains: z.array(DomainNameEnum).length(2),
+  // Permit homebrew to add additional domains if a setting allows
+  domains: z.array(DomainNameEnum).min(1).max(3),
   startingEvasion: z.number().int(),
   startingHitPoints: z.number().int(),
   classItems: z.array(z.string()),

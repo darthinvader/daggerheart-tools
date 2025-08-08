@@ -4,6 +4,7 @@ import {
   LEVEL_PROGRESSION,
   LEVEL_UP_OPTIONS,
 } from '../../data/core/level-progression';
+import { CharacterTierSchema } from './enums';
 
 // Level Progression Constants
 // ======================================================================================
@@ -33,7 +34,7 @@ export const LevelUpPointSystemSchema = z.object({
 // Character Progression Tracking
 export const CharacterProgressionSchema = z.object({
   currentLevel: z.number().int().min(1).max(10),
-  currentTier: z.enum(['1', '2', '3', '4']),
+  currentTier: CharacterTierSchema,
   availablePoints: z.number().int().min(0),
   spentOptions: z.record(z.string(), z.number().int().min(0)),
 });

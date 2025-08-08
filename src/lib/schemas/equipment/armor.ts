@@ -5,7 +5,10 @@ import { ArmorSchema, DamageThresholdsSchema } from './base-equipment';
 
 // Extended armor schemas for specific armor types
 export const StandardArmorSchema = ArmorSchema.extend({
-  armorType: z.enum(['Gambeson', 'Leather', 'Chainmail', 'Full Plate']),
+  armorType: z.union([
+    z.enum(['Gambeson', 'Leather', 'Chainmail', 'Full Plate']),
+    z.string(),
+  ]),
   isStandard: z.literal(true),
 });
 
@@ -20,6 +23,7 @@ export const SpecialArmorSchema = ArmorSchema.extend({
 export const ArmorSlotSchema = z.object({
   used: z.boolean().default(false),
   damageReduced: z.number().min(0).default(0),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const ArmorStatusSchema = z.object({
@@ -27,6 +31,7 @@ export const ArmorStatusSchema = z.object({
   slots: z.array(ArmorSlotSchema),
   needsRepair: z.boolean().default(false),
   damageThresholds: DamageThresholdsSchema,
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 // Complete armor collection schema

@@ -11,43 +11,48 @@ export const RangeEnum = z.enum([
   'Far',
   'Very Far',
 ]);
+export const RangeSchema = z.union([RangeEnum, z.string()]);
 
-export const DamageTypeEnum = z.enum([
-  'phy', // Physical
-  'mag', // Magic
-]);
+export const DamageTypeEnum = z.enum(['phy', 'mag']);
+export const DamageTypeSchema = z.union([DamageTypeEnum, z.string()]);
 
 export const BurdenEnum = z.enum(['One-Handed', 'Two-Handed']);
+export const BurdenSchema = z.union([BurdenEnum, z.string()]);
 
 export const WeaponTypeEnum = z.enum(['Primary', 'Secondary']);
+export const WeaponTypeSchema = z.union([WeaponTypeEnum, z.string()]);
 
 export const EquipmentTierEnum = z.enum(['1', '2', '3', '4']);
+export const EquipmentTierSchema = z.union([EquipmentTierEnum, z.string()]);
 
 export const RarityEnum = z.enum(['Common', 'Uncommon', 'Rare', 'Legendary']);
+export const RaritySchema = z.union([RarityEnum, z.string()]);
 
 // Base damage schema
 export const DamageSchema = z.object({
   diceType: z.number().min(4).max(20), // d4, d6, d8, d10, d12, d20
   count: z.number().min(1).default(1),
   modifier: z.number().default(0),
-  type: DamageTypeEnum,
+  type: DamageTypeSchema,
 });
 
 // Base equipment schema
 export const BaseEquipmentSchema = z.object({
   name: z.string(),
-  tier: EquipmentTierEnum,
+  tier: EquipmentTierSchema,
   description: z.string().optional(),
   features: z.array(BaseFeatureSchema).default([]),
+  tags: z.array(z.string()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 // Weapon-specific schemas
 export const WeaponSchema = BaseEquipmentSchema.extend({
-  type: WeaponTypeEnum,
-  trait: WeaponTraitEnum,
-  range: RangeEnum,
+  type: WeaponTypeSchema,
+  trait: z.union([WeaponTraitEnum, z.string()]),
+  range: RangeSchema,
   damage: DamageSchema,
-  burden: BurdenEnum,
+  burden: BurdenSchema,
   domainAffinity: z.string().optional(), // For primary weapons tied to domains
 });
 
@@ -67,10 +72,12 @@ export const ArmorSchema = BaseEquipmentSchema.extend({
 
 // General item schema
 export const ItemSchema = BaseEquipmentSchema.extend({
-  rarity: RarityEnum,
+  rarity: RaritySchema,
   isConsumable: z.boolean().default(false),
   maxQuantity: z.number().min(1).default(1), // For consumables
-  weight: z.enum(['light', 'medium', 'heavy']).optional(),
+  weight: z
+    .union([z.enum(['light', 'medium', 'heavy']), z.string()])
+    .optional(),
   cost: z.number().min(0).optional(),
 });
 
