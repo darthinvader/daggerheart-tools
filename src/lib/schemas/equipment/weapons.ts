@@ -6,7 +6,7 @@ import { WeaponSchema } from './base-equipment';
 // Extended weapon schemas for specific weapon categories
 export const PrimaryWeaponSchema = WeaponSchema.extend({
   type: z.literal('Primary'),
-  domainAffinity: z.string(), // Required for primary weapons
+  domainAffinity: z.string().optional(), // Optional for primary weapons (SRD doesn't bind by domain)
 });
 
 export const SecondaryWeaponSchema = WeaponSchema.extend({

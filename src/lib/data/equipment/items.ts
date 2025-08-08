@@ -1,4 +1,5 @@
 import type {
+  ArmorModification,
   Consumable,
   Potion,
   Recipe,
@@ -680,28 +681,6 @@ export const UTILITY_ITEMS: UtilityItem[] = [
 // WEAPON MODIFICATIONS (Gems, Stones, etc.)
 export const WEAPON_MODIFICATIONS: WeaponModification[] = [
   {
-    name: 'Valorstone',
-    tier: '2',
-    category: 'Weapon Modification',
-    rarity: 'Uncommon',
-    modificationType: 'stone',
-    isConsumable: false,
-    maxQuantity: 3,
-    compatibleWeapons: ["Any weapon that doesn't already have a feature"],
-    featureAdded: {
-      name: 'Resilient',
-      description:
-        'Before you mark your last Armor Slot, roll a d6. On a result of 6, reduce the severity by one threshold without marking an Armor Slot.',
-    },
-    features: [
-      {
-        name: 'Armor Enhancement',
-        description:
-          "You can attach this stone to armor that doesn't already have a feature. The armor gains the Resilient feature.",
-      },
-    ],
-  },
-  {
     name: 'Bloodstone',
     tier: '2',
     category: 'Weapon Modification',
@@ -874,6 +853,32 @@ export const WEAPON_MODIFICATIONS: WeaponModification[] = [
         name: 'Trait Change',
         description:
           'You can attach this gem to a weapon, allowing you to use your Knowledge when making an attack with that weapon.',
+      },
+    ],
+  },
+];
+
+// ARMOR MODIFICATIONS (stones/enchantments applied to armor)
+export const ARMOR_MODIFICATIONS: ArmorModification[] = [
+  {
+    name: 'Valorstone',
+    tier: '2',
+    category: 'Armor Modification',
+    rarity: 'Uncommon',
+    modificationType: 'stone',
+    isConsumable: false,
+    maxQuantity: 3,
+    compatibleArmor: ["Any armor that doesn't already have a feature"],
+    featureAdded: {
+      name: 'Resilient',
+      description:
+        'Before you mark your last Armor Slot, roll a d6. On a result of 6, reduce the severity by one threshold without marking an Armor Slot.',
+    },
+    features: [
+      {
+        name: 'Armor Enhancement',
+        description:
+          "You can attach this stone to armor that doesn't already have a feature. The armor gains the Resilient feature.",
       },
     ],
   },
@@ -2252,4 +2257,5 @@ export const ALL_CONSUMABLES = CONSUMABLES;
 export const ALL_POTIONS = POTIONS;
 export const ALL_RELICS = RELICS;
 export const ALL_WEAPON_MODIFICATIONS = WEAPON_MODIFICATIONS;
+export const ALL_ARMOR_MODIFICATIONS = ARMOR_MODIFICATIONS;
 export const ALL_RECIPES = RECIPES;

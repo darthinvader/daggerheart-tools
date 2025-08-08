@@ -8,7 +8,7 @@ export * from './secondary-weapons';
 // Combined collections
 export {
   ALL_PRIMARY_WEAPONS,
-  PRIMARY_WEAPONS_BY_DOMAIN,
+  PRIMARY_WEAPONS_BY_TIER,
 } from './primary-weapons';
 
 export {
@@ -32,12 +32,14 @@ export {
 } from './armor';
 
 export {
+  ALL_ARMOR_MODIFICATIONS,
   ALL_CONSUMABLES,
   ALL_POTIONS,
   ALL_RECIPES,
   ALL_RELICS,
   ALL_UTILITY_ITEMS,
   ALL_WEAPON_MODIFICATIONS,
+  ARMOR_MODIFICATIONS,
   CONSUMABLES,
   POTIONS,
   RECIPES,

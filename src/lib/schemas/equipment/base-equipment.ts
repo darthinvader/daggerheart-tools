@@ -52,8 +52,8 @@ export const WeaponSchema = BaseEquipmentSchema.extend({
 });
 
 // Armor damage thresholds schema
+// SRD armor lists two base thresholds (Major / Severe). Minor is derived from play rules, not stored here.
 export const DamageThresholdsSchema = z.object({
-  minor: z.number().min(1),
   major: z.number().min(1),
   severe: z.number().min(1),
 });
@@ -63,7 +63,6 @@ export const ArmorSchema = BaseEquipmentSchema.extend({
   baseScore: z.number().min(0),
   evasionModifier: z.number().default(0),
   agilityModifier: z.number().default(0),
-  slots: z.number().min(1).default(3), // Number of armor slots
 });
 
 // General item schema
