@@ -1,4 +1,4 @@
-import type { CombatWheelchair } from '../weapons';
+import type { CombatWheelchair } from '../../schemas/equipment/weapons';
 
 // Light Frame Combat Wheelchairs
 export const LIGHT_FRAME_WHEELCHAIRS: CombatWheelchair[] = [

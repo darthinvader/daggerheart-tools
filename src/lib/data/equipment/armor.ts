@@ -1,4 +1,7 @@
-import type { SpecialArmor, StandardArmor } from '../armor';
+import type {
+  SpecialArmor,
+  StandardArmor,
+} from '../../schemas/equipment/armor';
 
 // Tier 1 Standard Armor
 export const TIER_1_STANDARD_ARMOR: StandardArmor[] = [

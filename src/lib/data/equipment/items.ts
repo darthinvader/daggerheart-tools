@@ -5,7 +5,7 @@ import type {
   Relic,
   UtilityItem,
   WeaponModification,
-} from '../items';
+} from '../../schemas/equipment/items';
 
 // UTILITY ITEMS (Rolls 1-60) - Complete implementation from SRD
 export const UTILITY_ITEMS: UtilityItem[] = [

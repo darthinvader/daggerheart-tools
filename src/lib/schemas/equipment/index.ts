@@ -31,6 +31,3 @@ export {
   RelicSchema,
   UtilityItemSchema,
 } from './items';
-
-// Equipment data constants
-export * from './data';
