@@ -1,4 +1,4 @@
-import type { DomainCard } from './domain-card.schema';
+import type { DomainCard } from '../../schemas/domains/domain-card.schema';
 
 // Complete Blade domain cards with full details from the SRD
 export const BLADE_DOMAIN_CARDS: DomainCard[] = [

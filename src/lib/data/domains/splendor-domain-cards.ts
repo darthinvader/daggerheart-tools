@@ -1,4 +1,4 @@
-import type { DomainCard } from './domain-card.schema';
+import type { DomainCard } from '../../schemas/domains/domain-card.schema';
 
 // Complete Splendor domain cards with full details from the SRD
 export const SPLENDOR_DOMAIN_CARDS: DomainCard[] = [
