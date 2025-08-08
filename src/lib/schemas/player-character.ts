@@ -19,7 +19,6 @@ import {
 
 // Create enums that align with the subclass schemas from the classes system
 // NOTE: These enum values must match the discriminated union schemas in each class file
-// TODO: Consider creating utility to automatically extract these values from class schemas
 const BardSubclassEnum = z.enum(['Troubadour', 'Wordsmith']);
 const DruidSubclassEnum = z.enum([
   'Warden of the Elements',
