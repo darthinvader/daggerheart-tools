@@ -1,6 +1,7 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react-swc';
 import path from 'path';
+import { visualizer } from 'rollup-plugin-visualizer';
 import { defineConfig } from 'vite';
 
 import { tanstackRouter } from '@tanstack/router-plugin/vite';
@@ -14,6 +15,16 @@ export default defineConfig({
     }),
     react(),
     tailwindcss(),
+    ...(process.env.ANALYZE
+      ? [
+          visualizer({
+            template: 'treemap',
+            filename: 'stats.html',
+            gzipSize: true,
+            brotliSize: true,
+          }),
+        ]
+      : []),
   ],
   resolve: {
     alias: {
