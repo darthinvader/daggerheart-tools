@@ -58,10 +58,16 @@ export const WeaponSchema = BaseEquipmentSchema.extend({
 
 // Armor damage thresholds schema
 // SRD armor lists two base thresholds (Major / Severe). Minor is derived from play rules, not stored here.
-export const DamageThresholdsSchema = z.object({
-  major: z.number().min(1),
-  severe: z.number().min(1),
-});
+export const DamageThresholdsSchema = z
+  .object({
+    major: z.number().min(1),
+    severe: z.number().min(1),
+  })
+  .refine(v => v.severe >= v.major, {
+    message:
+      'Severe threshold must be greater than or equal to Major threshold',
+    path: ['severe'],
+  });
 
 export const ArmorSchema = BaseEquipmentSchema.extend({
   baseThresholds: DamageThresholdsSchema,
@@ -105,3 +111,15 @@ export type DamageThresholds = z.infer<typeof DamageThresholdsSchema>;
 export type Armor = z.infer<typeof ArmorSchema>;
 export type Item = z.infer<typeof ItemSchema>;
 export type EquipmentLoadout = z.infer<typeof EquipmentLoadoutSchema>;
+
+// Helpers
+export function getEffectiveDamageThresholds(
+  level: number,
+  base: DamageThresholds
+): DamageThresholds {
+  const lvl = Math.max(0, Math.floor(level));
+  return {
+    major: base.major + lvl,
+    severe: base.severe + lvl,
+  };
+}

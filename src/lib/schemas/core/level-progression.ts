@@ -44,3 +44,11 @@ export type LevelUpOption = z.infer<typeof LevelUpOptionSchema>;
 export type TierLevelUpOptions = z.infer<typeof TierLevelUpOptionsSchema>;
 export type LevelUpPointSystem = z.infer<typeof LevelUpPointSystemSchema>;
 export type CharacterProgression = z.infer<typeof CharacterProgressionSchema>;
+
+// Utility: derive tier from level (string enum alignment)
+export function getTierForLevel(level: number) {
+  if (level <= 1) return '1' as const;
+  if (level <= 4) return '2-4' as const;
+  if (level <= 7) return '5-7' as const;
+  return '8-10' as const;
+}

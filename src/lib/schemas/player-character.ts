@@ -73,6 +73,15 @@ const CharacterTraitsSchema = z.record(
   CharacterTraitSchema
 );
 
+// Experiences: named narrative edges tied to a trait and optional notes
+const ExperienceSchema = z.object({
+  name: z.string(),
+  trait: CharacterTraitEnum,
+  bonus: z.number().int().min(1).max(2).default(2), // SRD often uses +2 starting experiences
+  notes: z.string().optional(),
+});
+const ExperienceCollectionSchema = z.array(ExperienceSchema);
+
 // Identity & Background
 // ======================================================================================
 
@@ -128,9 +137,9 @@ export const PlayerCharacterSchema = z.object({
   hp: HitPointsSchema,
   stress: StressSchema,
   armorScore: ArmorScoreSchema,
-  evasion: z.number().int(),
-  hope: z.number().int().min(0),
-  proficiency: z.number().int().min(1),
+  evasion: z.number().int().min(0).default(10), // SRD: Start at 10
+  hope: z.number().int().min(0).default(0),
+  proficiency: z.number().int().min(1).default(1),
 
   // Class & Domains
   classDetails: ClassDetailsSchema,
@@ -149,7 +158,10 @@ export const PlayerCharacterSchema = z.object({
   gold: GoldSchema,
 
   // Experience & Connections
+  // XP total for leveling
   experience: z.number().int().min(0).default(0),
+  // Narrative experiences usable with Hope
+  experiences: ExperienceCollectionSchema.default([]),
   connections: z.array(z.string()).optional(),
 
   // Ranger Companion
@@ -157,3 +169,4 @@ export const PlayerCharacterSchema = z.object({
 });
 
 export type PlayerCharacter = z.infer<typeof PlayerCharacterSchema>;
+export type Experience = z.infer<typeof ExperienceSchema>;

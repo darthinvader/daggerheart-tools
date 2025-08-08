@@ -12,20 +12,6 @@ import {
 // Base Feature Schemas
 // ======================================================================================
 
-// Unified base feature schema used across all systems
-export const BaseFeatureSchema = z.object({
-  name: z.string(),
-  description: z.string(),
-  // Allow homebrew feature types beyond the standard three
-  type: z
-    .union([z.enum(['passive', 'active', 'triggered']), z.string()])
-    .optional(),
-  // Optional tag(s) for indexing or equipment feature categories
-  tags: z.array(EquipmentFeatureTypeSchema).optional(),
-  // Arbitrary metadata for homebrew module authors
-  metadata: z.record(z.string(), z.unknown()).optional(),
-});
-
 // Feature availability based on character tier and specific unlock conditions
 export const FeatureAvailabilitySchema = z.object({
   tier: CharacterTierSchema,
@@ -44,6 +30,23 @@ export const FeatureAvailabilitySchema = z.object({
     .optional(),
 });
 
+// Unified base feature schema used across all systems
+export const BaseFeatureSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  // Allow homebrew feature types beyond the standard three
+  type: z
+    .union([z.enum(['passive', 'active', 'triggered']), z.string()])
+    .optional(),
+  // Optional tag(s) for indexing or equipment feature categories
+  tags: z.array(EquipmentFeatureTypeSchema).optional(),
+  // Optional availability for level/tier-gated effects
+  availability: FeatureAvailabilitySchema.optional(),
+  // Arbitrary metadata for homebrew module authors
+  metadata: z.record(z.string(), z.unknown()).optional(),
+});
+
+// Feature availability based on character tier and specific unlock conditions
 export const SubclassFeatureSchema = BaseFeatureSchema.extend({
   // Permit custom tiers/feature categories beyond the standard three
   type: z.union([
