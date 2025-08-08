@@ -21,6 +21,8 @@
   - Warrior (Call of the Brave, Call of the Slayer)
   - Wizard (School of Knowledge, School of War)
 
+  Schema simplification: unified subclass validation via BaseSubclassSchema across all classes; Ranger companion supported at base level.
+
 - **Level Progression System**: Point-based advancement
   - 2 points per level with configurable costs
   - Tier-based features (Foundation → Specialization → Mastery)
@@ -111,6 +113,7 @@
 
 - **Type Safety**: Excellent (full TypeScript coverage)
 - **Code Quality**: Good (linting and formatting enforced)
+  - Recent cleanup: removed explicit class data type annotations; data files now export `as const` objects. Build verified.
 - **Performance**: Unknown (no UI load testing yet)
 - **Accessibility**: Not started
 - **Mobile Support**: Not started

@@ -1,6 +1,4 @@
-import type { WarriorClass } from '../../schemas/classes/warrior';
-
-export const WARRIOR: WarriorClass = {
+export const WARRIOR = {
   name: 'Warrior',
   description:
     'Becoming a warrior requires years, often a lifetime, of training and dedication to the mastery of weapons and violence.',
@@ -137,4 +135,4 @@ export const WARRIOR: WarriorClass = {
       ],
     },
   ],
-};
+} as const;

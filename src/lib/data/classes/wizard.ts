@@ -1,6 +1,4 @@
-import type { WizardClass } from '../../schemas/classes/wizard';
-
-export const WIZARD: WizardClass = {
+export const WIZARD = {
   name: 'Wizard',
   description:
     'Whether through an institution or individual study, those known as wizards acquire and hone immense magical power over years of learning.',
@@ -202,4 +200,4 @@ export const WIZARD: WizardClass = {
       ],
     },
   ],
-};
+} as const;

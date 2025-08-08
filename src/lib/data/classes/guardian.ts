@@ -1,6 +1,4 @@
-import type { GuardianClass } from '../../schemas/classes/guardian';
-
-export const GUARDIAN: GuardianClass = {
+export const GUARDIAN = {
   name: 'Guardian',
   description:
     'The title of guardian represents an array of martial professions, speaking more to their moral compass and unshakeable fortitude than the means by which they fight.',
@@ -163,4 +161,4 @@ export const GUARDIAN: GuardianClass = {
       ],
     },
   ],
-};
+} as const;

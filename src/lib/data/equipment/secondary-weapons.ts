@@ -1,5 +1,5 @@
-import { getProtectiveFeature } from '../../schemas/equipment/common-features';
 import type { SecondaryWeapon } from '../../schemas/equipment/weapons';
+import { getProtectiveFeature } from '../equipment/common-features';
 
 // Tier 1 Secondary Weapons
 export const TIER_1_SECONDARY_WEAPONS: SecondaryWeapon[] = [

@@ -1,6 +1,4 @@
-import type { SorcererClass } from '../../schemas/classes/sorcerer';
-
-export const SORCERER: SorcererClass = {
+export const SORCERER = {
   name: 'Sorcerer',
   description:
     'Not all innate magic users choose to hone their craft, but those who do can become powerful sorcerers.',
@@ -134,4 +132,4 @@ export const SORCERER: SorcererClass = {
       ],
     },
   ],
-};
+} as const;

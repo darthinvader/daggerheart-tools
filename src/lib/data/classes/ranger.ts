@@ -1,6 +1,4 @@
-import type { RangerClass } from '../../schemas/classes/ranger';
-
-export const RANGER: RangerClass = {
+export const RANGER = {
   name: 'Ranger',
   description:
     'Rangers are highly skilled hunters who, despite their martial abilities, rarely lend their skills to an army.',
@@ -174,4 +172,4 @@ export const RANGER: RangerClass = {
       ],
     },
   ],
-};
+} as const;

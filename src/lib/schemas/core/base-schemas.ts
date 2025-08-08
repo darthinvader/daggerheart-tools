@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { RangerCompanionSchema } from './companion-system';
 import {
   CharacterTierSchema,
   CharacterTraitEnum,
@@ -55,6 +56,8 @@ export const BaseSubclassSchema = z.object({
     ])
     .optional(),
   features: z.array(SubclassFeatureSchema),
+  // Optional companion support (e.g., Ranger Beastbound)
+  companion: RangerCompanionSchema.optional(),
 });
 
 // Base Class Schema

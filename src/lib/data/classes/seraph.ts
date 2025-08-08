@@ -1,6 +1,4 @@
-import type { SeraphClass } from '../../schemas/classes/seraph';
-
-export const SERAPH: SeraphClass = {
+export const SERAPH = {
   name: 'Seraph',
   description:
     'Seraphs are divine fighters and healers imbued with sacred purpose.',
@@ -146,4 +144,4 @@ export const SERAPH: SeraphClass = {
       ],
     },
   ],
-};
+} as const;

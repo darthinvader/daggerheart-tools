@@ -6,6 +6,10 @@
 
 Currently working on the core data models and validation schemas that form the foundation of the application. The focus is on implementing comprehensive type-safe schemas for all game systems.
 
+Recent cleanup: consolidated subclass schemas to a single BaseSubclassSchema across all classes; removed per-subclass discriminated unions and enabled optional companion on BaseSubclass (for Ranger Beastbound).
+
+Data alignment: removed explicit class data types from `src/lib/data/classes/*` and dropped `export * from './classes'` from `schemas/index.ts` after class schema module deletion. Project builds cleanly.
+
 ### Recently Completed
 
 - **Domain Card System**: Complete implementation of all 9 core domains
@@ -40,6 +44,7 @@ Currently working on the core data models and validation schemas that form the f
    - Validate cross-references between classes and domains
    - Test multiclassing rule enforcement
    - Verify level-up point calculations
+   - Re-verify class data files against simplified class schemas
 
 3. **UI Component Planning**
    - Design character creation flow components

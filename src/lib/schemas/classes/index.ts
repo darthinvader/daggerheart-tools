@@ -11,16 +11,16 @@ import { SorcererClassSchema } from './sorcerer';
 import { WarriorClassSchema } from './warrior';
 import { WizardClassSchema } from './wizard';
 
-// Import all individual class modules
-export * from './bard';
-export * from './druid';
-export * from './guardian';
-export * from './ranger';
-export * from './rogue';
-export * from './seraph';
-export * from './sorcerer';
-export * from './warrior';
-export * from './wizard';
+// Re-export class schemas
+export { BardClassSchema } from './bard';
+export { DruidClassSchema } from './druid';
+export { GuardianClassSchema } from './guardian';
+export { RangerClassSchema } from './ranger';
+export { RogueClassSchema } from './rogue';
+export { SeraphClassSchema } from './seraph';
+export { SorcererClassSchema } from './sorcerer';
+export { WarriorClassSchema } from './warrior';
+export { WizardClassSchema } from './wizard';
 
 // Main Class Schema - Discriminated Union
 // ======================================================================================

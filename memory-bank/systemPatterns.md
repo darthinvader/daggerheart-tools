@@ -30,9 +30,10 @@ The codebase is organized around game domain concepts:
 - **Schema Validation**: All cards conform to `DomainCardSchema`
 - **Extensibility**: Additional domains (Chaos, Moon, Sun, Blood, Fate) ready for future content
 
-#### Class System (`src/lib/schemas/classes.ts`)
+#### Class System (schemas simplified)
 
 - **Base Classes**: 9 core classes with 2 subclasses each
+- **Subclass Shape**: Unified `BaseSubclassSchema` used across classes (companion optional for Ranger)
 - **Progressive Features**: Tier-based ability unlocking (Foundation → Specialization → Mastery)
 - **Level-Up System**: Point-based advancement with configurable options
 - **Multiclassing**: Complex rules for advanced character builds
@@ -58,7 +59,7 @@ const BaseClassSchema = z.object({
 // Specific class with discriminated union for subclasses
 const BardClassSchema = BaseClassSchema.extend({
   name: z.literal('Bard'),
-  subclasses: z.array(BardSubclassSchema),
+  subclasses: z.array(BaseSubclassSchema),
 });
 ```
 

@@ -1,74 +1,57 @@
-import type { BaseFeature } from '../core/base-schemas';
-
-// Common Equipment Features
-// ======================================================================================
-// These are frequently reused equipment features that appear across multiple items.
-// By centralizing them, we eliminate duplication and ensure consistency.
+import type { BaseFeature } from '../../schemas/core/base-schemas';
 
 export const COMMON_EQUIPMENT_FEATURES: Record<string, BaseFeature> = {
-  // Weapon Features
   RELIABLE: {
     name: 'Reliable',
     description: '+1 to attack rolls',
     type: 'passive',
   },
-
   BRUTAL: {
     name: 'Brutal',
     description:
       'When you roll the maximum value on a damage die, roll an additional damage die',
     type: 'passive',
   },
-
   HEAVY: {
     name: 'Heavy',
     description: '−1 to Evasion',
     type: 'passive',
   },
-
-  // Shield Features
   PROTECTIVE_1: {
     name: 'Protective',
     description: '+1 to Armor Score',
     type: 'passive',
   },
-
   PROTECTIVE_2: {
     name: 'Protective',
     description: '+2 to Armor Score',
     type: 'passive',
   },
-
   PROTECTIVE_3: {
     name: 'Protective',
     description: '+3 to Armor Score',
     type: 'passive',
   },
-
   PROTECTIVE_4: {
     name: 'Protective',
     description: '+4 to Armor Score',
     type: 'passive',
   },
-
   BARRIER_1: {
     name: 'Barrier',
     description: '+1 to Armor Score; −1 to Evasion',
     type: 'passive',
   },
-
   BARRIER_3: {
     name: 'Barrier',
     description: '+3 to Armor Score; −1 to Evasion',
     type: 'passive',
   },
-
   BARRIER_4: {
     name: 'Barrier',
     description: '+4 to Armor Score; −1 to Evasion',
     type: 'passive',
   },
-
   BARRIER_5: {
     name: 'Barrier',
     description: '+5 to Armor Score; −1 to Evasion',
@@ -76,7 +59,6 @@ export const COMMON_EQUIPMENT_FEATURES: Record<string, BaseFeature> = {
   },
 };
 
-// Helper functions to get common features
 export const getReliableFeature = () => COMMON_EQUIPMENT_FEATURES.RELIABLE;
 export const getBrutalFeature = () => COMMON_EQUIPMENT_FEATURES.BRUTAL;
 export const getHeavyFeature = () => COMMON_EQUIPMENT_FEATURES.HEAVY;

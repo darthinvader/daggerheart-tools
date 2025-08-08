@@ -1,6 +1,4 @@
-import type { RogueClass } from '../../schemas/classes/rogue';
-
-export const ROGUE: RogueClass = {
+export const ROGUE = {
   name: 'Rogue',
   description:
     'Rogues are scoundrels, often in both attitude and practice. Broadly known as liars and thieves, the best among this class move through the world anonymously.',
@@ -152,4 +150,4 @@ export const ROGUE: RogueClass = {
       ],
     },
   ],
-};
+} as const;

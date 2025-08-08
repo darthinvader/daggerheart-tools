@@ -1,8 +1,8 @@
+import type { PrimaryWeapon } from '../../schemas/equipment/weapons';
 import {
   getBrutalFeature,
   getReliableFeature,
-} from '../../schemas/equipment/common-features';
-import type { PrimaryWeapon } from '../../schemas/equipment/weapons';
+} from '../equipment/common-features';
 
 // Arcana Domain Primary Weapons
 export const ARCANA_PRIMARY_WEAPONS: PrimaryWeapon[] = [

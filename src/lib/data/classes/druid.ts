@@ -1,6 +1,4 @@
-import type { DruidClass } from '../../schemas/classes/druid';
-
-export const DRUID: DruidClass = {
+export const DRUID = {
   name: 'Druid',
   description:
     "Becoming a druid is more than an occupation; it's a calling for those who wish to learn from and protect the magic of the wilderness.",
@@ -154,4 +152,4 @@ export const DRUID: DruidClass = {
       ],
     },
   ],
-};
+} as const;

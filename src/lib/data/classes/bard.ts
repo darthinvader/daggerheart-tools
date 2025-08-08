@@ -1,6 +1,4 @@
-import type { BardClass } from '../../schemas/classes/bard';
-
-export const BARD: BardClass = {
+export const BARD = {
   name: 'Bard',
   description:
     'Bards are the most charismatic people in all the realms. Members of this class are masters of captivation and specialize in a variety of performance types, including singing, playing musical instruments, weaving tales, or telling jokes.',
@@ -134,4 +132,4 @@ export const BARD: BardClass = {
       ],
     },
   ],
-};
+} as const;
