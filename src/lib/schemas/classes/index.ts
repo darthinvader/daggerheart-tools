@@ -1,15 +1,15 @@
 import { z } from 'zod';
 
-// Import schemas for discriminated union
-import { BARD, BardClassSchema } from './bard';
-import { DRUID, DruidClassSchema } from './druid';
-import { GUARDIAN, GuardianClassSchema } from './guardian';
-import { RANGER, RangerClassSchema } from './ranger';
-import { ROGUE, RogueClassSchema } from './rogue';
-import { SERAPH, SeraphClassSchema } from './seraph';
-import { SORCERER, SorcererClassSchema } from './sorcerer';
-import { WARRIOR, WarriorClassSchema } from './warrior';
-import { WIZARD, WizardClassSchema } from './wizard';
+// Import schemas for discriminated union (no data imports here)
+import { BardClassSchema } from './bard';
+import { DruidClassSchema } from './druid';
+import { GuardianClassSchema } from './guardian';
+import { RangerClassSchema } from './ranger';
+import { RogueClassSchema } from './rogue';
+import { SeraphClassSchema } from './seraph';
+import { SorcererClassSchema } from './sorcerer';
+import { WarriorClassSchema } from './warrior';
+import { WizardClassSchema } from './wizard';
 
 // Import all individual class modules
 export * from './bard';
@@ -36,34 +36,5 @@ export const ClassSchema = z.discriminatedUnion('name', [
   WarriorClassSchema,
   WizardClassSchema,
 ]);
-
-// Export all class constants
-// ======================================================================================
-
-export const ALL_CLASSES = [
-  BARD,
-  DRUID,
-  GUARDIAN,
-  RANGER,
-  ROGUE,
-  SERAPH,
-  SORCERER,
-  WARRIOR,
-  WIZARD,
-] as const;
-
-// Individual class exports for convenience
-export {
-  BARD,
-  DRUID,
-  GUARDIAN,
-  RANGER,
-  ROGUE,
-  SERAPH,
-  SORCERER,
-  WARRIOR,
-  WIZARD,
-};
-
 // Type export for main class schema
 export type DaggerheartClass = z.infer<typeof ClassSchema>;
