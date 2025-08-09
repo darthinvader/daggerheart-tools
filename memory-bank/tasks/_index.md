@@ -9,6 +9,7 @@
 
 - [TASK003] Character sheet interface - Build responsive character sheet display
 - [TASK004] Data persistence layer - Implement save/load functionality
+- [TASK005] Mobile character display and editor - Research field mapping; mobile-first display + editing plan
 
 ## Completed
 
