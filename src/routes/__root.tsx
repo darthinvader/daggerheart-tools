@@ -1,6 +1,7 @@
 import { Link, Outlet, createRootRoute } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 
+import { MobileNavBar } from '@/components/mobile-nav';
 import { ModeToggle } from '@/components/mode-toggle';
 
 function RootComponent() {
@@ -19,7 +20,10 @@ function RootComponent() {
         <ModeToggle />
       </div>
       <hr />
-      <Outlet />
+      <main className="pb-20 sm:pb-0">
+        <Outlet />
+      </main>
+      <MobileNavBar />
       <TanStackRouterDevtools />
     </>
   );
