@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export type CoreScores = {
   evasion: number;
-  hope: number;
+  hope: { current: number; max: number };
   proficiency: number;
 };
 
@@ -11,6 +11,7 @@ export type CoreScoresCardProps = {
   scores: CoreScores;
   updateEvasion: (delta: number) => void;
   updateHope: (delta: number) => void;
+  updateHopeMax: (delta: number) => void;
   updateProficiency: (delta: number) => void;
 };
 
@@ -18,6 +19,7 @@ export function CoreScoresCard({
   scores,
   updateEvasion,
   updateHope,
+  updateHopeMax,
   updateProficiency,
 }: CoreScoresCardProps) {
   return (
@@ -57,6 +59,9 @@ export function CoreScoresCard({
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="text-sm">
             <div className="font-medium">Hope</div>
+            <div className="text-muted-foreground text-xs">
+              Max {scores.hope.max}
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -68,7 +73,7 @@ export function CoreScoresCard({
               -
             </Button>
             <div className="min-w-12 text-center tabular-nums">
-              {scores.hope}
+              {scores.hope.current}
             </div>
             <Button
               aria-label="Increase Hope"
@@ -78,6 +83,25 @@ export function CoreScoresCard({
             >
               +
             </Button>
+            <div className="text-muted-foreground ml-2 flex items-center gap-1 text-xs">
+              <Button
+                aria-label="Decrease Hope max"
+                size="icon"
+                variant="ghost"
+                onClick={() => updateHopeMax(-1)}
+              >
+                -
+              </Button>
+              <span>max</span>
+              <Button
+                aria-label="Increase Hope max"
+                size="icon"
+                variant="ghost"
+                onClick={() => updateHopeMax(1)}
+              >
+                +
+              </Button>
+            </div>
           </div>
         </div>
         {/* Proficiency */}

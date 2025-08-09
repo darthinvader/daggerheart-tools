@@ -10,6 +10,7 @@ import { Link, createFileRoute } from '@tanstack/react-router';
 import { ClassCard } from '@/components/characters/class-card';
 import { ConditionsCard } from '@/components/characters/conditions-card';
 import { CoreScoresCard } from '@/components/characters/core-scores-card';
+import { DomainsCard } from '@/components/characters/domains-card';
 import { IdentityCard } from '@/components/characters/identity-card';
 // Lazy-load the Identity drawer to trim initial bundle
 import { ResourcesCard } from '@/components/characters/resources-card';
@@ -21,6 +22,22 @@ import type { ComboboxItem } from '@/components/ui/combobox';
 import { ANCESTRIES } from '@/lib/data/characters/ancestries';
 import { COMMUNITIES } from '@/lib/data/characters/communities';
 import { ALL_CLASSES } from '@/lib/data/classes';
+import {
+  ARCANA_DOMAIN_CARDS,
+  BLADE_DOMAIN_CARDS,
+  BLOOD_DOMAIN_CARDS,
+  BONE_DOMAIN_CARDS,
+  CHAOS_DOMAIN_CARDS,
+  CODEX_DOMAIN_CARDS,
+  FATE_DOMAIN_CARDS,
+  GRACE_DOMAIN_CARDS,
+  MIDNIGHT_DOMAIN_CARDS,
+  MOON_DOMAIN_CARDS,
+  SAGE_DOMAIN_CARDS,
+  SPLENDOR_DOMAIN_CARDS,
+  SUN_DOMAIN_CARDS,
+  VALOR_DOMAIN_CARDS,
+} from '@/lib/data/domains';
 import {
   AncestryNameEnum,
   ClassNameEnum,
@@ -106,7 +123,7 @@ const ResourcesSchema = z.object({
   hp: ScoreSchema.default({ current: 10, max: 10 }),
   stress: ScoreSchema.default({ current: 0, max: 6 }),
   evasion: z.number().int().min(0).default(10),
-  hope: z.number().int().min(0).default(2),
+  hope: ScoreSchema.default({ current: 2, max: 6 }),
   proficiency: z.number().int().min(1).default(1),
 });
 type ResourcesDraft = z.infer<typeof ResourcesSchema>;
@@ -115,7 +132,7 @@ const DEFAULT_RESOURCES: ResourcesDraft = {
   hp: { current: 10, max: 10 },
   stress: { current: 0, max: 6 },
   evasion: 10,
-  hope: 2,
+  hope: { current: 2, max: 6 },
   proficiency: 1,
 };
 
@@ -128,6 +145,10 @@ function readResourcesFromStorage(id: string): ResourcesDraft {
     const raw = localStorage.getItem(key);
     if (!raw) return DEFAULT_RESOURCES;
     const parsed = JSON.parse(raw);
+    // Back-compat: earlier versions stored hope as a number
+    if (typeof parsed?.hope === 'number') {
+      parsed.hope = { current: parsed.hope, max: 6 };
+    }
     return ResourcesSchema.parse(parsed);
   } catch {
     return DEFAULT_RESOURCES;
@@ -144,7 +165,7 @@ function writeResourcesToStorage(id: string, value: ResourcesDraft) {
 
 // Traits (values + marked) with simple configurable budget
 const TraitStateSchema = z.object({
-  value: z.number().int().min(0).max(10).default(0),
+  value: z.number().int().default(0),
   marked: z.boolean().default(false),
 });
 type TraitState = z.infer<typeof TraitStateSchema>;
@@ -180,8 +201,6 @@ function writeTraitsToStorage(id: string, value: TraitsDraft) {
     // ignore
   }
 }
-
-const STARTING_TRAIT_POINTS = 6;
 
 // Per-character Class selection draft
 const ClassDraftSchema = z.object({
@@ -236,6 +255,15 @@ function CharacterSheet() {
       ),
     []
   );
+  const DomainsDrawerLazy = React.useMemo(
+    () =>
+      React.lazy(() =>
+        import('@/components/characters/domains-drawer').then(m => ({
+          default: m.DomainsDrawer,
+        }))
+      ),
+    []
+  );
 
   const [identity, setIdentity] =
     React.useState<IdentityDraft>(DEFAULT_IDENTITY);
@@ -246,6 +274,49 @@ function CharacterSheet() {
   const [conditions, setConditions] = React.useState<ConditionsDraft>([]);
   const [classDraft, setClassDraft] = React.useState<ClassDraft>(DEFAULT_CLASS);
   const [openClass, setOpenClass] = React.useState(false);
+  const [openDomains, setOpenDomains] = React.useState(false);
+
+  // Domains draft: vault + loadout
+  const DomainCardSchemaLite = z
+    .object({
+      name: z.string(),
+      level: z.number().int().min(1).max(10),
+      domain: z.string(),
+      type: z.string(),
+      description: z.string().optional(),
+      hopeCost: z.number().int().min(0).optional(),
+      recallCost: z.number().int().min(0).optional(),
+      tags: z.array(z.string()).optional(),
+      metadata: z.record(z.string(), z.unknown()).optional(),
+    })
+    .passthrough();
+  const DomainsDraftSchema = z.object({
+    loadout: z.array(DomainCardSchemaLite).default([]),
+    vault: z.array(DomainCardSchemaLite).default([]),
+    creationComplete: z.boolean().default(false),
+  });
+  type DomainsDraft = z.infer<typeof DomainsDraftSchema>;
+
+  const DEFAULT_DOMAINS: DomainsDraft = {
+    loadout: [],
+    vault: [],
+    creationComplete: false,
+  };
+
+  function getDomainsKey(id: string) {
+    return `dh:characters:${id}:domains:v1`;
+  }
+  function writeDomainsToStorage(id: string, value: DomainsDraft) {
+    try {
+      localStorage.setItem(getDomainsKey(id), JSON.stringify(value));
+    } catch {
+      // ignore
+    }
+  }
+  const [domainsDraft, setDomainsDraft] =
+    React.useState<DomainsDraft>(DEFAULT_DOMAINS);
+
+  // Hydrate from localStorage when id changes
 
   React.useEffect(() => {
     setIdentity(readIdentityFromStorage(id));
@@ -253,6 +324,38 @@ function CharacterSheet() {
     setTraits(readTraitsFromStorage(id));
     setConditions(readConditionsFromStorage(id));
     setClassDraft(readClassFromStorage(id));
+    try {
+      const raw = localStorage.getItem(`dh:characters:${id}:domains:v1`);
+      if (!raw) {
+        setDomainsDraft({ loadout: [], vault: [], creationComplete: false });
+      } else {
+        const parsed = JSON.parse(raw);
+        // Inline a lite schema to avoid effect deps churn
+        const Lite = z
+          .object({
+            name: z.string(),
+            level: z.number().int().min(1).max(10),
+            domain: z.string(),
+            type: z.string(),
+            description: z.string().optional(),
+            hopeCost: z.number().int().min(0).optional(),
+            recallCost: z.number().int().min(0).optional(),
+            tags: z.array(z.string()).optional(),
+            metadata: z.record(z.string(), z.unknown()).optional(),
+          })
+          .passthrough();
+        const safe = z
+          .object({
+            loadout: z.array(Lite).default([]),
+            vault: z.array(Lite).default([]),
+            creationComplete: z.boolean().default(false),
+          })
+          .parse(parsed);
+        setDomainsDraft(safe);
+      }
+    } catch {
+      setDomainsDraft({ loadout: [], vault: [], creationComplete: false });
+    }
   }, [id]);
 
   // Items for identity
@@ -296,6 +399,12 @@ function CharacterSheet() {
 
   // Watch current class selection to drive subclass list options
   const currentClassName = classForm.watch('className') ?? classDraft.className;
+  const accessibleDomains = React.useMemo(() => {
+    const found = ALL_CLASSES.find(c => c.name === currentClassName);
+    return (
+      (found && (found as unknown as { domains?: string[] }).domains) || []
+    );
+  }, [currentClassName]);
 
   React.useEffect(() => {
     if (openIdentity) form.reset(identity);
@@ -303,6 +412,15 @@ function CharacterSheet() {
   React.useEffect(() => {
     if (openClass) classForm.reset(classDraft);
   }, [openClass, classDraft, classForm]);
+  // Reset Domains form when opened
+  const domainsForm = useForm<DomainsDraft>({
+    resolver: zodResolver(DomainsDraftSchema) as never,
+    mode: 'onChange',
+    defaultValues: domainsDraft,
+  });
+  React.useEffect(() => {
+    if (openDomains) domainsForm.reset(domainsDraft);
+  }, [openDomains, domainsDraft, domainsForm]);
 
   // When class changes in form, ensure subclass list is valid; if current subclass not in new list, set first
   React.useEffect(() => {
@@ -336,6 +454,35 @@ function CharacterSheet() {
   };
   const submitClass = classForm.handleSubmit(v =>
     onSubmitClass(v as ClassDraft)
+  );
+  const onSubmitDomains = (values: DomainsDraft) => {
+    setDomainsDraft(values);
+    writeDomainsToStorage(id, values);
+    setOpenDomains(false);
+  };
+  const submitDomains = domainsForm.handleSubmit(v =>
+    onSubmitDomains(v as DomainsDraft)
+  );
+
+  // All domain cards (flattened)
+  const ALL_DOMAIN_CARDS = React.useMemo(
+    () => [
+      ...ARCANA_DOMAIN_CARDS,
+      ...BLADE_DOMAIN_CARDS,
+      ...BONE_DOMAIN_CARDS,
+      ...CODEX_DOMAIN_CARDS,
+      ...GRACE_DOMAIN_CARDS,
+      ...MIDNIGHT_DOMAIN_CARDS,
+      ...SAGE_DOMAIN_CARDS,
+      ...SPLENDOR_DOMAIN_CARDS,
+      ...VALOR_DOMAIN_CARDS,
+      ...CHAOS_DOMAIN_CARDS,
+      ...MOON_DOMAIN_CARDS,
+      ...SUN_DOMAIN_CARDS,
+      ...BLOOD_DOMAIN_CARDS,
+      ...FATE_DOMAIN_CARDS,
+    ],
+    []
   );
 
   // Helpers for resources updates
@@ -385,6 +532,31 @@ function CharacterSheet() {
       return next;
     });
   };
+  const updateHope = (delta: number) => {
+    setResources(prev => {
+      const next: ResourcesDraft = {
+        ...prev,
+        hope: {
+          current: clamp(prev.hope.current + delta, 0, prev.hope.max),
+          max: prev.hope.max,
+        },
+      } as ResourcesDraft;
+      writeResourcesToStorage(id, next);
+      return next;
+    });
+  };
+  const updateHopeMax = (delta: number) => {
+    setResources(prev => {
+      const max = Math.max(1, prev.hope.max + delta);
+      const current = clamp(prev.hope.current, 0, max);
+      const next: ResourcesDraft = {
+        ...prev,
+        hope: { current, max },
+      } as ResourcesDraft;
+      writeResourcesToStorage(id, next);
+      return next;
+    });
+  };
   const updateNumber = <K extends keyof ResourcesDraft>(
     key: K,
     delta: number,
@@ -402,21 +574,11 @@ function CharacterSheet() {
   };
 
   // Traits helpers
-  const traitPointsSpent = React.useMemo(
-    () => Object.values(traits).reduce((sum, t) => sum + t.value, 0),
-    [traits]
-  );
-  const traitPointsRemaining = STARTING_TRAIT_POINTS - traitPointsSpent;
-  const canIncrement = (key: string) => {
-    if (traitPointsRemaining <= 0) return false;
-    return traits[key].value < 10; // cap guard
-  };
+  const canIncrement = (_key: string) => true;
   const incTrait = (key: string, delta: 1 | -1) => {
     setTraits(prev => {
       const current = prev[key].value;
-      const nextValue = delta === 1 ? current + 1 : Math.max(0, current - 1);
-      // prevent exceeding budget on increment
-      if (delta === 1 && traitPointsRemaining <= 0) return prev;
+      const nextValue = delta === 1 ? current + 1 : current - 1;
       const next: TraitsDraft = {
         ...prev,
         [key]: { ...prev[key], value: nextValue },
@@ -517,7 +679,8 @@ function CharacterSheet() {
           proficiency: resources.proficiency,
         }}
         updateEvasion={delta => updateNumber('evasion', delta, 0)}
-        updateHope={delta => updateNumber('hope', delta, 0)}
+        updateHope={delta => updateHope(delta)}
+        updateHopeMax={delta => updateHopeMax(delta)}
         updateProficiency={delta => updateNumber('proficiency', delta, 1)}
       />
 
@@ -559,11 +722,48 @@ function CharacterSheet() {
           onCancel={() => setOpenClass(false)}
         />
       </React.Suspense>
+      {/* Domains */}
+      <DomainsCard
+        onEdit={() => setOpenDomains(true)}
+        summary={{
+          total: domainsDraft.loadout.length,
+          byDomain: accessibleDomains.map(d => ({
+            domain: d,
+            count: domainsDraft.loadout.filter(c => String(c.domain) === d)
+              .length,
+          })),
+          byType: [
+            {
+              type: 'Spell',
+              count: domainsDraft.loadout.filter(c => c.type === 'Spell')
+                .length,
+            },
+            {
+              type: 'Ability',
+              count: domainsDraft.loadout.filter(c => c.type === 'Ability')
+                .length,
+            },
+          ],
+          sample: domainsDraft.loadout.slice(0, 3).map(c => c.name),
+        }}
+      />
+      <React.Suspense fallback={null}>
+        <DomainsDrawerLazy
+          open={openDomains}
+          onOpenChange={setOpenDomains}
+          form={domainsForm as never}
+          allCards={ALL_DOMAIN_CARDS}
+          accessibleDomains={accessibleDomains as string[]}
+          submit={submitDomains}
+          onCancel={() => setOpenDomains(false)}
+          startingLimit={3}
+          softLimit={6}
+        />
+      </React.Suspense>
 
       {/* Traits */}
       <TraitsCard
         traits={traits as Record<string, { value: number; marked: boolean }>}
-        remaining={traitPointsRemaining}
         canIncrement={k => canIncrement(k)}
         incTrait={(k, d) => incTrait(k, d)}
         toggleMarked={k => toggleMarked(k)}

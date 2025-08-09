@@ -114,7 +114,7 @@ export const PlayerCharacterSchema = z.object({
   stress: StressSchema.default({ current: 0, max: 6 }),
   armorScore: ArmorScoreSchema,
   evasion: z.number().int().min(0).default(10), // SRD: Start at 10
-  hope: z.number().int().min(0).default(2),
+  hope: ScoreSchema.default({ current: 2, max: 6 }),
   proficiency: z.number().int().min(1).default(1),
   rallyDie: z.union([RallyDieEnum, z.string()]).default('d6').optional(),
 

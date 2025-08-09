@@ -7,7 +7,6 @@ export type Traits = Record<string, TraitState>;
 
 export type TraitsCardProps = {
   traits: Traits;
-  remaining: number;
   canIncrement: (key: string) => boolean;
   incTrait: (key: string, delta: 1 | -1) => void;
   toggleMarked: (key: string) => void;
@@ -15,7 +14,6 @@ export type TraitsCardProps = {
 
 export function TraitsCard({
   traits,
-  remaining,
   canIncrement,
   incTrait,
   toggleMarked,
@@ -23,12 +21,7 @@ export function TraitsCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>
-          Traits{' '}
-          <span className="text-muted-foreground text-sm font-normal">
-            (Remaining: {Math.max(0, remaining)})
-          </span>
-        </CardTitle>
+        <CardTitle>Traits</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         {Object.keys(traits).map(key => (

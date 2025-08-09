@@ -11,12 +11,12 @@ Updated: August 10, 2025
 
 Changes implemented (recent):
 
-- Per-id character sheet at `src/routes/characters/$id.tsx` composed from modular cards (SummaryStats, ResourcesCard, CoreScoresCard, ConditionsCard, IdentityCard, TraitsCard, ClassCard) with per-id localStorage persistence.
+- Per-id character sheet at `src/routes/characters/$id.tsx` composed from modular cards (SummaryStats, ResourcesCard, CoreScoresCard, ConditionsCard, IdentityCard, TraitsCard, ClassCard, DomainsCard) with per-id localStorage persistence.
 - Identity and Class/Subclass editors implemented as lazy-loaded Drawers (RHF + zod), with Save/Cancel and safe-area aware footers.
 - `/characters/new` generates a UUID and redirects to `/characters/$id`; characters index lists entries and links to New.
 - Mobile: Ensured drawers appear above the MobileNavBar by lowering navbar z-index to `z-40` and keeping drawers at `z-50`; confirmed footer safe-area padding prevents action buttons from being obscured.
 - Global bottom padding remains on `<main>` to avoid overlap with the navbar; drawers sized with 100dvh.
-- Typecheck and build pass consistently (chunk-size warnings accepted for now).
+- Typecheck/build/tests pass consistently (chunk-size warnings accepted for now).
 
 We're focused on the core data models and validation schemas, while incrementally wiring the mobile-first character sheet with modular components and drawer editors.
 
@@ -28,11 +28,22 @@ Recent cleanups:
 - Consolidated equipment and domain schemas into `src/lib/schemas/equipment.ts` and `src/lib/schemas/domains.ts`.
 - Domain card data lives under `src/lib/data/domains/*` (one file per domain), not under `src/lib/schemas`.
 
+Domain management and resources (latest changes):
+
+- Domains drawer: stopped auto-close on Add/Remove by ensuring non-submit buttons inside the form; added search and filters (by domain, level, and type: All/Spell/Ability); surfaced full card info in list rows and preview (name, domain, level, type badge, costs, tags, description in preview); added type badges (blue=Spell, amber=Ability).
+- Domains summary: extended `DomainsCard` to optionally render by-type counts; route computes counts and passes them in.
+- Hope resource: converted `hope` from number to `Score` shape `{ current, max }` across schema (`player-character.ts`), route state, UI (`CoreScoresCard`, `SummaryStats`), and storage migration (upgrade legacy numeric to Score on read). Added handlers to update current and max.
+- Traits: removed “Remaining” budget UI and related state.
+
 ### Recently Completed
 
 - Domain Card System: All 9 core domains present under `src/lib/data/domains/` with SRD-aligned data; future domains (Chaos, Moon, Sun, Blood, Fate) stubbed as empty arrays.
 - Class System Foundation: 9 classes with subclass variants and progression rules; multiclassing scaffolding in place; Ranger companion supported.
 - UI Library Setup: Added shadcn components (carousel, chart, drawer, form, input-otp, sidebar) via CLI. Implemented local equivalents for unavailable registry components: `combobox`, `date-picker`, `data-table`, and `typography` under `src/components/ui/`. Installed peer deps (embla-carousel-react, recharts, @tanstack/react-table, input-otp, react-hook-form). Typecheck/build pass.
+
+- Domains UX: Added search and filters (domain/level/type) to Domains drawer; prevented drawer auto-close on add/remove; showed costs/tags and a richer preview; added type badges and by-type summary counts.
+- Resources UX: Hope now shows current/max and can adjust both.
+- Traits cleanup: Removed Remaining budget display.
 
 ### Current Sprint
 
@@ -56,6 +67,10 @@ Schema completion and validation; mobile-first sheet assembly with drawer editor
 - Verify level-up point calculations
 
 3. UI component planning
+
+4. Verification
+
+- Keep typecheck/build/tests green after Domains/Resources updates; address any regressions promptly.
 
 - Sketch character creation flow and character sheet layout
 

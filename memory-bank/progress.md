@@ -22,13 +22,15 @@ Updated: August 10, 2025
 - Per-id character screen at `/characters/$id` (mobile-first sheet composed of modular cards). `/characters/new` redirects to a fresh UUID. Characters hub at `/characters` with index child.
 - Identity drawer implemented (RHF + zod) and lazy-loaded. Class/Subclass drawer added and lazy-loaded; `ClassCard` shows current selection and opens it.
 - Mobile navbar overlap fixed by setting navbar z-index to `z-40`; drawers render at `z-50` and include safe-area footer padding.
+- Domains drawer implemented with search and filters (domain/level/type) and non-submit Add/Remove to prevent auto-close; list rows show domain, level, type badge, costs, and tags; preview shows description; by-type summary counts surfaced on `DomainsCard`.
+- Resources show Hope as current/max with controls; migration from legacy numeric Hope supported.
 
 ## What's Left to Build
 
 Immediate priorities
 
-1. Domains editor drawer with schema-backed selection and per-id persistence; wire to Domains card
-2. Equipment & Inventory drawers (pack mode + free mode) with validation and persistence
+1. Equipment & Inventory drawers (pack mode + free mode) with validation and persistence
+2. Character creation rules (multiclass at creation, starting card count enforcement)
 3. Character creation rules (multiclass at creation, starting card count enforcement)
 4. Additional code-splitting to reduce initial bundle
 
@@ -57,6 +59,7 @@ Technical health
 - Some domain descriptions need formatting polish; bundle has large chunk warnings
 - Edge cases in progression need tests
 - Broader persistence layer beyond localStorage is not started
+- ESLint shows some warnings (react-refresh only-export-components in UI files; console statements in test scripts); non-blocking.
 
 ## MVP Success Criteria
 
@@ -70,7 +73,7 @@ Technical health
 
 Target: Domain & Equipment drawers wired into per-id sheet
 Timeline: 1–2 weeks
-Deliverables: Domains selection with rules enforcement and persistence; Equipment pack/free modes; schema validation and mobile-friendly drawers; begin code-splitting for heavy lists
+Deliverables: Equipment pack/free modes; schema validation and mobile-friendly drawers; begin code-splitting for heavy lists
 
 ## Recent Progress Log
 
@@ -108,3 +111,11 @@ Deliverables: Domains selection with rules enforcement and persistence; Equipmen
 - Wired `ClassCard` to display the current class and subclass and open the drawer.
 - Fixed mobile navbar overlap with drawers by lowering navbar z-index to `z-40`; drawers at `z-50` include safe-area footer padding so actions remain tappable above the navbar and keyboard.
 - Typecheck/build: PASS (chunk-size warnings noted). Route tree generated correctly.
+
+### August 10, 2025 (later)
+
+- Domains drawer: prevented auto-close on add/remove by using non-submit buttons; added search inputs and filters (domain, level, type All/Spell/Ability); displayed costs and tags; added type badges in list rows and preview; kept description in preview.
+- Domains summary: extended `DomainsCard` to optionally show by-type counts; route computes and passes counts (Spell/Ability).
+- Resources: converted `hope` to Score with current/max across schema, route, and UI; added migration from legacy numeric value in storage.
+- Traits: removed Remaining budget UI/state.
+- Quality gates: Typecheck PASS; Build PASS; Tests PASS (6/6); Lint shows only warnings (no blocking errors).

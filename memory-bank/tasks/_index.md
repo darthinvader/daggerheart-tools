@@ -4,7 +4,7 @@
 
 - [TASK001] Complete lib schema system - Finalizing player character schema and integration validation
 - [TASK002] Character creation UI implementation - Per-id sheet at /characters/$id with section drawers; /characters/new redirects to UUID
-- [TASK005] Mobile character display and editor - Modular cards, Identity & Class drawers, resources/traits controls; navbar z-index fix
+- [TASK005] Mobile character display and editor - Modular cards, Identity & Class drawers, Domains drawer with search/filters, resources (Hope now current/max), traits cleanup; navbar z-index fix
 
 ## Pending
 

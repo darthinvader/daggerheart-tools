@@ -67,3 +67,9 @@ The core schema foundation is nearly complete, with only final integration testi
 - Verified `src/lib/schemas/{core,domains,equipment,identity,player-character}.ts` exist and typecheck
 - Confirmed domain data under `src/lib/data/domains/*`; future domains stubbed
 - Ran type-check: PASS; build path compiles
+
+### August 10, 2025
+
+- Updated PlayerCharacter resource shape: `hope` migrated from number to `ScoreSchema` with default `{ current: 2, max: 6 }`; aligned route state and UI.
+- Added migration logic when hydrating resources to upgrade legacy numeric `hope` values to the new Score shape.
+- Validated domains data and schemas still typecheck with new UI integrations (drawer filters, card badges); no schema changes required for domains.

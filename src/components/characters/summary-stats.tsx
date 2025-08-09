@@ -12,7 +12,7 @@ export type SummaryStatsProps = {
     hp: { current: number; max: number };
     stress: { current: number; max: number };
     evasion: number;
-    hope: number;
+    hope: { current: number; max: number };
     proficiency: number;
   };
 };
@@ -39,8 +39,8 @@ export function SummaryStats({ id, identity, resources }: SummaryStatsProps) {
           <div className="text-muted-foreground text-xs">
             HP {resources.hp.current}/{resources.hp.max} · Stress{' '}
             {resources.stress.current}/{resources.stress.max} · Evasion{' '}
-            {resources.evasion} · Hope {resources.hope} · Prof{' '}
-            {resources.proficiency}{' '}
+            {resources.evasion} · Hope {resources.hope.current}/
+            {resources.hope.max} · Prof {resources.proficiency}{' '}
             <a
               href="#resources"
               className="text-primary ml-1 underline"
