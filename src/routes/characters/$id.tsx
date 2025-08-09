@@ -7,32 +7,25 @@ import * as React from 'react';
 
 import { Link, createFileRoute } from '@tanstack/react-router';
 
+import { ClassCard } from '@/components/characters/class-card';
+import { ConditionsCard } from '@/components/characters/conditions-card';
+import { CoreScoresCard } from '@/components/characters/core-scores-card';
+import { IdentityCard } from '@/components/characters/identity-card';
+// Lazy-load the Identity drawer to trim initial bundle
+import { ResourcesCard } from '@/components/characters/resources-card';
+import { SummaryStats } from '@/components/characters/summary-stats';
+import { TraitsCard } from '@/components/characters/traits-card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Combobox, type ComboboxItem } from '@/components/ui/combobox';
-import {
-  Drawer,
-  DrawerContent,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-} from '@/components/ui/drawer';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+// No Card imports needed here; stub sections use dedicated components
+import type { ComboboxItem } from '@/components/ui/combobox';
 import { ANCESTRIES } from '@/lib/data/characters/ancestries';
 import { COMMUNITIES } from '@/lib/data/characters/communities';
+import { ALL_CLASSES } from '@/lib/data/classes';
 import {
   AncestryNameEnum,
-  CharacterTraitEnum,
+  ClassNameEnum,
   CommunityNameEnum,
+  SubclassNameSchema,
 } from '@/lib/schemas/core';
 
 // Per-character Identity draft schema
@@ -75,6 +68,30 @@ function writeIdentityToStorage(id: string, value: IdentityDraft) {
   const key = getIdentityKey(id);
   try {
     localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // ignore
+  }
+}
+
+// Simple Conditions (tags) for gameplay tracking
+const ConditionsSchema = z.array(z.string().min(1).max(40));
+type ConditionsDraft = z.infer<typeof ConditionsSchema>;
+function getConditionsKey(id: string) {
+  return `dh:characters:${id}:conditions:v1`;
+}
+function readConditionsFromStorage(id: string): ConditionsDraft {
+  try {
+    const raw = localStorage.getItem(getConditionsKey(id));
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return ConditionsSchema.parse(parsed);
+  } catch {
+    return [];
+  }
+}
+function writeConditionsToStorage(id: string, value: ConditionsDraft) {
+  try {
+    localStorage.setItem(getConditionsKey(id), JSON.stringify(value));
   } catch {
     // ignore
   }
@@ -130,8 +147,8 @@ const TraitStateSchema = z.object({
   value: z.number().int().min(0).max(10).default(0),
   marked: z.boolean().default(false),
 });
-const TraitsSchema = z.record(CharacterTraitEnum, TraitStateSchema);
-type TraitsDraft = z.infer<typeof TraitsSchema>;
+type TraitState = z.infer<typeof TraitStateSchema>;
+type TraitsDraft = Record<string, TraitState>;
 
 const DEFAULT_TRAITS: TraitsDraft = {
   Agility: { value: 0, marked: false },
@@ -142,27 +159,58 @@ const DEFAULT_TRAITS: TraitsDraft = {
   Knowledge: { value: 0, marked: false },
 };
 
-// Assumption: starting budget of 6 points at level 1 (easily adjustable)
-const STARTING_TRAIT_POINTS = 6;
-
 function getTraitsKey(id: string) {
   return `dh:characters:${id}:traits:v1`;
 }
 function readTraitsFromStorage(id: string): TraitsDraft {
-  const key = getTraitsKey(id);
   try {
-    const raw = localStorage.getItem(key);
+    const raw = localStorage.getItem(getTraitsKey(id));
     if (!raw) return DEFAULT_TRAITS;
     const parsed = JSON.parse(raw);
-    return TraitsSchema.parse(parsed);
+    const schema = z.record(z.string(), TraitStateSchema);
+    return schema.parse(parsed);
   } catch {
     return DEFAULT_TRAITS;
   }
 }
 function writeTraitsToStorage(id: string, value: TraitsDraft) {
-  const key = getTraitsKey(id);
   try {
-    localStorage.setItem(key, JSON.stringify(value));
+    localStorage.setItem(getTraitsKey(id), JSON.stringify(value));
+  } catch {
+    // ignore
+  }
+}
+
+const STARTING_TRAIT_POINTS = 6;
+
+// Per-character Class selection draft
+const ClassDraftSchema = z.object({
+  className: ClassNameEnum,
+  subclass: SubclassNameSchema,
+});
+type ClassDraft = z.infer<typeof ClassDraftSchema>;
+
+const DEFAULT_CLASS: ClassDraft = {
+  className: 'Warrior',
+  subclass: 'Call of the Brave',
+};
+
+function getClassKey(id: string) {
+  return `dh:characters:${id}:class:v1`;
+}
+function readClassFromStorage(id: string): ClassDraft {
+  try {
+    const raw = localStorage.getItem(getClassKey(id));
+    if (!raw) return DEFAULT_CLASS;
+    const parsed = JSON.parse(raw);
+    return ClassDraftSchema.parse(parsed);
+  } catch {
+    return DEFAULT_CLASS;
+  }
+}
+function writeClassToStorage(id: string, value: ClassDraft) {
+  try {
+    localStorage.setItem(getClassKey(id), JSON.stringify(value));
   } catch {
     // ignore
   }
@@ -170,6 +218,24 @@ function writeTraitsToStorage(id: string, value: TraitsDraft) {
 
 function CharacterSheet() {
   const { id } = Route.useParams();
+  const IdentityDrawerLazy = React.useMemo(
+    () =>
+      React.lazy(() =>
+        import('@/components/characters/identity-drawer').then(m => ({
+          default: m.IdentityDrawer,
+        }))
+      ),
+    []
+  );
+  const ClassDrawerLazy = React.useMemo(
+    () =>
+      React.lazy(() =>
+        import('@/components/characters/class-drawer').then(m => ({
+          default: m.ClassDrawer,
+        }))
+      ),
+    []
+  );
 
   const [identity, setIdentity] =
     React.useState<IdentityDraft>(DEFAULT_IDENTITY);
@@ -177,13 +243,19 @@ function CharacterSheet() {
   const [resources, setResources] =
     React.useState<ResourcesDraft>(DEFAULT_RESOURCES);
   const [traits, setTraits] = React.useState<TraitsDraft>(DEFAULT_TRAITS);
+  const [conditions, setConditions] = React.useState<ConditionsDraft>([]);
+  const [classDraft, setClassDraft] = React.useState<ClassDraft>(DEFAULT_CLASS);
+  const [openClass, setOpenClass] = React.useState(false);
 
   React.useEffect(() => {
     setIdentity(readIdentityFromStorage(id));
     setResources(readResourcesFromStorage(id));
     setTraits(readTraitsFromStorage(id));
+    setConditions(readConditionsFromStorage(id));
+    setClassDraft(readClassFromStorage(id));
   }, [id]);
 
+  // Items for identity
   const ancestryItems: ComboboxItem[] = React.useMemo(
     () => ANCESTRIES.map(a => ({ value: a.name, label: a.name })),
     []
@@ -193,15 +265,63 @@ function CharacterSheet() {
     []
   );
 
+  // Items for class & subclass
+  const classItems: ComboboxItem[] = React.useMemo(
+    () => ALL_CLASSES.map(c => ({ value: c.name, label: c.name })),
+    []
+  );
+  const subclassItemsFor = React.useCallback(
+    (className: string): ComboboxItem[] => {
+      const found = ALL_CLASSES.find(c => c.name === className);
+      if (!found) return [];
+      const subclasses = (
+        (found as unknown as { subclasses?: { name: string }[] }).subclasses ??
+        []
+      ).map(s => s.name);
+      return subclasses.map(name => ({ value: name, label: name }));
+    },
+    []
+  );
+
   const form = useForm<IdentityDraft>({
     resolver: zodResolver(IdentityDraftSchema) as never,
     mode: 'onChange',
     defaultValues: identity,
   });
+  const classForm = useForm<ClassDraft>({
+    resolver: zodResolver(ClassDraftSchema) as never,
+    mode: 'onChange',
+    defaultValues: classDraft,
+  });
+
+  // Watch current class selection to drive subclass list options
+  const currentClassName = classForm.watch('className') ?? classDraft.className;
 
   React.useEffect(() => {
     if (openIdentity) form.reset(identity);
   }, [openIdentity, identity, form]);
+  React.useEffect(() => {
+    if (openClass) classForm.reset(classDraft);
+  }, [openClass, classDraft, classForm]);
+
+  // When class changes in form, ensure subclass list is valid; if current subclass not in new list, set first
+  React.useEffect(() => {
+    const subscription = classForm.watch((values, { name }) => {
+      if (name === 'className') {
+        const items = subclassItemsFor(
+          values.className ?? DEFAULT_CLASS.className
+        );
+        if (!items.find(i => i.value === values.subclass)) {
+          classForm.setValue(
+            'subclass',
+            items[0]?.value ?? DEFAULT_CLASS.subclass,
+            { shouldValidate: true }
+          );
+        }
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [classForm, subclassItemsFor]);
 
   const onSubmit = (values: IdentityDraft) => {
     setIdentity(values);
@@ -209,6 +329,14 @@ function CharacterSheet() {
     setOpenIdentity(false);
   };
   const submit = form.handleSubmit(values => onSubmit(values as IdentityDraft));
+  const onSubmitClass = (values: ClassDraft) => {
+    setClassDraft(values);
+    writeClassToStorage(id, values);
+    setOpenClass(false);
+  };
+  const submitClass = classForm.handleSubmit(v =>
+    onSubmitClass(v as ClassDraft)
+  );
 
   // Helpers for resources updates
   const clamp = (n: number, min: number, max: number) =>
@@ -275,19 +403,15 @@ function CharacterSheet() {
 
   // Traits helpers
   const traitPointsSpent = React.useMemo(
-    () =>
-      (Object.keys(traits) as Array<keyof typeof traits>).reduce(
-        (sum, key) => sum + traits[key].value,
-        0
-      ),
+    () => Object.values(traits).reduce((sum, t) => sum + t.value, 0),
     [traits]
   );
   const traitPointsRemaining = STARTING_TRAIT_POINTS - traitPointsSpent;
-  const canIncrement = (key: keyof TraitsDraft) => {
+  const canIncrement = (key: string) => {
     if (traitPointsRemaining <= 0) return false;
     return traits[key].value < 10; // cap guard
   };
-  const incTrait = (key: keyof TraitsDraft, delta: 1 | -1) => {
+  const incTrait = (key: string, delta: 1 | -1) => {
     setTraits(prev => {
       const current = prev[key].value;
       const nextValue = delta === 1 ? current + 1 : Math.max(0, current - 1);
@@ -301,13 +425,31 @@ function CharacterSheet() {
       return next;
     });
   };
-  const toggleMarked = (key: keyof TraitsDraft) => {
+  const toggleMarked = (key: string) => {
     setTraits(prev => {
       const next: TraitsDraft = {
         ...prev,
         [key]: { ...prev[key], marked: !prev[key].marked },
       } as TraitsDraft;
       writeTraitsToStorage(id, next);
+      return next;
+    });
+  };
+
+  // Conditions helpers
+  const addCondition = (label: string) => {
+    const value = label.trim();
+    if (!value) return;
+    setConditions(prev => {
+      const next = Array.from(new Set([...prev, value])).slice(0, 12);
+      writeConditionsToStorage(id, next);
+      return next;
+    });
+  };
+  const removeCondition = (label: string) => {
+    setConditions(prev => {
+      const next = prev.filter(c => c !== label);
+      writeConditionsToStorage(id, next);
       return next;
     });
   };
@@ -348,489 +490,86 @@ function CharacterSheet() {
       </div>
 
       {/* Summary section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Summary</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {/* Identity snapshot only; HP/Stress live in Resources below */}
-          <div className="space-y-1">
-            <div className="text-foreground text-base font-semibold">
-              {identity.name || 'Unnamed Character'}{' '}
-              {identity.pronouns ? (
-                <span className="text-muted-foreground text-sm font-normal">
-                  ({identity.pronouns})
-                </span>
-              ) : null}
-            </div>
-            <div className="text-muted-foreground text-sm">
-              {identity.ancestry} · {identity.community}
-            </div>
-            <div className="text-muted-foreground text-xs opacity-70">
-              id: {id}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <SummaryStats id={id} identity={identity} resources={resources} />
+
+      {/* Conditions (gameplay-important) */}
+      <ConditionsCard
+        conditions={conditions}
+        addCondition={addCondition}
+        removeCondition={removeCondition}
+      />
+
+      {/* Resources prioritized for gameplay */}
+      <ResourcesCard
+        id="resources"
+        resources={{ hp: resources.hp, stress: resources.stress }}
+        updateHp={updateHp}
+        updateHpMax={updateHpMax}
+        updateStress={updateStress}
+        updateStressMax={updateStressMax}
+      />
 
       {/* Quick stats: Evasion, Hope, Proficiency */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Core Scores</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {/* Evasion */}
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="text-sm">
-              <div className="font-medium">Evasion</div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                aria-label="Decrease Evasion"
-                size="sm"
-                variant="outline"
-                onClick={() => updateNumber('evasion', -1, 0)}
-              >
-                -
-              </Button>
-              <div className="min-w-12 text-center tabular-nums">
-                {resources.evasion}
-              </div>
-              <Button
-                aria-label="Increase Evasion"
-                size="sm"
-                variant="outline"
-                onClick={() => updateNumber('evasion', 1, 0)}
-              >
-                +
-              </Button>
-            </div>
-          </div>
-          {/* Hope */}
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="text-sm">
-              <div className="font-medium">Hope</div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                aria-label="Decrease Hope"
-                size="sm"
-                variant="outline"
-                onClick={() => updateNumber('hope', -1, 0)}
-              >
-                -
-              </Button>
-              <div className="min-w-12 text-center tabular-nums">
-                {resources.hope}
-              </div>
-              <Button
-                aria-label="Increase Hope"
-                size="sm"
-                variant="outline"
-                onClick={() => updateNumber('hope', 1, 0)}
-              >
-                +
-              </Button>
-            </div>
-          </div>
-          {/* Proficiency */}
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="text-sm">
-              <div className="font-medium">Proficiency</div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                aria-label="Decrease Proficiency"
-                size="sm"
-                variant="outline"
-                onClick={() => updateNumber('proficiency', -1, 1)}
-              >
-                -
-              </Button>
-              <div className="min-w-12 text-center tabular-nums">
-                {resources.proficiency}
-              </div>
-              <Button
-                aria-label="Increase Proficiency"
-                size="sm"
-                variant="outline"
-                onClick={() => updateNumber('proficiency', 1, 1)}
-              >
-                +
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <CoreScoresCard
+        scores={{
+          evasion: resources.evasion,
+          hope: resources.hope,
+          proficiency: resources.proficiency,
+        }}
+        updateEvasion={delta => updateNumber('evasion', delta, 0)}
+        updateHope={delta => updateNumber('hope', delta, 0)}
+        updateProficiency={delta => updateNumber('proficiency', delta, 1)}
+      />
 
       {/* Identity section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Identity</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-wrap items-center justify-between gap-2">
-          <div className="text-muted-foreground text-sm">
-            {identity.name ? (
-              <div className="space-y-0.5">
-                <div className="text-foreground font-medium">
-                  {identity.name}{' '}
-                  <span className="text-muted-foreground">
-                    ({identity.pronouns})
-                  </span>
-                </div>
-                <div>
-                  {identity.ancestry} · {identity.community}
-                </div>
-              </div>
-            ) : (
-              <span>Name, pronouns, ancestry, community…</span>
-            )}
-          </div>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setOpenIdentity(true)}
-          >
-            Edit
-          </Button>
-        </CardContent>
-      </Card>
+      <IdentityCard identity={identity} onEdit={() => setOpenIdentity(true)} />
 
       {/* Identity Drawer */}
-      <Drawer open={openIdentity} onOpenChange={setOpenIdentity}>
-        <DrawerContent>
-          <DrawerHeader>
-            <DrawerTitle>Edit Identity</DrawerTitle>
-          </DrawerHeader>
-          <div className="overflow-y-auto px-4 pb-[max(8px,env(safe-area-inset-bottom))]">
-            <Form {...form}>
-              <form className="space-y-4" onSubmit={submit} noValidate>
-                <FormField
-                  control={form.control as never}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Name</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          autoFocus
-                          inputMode="text"
-                          placeholder="Character name"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control as never}
-                  name="pronouns"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Pronouns</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          inputMode="text"
-                          placeholder="e.g., they/them"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <FormField
-                    control={form.control as never}
-                    name="ancestry"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Ancestry</FormLabel>
-                        <FormControl>
-                          <Combobox
-                            items={ancestryItems}
-                            value={field.value}
-                            onChange={v => field.onChange(v ?? field.value)}
-                            placeholder="Search ancestry..."
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control as never}
-                    name="community"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Community</FormLabel>
-                        <FormControl>
-                          <Combobox
-                            items={communityItems}
-                            value={field.value}
-                            onChange={v => field.onChange(v ?? field.value)}
-                            placeholder="Search community..."
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <FormField
-                  control={form.control as never}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          inputMode="text"
-                          placeholder="Appearance, demeanor, goals..."
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control as never}
-                  name="calling"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Calling</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          inputMode="text"
-                          placeholder="Archetype, vocation, destiny..."
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <DrawerFooter>
-                  <div className="flex items-center justify-end gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setOpenIdentity(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button type="submit" disabled={!form.formState.isValid}>
-                      Save
-                    </Button>
-                  </div>
-                </DrawerFooter>
-              </form>
-            </Form>
-          </div>
-        </DrawerContent>
-      </Drawer>
+      <React.Suspense
+        fallback={
+          <div className="text-muted-foreground p-4 text-sm">Loading…</div>
+        }
+      >
+        <IdentityDrawerLazy
+          open={openIdentity}
+          onOpenChange={setOpenIdentity}
+          form={form as never}
+          ancestryItems={ancestryItems}
+          communityItems={communityItems}
+          submit={submit}
+          onCancel={() => setOpenIdentity(false)}
+        />
+      </React.Suspense>
 
-      {/* Remaining sections (stubs) */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Class & Subclass</CardTitle>
-        </CardHeader>
-        <CardContent className="flex items-center justify-between">
-          <div className="text-muted-foreground text-sm">
-            Class selection and subclass…
-          </div>
-          <Button size="sm" variant="outline" disabled>
-            Edit
-          </Button>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            Traits{' '}
-            <span className="text-muted-foreground text-sm font-normal">
-              (Remaining: {Math.max(0, traitPointsRemaining)})
-            </span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {(Object.keys(traits) as Array<keyof TraitsDraft>).map(key => (
-            <div
-              key={key as string}
-              className="flex items-center justify-between gap-2"
-            >
-              <div className="text-sm">
-                <div className="font-medium">{key}</div>
-                <label className="flex items-center gap-2 text-xs">
-                  <Checkbox
-                    checked={traits[key].marked}
-                    onCheckedChange={() => toggleMarked(key)}
-                    aria-label={`Mark ${String(key)}`}
-                  />
-                  Marked
-                </label>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  aria-label={`Decrease ${String(key)}`}
-                  size="sm"
-                  variant="outline"
-                  onClick={() => incTrait(key, -1)}
-                >
-                  -
-                </Button>
-                <div className="min-w-12 text-center tabular-nums">
-                  {traits[key].value}
-                </div>
-                <Button
-                  aria-label={`Increase ${String(key)}`}
-                  size="sm"
-                  variant="outline"
-                  onClick={() => canIncrement(key) && incTrait(key, 1)}
-                  disabled={!canIncrement(key)}
-                >
-                  +
-                </Button>
-              </div>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Resources</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {/* HP Controls */}
-          <div className="flex items-center justify-between gap-2">
-            <div className="text-sm">
-              <div className="font-medium">HP</div>
-              <div className="text-muted-foreground text-xs">
-                Max {resources.hp.max}
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                aria-label="Decrease HP"
-                size="sm"
-                variant="outline"
-                onClick={() => updateHp(-1)}
-              >
-                -
-              </Button>
-              <div className="min-w-12 text-center tabular-nums">
-                {resources.hp.current}
-              </div>
-              <Button
-                aria-label="Increase HP"
-                size="sm"
-                variant="outline"
-                onClick={() => updateHp(1)}
-              >
-                +
-              </Button>
-              <div className="text-muted-foreground ml-2 flex items-center gap-1 text-xs">
-                <Button
-                  aria-label="Decrease HP max"
-                  size="icon"
-                  variant="ghost"
-                  onClick={() => updateHpMax(-1)}
-                >
-                  -
-                </Button>
-                <span>max</span>
-                <Button
-                  aria-label="Increase HP max"
-                  size="icon"
-                  variant="ghost"
-                  onClick={() => updateHpMax(1)}
-                >
-                  +
-                </Button>
-              </div>
-            </div>
-          </div>
-          {/* Stress Controls */}
-          <div className="flex items-center justify-between gap-2">
-            <div className="text-sm">
-              <div className="font-medium">Stress</div>
-              <div className="text-muted-foreground text-xs">
-                Max {resources.stress.max}
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                aria-label="Decrease Stress"
-                size="sm"
-                variant="outline"
-                onClick={() => updateStress(-1)}
-              >
-                -
-              </Button>
-              <div className="min-w-12 text-center tabular-nums">
-                {resources.stress.current}
-              </div>
-              <Button
-                aria-label="Increase Stress"
-                size="sm"
-                variant="outline"
-                onClick={() => updateStress(1)}
-              >
-                +
-              </Button>
-              <div className="text-muted-foreground ml-2 flex items-center gap-1 text-xs">
-                <Button
-                  aria-label="Decrease Stress max"
-                  size="icon"
-                  variant="ghost"
-                  onClick={() => updateStressMax(-1)}
-                >
-                  -
-                </Button>
-                <span>max</span>
-                <Button
-                  aria-label="Increase Stress max"
-                  size="icon"
-                  variant="ghost"
-                  onClick={() => updateStressMax(1)}
-                >
-                  +
-                </Button>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Domains & Loadout</CardTitle>
-        </CardHeader>
-        <CardContent className="flex items-center justify-between">
-          <div className="text-muted-foreground text-sm">
-            Loadout, Vault, selection…
-          </div>
-          <Button size="sm" variant="outline" disabled>
-            Edit
-          </Button>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Equipment & Inventory</CardTitle>
-        </CardHeader>
-        <CardContent className="flex items-center justify-between">
-          <div className="text-muted-foreground text-sm">
-            Weapons, armor, items, gold…
-          </div>
-          <Button size="sm" variant="outline" disabled>
-            Edit
-          </Button>
-        </CardContent>
-      </Card>
+      {/* Class & Subclass */}
+      <ClassCard
+        disabled={false}
+        onEdit={() => setOpenClass(true)}
+        selectedClass={classDraft.className}
+        selectedSubclass={classDraft.subclass}
+      />
+      <React.Suspense fallback={null}>
+        <ClassDrawerLazy
+          open={openClass}
+          onOpenChange={setOpenClass}
+          form={classForm as never}
+          classItems={classItems}
+          subclassItems={subclassItemsFor(currentClassName)}
+          submit={submitClass}
+          onCancel={() => setOpenClass(false)}
+        />
+      </React.Suspense>
 
-      {/* Bottom action bar removed per UX: it obscured content on mobile */}
+      {/* Traits */}
+      <TraitsCard
+        traits={traits as Record<string, { value: number; marked: boolean }>}
+        remaining={traitPointsRemaining}
+        canIncrement={k => canIncrement(k)}
+        incTrait={(k, d) => incTrait(k, d)}
+        toggleMarked={k => toggleMarked(k)}
+      />
+
+      {/* Domains & Equipment sections removed per UX: empty stubs don't add value */}
     </div>
   );
 }

@@ -81,7 +81,7 @@ export function MobileNavBar({
   const content = (
     <nav
       aria-label="Primary"
-      className="bg-card/90 supports-[backdrop-filter]:bg-card/60 fixed inset-x-0 bottom-0 z-[9999] border-t backdrop-blur sm:hidden"
+      className="bg-card/90 supports-[backdrop-filter]:bg-card/60 fixed inset-x-0 bottom-0 z-40 border-t backdrop-blur sm:hidden"
       style={{ position: 'fixed', left: 0, right: 0, bottom: 0 }}
     >
       <div className="relative">

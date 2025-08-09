@@ -97,3 +97,10 @@ Deliverables: creation sheet (single route), validation + error UX, local storag
 - Drawer ergonomics: Confirmed 100dvh + safe-area padding and scrollable content mitigate keyboard overlap.
 - Quality gates: Type-check PASS; build PASS (with large chunk warnings to address later via code-splitting).
 - Header: Title now shows only the character's name in a smaller font; when empty, displays a subtle 'Set a name' placeholder.
+
+### August 10, 2025
+
+- Implemented Class/Subclass editor drawer (`src/components/characters/class-drawer.tsx`) mirroring Identity drawer patterns (RHF + Combobox).
+- Added per-id localStorage persistence for class selection in `/characters/$id` with `ClassDraft` schema (zod) and storage helpers.
+- Wired `ClassCard` to display the current class and subclass and open the drawer; drawer is lazy-loaded to keep initial bundle small.
+- Typecheck/build: PASS (usual large chunk warnings). Verified route tree generation and no TS flake.

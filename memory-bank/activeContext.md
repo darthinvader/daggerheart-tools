@@ -114,6 +114,7 @@ Pending decisions
 ### In Progress (Character Sheet UI)
 
 - Per-id character sheet at `/characters/$id` with Identity drawer wired via RHF + zod, Traits steppers with budget, Resources quick controls, and Summary identity + HP/Stress snapshot. Bottom action bar removed in favor of header actions. Drawers use 100dvh with safe-area padding.
+- New: Class/Subclass drawer added and lazy-loaded; per-id localStorage persistence for selected class and subclass. `ClassCard` now shows current selection and opens the drawer.
 
 ## Context for Next Session
 
