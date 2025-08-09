@@ -1,5 +1,5 @@
 import { clsx } from 'clsx';
-import { Home, Plus, Users } from 'lucide-react';
+import { Home, UserPlus, Users } from 'lucide-react';
 
 import type { ReactNode } from 'react';
 
@@ -16,6 +16,7 @@ type NavItem = {
 type MobileNavBarProps = {
   items?: NavItem[];
   addTo?: string;
+  addLabel?: string;
 };
 
 const defaultItems: NavItem[] = [
@@ -30,6 +31,7 @@ const defaultItems: NavItem[] = [
 export function MobileNavBar({
   items = defaultItems,
   addTo = '/characters/new/identity',
+  addLabel = 'New Character',
 }: MobileNavBarProps) {
   // Exactly two items around a center FAB
   const left = items[0] ?? defaultItems[0];
@@ -75,15 +77,21 @@ export function MobileNavBar({
           </div>
         </div>
 
-        {/* Floating center Add button */}
-        <Link
-          to={addTo}
-          aria-label="Add new"
-          className="bg-primary text-primary-foreground absolute -top-5 left-1/2 inline-flex h-14 w-14 -translate-x-1/2 items-center justify-center rounded-full border shadow-lg ring-1 shadow-black/20 ring-black/5"
-          preload="intent"
-        >
-          <Plus className="h-6 w-6" />
-        </Link>
+        {/* Floating center action with visible caption */}
+        <div className="pointer-events-none absolute -top-5 left-1/2 flex -translate-x-1/2 flex-col items-center">
+          <Link
+            to={addTo}
+            aria-label={addLabel}
+            title={addLabel}
+            className="bg-primary text-primary-foreground pointer-events-auto inline-flex h-14 w-14 items-center justify-center rounded-full border shadow-lg ring-1 shadow-black/20 ring-black/5"
+            preload="intent"
+          >
+            <UserPlus className="h-6 w-6 text-white" strokeWidth={2.25} />
+          </Link>
+          <span className="text-primary mt-1 text-[11px] font-medium">
+            {addLabel}
+          </span>
+        </div>
 
         {/* Safe area inset padding */}
         <div className="h-[max(env(safe-area-inset-bottom),0px)]" />
