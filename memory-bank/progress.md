@@ -19,14 +19,14 @@ Updated: August 9, 2025
 
 ### Routing
 
-- Single-route character creation at `/characters/new` (section-based, mobile-first). Characters hub at `/characters`.
+- Per-id character screen at `/characters/$id` (mobile-first sheet with drawers). `/characters/new` redirects to a fresh UUID. Characters hub at `/characters` with index child.
 
 ## What's Left to Build
 
 Immediate priorities
 
-1. Character creation UI (with multiclass at creation and starting card count enforcement)
-2. Character sheet interface
+1. Character sheet interface expansion (Traits, Resources, Domains, Equipment)
+2. Character creation rules (multiclass at creation, starting card count enforcement)
 3. Data persistence (localStorage/IndexedDB)
 
 Medium-term 4. Advanced features (multiclassing UI, companion mgmt, inventory) 5. UX polish (mobile, a11y, feedback) 6. Performance/code-splitting and bundle budget
@@ -86,6 +86,6 @@ Deliverables: creation sheet (single route), validation + error UX, local storag
 
 ### August 9, 2025 (later)
 
-- Adopted single-route creation flow to prevent mid-step entry and incomplete starts. Implemented `/characters/new` scaffold with section cards and bottom action bar stub.
-- Removed `src/routes/characters/new/identity.tsx` and updated links in Characters page and MobileNavBar to `/characters/new`.
-- Rebuilt and verified route tree; `/characters/new` present, former step route removed.
+- Migrated to per-id routing: `/characters/$id` hosts the character sheet; `/characters/new` redirects to UUID.
+- Implemented Identity drawer with RHF + zod; per-id localStorage persistence and hydration with safe defaults.
+- Verified type-check and build: PASS; route tree includes new dynamic route.

@@ -4,7 +4,7 @@
 
 - [TASK001] Complete lib schema system - Finalizing player character schema and integration validation
 - [TASK002] Character creation UI implementation - Single-route creation at /characters/new with section drawers
-- [TASK005] Mobile character display and editor - Single-route, mobile-first sheet with drawers; research complete, scaffold started
+- [TASK005] Mobile character display and editor - Per-id character screen (/characters/$id) with Identity drawer; /characters/new redirects to UUID
 
 ## Pending
 

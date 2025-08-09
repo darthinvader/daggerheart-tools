@@ -6,16 +6,16 @@ Updated: August 9, 2025
 
 ### Routing & UI Flow
 
-- Decision: Consolidate character creation into a single route that doubles as the character sheet. No multi-step routes for now. Reasoning: avoid mid-flow entry, keep users focused to complete creation, simpler mobile UX with drawers.
-- Route: `/characters/new` (single page). Section editors will open as drawers and can be lazy-loaded.
+- Decision (revised): Use per-character routes for the sheet. `/characters/new` only generates a fresh UUID and redirects to `/characters/$id`.
+- Canonical sheet route: `/characters/$id`. Section editors open as drawers and can be lazy-loaded.
 
 Changes implemented (today):
 
-- Added `src/routes/characters/new.tsx` (skeleton page: Summary, Identity, Class, Traits, Resources, Domains, Equipment sections; bottom action bar stub).
-- Removed `src/routes/characters/new/identity.tsx` (step route no longer used).
-- Updated `src/routes/characters.tsx` “New” button to link to `/characters/new`.
-- Updated `src/components/mobile-nav.tsx` FAB default to `/characters/new`.
-- Rebuilt to regenerate `routeTree.gen.ts` (reflects `/characters/new`).
+- Added `src/routes/characters/$id.tsx` (sheet UI with Identity drawer, per-id storage).
+- Updated `src/routes/characters/new.tsx` to generate UUID and redirect to `/characters/$id`.
+- `src/routes/characters.index.tsx` lists characters area; “New” links to `/characters/new`.
+- `src/components/mobile-nav.tsx` FAB default remains `/characters/new`.
+- Rebuilt to regenerate `routeTree.gen.ts` (reflects `/characters/$id` + `/characters/new`).
 
 We're focused on the core data models and validation schemas that form the foundation of the application. The schemas are consolidated and type-safe across game systems.
 
@@ -110,9 +110,9 @@ Pending decisions
 - Captured UI decisions: multiclass in creation, starting card enforcement, equipment pack+free mode, Tailwind+shadcn.
 - Showcase route updated to include missing shadcn components (accordion, alert-dialog, carousel, chart, collapsible, combobox, data-table, date-picker wrapper, drawer, form, input-otp, tooltip, typography) with compact demos.
 
-### In Progress (Creation UI)
+### In Progress (Character Sheet UI)
 
-- Single-route creation flow scaffolded at `/characters/new` with section cards (mobile-first). Next: wire Identity drawer with RHF+zod, then Traits steppers.
+- Per-id character sheet at `/characters/$id` with Identity drawer wired via RHF + zod. Next: Traits steppers, Resources quick controls, and BottomActionBar.
 
 ## Context for Next Session
 

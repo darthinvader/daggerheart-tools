@@ -411,39 +411,39 @@ Companion
 
 ## Progress Tracking
 
-**Overall Status:** In Progress - 30% Complete
+**Overall Status:** In Progress - 45% Complete
 
 ### Subtasks
 
-| ID  | Description                                  | Status      | Updated     | Notes                                         |
-| --- | -------------------------------------------- | ----------- | ----------- | --------------------------------------------- |
-| 1.1 | Extract PlayerCharacter field inventory      | Complete    | Aug 9, 2025 | Field inventory documented                    |
-| 1.2 | Field classification (edit frequency)        | Complete    | Aug 9, 2025 | Frequent/Occasional/Rare lists added          |
-| 1.3 | Control type decisions per field             | Complete    | Aug 9, 2025 | Control map defined                           |
-| 1.4 | Presentation pattern per field               | Complete    | Aug 9, 2025 | Section order, edit entry, quick-jump defined |
-| 1.5 | Validation/hints copy per field              | Complete    | Aug 9, 2025 | Helper/error guidance added                   |
-| 1.6 | Section grouping and navigation              | Not Started | -           | -                                             |
-| 1.7 | Default valid character snapshot             | Not Started | -           | -                                             |
-| 2.1 | Mobile skeleton layout                       | Complete    | Aug 9, 2025 | `/characters/new` scaffolded                  |
-| 2.2 | BottomActionBar (Edit/Save)                  | Not Started | -           | -                                             |
-| 2.3 | Section edit entry points                    | Not Started | -           | Buttons present (disabled)                    |
-| 3.1 | Hook form + zod for Identity/Traits subset   | Not Started | -           | -                                             |
-| 3.2 | Inline validation + messages                 | Not Started | -           | -                                             |
-| 3.3 | Save/Cancel flows (local state)              | Not Started | -           | -                                             |
-| 4.1 | Class/Subclass picker                        | Not Started | -           | -                                             |
-| 4.2 | Domain card selector                         | Not Started | -           | -                                             |
-| 4.3 | Equipment selector (pack/free)               | Not Started | -           | -                                             |
-| 4.4 | Resources panel (HP/Stress/Armor/Gold)       | Not Started | -           | -                                             |
-| 4.5 | Notes/Inventory text                         | Not Started | -           | -                                             |
-| 4.6 | Simple View play mode                        | Not Started | -           | -                                             |
-| 5.1 | Mobile polish (touch targets, headers, a11y) | Not Started | -           | -                                             |
-| 5.2 | Keyboard & safe areas                        | Not Started | -           | -                                             |
-| 6.1 | LocalStorage persistence + hydrate           | Not Started | -           | -                                             |
-| 6.2 | Reset/Export/Import actions                  | Not Started | -           | -                                             |
-| 7.1 | Tests for mapping and validation             | Not Started | -           | -                                             |
-| 7.2 | UX metrics instrumentation                   | Not Started | -           | -                                             |
-| 7.3 | Memory bank docs update                      | Not Started | -           | -                                             |
-| 7.4 | README route docs                            | Not Started | -           | -                                             |
+| ID  | Description                                  | Status      | Updated     | Notes                                                    |
+| --- | -------------------------------------------- | ----------- | ----------- | -------------------------------------------------------- |
+| 1.1 | Extract PlayerCharacter field inventory      | Complete    | Aug 9, 2025 | Field inventory documented                               |
+| 1.2 | Field classification (edit frequency)        | Complete    | Aug 9, 2025 | Frequent/Occasional/Rare lists added                     |
+| 1.3 | Control type decisions per field             | Complete    | Aug 9, 2025 | Control map defined                                      |
+| 1.4 | Presentation pattern per field               | Complete    | Aug 9, 2025 | Section order, edit entry, quick-jump defined            |
+| 1.5 | Validation/hints copy per field              | Complete    | Aug 9, 2025 | Helper/error guidance added                              |
+| 1.6 | Section grouping and navigation              | Not Started | -           | -                                                        |
+| 1.7 | Default valid character snapshot             | Not Started | -           | -                                                        |
+| 2.1 | Mobile skeleton layout                       | Complete    | Aug 9, 2025 | `/characters/new` scaffolded → now lives at per-id route |
+| 2.2 | BottomActionBar (Edit/Save)                  | Not Started | -           | -                                                        |
+| 2.3 | Section edit entry points                    | In Progress | Aug 9, 2025 | Identity wired (drawer); Traits inline steppers          |
+| 3.1 | Hook form + zod for Identity/Traits subset   | Complete    | Aug 9, 2025 | Identity form with zodResolver                           |
+| 3.2 | Inline validation + messages                 | Complete    | Aug 9, 2025 | Name/pronouns required; enum validation                  |
+| 3.3 | Save/Cancel flows (local state)              | Complete    | Aug 9, 2025 | Save persists; Cancel closes without commit              |
+| 4.1 | Class/Subclass picker                        | Not Started | -           | -                                                        |
+| 4.2 | Domain card selector                         | Not Started | -           | -                                                        |
+| 4.3 | Equipment selector (pack/free)               | Not Started | -           | -                                                        |
+| 4.4 | Resources panel (HP/Stress/Armor/Gold)       | In Progress | Aug 9, 2025 | HP/Stress/Evasion/Hope/Proficiency steppers wired        |
+| 4.5 | Notes/Inventory text                         | Not Started | -           | -                                                        |
+| 4.6 | Simple View play mode                        | Not Started | -           | -                                                        |
+| 5.1 | Mobile polish (touch targets, headers, a11y) | Not Started | -           | -                                                        |
+| 5.2 | Keyboard & safe areas                        | Not Started | -           | -                                                        |
+| 6.1 | LocalStorage persistence + hydrate           | Complete    | Aug 9, 2025 | Per-id storage key: `dh:characters:{id}:identity:v1`     |
+| 6.2 | Reset/Export/Import actions                  | Not Started | -           | -                                                        |
+| 7.1 | Tests for mapping and validation             | Not Started | -           | -                                                        |
+| 7.2 | UX metrics instrumentation                   | Not Started | -           | -                                                        |
+| 7.3 | Memory bank docs update                      | Not Started | -           | -                                                        |
+| 7.4 | README route docs                            | Not Started | -           | -                                                        |
 
 ## Progress Log
 
@@ -482,10 +482,30 @@ Companion
 
 ### August 9, 2025 (final today)
 
-- Decision: Single-route creation at `/characters/new` to avoid mid-step entry and enforce completion focus.
+- Earlier decision: Single-route creation at `/characters/new` to avoid mid-step entry and enforce completion focus.
 - Implemented scaffold and updated navigation; removed previous step route `characters/new/identity`.
 
+### August 9, 2025 (later 3)
+
+- Migrated to per-character routes: added `/characters/$id` as the canonical character screen.
+- Updated `/characters/new` to generate a UUID and redirect to `/characters/{uuid}`.
+- Implemented Identity drawer with react-hook-form + zodResolver; ancestry/community via Combobox; Save disabled until valid.
+- Persistence: per-id localStorage key `dh:characters:{id}:identity:v1`; hydrate on mount with schema validation and safe defaults.
+- Routing clean-up: `/characters` shows list (index route); mobile FAB and list “New” both target `/characters/new` (redirects to per-id route).
+- Typecheck: PASS. Build: PASS. Route tree includes `/characters/$id` and `/characters/new` (redirect).
+
 - Added Appendix D — TTRPG domain UX takeaways (from D&D Beyond, Pathbuilder 2e, Roll20 PF2) with concrete do/don’t items, simple view toggle, quick-edit clusters, and quality bar (tap-count targets). Revised Implementation Plan to include BottomActionBar, Simple View, keyboard/safe-area handling, and UX metrics instrumentation; updated subtasks accordingly.
+
+### August 9, 2025 (later 4)
+
+- Implemented Traits inline steppers in `/characters/$id` with per-id persistence.
+- Budget logic: Assumed starting pool of 6 points at level 1; Remaining counter shown; + disabled at 0 remaining; max per trait capped at 10.
+- Storage keys:
+  - Identity: `dh:characters:{id}:identity:v1`
+  - Resources: `dh:characters:{id}:resources:v1` (HP/Stress/Evasion/Hope/Proficiency)
+  - Traits: `dh:characters:{id}:traits:v1`
+- Resources quick controls expanded for Evasion, Hope, Proficiency. HP/Stress include current/max with clamping.
+- Mobile polish: steppers sized for thumb use; keyboard overlay mitigated by hiding bottom nav when inputs focus.
 
 ## Appendix A — Interaction patterns & Components
 

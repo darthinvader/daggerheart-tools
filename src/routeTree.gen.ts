@@ -12,7 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ShowcaseRouteImport } from './routes/showcase'
 import { Route as CharactersRouteImport } from './routes/characters'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CharactersIndexRouteImport } from './routes/characters.index'
 import { Route as CharactersNewRouteImport } from './routes/characters/new'
+import { Route as CharactersIdRouteImport } from './routes/characters/$id'
 
 const ShowcaseRoute = ShowcaseRouteImport.update({
   id: '/showcase',
@@ -29,9 +31,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CharactersIndexRoute = CharactersIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CharactersRoute,
+} as any)
 const CharactersNewRoute = CharactersNewRouteImport.update({
   id: '/new',
   path: '/new',
+  getParentRoute: () => CharactersRoute,
+} as any)
+const CharactersIdRoute = CharactersIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
   getParentRoute: () => CharactersRoute,
 } as any)
 
@@ -39,27 +51,45 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/characters': typeof CharactersRouteWithChildren
   '/showcase': typeof ShowcaseRoute
+  '/characters/$id': typeof CharactersIdRoute
   '/characters/new': typeof CharactersNewRoute
+  '/characters/': typeof CharactersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/characters': typeof CharactersRouteWithChildren
   '/showcase': typeof ShowcaseRoute
+  '/characters/$id': typeof CharactersIdRoute
   '/characters/new': typeof CharactersNewRoute
+  '/characters': typeof CharactersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/characters': typeof CharactersRouteWithChildren
   '/showcase': typeof ShowcaseRoute
+  '/characters/$id': typeof CharactersIdRoute
   '/characters/new': typeof CharactersNewRoute
+  '/characters/': typeof CharactersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/characters' | '/showcase' | '/characters/new'
+  fullPaths:
+    | '/'
+    | '/characters'
+    | '/showcase'
+    | '/characters/$id'
+    | '/characters/new'
+    | '/characters/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/characters' | '/showcase' | '/characters/new'
-  id: '__root__' | '/' | '/characters' | '/showcase' | '/characters/new'
+  to: '/' | '/showcase' | '/characters/$id' | '/characters/new' | '/characters'
+  id:
+    | '__root__'
+    | '/'
+    | '/characters'
+    | '/showcase'
+    | '/characters/$id'
+    | '/characters/new'
+    | '/characters/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -91,6 +121,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/characters/': {
+      id: '/characters/'
+      path: '/'
+      fullPath: '/characters/'
+      preLoaderRoute: typeof CharactersIndexRouteImport
+      parentRoute: typeof CharactersRoute
+    }
     '/characters/new': {
       id: '/characters/new'
       path: '/new'
@@ -98,15 +135,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CharactersNewRouteImport
       parentRoute: typeof CharactersRoute
     }
+    '/characters/$id': {
+      id: '/characters/$id'
+      path: '/$id'
+      fullPath: '/characters/$id'
+      preLoaderRoute: typeof CharactersIdRouteImport
+      parentRoute: typeof CharactersRoute
+    }
   }
 }
 
 interface CharactersRouteChildren {
+  CharactersIdRoute: typeof CharactersIdRoute
   CharactersNewRoute: typeof CharactersNewRoute
+  CharactersIndexRoute: typeof CharactersIndexRoute
 }
 
 const CharactersRouteChildren: CharactersRouteChildren = {
+  CharactersIdRoute: CharactersIdRoute,
   CharactersNewRoute: CharactersNewRoute,
+  CharactersIndexRoute: CharactersIndexRoute,
 }
 
 const CharactersRouteWithChildren = CharactersRoute._addFileChildren(
