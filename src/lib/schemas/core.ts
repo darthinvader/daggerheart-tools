@@ -309,7 +309,7 @@ export const BaseSubclassSchema = z.object({
 export const BaseClassSchema = z.object({
   name: z.string(),
   description: z.string(),
-  domains: z.array(DomainNameEnum).min(1).max(3),
+  domains: z.array(DomainNameEnum).length(2),
   startingEvasion: z.number().int(),
   startingHitPoints: z.number().int(),
   classItems: z.array(z.string()),

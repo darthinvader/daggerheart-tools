@@ -129,10 +129,10 @@ export const PlayerCharacterSchema = z.object({
   // Core Stats
   traits: CharacterTraitsSchema,
   hp: HitPointsSchema,
-  stress: StressSchema,
+  stress: StressSchema.default({ current: 0, max: 6 }),
   armorScore: ArmorScoreSchema,
   evasion: z.number().int().min(0).default(10), // SRD: Start at 10
-  hope: z.number().int().min(0).default(0),
+  hope: z.number().int().min(0).default(2),
   proficiency: z.number().int().min(1).default(1),
   rallyDie: z.union([z.literal('d6'), z.literal('d8')]).default('d6'),
 
@@ -151,7 +151,7 @@ export const PlayerCharacterSchema = z.object({
   armorStatus: ArmorStatusSchema.optional(),
   weapons: z.array(WeaponSchema),
   armor: z.array(ArmorSchema),
-  gold: GoldSchema,
+  gold: GoldSchema.default({ handfuls: 1, bags: 0, chests: 0 }),
   conditions: z.array(ConditionNameSchema).default([]),
 
   // Experience & Connections
