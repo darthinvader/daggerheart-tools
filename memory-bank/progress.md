@@ -1,206 +1,72 @@
 # Progress Report - Daggerheart Tools
 
+Updated: August 9, 2025
+
 ## What's Working
 
-### Core Data Layer ✅
+### Core Data Layer
 
-- **Complete Domain System**: All 9 domains implemented with 200+ cards
-  - Arcana, Blade, Bone, Codex, Grace, Midnight, Sage, Splendor, Valor
-  - Each card includes name, level, type, recall cost, and full description
-  - Type-safe schema validation for all domain cards
-  - Consistent export patterns across all domain files
+- Domain System: 9 core domains implemented under `src/lib/data/domains/*` with type-safe validation via `schemas/domains.ts`.
+- Class System: 9 classes with subclasses; unified subclass schema; Ranger companion support.
+- Identity & Core: Consolidated `core.ts` and `identity.ts`; shared helpers reduce duplication.
+- Equipment: Unified equipment schemas in `schemas/equipment.ts`; data present in `src/lib/data/equipment/*`.
 
-- **Comprehensive Class System**: All 9 classes with subclasses
-  - Bard (Troubadour, Wordsmith)
-  - Druid (Warden of Elements, Warden of Renewal)
-  - Guardian (Stalwart, Vengeance)
-  - Ranger (Beastbound, Wayfinder)
-  - Rogue (Nightwalker, Syndicate)
-  - Seraph (Divine Wielder, Winged Sentinel)
-  - Sorcerer (Elemental Origin, Primal Origin)
-  - Warrior (Call of the Brave, Call of the Slayer)
-  - Wizard (School of Knowledge, School of War)
+### Development Infrastructure
 
-  Schema simplification: unified subclass validation via BaseSubclassSchema across all classes; Ranger companion supported at base level.
-
-- **Identity Schema Consolidation**: Ancestry + Community
-  - New `identity.ts` centralizes ancestry/community schemas, types, utilities, and data re-exports
-  - `ancestry.ts` and `community.ts` now serve as re-export shims to avoid breaking imports
-  - Added mixed ancestry helper functions to `identity.ts`
-  - Removed stale `schemas/classes.ts`
-
-- **Level Progression System**: Point-based advancement
-  - 2 points per level with configurable costs
-  - Tier-based features (Foundation → Specialization → Mastery)
-  - Multiclassing support with proper restrictions
-  - Automatic benefit tracking (experience, proficiency, rally dice)
-
-- **Character Foundation**: Core character systems
-  - 6 trait system (Agility, Strength, Finesse, Instinct, Presence, Knowledge)
-  - 18 ancestries with unique abilities
-  - 9 communities with distinct features
-  - Hit points, stress, armor, and resource management
-
-### Development Infrastructure ✅
-
-- **Type Safety**: Zod schemas with TypeScript inference
-- **Build System**: Vite with hot reloading and optimization
-- **Code Quality**: ESLint, Prettier, and pre-commit hooks
-- **Testing Setup**: Vitest with coverage reporting
-- **Package Management**: pnpm with workspace configuration
+- Type Safety: TypeScript strict + Zod. Type-check passes today.
+- Build System: Vite. Build path compiles locally.
+- Quality: ESLint/Prettier, tests configured with Vitest (coverage present).
 
 ## What's Left to Build
 
-### Immediate Priorities (Sprint 1)
+Immediate priorities
 
-1. **Character Creation UI**
-   - Ancestry and community selection interface
-   - Class and subclass selection with domain display
-   - Trait allocation with validation feedback
-   - Starting equipment and domain card selection
+1. Character creation UI
+2. Character sheet interface
+3. Data persistence (localStorage/IndexedDB)
 
-2. **Character Sheet Interface**
-   - Responsive character sheet layout
-   - Domain card display and management
-   - Real-time stat calculations and updates
-   - Level-up interface with point allocation
+Medium-term 4. Advanced features (multiclassing UI, companion mgmt, inventory) 5. UX polish (mobile, a11y, feedback) 6. Performance/code-splitting and bundle budget
 
-3. **Data Persistence**
-   - Character save/load functionality
-   - Import/export character data
-   - Local storage or IndexedDB integration
-   - Character version history tracking
-
-### Medium-term Goals (Sprint 2-3)
-
-4. **Advanced Features**
-   - Multiclassing interface and validation
-   - Companion management for Rangers
-   - Equipment and inventory system
-   - Experience and progression tracking
-
-5. **User Experience**
-   - Mobile-responsive design
-   - Accessibility compliance (WCAG 2.1 AA)
-   - Error handling and user feedback
-   - Help system and rule references
-
-6. **Performance & Polish**
-   - Code splitting and lazy loading
-   - Bundle size optimization
-   - Animation and transition polish
-   - Cross-browser testing
-
-### Future Enhancements (Sprint 4+)
-
-7. **Extended Functionality**
-   - Campaign management tools
-   - Party coordination features
-   - Homebrew content support
-   - Print-friendly character sheets
-
-8. **Advanced Integrations**
-   - Dice rolling integration
-   - Digital asset management
-   - Community sharing features
-   - API for third-party tools
+Future 7. Campaign tools, party coordination, homebrew support, print views 8. Integrations (dice, sharing, APIs)
 
 ## Current Status
 
-### Completion Metrics
+Estimated completion
 
-- **Data Layer**: ~90% complete (schemas and validation)
-- **Game Rules**: ~95% complete (official SRD implementation)
-- **UI Components**: ~5% complete (basic routing only)
-- **Features**: ~15% complete (foundation only)
-- **Testing**: ~20% complete (schema tests exist)
+- Data Layer: ~90%
+- Rules Data: ~95%
+- UI: ~5%
+- Features: ~15%
+- Tests: ~20%
 
-### Technical Health
+Technical health
 
-- **Type Safety**: Excellent (full TypeScript coverage)
-- **Code Quality**: Good (linting and formatting enforced)
-  - Recent cleanup: removed explicit class data type annotations; data files now export `as const` objects. Build verified.
-- **Performance**: Unknown (no UI load testing yet)
-- **Accessibility**: Not started
-- **Mobile Support**: Not started
+- Type safety: Excellent
+- Lint/format: Good
+- Performance/Mobile/A11y: Not yet assessed
 
 ## Known Issues
 
-### Data Layer Issues
+- Some domain descriptions need formatting polish
+- Edge cases in progression need tests
+- Persistence and UI are not started
 
-- Some domain card descriptions may need formatting improvements
-- Character progression edge cases need testing
-- Validation error messages could be more user-friendly
+## MVP Success Criteria
 
-### Development Issues
-
-- No UI components built yet
-- Character data persistence not implemented
-- Mobile responsiveness not tested
-- Performance benchmarks not established
-
-### Documentation Issues
-
-- API documentation needs creation
-- User guide content not written
-- Developer onboarding process incomplete
-
-## Success Metrics
-
-### Minimum Viable Product (MVP)
-
-- [ ] Complete character creation flow (ancestry → class → traits → domains)
-- [ ] Functional character sheet with all core features
-- [ ] Level-up system with point allocation
-- [ ] Save/load character data
-- [ ] Mobile-responsive interface
-
-### Feature Complete Version
-
-- [ ] All 9 classes fully implemented
-- [ ] All domain cards accessible and functional
-- [ ] Multiclassing support
-- [ ] Equipment and inventory management
-- [ ] Print-friendly character sheets
-- [ ] Accessibility compliance
-
-### Polish & Performance
-
-- [ ] Sub-3-second load times
-- [ ] 60fps smooth interactions
-- [ ] Cross-browser compatibility
-- [ ] Comprehensive test coverage (>80%)
-- [ ] Error-free user experience
+- [ ] End-to-end character creation (identity → class → traits → domains)
+- [ ] Character sheet with core interactions
+- [ ] Level-up with points
+- [ ] Save/load characters
+- [ ] Mobile-friendly layout
 
 ## Next Milestone
 
-**Target**: Complete character creation UI (Sprint 1)
-**Timeline**: Estimated 2-3 weeks
-**Key Deliverables**:
-
-- Functional character creation wizard
-- Basic character sheet display
-- Data validation and error handling
-- Local character storage
+Target: Character creation UI scaffold
+Timeline: 2–3 weeks
+Deliverables: creation wizard, basic sheet, validation + error UX, local storage
 
 ## Recent Progress Log
 
-- Consolidated core schemas confirmed; added forwarder files in `src/lib/schemas/core/*` to point to `../core.ts` for compatibility. Typecheck passes with no errors.
-- Normalized domains/equipment imports to use consolidated core. Left central `schemas/index.ts` limited to `core` and `identity` to avoid symbol collisions.
-- Migrated data-layer imports to new aggregators:
-  - Domains: `../../schemas/domains` (replacing deep path to domain-card.schema)
-  - Equipment: `../../schemas/equipment` (replacing deep paths to weapons/armor/items)
-    Typecheck: PASS.
-- Deleted legacy submodule files in `src/lib/schemas/core/` now that all imports target `core.ts`. Typecheck: PASS.
-
-- Consolidated equipment and domains into single modules and removed their folders:
-  - `src/lib/schemas/equipment.ts` now contains base-equipment, weapons, armor, and items schemas. Removed `src/lib/schemas/equipment/` folder.
-  - `src/lib/schemas/domains.ts` now contains domain card schemas. Removed `src/lib/schemas/domains/` folder.
-  - Updated all imports to reference `schemas/equipment` and `schemas/domains`. Typecheck: PASS.
-
-- Schema deduplication pass to reduce repetition:
-  - Added shared helpers to `schemas/core.ts`: `MetadataSchema`, `NameDescriptionSchema`, `ScoreSchema`, and `unionWithString`.
-  - Replaced repeated `z.record(z.string(), z.unknown()).optional()` with `MetadataSchema` across domains/equipment.
-  - Replaced many `z.union([Enum, z.string()])` with `unionWithString(Enum)` in domains and equipment.
-  - Applied `NameDescriptionSchema` in `identity.ts` (AncestryFeature, CommunityFeature) and `player-character.ts` (AbilitySchema).
-  - Kept public APIs stable; only internal construction simplified. Typecheck/Build: PASS.
+- Audited codebase vs memory bank; aligned paths and scope (domain data in data/domains).
+- Ran type-check: PASS. Build path compiles.
+- Verified `PlayerCharacterSchema` and equipment/domain schemas exist and are consistent.

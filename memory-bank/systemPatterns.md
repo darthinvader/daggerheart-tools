@@ -23,12 +23,13 @@ The system follows a strict data-first approach where all game rules are encoded
 
 The codebase is organized around game domain concepts:
 
-#### Domain Card System (`src/lib/domains/`)
+#### Domain Card System (schemas + data)
 
-- **9 Core Domains**: Arcana, Blade, Bone, Codex, Grace, Midnight, Sage, Splendor, Valor
-- **Card Collections**: Each domain exports typed card arrays and name constants
-- **Schema Validation**: All cards conform to `DomainCardSchema`
-- **Extensibility**: Additional domains (Chaos, Moon, Sun, Blood, Fate) ready for future content
+- Schemas: `src/lib/schemas/domains.ts`
+- Data: `src/lib/data/domains/*`
+- 9 Core Domains: Arcana, Blade, Bone, Codex, Grace, Midnight, Sage, Splendor, Valor
+- Card Collections: Each domain exports typed card arrays and name constants
+- Extensibility: Additional domains (Chaos, Moon, Sun, Blood, Fate) stubbed and ready for future content
 
 #### Class System (schemas simplified)
 

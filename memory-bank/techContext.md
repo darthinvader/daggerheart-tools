@@ -4,22 +4,21 @@
 
 ### Core Framework
 
-- **React 19+**: Latest React with concurrent features and improved TypeScript support
-- **TypeScript 5.x**: Strict mode enabled for maximum type safety
-- **Vite**: Fast build tool with HMR and optimized bundling
-- **TanStack Router**: File-based routing with type-safe navigation
+- React 19.x (react 19.1)
+- TypeScript 5.8 (strict)
+- Vite 7.x with HMR and optimized bundling
+- TanStack Router v1 (with plugin)
 
 ### UI & Styling
 
-- **Tailwind CSS**: Utility-first CSS framework for rapid development
-- **Shadcn/ui**: High-quality React components built on Radix UI
-- **Radix UI**: Accessible, unstyled component primitives
-- **Lucide React**: Icon library with consistent design
+- Tailwind CSS v4
+- Shadcn/ui (planned), Radix UI primitives
+- Lucide React icons
 
 ### Development Tools
 
-- **pnpm**: Fast, disk space efficient package manager
-- **Workspace Configuration**: Monorepo setup for potential future expansion
+- pnpm
+- Workspace: no packages/\* currently; `pnpm-workspace.yaml` lists built deps only
 - **ESLint**: Code linting with React and TypeScript rules
 - **Prettier**: Code formatting with consistent style
 - **Husky**: Git hooks for pre-commit validation
@@ -38,34 +37,24 @@
 - **Runtime Type Checking**: All user input validated against schemas
 - **Type Inference**: Automatic TypeScript types from Zod schemas
 
-## Project Configuration
+### Project Configuration
 
-### Package Manager Setup
+Package Manager Setup (from package.json)
 
-```json
-{
-  "packageManager": "pnpm@9.x",
-  "workspaces": ["packages/*"],
-  "engines": {
-    "node": ">=18.0.0",
-    "pnpm": ">=8.0.0"
-  }
-}
-```
+- Engines: Node >=18, pnpm >=8
+- packageManager unspecified; using workspace root pnpm
 
 ### TypeScript Configuration
 
-- **Strict Mode**: Full strict type checking enabled
-- **Path Mapping**: Clean imports with `@/` prefix
-- **ESNext Target**: Modern JavaScript features
-- **Module Resolution**: Node16 for compatibility
+- Strict mode enabled
+- Path mapping: `@/*` → `src/*`
+- Targets: ES2022 (app), ES2023 (node)
+- ModuleResolution: bundler
 
 ### Build Configuration
 
-- **Vite Config**: Optimized for development and production
-- **Code Splitting**: Automatic chunking for optimal loading
-- **Asset Optimization**: Image and font optimization
-- **Environment Variables**: Type-safe environment configuration
+- Vite config present; code splitting via default Rollup
+- Size-Limit configured (500 KB bundle target)
 
 ## Development Setup
 
@@ -77,13 +66,7 @@
 
 ### Local Development
 
-```bash
-pnpm install          # Install dependencies
-pnpm dev             # Start development server
-pnpm build           # Production build
-pnpm test            # Run test suite
-pnpm test:coverage   # Generate coverage report
-```
+Commands (pnpm scripts): install, dev, build, test, coverage, preview
 
 ### Development Workflow
 
@@ -115,24 +98,21 @@ pnpm test:coverage   # Generate coverage report
 - **Color Contrast**: 4.5:1 minimum ratio for text
 - **Focus Management**: Clear focus indicators and logical tab order
 
-## Dependencies
+### Dependencies
 
-### Core Dependencies
+Core Dependencies (selected)
 
-- `react` & `react-dom`: ^19.0.0 - Core React framework
-- `@tanstack/router`: ^1.x - Type-safe routing
-- `zod`: ^3.x - Schema validation
-- `clsx`: ^2.x - Conditional className utility
-- `tailwind-merge`: ^2.x - Tailwind class merging
+- react/react-dom ^19.1.0
+- @tanstack/react-router ^1.130.x
+- zod ^4.0.14
+- tailwindcss ^4.1.11, tailwind-merge ^3.3.1
+- lucide-react ^0.536.0
 
-### Development Dependencies
+Development Dependencies (selected)
 
-- `typescript`: ^5.x - TypeScript compiler
-- `vite`: ^5.x - Build tool and dev server
-- `vitest`: ^1.x - Testing framework
-- `eslint`: ^8.x - Code linting
-- `prettier`: ^3.x - Code formatting
-- `@types/*`: TypeScript definitions
+- typescript ~5.8.3, vite ^7.0.6, vitest ^3.2.4
+- eslint ^9.x, prettier ^3.x, husky ^9.x, lint-staged ^16.x
+- testing-library, jsdom, size-limit, madge, knip, ts-prune, oxlint
 
 ### Optional Dependencies
 
@@ -178,4 +158,6 @@ pnpm test:coverage   # Generate coverage report
 
 - Automated dependency updates
 - Long-term TypeScript support
-- React version migration strategy
+- React/Vite migration strategy
+
+Note (Aug 9, 2025): Verified type-check passes and build path compiles locally.

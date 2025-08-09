@@ -1,142 +1,96 @@
 # Active Context - Daggerheart Tools
 
+Updated: August 9, 2025
+
 ## Current Work Focus
 
 ### Library Schema Development
 
-Currently working on the core data models and validation schemas that form the foundation of the application. The focus is on implementing comprehensive type-safe schemas for all game systems.
+We're focused on the core data models and validation schemas that form the foundation of the application. The schemas are consolidated and type-safe across game systems.
 
-Recent cleanup: consolidated subclass schemas to a single BaseSubclassSchema across all classes; removed per-subclass discriminated unions and enabled optional companion on BaseSubclass (for Ranger Beastbound).
+Recent cleanups (verified today):
 
-New consolidation: merged `src/lib/schemas/ancestry.ts` and `community.ts` logic into a single `identity.ts` module. The original files now re-export from `identity.ts` for backward compatibility. Added mixed ancestry helper creators to `identity.ts`. Removed stale `schemas/classes.ts` (unused and referenced non-existent modules). Typecheck passes.
-
-Core consolidation: merged `src/lib/schemas/core/{enums,base-schemas,companion-system,level-progression}.ts` into a single `src/lib/schemas/core.ts`. Updated all imports to use `./core`. Left the old `core/` folder unused; removal pending file ops. Also updated `schemas/index.ts` to export from `./core` and `./identity` only.
-
-Core cleanup follow-up: removed legacy files under `src/lib/schemas/core/` (previously forwarders). All imports now use `./core.ts`; typecheck clean after deletion.
-
-Data alignment: removed explicit class data types from `src/lib/data/classes/*` and dropped `export * from './classes'` from `schemas/index.ts` after class schema module deletion. Project builds cleanly.
+- Consolidated subclass schemas to a single BaseSubclassSchema across all classes; optional companion supported for Ranger Beastbound.
+- Merged ancestry/community logic into `src/lib/schemas/identity.ts`; removed stale `schemas/classes.ts`.
+- Consolidated `core/*` into `src/lib/schemas/core.ts` and removed legacy forwarders.
+- Consolidated equipment and domain schemas into `src/lib/schemas/equipment.ts` and `src/lib/schemas/domains.ts`.
+- Domain card data lives under `src/lib/data/domains/*` (one file per domain), not under `src/lib/schemas`.
 
 ### Recently Completed
 
-- **Domain Card System**: Complete implementation of all 9 core domains
-  - Individual domain card files with full SRD data
-  - Schema validation for card structure and properties
-  - Type-safe exports and constants for each domain
-  - Support for future domains (Chaos, Moon, Sun, Blood, Fate)
-
-- **Class System Foundation**: Comprehensive class schema architecture
-  - All 9 classes with subclass variants implemented
-  - Level progression and tier-based feature unlocking
-  - Point-based level-up system with validation
-  - Multiclassing support with proper restrictions
-  - Companion system for Ranger Beastbound subclass
+- Domain Card System: All 9 core domains present under `src/lib/data/domains/` with SRD-aligned data; future domains (Chaos, Moon, Sun, Blood, Fate) stubbed as empty arrays.
+- Class System Foundation: 9 classes with subclass variants and progression rules; multiclassing scaffolding in place; Ranger companion supported.
 
 ### Current Sprint
 
-**Schema Completion & Validation**
+Schema completion and validation
 
-- Finalizing player character schema with all game systems
-- Integration testing between domain cards and character classes
-- Validation rule implementation for character creation constraints
+- Finalize and verify PlayerCharacter schema coverage (file exists and compiles)
+- Cross-validation between classes, domains, and equipment
+- Tighten validation messages and edge cases
 
 ## Next Immediate Steps
 
-1. **Character Schema Completion**
-   - Finish player character schema with all remaining fields
-   - Add equipment and inventory management schemas
-   - Implement character progression tracking
+1. Character schema finishing touches
 
-2. **Schema Integration Testing**
-   - Validate cross-references between classes and domains
-   - Test multiclassing rule enforcement
-   - Verify level-up point calculations
-   - Re-verify class data files against simplified class schemas
+- Confirm all fields and defaults in `player-character.ts`
+- Ensure equipment/inventory models cover UI needs
 
-3. **UI Component Planning**
-   - Design character creation flow components
-   - Plan domain card display and selection interfaces
-   - Character sheet layout and responsive design
+2. Schema integration testing
+
+- Validate class↔domain access rules and multiclassing
+- Verify level-up point calculations
+
+3. UI component planning
+
+- Sketch character creation flow and character sheet layout
 
 ## Active Decisions & Considerations
 
-### Schema Design Patterns
+Schema design patterns
 
-- **Discriminated Unions**: Using for type-safe class and subclass selection
-- **Const Assertions**: All game data marked `as const` for immutability
-- **Schema Composition**: Building complex schemas from reusable components
-- **Validation Layers**: Runtime validation with compile-time type safety
+- Discriminated unions for class/subclass selection
+- Const assertions (`as const`) for data immutability
+- Schema composition and reusable helpers (`MetadataSchema`, `ScoreSchema`, `unionWithString`)
 
-### Data Architecture Choices
+Data architecture choices
 
-- **Domain Organization**: Each domain in separate files for maintainability
-- **Export Consistency**: Standardized exports across all domain files
-- **Type Inference**: Leveraging Zod's `z.infer` for automatic TypeScript types
-- **Future Extensibility**: Structure supports additional content and homebrew
+- Domain data organized per-domain in `src/lib/data/domains`
+- Standardized exports; minimal barrels to avoid duplication
 
-### Performance Considerations
+Performance considerations
 
-- **Bundle Size**: Separating schemas to enable code splitting
-- **Validation Efficiency**: Reusing compiled schema instances
-- **Memory Usage**: Flat data structures for better serialization
+- Reuse compiled schemas; consider route-level code-splitting later
 
 ## Technical Debt & Known Issues
 
-### Current Limitations
-
-- Some domain cards lack complete implementation details
-- Character sheet UI components not yet started
-- No persistence layer for character data
-- Mobile responsiveness not yet tested
-
-### Future Refactoring Needs
-
-- Consider schema optimization for bundle size
-- Evaluate runtime validation performance with large datasets
-- Plan for internationalization support
-- Design system for homebrew content integration
+- Some domain cards may need formatting polish
+- No persistence layer yet
+- UI not started; mobile responsiveness untested
 
 ## Decision Log
 
-### Recent Architectural Decisions
+Recent decisions
 
-1. **Zod for Validation**: Chosen over alternatives for TypeScript integration
-2. **File-based Domain Organization**: Each domain in separate file for clarity
-3. **Const Assertion Strategy**: All game data immutable for type safety
-4. **Discriminated Union Pattern**: Type-safe polymorphic data structures
+1. Zod for validation with full TypeScript integration
+2. File-per-domain data organization
+3. Immutable game data via const assertions
+4. Discriminated unions over inheritance
 
-### Pending Decisions
+Pending decisions
 
-- Character data persistence strategy (localStorage vs IndexedDB)
-- UI state management approach (React Context vs external library)
-- Mobile-first vs desktop-first responsive design
-- Offline capability requirements and implementation
+- Persistence strategy (localStorage vs IndexedDB)
+- UI state management (Context vs external)
+- Offline capabilities scope
 
 ## Notes (Current Session)
 
-- Verified domains and equipment import the consolidated core enums/schemas.
-- Updated a stale comment in `player-character.ts` to reflect `core.ts` consolidation.
-- Kept barrels minimal to avoid duplicate symbol exports; consumers should import from `schemas/domains` and `schemas/equipment` directly when needed.
-- Migrated data imports to use the new aggregators:
-  - Domains data now imports `DomainCard` from `../../schemas/domains` (was `../../schemas/domains/domain-card.schema`).
-  - Equipment data now imports types from `../../schemas/equipment` (was `../../schemas/equipment/{weapons,armor,items}`).
-- Consolidated equipment and domains schemas into single files:
-  - `src/lib/schemas/equipment.ts` now contains base-equipment, weapons, armor, items.
-  - `src/lib/schemas/domains.ts` now contains the domain card schemas.
-  - Removed folders `src/lib/schemas/equipment/` and `src/lib/schemas/domains/`.
-- Typecheck passes after consolidation and deletions.
-
-- Deduplication helpers added:
-  - Introduced `MetadataSchema`, `NameDescriptionSchema`, `ScoreSchema`, and `unionWithString` in `schemas/core.ts`.
-  - Replaced repeated metadata and union-with-string patterns in `domains.ts`, `equipment.ts`, `identity.ts`, and `player-character.ts`.
-  - No public API changes; just internal simplification. Typecheck/build verified.
+- Audited memory bank for accuracy and aligned paths (domain data under `src/lib/data/domains`).
+- Ran type-check: PASS. Build path compiles.
+- Verified `PlayerCharacterSchema` exists and compiles; integration validation still to do.
 
 ## Context for Next Session
 
-When resuming work, the focus should be on:
-
-1. Completing any remaining character schema fields
-2. Beginning UI component development for character creation
-3. Testing schema validation with realistic character data
-4. Planning the character sheet interface design
-
-The foundation of type-safe schemas is nearly complete, providing a solid base for building the user interface and character management features.
+- Start integration tests for class↔domain rules and level-up math
+- Begin UI scaffolding for character creation
+- Map persistence requirements (MVP: localStorage)

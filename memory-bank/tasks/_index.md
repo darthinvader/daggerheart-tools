@@ -2,7 +2,7 @@
 
 ## In Progress
 
-- [TASK001] Complete lib schema system - Finalizing character progression and validation schemas
+- [TASK001] Complete lib schema system - Finalizing player character schema and integration validation
 
 ## Pending
 

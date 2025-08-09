@@ -38,7 +38,8 @@ All game content is based on the official Daggerheart System Reference Document 
 ## Project Structure
 
 - `/src/lib/schemas/` - Zod validation schemas for all game systems
-- `/src/lib/domains/` - Complete domain card implementations
+- `/src/lib/data/domains/` - Domain card data (one file per domain)
+- `/src/lib/data/equipment/` - Equipment/armor/items data
 - `/src/routes/` - Application pages and routing
 - `/SRD/` - Source reference documents and extracted content
 
