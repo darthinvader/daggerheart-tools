@@ -17,6 +17,9 @@ function RootComponent() {
         <Link to="/showcase" className="[&.active]:font-bold">
           Showcase
         </Link>
+        <Link to="/characters/mobile" className="[&.active]:font-bold">
+          Mobile Sheet
+        </Link>
         <ModeToggle />
       </div>
       <hr />

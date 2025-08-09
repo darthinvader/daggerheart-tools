@@ -1,6 +1,6 @@
 # [TASK005] - Mobile character display and editor (research-first)
 
-**Status:** Pending
+**Status:** In Progress
 **Added:** August 9, 2025
 **Updated:** August 9, 2025
 
@@ -209,43 +209,261 @@ QA, UX metrics & docs
 
 - 31.1 Add how-to-run and known limitations.
 
+## Field Inventory (PlayerCharacter)
+
+Top-level structure and nested fields derived from `src/lib/schemas/player-character.ts`.
+
+- identity (required)
+  - name: string (required)
+  - pronouns: string (required)
+  - ancestry: AncestryName (enum) (required)
+  - community: CommunityName (enum) (required)
+  - description: string (required)
+  - calling: string (required)
+  - abilities: Ability[] (required) — Ability = { name: string; description: string }
+
+- level: number int 1..10 (required)
+
+- traits: Record<CharacterTrait, { value: int; marked: boolean = false }> (required)
+
+- hp: { current: int; max: int; thresholds: DamageThresholds } (required)
+
+- stress: { current: int; max: int } (required, default = { current: 0, max: 6 })
+
+- armorScore: { current: int; max: int } (required)
+
+- evasion: number int min 0 (required, default = 10)
+
+- hope: number int min 0 (required, default = 2)
+
+- proficiency: number int min 1 (required, default = 1)
+
+- rallyDie: RallyDieEnum | string (optional, default = 'd6')
+
+- classDetails (required)
+  - name: ClassName (enum) (required)
+  - subclass: SubclassName (enum) (required)
+  - features: BaseFeature[] (required)
+  - domains: PlayerDomain[] (required) — PlayerDomain = { name: DomainName; cards: DomainCard[] }
+
+- multiclass: ClassName[] (optional)
+
+- domainCards: DomainCard[] (required)
+
+- vault: DomainCard[] (required)
+
+- loadout: DomainCard[] (required)
+
+- equipment: EquipmentLoadout (required)
+
+- inventory: InventoryItem[] (required)
+
+- armorStatus: ArmorStatus (optional)
+
+- weapons: Weapon[] (required)
+
+- armor: Armor[] (required)
+
+- gold: { handfuls: int>=0; bags: int>=0; chests: int>=0 } (required, default = { handfuls: 1, bags: 0, chests: 0 })
+
+- conditions: ConditionName[] (required, default = [])
+
+- experience: number int>=0 (required, default = 0)
+
+- experiences: Experience[] (required, default = []) — Experience = { name: string; trait?: CharacterTrait; bonus: 1|2 (default 2); notes?: string }
+
+- connections: string[] (optional)
+
+- progression: { rules: LevelUpPointSystem; state: CharacterProgression } (optional)
+
+- companion: RangerCompanion (optional)
+
+Notes
+
+- ScoreSchema shapes (hp/stress/armorScore) are treated as { current, max } pairs; only hp adds thresholds.
+- Required vs Optional reflects schema defaults: fields without defaults are required; defaults listed inline.
+
+## Field Classification (edit frequency) — 1.2
+
+Frequent (in-session)
+
+- hp.current, stress.current, conditions[]
+- gold.handfuls/bags/chests, loadout[] (tactical choices), notes/experiences additions
+- simple toggles: trait.marked, armorStatus (where applicable)
+
+Occasional (between sessions / setup)
+
+- traits.values, level, hope, proficiency, evasion, armorScore.current/max
+- weapons[], armor[], inventory[], equipment pack changes
+- domain loadout/vault adjustments, experience total
+
+Rare (initial setup)
+
+- identity (name, pronouns, ancestry, community, description, calling, abilities[])
+- classDetails (name, subclass, domains), multiclass, rallyDie, progression, companion, connections
+
+Notes: Frequent items should be one-tap reachable with large steppers/switches; occasional via section drawers; rare via deeper drawers with staged Save.
+
+## Control Type Map — 1.3
+
+- hp: plus/minus Stepper for current and max; thresholds read-only chips
+- stress: Stepper (current)
+- evasion/hope/proficiency/armorScore: Stepper with min bounds
+- traits: Stepper per trait value; Switch/Checkbox for marked
+- conditions: Multi-select combobox or chip list with removal x
+- level: Stepper (bounded 1..10)
+- rallyDie: Segmented control (d6/d8/d10...), show active
+- gold: Three steppers (handfuls/bags/chests)
+- weapons/armor/inventory: Searchable combobox + list with quantity steppers; remove via trash
+- equipment: Radio (pack mode) or search-add (free mode)
+- domainCards/vault/loadout: Filterable list with chips; tap to add/remove; enforce limits
+- classDetails.name/subclass: Searchable combobox; subclass filtered by class
+- identity text fields: Input/Textarea with helper text
+- experiences: Repeater rows (Input + optional selects), add/edit in drawer
+- connections: Token input (chips)
+- companion: Conditional sub-form (drawer)
+- progression: Display; specialized editor later
+
+## Mobile Presentation Patterns — 1.4
+
+Sections (order by frequency)
+
+1. Summary (sticky): name, class, level; HP/Stress quick steppers; conditions chips; quick actions
+2. Resources: HP/Stress/Evasion/Armor/Hope/Proficiency/Gold
+3. Loadout & Domains: Active loadout with add/remove; link to Vault
+4. Equipment & Inventory: Weapons/Armor/Items with steppers
+5. Traits: Values and marked toggles
+6. Class & Subclass: Read-only summary with Edit button
+7. Identity: Read-only with Edit button
+8. Experiences & Notes: Add/edit entries
+
+Edit entry pattern
+
+- Each section card has an Edit button opening a bottom Drawer (Sheet) scoped to that section
+- Frequent micro-edits (HP/Stress/Conditions) are inline with immediate commit
+- Save/Cancel in drawer footer; Save disabled until valid
+
+Navigation
+
+- Quick-jump menu to anchors; bottom action bar for context actions (Edit/View or Save/Cancel)
+- Preserve scroll/focus when closing drawers
+
+Quick-jump behavior
+
+- Provide a horizontal quick-jump chip row that scrolls to section anchors; ensure ≥44x44 CSS px targets
+- Highlight active section while scrolling using IntersectionObserver
+- Keep sticky summary compact; avoid overlap with quick-jump; respect safe-area insets
+
+## Validation & Hints Copy — 1.5
+
+Identity
+
+- name: required; helper: “Your character’s name.”
+- pronouns: required; helper: “Pronouns used for your character.”
+- ancestry/community: required enums; error: “Choose a valid ancestry/community.”
+- description/calling: required text; helper: short guidance; cap length ~500 chars
+- abilities[]: name/description required per row; confirm before delete
+
+Class & Subclass
+
+- class/subclass: required; subclass filtered by selected class; error: “Pick a subclass from this class.”
+- domains[]: display-only from class; helper: “Domains determine available cards.”
+
+Traits & Level
+
+- level: 1–10; helper: “Levels range from 1 to 10.”
+- traits.values: enforce budget (creation); show remaining points; block exceeding
+- marked: boolean; helper: “Mark a trait to indicate temporary emphasis.”
+
+Resources
+
+- hp.current/max: ints ≥ 0; current ≤ max; thresholds read-only
+- stress.current/max: ints ≥ 0; helper: “Stress ranges 0–6 by default.”
+- armorScore.current/max: ints ≥ 0; evasion ≥ 0; hope ≥ 0; proficiency ≥ 1
+- rallyDie: one of d6/d8/d10…; helper: “Default d6.”
+
+Domains & Cards
+
+- loadout: enforce SRD max active count; show remaining counter; disable add when limit reached
+- vault: no hard limit; removing from loadout returns to vault
+- domainCards: reference catalog; filtered by accessible domains
+
+Equipment & Inventory
+
+- equipment: Pack or Free-form; switching modes prompts confirm
+- weapons/armor/inventory: quantities ints ≥ 0; confirm destructive remove
+
+Economy & Conditions
+
+- gold.handfuls/bags/chests: ints ≥ 0; helper: “Tap + or – to adjust.”
+- conditions[]: choose from enum list; helper: “Tap a chip to remove.”
+
+Experience & Progression
+
+- experience: int ≥ 0; helper: “Total XP.”
+- experiences[]: name required; bonus 1–2 (default 2); optional trait & notes; confirm delete
+- progression: optional; validated if present
+- connections: optional string chips; helper: “People or groups important to your character.”
+
+Companion
+
+- companion: optional; only visible for eligible subclass; validate via RangerCompanionSchema
+
 ## Progress Tracking
 
-**Overall Status:** Not Started - 0% Complete
+**Overall Status:** In Progress - 25% Complete
 
 ### Subtasks
 
-| ID  | Description                                  | Status      | Updated | Notes |
-| --- | -------------------------------------------- | ----------- | ------- | ----- |
-| 1.1 | Extract PlayerCharacter field inventory      | Not Started | -       | -     |
-| 1.2 | Field classification (edit frequency)        | Not Started | -       | -     |
-| 1.3 | Control type decisions per field             | Not Started | -       | -     |
-| 1.4 | Presentation pattern per field               | Not Started | -       | -     |
-| 1.5 | Validation/hints copy per field              | Not Started | -       | -     |
-| 1.6 | Section grouping and navigation              | Not Started | -       | -     |
-| 1.7 | Default valid character snapshot             | Not Started | -       | -     |
-| 2.1 | Mobile skeleton layout                       | Not Started | -       | -     |
-| 2.2 | BottomActionBar (Edit/Save)                  | Not Started | -       | -     |
-| 2.3 | Section edit entry points                    | Not Started | -       | -     |
-| 3.1 | Hook form + zod for Identity/Traits subset   | Not Started | -       | -     |
-| 3.2 | Inline validation + messages                 | Not Started | -       | -     |
-| 3.3 | Save/Cancel flows (local state)              | Not Started | -       | -     |
-| 4.1 | Class/Subclass picker                        | Not Started | -       | -     |
-| 4.2 | Domain card selector                         | Not Started | -       | -     |
-| 4.3 | Equipment selector (pack/free)               | Not Started | -       | -     |
-| 4.4 | Resources panel (HP/Stress/Armor/Gold)       | Not Started | -       | -     |
-| 4.5 | Notes/Inventory text                         | Not Started | -       | -     |
-| 4.6 | Simple View play mode                        | Not Started | -       | -     |
-| 5.1 | Mobile polish (touch targets, headers, a11y) | Not Started | -       | -     |
-| 5.2 | Keyboard & safe areas                        | Not Started | -       | -     |
-| 6.1 | LocalStorage persistence + hydrate           | Not Started | -       | -     |
-| 6.2 | Reset/Export/Import actions                  | Not Started | -       | -     |
-| 7.1 | Tests for mapping and validation             | Not Started | -       | -     |
-| 7.2 | UX metrics instrumentation                   | Not Started | -       | -     |
-| 7.3 | Memory bank docs update                      | Not Started | -       | -     |
-| 7.4 | README route docs                            | Not Started | -       | -     |
+| ID  | Description                                  | Status      | Updated     | Notes                                         |
+| --- | -------------------------------------------- | ----------- | ----------- | --------------------------------------------- |
+| 1.1 | Extract PlayerCharacter field inventory      | Complete    | Aug 9, 2025 | Field inventory documented                    |
+| 1.2 | Field classification (edit frequency)        | Complete    | Aug 9, 2025 | Frequent/Occasional/Rare lists added          |
+| 1.3 | Control type decisions per field             | Complete    | Aug 9, 2025 | Control map defined                           |
+| 1.4 | Presentation pattern per field               | Complete    | Aug 9, 2025 | Section order, edit entry, quick-jump defined |
+| 1.5 | Validation/hints copy per field              | Complete    | Aug 9, 2025 | Helper/error guidance added                   |
+| 1.6 | Section grouping and navigation              | Not Started | -           | -                                             |
+| 1.7 | Default valid character snapshot             | Not Started | -           | -                                             |
+| 2.1 | Mobile skeleton layout                       | Not Started | -           | -                                             |
+| 2.2 | BottomActionBar (Edit/Save)                  | Not Started | -           | -                                             |
+| 2.3 | Section edit entry points                    | Not Started | -           | -                                             |
+| 3.1 | Hook form + zod for Identity/Traits subset   | Not Started | -           | -                                             |
+| 3.2 | Inline validation + messages                 | Not Started | -           | -                                             |
+| 3.3 | Save/Cancel flows (local state)              | Not Started | -           | -                                             |
+| 4.1 | Class/Subclass picker                        | Not Started | -           | -                                             |
+| 4.2 | Domain card selector                         | Not Started | -           | -                                             |
+| 4.3 | Equipment selector (pack/free)               | Not Started | -           | -                                             |
+| 4.4 | Resources panel (HP/Stress/Armor/Gold)       | Not Started | -           | -                                             |
+| 4.5 | Notes/Inventory text                         | Not Started | -           | -                                             |
+| 4.6 | Simple View play mode                        | Not Started | -           | -                                             |
+| 5.1 | Mobile polish (touch targets, headers, a11y) | Not Started | -           | -                                             |
+| 5.2 | Keyboard & safe areas                        | Not Started | -           | -                                             |
+| 6.1 | LocalStorage persistence + hydrate           | Not Started | -           | -                                             |
+| 6.2 | Reset/Export/Import actions                  | Not Started | -           | -                                             |
+| 7.1 | Tests for mapping and validation             | Not Started | -           | -                                             |
+| 7.2 | UX metrics instrumentation                   | Not Started | -           | -                                             |
+| 7.3 | Memory bank docs update                      | Not Started | -           | -                                             |
+| 7.4 | README route docs                            | Not Started | -           | -                                             |
 
 ## Progress Log
+
+### August 9, 2025
+
+- Completed subtask 1.1: Enumerated all PlayerCharacter fields with required/optional states and defaults.
+- Added "Field Inventory" section to this task for reference during mapping (1.2–1.5).
+- Next: Classify fields by edit frequency and mark quick-access groups (HP, Stress, Conditions, Loadout).
+
+### August 9, 2025 (later)
+
+- Completed 1.2 with frequency categories; completed 1.3 with control type map.
+- Began 1.4 defining mobile section order, edit entry (drawer), and navigation patterns.
+- Next: Finish 1.4 by adding quick-jump menu behavior and finalize any remaining section details; then proceed to 1.5 validation copy.
+
+### August 9, 2025 (later 2)
+
+- Finished 1.4: added quick-jump behavior and finalized section patterns.
+- Completed 1.5: wrote validation constraints and helper/error copy per field group.
+- Next: Start 1.6 (section grouping confirmation and navigation details) and 1.7 (default valid snapshot), then begin UI skeleton (8.x).
 
 ### August 9, 2025
 
