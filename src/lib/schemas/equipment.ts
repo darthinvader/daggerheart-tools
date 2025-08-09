@@ -7,6 +7,7 @@ import {
   MetadataSchema,
   NameDescriptionSchema,
   WeaponTraitEnum,
+  WeaponTraitSchema,
   unionWithString,
 } from './core';
 
@@ -56,7 +57,7 @@ export const BaseEquipmentSchema = z.object({
 
 export const WeaponSchema = BaseEquipmentSchema.extend({
   type: WeaponTypeSchema,
-  trait: z.union([WeaponTraitEnum, z.string()]),
+  trait: WeaponTraitSchema,
   range: RangeSchema,
   damage: DamageSchema,
   burden: BurdenSchema,
@@ -128,12 +129,10 @@ export function getEffectiveDamageThresholds(
 
 export const PrimaryWeaponSchema = WeaponSchema.extend({
   type: z.union([z.literal('Primary'), WeaponTypeSchema]),
-  domainAffinity: z.string().optional(),
 });
 
 export const SecondaryWeaponSchema = WeaponSchema.extend({
   type: z.union([z.literal('Secondary'), WeaponTypeSchema]),
-  domainAffinity: z.string().optional(),
 });
 
 export const CombatWheelchairSchema = WeaponSchema.extend({
@@ -300,14 +299,14 @@ export const PotionTypeEnum = z.enum([
   'Major Trait Boost',
   'Special Effect',
 ]);
-export const PotionTypeId = z.union([PotionTypeEnum, z.string()]);
+export const PotionTypeId = unionWithString(PotionTypeEnum);
 
 export const PotionSchema = ConsumableSchema.extend({
   subcategory: z.literal('Potion'),
   potionType: PotionTypeId,
   healingAmount: z.string().optional(),
   traitBonus: TraitBonusWithDurationSchema.optional(),
-  metadata: z.record(z.string(), z.unknown()).optional(),
+  metadata: MetadataSchema,
 });
 
 export const ItemCollectionSchema = z.object({

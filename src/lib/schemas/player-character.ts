@@ -6,16 +6,20 @@ import {
   AncestryNameEnum,
   BardSubclassEnum,
   BaseFeatureSchema,
+  CharacterProgressionSchema,
   CharacterTraitEnum,
   ClassNameEnum,
   CommunityNameEnum,
+  ConditionNameSchema,
   DomainNameEnum,
   DruidSubclassEnum,
   GuardianSubclassEnum,
+  LevelUpPointSystemSchema,
   NameDescriptionSchema,
   RangerCompanionSchema,
   RangerSubclassEnum,
   RogueSubclassEnum,
+  ScoreSchema,
   SeraphSubclassEnum,
   SorcererSubclassEnum,
   WarriorSubclassEnum,
@@ -37,21 +41,13 @@ import {
 // Core Character Stats
 // ======================================================================================
 
-const HitPointsSchema = z.object({
-  current: z.number().int(),
-  max: z.number().int(),
+const HitPointsSchema = ScoreSchema.extend({
   thresholds: DamageThresholdsSchema,
 });
 
-const StressSchema = z.object({
-  current: z.number().int(),
-  max: z.number().int(),
-});
+const StressSchema = ScoreSchema;
 
-const ArmorScoreSchema = z.object({
-  current: z.number().int(),
-  max: z.number().int(),
-});
+const ArmorScoreSchema = ScoreSchema;
 
 const GoldSchema = z.object({
   handfuls: z.number().int().min(0).default(0),
@@ -138,9 +134,11 @@ export const PlayerCharacterSchema = z.object({
   evasion: z.number().int().min(0).default(10), // SRD: Start at 10
   hope: z.number().int().min(0).default(0),
   proficiency: z.number().int().min(1).default(1),
+  rallyDie: z.union([z.literal('d6'), z.literal('d8')]).default('d6'),
 
   // Class & Domains
   classDetails: ClassDetailsSchema,
+  multiclass: z.array(ClassNameEnum).optional(),
 
   // Domain card collections
   domainCards: DomainCardCollectionSchema, // All available domain cards
@@ -154,6 +152,7 @@ export const PlayerCharacterSchema = z.object({
   weapons: z.array(WeaponSchema),
   armor: z.array(ArmorSchema),
   gold: GoldSchema,
+  conditions: z.array(ConditionNameSchema).default([]),
 
   // Experience & Connections
   // XP total for leveling
@@ -161,6 +160,13 @@ export const PlayerCharacterSchema = z.object({
   // Narrative experiences usable with Hope
   experiences: ExperienceCollectionSchema.default([]),
   connections: z.array(z.string()).optional(),
+  // Level progression tracking (optional; rules engine can compute if omitted)
+  progression: z
+    .object({
+      rules: LevelUpPointSystemSchema,
+      state: CharacterProgressionSchema,
+    })
+    .optional(),
 
   // Ranger Companion
   companion: RangerCompanionSchema.optional(), // Optional for Beastbound subclass

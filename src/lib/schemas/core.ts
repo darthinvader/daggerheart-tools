@@ -186,6 +186,15 @@ export const EquipmentFeatureTypeSchema = unionWithString(
 );
 export const WeaponTraitSchema = unionWithString(WeaponTraitEnum);
 
+// Status conditions that can affect a player character; kept minimal and extensible
+export const ConditionNameEnum = z.enum([
+  'Poisoned',
+  'Restrained',
+  'Vulnerable',
+  'Distracted',
+]);
+export const ConditionNameSchema = unionWithString(ConditionNameEnum);
+
 export const SubclassNameSchema = z.union([
   z.union([
     BardSubclassEnum,
@@ -313,6 +322,7 @@ export const BaseClassSchema = z.object({
 export type DomainName = z.infer<typeof DomainNameEnum>;
 export type CharacterTrait = z.infer<typeof CharacterTraitEnum>;
 export type WeaponTrait = z.infer<typeof WeaponTraitEnum>;
+export type ConditionName = z.infer<typeof ConditionNameSchema>;
 export type CharacterTier = z.infer<typeof CharacterTierSchema>;
 export type BaseFeature = z.infer<typeof BaseFeatureSchema>;
 export type SubclassFeature = z.infer<typeof SubclassFeatureSchema>;
