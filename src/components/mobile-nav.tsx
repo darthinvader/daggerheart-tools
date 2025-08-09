@@ -30,7 +30,7 @@ const defaultItems: NavItem[] = [
 
 export function MobileNavBar({
   items = defaultItems,
-  addTo = '/characters/new/identity',
+  addTo = '/characters/new',
   addLabel = 'New Character',
 }: MobileNavBarProps) {
   // Exactly two items around a center FAB
