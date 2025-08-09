@@ -41,11 +41,11 @@ export function MobileNavBar({
       <div className="relative">
         {/* Grid rail: 3 columns with center reserved for FAB */}
         <div className="grid h-16 grid-cols-3 items-center px-6">
-          <div className="flex items-center justify-center">
+          <div className="h-full w-full">
             <Link
               to={left.to}
               className={clsx(
-                'group text-muted-foreground [&.active]:text-primary inline-flex flex-col items-center justify-center gap-1 text-xs'
+                'group text-muted-foreground [&.active]:text-primary inline-flex h-full w-full flex-col items-center justify-center gap-1 text-xs'
               )}
               activeProps={{ className: 'active' }}
               preload="intent"
@@ -57,11 +57,11 @@ export function MobileNavBar({
 
           <div aria-hidden />
 
-          <div className="flex items-center justify-center">
+          <div className="h-full w-full">
             <Link
               to={right.to}
               className={clsx(
-                'group text-muted-foreground [&.active]:text-primary inline-flex flex-col items-center justify-center gap-1 text-xs'
+                'group text-muted-foreground [&.active]:text-primary inline-flex h-full w-full flex-col items-center justify-center gap-1 text-xs'
               )}
               activeProps={{ className: 'active' }}
               preload="intent"
