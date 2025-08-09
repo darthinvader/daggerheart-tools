@@ -35,6 +35,8 @@
   --accent: oklch(0.93 0.08 85);
   --accent-foreground: oklch(0.22 0.02 255);
   --destructive: oklch(0.6 0.23 27);
+  /* Match shadcn variable set */
+  --destructive-foreground: oklch(0.985 0.001 106.423);
   --border: oklch(0.9 0.01 255);
   --input: oklch(0.9 0.01 255);
   --ring: oklch(0.6 0.16 235);
@@ -135,6 +137,8 @@ h1 {
   --accent: oklch(0.7 0.13 90);
   --accent-foreground: oklch(0.22 0.02 255);
   --destructive: oklch(0.72 0.2 22);
+  /* Match shadcn variable set */
+  --destructive-foreground: oklch(0.985 0.001 106.423);
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 18%);
   --ring: oklch(0.75 0.12 235);

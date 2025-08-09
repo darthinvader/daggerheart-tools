@@ -71,3 +71,10 @@ Deliverables: creation wizard, basic sheet, validation + error UX, local storage
 - Ran type-check: PASS. Build path compiles.
 - Verified `PlayerCharacterSchema` and equipment/domain schemas exist and are consistent.
 - Decisions captured: multiclass during creation; enforce starting card counts at creation; equipment pack + free modes; Tailwind + shadcn/ui for UI.
+
+### August 9, 2025
+
+- Shadcn components: Added via CLI `carousel`, `chart`, `drawer`, `form`, `input-otp`, `sidebar`. CLI updated some existing UI files.
+- Implemented local UI equivalents for registry-missing items: `combobox`, `date-picker`, `data-table`, `typography` in `src/components/ui/`.
+- Installed peer deps: `embla-carousel-react`, `recharts`, `@tanstack/react-table`, `input-otp`, `react-hook-form` (and hookform resolvers). Kept `sonner` for toasts per shadcn deprecation note.
+- Verified with type-check and build: PASS.

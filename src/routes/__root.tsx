@@ -1,7 +1,7 @@
 import { Link, Outlet, createRootRoute } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 
-import { ThemeToggle } from '@/components/theme-toggle';
+import { ModeToggle } from '@/components/mode-toggle';
 
 function RootComponent() {
   return (
@@ -16,7 +16,7 @@ function RootComponent() {
         <Link to="/showcase" className="[&.active]:font-bold">
           Showcase
         </Link>
-        <ThemeToggle />
+        <ModeToggle />
       </div>
       <hr />
       <Outlet />
