@@ -3,6 +3,8 @@ import { Home, Plus, Users } from 'lucide-react';
 
 import type { ReactNode } from 'react';
 
+import { createPortal } from 'react-dom';
+
 import { Link } from '@tanstack/react-router';
 
 type NavItem = {
@@ -33,10 +35,11 @@ export function MobileNavBar({
   const left = items[0] ?? defaultItems[0];
   const right = items[1] ?? defaultItems[1];
 
-  return (
+  const content = (
     <nav
       aria-label="Primary"
-      className="bg-card/90 supports-[backdrop-filter]:bg-card/60 fixed inset-x-0 bottom-0 z-50 border-t backdrop-blur sm:hidden"
+      className="bg-card/90 supports-[backdrop-filter]:bg-card/60 fixed inset-x-0 bottom-0 z-[9999] border-t backdrop-blur sm:hidden"
+      style={{ position: 'fixed', left: 0, right: 0, bottom: 0 }}
     >
       <div className="relative">
         {/* Grid rail: 3 columns with center reserved for FAB */}
@@ -87,4 +90,10 @@ export function MobileNavBar({
       </div>
     </nav>
   );
+
+  // Ensure fixed positioning isn't affected by ancestor layout by portaling to body
+  if (typeof document !== 'undefined' && document.body) {
+    return createPortal(content, document.body);
+  }
+  return content;
 }
