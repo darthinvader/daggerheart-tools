@@ -89,3 +89,11 @@ Deliverables: creation sheet (single route), validation + error UX, local storag
 - Migrated to per-id routing: `/characters/$id` hosts the character sheet; `/characters/new` redirects to UUID.
 - Implemented Identity drawer with RHF + zod; per-id localStorage persistence and hydration with safe defaults.
 - Verified type-check and build: PASS; route tree includes new dynamic route.
+
+### August 9, 2025 (even later)
+
+- Mobile polish: Added bottom padding to `<main>` using calc(4rem + safe-area inset + 24px) to avoid MobileNavBar overlap across routes.
+- Summary card redesign: Two-column on sm+, showing identity snapshot and quick HP/Stress readouts with inline +/- controls.
+- Drawer ergonomics: Confirmed 100dvh + safe-area padding and scrollable content mitigate keyboard overlap.
+- Quality gates: Type-check PASS; build PASS (with large chunk warnings to address later via code-splitting).
+- Header: Title now shows only the character's name in a smaller font; when empty, displays a subtle 'Set a name' placeholder.

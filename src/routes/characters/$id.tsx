@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { z } from 'zod';
 
 import * as React from 'react';
@@ -312,14 +313,38 @@ function CharacterSheet() {
   };
 
   return (
-    <div className="mx-auto max-w-screen-sm space-y-4 p-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">
-          {identity.name || 'New Character'}
+    <div className="w-full space-y-4 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2 sm:flex-nowrap">
+        <h1 className="text-xl font-semibold">
+          <button
+            type="button"
+            aria-label="Edit name"
+            onClick={() => setOpenIdentity(true)}
+            className="cursor-pointer text-left hover:underline"
+          >
+            {identity.name ? (
+              identity.name
+            ) : (
+              <span className="text-muted-foreground font-normal">
+                Set a name
+              </span>
+            )}
+          </button>
         </h1>
-        <Button asChild variant="ghost">
-          <Link to="/characters">Close</Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              // Currently, edits auto-persist; this provides user feedback.
+              toast('Saved');
+            }}
+          >
+            Save
+          </Button>
+          <Button asChild variant="ghost">
+            <Link to="/characters">Go to Characters</Link>
+          </Button>
+        </div>
       </div>
 
       {/* Summary section */}
@@ -327,11 +352,23 @@ function CharacterSheet() {
         <CardHeader>
           <CardTitle>Summary</CardTitle>
         </CardHeader>
-        <CardContent className="text-muted-foreground text-sm">
-          {/* Could display ID for debugging */}
-          <div className="flex items-center justify-between">
-            <span>Name, Class, Level, quick HP/Stress controls…</span>
-            <span className="text-[10px] opacity-60">{id}</span>
+        <CardContent>
+          {/* Identity snapshot only; HP/Stress live in Resources below */}
+          <div className="space-y-1">
+            <div className="text-foreground text-base font-semibold">
+              {identity.name || 'Unnamed Character'}{' '}
+              {identity.pronouns ? (
+                <span className="text-muted-foreground text-sm font-normal">
+                  ({identity.pronouns})
+                </span>
+              ) : null}
+            </div>
+            <div className="text-muted-foreground text-sm">
+              {identity.ancestry} · {identity.community}
+            </div>
+            <div className="text-muted-foreground text-xs opacity-70">
+              id: {id}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -343,7 +380,7 @@ function CharacterSheet() {
         </CardHeader>
         <CardContent className="space-y-3">
           {/* Evasion */}
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="text-sm">
               <div className="font-medium">Evasion</div>
             </div>
@@ -370,7 +407,7 @@ function CharacterSheet() {
             </div>
           </div>
           {/* Hope */}
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="text-sm">
               <div className="font-medium">Hope</div>
             </div>
@@ -397,7 +434,7 @@ function CharacterSheet() {
             </div>
           </div>
           {/* Proficiency */}
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="text-sm">
               <div className="font-medium">Proficiency</div>
             </div>
@@ -431,7 +468,7 @@ function CharacterSheet() {
         <CardHeader>
           <CardTitle>Identity</CardTitle>
         </CardHeader>
-        <CardContent className="flex items-center justify-between gap-2">
+        <CardContent className="flex flex-wrap items-center justify-between gap-2">
           <div className="text-muted-foreground text-sm">
             {identity.name ? (
               <div className="space-y-0.5">
@@ -465,7 +502,7 @@ function CharacterSheet() {
           <DrawerHeader>
             <DrawerTitle>Edit Identity</DrawerTitle>
           </DrawerHeader>
-          <div className="px-4 pb-2">
+          <div className="overflow-y-auto px-4 pb-[max(8px,env(safe-area-inset-bottom))]">
             <Form {...form}>
               <form className="space-y-4" onSubmit={submit} noValidate>
                 <FormField
@@ -793,16 +830,7 @@ function CharacterSheet() {
         </CardContent>
       </Card>
 
-      <div className="sticky bottom-20 z-[1] sm:static">
-        <div className="bg-card/90 supports-[backdrop-filter]:bg-card/60 rounded-md border p-3 backdrop-blur">
-          <div className="flex items-center justify-end gap-2">
-            <Button variant="outline" asChild>
-              <Link to="/characters">Cancel</Link>
-            </Button>
-            <Button disabled>Save</Button>
-          </div>
-        </div>
-      </div>
+      {/* Bottom action bar removed per UX: it obscured content on mobile */}
     </div>
   );
 }

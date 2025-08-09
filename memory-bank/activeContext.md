@@ -16,6 +16,7 @@ Changes implemented (today):
 - `src/routes/characters.index.tsx` lists characters area; “New” links to `/characters/new`.
 - `src/components/mobile-nav.tsx` FAB default remains `/characters/new`.
 - Rebuilt to regenerate `routeTree.gen.ts` (reflects `/characters/$id` + `/characters/new`).
+- Global bottom padding added to `<main>` so content never hides behind the MobileNavBar (includes safe-area inset). Summary card redesigned to show identity + quick HP/Stress controls.
 
 We're focused on the core data models and validation schemas that form the foundation of the application. The schemas are consolidated and type-safe across game systems.
 
@@ -112,7 +113,7 @@ Pending decisions
 
 ### In Progress (Character Sheet UI)
 
-- Per-id character sheet at `/characters/$id` with Identity drawer wired via RHF + zod. Next: Traits steppers, Resources quick controls, and BottomActionBar.
+- Per-id character sheet at `/characters/$id` with Identity drawer wired via RHF + zod, Traits steppers with budget, Resources quick controls, and Summary identity + HP/Stress snapshot. Bottom action bar removed in favor of header actions. Drawers use 100dvh with safe-area padding.
 
 ## Context for Next Session
 

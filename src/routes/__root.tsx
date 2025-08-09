@@ -6,7 +6,7 @@ import { MobileNavBar } from '@/components/mobile-nav';
 function RootComponent() {
   return (
     <>
-      <main>
+      <main className="pb-[calc(4rem+max(env(safe-area-inset-bottom),0px)+24px)]">
         <Outlet />
       </main>
       <MobileNavBar />
