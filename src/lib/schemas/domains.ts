@@ -1,12 +1,10 @@
 import { z } from 'zod';
 
-import { DomainNameSchema } from '../core/enums';
+import { DomainNameSchema } from './core';
 
-// Domain card types from the SRD
 export const DomainCardTypeEnum = z.enum(['Spell', 'Ability']);
 export const DomainCardTypeSchema = z.union([DomainCardTypeEnum, z.string()]);
 
-// Schema for individual domain cards with full details
 export const DomainCardSchema = z.object({
   name: z.string(),
   level: z.number().int().min(1).max(10),
@@ -18,7 +16,6 @@ export const DomainCardSchema = z.object({
   metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
-// Schema for domain card collections on character sheets
 export const DomainCardCollectionSchema = z.array(DomainCardSchema);
 
 export type DomainCard = z.infer<typeof DomainCardSchema>;

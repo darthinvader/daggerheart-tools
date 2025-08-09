@@ -1,4 +1,4 @@
-import type { DomainCard } from '../../schemas/domains/domain-card.schema';
+import type { DomainCard } from '../../schemas/domains';
 
 // Complete Valor domain cards with full details from the SRD
 export const VALOR_DOMAIN_CARDS: DomainCard[] = [

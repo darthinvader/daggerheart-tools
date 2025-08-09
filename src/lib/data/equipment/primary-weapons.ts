@@ -1,4 +1,4 @@
-import type { PrimaryWeapon } from '../../schemas/equipment/weapons';
+import type { PrimaryWeapon } from '../../schemas/equipment';
 
 // Primary Weapons per SRD (Tier-based, Physical and Magic)
 // Tier 1 (Level 1) — Physical

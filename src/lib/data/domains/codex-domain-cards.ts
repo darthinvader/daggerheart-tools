@@ -1,4 +1,4 @@
-import type { DomainCard } from '../../schemas/domains/domain-card.schema';
+import type { DomainCard } from '../../schemas/domains';
 
 // Codex Domain Cards - Level 1
 

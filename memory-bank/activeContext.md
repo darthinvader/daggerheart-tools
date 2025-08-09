@@ -8,6 +8,12 @@ Currently working on the core data models and validation schemas that form the f
 
 Recent cleanup: consolidated subclass schemas to a single BaseSubclassSchema across all classes; removed per-subclass discriminated unions and enabled optional companion on BaseSubclass (for Ranger Beastbound).
 
+New consolidation: merged `src/lib/schemas/ancestry.ts` and `community.ts` logic into a single `identity.ts` module. The original files now re-export from `identity.ts` for backward compatibility. Added mixed ancestry helper creators to `identity.ts`. Removed stale `schemas/classes.ts` (unused and referenced non-existent modules). Typecheck passes.
+
+Core consolidation: merged `src/lib/schemas/core/{enums,base-schemas,companion-system,level-progression}.ts` into a single `src/lib/schemas/core.ts`. Updated all imports to use `./core`. Left the old `core/` folder unused; removal pending file ops. Also updated `schemas/index.ts` to export from `./core` and `./identity` only.
+
+Core cleanup follow-up: removed legacy files under `src/lib/schemas/core/` (previously forwarders). All imports now use `./core.ts`; typecheck clean after deletion.
+
 Data alignment: removed explicit class data types from `src/lib/data/classes/*` and dropped `export * from './classes'` from `schemas/index.ts` after class schema module deletion. Project builds cleanly.
 
 ### Recently Completed
@@ -104,6 +110,20 @@ Data alignment: removed explicit class data types from `src/lib/data/classes/*` 
 - UI state management approach (React Context vs external library)
 - Mobile-first vs desktop-first responsive design
 - Offline capability requirements and implementation
+
+## Notes (Current Session)
+
+- Verified domains and equipment import the consolidated core enums/schemas.
+- Updated a stale comment in `player-character.ts` to reflect `core.ts` consolidation.
+- Kept barrels minimal to avoid duplicate symbol exports; consumers should import from `schemas/domains` and `schemas/equipment` directly when needed.
+- Migrated data imports to use the new aggregators:
+  - Domains data now imports `DomainCard` from `../../schemas/domains` (was `../../schemas/domains/domain-card.schema`).
+  - Equipment data now imports types from `../../schemas/equipment` (was `../../schemas/equipment/{weapons,armor,items}`).
+- Consolidated equipment and domains schemas into single files:
+  - `src/lib/schemas/equipment.ts` now contains base-equipment, weapons, armor, items.
+  - `src/lib/schemas/domains.ts` now contains the domain card schemas.
+  - Removed folders `src/lib/schemas/equipment/` and `src/lib/schemas/domains/`.
+- Typecheck passes after consolidation and deletions.
 
 ## Context for Next Session
 

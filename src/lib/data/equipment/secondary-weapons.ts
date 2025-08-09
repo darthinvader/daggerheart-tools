@@ -1,4 +1,4 @@
-import type { SecondaryWeapon } from '../../schemas/equipment/weapons';
+import type { SecondaryWeapon } from '../../schemas/equipment';
 import { getProtectiveFeature } from '../equipment/common-features';
 
 // Tier 1 Secondary Weapons

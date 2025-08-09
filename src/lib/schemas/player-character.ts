@@ -1,25 +1,25 @@
 import { z } from 'zod';
 
 // identity data imports no longer needed here; using explicit enums instead
-// Import shared schemas from core
-import { BaseFeatureSchema } from './core/base-schemas';
-import { RangerCompanionSchema } from './core/companion-system';
+// Import shared schemas from consolidated core module
 import {
   AncestryNameEnum,
   BardSubclassEnum,
+  BaseFeatureSchema,
   CharacterTraitEnum,
   ClassNameEnum,
   CommunityNameEnum,
   DomainNameEnum,
   DruidSubclassEnum,
   GuardianSubclassEnum,
+  RangerCompanionSchema,
   RangerSubclassEnum,
   RogueSubclassEnum,
   SeraphSubclassEnum,
   SorcererSubclassEnum,
   WarriorSubclassEnum,
   WizardSubclassEnum,
-} from './core/enums';
+} from './core';
 import { DomainCardCollectionSchema } from './domains';
 // Import equipment schemas
 import {
@@ -31,7 +31,7 @@ import {
   WeaponSchema,
 } from './equipment';
 
-// Subclass enums are centralized in core/enums.ts
+// Subclass enums are consolidated in core.ts
 
 // Core Character Stats
 // ======================================================================================

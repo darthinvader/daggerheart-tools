@@ -1,15 +1,20 @@
 import { z } from 'zod';
 
-import { ANCESTRIES } from '../data/characters/ancestries';
+// Data sources
+import { ANCESTRIES as RAW_ANCESTRIES } from '../data/characters/ancestries';
+import { COMMUNITIES as RAW_COMMUNITIES } from '../data/characters/communities';
 
-// Base schemas for ancestry-related types
+// =============================
+// Ancestry
+// =============================
+
 export const AncestryFeatureSchema = z.object({
   name: z.string(),
   description: z.string(),
+  // Preserve explicit type used by callers to distinguish features
   type: z.enum(['primary', 'secondary']),
 });
 
-// Ancestry schema
 export const AncestrySchema = z.object({
   name: z.string(),
   description: z.string(),
@@ -20,7 +25,6 @@ export const AncestrySchema = z.object({
   secondaryFeature: AncestryFeatureSchema,
 });
 
-// Mixed ancestry schema
 export const MixedAncestrySchema = z.object({
   name: z.string(),
   parentAncestries: z.array(z.string()),
@@ -28,27 +32,24 @@ export const MixedAncestrySchema = z.object({
   secondaryFeature: AncestryFeatureSchema,
 });
 
-// Type exports
 export type AncestryFeature = z.infer<typeof AncestryFeatureSchema>;
 export type Ancestry = z.infer<typeof AncestrySchema>;
 export type MixedAncestry = z.infer<typeof MixedAncestrySchema>;
 
-// Re-export moved data
-export { ANCESTRIES } from '../data/characters/ancestries';
+export const ANCESTRIES = RAW_ANCESTRIES as Ancestry[];
 
-// Utility functions
 export function getAncestryByName(name: string): Ancestry | undefined {
-  return (ANCESTRIES as Ancestry[]).find(
-    ancestry => ancestry.name.toLowerCase() === name.toLowerCase()
+  return ANCESTRIES.find(
+    (ancestry: Ancestry) => ancestry.name.toLowerCase() === name.toLowerCase()
   );
 }
 
 export function getAncestryPrimaryFeatures(): AncestryFeature[] {
-  return (ANCESTRIES as Ancestry[]).map(ancestry => ancestry.primaryFeature);
+  return ANCESTRIES.map((ancestry: Ancestry) => ancestry.primaryFeature);
 }
 
 export function getAncestrySecondaryFeatures(): AncestryFeature[] {
-  return (ANCESTRIES as Ancestry[]).map(ancestry => ancestry.secondaryFeature);
+  return ANCESTRIES.map((ancestry: Ancestry) => ancestry.secondaryFeature);
 }
 
 export function getPrimaryFeatureByAncestryName(
@@ -65,7 +66,7 @@ export function getSecondaryFeatureByAncestryName(
   return ancestry ? ancestry.secondaryFeature : undefined;
 }
 
-// Helper function to create a mixed ancestry following the rules
+// Mixed ancestry creators
 export function createMixedAncestry(
   name: string,
   ancestryOneName: string,
@@ -84,7 +85,6 @@ export function createMixedAncestry(
   };
 }
 
-// Alternative mixed ancestry creation (primary from second ancestry, secondary from first)
 export function createAlternateMixedAncestry(
   name: string,
   ancestryOneName: string,
@@ -103,7 +103,6 @@ export function createAlternateMixedAncestry(
   };
 }
 
-// Custom mixed ancestry creation (choose any primary and any secondary)
 export function createCustomMixedAncestry(
   name: string,
   parentAncestries: string[],
@@ -123,7 +122,6 @@ export function createCustomMixedAncestry(
   };
 }
 
-// Validation functions
 export function validateAncestry(ancestry: unknown): ancestry is Ancestry {
   try {
     AncestrySchema.parse(ancestry);
@@ -138,6 +136,53 @@ export function validateMixedAncestry(
 ): mixedAncestry is MixedAncestry {
   try {
     MixedAncestrySchema.parse(mixedAncestry);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// =============================
+// Community
+// =============================
+
+export const CommunityFeatureSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+});
+
+export const CommunitySchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  commonTraits: z.array(z.string()),
+  feature: CommunityFeatureSchema,
+});
+
+export type CommunityFeature = z.infer<typeof CommunityFeatureSchema>;
+export type Community = z.infer<typeof CommunitySchema>;
+
+export const COMMUNITIES = RAW_COMMUNITIES as Community[];
+
+export function getCommunityByName(name: string): Community | undefined {
+  return COMMUNITIES.find(
+    (community: Community) =>
+      community.name.toLowerCase() === name.toLowerCase()
+  );
+}
+
+export function getRandomCommunityTrait(
+  communityName: string
+): string | undefined {
+  const community = getCommunityByName(communityName);
+  if (!community) return undefined;
+
+  const randomIndex = Math.floor(Math.random() * community.commonTraits.length);
+  return community.commonTraits[randomIndex];
+}
+
+export function validateCommunity(community: unknown): community is Community {
+  try {
+    CommunitySchema.parse(community);
     return true;
   } catch {
     return false;

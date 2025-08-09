@@ -1,6 +1,6 @@
 // Midnight Domain Cards for Daggerheart
 // Domain focused on stealth, shadows, and nighttime abilities
-import type { DomainCard } from '../../schemas/domains/domain-card.schema';
+import type { DomainCard } from '../../schemas/domains';
 
 // Complete Midnight Domain Cards from the SRD
 export const MIDNIGHT_DOMAIN_CARDS: DomainCard[] = [

@@ -23,6 +23,12 @@
 
   Schema simplification: unified subclass validation via BaseSubclassSchema across all classes; Ranger companion supported at base level.
 
+- **Identity Schema Consolidation**: Ancestry + Community
+  - New `identity.ts` centralizes ancestry/community schemas, types, utilities, and data re-exports
+  - `ancestry.ts` and `community.ts` now serve as re-export shims to avoid breaking imports
+  - Added mixed ancestry helper functions to `identity.ts`
+  - Removed stale `schemas/classes.ts`
+
 - **Level Progression System**: Point-based advancement
   - 2 points per level with configurable costs
   - Tier-based features (Foundation → Specialization → Mastery)
@@ -176,3 +182,18 @@
 - Basic character sheet display
 - Data validation and error handling
 - Local character storage
+
+## Recent Progress Log
+
+- Consolidated core schemas confirmed; added forwarder files in `src/lib/schemas/core/*` to point to `../core.ts` for compatibility. Typecheck passes with no errors.
+- Normalized domains/equipment imports to use consolidated core. Left central `schemas/index.ts` limited to `core` and `identity` to avoid symbol collisions.
+- Migrated data-layer imports to new aggregators:
+  - Domains: `../../schemas/domains` (replacing deep path to domain-card.schema)
+  - Equipment: `../../schemas/equipment` (replacing deep paths to weapons/armor/items)
+    Typecheck: PASS.
+- Deleted legacy submodule files in `src/lib/schemas/core/` now that all imports target `core.ts`. Typecheck: PASS.
+
+- Consolidated equipment and domains into single modules and removed their folders:
+  - `src/lib/schemas/equipment.ts` now contains base-equipment, weapons, armor, and items schemas. Removed `src/lib/schemas/equipment/` folder.
+  - `src/lib/schemas/domains.ts` now contains domain card schemas. Removed `src/lib/schemas/domains/` folder.
+  - Updated all imports to reference `schemas/equipment` and `schemas/domains`. Typecheck: PASS.

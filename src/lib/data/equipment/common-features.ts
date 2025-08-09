@@ -1,4 +1,4 @@
-import type { BaseFeature } from '../../schemas/core/base-schemas';
+import type { BaseFeature } from '../../schemas/core';
 
 export const COMMON_EQUIPMENT_FEATURES: Record<string, BaseFeature> = {
   RELIABLE: {
