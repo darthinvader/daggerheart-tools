@@ -45,6 +45,13 @@ Schema completion and validation
 
 - Sketch character creation flow and character sheet layout
 
+### New Decisions (Aug 9, 2025)
+
+- Include multiclassing during initial character creation (not just level-up).
+- Enforce SRD starting domain card counts during creation step; relax enforcement after creation.
+- Equipment selection: offer both prebuilt class packs and a free-form selection mode, both validated.
+- Styling: Tailwind CSS for layout/styles and shadcn/ui for components; do not reinvent component primitives.
+
 ## Active Decisions & Considerations
 
 Schema design patterns
@@ -79,8 +86,8 @@ Recent decisions
 
 Pending decisions
 
-- Persistence strategy (localStorage vs IndexedDB)
-- UI state management (Context vs external)
+- Persistence strategy (localStorage vs IndexedDB) — leaning localStorage for MVP
+- UI state management (Context at route layout vs external store) — leaning context at wizard layout
 - Offline capabilities scope
 
 ## Notes (Current Session)
@@ -88,6 +95,7 @@ Pending decisions
 - Audited memory bank for accuracy and aligned paths (domain data under `src/lib/data/domains`).
 - Ran type-check: PASS. Build path compiles.
 - Verified `PlayerCharacterSchema` exists and compiles; integration validation still to do.
+- Captured UI decisions: multiclass in creation, starting card enforcement, equipment pack+free mode, Tailwind+shadcn.
 
 ## Context for Next Session
 

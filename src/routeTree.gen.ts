@@ -9,9 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as CharactersRouteImport } from './routes/characters'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CharactersNewRouteImport } from './routes/characters.new'
+import { Route as CharactersNewIdentityRouteImport } from './routes/characters.new.identity'
 
+const CharactersRoute = CharactersRouteImport.update({
+  id: '/characters',
+  path: '/characters',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
@@ -22,35 +30,78 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CharactersNewRoute = CharactersNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => CharactersRoute,
+} as any)
+const CharactersNewIdentityRoute = CharactersNewIdentityRouteImport.update({
+  id: '/identity',
+  path: '/identity',
+  getParentRoute: () => CharactersNewRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/characters': typeof CharactersRouteWithChildren
+  '/characters/new': typeof CharactersNewRouteWithChildren
+  '/characters/new/identity': typeof CharactersNewIdentityRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/characters': typeof CharactersRouteWithChildren
+  '/characters/new': typeof CharactersNewRouteWithChildren
+  '/characters/new/identity': typeof CharactersNewIdentityRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/characters': typeof CharactersRouteWithChildren
+  '/characters/new': typeof CharactersNewRouteWithChildren
+  '/characters/new/identity': typeof CharactersNewIdentityRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/characters'
+    | '/characters/new'
+    | '/characters/new/identity'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about'
-  id: '__root__' | '/' | '/about'
+  to:
+    | '/'
+    | '/about'
+    | '/characters'
+    | '/characters/new'
+    | '/characters/new/identity'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/characters'
+    | '/characters/new'
+    | '/characters/new/identity'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  CharactersRoute: typeof CharactersRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/characters': {
+      id: '/characters'
+      path: '/characters'
+      fullPath: '/characters'
+      preLoaderRoute: typeof CharactersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/about': {
       id: '/about'
       path: '/about'
@@ -65,12 +116,51 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/characters/new': {
+      id: '/characters/new'
+      path: '/new'
+      fullPath: '/characters/new'
+      preLoaderRoute: typeof CharactersNewRouteImport
+      parentRoute: typeof CharactersRoute
+    }
+    '/characters/new/identity': {
+      id: '/characters/new/identity'
+      path: '/identity'
+      fullPath: '/characters/new/identity'
+      preLoaderRoute: typeof CharactersNewIdentityRouteImport
+      parentRoute: typeof CharactersNewRoute
+    }
   }
 }
+
+interface CharactersNewRouteChildren {
+  CharactersNewIdentityRoute: typeof CharactersNewIdentityRoute
+}
+
+const CharactersNewRouteChildren: CharactersNewRouteChildren = {
+  CharactersNewIdentityRoute: CharactersNewIdentityRoute,
+}
+
+const CharactersNewRouteWithChildren = CharactersNewRoute._addFileChildren(
+  CharactersNewRouteChildren,
+)
+
+interface CharactersRouteChildren {
+  CharactersNewRoute: typeof CharactersNewRouteWithChildren
+}
+
+const CharactersRouteChildren: CharactersRouteChildren = {
+  CharactersNewRoute: CharactersNewRouteWithChildren,
+}
+
+const CharactersRouteWithChildren = CharactersRoute._addFileChildren(
+  CharactersRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  CharactersRoute: CharactersRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

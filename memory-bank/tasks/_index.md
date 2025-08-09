@@ -3,10 +3,10 @@
 ## In Progress
 
 - [TASK001] Complete lib schema system - Finalizing player character schema and integration validation
+- [TASK002] Character creation UI implementation - Wizard scaffold and Identity/Class steps
 
 ## Pending
 
-- [TASK002] Character creation UI implementation - Design and build character creation wizard
 - [TASK003] Character sheet interface - Build responsive character sheet display
 - [TASK004] Data persistence layer - Implement save/load functionality
 

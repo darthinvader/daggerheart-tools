@@ -21,7 +21,7 @@ Updated: August 9, 2025
 
 Immediate priorities
 
-1. Character creation UI
+1. Character creation UI (with multiclass at creation and starting card count enforcement)
 2. Character sheet interface
 3. Data persistence (localStorage/IndexedDB)
 
@@ -61,12 +61,13 @@ Technical health
 
 ## Next Milestone
 
-Target: Character creation UI scaffold
+Target: Character creation UI scaffold (Identity + Class/Subclass with multiclass support)
 Timeline: 2–3 weeks
-Deliverables: creation wizard, basic sheet, validation + error UX, local storage
+Deliverables: creation wizard, basic sheet, validation + error UX, local storage; equipment pack + free mode; enforce starting card counts during creation
 
 ## Recent Progress Log
 
 - Audited codebase vs memory bank; aligned paths and scope (domain data in data/domains).
 - Ran type-check: PASS. Build path compiles.
 - Verified `PlayerCharacterSchema` and equipment/domain schemas exist and are consistent.
+- Decisions captured: multiclass during creation; enforce starting card counts at creation; equipment pack + free modes; Tailwind + shadcn/ui for UI.
