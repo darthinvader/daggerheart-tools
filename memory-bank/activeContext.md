@@ -97,6 +97,7 @@ Pending decisions
 - Ran type-check: PASS. Build path compiles.
 - Verified `PlayerCharacterSchema` exists and compiles; integration validation still to do.
 - Captured UI decisions: multiclass in creation, starting card enforcement, equipment pack+free mode, Tailwind+shadcn.
+- Showcase route updated to include missing shadcn components (accordion, alert-dialog, carousel, chart, collapsible, combobox, data-table, date-picker wrapper, drawer, form, input-otp, tooltip, typography) with compact demos.
 
 ## Context for Next Session
 

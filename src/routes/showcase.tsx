@@ -1,11 +1,29 @@
+import { useForm } from 'react-hook-form';
+import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
 import { toast } from 'sonner';
 
 import { useState } from 'react';
 
 import { createFileRoute } from '@tanstack/react-router';
+import type { ColumnDef } from '@tanstack/react-table';
 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-// Newly added components to showcase
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -26,7 +44,27 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
+import {
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+} from '@/components/ui/chart';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { Combobox, MultiCombobox } from '@/components/ui/combobox';
 import {
   CommandDialog,
   CommandEmpty,
@@ -45,6 +83,8 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
+import { DataTable } from '@/components/ui/data-table';
+import { DatePicker } from '@/components/ui/date-picker';
 import {
   Dialog,
   DialogContent,
@@ -53,17 +93,40 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from '@/components/ui/drawer';
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
 } from '@/components/ui/hover-card';
 import { Input } from '@/components/ui/input';
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSeparator,
+  InputOTPSlot,
+} from '@/components/ui/input-otp';
 import { Label } from '@/components/ui/label';
 import {
   Menubar,
@@ -124,6 +187,19 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarSeparator,
+} from '@/components/ui/sidebar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Slider } from '@/components/ui/slider';
 import { Toaster } from '@/components/ui/sonner';
@@ -141,12 +217,49 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Toggle } from '@/components/ui/toggle';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { H3, P } from '@/components/ui/typography';
 
 function Showcase() {
   const [cmdOpen, setCmdOpen] = useState(false);
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [toggleOn, setToggleOn] = useState(false);
   const [toggleValue, setToggleValue] = useState<string>('a');
+  const [picked, setPicked] = useState<Date | null>(new Date());
+  const [otp, setOtp] = useState('');
+  const [comboValue, setComboValue] = useState<string | null>(null);
+  const [multiCombo, setMultiCombo] = useState<string[]>(['bar']);
+
+  type Person = { name: string; role: string; level: number };
+  const people: Person[] = [
+    { name: 'Aria Swiftwind', role: 'Bard', level: 3 },
+    { name: 'Garruk Stone', role: 'Guardian', level: 5 },
+    { name: 'Lysa Dawn', role: 'Wizard', level: 2 },
+  ];
+  const columns: ColumnDef<Person>[] = [
+    { accessorKey: 'name', header: 'Name' },
+    { accessorKey: 'role', header: 'Role' },
+    {
+      accessorKey: 'level',
+      header: 'Level',
+      cell: ({ getValue }) => (
+        <span className="font-mono">{String(getValue())}</span>
+      ),
+    },
+  ];
+
+  const form = useForm<{ email: string }>({ defaultValues: { email: '' } });
+
+  const chartData = [
+    { level: 1, value: 2 },
+    { level: 2, value: 3 },
+    { level: 3, value: 5 },
+    { level: 4, value: 8 },
+  ];
 
   return (
     <div className="mx-auto max-w-screen-sm space-y-6 p-4">
@@ -164,6 +277,20 @@ function Showcase() {
           <Button variant="link">Link</Button>
           <Button variant="destructive">Destructive</Button>
           <Button onClick={() => toast('Hello from Sonner!')}>Toast</Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Tooltip</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="outline">Hover me</Button>
+            </TooltipTrigger>
+            <TooltipContent>Small hint text</TooltipContent>
+          </Tooltip>
         </CardContent>
       </Card>
 
@@ -210,6 +337,27 @@ function Showcase() {
 
       <Card>
         <CardHeader>
+          <CardTitle>Accordion</CardTitle>
+          <CardDescription>Show and hide content</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="a">
+              <AccordionTrigger>What is Daggerheart?</AccordionTrigger>
+              <AccordionContent>
+                A narrative-first tabletop RPG with domain cards and classes.
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="b">
+              <AccordionTrigger>Is this mobile friendly?</AccordionTrigger>
+              <AccordionContent>Yes, designed for table use.</AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>Badges & Separator</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -227,6 +375,33 @@ function Showcase() {
               </AlertDescription>
             </Alert>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Combobox</CardTitle>
+          <CardDescription>Single and multi select</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <Combobox
+            items={[
+              { value: 'foo', label: 'Foo' },
+              { value: 'bar', label: 'Bar' },
+              { value: 'baz', label: 'Baz' },
+            ]}
+            value={comboValue}
+            onChange={setComboValue}
+          />
+          <MultiCombobox
+            items={[
+              { value: 'foo', label: 'Foo' },
+              { value: 'bar', label: 'Bar' },
+              { value: 'baz', label: 'Baz' },
+            ]}
+            values={multiCombo}
+            onChange={setMultiCombo}
+          />
         </CardContent>
       </Card>
 
@@ -291,6 +466,33 @@ function Showcase() {
 
       <Card>
         <CardHeader>
+          <CardTitle>Alert Dialog</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive">Delete character</Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <div className="flex justify-end gap-2">
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={() => toast('Deleted')}>
+                  Confirm
+                </AlertDialogAction>
+              </div>
+            </AlertDialogContent>
+          </AlertDialog>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>Breadcrumb</CardTitle>
           <CardDescription>Hierarchical navigation</CardDescription>
         </CardHeader>
@@ -310,6 +512,24 @@ function Showcase() {
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Collapsible</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Collapsible>
+            <CollapsibleTrigger asChild>
+              <Button variant="outline">Toggle Section</Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="text-muted-foreground mt-3 text-sm">
+                Hidden details appear here when expanded.
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
         </CardContent>
       </Card>
 
@@ -342,6 +562,16 @@ function Showcase() {
               </PaginationItem>
             </PaginationContent>
           </Pagination>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Date Picker</CardTitle>
+          <CardDescription>Wrapped component</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <DatePicker value={picked} onChange={setPicked} />
         </CardContent>
       </Card>
 
@@ -383,6 +613,25 @@ function Showcase() {
 
       <Card>
         <CardHeader>
+          <CardTitle>Drawer</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Drawer>
+            <DrawerTrigger asChild>
+              <Button variant="outline">Open Drawer</Button>
+            </DrawerTrigger>
+            <DrawerContent>
+              <DrawerHeader>
+                <DrawerTitle>Drawer title</DrawerTitle>
+                <DrawerDescription>Slide-over content.</DrawerDescription>
+              </DrawerHeader>
+            </DrawerContent>
+          </Drawer>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>Menubar</CardTitle>
         </CardHeader>
         <CardContent>
@@ -416,6 +665,44 @@ function Showcase() {
 
       <Card>
         <CardHeader>
+          <CardTitle>Form</CardTitle>
+          <CardDescription>react-hook-form + UI</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(values =>
+                toast(`Email: ${values.email || 'n/a'}`)
+              )}
+              className="space-y-3"
+            >
+              <FormField
+                control={form.control}
+                name="email"
+                rules={{ required: 'Email is required' }}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="email"
+                        placeholder="you@example.com"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>We'll never share it.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit">Submit</Button>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>Navigation Menu</CardTitle>
         </CardHeader>
         <CardContent>
@@ -433,6 +720,69 @@ function Showcase() {
               </NavigationMenuItem>
             </NavigationMenuList>
           </NavigationMenu>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Sidebar</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border">
+            <SidebarProvider>
+              <div className="flex">
+                <div className="min-h-[200px]">
+                  <Sidebar collapsible="none" className="md:block">
+                    <SidebarHeader className="text-sm font-medium">
+                      Demo Sidebar
+                    </SidebarHeader>
+                    <SidebarSeparator />
+                    <SidebarContent>
+                      <SidebarGroup>
+                        <SidebarGroupLabel>Primary</SidebarGroupLabel>
+                        <SidebarGroupContent>
+                          <SidebarMenu>
+                            <SidebarMenuItem>
+                              <SidebarMenuButton>Dashboard</SidebarMenuButton>
+                            </SidebarMenuItem>
+                            <SidebarMenuItem>
+                              <SidebarMenuButton>Characters</SidebarMenuButton>
+                            </SidebarMenuItem>
+                          </SidebarMenu>
+                        </SidebarGroupContent>
+                      </SidebarGroup>
+                    </SidebarContent>
+                  </Sidebar>
+                </div>
+                <div className="p-4">
+                  <div className="text-muted-foreground text-sm">
+                    Content area
+                  </div>
+                </div>
+              </div>
+            </SidebarProvider>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Input OTP</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <InputOTP maxLength={6} value={otp} onChange={setOtp}>
+            <InputOTPGroup>
+              {Array.from({ length: 3 }).map((_, i) => (
+                <InputOTPSlot key={i} index={i} />
+              ))}
+            </InputOTPGroup>
+            <InputOTPSeparator />
+            <InputOTPGroup>
+              {Array.from({ length: 3 }).map((_, i) => (
+                <InputOTPSlot key={i + 3} index={i + 3} />
+              ))}
+            </InputOTPGroup>
+          </InputOTP>
         </CardContent>
       </Card>
 
@@ -457,6 +807,29 @@ function Showcase() {
               <ContextMenuItem variant="destructive">Delete</ContextMenuItem>
             </ContextMenuContent>
           </ContextMenu>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Carousel</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="relative">
+            <Carousel className="w-full">
+              <CarouselContent>
+                {[1, 2, 3].map(n => (
+                  <CarouselItem key={n}>
+                    <div className="bg-muted flex h-28 items-center justify-center rounded-md border">
+                      Slide {n}
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
+          </div>
         </CardContent>
       </Card>
 
@@ -491,6 +864,33 @@ function Showcase() {
 
       <Card>
         <CardHeader>
+          <CardTitle>Chart</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ChartContainer
+            config={{ value: { label: 'Value', color: 'hsl(var(--primary))' } }}
+            className="h-48"
+          >
+            <LineChart data={chartData} margin={{ left: 12, right: 12 }}>
+              <CartesianGrid vertical={false} strokeDasharray="3 3" />
+              <XAxis dataKey="level" tickLine={false} axisLine={false} />
+              <YAxis tickLine={false} axisLine={false} width={24} />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <Line
+                type="monotone"
+                dataKey="value"
+                stroke="var(--color-value)"
+                strokeWidth={2}
+                dot={false}
+              />
+              <ChartLegend content={<ChartLegendContent />} />
+            </LineChart>
+          </ChartContainer>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>Date Picker</CardTitle>
           <CardDescription>Calendar in a popover</CardDescription>
         </CardHeader>
@@ -505,6 +905,25 @@ function Showcase() {
               <Calendar mode="single" selected={date} onSelect={setDate} />
             </PopoverContent>
           </Popover>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Data Table</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <DataTable columns={columns} data={people} filterKey="name" />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Typography</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <H3>Section title</H3>
+          <P>Supporting paragraph that uses semantic typography tokens.</P>
         </CardContent>
       </Card>
 

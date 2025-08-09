@@ -78,3 +78,4 @@ Deliverables: creation wizard, basic sheet, validation + error UX, local storage
 - Implemented local UI equivalents for registry-missing items: `combobox`, `date-picker`, `data-table`, `typography` in `src/components/ui/`.
 - Installed peer deps: `embla-carousel-react`, `recharts`, `@tanstack/react-table`, `input-otp`, `react-hook-form` (and hookform resolvers). Kept `sonner` for toasts per shadcn deprecation note.
 - Verified with type-check and build: PASS.
+- Showcase route now demos remaining components not previously showcased: accordion, alert-dialog, carousel, chart, collapsible, combobox (single + multi), data-table, date-picker wrapper, drawer, form with react-hook-form, input-otp, tooltip, and basic typography.
