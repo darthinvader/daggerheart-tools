@@ -3,8 +3,8 @@
 ## In Progress
 
 - [TASK001] Complete lib schema system - Finalizing player character schema and integration validation
-- [TASK002] Character creation UI implementation - Single-route creation at /characters/new with section drawers
-- [TASK005] Mobile character display and editor - Per-id character screen (/characters/$id) with Identity drawer; /characters/new redirects to UUID
+- [TASK002] Character creation UI implementation - Per-id sheet at /characters/$id with section drawers; /characters/new redirects to UUID
+- [TASK005] Mobile character display and editor - Modular cards, Identity & Class drawers, resources/traits controls; navbar z-index fix
 
 ## Pending
 

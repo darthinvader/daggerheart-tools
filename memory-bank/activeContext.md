@@ -1,6 +1,6 @@
 # Active Context - Daggerheart Tools
 
-Updated: August 9, 2025
+Updated: August 10, 2025
 
 ## Current Work Focus
 
@@ -9,18 +9,18 @@ Updated: August 9, 2025
 - Decision (revised): Use per-character routes for the sheet. `/characters/new` only generates a fresh UUID and redirects to `/characters/$id`.
 - Canonical sheet route: `/characters/$id`. Section editors open as drawers and can be lazy-loaded.
 
-Changes implemented (today):
+Changes implemented (recent):
 
-- Added `src/routes/characters/$id.tsx` (sheet UI with Identity drawer, per-id storage).
-- Updated `src/routes/characters/new.tsx` to generate UUID and redirect to `/characters/$id`.
-- `src/routes/characters.index.tsx` lists characters area; “New” links to `/characters/new`.
-- `src/components/mobile-nav.tsx` FAB default remains `/characters/new`.
-- Rebuilt to regenerate `routeTree.gen.ts` (reflects `/characters/$id` + `/characters/new`).
-- Global bottom padding added to `<main>` so content never hides behind the MobileNavBar (includes safe-area inset). Summary card redesigned to show identity + quick HP/Stress controls.
+- Per-id character sheet at `src/routes/characters/$id.tsx` composed from modular cards (SummaryStats, ResourcesCard, CoreScoresCard, ConditionsCard, IdentityCard, TraitsCard, ClassCard) with per-id localStorage persistence.
+- Identity and Class/Subclass editors implemented as lazy-loaded Drawers (RHF + zod), with Save/Cancel and safe-area aware footers.
+- `/characters/new` generates a UUID and redirects to `/characters/$id`; characters index lists entries and links to New.
+- Mobile: Ensured drawers appear above the MobileNavBar by lowering navbar z-index to `z-40` and keeping drawers at `z-50`; confirmed footer safe-area padding prevents action buttons from being obscured.
+- Global bottom padding remains on `<main>` to avoid overlap with the navbar; drawers sized with 100dvh.
+- Typecheck and build pass consistently (chunk-size warnings accepted for now).
 
-We're focused on the core data models and validation schemas that form the foundation of the application. The schemas are consolidated and type-safe across game systems.
+We're focused on the core data models and validation schemas, while incrementally wiring the mobile-first character sheet with modular components and drawer editors.
 
-Recent cleanups (verified today):
+Recent cleanups:
 
 - Consolidated subclass schemas to a single BaseSubclassSchema across all classes; optional companion supported for Ranger Beastbound.
 - Merged ancestry/community logic into `src/lib/schemas/identity.ts`; removed stale `schemas/classes.ts`.
@@ -32,15 +32,16 @@ Recent cleanups (verified today):
 
 - Domain Card System: All 9 core domains present under `src/lib/data/domains/` with SRD-aligned data; future domains (Chaos, Moon, Sun, Blood, Fate) stubbed as empty arrays.
 - Class System Foundation: 9 classes with subclass variants and progression rules; multiclassing scaffolding in place; Ranger companion supported.
-- UI Library Setup: Added missing shadcn components (carousel, chart, drawer, form, input-otp, sidebar) via CLI. Implemented local equivalents for unavailable registry components: `combobox`, `date-picker`, `data-table`, and `typography` under `src/components/ui/`. Installed peer deps (embla-carousel-react, recharts, @tanstack/react-table, input-otp, react-hook-form). Typecheck/build pass.
+- UI Library Setup: Added shadcn components (carousel, chart, drawer, form, input-otp, sidebar) via CLI. Implemented local equivalents for unavailable registry components: `combobox`, `date-picker`, `data-table`, and `typography` under `src/components/ui/`. Installed peer deps (embla-carousel-react, recharts, @tanstack/react-table, input-otp, react-hook-form). Typecheck/build pass.
 
 ### Current Sprint
 
-Schema completion and validation
+Schema completion and validation; mobile-first sheet assembly with drawer editors.
 
 - Finalize and verify PlayerCharacter schema coverage (file exists and compiles)
 - Cross-validation between classes, domains, and equipment
 - Tighten validation messages and edge cases
+- Incrementally add Domains and Equipment drawers with validation and persistence
 
 ## Next Immediate Steps
 
@@ -58,12 +59,13 @@ Schema completion and validation
 
 - Sketch character creation flow and character sheet layout
 
-### New Decisions (Aug 9, 2025)
+### New Decisions (Aug 10, 2025)
 
 - Include multiclassing during initial character creation (not just level-up).
 - Enforce SRD starting domain card counts during creation step; relax enforcement after creation.
 - Equipment selection: offer both prebuilt class packs and a free-form selection mode, both validated.
 - Styling: Tailwind CSS for layout/styles and shadcn/ui for components; do not reinvent component primitives.
+- Z-index convention: MobileNavBar at `z-40`; Drawer overlay/content at `z-50` to ensure drawers sit above navbar.
 
 ## Active Decisions & Considerations
 
@@ -105,16 +107,18 @@ Pending decisions
 
 ## Notes (Current Session)
 
-- Audited memory bank for accuracy and aligned paths (domain data under `src/lib/data/domains`).
-- Ran type-check: PASS. Build path compiles.
-- Verified `PlayerCharacterSchema` exists and compiles; integration validation still to do.
-- Captured UI decisions: multiclass in creation, starting card enforcement, equipment pack+free mode, Tailwind+shadcn.
-- Showcase route updated to include missing shadcn components (accordion, alert-dialog, carousel, chart, collapsible, combobox, data-table, date-picker wrapper, drawer, form, input-otp, tooltip, typography) with compact demos.
+- Identity and Class drawers are lazy-loaded and validated via RHF + zod; per-id localStorage keys:
+  - `dh:characters:{id}:identity:v1`
+  - `dh:characters:{id}:resources:v1`
+  - `dh:characters:{id}:traits:v1`
+  - `dh:characters:{id}:class:v1`
+- MobileNavBar updated to `z-40`; drawers at `z-50` with safe-area padded footers; verified action buttons remain tappable on mobile keyboards.
+- Typecheck/build: PASS; chunk-size warnings to handle later via additional code-splitting.
 
 ### In Progress (Character Sheet UI)
 
-- Per-id character sheet at `/characters/$id` with Identity drawer wired via RHF + zod, Traits steppers with budget, Resources quick controls, and Summary identity + HP/Stress snapshot. Bottom action bar removed in favor of header actions. Drawers use 100dvh with safe-area padding.
-- New: Class/Subclass drawer added and lazy-loaded; per-id localStorage persistence for selected class and subclass. `ClassCard` now shows current selection and opens the drawer.
+- Per-id character sheet at `/characters/$id` with modular cards, Identity + Class drawers (lazy), Traits steppers with budget, Resources quick controls, and Summary identity + HP/Stress snapshot. Bottom action bar removed in favor of header actions. Drawers use 100dvh with safe-area padding.
+- Next: Implement Domains and Equipment drawers following the same pattern (lazy, per-id persistence, validation).
 
 ## Context for Next Session
 

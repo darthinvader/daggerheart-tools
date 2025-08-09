@@ -1,6 +1,6 @@
 # Progress Report - Daggerheart Tools
 
-Updated: August 9, 2025
+Updated: August 10, 2025
 
 ## What's Working
 
@@ -17,17 +17,20 @@ Updated: August 9, 2025
 - Build System: Vite. Build path compiles locally.
 - Quality: ESLint/Prettier, tests configured with Vitest (coverage present).
 
-### Routing
+### Routing & UI
 
-- Per-id character screen at `/characters/$id` (mobile-first sheet with drawers). `/characters/new` redirects to a fresh UUID. Characters hub at `/characters` with index child.
+- Per-id character screen at `/characters/$id` (mobile-first sheet composed of modular cards). `/characters/new` redirects to a fresh UUID. Characters hub at `/characters` with index child.
+- Identity drawer implemented (RHF + zod) and lazy-loaded. Class/Subclass drawer added and lazy-loaded; `ClassCard` shows current selection and opens it.
+- Mobile navbar overlap fixed by setting navbar z-index to `z-40`; drawers render at `z-50` and include safe-area footer padding.
 
 ## What's Left to Build
 
 Immediate priorities
 
-1. Character sheet interface expansion (Traits, Resources, Domains, Equipment)
-2. Character creation rules (multiclass at creation, starting card count enforcement)
-3. Data persistence (localStorage/IndexedDB)
+1. Domains editor drawer with schema-backed selection and per-id persistence; wire to Domains card
+2. Equipment & Inventory drawers (pack mode + free mode) with validation and persistence
+3. Character creation rules (multiclass at creation, starting card count enforcement)
+4. Additional code-splitting to reduce initial bundle
 
 Medium-term 4. Advanced features (multiclassing UI, companion mgmt, inventory) 5. UX polish (mobile, a11y, feedback) 6. Performance/code-splitting and bundle budget
 
@@ -39,7 +42,7 @@ Estimated completion
 
 - Data Layer: ~90%
 - Rules Data: ~95%
-- UI: ~5%
+- UI: ~15%
 - Features: ~15%
 - Tests: ~20%
 
@@ -51,9 +54,9 @@ Technical health
 
 ## Known Issues
 
-- Some domain descriptions need formatting polish
+- Some domain descriptions need formatting polish; bundle has large chunk warnings
 - Edge cases in progression need tests
-- Persistence and UI are not started
+- Broader persistence layer beyond localStorage is not started
 
 ## MVP Success Criteria
 
@@ -65,9 +68,9 @@ Technical health
 
 ## Next Milestone
 
-Target: Character creation UI scaffold (Identity + Class/Subclass with multiclass support)
-Timeline: 2–3 weeks
-Deliverables: creation sheet (single route), validation + error UX, local storage; equipment pack + free mode; enforce starting card counts during creation
+Target: Domain & Equipment drawers wired into per-id sheet
+Timeline: 1–2 weeks
+Deliverables: Domains selection with rules enforcement and persistence; Equipment pack/free modes; schema validation and mobile-friendly drawers; begin code-splitting for heavy lists
 
 ## Recent Progress Log
 
@@ -100,7 +103,8 @@ Deliverables: creation sheet (single route), validation + error UX, local storag
 
 ### August 10, 2025
 
-- Implemented Class/Subclass editor drawer (`src/components/characters/class-drawer.tsx`) mirroring Identity drawer patterns (RHF + Combobox).
-- Added per-id localStorage persistence for class selection in `/characters/$id` with `ClassDraft` schema (zod) and storage helpers.
-- Wired `ClassCard` to display the current class and subclass and open the drawer; drawer is lazy-loaded to keep initial bundle small.
-- Typecheck/build: PASS (usual large chunk warnings). Verified route tree generation and no TS flake.
+- Implemented Class/Subclass editor drawer (`src/components/characters/class-drawer.tsx`) mirroring Identity drawer patterns (RHF + Combobox); lazy-loaded.
+- Added per-id localStorage persistence for class selection in `/characters/$id` with `ClassDraft` schema and storage helpers.
+- Wired `ClassCard` to display the current class and subclass and open the drawer.
+- Fixed mobile navbar overlap with drawers by lowering navbar z-index to `z-40`; drawers at `z-50` include safe-area footer padding so actions remain tappable above the navbar and keyboard.
+- Typecheck/build: PASS (chunk-size warnings noted). Route tree generated correctly.

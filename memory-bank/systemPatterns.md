@@ -10,7 +10,7 @@ SRD Documents → Schema Definitions → Type-Safe Models → UI Components
 
 The system follows a strict data-first approach where all game rules are encoded as Zod schemas, ensuring type safety and validation throughout the application.
 
-## Routing Strategy (Aug 9, 2025)
+## Routing Strategy (Aug 10, 2025)
 
 - Character creation uses a single route (`/characters/new`) that doubles as the character sheet during creation.
 - Section editors (Identity, Class, Traits, Resources, Domains, Equipment) open as mobile-friendly drawers (bottom sheets) instead of separate routes.
@@ -53,6 +53,26 @@ The codebase is organized around game domain concepts:
 - **Resource Management**: Hit Points, Stress, Armor, and Gold tracking
 
 ### Component Architecture
+
+#### Drawer Editor Pattern (Mobile-first)
+
+- Use Vaul/Sheet-based Drawer components with overlay/content at z-50.
+- Footer includes safe-area bottom padding to keep actions visible above MobileNavBar and on-screen keyboard.
+- Forms powered by react-hook-form + zodResolver; Save/Cancel in footer; Save disabled until valid.
+- Lazy-load drawers with `React.lazy` + `Suspense` to reduce initial bundle size.
+
+Z-index convention:
+
+- MobileNavBar: z-40
+- Drawer overlay/content: z-50
+- Avoid higher z-indices unless absolutely necessary.
+
+Per-id persistence keys (localStorage):
+
+- Identity: `dh:characters:{id}:identity:v1`
+- Resources: `dh:characters:{id}:resources:v1`
+- Traits: `dh:characters:{id}:traits:v1`
+- Class: `dh:characters:{id}:class:v1`
 
 #### Schema Composition Pattern
 
