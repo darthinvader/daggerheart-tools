@@ -75,7 +75,7 @@ Research (schema → UI mapping)
    - 7.4 Choose starting equipment (pack mode) and a minimal domain loadout.
    - 7.5 Define baseline resources (hp/stress/armor/hope/evasion/proficiency/gold) from schema defaults.
 
-UX skeleton (non-functional or minimal)
+UX skeleton (single-route, non-functional or minimal)
 
 8. Create a mobile-first sheet layout with section cards and a sticky summary header.
    - 8.1 Add container and spacing scales suitable for mobile.
@@ -411,7 +411,7 @@ Companion
 
 ## Progress Tracking
 
-**Overall Status:** In Progress - 25% Complete
+**Overall Status:** In Progress - 30% Complete
 
 ### Subtasks
 
@@ -424,9 +424,9 @@ Companion
 | 1.5 | Validation/hints copy per field              | Complete    | Aug 9, 2025 | Helper/error guidance added                   |
 | 1.6 | Section grouping and navigation              | Not Started | -           | -                                             |
 | 1.7 | Default valid character snapshot             | Not Started | -           | -                                             |
-| 2.1 | Mobile skeleton layout                       | Not Started | -           | -                                             |
+| 2.1 | Mobile skeleton layout                       | Complete    | Aug 9, 2025 | `/characters/new` scaffolded                  |
 | 2.2 | BottomActionBar (Edit/Save)                  | Not Started | -           | -                                             |
-| 2.3 | Section edit entry points                    | Not Started | -           | -                                             |
+| 2.3 | Section edit entry points                    | Not Started | -           | Buttons present (disabled)                    |
 | 3.1 | Hook form + zod for Identity/Traits subset   | Not Started | -           | -                                             |
 | 3.2 | Inline validation + messages                 | Not Started | -           | -                                             |
 | 3.3 | Save/Cancel flows (local state)              | Not Started | -           | -                                             |
@@ -481,6 +481,9 @@ Companion
 - Added Appendix C — Mobile Usability & Interaction Playbook focused on optimizing for use: core UX laws (Fitts/Hick), editing model (inline vs drawer with commit strategies), control/affordance standards, list interactions, layout/navigation rules, feedback/state patterns, inclusivity/a11y, ergonomics, microcopy, UX testing metrics, anti-patterns, and immediate reusable components to create (Stepper, BottomActionBar, FormField). This centers the effort on ease, clarity, and speed of change on mobile.
 
 ### August 9, 2025 (final today)
+
+- Decision: Single-route creation at `/characters/new` to avoid mid-step entry and enforce completion focus.
+- Implemented scaffold and updated navigation; removed previous step route `characters/new/identity`.
 
 - Added Appendix D — TTRPG domain UX takeaways (from D&D Beyond, Pathbuilder 2e, Roll20 PF2) with concrete do/don’t items, simple view toggle, quick-edit clusters, and quality bar (tap-count targets). Revised Implementation Plan to include BottomActionBar, Simple View, keyboard/safe-area handling, and UX metrics instrumentation; updated subtasks accordingly.
 

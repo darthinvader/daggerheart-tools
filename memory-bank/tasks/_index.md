@@ -3,8 +3,8 @@
 ## In Progress
 
 - [TASK001] Complete lib schema system - Finalizing player character schema and integration validation
-- [TASK002] Character creation UI implementation - Wizard scaffold and Identity/Class steps
-- [TASK005] Mobile character display and editor - Research field mapping; mobile-first display + editing plan (In Progress)
+- [TASK002] Character creation UI implementation - Single-route creation at /characters/new with section drawers
+- [TASK005] Mobile character display and editor - Single-route, mobile-first sheet with drawers; research complete, scaffold started
 
 ## Pending
 

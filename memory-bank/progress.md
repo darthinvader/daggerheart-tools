@@ -17,6 +17,10 @@ Updated: August 9, 2025
 - Build System: Vite. Build path compiles locally.
 - Quality: ESLint/Prettier, tests configured with Vitest (coverage present).
 
+### Routing
+
+- Single-route character creation at `/characters/new` (section-based, mobile-first). Characters hub at `/characters`.
+
 ## What's Left to Build
 
 Immediate priorities
@@ -63,7 +67,7 @@ Technical health
 
 Target: Character creation UI scaffold (Identity + Class/Subclass with multiclass support)
 Timeline: 2–3 weeks
-Deliverables: creation wizard, basic sheet, validation + error UX, local storage; equipment pack + free mode; enforce starting card counts during creation
+Deliverables: creation sheet (single route), validation + error UX, local storage; equipment pack + free mode; enforce starting card counts during creation
 
 ## Recent Progress Log
 
@@ -79,3 +83,9 @@ Deliverables: creation wizard, basic sheet, validation + error UX, local storage
 - Installed peer deps: `embla-carousel-react`, `recharts`, `@tanstack/react-table`, `input-otp`, `react-hook-form` (and hookform resolvers). Kept `sonner` for toasts per shadcn deprecation note.
 - Verified with type-check and build: PASS.
 - Showcase route now demos remaining components not previously showcased: accordion, alert-dialog, carousel, chart, collapsible, combobox (single + multi), data-table, date-picker wrapper, drawer, form with react-hook-form, input-otp, tooltip, and basic typography.
+
+### August 9, 2025 (later)
+
+- Adopted single-route creation flow to prevent mid-step entry and incomplete starts. Implemented `/characters/new` scaffold with section cards and bottom action bar stub.
+- Removed `src/routes/characters/new/identity.tsx` and updated links in Characters page and MobileNavBar to `/characters/new`.
+- Rebuilt and verified route tree; `/characters/new` present, former step route removed.

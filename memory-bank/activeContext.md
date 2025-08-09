@@ -4,7 +4,18 @@ Updated: August 9, 2025
 
 ## Current Work Focus
 
-### Library Schema Development
+### Routing & UI Flow
+
+- Decision: Consolidate character creation into a single route that doubles as the character sheet. No multi-step routes for now. Reasoning: avoid mid-flow entry, keep users focused to complete creation, simpler mobile UX with drawers.
+- Route: `/characters/new` (single page). Section editors will open as drawers and can be lazy-loaded.
+
+Changes implemented (today):
+
+- Added `src/routes/characters/new.tsx` (skeleton page: Summary, Identity, Class, Traits, Resources, Domains, Equipment sections; bottom action bar stub).
+- Removed `src/routes/characters/new/identity.tsx` (step route no longer used).
+- Updated `src/routes/characters.tsx` “New” button to link to `/characters/new`.
+- Updated `src/components/mobile-nav.tsx` FAB default to `/characters/new`.
+- Rebuilt to regenerate `routeTree.gen.ts` (reflects `/characters/new`).
 
 We're focused on the core data models and validation schemas that form the foundation of the application. The schemas are consolidated and type-safe across game systems.
 
@@ -98,6 +109,10 @@ Pending decisions
 - Verified `PlayerCharacterSchema` exists and compiles; integration validation still to do.
 - Captured UI decisions: multiclass in creation, starting card enforcement, equipment pack+free mode, Tailwind+shadcn.
 - Showcase route updated to include missing shadcn components (accordion, alert-dialog, carousel, chart, collapsible, combobox, data-table, date-picker wrapper, drawer, form, input-otp, tooltip, typography) with compact demos.
+
+### In Progress (Creation UI)
+
+- Single-route creation flow scaffolded at `/characters/new` with section cards (mobile-first). Next: wire Identity drawer with RHF+zod, then Traits steppers.
 
 ## Context for Next Session
 

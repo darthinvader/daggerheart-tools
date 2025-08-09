@@ -10,6 +10,13 @@ SRD Documents → Schema Definitions → Type-Safe Models → UI Components
 
 The system follows a strict data-first approach where all game rules are encoded as Zod schemas, ensuring type safety and validation throughout the application.
 
+## Routing Strategy (Aug 9, 2025)
+
+- Character creation uses a single route (`/characters/new`) that doubles as the character sheet during creation.
+- Section editors (Identity, Class, Traits, Resources, Domains, Equipment) open as mobile-friendly drawers (bottom sheets) instead of separate routes.
+- Heavy editors are lazy-loaded within the single route to keep initial bundle small.
+- Rationale: Prevent users from entering mid-steps via deep links and encourage completing the character in one focused flow; simpler UX on mobile.
+
 ## Core Design Patterns
 
 ### Schema-Driven Development
