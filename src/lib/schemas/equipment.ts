@@ -4,7 +4,10 @@ import {
   BaseFeatureSchema,
   CharacterTraitEnum,
   EquipmentFeatureTypeEnum,
+  MetadataSchema,
+  NameDescriptionSchema,
   WeaponTraitEnum,
+  unionWithString,
 } from './core';
 
 // =============================
@@ -18,22 +21,22 @@ export const RangeEnum = z.enum([
   'Far',
   'Very Far',
 ]);
-export const RangeSchema = z.union([RangeEnum, z.string()]);
+export const RangeSchema = unionWithString(RangeEnum);
 
 export const DamageTypeEnum = z.enum(['phy', 'mag']);
-export const DamageTypeSchema = z.union([DamageTypeEnum, z.string()]);
+export const DamageTypeSchema = unionWithString(DamageTypeEnum);
 
 export const BurdenEnum = z.enum(['One-Handed', 'Two-Handed']);
-export const BurdenSchema = z.union([BurdenEnum, z.string()]);
+export const BurdenSchema = unionWithString(BurdenEnum);
 
 export const WeaponTypeEnum = z.enum(['Primary', 'Secondary']);
-export const WeaponTypeSchema = z.union([WeaponTypeEnum, z.string()]);
+export const WeaponTypeSchema = unionWithString(WeaponTypeEnum);
 
 export const EquipmentTierEnum = z.enum(['1', '2', '3', '4']);
-export const EquipmentTierSchema = z.union([EquipmentTierEnum, z.string()]);
+export const EquipmentTierSchema = unionWithString(EquipmentTierEnum);
 
 export const RarityEnum = z.enum(['Common', 'Uncommon', 'Rare', 'Legendary']);
-export const RaritySchema = z.union([RarityEnum, z.string()]);
+export const RaritySchema = unionWithString(RarityEnum);
 
 export const DamageSchema = z.object({
   diceType: z.number().min(4).max(20),
@@ -48,7 +51,7 @@ export const BaseEquipmentSchema = z.object({
   description: z.string().optional(),
   features: z.array(BaseFeatureSchema).default([]),
   tags: z.array(z.string()).optional(),
-  metadata: z.record(z.string(), z.unknown()).optional(),
+  metadata: MetadataSchema,
 });
 
 export const WeaponSchema = BaseEquipmentSchema.extend({
@@ -173,7 +176,7 @@ export const SpecialArmorSchema = ArmorSchema.extend({
 export const ArmorSlotSchema = z.object({
   used: z.boolean().default(false),
   damageReduced: z.number().min(0).default(0),
-  metadata: z.record(z.string(), z.unknown()).optional(),
+  metadata: MetadataSchema,
 });
 
 export const ArmorStatusSchema = z.object({
@@ -181,7 +184,7 @@ export const ArmorStatusSchema = z.object({
   slots: z.array(ArmorSlotSchema),
   needsRepair: z.boolean().default(false),
   damageThresholds: DamageThresholdsSchema,
-  metadata: z.record(z.string(), z.unknown()).optional(),
+  metadata: MetadataSchema,
 });
 
 export const ArmorCollectionSchema = z.object({
@@ -205,7 +208,7 @@ const TraitBonusSchema = z.object({
   bonus: z.number().min(1),
 });
 const DurationEnum = z.enum(['next_roll', 'until_rest', 'permanent']);
-const DurationSchema = z.union([DurationEnum, z.string()]);
+const DurationSchema = unionWithString(DurationEnum);
 const TraitBonusWithDurationSchema = TraitBonusSchema.extend({
   duration: DurationSchema,
 });
@@ -217,10 +220,7 @@ const TraitChangeSchema = z.object({
   trait: CharacterTraitEnum,
   description: z.string(),
 });
-const FeatureAddedSchema = z.object({
-  name: z.string(),
-  description: z.string(),
-});
+const FeatureAddedSchema = NameDescriptionSchema;
 
 export const UtilityItemSchema = ItemSchema.extend({
   category: z.literal('Utility'),
@@ -235,7 +235,7 @@ export const UtilityItemSchema = ItemSchema.extend({
       z.string(),
     ])
     .optional(),
-  metadata: z.record(z.string(), z.unknown()).optional(),
+  metadata: MetadataSchema,
 });
 
 export const ConsumableSchema = ItemSchema.extend({
@@ -249,7 +249,7 @@ export const ConsumableSchema = ItemSchema.extend({
       z.string(),
     ])
     .optional(),
-  metadata: z.record(z.string(), z.unknown()).optional(),
+  metadata: MetadataSchema,
 });
 
 export const RelicSchema = ItemSchema.extend({
@@ -258,7 +258,7 @@ export const RelicSchema = ItemSchema.extend({
   traitBonus: TraitBonusSchema.optional(),
   experienceBonus: ExperienceBonusSchema.optional(),
   exclusivity: z.string().default('You can only carry one relic.'),
-  metadata: z.record(z.string(), z.unknown()).optional(),
+  metadata: MetadataSchema,
 });
 
 export const WeaponModificationSchema = ItemSchema.extend({
@@ -270,7 +270,7 @@ export const WeaponModificationSchema = ItemSchema.extend({
   compatibleWeapons: z.array(z.string()).default([]),
   traitChange: TraitChangeSchema.optional(),
   featureAdded: FeatureAddedSchema.optional(),
-  metadata: z.record(z.string(), z.unknown()).optional(),
+  metadata: MetadataSchema,
 });
 
 export const ArmorModificationSchema = ItemSchema.extend({
@@ -281,7 +281,7 @@ export const ArmorModificationSchema = ItemSchema.extend({
   ]),
   compatibleArmor: z.array(z.string()).default([]),
   featureAdded: FeatureAddedSchema.optional(),
-  metadata: z.record(z.string(), z.unknown()).optional(),
+  metadata: MetadataSchema,
 });
 
 export const RecipeSchema = ItemSchema.extend({
@@ -290,7 +290,7 @@ export const RecipeSchema = ItemSchema.extend({
   materials: z.array(z.string()).default([]),
   downtimeRequired: z.boolean().default(true),
   instructions: z.string(),
-  metadata: z.record(z.string(), z.unknown()).optional(),
+  metadata: MetadataSchema,
 });
 
 export const PotionTypeEnum = z.enum([
@@ -327,7 +327,7 @@ export const InventorySlotSchema = z.object({
   location: z
     .union([z.enum(['backpack', 'belt', 'equipped', 'stored']), z.string()])
     .default('backpack'),
-  metadata: z.record(z.string(), z.unknown()).optional(),
+  metadata: MetadataSchema,
 });
 
 export const InventorySchema = z.object({
@@ -335,7 +335,7 @@ export const InventorySchema = z.object({
   maxItems: z.number().min(1).default(50),
   weightCapacity: z.number().min(0).optional(),
   currentWeight: z.number().min(0).default(0),
-  metadata: z.record(z.string(), z.unknown()).optional(),
+  metadata: MetadataSchema,
 });
 
 export type UtilityItem = z.infer<typeof UtilityItemSchema>;

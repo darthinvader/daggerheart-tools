@@ -197,3 +197,10 @@
   - `src/lib/schemas/equipment.ts` now contains base-equipment, weapons, armor, and items schemas. Removed `src/lib/schemas/equipment/` folder.
   - `src/lib/schemas/domains.ts` now contains domain card schemas. Removed `src/lib/schemas/domains/` folder.
   - Updated all imports to reference `schemas/equipment` and `schemas/domains`. Typecheck: PASS.
+
+- Schema deduplication pass to reduce repetition:
+  - Added shared helpers to `schemas/core.ts`: `MetadataSchema`, `NameDescriptionSchema`, `ScoreSchema`, and `unionWithString`.
+  - Replaced repeated `z.record(z.string(), z.unknown()).optional()` with `MetadataSchema` across domains/equipment.
+  - Replaced many `z.union([Enum, z.string()])` with `unionWithString(Enum)` in domains and equipment.
+  - Applied `NameDescriptionSchema` in `identity.ts` (AncestryFeature, CommunityFeature) and `player-character.ts` (AbilitySchema).
+  - Kept public APIs stable; only internal construction simplified. Typecheck/Build: PASS.

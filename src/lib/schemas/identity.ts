@@ -3,14 +3,14 @@ import { z } from 'zod';
 // Data sources
 import { ANCESTRIES as RAW_ANCESTRIES } from '../data/characters/ancestries';
 import { COMMUNITIES as RAW_COMMUNITIES } from '../data/characters/communities';
+import { NameDescriptionSchema } from './core';
 
 // =============================
 // Ancestry
 // =============================
 
 export const AncestryFeatureSchema = z.object({
-  name: z.string(),
-  description: z.string(),
+  ...NameDescriptionSchema.shape,
   // Preserve explicit type used by callers to distinguish features
   type: z.enum(['primary', 'secondary']),
 });
@@ -147,8 +147,7 @@ export function validateMixedAncestry(
 // =============================
 
 export const CommunityFeatureSchema = z.object({
-  name: z.string(),
-  description: z.string(),
+  ...NameDescriptionSchema.shape,
 });
 
 export const CommunitySchema = z.object({

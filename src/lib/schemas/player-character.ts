@@ -12,6 +12,7 @@ import {
   DomainNameEnum,
   DruidSubclassEnum,
   GuardianSubclassEnum,
+  NameDescriptionSchema,
   RangerCompanionSchema,
   RangerSubclassEnum,
   RogueSubclassEnum,
@@ -89,10 +90,7 @@ const ExperienceCollectionSchema = z.array(ExperienceSchema);
 const AncestryEnum = AncestryNameEnum;
 const CommunityEnum = CommunityNameEnum;
 
-const AbilitySchema = z.object({
-  name: z.string(),
-  description: z.string(),
-});
+const AbilitySchema = NameDescriptionSchema;
 
 const IdentitySchema = z.object({
   name: z.string(),

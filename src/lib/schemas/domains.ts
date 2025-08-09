@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
-import { DomainNameSchema } from './core';
+import { DomainNameSchema, MetadataSchema, unionWithString } from './core';
 
 export const DomainCardTypeEnum = z.enum(['Spell', 'Ability']);
-export const DomainCardTypeSchema = z.union([DomainCardTypeEnum, z.string()]);
+export const DomainCardTypeSchema = unionWithString(DomainCardTypeEnum);
 
 export const DomainCardSchema = z.object({
   name: z.string(),
@@ -13,7 +13,7 @@ export const DomainCardSchema = z.object({
   recallCost: z.number().int().min(0),
   description: z.string(),
   tags: z.array(z.string()).optional(),
-  metadata: z.record(z.string(), z.unknown()).optional(),
+  metadata: MetadataSchema,
 });
 
 export const DomainCardCollectionSchema = z.array(DomainCardSchema);

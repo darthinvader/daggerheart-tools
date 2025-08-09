@@ -158,15 +158,33 @@ export const CommunityNameEnum = z.enum([
   'Wildborne',
 ]);
 
-export const DomainNameSchema = z.union([DomainNameEnum, z.string()]);
-export const ClassNameSchema = z.union([ClassNameEnum, z.string()]);
-export const AncestryNameSchema = z.union([AncestryNameEnum, z.string()]);
-export const CommunityNameSchema = z.union([CommunityNameEnum, z.string()]);
-export const EquipmentFeatureTypeSchema = z.union([
-  EquipmentFeatureTypeEnum,
-  z.string(),
-]);
-export const WeaponTraitSchema = z.union([WeaponTraitEnum, z.string()]);
+// -------------------------------------------------------------------------------------
+// Shared helpers to reduce duplication
+// -------------------------------------------------------------------------------------
+
+export const MetadataSchema = z.record(z.string(), z.unknown()).optional();
+
+export const NameDescriptionSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+});
+
+export const ScoreSchema = z.object({
+  current: z.number().int(),
+  max: z.number().int(),
+});
+
+export const unionWithString = <T extends z.ZodTypeAny>(schema: T) =>
+  z.union([schema, z.string()]);
+
+export const DomainNameSchema = unionWithString(DomainNameEnum);
+export const ClassNameSchema = unionWithString(ClassNameEnum);
+export const AncestryNameSchema = unionWithString(AncestryNameEnum);
+export const CommunityNameSchema = unionWithString(CommunityNameEnum);
+export const EquipmentFeatureTypeSchema = unionWithString(
+  EquipmentFeatureTypeEnum
+);
+export const WeaponTraitSchema = unionWithString(WeaponTraitEnum);
 
 export const SubclassNameSchema = z.union([
   z.union([
@@ -251,7 +269,7 @@ export const BaseFeatureSchema = z.object({
     .optional(),
   tags: z.array(EquipmentFeatureTypeSchema).optional(),
   availability: FeatureAvailabilitySchema.optional(),
-  metadata: z.record(z.string(), z.unknown()).optional(),
+  metadata: MetadataSchema,
 });
 
 export const SubclassFeatureSchema = BaseFeatureSchema.extend({

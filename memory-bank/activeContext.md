@@ -125,6 +125,11 @@ Data alignment: removed explicit class data types from `src/lib/data/classes/*` 
   - Removed folders `src/lib/schemas/equipment/` and `src/lib/schemas/domains/`.
 - Typecheck passes after consolidation and deletions.
 
+- Deduplication helpers added:
+  - Introduced `MetadataSchema`, `NameDescriptionSchema`, `ScoreSchema`, and `unionWithString` in `schemas/core.ts`.
+  - Replaced repeated metadata and union-with-string patterns in `domains.ts`, `equipment.ts`, `identity.ts`, and `player-character.ts`.
+  - No public API changes; just internal simplification. Typecheck/build verified.
+
 ## Context for Next Session
 
 When resuming work, the focus should be on:
