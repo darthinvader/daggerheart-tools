@@ -3,27 +3,21 @@ import { z } from 'zod';
 // identity data imports no longer needed here; using explicit enums instead
 // Import shared schemas from consolidated core module
 import {
-  AncestryNameEnum,
-  BardSubclassEnum,
+  AncestryNameSchema,
   BaseFeatureSchema,
   CharacterProgressionSchema,
   CharacterTraitEnum,
-  ClassNameEnum,
-  CommunityNameEnum,
+  CharacterTraitSchema,
+  ClassNameSchema,
+  CommunityNameSchema,
   ConditionNameSchema,
-  DomainNameEnum,
-  DruidSubclassEnum,
-  GuardianSubclassEnum,
+  DomainNameSchema,
   LevelUpPointSystemSchema,
   NameDescriptionSchema,
+  RallyDieEnum,
   RangerCompanionSchema,
-  RangerSubclassEnum,
-  RogueSubclassEnum,
   ScoreSchema,
-  SeraphSubclassEnum,
-  SorcererSubclassEnum,
-  WarriorSubclassEnum,
-  WizardSubclassEnum,
+  SubclassNameSchema,
 } from './core';
 import { DomainCardCollectionSchema } from './domains';
 // Import equipment schemas
@@ -56,24 +50,24 @@ const GoldSchema = z.object({
 });
 
 const PlayerDomainSchema = z.object({
-  name: DomainNameEnum,
+  name: DomainNameSchema,
   cards: DomainCardCollectionSchema,
 });
 
-const CharacterTraitSchema = z.object({
+const CharacterTraitStateSchema = z.object({
   value: z.number().int(),
   marked: z.boolean().default(false),
 });
 
 const CharacterTraitsSchema = z.record(
   CharacterTraitEnum,
-  CharacterTraitSchema
+  CharacterTraitStateSchema
 );
 
 // Experiences: named narrative edges tied to a trait and optional notes
 const ExperienceSchema = z.object({
   name: z.string(),
-  trait: CharacterTraitEnum,
+  trait: CharacterTraitSchema.optional(),
   bonus: z.number().int().min(1).max(2).default(2), // SRD often uses +2 starting experiences
   notes: z.string().optional(),
 });
@@ -82,17 +76,15 @@ const ExperienceCollectionSchema = z.array(ExperienceSchema);
 // Identity & Background
 // ======================================================================================
 
-// Use explicit enums to avoid runtime coupling to data arrays
-const AncestryEnum = AncestryNameEnum;
-const CommunityEnum = CommunityNameEnum;
+// Use flexible name schemas directly (allowing homebrew)
 
 const AbilitySchema = NameDescriptionSchema;
 
 const IdentitySchema = z.object({
   name: z.string(),
   pronouns: z.string(),
-  ancestry: AncestryEnum,
-  community: CommunityEnum,
+  ancestry: AncestryNameSchema,
+  community: CommunityNameSchema,
   description: z.string(),
   calling: z.string(),
   abilities: z.array(AbilitySchema),
@@ -102,18 +94,8 @@ const IdentitySchema = z.object({
 // ======================================================================================
 
 const ClassDetailsSchema = z.object({
-  name: ClassNameEnum,
-  subclass: z.union([
-    BardSubclassEnum,
-    DruidSubclassEnum,
-    GuardianSubclassEnum,
-    RangerSubclassEnum,
-    RogueSubclassEnum,
-    SeraphSubclassEnum,
-    SorcererSubclassEnum,
-    WarriorSubclassEnum,
-    WizardSubclassEnum,
-  ]),
+  name: ClassNameSchema,
+  subclass: SubclassNameSchema,
   features: z.array(BaseFeatureSchema),
   domains: z.array(PlayerDomainSchema),
 });
@@ -134,11 +116,11 @@ export const PlayerCharacterSchema = z.object({
   evasion: z.number().int().min(0).default(10), // SRD: Start at 10
   hope: z.number().int().min(0).default(2),
   proficiency: z.number().int().min(1).default(1),
-  rallyDie: z.union([z.literal('d6'), z.literal('d8')]).default('d6'),
+  rallyDie: z.union([RallyDieEnum, z.string()]).default('d6').optional(),
 
   // Class & Domains
   classDetails: ClassDetailsSchema,
-  multiclass: z.array(ClassNameEnum).optional(),
+  multiclass: z.array(ClassNameSchema).optional(),
 
   // Domain card collections
   domainCards: DomainCardCollectionSchema, // All available domain cards

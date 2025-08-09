@@ -3,7 +3,6 @@ import { z } from 'zod';
 import {
   BaseFeatureSchema,
   CharacterTraitEnum,
-  EquipmentFeatureTypeEnum,
   MetadataSchema,
   NameDescriptionSchema,
   WeaponTraitEnum,
@@ -51,6 +50,7 @@ export const BaseEquipmentSchema = z.object({
   tier: EquipmentTierSchema,
   description: z.string().optional(),
   features: z.array(BaseFeatureSchema).default([]),
+  // Keep equipment tags general to allow broader categorization
   tags: z.array(z.string()).optional(),
   metadata: MetadataSchema,
 });
@@ -61,6 +61,7 @@ export const WeaponSchema = BaseEquipmentSchema.extend({
   range: RangeSchema,
   damage: DamageSchema,
   burden: BurdenSchema,
+  // Free-form affinity text; not enforced to official domain names to support homebrew
   domainAffinity: z.string().optional(),
 });
 
@@ -150,7 +151,7 @@ export const WeaponCollectionSchema = z.object({
 export type PrimaryWeapon = z.infer<typeof PrimaryWeaponSchema>;
 export type SecondaryWeapon = z.infer<typeof SecondaryWeaponSchema>;
 export type CombatWheelchair = z.infer<typeof CombatWheelchairSchema>;
-export type WeaponFeatureType = z.infer<typeof EquipmentFeatureTypeEnum>;
+// Feature types for weapons are captured in BaseFeatureSchema.tags as strings
 export type WeaponCollection = z.infer<typeof WeaponCollectionSchema>;
 
 // =============================
@@ -193,7 +194,7 @@ export const ArmorCollectionSchema = z.object({
 
 export type StandardArmor = z.infer<typeof StandardArmorSchema>;
 export type SpecialArmor = z.infer<typeof SpecialArmorSchema>;
-export type ArmorFeatureType = z.infer<typeof EquipmentFeatureTypeEnum>;
+export type ArmorFeatureType = string;
 export type ArmorSlot = z.infer<typeof ArmorSlotSchema>;
 export type ArmorStatus = z.infer<typeof ArmorStatusSchema>;
 export type ArmorCollection = z.infer<typeof ArmorCollectionSchema>;

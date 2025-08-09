@@ -90,6 +90,25 @@ export const EquipmentFeatureTypeEnum = z.enum([
   'Locked On',
 ]);
 
+// -------------------------------------------------------------------------------------
+// Extracted constants/enums for reuse (WHY: enable homebrew by reusing + widening)
+// -------------------------------------------------------------------------------------
+
+export const FeatureTypeEnum = z.enum(['passive', 'active', 'triggered']);
+export const SubclassFeatureTypeEnum = z.enum([
+  'foundation',
+  'specialization',
+  'mastery',
+]);
+export const UnlockConditionEnum = z.enum([
+  'Starting feature',
+  'Take an upgraded subclass card',
+  'Automatic at level',
+  'Choose from level-up options',
+]);
+// Standard polyhedral dice; pair with unionWithString to allow more
+export const RallyDieEnum = z.enum(['d4', 'd6', 'd8', 'd10', 'd12']);
+
 export const ClassNameEnum = z.enum([
   'Bard',
   'Druid',
@@ -179,6 +198,7 @@ export const unionWithString = <T extends z.ZodTypeAny>(schema: T) =>
 
 export const DomainNameSchema = unionWithString(DomainNameEnum);
 export const ClassNameSchema = unionWithString(ClassNameEnum);
+export const CharacterTraitSchema = unionWithString(CharacterTraitEnum);
 export const AncestryNameSchema = unionWithString(AncestryNameEnum);
 export const CommunityNameSchema = unionWithString(CommunityNameEnum);
 export const EquipmentFeatureTypeSchema = unionWithString(
@@ -216,17 +236,19 @@ export const SubclassNameSchema = z.union([
 
 export { COMPANION_UPGRADES };
 
+export const CompanionUpgradeNameEnum = z.enum([
+  'Intelligent',
+  'Light in the Dark',
+  'Creature Comfort',
+  'Armored',
+  'Vicious',
+  'Resilient',
+  'Bonded',
+  'Aware',
+]);
+
 export const CompanionUpgradeSchema = z.object({
-  name: z.enum([
-    'Intelligent',
-    'Light in the Dark',
-    'Creature Comfort',
-    'Armored',
-    'Vicious',
-    'Resilient',
-    'Bonded',
-    'Aware',
-  ]),
+  name: z.union([CompanionUpgradeNameEnum, z.string()]),
   description: z.string(),
   benefit: z.string(),
 });
@@ -243,7 +265,8 @@ export const RangerCompanionSchema = z.object({
     description: z.string(),
     damage: z.string().optional(),
   }),
-  upgrades: z.array(CompanionUpgradeSchema).max(8),
+  // Remove strict cap to allow homebrew companions with more upgrades
+  upgrades: z.array(CompanionUpgradeSchema),
   inventory: z.array(z.string()).optional(),
 });
 
@@ -257,35 +280,22 @@ export type RangerCompanion = z.infer<typeof RangerCompanionSchema>;
 export const FeatureAvailabilitySchema = z.object({
   tier: CharacterTierSchema,
   minLevel: z.number().int().min(1).max(10),
-  unlockCondition: z
-    .union([
-      z.enum([
-        'Starting feature',
-        'Take an upgraded subclass card',
-        'Automatic at level',
-        'Choose from level-up options',
-      ]),
-      z.string(),
-    ])
-    .optional(),
+  unlockCondition: z.union([UnlockConditionEnum, z.string()]).optional(),
 });
 
 export const BaseFeatureSchema = z.object({
   name: z.string(),
   description: z.string(),
-  type: z
-    .union([z.enum(['passive', 'active', 'triggered']), z.string()])
-    .optional(),
-  tags: z.array(EquipmentFeatureTypeSchema).optional(),
+  // Feature type generalized via extracted enum + open union for homebrew
+  type: z.union([FeatureTypeEnum, z.string()]).optional(),
+  // Tags are free-form to allow broader categorization than equipment traits
+  tags: z.array(z.string()).optional(),
   availability: FeatureAvailabilitySchema.optional(),
   metadata: MetadataSchema,
 });
 
 export const SubclassFeatureSchema = BaseFeatureSchema.extend({
-  type: z.union([
-    z.enum(['foundation', 'specialization', 'mastery']),
-    z.string(),
-  ]),
+  type: z.union([SubclassFeatureTypeEnum, z.string()]),
   level: z.number().int().min(1).max(10).optional(),
   availability: FeatureAvailabilitySchema.optional(),
 });
@@ -309,7 +319,8 @@ export const BaseSubclassSchema = z.object({
 export const BaseClassSchema = z.object({
   name: z.string(),
   description: z.string(),
-  domains: z.array(DomainNameEnum).length(2),
+  // Allow homebrew domain names via open union
+  domains: z.array(DomainNameSchema).length(2),
   startingEvasion: z.number().int(),
   startingHitPoints: z.number().int(),
   classItems: z.array(z.string()),
