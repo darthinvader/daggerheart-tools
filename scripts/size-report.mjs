@@ -22,9 +22,20 @@ const minKB = Number(args.get('minKB') ?? 0);
 const jsonOut = args.get('json') === 'true' || Boolean(args.get('jsonOut'));
 const root = args.get('root') ? path.resolve(String(args.get('root'))) : cwd;
 
-// Only scan code we might refactor; hard-exclude data and schemas per project guidance.
-const includeRoots = ['src', 'tests'];
-const excludeDirs = new Set([
+// Try to read optional config to customize scanning while keeping safe defaults.
+async function readConfig(rootDir) {
+  const cfgPath = path.join(rootDir, 'size-report.config.json');
+  try {
+    const raw = await fs.readFile(cfgPath, 'utf8');
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+const defaultIncludeRoots = ['src', 'tests'];
+const defaultExcludeDirs = [
   'node_modules',
   'dist',
   'build',
@@ -33,16 +44,30 @@ const excludeDirs = new Set([
   'coverage',
   'SRD',
   'public',
-]);
-// Project-specific hard excludes
-const excludePaths = [
+];
+// Project-specific hard excludes (defaults)
+const defaultExcludePaths = [
   path.join('src', 'lib', 'data'),
   path.join('src', 'lib', 'schemas'),
   // Project-specific file to ignore: showcase is a demo page, not a refactor target
   path.join('src', 'routes', 'showcase.tsx'),
 ];
 
-const includeExts = new Set(['.ts', '.tsx', '.js', '.jsx', '.css', '.scss']);
+const defaultIncludeExts = ['.ts', '.tsx', '.js', '.jsx', '.css', '.scss'];
+
+const cfg = await readConfig(root);
+const includeRoots = Array.isArray(cfg.includeRoots)
+  ? cfg.includeRoots
+  : defaultIncludeRoots;
+const excludeDirs = new Set(
+  Array.isArray(cfg.excludeDirs) ? cfg.excludeDirs : defaultExcludeDirs
+);
+const excludePaths = Array.isArray(cfg.excludePaths)
+  ? cfg.excludePaths
+  : defaultExcludePaths;
+const includeExts = new Set(
+  Array.isArray(cfg.includeExts) ? cfg.includeExts : defaultIncludeExts
+);
 
 function isExcluded(fullPath, relPath, dirent) {
   // Directory-level filters

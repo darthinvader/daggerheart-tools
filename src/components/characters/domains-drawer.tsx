@@ -5,29 +5,26 @@ import * as React from 'react';
 
 // Virtual list is used via AvailableCardsSection
 import { AvailableCardsSection } from '@/components/characters/domains-drawer/available-cards-section';
+import { CreationCompleteToggle } from '@/components/characters/domains-drawer/creation-complete-toggle';
 import { DomainsFilterBar } from '@/components/characters/domains-drawer/domains-filter-bar';
 import { HomebrewCardForm } from '@/components/characters/domains-drawer/homebrew-card-form';
+import { getLoadoutLimits } from '@/components/characters/domains-drawer/loadout-limits';
 import { LoadoutList } from '@/components/characters/domains-drawer/loadout-list';
+import { TabsHeader } from '@/components/characters/domains-drawer/tabs-header';
 import { TypeSummaryChips } from '@/components/characters/domains-drawer/type-summary-chips';
 import { useAfterOpenFlag } from '@/components/characters/domains-drawer/use-after-open';
 import { useClosingFreeze } from '@/components/characters/domains-drawer/use-closing-freeze';
 import { useDomainCardsLoader } from '@/components/characters/domains-drawer/use-domain-cards-loader';
 import { useDomainFilters } from '@/components/characters/domains-drawer/use-domain-filters';
+import { useHomebrewForm } from '@/components/characters/domains-drawer/use-homebrew-form';
 import { useLoadoutLists } from '@/components/characters/domains-drawer/use-loadout-lists';
 import { VaultList } from '@/components/characters/domains-drawer/vault-list';
 import { useBaselineSnapshot } from '@/components/characters/hooks/use-baseline-snapshot';
 import { useDrawerAutosaveOnClose } from '@/components/characters/hooks/use-drawer-autosave';
 import { DrawerScaffold } from '@/components/drawers/drawer-scaffold';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-} from '@/components/ui/form';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Form, FormField } from '@/components/ui/form';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { filterCards as filterCardsShared } from '@/features/characters/logic';
 import { useCoarsePointer } from '@/hooks/use-coarse-pointer';
 import { useMeasureReady } from '@/hooks/use-measure-ready';
@@ -88,13 +85,7 @@ function DomainsDrawerImpl({
     search: '',
   });
   // Homebrew minimal fields; description carries the "what it does" text
-  const [hbName, setHbName] = React.useState('');
-  const [hbDomain, setHbDomain] = React.useState('');
-  const [hbType, setHbType] = React.useState('Spell');
-  const [hbLevel, setHbLevel] = React.useState(1);
-  const [hbDescription, setHbDescription] = React.useState('');
-  const [hbHopeCost, setHbHopeCost] = React.useState<number | ''>('');
-  const [hbRecallCost, setHbRecallCost] = React.useState<number | ''>('');
+  const { state: hb, setState: setHb, clear: clearHb } = useHomebrewForm();
 
   // Track baseline form values when the drawer opens so we can Reset to it.
   const baselineRef = useBaselineSnapshot(open, () => form.getValues());
@@ -169,10 +160,12 @@ function DomainsDrawerImpl({
 
   // Handlers provided by hook
 
-  const maxAllowed = creationComplete ? softLimit : startingLimit;
-  const overHardLimit = currentLoadout.length > maxAllowed && !creationComplete;
-  const disableAdd =
-    !creationComplete && currentLoadout.length >= startingLimit;
+  const { maxAllowed, overHardLimit, disableAdd } = getLoadoutLimits(
+    creationComplete,
+    currentLoadout.length,
+    startingLimit,
+    softLimit
+  );
 
   return (
     <DrawerScaffold
@@ -241,11 +234,7 @@ function DomainsDrawerImpl({
               defaultValue="filtered"
               activationMode="manual"
             >
-              <TabsList>
-                <TabsTrigger value="filtered">Filtered</TabsTrigger>
-                <TabsTrigger value="any">Any</TabsTrigger>
-                <TabsTrigger value="homebrew">Homebrew</TabsTrigger>
-              </TabsList>
+              <TabsHeader />
 
               <TabsContent value="filtered" className="space-y-3" forceMount>
                 <DomainsFilterBar
@@ -313,38 +302,49 @@ function DomainsDrawerImpl({
 
               <TabsContent value="homebrew" className="space-y-3">
                 <HomebrewCardForm
-                  hbName={hbName}
-                  hbDomain={hbDomain}
-                  hbType={hbType}
-                  hbLevel={hbLevel}
-                  hbDescription={hbDescription}
-                  hbHopeCost={hbHopeCost}
-                  hbRecallCost={hbRecallCost}
+                  hbName={hb.hbName}
+                  hbDomain={hb.hbDomain}
+                  hbType={hb.hbType}
+                  hbLevel={hb.hbLevel}
+                  hbDescription={hb.hbDescription}
+                  hbHopeCost={hb.hbHopeCost}
+                  hbRecallCost={hb.hbRecallCost}
                   disableAdd={disableAdd}
                   onChange={next => {
-                    if ('hbName' in next) setHbName(String(next.hbName ?? ''));
-                    if ('hbDomain' in next)
-                      setHbDomain(String(next.hbDomain ?? ''));
-                    if ('hbType' in next) setHbType(String(next.hbType ?? ''));
-                    if ('hbLevel' in next)
-                      setHbLevel(Number(next.hbLevel ?? 1));
-                    if ('hbDescription' in next)
-                      setHbDescription(String(next.hbDescription ?? ''));
-                    if ('hbHopeCost' in next)
-                      setHbHopeCost((next.hbHopeCost as number | '') ?? '');
-                    if ('hbRecallCost' in next)
-                      setHbRecallCost((next.hbRecallCost as number | '') ?? '');
+                    const mapped = {
+                      hbName:
+                        'hbName' in next
+                          ? String(next.hbName ?? '')
+                          : undefined,
+                      hbDomain:
+                        'hbDomain' in next
+                          ? String(next.hbDomain ?? '')
+                          : undefined,
+                      hbType:
+                        'hbType' in next
+                          ? String(next.hbType ?? '')
+                          : undefined,
+                      hbLevel:
+                        'hbLevel' in next
+                          ? Number(next.hbLevel ?? 1)
+                          : undefined,
+                      hbDescription:
+                        'hbDescription' in next
+                          ? String(next.hbDescription ?? '')
+                          : undefined,
+                      hbHopeCost:
+                        'hbHopeCost' in next
+                          ? ((next.hbHopeCost as number | '') ?? '')
+                          : undefined,
+                      hbRecallCost:
+                        'hbRecallCost' in next
+                          ? ((next.hbRecallCost as number | '') ?? '')
+                          : undefined,
+                    };
+                    setHb(mapped);
                   }}
                   onAdd={addToLoadout}
-                  onClear={() => {
-                    setHbName('');
-                    setHbDomain('');
-                    setHbType('Spell');
-                    setHbLevel(1);
-                    setHbDescription('');
-                    setHbHopeCost('');
-                    setHbRecallCost('');
-                  }}
+                  onClear={clearHb}
                 />
               </TabsContent>
             </Tabs>
@@ -355,21 +355,7 @@ function DomainsDrawerImpl({
                 exceed this (soft cap {softLimit}).
               </div>
             )}
-            <FormField
-              control={form.control as never}
-              name="creationComplete"
-              render={({ field }) => (
-                <FormItem className="flex items-center gap-2 pt-1">
-                  <FormControl>
-                    <Checkbox
-                      checked={!!field.value}
-                      onCheckedChange={v => field.onChange(!!v)}
-                    />
-                  </FormControl>
-                  <FormLabel className="!mt-0">Creation complete</FormLabel>
-                </FormItem>
-              )}
-            />
+            <CreationCompleteToggle form={form as never} />
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FormField

@@ -21,6 +21,13 @@ import { Button } from '@/components/ui/button';
 // No Card imports needed here; stub sections use dedicated components
 import type { ComboboxItem } from '@/components/ui/combobox';
 // storage helpers moved to features/characters/storage
+import {
+  countByType,
+  createConditionActions,
+  createResourceActions,
+  createTraitActions,
+  groupByDomain,
+} from '@/features/characters/logic';
 import type {
   ClassDraft,
   ConditionsDraft,
@@ -45,11 +52,8 @@ import {
   readResourcesFromStorage,
   readTraitsFromStorage,
   writeClassToStorage,
-  writeConditionsToStorage,
   writeDomainsToStorage,
   writeIdentityToStorage,
-  writeResourcesToStorage,
-  writeTraitsToStorage,
 } from '@/features/characters/storage';
 import { ANCESTRIES } from '@/lib/data/characters/ancestries';
 import { COMMUNITIES } from '@/lib/data/characters/communities';
@@ -123,9 +127,6 @@ function CharacterSheet() {
   const [openClass, setOpenClass] = React.useState(false);
   const [openDomains, setOpenDomains] = React.useState(false);
 
-  function writeDomainsToStorageLocal(id: string, value: DomainsDraft) {
-    writeDomainsToStorage(id, value);
-  }
   const [domainsDraft, setDomainsDraft] =
     React.useState<DomainsDraft>(DEFAULT_DOMAINS);
 
@@ -242,7 +243,7 @@ function CharacterSheet() {
   );
   const onSubmitDomains = (values: DomainsDraft) => {
     setDomainsDraft(values);
-    writeDomainsToStorageLocal(id, values);
+    writeDomainsToStorage(id, values);
     setOpenDomains(false);
   };
   const submitDomains = domainsForm.handleSubmit(v =>
@@ -251,136 +252,38 @@ function CharacterSheet() {
 
   // All domain cards are now lazy-loaded inside the Domains drawer to reduce route weight.
 
-  // Helpers for resources updates
-  const clamp = (n: number, min: number, max: number) =>
-    Math.max(min, Math.min(max, n));
-  const updateStress = (delta: number) => {
-    setResources(prev => {
-      const next: ResourcesDraft = {
-        ...prev,
-        stress: {
-          current: clamp(prev.stress.current + delta, 0, prev.stress.max),
-          max: prev.stress.max,
-        },
-      };
-      writeResourcesToStorage(id, next);
-      return next;
-    });
-  };
-  const updateStressMax = (delta: number) => {
-    setResources(prev => {
-      const max = Math.max(1, prev.stress.max + delta);
-      const current = clamp(prev.stress.current, 0, max);
-      const next: ResourcesDraft = { ...prev, stress: { current, max } };
-      writeResourcesToStorage(id, next);
-      return next;
-    });
-  };
-  const updateHp = (delta: number) => {
-    setResources(prev => {
-      const next: ResourcesDraft = {
-        ...prev,
-        hp: {
-          current: clamp(prev.hp.current + delta, 0, prev.hp.max),
-          max: prev.hp.max,
-        },
-      };
-      writeResourcesToStorage(id, next);
-      return next;
-    });
-  };
-  const updateHpMax = (delta: number) => {
-    setResources(prev => {
-      const max = Math.max(1, prev.hp.max + delta);
-      const current = clamp(prev.hp.current, 0, max);
-      const next: ResourcesDraft = { ...prev, hp: { current, max } };
-      writeResourcesToStorage(id, next);
-      return next;
-    });
-  };
-  const updateHope = (delta: number) => {
-    setResources(prev => {
-      const next: ResourcesDraft = {
-        ...prev,
-        hope: {
-          current: clamp(prev.hope.current + delta, 0, prev.hope.max),
-          max: prev.hope.max,
-        },
-      } as ResourcesDraft;
-      writeResourcesToStorage(id, next);
-      return next;
-    });
-  };
-  const updateHopeMax = (delta: number) => {
-    setResources(prev => {
-      const max = Math.max(1, prev.hope.max + delta);
-      const current = clamp(prev.hope.current, 0, max);
-      const next: ResourcesDraft = {
-        ...prev,
-        hope: { current, max },
-      } as ResourcesDraft;
-      writeResourcesToStorage(id, next);
-      return next;
-    });
-  };
-  const updateNumber = <K extends keyof ResourcesDraft>(
-    key: K,
-    delta: number,
-    min: number
-  ) => {
-    setResources(prev => {
-      const nextValue = Math.max(min, (prev[key] as number) + delta);
-      const next: ResourcesDraft = {
-        ...prev,
-        [key]: nextValue,
-      } as ResourcesDraft;
-      writeResourcesToStorage(id, next);
-      return next;
-    });
-  };
+  // Normalize loadout/vault cards where description may be optional from storage
+  const normalizedLoadout = React.useMemo(
+    () =>
+      domainsDraft.loadout.map(c => ({
+        ...c,
+        description: c.description ?? '',
+      })),
+    [domainsDraft.loadout]
+  );
 
-  // Traits helpers
-  const canIncrement = (_key: string) => true;
-  const incTrait = (key: string, delta: 1 | -1) => {
-    setTraits(prev => {
-      const current = prev[key].value;
-      const nextValue = delta === 1 ? current + 1 : current - 1;
-      const next: TraitsDraft = {
-        ...prev,
-        [key]: { ...prev[key], value: nextValue },
-      } as TraitsDraft;
-      writeTraitsToStorage(id, next);
-      return next;
-    });
-  };
-  const toggleMarked = (key: string) => {
-    setTraits(prev => {
-      const next: TraitsDraft = {
-        ...prev,
-        [key]: { ...prev[key], marked: !prev[key].marked },
-      } as TraitsDraft;
-      writeTraitsToStorage(id, next);
-      return next;
-    });
-  };
+  // Resource update helpers (extracted)
+  const {
+    updateStress,
+    updateStressMax,
+    updateHp,
+    updateHpMax,
+    updateHope,
+    updateHopeMax,
+    updateNumber,
+  } = createResourceActions(id, setResources);
 
-  // Conditions helpers
-  const addCondition = (label: string) => {
-    const value = label.trim();
-    if (!value) return;
-    setConditions(prev => {
-      const next = Array.from(new Set([...prev, value])).slice(0, 12);
-      writeConditionsToStorage(id, next);
-      return next;
-    });
-  };
-  const removeCondition = (label: string) => {
-    setConditions(prev => {
-      const next = prev.filter(c => c !== label);
-      writeConditionsToStorage(id, next);
-      return next;
-    });
-  };
+  // Traits helpers (extracted)
+  const { canIncrement, incTrait, toggleMarked } = createTraitActions(
+    id,
+    setTraits
+  );
+
+  // Conditions helpers (extracted)
+  const { addCondition, removeCondition } = createConditionActions(
+    id,
+    setConditions
+  );
 
   return (
     <div className="w-full space-y-4 p-4">
@@ -492,30 +395,14 @@ function CharacterSheet() {
       <DomainsCard
         onEdit={() => setOpenDomains(true)}
         summary={{
-          total: domainsDraft.loadout.length,
-          byDomain: accessibleDomains.map(d => ({
-            domain: d,
-            count: domainsDraft.loadout.filter(c => String(c.domain) === d)
-              .length,
-          })),
-          byType: [
-            {
-              type: 'Spell',
-              count: domainsDraft.loadout.filter(c => c.type === 'Spell')
-                .length,
-            },
-            {
-              type: 'Ability',
-              count: domainsDraft.loadout.filter(c => c.type === 'Ability')
-                .length,
-            },
-          ],
-          sample: domainsDraft.loadout.slice(0, 3).map(c => c.name),
+          total: normalizedLoadout.length,
+          byDomain: groupByDomain(normalizedLoadout).filter(g =>
+            accessibleDomains.includes(g.domain)
+          ),
+          byType: countByType(normalizedLoadout),
+          sample: normalizedLoadout.slice(0, 3).map(c => c.name),
         }}
-        loadout={domainsDraft.loadout.map(c => ({
-          ...c,
-          description: c.description ?? '',
-        }))}
+        loadout={normalizedLoadout}
       />
       <React.Suspense fallback={null}>
         <DomainsDrawerLazy

@@ -50,6 +50,15 @@ Domain management and resources (latest changes):
 - Hope resource: converted `hope` from number to `Score` shape `{ current, max }` across schema (`player-character.ts`), route state, UI (`CoreScoresCard`, `SummaryStats`), and storage migration (upgrade legacy numeric to Score on read). Added handlers to update current and max.
 - Traits: removed “Remaining” budget UI and related state.
 
+Small refactors (Aug 11, 2025):
+
+- Extracted character sheet helpers to `src/features/characters/logic/*`:
+  - `resources.ts` with `createResourceActions`
+  - `traits.ts` with `createTraitActions`
+  - `conditions.ts` with `createConditionActions`
+    `src/routes/characters/$id.tsx` now imports these, reducing local boilerplate. File size dropped from ~17.1 KB → ~14.0 KB per analyzer.
+- Enhanced `scripts/size-report.mjs` to support optional `size-report.config.json` for customizeable include/exclude roots/paths/extensions while preserving defaults (still excludes `src/lib/data`, `src/lib/schemas`, and `src/routes/showcase.tsx`).
+
 ### Recently Completed
 
 - Domain Card System: All 9 core domains present under `src/lib/data/domains/` with SRD-aligned data; future domains (Chaos, Moon, Sun, Blood, Fate) stubbed as empty arrays.

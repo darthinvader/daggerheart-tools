@@ -31,6 +31,8 @@ Refactors and reductions (Aug 11, 2025)
 - `src/components/ui/sidebar.tsx` reduced to ~10.1 KB by extracting `context.tsx`, `variants.ts`, and `menu.tsx`.
 - `src/components/characters/domains-drawer.tsx` reduced to ~15.1 KB with new `useLoadoutLists` hook and small components (`AvailableCardsSection`, `TypeSummaryChips`).
 - Character route `$id.tsx` previously reduced by moving storage/schemas into `src/features/characters/storage.ts` (now ~17.1 KB).
+- Character route `$id.tsx` further reduced to ~14.0 KB by extracting resource/traits/conditions actions to `src/features/characters/logic/*`.
+- `scripts/size-report.mjs` now supports optional `size-report.config.json` to customize scan without changing defaults.
 
 ## What's Left to Build
 
@@ -61,6 +63,7 @@ Technical health
 - Lint/format: Good
 - Performance/Mobile/A11y: Not yet assessed
 - Tests: PASS (12). Build: PASS. Type-check: PASS.
+- Analyzer: PASS. `$id.tsx` down to ~14.0 KB; domains-drawer remains top at ~15.2 KB (already split earlier).
 
 ## Known Issues
 

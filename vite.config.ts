@@ -33,6 +33,11 @@ export default defineConfig({
       '@': path.resolve(path.dirname(fileURLToPath(import.meta.url)), './src'),
     },
   },
+  server: {
+    host: '127.0.0.1',
+    port: 5173,
+    strictPort: true,
+  },
   test: {
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
