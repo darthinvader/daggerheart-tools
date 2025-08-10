@@ -66,13 +66,32 @@ function DomainsDrawerImpl({
   const [closing, setClosing] = React.useState(false);
   const closeTimerRef = React.useRef<number | null>(null);
 
-  const [domainFilter, setDomainFilter] = React.useState<string>('All');
-  const [levelFilter, setLevelFilter] = React.useState<string>('All');
-  const [typeFilter, setTypeFilter] = React.useState<string>('All');
+  const [domainFilter, _setDomainFilter] = React.useState<string>('All');
+  const [levelFilter, _setLevelFilter] = React.useState<string>('All');
+  const [typeFilter, _setTypeFilter] = React.useState<string>('All');
+  const setDomainFilter = React.useCallback((v: string) => {
+    React.startTransition(() => _setDomainFilter(v));
+  }, []);
+  const setLevelFilter = React.useCallback((v: string) => {
+    React.startTransition(() => _setLevelFilter(v));
+  }, []);
+  const setTypeFilter = React.useCallback((v: string) => {
+    React.startTransition(() => _setTypeFilter(v));
+  }, []);
   const [activeTab, setActiveTab] = React.useState<
     'filtered' | 'any' | 'homebrew'
   >('filtered');
+  // Debounced search to avoid filtering on every keystroke on low-end devices
   const [search, setSearch] = React.useState('');
+  function useDebouncedValue<T>(value: T, delay = 200) {
+    const [debounced, setDebounced] = React.useState(value);
+    React.useEffect(() => {
+      const t = window.setTimeout(() => setDebounced(value), delay);
+      return () => window.clearTimeout(t);
+    }, [value, delay]);
+    return debounced;
+  }
+  const debouncedSearch = useDebouncedValue(search, 200);
   // Homebrew minimal fields; description carries the "what it does" text
   const [hbName, setHbName] = React.useState('');
   const [hbDomain, setHbDomain] = React.useState('');
@@ -116,6 +135,44 @@ function DomainsDrawerImpl({
   const [cardsLocal, setCardsLocal] = React.useState<DomainCard[] | null>(
     allCards ? allCards : null
   );
+  // Idle prefetch: warm the domain data as soon as this component mounts (even while closed)
+  React.useEffect(() => {
+    if (allCards) return;
+    if (cardsLocal !== null) return; // already loaded/warming
+    let cancelled = false;
+    let cleanup: (() => void) | undefined;
+    const load = async () => {
+      try {
+        const mod = await import('@/lib/data/domains');
+        const keys = Object.keys(mod).filter(k => k.endsWith('_DOMAIN_CARDS'));
+        const flat = keys.flatMap(
+          k => (mod as Record<string, unknown>)[k] as DomainCard[]
+        );
+        if (!cancelled) setCardsLocal(flat as DomainCard[]);
+      } catch {
+        if (!cancelled) setCardsLocal([]);
+      }
+    };
+    // Prefer requestIdleCallback when available to avoid competing with animations
+    const w = window as unknown as {
+      requestIdleCallback?: (
+        cb: IdleRequestCallback,
+        opts?: { timeout?: number }
+      ) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+    if (typeof w.requestIdleCallback === 'function') {
+      const id = w.requestIdleCallback(() => void load(), { timeout: 1500 });
+      cleanup = () => w.cancelIdleCallback?.(id);
+    } else {
+      const id = window.setTimeout(() => void load(), 300);
+      cleanup = () => window.clearTimeout(id);
+    }
+    return () => {
+      cancelled = true;
+      cleanup?.();
+    };
+  }, [allCards, cardsLocal]);
   React.useEffect(() => {
     if (!open) return;
     if (allCards) return;
@@ -167,7 +224,7 @@ function DomainsDrawerImpl({
       const allowed = restrictToAccessible
         ? new Set(accessibleDomains)
         : undefined;
-      const q = search.trim().toLowerCase();
+      const q = debouncedSearch.trim().toLowerCase();
       const level = levelFilter === 'All' ? null : Number(levelFilter);
       const type = typeFilter === 'All' ? null : typeFilter;
       const domain = domainFilter === 'All' ? null : domainFilter;
@@ -182,7 +239,7 @@ function DomainsDrawerImpl({
         return hay.includes(q);
       });
     },
-    [accessibleDomains, domainFilter, levelFilter, typeFilter, search]
+    [accessibleDomains, domainFilter, levelFilter, typeFilter, debouncedSearch]
   );
 
   // Only compute the active tab's list to reduce CPU work.
@@ -195,6 +252,26 @@ function DomainsDrawerImpl({
 
   // Defer large list rendering to keep interactions responsive.
   const deferredList = React.useDeferredValue(activeList);
+
+  // Slightly delay measurements after opening to let the animation complete
+  const [measureReady, setMeasureReady] = React.useState(false);
+  React.useEffect(() => {
+    if (!open) {
+      setMeasureReady(false);
+      return;
+    }
+    setMeasureReady(false);
+    const id = window.setTimeout(() => setMeasureReady(true), 300);
+    return () => window.clearTimeout(id);
+  }, [open]);
+
+  // Prefer smaller overscan on coarse pointers / low-end devices
+  const isCoarsePointer = React.useMemo(() => {
+    return typeof window !== 'undefined'
+      ? (window.matchMedia?.('(pointer: coarse)')?.matches ?? false)
+      : false;
+  }, []);
+  const virtualOverscan = isCoarsePointer ? 1 : 3;
 
   // Virtualized list for large collections to improve performance.
   function VirtualCardList({
@@ -212,7 +289,7 @@ function DomainsDrawerImpl({
       getScrollElement: () => parentRef.current,
       estimateSize: () => 120,
       // Keep overscan low to minimize render work during drawer animations
-      overscan: 3,
+      overscan: virtualOverscan,
       // Wrap ResizeObserver measurements in rAF to align with paint frames
       useAnimationFrameWithResizeObserver: true,
       getItemKey: index =>
@@ -402,6 +479,9 @@ function DomainsDrawerImpl({
             <Tabs
               value={activeTab}
               onValueChange={v => setActiveTab(v as typeof activeTab)}
+              // Don’t mount inactive panels to reduce DOM & measurement during open
+              defaultValue="filtered"
+              activationMode="manual"
             >
               <TabsList>
                 <TabsTrigger value="filtered">Filtered</TabsTrigger>
@@ -409,7 +489,7 @@ function DomainsDrawerImpl({
                 <TabsTrigger value="homebrew">Homebrew</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="filtered" className="space-y-3">
+              <TabsContent value="filtered" className="space-y-3" forceMount>
                 <div className="grid grid-cols-3 gap-2">
                   <FormItem>
                     <FormLabel>Domain</FormLabel>
@@ -493,7 +573,7 @@ function DomainsDrawerImpl({
                       ) : afterOpen ? (
                         <VirtualCardList
                           items={deferredList}
-                          measure={afterOpen}
+                          measure={afterOpen && measureReady && !closing}
                         />
                       ) : (
                         <div className="text-muted-foreground p-3 text-sm">
@@ -504,7 +584,11 @@ function DomainsDrawerImpl({
                 </div>
               </TabsContent>
 
-              <TabsContent value="any" className="space-y-3">
+              <TabsContent
+                value="any"
+                className="space-y-3"
+                // Mount when selected first time, then keep mounted
+              >
                 <div className="grid grid-cols-3 gap-2">
                   <FormItem>
                     <FormLabel>Domain</FormLabel>
@@ -604,7 +688,7 @@ function DomainsDrawerImpl({
                       ) : afterOpen ? (
                         <VirtualCardList
                           items={deferredList}
-                          measure={afterOpen}
+                          measure={afterOpen && measureReady && !closing}
                         />
                       ) : (
                         <div className="text-muted-foreground p-3 text-sm">
@@ -776,12 +860,16 @@ function DomainsDrawerImpl({
                         </div>
                       ) : (
                         currentLoadout.map(card => (
-                          <DomainCardItem
+                          <div
                             key={`loadout:${card.name}`}
-                            card={card}
-                            context="loadout"
-                            onRemoveFromLoadout={removeFromLoadout}
-                          />
+                            className="cv-auto-120"
+                          >
+                            <DomainCardItem
+                              card={card}
+                              context="loadout"
+                              onRemoveFromLoadout={removeFromLoadout}
+                            />
+                          </div>
                         ))
                       )}
                     </div>
@@ -806,16 +894,20 @@ function DomainsDrawerImpl({
                         </div>
                       ) : (
                         currentVault.map(card => (
-                          <DomainCardItem
+                          <div
                             key={`vault:${card.name}`}
-                            card={card}
-                            context="vault"
-                            inLoadout={inLoadout(card)}
-                            disableAdd={disableAdd}
-                            onAddToLoadout={addToLoadout}
-                            onRemoveFromLoadout={removeFromLoadout}
-                            onRemoveFromVault={removeFromVault}
-                          />
+                            className="cv-auto-120"
+                          >
+                            <DomainCardItem
+                              card={card}
+                              context="vault"
+                              inLoadout={inLoadout(card)}
+                              disableAdd={disableAdd}
+                              onAddToLoadout={addToLoadout}
+                              onRemoveFromLoadout={removeFromLoadout}
+                              onRemoveFromVault={removeFromVault}
+                            />
+                          </div>
                         ))
                       )}
                     </div>
