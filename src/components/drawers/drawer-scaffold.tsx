@@ -35,30 +35,34 @@ export function DrawerScaffold({
   footer,
 }: DrawerScaffoldProps) {
   return (
-    <Drawer open={open} onOpenChange={onOpenChange} direction="top">
+    <Drawer open={open} onOpenChange={onOpenChange} direction="bottom">
       <DrawerContent className="h-[100dvh] max-h-[100dvh]">
         <DrawerHeader>
           <DrawerTitle>{title}</DrawerTitle>
         </DrawerHeader>
-        <div className="overflow-y-auto px-4 pb-[max(8px,env(safe-area-inset-bottom))]">
+        <div
+          // Mark as scrollable so Vaul won't treat fast scrolls as a drag-to-close
+          data-vaul-scrollable
+          className="min-h-0 flex-1 [touch-action:pan-y] overflow-y-auto [overscroll-behavior:contain] px-4 [-webkit-overflow-scrolling:touch]"
+        >
           {children}
-          <DrawerFooter>
-            {footer ?? (
-              <div className="flex items-center justify-end gap-2">
-                <Button type="button" variant="outline" onClick={onCancel}>
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={submitting || submitDisabled}
-                  onClick={onSubmit}
-                >
-                  {submitLabel}
-                </Button>
-              </div>
-            )}
-          </DrawerFooter>
         </div>
+        <DrawerFooter>
+          {footer ?? (
+            <div className="flex items-center justify-end gap-2">
+              <Button type="button" variant="outline" onClick={onCancel}>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={submitting || submitDisabled}
+                onClick={onSubmit}
+              >
+                {submitLabel}
+              </Button>
+            </div>
+          )}
+        </DrawerFooter>
       </DrawerContent>
     </Drawer>
   );
