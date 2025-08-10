@@ -1,4 +1,4 @@
-import { DomainCardItem } from '@/components/characters/pieces/domain-card-item';
+import { DomainCardItem } from '@/components/characters/domain-card-item';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { DomainCard } from '@/lib/schemas/domains';

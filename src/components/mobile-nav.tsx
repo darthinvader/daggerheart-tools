@@ -9,6 +9,7 @@ import { createPortal } from 'react-dom';
 import { Link, useRouter } from '@tanstack/react-router';
 
 import { generateId } from '@/lib/utils';
+import { watchSoftKeyboard } from '@/utils/mobile';
 
 type NavItem = {
   to: string;
@@ -37,42 +38,7 @@ export function MobileNavBar({
   const router = useRouter();
   const [hideForKeyboard, setHideForKeyboard] = React.useState(false);
 
-  React.useEffect(() => {
-    // Heuristic: hide bar when soft keyboard is likely open
-    const isEditable = (el: Element | null) =>
-      !!el &&
-      (el.matches('input, textarea, select, [contenteditable="true"]') ||
-        (el as HTMLElement).isContentEditable);
-
-    const onFocusChange = () => {
-      setHideForKeyboard(isEditable(document.activeElement));
-    };
-
-    document.addEventListener('focusin', onFocusChange);
-    document.addEventListener('focusout', onFocusChange);
-
-    let initialVVH =
-      typeof window !== 'undefined' && window.visualViewport
-        ? window.visualViewport.height
-        : 0;
-    const onVVResize = () => {
-      const vv: VisualViewport | null | undefined =
-        typeof window !== 'undefined' ? window.visualViewport : undefined;
-      if (!vv) return;
-      if (!initialVVH) initialVVH = vv.height;
-      // If the viewport height shrinks notably, assume keyboard is shown
-      const shrunk = initialVVH - vv.height > 100;
-      const focused = isEditable(document.activeElement);
-      setHideForKeyboard(shrunk || focused);
-    };
-    window.visualViewport?.addEventListener('resize', onVVResize);
-
-    return () => {
-      document.removeEventListener('focusin', onFocusChange);
-      document.removeEventListener('focusout', onFocusChange);
-      window.visualViewport?.removeEventListener('resize', onVVResize);
-    };
-  }, []);
+  React.useEffect(() => watchSoftKeyboard(setHideForKeyboard), []);
 
   if (hideForKeyboard) return null;
   // Exactly two items around a center FAB

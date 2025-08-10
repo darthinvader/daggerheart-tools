@@ -1,6 +1,6 @@
 import { memo } from 'react';
 
-import { getAccent } from '@/components/characters/pieces/domain-styles';
+import { getAccent } from '@/components/characters/domain-styles';
 import { Button } from '@/components/ui/button';
 import type { DomainCard } from '@/lib/schemas/domains';
 import { cn } from '@/lib/utils';

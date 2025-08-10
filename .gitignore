@@ -88,3 +88,11 @@ temp/
 scratch/
 
 Copilot-Processing.md
+
+# Additional Vite cache
+node_modules/.vite/
+
+# Analyzer/visualizer outputs
+stats.html
+madge-graph.svg
+madge-graph.png

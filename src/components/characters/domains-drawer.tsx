@@ -25,6 +25,10 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  countByType,
+  filterCards as filterCardsShared,
+} from '@/features/characters/logic';
 import { useCoarsePointer } from '@/hooks/use-coarse-pointer';
 import { useMeasureReady } from '@/hooks/use-measure-ready';
 // Using CSS dynamic viewport units (dvh) for correct keyboard interactions
@@ -126,27 +130,16 @@ function DomainsDrawerImpl({
   );
   const inLoadout = (card: DomainCard) => loadoutNames.has(card.name);
 
-  // Single filtering function used by both tabs to avoid duplicated work.
+  // Use shared helpers for filtering
   const filterCards = React.useCallback(
-    (cards: DomainCard[], restrictToAccessible: boolean) => {
-      const allowed = restrictToAccessible
-        ? new Set(accessibleDomains)
-        : undefined;
-      const q = debouncedSearch.trim().toLowerCase();
-      const level = levelFilter === 'All' ? null : Number(levelFilter);
-      const type = typeFilter === 'All' ? null : typeFilter;
-      const domain = domainFilter === 'All' ? null : domainFilter;
-      return cards.filter(c => {
-        if (allowed && !allowed.has(String(c.domain))) return false;
-        if (domain && String(c.domain) !== domain) return false;
-        if (level !== null && c.level !== level) return false;
-        if (type !== null && String(c.type) !== type) return false;
-        if (!q) return true;
-        const hay =
-          `${c.name} ${String(c.domain)} ${c.type} ${c.description ?? ''}`.toLowerCase();
-        return hay.includes(q);
-      });
-    },
+    (cardsList: DomainCard[], restrictToAccessible: boolean) =>
+      filterCardsShared(cardsList, {
+        allowedDomains: restrictToAccessible ? accessibleDomains : undefined,
+        domain: domainFilter,
+        level: levelFilter,
+        type: typeFilter,
+        search: debouncedSearch,
+      }),
     [accessibleDomains, domainFilter, levelFilter, typeFilter, debouncedSearch]
   );
 
@@ -351,14 +344,19 @@ function DomainsDrawerImpl({
                   {/* Summary chips by type to mirror visible list */}
                   {activeTab === 'any' && (
                     <div className="flex flex-wrap items-center gap-2 text-xs">
-                      <span className="rounded bg-blue-100 px-2 py-0.5 text-blue-900 dark:bg-blue-500/20 dark:text-blue-200">
-                        Spell{' '}
-                        {deferredList.filter(c => c.type === 'Spell').length}
-                      </span>
-                      <span className="rounded bg-amber-100 px-2 py-0.5 text-amber-900 dark:bg-amber-500/20 dark:text-amber-200">
-                        Ability{' '}
-                        {deferredList.filter(c => c.type === 'Ability').length}
-                      </span>
+                      {countByType(deferredList).map(({ type, count }) => (
+                        <span
+                          key={type}
+                          className={cn(
+                            'rounded px-2 py-0.5',
+                            type === 'Spell'
+                              ? 'bg-blue-100 text-blue-900 dark:bg-blue-500/20 dark:text-blue-200'
+                              : 'bg-amber-100 text-amber-900 dark:bg-amber-500/20 dark:text-amber-200'
+                          )}
+                        >
+                          {type} {count}
+                        </span>
+                      ))}
                     </div>
                   )}
                   <div className="divide-border rounded-md border">

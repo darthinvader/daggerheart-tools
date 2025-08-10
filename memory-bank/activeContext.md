@@ -75,6 +75,15 @@ Schema completion and validation; mobile-first sheet assembly with drawer editor
 
 - Sketch character creation flow and character sheet layout
 
+### Structural Refactors (Aug 10, 2025)
+
+- Removed duplicate character component forwarders under `src/components/characters/pieces/*` (domain-card-item, domain-styles, summary-stats). Canonical sources now live under `src/components/characters/*` and are imported directly.
+- Deleted duplicate `src/components/characters/virtual-card-list.tsx` in favor of the version under `domains-drawer/virtual-card-list.tsx` used by the drawer.
+- Updated imports accordingly (`DomainsCard` now imports `DomainCardItem` from canonical path; `DomainCardItem` imports `domain-styles` from canonical path).
+- Added `.gitignore` entries for analyzer/visualizer outputs and Vite cache.
+- Extracted shared mobile keyboard heuristic to `src/utils/mobile.ts` and refactored `MobileNavBar` to use it.
+- Added `src/features/characters/logic/domains.ts` with pure helpers for card filtering and counting (not yet wired). This will back future refactors to keep UI components thin.
+
 ### New Decisions (Aug 10, 2025)
 
 - Include multiclassing during initial character creation (not just level-up).
