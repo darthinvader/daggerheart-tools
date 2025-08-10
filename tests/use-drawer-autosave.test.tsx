@@ -29,14 +29,29 @@ describe('useDrawerAutosaveOnClose', () => {
       { wrapper: Wrapper, initialProps: { open: true } }
     );
 
+    // Ensure deferred work runs immediately in test environment
+    const originalRIC = (window as any).requestIdleCallback as
+      | ((
+          callback: IdleRequestCallback,
+          options?: { timeout?: number }
+        ) => number)
+      | undefined;
+    (window as any).requestIdleCallback = (cb: IdleRequestCallback): number => {
+      cb({ didTimeout: false, timeRemaining: () => 50 } as IdleDeadline);
+      return 1;
+    };
+
     // Close
     rerender({ open: false });
 
-    // Wait microtask
+    // Flush microtasks from async trigger/submit
     await Promise.resolve();
 
     expect(trigger).toHaveBeenCalled();
     expect(submit).toHaveBeenCalled();
+
+    // Restore original
+    (window as any).requestIdleCallback = originalRIC;
   });
 
   it('does not run when skipped', async () => {

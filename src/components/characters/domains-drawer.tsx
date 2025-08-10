@@ -3,9 +3,15 @@ import type { UseFormReturn } from 'react-hook-form';
 import type { BaseSyntheticEvent } from 'react';
 import * as React from 'react';
 
-import { useVirtualizer } from '@tanstack/react-virtual';
-
-import { DomainCardItem } from '@/components/characters/domain-card-item';
+import { DomainsFilterBar } from '@/components/characters/domains-drawer/domains-filter-bar';
+import { HomebrewCardForm } from '@/components/characters/domains-drawer/homebrew-card-form';
+import { LoadoutList } from '@/components/characters/domains-drawer/loadout-list';
+import { useAfterOpenFlag } from '@/components/characters/domains-drawer/use-after-open';
+import { useClosingFreeze } from '@/components/characters/domains-drawer/use-closing-freeze';
+import { useDomainCardsLoader } from '@/components/characters/domains-drawer/use-domain-cards-loader';
+import { useDomainFilters } from '@/components/characters/domains-drawer/use-domain-filters';
+import { VaultList } from '@/components/characters/domains-drawer/vault-list';
+import { VirtualCardList } from '@/components/characters/domains-drawer/virtual-card-list';
 import { useBaselineSnapshot } from '@/components/characters/hooks/use-baseline-snapshot';
 import { useDrawerAutosaveOnClose } from '@/components/characters/hooks/use-drawer-autosave';
 import { DrawerScaffold } from '@/components/drawers/drawer-scaffold';
@@ -17,18 +23,10 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Textarea } from '@/components/ui/textarea';
+import { useCoarsePointer } from '@/hooks/use-coarse-pointer';
+import { useMeasureReady } from '@/hooks/use-measure-ready';
 // Using CSS dynamic viewport units (dvh) for correct keyboard interactions
 import type { DomainCard } from '@/lib/schemas/domains';
 import { cn } from '@/lib/utils';
@@ -63,35 +61,28 @@ function DomainsDrawerImpl({
   softLimit = 6,
 }: DomainsDrawerProps) {
   // Track when the drawer is closing to temporarily freeze heavy work & scrolling
-  const [closing, setClosing] = React.useState(false);
-  const closeTimerRef = React.useRef<number | null>(null);
-
-  const [domainFilter, _setDomainFilter] = React.useState<string>('All');
-  const [levelFilter, _setLevelFilter] = React.useState<string>('All');
-  const [typeFilter, _setTypeFilter] = React.useState<string>('All');
-  const setDomainFilter = React.useCallback((v: string) => {
-    React.startTransition(() => _setDomainFilter(v));
-  }, []);
-  const setLevelFilter = React.useCallback((v: string) => {
-    React.startTransition(() => _setLevelFilter(v));
-  }, []);
-  const setTypeFilter = React.useCallback((v: string) => {
-    React.startTransition(() => _setTypeFilter(v));
-  }, []);
+  const { closing, startClosing, clearClosing } = useClosingFreeze();
   const [activeTab, setActiveTab] = React.useState<
     'filtered' | 'any' | 'homebrew'
   >('filtered');
-  // Debounced search to avoid filtering on every keystroke on low-end devices
-  const [search, setSearch] = React.useState('');
-  function useDebouncedValue<T>(value: T, delay = 200) {
-    const [debounced, setDebounced] = React.useState(value);
-    React.useEffect(() => {
-      const t = window.setTimeout(() => setDebounced(value), delay);
-      return () => window.clearTimeout(t);
-    }, [value, delay]);
-    return debounced;
-  }
-  const debouncedSearch = useDebouncedValue(search, 200);
+  // Debounced search + filters via shared hook
+  // Replace local filter/search state with shared hook
+  const {
+    domainFilter,
+    levelFilter,
+    typeFilter,
+    search,
+    debouncedSearch,
+    setDomainFilter,
+    setLevelFilter,
+    setTypeFilter,
+    setSearch,
+  } = useDomainFilters({
+    domainFilter: 'All',
+    levelFilter: 'All',
+    typeFilter: 'All',
+    search: '',
+  });
   // Homebrew minimal fields; description carries the "what it does" text
   const [hbName, setHbName] = React.useState('');
   const [hbDomain, setHbDomain] = React.useState('');
@@ -107,98 +98,15 @@ function DomainsDrawerImpl({
   const skipAutoSaveRef = React.useRef(false);
 
   // After-open flag: wait a couple of RAFs so CSS animations start before heavy work.
-  const [afterOpen, setAfterOpen] = React.useState(false);
-  React.useEffect(() => {
-    let raf1 = 0;
-    let raf2 = 0;
-    if (open) {
-      raf1 = requestAnimationFrame(() => {
-        raf2 = requestAnimationFrame(() => setAfterOpen(true));
-      });
-    } else {
-      setAfterOpen(false);
-    }
-    return () => {
-      if (raf1) cancelAnimationFrame(raf1);
-      if (raf2) cancelAnimationFrame(raf2);
-    };
-  }, [open]);
+  const afterOpen = useAfterOpenFlag(open);
 
   // Cleanup any pending close timers on unmount
-  React.useEffect(() => {
-    return () => {
-      if (closeTimerRef.current) window.clearTimeout(closeTimerRef.current);
-    };
-  }, []);
+  // cleanup handled in useClosingFreeze
 
-  // Lazy-load domain data when the drawer opens if not provided by parent
-  const [cardsLocal, setCardsLocal] = React.useState<DomainCard[] | null>(
-    allCards ? allCards : null
+  const { cards, isLoadingCards } = useDomainCardsLoader(
+    open,
+    allCards ?? null
   );
-  // Idle prefetch: warm the domain data as soon as this component mounts (even while closed)
-  React.useEffect(() => {
-    if (allCards) return;
-    if (cardsLocal !== null) return; // already loaded/warming
-    let cancelled = false;
-    let cleanup: (() => void) | undefined;
-    const load = async () => {
-      try {
-        const mod = await import('@/lib/data/domains');
-        const keys = Object.keys(mod).filter(k => k.endsWith('_DOMAIN_CARDS'));
-        const flat = keys.flatMap(
-          k => (mod as Record<string, unknown>)[k] as DomainCard[]
-        );
-        if (!cancelled) setCardsLocal(flat as DomainCard[]);
-      } catch {
-        if (!cancelled) setCardsLocal([]);
-      }
-    };
-    // Prefer requestIdleCallback when available to avoid competing with animations
-    const w = window as unknown as {
-      requestIdleCallback?: (
-        cb: IdleRequestCallback,
-        opts?: { timeout?: number }
-      ) => number;
-      cancelIdleCallback?: (id: number) => void;
-    };
-    if (typeof w.requestIdleCallback === 'function') {
-      const id = w.requestIdleCallback(() => void load(), { timeout: 1500 });
-      cleanup = () => w.cancelIdleCallback?.(id);
-    } else {
-      const id = window.setTimeout(() => void load(), 300);
-      cleanup = () => window.clearTimeout(id);
-    }
-    return () => {
-      cancelled = true;
-      cleanup?.();
-    };
-  }, [allCards, cardsLocal]);
-  React.useEffect(() => {
-    if (!open) return;
-    if (allCards) return;
-    if (cardsLocal !== null) return;
-    let cancelled = false;
-    const load = async () => {
-      const mod = await import('@/lib/data/domains');
-      const keys = Object.keys(mod).filter(k => k.endsWith('_DOMAIN_CARDS'));
-      const flat = keys.flatMap(
-        k => (mod as Record<string, unknown>)[k] as DomainCard[]
-      );
-      if (!cancelled) setCardsLocal(flat as DomainCard[]);
-    };
-    load().catch(() => {
-      if (!cancelled) setCardsLocal([]);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [open, allCards, cardsLocal]);
-
-  const cards: DomainCard[] = React.useMemo(
-    () => allCards ?? cardsLocal ?? [],
-    [allCards, cardsLocal]
-  );
-  const isLoadingCards = !allCards && open && cardsLocal === null;
 
   // Watch current form lists once and derive everything from them
   const watchedLoadout = form.watch('loadout');
@@ -253,108 +161,12 @@ function DomainsDrawerImpl({
   // Defer large list rendering to keep interactions responsive.
   const deferredList = React.useDeferredValue(activeList);
 
-  // Slightly delay measurements after opening to let the animation complete
-  const [measureReady, setMeasureReady] = React.useState(false);
-  React.useEffect(() => {
-    if (!open) {
-      setMeasureReady(false);
-      return;
-    }
-    setMeasureReady(false);
-    const id = window.setTimeout(() => setMeasureReady(true), 300);
-    return () => window.clearTimeout(id);
-  }, [open]);
+  const measureReady = useMeasureReady(open);
 
-  // Prefer smaller overscan on coarse pointers / low-end devices
-  const isCoarsePointer = React.useMemo(() => {
-    return typeof window !== 'undefined'
-      ? (window.matchMedia?.('(pointer: coarse)')?.matches ?? false)
-      : false;
-  }, []);
-  const virtualOverscan = isCoarsePointer ? 1 : 3;
+  const virtualOverscan = useCoarsePointer() ? 1 : 3;
 
   // Virtualized list for large collections to improve performance.
-  function VirtualCardList({
-    items,
-    measure = true,
-  }: {
-    items: DomainCard[];
-    measure?: boolean;
-  }) {
-    const parentRef = React.useRef<HTMLDivElement | null>(null);
-    const rowVirtualizer = useVirtualizer({
-      // Disable observers/virtualization during close to avoid layout work interfering with the close animation
-      enabled: !!measure && !closing,
-      count: items.length,
-      getScrollElement: () => parentRef.current,
-      estimateSize: () => 120,
-      // Keep overscan low to minimize render work during drawer animations
-      overscan: virtualOverscan,
-      // Wrap ResizeObserver measurements in rAF to align with paint frames
-      useAnimationFrameWithResizeObserver: true,
-      getItemKey: index =>
-        `${items[index]?.domain ?? 'x'}:${items[index]?.name ?? index}`,
-    });
-
-    if (items.length === 0) {
-      return (
-        <div className="text-muted-foreground p-3 text-sm">No cards found.</div>
-      );
-    }
-
-    return (
-      <div
-        ref={parentRef}
-        className={cn(
-          'max-h-[60dvh] overflow-y-auto',
-          closing && 'pointer-events-none touch-none overflow-hidden'
-        )}
-        // While closing, remove the vaul-scrollable marker to prevent momentum scroll from blocking close
-        data-vaul-scrollable={closing ? undefined : true}
-        aria-busy={closing || undefined}
-      >
-        <div
-          style={{
-            height: rowVirtualizer.getTotalSize(),
-            position: 'relative',
-          }}
-        >
-          {rowVirtualizer
-            .getVirtualItems()
-            .map((vRow: { index: number; start: number }) => {
-              const card = items[vRow.index];
-              return (
-                <div
-                  key={`${card.domain}:${card.name}`}
-                  ref={
-                    measure && !closing
-                      ? rowVirtualizer.measureElement
-                      : undefined
-                  }
-                  data-index={vRow.index}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    transform: `translateY(${vRow.start}px)`,
-                  }}
-                >
-                  <DomainCardItem
-                    card={card}
-                    context="available"
-                    inLoadout={inLoadout(card)}
-                    disableAdd={disableAdd}
-                    onAddToLoadout={addToLoadout}
-                    onRemoveFromLoadout={removeFromLoadout}
-                  />
-                </div>
-              );
-            })}
-        </div>
-      </div>
-    );
-  }
+  // Virtualized list extracted into a dedicated component for clarity
 
   // (moved above)
   const creationComplete = form.watch('creationComplete') ?? false;
@@ -411,18 +223,8 @@ function DomainsDrawerImpl({
       open={open}
       onOpenChange={next => {
         // Transition into a temporary "closing" state to freeze scrolling/measurement
-        if (!next && open) {
-          setClosing(true);
-          if (closeTimerRef.current) window.clearTimeout(closeTimerRef.current);
-          // Allow time for the close animation to finish before re-enabling
-          closeTimerRef.current = window.setTimeout(() => {
-            setClosing(false);
-            closeTimerRef.current = null;
-          }, 450);
-        } else if (next) {
-          // Reopened, ensure closing flag is cleared
-          setClosing(false);
-        }
+        if (!next && open) startClosing(450);
+        else if (next) clearClosing();
         onOpenChange(next);
       }}
       title="Manage Domains & Loadout"
@@ -490,77 +292,17 @@ function DomainsDrawerImpl({
               </TabsList>
 
               <TabsContent value="filtered" className="space-y-3" forceMount>
-                <div className="grid grid-cols-3 gap-2">
-                  <FormItem>
-                    <FormLabel>Domain</FormLabel>
-                    <FormControl>
-                      <Select
-                        value={domainFilter}
-                        onValueChange={setDomainFilter}
-                      >
-                        <SelectTrigger size="sm" className="min-w-28">
-                          <SelectValue placeholder="All" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="All">All</SelectItem>
-                          {accessibleDomains.map(d => (
-                            <SelectItem key={d} value={d}>
-                              {d}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                  </FormItem>
-                  <FormItem>
-                    <FormLabel>Level</FormLabel>
-                    <FormControl>
-                      <Select
-                        value={levelFilter}
-                        onValueChange={setLevelFilter}
-                      >
-                        <SelectTrigger size="sm" className="min-w-28">
-                          <SelectValue placeholder="All" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="All">All</SelectItem>
-                          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(l => (
-                            <SelectItem key={l} value={String(l)}>
-                              {l}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                  </FormItem>
-                  <FormItem>
-                    <FormLabel>Type</FormLabel>
-                    <FormControl>
-                      <Select value={typeFilter} onValueChange={setTypeFilter}>
-                        <SelectTrigger size="sm" className="min-w-28">
-                          <SelectValue placeholder="All" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="All">All</SelectItem>
-                          <SelectItem value="Spell">Spell</SelectItem>
-                          <SelectItem value="Ability">Ability</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                  </FormItem>
-                </div>
-                <div>
-                  <FormItem>
-                    <FormLabel>Search</FormLabel>
-                    <FormControl>
-                      <Input
-                        value={search}
-                        onChange={e => setSearch(e.target.value)}
-                        placeholder="Search by name, domain, type, text"
-                      />
-                    </FormControl>
-                  </FormItem>
-                </div>
+                <DomainsFilterBar
+                  domainFilter={domainFilter}
+                  levelFilter={levelFilter}
+                  typeFilter={typeFilter}
+                  search={search}
+                  onDomainChange={setDomainFilter}
+                  onLevelChange={setLevelFilter}
+                  onTypeChange={setTypeFilter}
+                  onSearchChange={setSearch}
+                  accessibleDomains={accessibleDomains}
+                />
 
                 <div className="space-y-2">
                   <div className="text-sm font-medium">Available Cards</div>
@@ -574,6 +316,12 @@ function DomainsDrawerImpl({
                         <VirtualCardList
                           items={deferredList}
                           measure={afterOpen && measureReady && !closing}
+                          closing={closing}
+                          virtualOverscan={virtualOverscan}
+                          inLoadout={inLoadout}
+                          disableAdd={disableAdd}
+                          addToLoadout={addToLoadout}
+                          removeFromLoadout={removeFromLoadout}
                         />
                       ) : (
                         <div className="text-muted-foreground p-3 text-sm">
@@ -584,84 +332,18 @@ function DomainsDrawerImpl({
                 </div>
               </TabsContent>
 
-              <TabsContent
-                value="any"
-                className="space-y-3"
-                // Mount when selected first time, then keep mounted
-              >
-                <div className="grid grid-cols-3 gap-2">
-                  <FormItem>
-                    <FormLabel>Domain</FormLabel>
-                    <FormControl>
-                      <Select
-                        value={domainFilter}
-                        onValueChange={setDomainFilter}
-                      >
-                        <SelectTrigger size="sm" className="min-w-28">
-                          <SelectValue placeholder="All" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="All">All</SelectItem>
-                          {[...new Set(cards.map(c => String(c.domain)))].map(
-                            d => (
-                              <SelectItem key={d} value={d}>
-                                {d}
-                              </SelectItem>
-                            )
-                          )}
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                  </FormItem>
-                  <FormItem>
-                    <FormLabel>Level</FormLabel>
-                    <FormControl>
-                      <Select
-                        value={levelFilter}
-                        onValueChange={setLevelFilter}
-                      >
-                        <SelectTrigger size="sm" className="min-w-28">
-                          <SelectValue placeholder="All" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="All">All</SelectItem>
-                          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(l => (
-                            <SelectItem key={l} value={String(l)}>
-                              {l}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                  </FormItem>
-                  <FormItem>
-                    <FormLabel>Type</FormLabel>
-                    <FormControl>
-                      <Select value={typeFilter} onValueChange={setTypeFilter}>
-                        <SelectTrigger size="sm" className="min-w-28">
-                          <SelectValue placeholder="All" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="All">All</SelectItem>
-                          <SelectItem value="Spell">Spell</SelectItem>
-                          <SelectItem value="Ability">Ability</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                  </FormItem>
-                </div>
-                <div>
-                  <FormItem>
-                    <FormLabel>Search</FormLabel>
-                    <FormControl>
-                      <Input
-                        value={search}
-                        onChange={e => setSearch(e.target.value)}
-                        placeholder="Search all cards"
-                      />
-                    </FormControl>
-                  </FormItem>
-                </div>
+              <TabsContent value="any" className="space-y-3">
+                <DomainsFilterBar
+                  domainFilter={domainFilter}
+                  levelFilter={levelFilter}
+                  typeFilter={typeFilter}
+                  search={search}
+                  onDomainChange={setDomainFilter}
+                  onLevelChange={setLevelFilter}
+                  onTypeChange={setTypeFilter}
+                  onSearchChange={setSearch}
+                  cardsForAnyTab={cards}
+                />
                 <div className="space-y-2">
                   <div className="text-sm font-medium">
                     Available Cards (All)
@@ -689,6 +371,12 @@ function DomainsDrawerImpl({
                         <VirtualCardList
                           items={deferredList}
                           measure={afterOpen && measureReady && !closing}
+                          closing={closing}
+                          virtualOverscan={virtualOverscan}
+                          inLoadout={inLoadout}
+                          disableAdd={disableAdd}
+                          addToLoadout={addToLoadout}
+                          removeFromLoadout={removeFromLoadout}
                         />
                       ) : (
                         <div className="text-muted-foreground p-3 text-sm">
@@ -700,123 +388,40 @@ function DomainsDrawerImpl({
               </TabsContent>
 
               <TabsContent value="homebrew" className="space-y-3">
-                <div className="grid grid-cols-2 gap-2">
-                  <FormItem>
-                    <FormLabel>Name</FormLabel>
-                    <Input
-                      value={hbName}
-                      onChange={e => setHbName(e.target.value)}
-                      placeholder="Custom card name"
-                    />
-                  </FormItem>
-                  <FormItem>
-                    <FormLabel>Domain</FormLabel>
-                    <Input
-                      value={hbDomain}
-                      onChange={e => setHbDomain(e.target.value)}
-                      placeholder="Any text (e.g., Homebrew)"
-                    />
-                  </FormItem>
-                  <FormItem>
-                    <FormLabel>Type</FormLabel>
-                    <Input
-                      value={hbType}
-                      onChange={e => setHbType(e.target.value)}
-                      placeholder="Spell or Ability"
-                    />
-                  </FormItem>
-                  <FormItem>
-                    <FormLabel>Level</FormLabel>
-                    <Input
-                      type="number"
-                      min={1}
-                      max={10}
-                      value={hbLevel}
-                      onChange={e => setHbLevel(Number(e.target.value) || 1)}
-                    />
-                  </FormItem>
-                </div>
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <Textarea
-                    value={hbDescription}
-                    onChange={e => setHbDescription(e.target.value)}
-                    placeholder="Rules text, effects, costs, etc."
-                  />
-                </FormItem>
-                <div className="grid grid-cols-2 gap-2">
-                  <FormItem>
-                    <FormLabel>Hope Cost</FormLabel>
-                    <Input
-                      type="number"
-                      min={0}
-                      value={hbHopeCost}
-                      onChange={e => {
-                        const n = Number(e.target.value);
-                        setHbHopeCost(Number.isFinite(n) ? n : '');
-                      }}
-                      placeholder="e.g. 1"
-                    />
-                  </FormItem>
-                  <FormItem>
-                    <FormLabel>Recall Cost</FormLabel>
-                    <Input
-                      type="number"
-                      min={0}
-                      value={hbRecallCost}
-                      onChange={e => {
-                        const n = Number(e.target.value);
-                        setHbRecallCost(Number.isFinite(n) ? n : '');
-                      }}
-                      placeholder="e.g. 1"
-                    />
-                  </FormItem>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      const trimmed = hbName.trim();
-                      if (!trimmed) return;
-                      const newCard: DomainCard = {
-                        name: trimmed,
-                        level: Math.max(1, Math.min(10, hbLevel)),
-                        domain: hbDomain.trim() || 'Homebrew',
-                        type: hbType.trim() || 'Spell',
-                        description: hbDescription.trim() || '',
-                        hopeCost:
-                          hbHopeCost === ''
-                            ? undefined
-                            : Math.max(0, Number(hbHopeCost)),
-                        recallCost:
-                          hbRecallCost === ''
-                            ? undefined
-                            : Math.max(0, Number(hbRecallCost)),
-                        metadata: { homebrew: true },
-                      } as DomainCard;
-                      addToLoadout(newCard);
-                    }}
-                    disabled={disableAdd}
-                  >
-                    Add to Loadout
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => {
-                      setHbName('');
-                      setHbDomain('');
-                      setHbType('Spell');
-                      setHbLevel(1);
-                      setHbDescription('');
-                      setHbHopeCost('');
-                      setHbRecallCost('');
-                    }}
-                  >
-                    Clear
-                  </Button>
-                </div>
+                <HomebrewCardForm
+                  hbName={hbName}
+                  hbDomain={hbDomain}
+                  hbType={hbType}
+                  hbLevel={hbLevel}
+                  hbDescription={hbDescription}
+                  hbHopeCost={hbHopeCost}
+                  hbRecallCost={hbRecallCost}
+                  disableAdd={disableAdd}
+                  onChange={next => {
+                    if ('hbName' in next) setHbName(String(next.hbName ?? ''));
+                    if ('hbDomain' in next)
+                      setHbDomain(String(next.hbDomain ?? ''));
+                    if ('hbType' in next) setHbType(String(next.hbType ?? ''));
+                    if ('hbLevel' in next)
+                      setHbLevel(Number(next.hbLevel ?? 1));
+                    if ('hbDescription' in next)
+                      setHbDescription(String(next.hbDescription ?? ''));
+                    if ('hbHopeCost' in next)
+                      setHbHopeCost((next.hbHopeCost as number | '') ?? '');
+                    if ('hbRecallCost' in next)
+                      setHbRecallCost((next.hbRecallCost as number | '') ?? '');
+                  }}
+                  onAdd={addToLoadout}
+                  onClear={() => {
+                    setHbName('');
+                    setHbDomain('');
+                    setHbType('Spell');
+                    setHbLevel(1);
+                    setHbDescription('');
+                    setHbHopeCost('');
+                    setHbRecallCost('');
+                  }}
+                />
               </TabsContent>
             </Tabs>
 
@@ -847,72 +452,26 @@ function DomainsDrawerImpl({
                 control={form.control as never}
                 name="loadout"
                 render={() => (
-                  <FormItem>
-                    <FormLabel>Loadout ({currentLoadout.length})</FormLabel>
-                    <div className="divide-border rounded-md border">
-                      {!afterOpen ? (
-                        <div className="text-muted-foreground p-3 text-sm">
-                          Preparing…
-                        </div>
-                      ) : currentLoadout.length === 0 ? (
-                        <div className="text-muted-foreground p-3 text-sm">
-                          No active cards
-                        </div>
-                      ) : (
-                        currentLoadout.map(card => (
-                          <div
-                            key={`loadout:${card.name}`}
-                            className="cv-auto-120"
-                          >
-                            <DomainCardItem
-                              card={card}
-                              context="loadout"
-                              onRemoveFromLoadout={removeFromLoadout}
-                            />
-                          </div>
-                        ))
-                      )}
-                    </div>
-                    <FormMessage />
-                  </FormItem>
+                  <LoadoutList
+                    items={currentLoadout}
+                    afterOpen={afterOpen}
+                    onRemove={removeFromLoadout}
+                  />
                 )}
               />
               <FormField
                 control={form.control as never}
                 name="vault"
                 render={() => (
-                  <FormItem>
-                    <FormLabel>Vault ({currentVault.length})</FormLabel>
-                    <div className="divide-border rounded-md border">
-                      {!afterOpen ? (
-                        <div className="text-muted-foreground p-3 text-sm">
-                          Preparing…
-                        </div>
-                      ) : currentVault.length === 0 ? (
-                        <div className="text-muted-foreground p-3 text-sm">
-                          No owned cards
-                        </div>
-                      ) : (
-                        currentVault.map(card => (
-                          <div
-                            key={`vault:${card.name}`}
-                            className="cv-auto-120"
-                          >
-                            <DomainCardItem
-                              card={card}
-                              context="vault"
-                              inLoadout={inLoadout(card)}
-                              disableAdd={disableAdd}
-                              onAddToLoadout={addToLoadout}
-                              onRemoveFromLoadout={removeFromLoadout}
-                              onRemoveFromVault={removeFromVault}
-                            />
-                          </div>
-                        ))
-                      )}
-                    </div>
-                    <FormMessage />
-                  </FormItem>
+                  <VaultList
+                    items={currentVault}
+                    afterOpen={afterOpen}
+                    inLoadout={inLoadout}
+                    disableAdd={disableAdd}
+                    onAdd={addToLoadout}
+                    onRemoveFromLoadout={removeFromLoadout}
+                    onRemoveFromVault={removeFromVault}
+                  />
                 )}
               />
             </div>

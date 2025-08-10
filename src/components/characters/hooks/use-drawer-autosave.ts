@@ -40,6 +40,7 @@ export function useDrawerAutosaveOnClose({
           cancelIdleCallback?: (id: number) => void;
         };
         let idleId: number | undefined;
+        let timeoutId: number | undefined;
         const run = () => {
           Promise.resolve(trigger()).then(valid => {
             if (valid) void Promise.resolve(submit());
@@ -49,11 +50,14 @@ export function useDrawerAutosaveOnClose({
           idleId = w.requestIdleCallback!(run, { timeout: 500 });
         } else {
           // allow ~1 frame worth of breathing room
-          setTimeout(run, 200);
+          timeoutId = window.setTimeout(run, 200);
         }
         return () => {
           if (idleId && typeof w.cancelIdleCallback === 'function') {
             w.cancelIdleCallback!(idleId);
+          }
+          if (timeoutId) {
+            window.clearTimeout(timeoutId);
           }
         };
       }
