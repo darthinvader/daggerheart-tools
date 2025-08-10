@@ -1,6 +1,6 @@
 # Active Context - Daggerheart Tools
 
-Updated: August 10, 2025
+Updated: August 11, 2025
 
 ## Current Work Focus
 
@@ -17,6 +17,20 @@ Changes implemented (recent):
 - Mobile: Ensured drawers appear above the MobileNavBar by lowering navbar z-index to `z-40` and keeping drawers at `z-50`; confirmed footer safe-area padding prevents action buttons from being obscured.
 - Global bottom padding remains on `<main>` to avoid overlap with the navbar; drawers sized with 100dvh.
 - Typecheck/build/tests pass consistently (chunk-size warnings accepted for now).
+
+Code structure and size improvements (Aug 11, 2025):
+
+- Added a repository file analyzer script `scripts/size-report.mjs` with pnpm alias `size:report` to find large files. It excludes `src/lib/data`, `src/lib/schemas`, and the demo route `src/routes/showcase.tsx`. Supports `--by=size|loc`, `--top`, `--minKB`, and `--json`.
+- Refactored `src/routes/characters/$id.tsx` earlier to move storage/schemas into `src/features/characters/storage.ts` (kept typecheck green).
+- Split `src/components/ui/sidebar.tsx` into:
+  - `src/components/ui/sidebar/context.tsx` (constants, provider, hook) wrapped with `TooltipProvider` and with react-refresh rule scoped.
+  - `src/components/ui/sidebar/variants.ts` for CVA variants.
+  - `src/components/ui/sidebar/menu.tsx` for menu primitives.
+    Result: `sidebar.tsx` shrank from ~21.3 KB to ~7.9 KB after further group extraction. New `menu.tsx` remains ~6.9 KB.
+- Reduced `src/components/characters/domains-drawer.tsx` by extracting:
+  - `useLoadoutLists` hook (centralizes add/remove/inLoadout logic)
+  - `AvailableCardsSection` and `TypeSummaryChips` small components
+    Result: domains-drawer.tsx down to ~15.1 KB.
 
 We're focused on the core data models and validation schemas, while incrementally wiring the mobile-first character sheet with modular components and drawer editors.
 
@@ -54,6 +68,7 @@ Schema completion and validation; mobile-first sheet assembly with drawer editor
 - Cross-validation between classes, domains, and equipment
 - Tighten validation messages and edge cases
 - Incrementally add Domains and Equipment drawers with validation and persistence
+- Keep splitting oversized UI files into small modules as identified by the analyzer; avoid touching data/schemas.
 
 ## Next Immediate Steps
 
@@ -83,6 +98,13 @@ Schema completion and validation; mobile-first sheet assembly with drawer editor
 - Added `.gitignore` entries for analyzer/visualizer outputs and Vite cache.
 - Extracted shared mobile keyboard heuristic to `src/utils/mobile.ts` and refactored `MobileNavBar` to use it.
 - Added `src/features/characters/logic/domains.ts` with pure helpers for card filtering and counting (not yet wired). This will back future refactors to keep UI components thin.
+
+### Structural Refactors (Aug 11, 2025)
+
+- Introduced `scripts/size-report.mjs` and `pnpm run size:report` for ongoing file-size visibility.
+- Sidebar split into context/variants/menu modules; removed re-export of `useSidebar` in `sidebar.tsx` to satisfy react-refresh rule.
+- Domains drawer logic/UI extractions: `use-loadout-lists.ts`, `available-cards-section.tsx`, and `type-summary-chips.tsx`.
+- Tests added for `useLoadoutLists`; full test suite green.
 
 ### New Decisions (Aug 10, 2025)
 

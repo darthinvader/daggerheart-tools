@@ -1,6 +1,6 @@
 # Progress Report - Daggerheart Tools
 
-Updated: August 10, 2025
+Updated: August 11, 2025
 
 ## What's Working
 
@@ -16,6 +16,7 @@ Updated: August 10, 2025
 - Type Safety: TypeScript strict + Zod. Type-check passes today.
 - Build System: Vite. Build path compiles locally.
 - Quality: ESLint/Prettier, tests configured with Vitest (coverage present).
+- Analyzer: `pnpm run size:report` scans `src/` and `tests/` for largest files, excluding `src/lib/data`, `src/lib/schemas`, and the `showcase` route. Supports flags `--by`, `--top`, `--minKB`, `--json`.
 
 ### Routing & UI
 
@@ -24,6 +25,12 @@ Updated: August 10, 2025
 - Mobile navbar overlap fixed by setting navbar z-index to `z-40`; drawers render at `z-50` and include safe-area footer padding.
 - Domains drawer implemented with search and filters (domain/level/type) and non-submit Add/Remove to prevent auto-close; list rows show domain, level, type badge, costs, and tags; preview shows description; by-type summary counts surfaced on `DomainsCard`. Added autosave on drawer close and a Reset button to restore per-open baseline.
 - Resources show Hope as current/max with controls; migration from legacy numeric Hope supported.
+
+Refactors and reductions (Aug 11, 2025)
+
+- `src/components/ui/sidebar.tsx` reduced to ~10.1 KB by extracting `context.tsx`, `variants.ts`, and `menu.tsx`.
+- `src/components/characters/domains-drawer.tsx` reduced to ~15.1 KB with new `useLoadoutLists` hook and small components (`AvailableCardsSection`, `TypeSummaryChips`).
+- Character route `$id.tsx` previously reduced by moving storage/schemas into `src/features/characters/storage.ts` (now ~17.1 KB).
 
 ## What's Left to Build
 
@@ -53,6 +60,7 @@ Technical health
 - Type safety: Excellent
 - Lint/format: Good
 - Performance/Mobile/A11y: Not yet assessed
+- Tests: PASS (12). Build: PASS. Type-check: PASS.
 
 ## Known Issues
 
@@ -61,6 +69,7 @@ Technical health
 - Edge cases in progression need tests
 - Broader persistence layer beyond localStorage is not started
 - ESLint shows some warnings (react-refresh only-export-components in UI files; console statements in test scripts); non-blocking.
+- Some shadcn-generated UI shells have very long lines; treat as vendor-like and defer changes unless ergonomics need improvement.
 
 ## MVP Success Criteria
 
@@ -74,7 +83,7 @@ Technical health
 
 Target: Domain & Equipment drawers wired into per-id sheet
 Timeline: 1–2 weeks
-Deliverables: Equipment pack/free modes; schema validation and mobile-friendly drawers; begin code-splitting for heavy lists
+Deliverables: Equipment pack/free modes; schema validation and mobile-friendly drawers; begin code-splitting for heavy lists; continue trimming oversized UI files using analyzer output
 
 ## Recent Progress Log
 
@@ -124,3 +133,17 @@ Deliverables: Equipment pack/free modes; schema validation and mobile-friendly d
 ### August 10, 2025 (even later)
 
 - Domains drawer UX: Replaced bottom “selected card” preview with inline expansion per row. Tapping a row toggles its description right under the list item (also in Loadout/Vault). This reduces scrolling and keeps context visible.
+
+### August 11, 2025
+
+- Introduced `scripts/size-report.mjs` tool and `size:report` script; excludes data/schemas and the demo showcase. Added hints for refactor candidates.
+- Sidebar refactor: extracted `context.tsx` (with provider/hook and TooltipProvider wrapper), `variants.ts` (CVA), and `menu.tsx` (menu primitives). Removed re-export of `useSidebar` from main file to comply with react-refresh rule.
+- Domains drawer refactor: extracted `use-loadout-lists.ts`, `available-cards-section.tsx`, `type-summary-chips.tsx`; updated main drawer to use them.
+- Tests: added hook tests for `useLoadoutLists`; full suite green (12 tests). Type-check and build pass.
+
+### August 11, 2025 (later)
+
+- Sidebar refactor part 2: extracted group primitives to `src/components/ui/sidebar/group.tsx` (Header, Footer, Group, GroupLabel, GroupAction, GroupContent) and updated `sidebar.tsx` to import/re-export. Type-check and tests remain PASS. Size report now shows:
+  - `src/components/ui/sidebar.tsx` ~7.9 KB (down from ~10.1 KB)
+  - `src/components/ui/sidebar/menu.tsx` ~6.9 KB
+  - `src/routes/characters/$id.tsx` ~17.1 KB; `domains-drawer.tsx` ~15.1 KB

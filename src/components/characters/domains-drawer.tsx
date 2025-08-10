@@ -3,15 +3,18 @@ import type { UseFormReturn } from 'react-hook-form';
 import type { BaseSyntheticEvent } from 'react';
 import * as React from 'react';
 
+// Virtual list is used via AvailableCardsSection
+import { AvailableCardsSection } from '@/components/characters/domains-drawer/available-cards-section';
 import { DomainsFilterBar } from '@/components/characters/domains-drawer/domains-filter-bar';
 import { HomebrewCardForm } from '@/components/characters/domains-drawer/homebrew-card-form';
 import { LoadoutList } from '@/components/characters/domains-drawer/loadout-list';
+import { TypeSummaryChips } from '@/components/characters/domains-drawer/type-summary-chips';
 import { useAfterOpenFlag } from '@/components/characters/domains-drawer/use-after-open';
 import { useClosingFreeze } from '@/components/characters/domains-drawer/use-closing-freeze';
 import { useDomainCardsLoader } from '@/components/characters/domains-drawer/use-domain-cards-loader';
 import { useDomainFilters } from '@/components/characters/domains-drawer/use-domain-filters';
+import { useLoadoutLists } from '@/components/characters/domains-drawer/use-loadout-lists';
 import { VaultList } from '@/components/characters/domains-drawer/vault-list';
-import { VirtualCardList } from '@/components/characters/domains-drawer/virtual-card-list';
 import { useBaselineSnapshot } from '@/components/characters/hooks/use-baseline-snapshot';
 import { useDrawerAutosaveOnClose } from '@/components/characters/hooks/use-drawer-autosave';
 import { DrawerScaffold } from '@/components/drawers/drawer-scaffold';
@@ -25,10 +28,7 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  countByType,
-  filterCards as filterCardsShared,
-} from '@/features/characters/logic';
+import { filterCards as filterCardsShared } from '@/features/characters/logic';
 import { useCoarsePointer } from '@/hooks/use-coarse-pointer';
 import { useMeasureReady } from '@/hooks/use-measure-ready';
 // Using CSS dynamic viewport units (dvh) for correct keyboard interactions
@@ -112,23 +112,15 @@ function DomainsDrawerImpl({
     allCards ?? null
   );
 
-  // Watch current form lists once and derive everything from them
-  const watchedLoadout = form.watch('loadout');
-  const currentLoadout = React.useMemo(
-    () => (Array.isArray(watchedLoadout) ? watchedLoadout : []),
-    [watchedLoadout]
-  );
-  const watchedVault = form.watch('vault');
-  const currentVault = React.useMemo(
-    () => (Array.isArray(watchedVault) ? watchedVault : []),
-    [watchedVault]
-  );
-  // Build a lookup for O(1) membership checks.
-  const loadoutNames = React.useMemo(
-    () => (open ? new Set(currentLoadout.map(c => c.name)) : new Set<string>()),
-    [currentLoadout, open]
-  );
-  const inLoadout = (card: DomainCard) => loadoutNames.has(card.name);
+  // Centralized list management
+  const {
+    currentLoadout,
+    currentVault,
+    inLoadout,
+    addToLoadout,
+    removeFromLoadout,
+    removeFromVault,
+  } = useLoadoutLists(form as never);
 
   // Use shared helpers for filtering
   const filterCards = React.useCallback(
@@ -175,36 +167,7 @@ function DomainsDrawerImpl({
     skipRef: skipAutoSaveRef,
   });
 
-  const addToLoadout = (card: DomainCard) => {
-    const exists = inLoadout(card);
-    if (exists) return;
-    const next = [...currentLoadout, card];
-    form.setValue('loadout', next, { shouldValidate: true });
-    // Also ensure it's in vault (owned)
-    if (!currentVault.some(c => c.name === card.name)) {
-      form.setValue('vault', [...currentVault, card], {
-        shouldValidate: false,
-      });
-    }
-  };
-  const removeFromLoadout = (card: DomainCard) => {
-    const next = currentLoadout.filter(c => c.name !== card.name);
-    form.setValue('loadout', next, { shouldValidate: true });
-  };
-
-  const removeFromVault = (card: DomainCard) => {
-    // Removing from vault also removes from loadout if present
-    form.setValue(
-      'vault',
-      currentVault.filter(c => c.name !== card.name),
-      { shouldValidate: false }
-    );
-    form.setValue(
-      'loadout',
-      currentLoadout.filter(c => c.name !== card.name),
-      { shouldValidate: true }
-    );
-  };
+  // Handlers provided by hook
 
   const maxAllowed = creationComplete ? softLimit : startingLimit;
   const overHardLimit = currentLoadout.length > maxAllowed && !creationComplete;
@@ -297,32 +260,19 @@ function DomainsDrawerImpl({
                   accessibleDomains={accessibleDomains}
                 />
 
-                <div className="space-y-2">
-                  <div className="text-sm font-medium">Available Cards</div>
-                  <div className="divide-border rounded-md border">
-                    {activeTab === 'filtered' &&
-                      (isLoadingCards ? (
-                        <div className="text-muted-foreground p-3 text-sm">
-                          Loading cards…
-                        </div>
-                      ) : afterOpen ? (
-                        <VirtualCardList
-                          items={deferredList}
-                          measure={afterOpen && measureReady && !closing}
-                          closing={closing}
-                          virtualOverscan={virtualOverscan}
-                          inLoadout={inLoadout}
-                          disableAdd={disableAdd}
-                          addToLoadout={addToLoadout}
-                          removeFromLoadout={removeFromLoadout}
-                        />
-                      ) : (
-                        <div className="text-muted-foreground p-3 text-sm">
-                          Preparing…
-                        </div>
-                      ))}
-                  </div>
-                </div>
+                <AvailableCardsSection
+                  title="Available Cards"
+                  visible={activeTab === 'filtered'}
+                  isLoading={isLoadingCards}
+                  items={deferredList}
+                  measure={afterOpen && measureReady && !closing}
+                  closing={closing}
+                  virtualOverscan={virtualOverscan}
+                  inLoadout={inLoadout}
+                  disableAdd={disableAdd}
+                  addToLoadout={addToLoadout}
+                  removeFromLoadout={removeFromLoadout}
+                />
               </TabsContent>
 
               <TabsContent value="any" className="space-y-3">
@@ -343,45 +293,21 @@ function DomainsDrawerImpl({
                   </div>
                   {/* Summary chips by type to mirror visible list */}
                   {activeTab === 'any' && (
-                    <div className="flex flex-wrap items-center gap-2 text-xs">
-                      {countByType(deferredList).map(({ type, count }) => (
-                        <span
-                          key={type}
-                          className={cn(
-                            'rounded px-2 py-0.5',
-                            type === 'Spell'
-                              ? 'bg-blue-100 text-blue-900 dark:bg-blue-500/20 dark:text-blue-200'
-                              : 'bg-amber-100 text-amber-900 dark:bg-amber-500/20 dark:text-amber-200'
-                          )}
-                        >
-                          {type} {count}
-                        </span>
-                      ))}
-                    </div>
+                    <TypeSummaryChips items={deferredList} />
                   )}
-                  <div className="divide-border rounded-md border">
-                    {activeTab === 'any' &&
-                      (isLoadingCards ? (
-                        <div className="text-muted-foreground p-3 text-sm">
-                          Loading cards…
-                        </div>
-                      ) : afterOpen ? (
-                        <VirtualCardList
-                          items={deferredList}
-                          measure={afterOpen && measureReady && !closing}
-                          closing={closing}
-                          virtualOverscan={virtualOverscan}
-                          inLoadout={inLoadout}
-                          disableAdd={disableAdd}
-                          addToLoadout={addToLoadout}
-                          removeFromLoadout={removeFromLoadout}
-                        />
-                      ) : (
-                        <div className="text-muted-foreground p-3 text-sm">
-                          Preparing…
-                        </div>
-                      ))}
-                  </div>
+                  <AvailableCardsSection
+                    title="Available Cards (All)"
+                    visible={activeTab === 'any'}
+                    isLoading={isLoadingCards}
+                    items={deferredList}
+                    measure={afterOpen && measureReady && !closing}
+                    closing={closing}
+                    virtualOverscan={virtualOverscan}
+                    inLoadout={inLoadout}
+                    disableAdd={disableAdd}
+                    addToLoadout={addToLoadout}
+                    removeFromLoadout={removeFromLoadout}
+                  />
                 </div>
               </TabsContent>
 

@@ -1,7 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { z } from 'zod';
+
+// zod only used via imported schemas
 
 import * as React from 'react';
 
@@ -19,174 +20,40 @@ import { TraitsCard } from '@/components/characters/traits-card';
 import { Button } from '@/components/ui/button';
 // No Card imports needed here; stub sections use dedicated components
 import type { ComboboxItem } from '@/components/ui/combobox';
+// storage helpers moved to features/characters/storage
+import type {
+  ClassDraft,
+  ConditionsDraft,
+  DomainsDraft,
+  IdentityDraft,
+  ResourcesDraft,
+  TraitsDraft,
+} from '@/features/characters/storage';
+import {
+  ClassDraftSchema,
+  DEFAULT_CLASS,
+  DEFAULT_DOMAINS,
+  DEFAULT_IDENTITY,
+  DEFAULT_RESOURCES,
+  DEFAULT_TRAITS,
+  DomainsDraftSchema,
+  IdentityDraftSchema,
+  readClassFromStorage,
+  readConditionsFromStorage,
+  readDomainsFromStorage,
+  readIdentityFromStorage,
+  readResourcesFromStorage,
+  readTraitsFromStorage,
+  writeClassToStorage,
+  writeConditionsToStorage,
+  writeDomainsToStorage,
+  writeIdentityToStorage,
+  writeResourcesToStorage,
+  writeTraitsToStorage,
+} from '@/features/characters/storage';
 import { ANCESTRIES } from '@/lib/data/characters/ancestries';
 import { COMMUNITIES } from '@/lib/data/characters/communities';
 import { ALL_CLASSES } from '@/lib/data/classes';
-// Domain data is now lazy-loaded within the Domains drawer when needed.
-import {
-  AncestryNameEnum,
-  ClassNameEnum,
-  CommunityNameEnum,
-  SubclassNameSchema,
-} from '@/lib/schemas/core';
-import { characterKeys as keys, storage } from '@/lib/storage';
-
-// Module-scoped Domains draft schemas and defaults
-const DomainCardSchemaLite = z
-  .object({
-    name: z.string(),
-    level: z.number().int().min(1).max(10),
-    domain: z.string(),
-    type: z.string(),
-    description: z.string().optional(),
-    hopeCost: z.number().int().min(0).optional(),
-    recallCost: z.number().int().min(0).optional(),
-    tags: z.array(z.string()).optional(),
-    metadata: z.record(z.string(), z.unknown()).optional(),
-  })
-  .passthrough();
-const DomainsDraftSchema = z.object({
-  loadout: z.array(DomainCardSchemaLite).default([]),
-  vault: z.array(DomainCardSchemaLite).default([]),
-  creationComplete: z.boolean().default(false),
-});
-export type DomainsDraft = z.infer<typeof DomainsDraftSchema>;
-const DEFAULT_DOMAINS: DomainsDraft = {
-  loadout: [],
-  vault: [],
-  creationComplete: false,
-};
-
-// Per-character Identity draft schema
-const IdentityDraftSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  pronouns: z.string().min(1, 'Pronouns are required'),
-  ancestry: AncestryNameEnum,
-  community: CommunityNameEnum,
-  description: z.string().default(''),
-  calling: z.string().default(''),
-});
-type IdentityDraft = z.infer<typeof IdentityDraftSchema>;
-
-const DEFAULT_IDENTITY: IdentityDraft = {
-  name: '',
-  pronouns: 'they/them',
-  ancestry: 'Human',
-  community: 'Wanderborne',
-  description: '',
-  calling: '',
-};
-
-// storage and keys now centralized in lib/storage
-
-function readIdentityFromStorage(id: string): IdentityDraft {
-  return storage.read(keys.identity(id), DEFAULT_IDENTITY, IdentityDraftSchema);
-}
-function writeIdentityToStorage(id: string, value: IdentityDraft) {
-  storage.write(keys.identity(id), value);
-}
-
-// Simple Conditions (tags) for gameplay tracking
-const ConditionsSchema = z.array(z.string().min(1).max(40));
-type ConditionsDraft = z.infer<typeof ConditionsSchema>;
-function readConditionsFromStorage(id: string): ConditionsDraft {
-  return storage.read(keys.conditions(id), [], ConditionsSchema);
-}
-function writeConditionsToStorage(id: string, value: ConditionsDraft) {
-  storage.write(keys.conditions(id), value);
-}
-
-// Resources (HP & Stress) quick-controls schema
-const ScoreSchema = z.object({
-  current: z.number().int().min(0),
-  max: z.number().int().min(1),
-});
-const ResourcesSchema = z.object({
-  hp: ScoreSchema.default({ current: 10, max: 10 }),
-  stress: ScoreSchema.default({ current: 0, max: 6 }),
-  evasion: z.number().int().min(0).default(10),
-  hope: ScoreSchema.default({ current: 2, max: 6 }),
-  proficiency: z.number().int().min(1).default(1),
-});
-type ResourcesDraft = z.infer<typeof ResourcesSchema>;
-
-const DEFAULT_RESOURCES: ResourcesDraft = {
-  hp: { current: 10, max: 10 },
-  stress: { current: 0, max: 6 },
-  evasion: 10,
-  hope: { current: 2, max: 6 },
-  proficiency: 1,
-};
-
-function readResourcesFromStorage(id: string): ResourcesDraft {
-  const parsedUnknown = storage.read<unknown>(
-    keys.resources(id),
-    DEFAULT_RESOURCES
-  );
-  // Back-compat: earlier versions stored hope as a number
-  const hasNumberHope = (
-    v: unknown
-  ): v is { hope: number } & Record<string, unknown> => {
-    return typeof (v as { hope?: unknown }).hope === 'number';
-  };
-  let normalized: unknown = parsedUnknown;
-  if (hasNumberHope(parsedUnknown)) {
-    const { hope, ...rest } = parsedUnknown;
-    normalized = { ...rest, hope: { current: hope, max: 6 } };
-  }
-  try {
-    return ResourcesSchema.parse(normalized);
-  } catch {
-    return DEFAULT_RESOURCES;
-  }
-}
-function writeResourcesToStorage(id: string, value: ResourcesDraft) {
-  storage.write(keys.resources(id), value);
-}
-
-// Traits (values + marked) with simple configurable budget
-const TraitStateSchema = z.object({
-  value: z.number().int().default(0),
-  marked: z.boolean().default(false),
-});
-type TraitState = z.infer<typeof TraitStateSchema>;
-type TraitsDraft = Record<string, TraitState>;
-
-const DEFAULT_TRAITS: TraitsDraft = {
-  Agility: { value: 0, marked: false },
-  Strength: { value: 0, marked: false },
-  Finesse: { value: 0, marked: false },
-  Instinct: { value: 0, marked: false },
-  Presence: { value: 0, marked: false },
-  Knowledge: { value: 0, marked: false },
-};
-
-function readTraitsFromStorage(id: string): TraitsDraft {
-  const schema = z.record(z.string(), TraitStateSchema);
-  return storage.read(keys.traits(id), DEFAULT_TRAITS, schema);
-}
-function writeTraitsToStorage(id: string, value: TraitsDraft) {
-  storage.write(keys.traits(id), value);
-}
-
-// Per-character Class selection draft
-const ClassDraftSchema = z.object({
-  className: ClassNameEnum,
-  subclass: SubclassNameSchema,
-});
-type ClassDraft = z.infer<typeof ClassDraftSchema>;
-
-const DEFAULT_CLASS: ClassDraft = {
-  className: 'Warrior',
-  subclass: 'Call of the Brave',
-};
-
-function readClassFromStorage(id: string): ClassDraft {
-  return storage.read(keys.class(id), DEFAULT_CLASS, ClassDraftSchema);
-}
-function writeClassToStorage(id: string, value: ClassDraft) {
-  storage.write(keys.class(id), value);
-}
 
 function CharacterSheet() {
   const { id } = Route.useParams();
@@ -256,8 +123,8 @@ function CharacterSheet() {
   const [openClass, setOpenClass] = React.useState(false);
   const [openDomains, setOpenDomains] = React.useState(false);
 
-  function writeDomainsToStorage(id: string, value: DomainsDraft) {
-    storage.write(keys.domains(id), value);
+  function writeDomainsToStorageLocal(id: string, value: DomainsDraft) {
+    writeDomainsToStorage(id, value);
   }
   const [domainsDraft, setDomainsDraft] =
     React.useState<DomainsDraft>(DEFAULT_DOMAINS);
@@ -270,12 +137,7 @@ function CharacterSheet() {
     setTraits(readTraitsFromStorage(id));
     setConditions(readConditionsFromStorage(id));
     setClassDraft(readClassFromStorage(id));
-    const parsed = storage.read(keys.domains(id), DEFAULT_DOMAINS);
-    try {
-      setDomainsDraft(DomainsDraftSchema.parse(parsed));
-    } catch {
-      setDomainsDraft(DEFAULT_DOMAINS);
-    }
+    setDomainsDraft(readDomainsFromStorage(id));
   }, [id]);
 
   // Items for identity
@@ -380,7 +242,7 @@ function CharacterSheet() {
   );
   const onSubmitDomains = (values: DomainsDraft) => {
     setDomainsDraft(values);
-    writeDomainsToStorage(id, values);
+    writeDomainsToStorageLocal(id, values);
     setOpenDomains(false);
   };
   const submitDomains = domainsForm.handleSubmit(v =>

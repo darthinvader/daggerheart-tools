@@ -27,7 +27,8 @@
     "spell": "cspell lint --cache --no-progress --no-must-find-files \"**/*.{ts,tsx,js,jsx,md,json,yml,yaml,css,scss}\" --exclude \"{node_modules,dist,coverage,**/*.svg,**/*.png,**/*.jpg,**/*.jpeg,**/*.gif,**/*.ico,**/*.pdf,**/*.lock,**/*.html}\"",
     "depcruise": "depcruise --config .dependency-cruiser.cjs --progress --include-only ^src --output-type err src",
     "analyze:size": "pnpm build && size-limit",
-    "lint:fast": "oxlint --deny warn --ignore-path .gitignore"
+    "lint:fast": "oxlint --deny warn --ignore-path .gitignore",
+    "size:report": "node ./scripts/size-report.mjs --top=40 --by=size"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
