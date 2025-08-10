@@ -746,6 +746,10 @@ function CharacterSheet() {
           ],
           sample: domainsDraft.loadout.slice(0, 3).map(c => c.name),
         }}
+        loadout={domainsDraft.loadout.map(c => ({
+          ...c,
+          description: c.description ?? '',
+        }))}
       />
       <React.Suspense fallback={null}>
         <DomainsDrawerLazy

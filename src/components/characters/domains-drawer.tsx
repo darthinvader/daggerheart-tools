@@ -3,6 +3,7 @@ import type { UseFormReturn } from 'react-hook-form';
 import type { BaseSyntheticEvent } from 'react';
 import * as React from 'react';
 
+import { DomainCardItem } from '@/components/characters/domain-card-item';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -68,9 +69,6 @@ export function DomainsDrawer({
   const [activeTab, setActiveTab] = React.useState<
     'filtered' | 'any' | 'homebrew'
   >('filtered');
-  const [selectedCard, setSelectedCard] = React.useState<DomainCard | null>(
-    null
-  );
   const [search, setSearch] = React.useState('');
   // Homebrew minimal fields; description carries the "what it does" text
   const [hbName, setHbName] = React.useState('');
@@ -78,6 +76,15 @@ export function DomainsDrawer({
   const [hbType, setHbType] = React.useState('Spell');
   const [hbLevel, setHbLevel] = React.useState(1);
   const [hbDescription, setHbDescription] = React.useState('');
+  const [hbHopeCost, setHbHopeCost] = React.useState<number | ''>('');
+  const [hbRecallCost, setHbRecallCost] = React.useState<number | ''>('');
+
+  // Track baseline form values when the drawer opens so we can Reset to it.
+  const baselineRef = React.useRef<DomainsFormValues | null>(null);
+  // Track previous open state to detect open→close transitions.
+  const prevOpenRef = React.useRef(open);
+  // When Cancel/Save is pressed, we skip auto-save on close to avoid double-save.
+  const skipAutoSaveRef = React.useRef(false);
 
   const filtered = React.useMemo(() => {
     const allowed = new Set(accessibleDomains);
@@ -103,6 +110,7 @@ export function DomainsDrawer({
     typeFilter,
     search,
   ]);
+
   const anyFiltered = React.useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return allCards;
@@ -112,8 +120,6 @@ export function DomainsDrawer({
       return hay.includes(q);
     });
   }, [allCards, search]);
-
-  // No external dropdown lookups required
 
   const watchedLoadout = form.watch('loadout');
   const currentLoadout = React.useMemo(
@@ -126,6 +132,44 @@ export function DomainsDrawer({
     [watchedVault]
   );
   const creationComplete = form.watch('creationComplete') ?? false;
+
+  // Snapshot baseline on open; auto-save on close unless explicitly skipped.
+  React.useEffect(() => {
+    // Drawer just opened
+    if (!prevOpenRef.current && open) {
+      const vals = form.getValues();
+      // Deep clone to decouple from RHF's internal structures
+      try {
+        baselineRef.current = JSON.parse(JSON.stringify(vals));
+      } catch {
+        // Fallback: assign directly if cloning fails
+        baselineRef.current = vals as DomainsFormValues;
+      }
+    }
+
+    // Drawer just closed
+    if (prevOpenRef.current && !open) {
+      const shouldSkip = skipAutoSaveRef.current;
+      // reset for next open cycle
+      skipAutoSaveRef.current = false;
+
+      const isValid = form.formState.isValid;
+      const withinLimit =
+        creationComplete || currentLoadout.length <= startingLimit;
+      if (!shouldSkip && isValid && withinLimit) {
+        // Fire and forget; parent submit handles persistence/close flow
+        void submit();
+      }
+    }
+    prevOpenRef.current = open;
+  }, [
+    open,
+    form,
+    submit,
+    creationComplete,
+    currentLoadout.length,
+    startingLimit,
+  ]);
 
   const inLoadout = (card: DomainCard) =>
     currentLoadout.some(c => c.name === card.name);
@@ -165,8 +209,6 @@ export function DomainsDrawer({
   const overHardLimit = currentLoadout.length > maxAllowed && !creationComplete;
   const disableAdd =
     !creationComplete && currentLoadout.length >= startingLimit;
-
-  // No separate quick-add dropdown; the list below acts as the quick add without closing anything
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
@@ -271,77 +313,87 @@ export function DomainsDrawer({
                           No cards match the filters.
                         </div>
                       ) : (
-                        filtered.map(card => {
-                          const selected = inLoadout(card);
-                          return (
-                            <div
-                              key={`${card.domain}:${card.name}`}
-                              className={cn(
-                                'flex items-center justify-between gap-3 p-3',
-                                'border-b last:border-b-0'
-                              )}
-                              onClick={() => setSelectedCard(card)}
-                              role="button"
-                            >
-                              <div className="min-w-0">
-                                <div className="truncate text-sm font-medium">
-                                  {card.name}
-                                </div>
-                                <div className="text-muted-foreground text-xs">
-                                  {String(card.domain)} • L{card.level} •{' '}
-                                  <span
-                                    className={cn(
-                                      'ml-1 inline-flex items-center rounded px-1 py-0.5',
-                                      card.type === 'Ability'
-                                        ? 'bg-amber-100 text-amber-900 dark:bg-amber-500/20 dark:text-amber-200'
-                                        : 'bg-blue-100 text-blue-900 dark:bg-blue-500/20 dark:text-blue-200'
-                                    )}
-                                  >
-                                    {card.type}
-                                  </span>
-                                  {typeof card.hopeCost === 'number' && (
-                                    <span> • Hope {card.hopeCost}</span>
-                                  )}
-                                  {typeof card.recallCost === 'number' && (
-                                    <span> • Recall {card.recallCost}</span>
-                                  )}
-                                  {Array.isArray(card.tags) &&
-                                    card.tags.length > 0 && (
-                                      <span> • {card.tags.join(', ')}</span>
-                                    )}
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                {selected ? (
-                                  <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => removeFromLoadout(card)}
-                                  >
-                                    Remove
-                                  </Button>
-                                ) : (
-                                  <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => addToLoadout(card)}
-                                    disabled={disableAdd}
-                                  >
-                                    Add
-                                  </Button>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })
+                        filtered.map(card => (
+                          <DomainCardItem
+                            key={`${card.domain}:${card.name}`}
+                            card={card}
+                            context="available"
+                            inLoadout={inLoadout(card)}
+                            disableAdd={disableAdd}
+                            onAddToLoadout={addToLoadout}
+                            onRemoveFromLoadout={removeFromLoadout}
+                          />
+                        ))
                       )}
                     </div>
                   </div>
                 </TabsContent>
 
                 <TabsContent value="any" className="space-y-3">
+                  <div className="grid grid-cols-3 gap-2">
+                    <FormItem>
+                      <FormLabel>Domain</FormLabel>
+                      <FormControl>
+                        <Select
+                          value={domainFilter}
+                          onValueChange={setDomainFilter}
+                        >
+                          <SelectTrigger size="sm" className="min-w-28">
+                            <SelectValue placeholder="All" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="All">All</SelectItem>
+                            {[
+                              ...new Set(allCards.map(c => String(c.domain))),
+                            ].map(d => (
+                              <SelectItem key={d} value={d}>
+                                {d}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                    </FormItem>
+                    <FormItem>
+                      <FormLabel>Level</FormLabel>
+                      <FormControl>
+                        <Select
+                          value={levelFilter}
+                          onValueChange={setLevelFilter}
+                        >
+                          <SelectTrigger size="sm" className="min-w-28">
+                            <SelectValue placeholder="All" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="All">All</SelectItem>
+                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(l => (
+                              <SelectItem key={l} value={String(l)}>
+                                {l}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                    </FormItem>
+                    <FormItem>
+                      <FormLabel>Type</FormLabel>
+                      <FormControl>
+                        <Select
+                          value={typeFilter}
+                          onValueChange={setTypeFilter}
+                        >
+                          <SelectTrigger size="sm" className="min-w-28">
+                            <SelectValue placeholder="All" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="All">All</SelectItem>
+                            <SelectItem value="Spell">Spell</SelectItem>
+                            <SelectItem value="Ability">Ability</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                    </FormItem>
+                  </div>
                   <div>
                     <FormItem>
                       <FormLabel>Search</FormLabel>
@@ -359,76 +411,53 @@ export function DomainsDrawer({
                       Available Cards (All)
                     </div>
                     <div className="divide-border rounded-md border">
-                      {anyFiltered.length === 0 ? (
+                      {anyFiltered
+                        .filter(
+                          c =>
+                            domainFilter === 'All' ||
+                            String(c.domain) === domainFilter
+                        )
+                        .filter(
+                          c =>
+                            levelFilter === 'All' ||
+                            c.level === Number(levelFilter)
+                        )
+                        .filter(
+                          c =>
+                            typeFilter === 'All' ||
+                            String(c.type) === typeFilter
+                        ).length === 0 ? (
                         <div className="text-muted-foreground p-3 text-sm">
                           No cards found.
                         </div>
                       ) : (
-                        anyFiltered.map(card => {
-                          const selected = inLoadout(card);
-                          return (
-                            <div
+                        anyFiltered
+                          .filter(
+                            c =>
+                              domainFilter === 'All' ||
+                              String(c.domain) === domainFilter
+                          )
+                          .filter(
+                            c =>
+                              levelFilter === 'All' ||
+                              c.level === Number(levelFilter)
+                          )
+                          .filter(
+                            c =>
+                              typeFilter === 'All' ||
+                              String(c.type) === typeFilter
+                          )
+                          .map(card => (
+                            <DomainCardItem
                               key={`${card.domain}:${card.name}`}
-                              className={cn(
-                                'flex items-center justify-between gap-3 p-3',
-                                'border-b last:border-b-0'
-                              )}
-                              onClick={() => setSelectedCard(card)}
-                              role="button"
-                            >
-                              <div className="min-w-0">
-                                <div className="truncate text-sm font-medium">
-                                  {card.name}
-                                </div>
-                                <div className="text-muted-foreground text-xs">
-                                  {String(card.domain)} • L{card.level} •{' '}
-                                  <span
-                                    className={cn(
-                                      'ml-1 inline-flex items-center rounded px-1 py-0.5',
-                                      card.type === 'Ability'
-                                        ? 'bg-amber-100 text-amber-900 dark:bg-amber-500/20 dark:text-amber-200'
-                                        : 'bg-blue-100 text-blue-900 dark:bg-blue-500/20 dark:text-blue-200'
-                                    )}
-                                  >
-                                    {card.type}
-                                  </span>
-                                  {typeof card.hopeCost === 'number' && (
-                                    <span> • Hope {card.hopeCost}</span>
-                                  )}
-                                  {typeof card.recallCost === 'number' && (
-                                    <span> • Recall {card.recallCost}</span>
-                                  )}
-                                  {Array.isArray(card.tags) &&
-                                    card.tags.length > 0 && (
-                                      <span> • {card.tags.join(', ')}</span>
-                                    )}
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                {selected ? (
-                                  <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => removeFromLoadout(card)}
-                                  >
-                                    Remove
-                                  </Button>
-                                ) : (
-                                  <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => addToLoadout(card)}
-                                    disabled={disableAdd}
-                                  >
-                                    Add
-                                  </Button>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })
+                              card={card}
+                              context="available"
+                              inLoadout={inLoadout(card)}
+                              disableAdd={disableAdd}
+                              onAddToLoadout={addToLoadout}
+                              onRemoveFromLoadout={removeFromLoadout}
+                            />
+                          ))
                       )}
                     </div>
                   </div>
@@ -479,6 +508,34 @@ export function DomainsDrawer({
                       placeholder="Rules text, effects, costs, etc."
                     />
                   </FormItem>
+                  <div className="grid grid-cols-2 gap-2">
+                    <FormItem>
+                      <FormLabel>Hope Cost</FormLabel>
+                      <Input
+                        type="number"
+                        min={0}
+                        value={hbHopeCost}
+                        onChange={e => {
+                          const n = Number(e.target.value);
+                          setHbHopeCost(Number.isFinite(n) ? n : '');
+                        }}
+                        placeholder="e.g. 1"
+                      />
+                    </FormItem>
+                    <FormItem>
+                      <FormLabel>Recall Cost</FormLabel>
+                      <Input
+                        type="number"
+                        min={0}
+                        value={hbRecallCost}
+                        onChange={e => {
+                          const n = Number(e.target.value);
+                          setHbRecallCost(Number.isFinite(n) ? n : '');
+                        }}
+                        placeholder="e.g. 1"
+                      />
+                    </FormItem>
+                  </div>
                   <div className="flex items-center gap-2">
                     <Button
                       type="button"
@@ -492,13 +549,17 @@ export function DomainsDrawer({
                           domain: hbDomain.trim() || 'Homebrew',
                           type: hbType.trim() || 'Spell',
                           description: hbDescription.trim() || '',
-                          hopeCost: undefined,
-                          recallCost: undefined,
+                          hopeCost:
+                            hbHopeCost === ''
+                              ? undefined
+                              : Math.max(0, Number(hbHopeCost)),
+                          recallCost:
+                            hbRecallCost === ''
+                              ? undefined
+                              : Math.max(0, Number(hbRecallCost)),
                           metadata: { homebrew: true },
                         } as DomainCard;
-                        // Add to loadout (and vault) using existing helpers
                         addToLoadout(newCard);
-                        // Keep inputs for adding more; do not close any dropdowns
                       }}
                       disabled={disableAdd}
                     >
@@ -513,6 +574,8 @@ export function DomainsDrawer({
                         setHbType('Spell');
                         setHbLevel(1);
                         setHbDescription('');
+                        setHbHopeCost('');
+                        setHbRecallCost('');
                       }}
                     >
                       Clear
@@ -521,7 +584,6 @@ export function DomainsDrawer({
                 </TabsContent>
               </Tabs>
 
-              {/* Creation toggle and notes */}
               {!creationComplete && (
                 <div className="text-muted-foreground text-xs">
                   Starting limit {startingLimit} cards. After creation you can
@@ -544,80 +606,6 @@ export function DomainsDrawer({
                 )}
               />
 
-              {/* Preview of last selected card */}
-              {selectedCard ? (
-                <div className="rounded-md border p-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="min-w-0">
-                      <div className="truncate text-sm font-semibold">
-                        {selectedCard.name}
-                      </div>
-                      <div className="text-muted-foreground text-xs">
-                        {String(selectedCard.domain)} • L{selectedCard.level} •{' '}
-                        {selectedCard.type}
-                        {typeof selectedCard.hopeCost === 'number' && (
-                          <span> • Hope {selectedCard.hopeCost}</span>
-                        )}
-                        {typeof selectedCard.recallCost === 'number' && (
-                          <span> • Recall {selectedCard.recallCost}</span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {!inLoadout(selectedCard) ? (
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          onClick={() => addToLoadout(selectedCard)}
-                          disabled={disableAdd}
-                        >
-                          Add
-                        </Button>
-                      ) : (
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          onClick={() => removeFromLoadout(selectedCard)}
-                        >
-                          Remove
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                  {selectedCard.description ? (
-                    <div className="mt-2 text-sm whitespace-pre-wrap">
-                      {selectedCard.description}
-                    </div>
-                  ) : null}
-                  <div className="text-muted-foreground mt-2 text-xs">
-                    <span
-                      className={cn(
-                        'inline-flex items-center rounded px-1 py-0.5',
-                        selectedCard.type === 'Ability'
-                          ? 'bg-amber-100 text-amber-900 dark:bg-amber-500/20 dark:text-amber-200'
-                          : 'bg-blue-100 text-blue-900 dark:bg-blue-500/20 dark:text-blue-200'
-                      )}
-                    >
-                      {selectedCard.type}
-                    </span>
-                    {typeof selectedCard.hopeCost === 'number' && (
-                      <span> • Hope {selectedCard.hopeCost}</span>
-                    )}
-                    {typeof selectedCard.recallCost === 'number' && (
-                      <span> • Recall {selectedCard.recallCost}</span>
-                    )}
-                  </div>
-                  {Array.isArray(selectedCard.tags) &&
-                  selectedCard.tags.length > 0 ? (
-                    <div className="text-muted-foreground mt-2 text-xs">
-                      Tags: {selectedCard.tags.join(', ')}
-                    </div>
-                  ) : null}
-                </div>
-              ) : null}
-
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <FormField
                   control={form.control as never}
@@ -632,28 +620,12 @@ export function DomainsDrawer({
                           </div>
                         ) : (
                           currentLoadout.map(card => (
-                            <div
+                            <DomainCardItem
                               key={`loadout:${card.name}`}
-                              className="flex items-center justify-between gap-3 border-b p-3 last:border-b-0"
-                              onClick={() => setSelectedCard(card)}
-                            >
-                              <div className="min-w-0">
-                                <div className="truncate text-sm font-medium">
-                                  {card.name}
-                                </div>
-                                <div className="text-muted-foreground text-xs">
-                                  {String(card.domain)} • L{card.level}
-                                </div>
-                              </div>
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant="outline"
-                                onClick={() => removeFromLoadout(card)}
-                              >
-                                Remove
-                              </Button>
-                            </div>
+                              card={card}
+                              context="loadout"
+                              onRemoveFromLoadout={removeFromLoadout}
+                            />
                           ))
                         )}
                       </div>
@@ -674,28 +646,16 @@ export function DomainsDrawer({
                           </div>
                         ) : (
                           currentVault.map(card => (
-                            <div
+                            <DomainCardItem
                               key={`vault:${card.name}`}
-                              className="flex items-center justify-between gap-3 border-b p-3 last:border-b-0"
-                              onClick={() => setSelectedCard(card)}
-                            >
-                              <div className="min-w-0">
-                                <div className="truncate text-sm font-medium">
-                                  {card.name}
-                                </div>
-                                <div className="text-muted-foreground text-xs">
-                                  {String(card.domain)} • L{card.level}
-                                </div>
-                              </div>
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant="outline"
-                                onClick={() => removeFromVault(card)}
-                              >
-                                Remove
-                              </Button>
-                            </div>
+                              card={card}
+                              context="vault"
+                              inLoadout={inLoadout(card)}
+                              disableAdd={disableAdd}
+                              onAddToLoadout={addToLoadout}
+                              onRemoveFromLoadout={removeFromLoadout}
+                              onRemoveFromVault={removeFromVault}
+                            />
                           ))
                         )}
                       </div>
@@ -717,11 +677,34 @@ export function DomainsDrawer({
                     {!creationComplete && '(creation limit)'}
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button type="button" variant="outline" onClick={onCancel}>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        // Explicit cancel: do not auto-save on ensuing close
+                        skipAutoSaveRef.current = true;
+                        onCancel();
+                      }}
+                    >
                       Cancel
                     </Button>
                     <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => {
+                        if (baselineRef.current) {
+                          form.reset(baselineRef.current);
+                        }
+                      }}
+                    >
+                      Reset
+                    </Button>
+                    <Button
                       type="submit"
+                      onClick={() => {
+                        // Prevent auto-save on the close triggered by a manual save
+                        skipAutoSaveRef.current = true;
+                      }}
                       disabled={
                         !form.formState.isValid ||
                         (!creationComplete &&

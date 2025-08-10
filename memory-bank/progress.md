@@ -22,7 +22,7 @@ Updated: August 10, 2025
 - Per-id character screen at `/characters/$id` (mobile-first sheet composed of modular cards). `/characters/new` redirects to a fresh UUID. Characters hub at `/characters` with index child.
 - Identity drawer implemented (RHF + zod) and lazy-loaded. Class/Subclass drawer added and lazy-loaded; `ClassCard` shows current selection and opens it.
 - Mobile navbar overlap fixed by setting navbar z-index to `z-40`; drawers render at `z-50` and include safe-area footer padding.
-- Domains drawer implemented with search and filters (domain/level/type) and non-submit Add/Remove to prevent auto-close; list rows show domain, level, type badge, costs, and tags; preview shows description; by-type summary counts surfaced on `DomainsCard`.
+- Domains drawer implemented with search and filters (domain/level/type) and non-submit Add/Remove to prevent auto-close; list rows show domain, level, type badge, costs, and tags; preview shows description; by-type summary counts surfaced on `DomainsCard`. Added autosave on drawer close and a Reset button to restore per-open baseline.
 - Resources show Hope as current/max with controls; migration from legacy numeric Hope supported.
 
 ## What's Left to Build
@@ -57,6 +57,7 @@ Technical health
 ## Known Issues
 
 - Some domain descriptions need formatting polish; bundle has large chunk warnings
+- Vault layout still needs visual polish despite narrower width and vertical action buttons
 - Edge cases in progression need tests
 - Broader persistence layer beyond localStorage is not started
 - ESLint shows some warnings (react-refresh only-export-components in UI files; console statements in test scripts); non-blocking.
@@ -119,3 +120,7 @@ Deliverables: Equipment pack/free modes; schema validation and mobile-friendly d
 - Resources: converted `hope` to Score with current/max across schema, route, and UI; added migration from legacy numeric value in storage.
 - Traits: removed Remaining budget UI/state.
 - Quality gates: Typecheck PASS; Build PASS; Tests PASS (6/6); Lint shows only warnings (no blocking errors).
+
+### August 10, 2025 (even later)
+
+- Domains drawer UX: Replaced bottom “selected card” preview with inline expansion per row. Tapping a row toggles its description right under the list item (also in Loadout/Vault). This reduces scrolling and keeps context visible.

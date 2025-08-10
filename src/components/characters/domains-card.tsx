@@ -1,5 +1,7 @@
+import { DomainCardItem } from '@/components/characters/domain-card-item';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import type { DomainCard } from '@/lib/schemas/domains';
 
 export type LoadoutSummary = {
   total: number;
@@ -12,12 +14,14 @@ export type DomainsCardProps = {
   onEdit?: () => void;
   disabled?: boolean;
   summary?: LoadoutSummary;
+  loadout?: DomainCard[]; // actual selected cards to render below summary
 };
 
 export function DomainsCard({
   onEdit,
   disabled = false,
   summary,
+  loadout,
 }: DomainsCardProps) {
   return (
     <Card>
@@ -66,6 +70,18 @@ export function DomainsCard({
           Edit
         </Button>
       </CardContent>
+      {loadout && loadout.length > 0 && (
+        <div className="divide-border mx-4 mt-1 mb-4 rounded-md border">
+          {loadout.map(card => (
+            <DomainCardItem
+              key={`sheet:${card.name}`}
+              card={card}
+              context="loadout"
+              hideActions
+            />
+          ))}
+        </div>
+      )}
     </Card>
   );
 }
