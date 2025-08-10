@@ -1,24 +1,14 @@
 import type { UseFormReturn } from 'react-hook-form';
 
 import type { BaseSyntheticEvent } from 'react';
+import * as React from 'react';
 
-import { Button } from '@/components/ui/button';
-import { Combobox, type ComboboxItem } from '@/components/ui/combobox';
-import {
-  Drawer,
-  DrawerContent,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-} from '@/components/ui/drawer';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { DrawerScaffold } from '@/components/drawers/drawer-scaffold';
+// Use reusable RHF + Combobox field
+import { FormCombobox } from '@/components/forms/form-combobox';
+import { Form } from '@/components/ui/form';
+
+// Using CSS dynamic viewport units (dvh) for correct keyboard interactions
 
 export type ClassFormValues = {
   className: string;
@@ -29,13 +19,15 @@ export type ClassDrawerProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   form: UseFormReturn<ClassFormValues>;
-  classItems: ComboboxItem[];
-  subclassItems: ComboboxItem[];
+  classItems: { value: string; label: string }[];
+  subclassItems: { value: string; label: string }[];
   submit: (e?: BaseSyntheticEvent) => void | Promise<void>;
   onCancel: () => void;
+  // When creating a new character, show create-focused copy and UX tweaks
+  mode?: 'create' | 'edit';
 };
 
-export function ClassDrawer({
+function ClassDrawerImpl({
   open,
   onOpenChange,
   form,
@@ -43,70 +35,56 @@ export function ClassDrawer({
   subclassItems,
   submit,
   onCancel,
+  mode = 'edit',
 }: ClassDrawerProps) {
+  const watchedClass = form.watch('className');
+  const isSubmitting = form.formState.isSubmitting;
+  const isValid = form.formState.isValid;
+  const isDirty = form.formState.isDirty;
+  const disableSubmit =
+    !isValid || isSubmitting || (!isDirty && mode === 'edit');
+
+  const titleText =
+    mode === 'create' ? 'Choose Class & Subclass' : 'Edit Class & Subclass';
+  const ctaText = mode === 'create' ? 'Create' : 'Save';
+
   return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent>
-        <DrawerHeader>
-          <DrawerTitle>Edit Class & Subclass</DrawerTitle>
-        </DrawerHeader>
-        <div className="overflow-y-auto px-4 pb-[max(8px,env(safe-area-inset-bottom))]">
-          <Form {...form}>
-            <form className="space-y-4" onSubmit={submit} noValidate>
-              <FormField
-                control={form.control as never}
-                name="className"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Class</FormLabel>
-                    <FormControl>
-                      <Combobox
-                        items={classItems}
-                        value={field.value}
-                        onChange={(v: string | null) =>
-                          field.onChange(v ?? field.value)
-                        }
-                        placeholder="Search class..."
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control as never}
-                name="subclass"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Subclass</FormLabel>
-                    <FormControl>
-                      <Combobox
-                        items={subclassItems}
-                        value={field.value}
-                        onChange={(v: string | null) =>
-                          field.onChange(v ?? field.value)
-                        }
-                        placeholder="Select subclass..."
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <DrawerFooter>
-                <div className="flex items-center justify-end gap-2">
-                  <Button type="button" variant="outline" onClick={onCancel}>
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={!form.formState.isValid}>
-                    Save
-                  </Button>
-                </div>
-              </DrawerFooter>
-            </form>
-          </Form>
-        </div>
-      </DrawerContent>
-    </Drawer>
+    <DrawerScaffold
+      open={open}
+      onOpenChange={onOpenChange}
+      title={titleText}
+      onCancel={onCancel}
+      onSubmit={submit}
+      submitLabel={ctaText}
+      submitDisabled={disableSubmit}
+    >
+      <Form {...form}>
+        <form className="space-y-4" onSubmit={submit} noValidate>
+          <FormCombobox<ClassFormValues, 'className'>
+            name="className"
+            label="Class"
+            items={classItems}
+            onValueChange={(next, prev) => {
+              if (prev !== next) {
+                const currentSubclass = form.getValues('subclass');
+                if (currentSubclass) {
+                  form.setValue('subclass', '', {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  });
+                }
+              }
+            }}
+          />
+          <FormCombobox<ClassFormValues, 'subclass'>
+            name="subclass"
+            label="Subclass"
+            items={subclassItems}
+            disabled={!watchedClass}
+          />
+        </form>
+      </Form>
+    </DrawerScaffold>
   );
 }
+export const ClassDrawer = React.memo(ClassDrawerImpl);

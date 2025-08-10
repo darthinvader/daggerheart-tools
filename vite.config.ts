@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react-swc';
 import path from 'path';
 import { visualizer } from 'rollup-plugin-visualizer';
 import { fileURLToPath } from 'url';
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 
 import { tanstackRouter } from '@tanstack/router-plugin/vite';
 
@@ -32,5 +32,10 @@ export default defineConfig({
       // __dirname is not available in ESM; derive it from the current module URL
       '@': path.resolve(path.dirname(fileURLToPath(import.meta.url)), './src'),
     },
+  },
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./vitest.setup.ts'],
+    globals: true,
   },
 });

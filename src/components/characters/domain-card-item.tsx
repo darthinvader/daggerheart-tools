@@ -1,3 +1,6 @@
+import { memo } from 'react';
+
+import { getAccent } from '@/components/characters/pieces/domain-styles';
 import { Button } from '@/components/ui/button';
 import type { DomainCard } from '@/lib/schemas/domains';
 import { cn } from '@/lib/utils';
@@ -15,103 +18,9 @@ export type DomainCardItemProps = {
   onRemoveFromVault?: (card: DomainCard) => void;
 };
 
-// Emoji + color per domain (matches DomainNameEnum). Unknowns fall back by type.
-const domainMap: Record<
-  string,
-  { emoji: string; border: string; chip: string }
-> = {
-  Arcana: {
-    emoji: '🪄',
-    border: 'border-indigo-500/80',
-    chip: 'bg-indigo-100 text-indigo-900 dark:bg-indigo-500/20 dark:text-indigo-200',
-  },
-  Blade: {
-    emoji: '🗡️',
-    border: 'border-rose-500/80',
-    chip: 'bg-rose-100 text-rose-900 dark:bg-rose-500/20 dark:text-rose-200',
-  },
-  Bone: {
-    emoji: '💀',
-    border: 'border-zinc-500/80',
-    chip: 'bg-zinc-100 text-zinc-900 dark:bg-zinc-500/20 dark:text-zinc-200',
-  },
-  Codex: {
-    emoji: '📜',
-    border: 'border-sky-500/80',
-    chip: 'bg-sky-100 text-sky-900 dark:bg-sky-500/20 dark:text-sky-200',
-  },
-  Grace: {
-    emoji: '🕊️',
-    border: 'border-fuchsia-500/80',
-    chip: 'bg-fuchsia-100 text-fuchsia-900 dark:bg-fuchsia-500/20 dark:text-fuchsia-200',
-  },
-  Midnight: {
-    emoji: '🌑',
-    border: 'border-slate-500/80',
-    chip: 'bg-slate-100 text-slate-900 dark:bg-slate-500/20 dark:text-slate-200',
-  },
-  Sage: {
-    emoji: '🧠',
-    border: 'border-emerald-600/80',
-    chip: 'bg-emerald-100 text-emerald-900 dark:bg-emerald-500/20 dark:text-emerald-200',
-  },
-  Splendor: {
-    emoji: '✨',
-    border: 'border-amber-500/80',
-    chip: 'bg-amber-100 text-amber-900 dark:bg-amber-500/20 dark:text-amber-200',
-  },
-  Valor: {
-    emoji: '🛡️',
-    border: 'border-orange-500/80',
-    chip: 'bg-orange-100 text-orange-900 dark:bg-orange-500/20 dark:text-orange-200',
-  },
-  // Present for completeness (no cards yet in data)
-  Chaos: {
-    emoji: '🌀',
-    border: 'border-violet-500/80',
-    chip: 'bg-violet-100 text-violet-900 dark:bg-violet-500/20 dark:text-violet-200',
-  },
-  Moon: {
-    emoji: '🌙',
-    border: 'border-blue-500/80',
-    chip: 'bg-blue-100 text-blue-900 dark:bg-blue-500/20 dark:text-blue-200',
-  },
-  Sun: {
-    emoji: '☀️',
-    border: 'border-yellow-500/80',
-    chip: 'bg-yellow-100 text-yellow-900 dark:bg-yellow-500/20 dark:text-yellow-200',
-  },
-  Blood: {
-    emoji: '🩸',
-    border: 'border-red-500/80',
-    chip: 'bg-red-100 text-red-900 dark:bg-red-500/20 dark:text-red-200',
-  },
-  Fate: {
-    emoji: '🧵',
-    border: 'border-teal-500/80',
-    chip: 'bg-teal-100 text-teal-900 dark:bg-teal-500/20 dark:text-teal-200',
-  },
-};
+// Accent is now shared via domain-styles
 
-function getAccent(card: DomainCard) {
-  const domainKey = String(card.domain);
-  const themed = domainMap[domainKey];
-  if (themed)
-    return {
-      emoji: themed.emoji,
-      borderClass: themed.border,
-      domainChip: themed.chip,
-    };
-  // fallback to type-based colors
-  const isAbility = String(card.type) === 'Ability';
-  return {
-    emoji: isAbility ? '✨' : '📜',
-    borderClass: isAbility ? 'border-amber-500/80' : 'border-blue-500/80',
-    domainChip: 'bg-muted',
-  };
-}
-
-export function DomainCardItem({
+function DomainCardItemImpl({
   card,
   context,
   inLoadout,
@@ -122,6 +31,12 @@ export function DomainCardItem({
   onRemoveFromVault,
 }: DomainCardItemProps) {
   const { emoji, borderClass, domainChip } = getAccent(card);
+  const actionsLabel =
+    context === 'vault'
+      ? 'Vault actions'
+      : context === 'loadout'
+        ? 'Loadout actions'
+        : 'Available card actions';
 
   return (
     <div
@@ -135,7 +50,7 @@ export function DomainCardItem({
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="truncate text-sm font-semibold">
+          <div className="text-sm font-semibold break-words">
             <span className="mr-1" aria-hidden>
               {emoji}
             </span>
@@ -193,6 +108,8 @@ export function DomainCardItem({
                 ? 'w-36 flex-col items-stretch sm:w-40'
                 : 'items-center'
             )}
+            role="group"
+            aria-label={actionsLabel}
           >
             {context === 'available' &&
               (inLoadout ? (
@@ -200,6 +117,7 @@ export function DomainCardItem({
                   type="button"
                   size="sm"
                   variant="outline"
+                  aria-label="Remove from Loadout"
                   onClick={() => onRemoveFromLoadout?.(card)}
                 >
                   Remove
@@ -209,6 +127,7 @@ export function DomainCardItem({
                   type="button"
                   size="sm"
                   variant="outline"
+                  aria-label="Add to Loadout"
                   onClick={() => onAddToLoadout?.(card)}
                   disabled={disableAdd}
                 >
@@ -220,6 +139,7 @@ export function DomainCardItem({
                 type="button"
                 size="sm"
                 variant="outline"
+                aria-label="Remove from Loadout"
                 onClick={() => onRemoveFromLoadout?.(card)}
               >
                 Remove
@@ -232,7 +152,8 @@ export function DomainCardItem({
                     type="button"
                     size="sm"
                     variant="outline"
-                    className="w-full"
+                    className="h-11 min-h-[44px] w-full"
+                    aria-label="Remove from Loadout"
                     onClick={() => onRemoveFromLoadout?.(card)}
                   >
                     Remove from Loadout
@@ -242,7 +163,8 @@ export function DomainCardItem({
                     type="button"
                     size="sm"
                     variant="outline"
-                    className="w-full"
+                    className="h-11 min-h-[44px] w-full"
+                    aria-label="Add to Loadout"
                     onClick={() => onAddToLoadout?.(card)}
                     disabled={disableAdd}
                   >
@@ -253,7 +175,8 @@ export function DomainCardItem({
                   type="button"
                   size="sm"
                   variant="ghost"
-                  className="w-full"
+                  className="h-11 min-h-[44px] w-full"
+                  aria-label="Remove from Vault"
                   onClick={() => onRemoveFromVault?.(card)}
                 >
                   Remove from Vault
@@ -266,5 +189,5 @@ export function DomainCardItem({
     </div>
   );
 }
-
+export const DomainCardItem = memo(DomainCardItemImpl);
 export default DomainCardItem;

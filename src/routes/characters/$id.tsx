@@ -12,9 +12,9 @@ import { ConditionsCard } from '@/components/characters/conditions-card';
 import { CoreScoresCard } from '@/components/characters/core-scores-card';
 import { DomainsCard } from '@/components/characters/domains-card';
 import { IdentityCard } from '@/components/characters/identity-card';
-// Lazy-load the Identity drawer to trim initial bundle
+// Lazy-load heavy drawers to trim initial bundle
+import { SummaryStats } from '@/components/characters/pieces/summary-stats';
 import { ResourcesCard } from '@/components/characters/resources-card';
-import { SummaryStats } from '@/components/characters/summary-stats';
 import { TraitsCard } from '@/components/characters/traits-card';
 import { Button } from '@/components/ui/button';
 // No Card imports needed here; stub sections use dedicated components
@@ -44,6 +44,33 @@ import {
   CommunityNameEnum,
   SubclassNameSchema,
 } from '@/lib/schemas/core';
+import { characterKeys as keys, storage } from '@/lib/storage';
+
+// Module-scoped Domains draft schemas and defaults
+const DomainCardSchemaLite = z
+  .object({
+    name: z.string(),
+    level: z.number().int().min(1).max(10),
+    domain: z.string(),
+    type: z.string(),
+    description: z.string().optional(),
+    hopeCost: z.number().int().min(0).optional(),
+    recallCost: z.number().int().min(0).optional(),
+    tags: z.array(z.string()).optional(),
+    metadata: z.record(z.string(), z.unknown()).optional(),
+  })
+  .passthrough();
+const DomainsDraftSchema = z.object({
+  loadout: z.array(DomainCardSchemaLite).default([]),
+  vault: z.array(DomainCardSchemaLite).default([]),
+  creationComplete: z.boolean().default(false),
+});
+export type DomainsDraft = z.infer<typeof DomainsDraftSchema>;
+const DEFAULT_DOMAINS: DomainsDraft = {
+  loadout: [],
+  vault: [],
+  creationComplete: false,
+};
 
 // Per-character Identity draft schema
 const IdentityDraftSchema = z.object({
@@ -65,53 +92,23 @@ const DEFAULT_IDENTITY: IdentityDraft = {
   calling: '',
 };
 
-function getIdentityKey(id: string) {
-  return `dh:characters:${id}:identity:v1`;
-}
+// storage and keys now centralized in lib/storage
 
 function readIdentityFromStorage(id: string): IdentityDraft {
-  const key = getIdentityKey(id);
-  try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return DEFAULT_IDENTITY;
-    const parsed = JSON.parse(raw);
-    return IdentityDraftSchema.parse(parsed);
-  } catch {
-    return DEFAULT_IDENTITY;
-  }
+  return storage.read(keys.identity(id), DEFAULT_IDENTITY, IdentityDraftSchema);
 }
-
 function writeIdentityToStorage(id: string, value: IdentityDraft) {
-  const key = getIdentityKey(id);
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch {
-    // ignore
-  }
+  storage.write(keys.identity(id), value);
 }
 
 // Simple Conditions (tags) for gameplay tracking
 const ConditionsSchema = z.array(z.string().min(1).max(40));
 type ConditionsDraft = z.infer<typeof ConditionsSchema>;
-function getConditionsKey(id: string) {
-  return `dh:characters:${id}:conditions:v1`;
-}
 function readConditionsFromStorage(id: string): ConditionsDraft {
-  try {
-    const raw = localStorage.getItem(getConditionsKey(id));
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return ConditionsSchema.parse(parsed);
-  } catch {
-    return [];
-  }
+  return storage.read(keys.conditions(id), [], ConditionsSchema);
 }
 function writeConditionsToStorage(id: string, value: ConditionsDraft) {
-  try {
-    localStorage.setItem(getConditionsKey(id), JSON.stringify(value));
-  } catch {
-    // ignore
-  }
+  storage.write(keys.conditions(id), value);
 }
 
 // Resources (HP & Stress) quick-controls schema
@@ -136,31 +133,30 @@ const DEFAULT_RESOURCES: ResourcesDraft = {
   proficiency: 1,
 };
 
-function getResourcesKey(id: string) {
-  return `dh:characters:${id}:resources:v1`;
-}
 function readResourcesFromStorage(id: string): ResourcesDraft {
-  const key = getResourcesKey(id);
+  const parsedUnknown = storage.read<unknown>(
+    keys.resources(id),
+    DEFAULT_RESOURCES
+  );
+  // Back-compat: earlier versions stored hope as a number
+  const hasNumberHope = (
+    v: unknown
+  ): v is { hope: number } & Record<string, unknown> => {
+    return typeof (v as { hope?: unknown }).hope === 'number';
+  };
+  let normalized: unknown = parsedUnknown;
+  if (hasNumberHope(parsedUnknown)) {
+    const { hope, ...rest } = parsedUnknown;
+    normalized = { ...rest, hope: { current: hope, max: 6 } };
+  }
   try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return DEFAULT_RESOURCES;
-    const parsed = JSON.parse(raw);
-    // Back-compat: earlier versions stored hope as a number
-    if (typeof parsed?.hope === 'number') {
-      parsed.hope = { current: parsed.hope, max: 6 };
-    }
-    return ResourcesSchema.parse(parsed);
+    return ResourcesSchema.parse(normalized);
   } catch {
     return DEFAULT_RESOURCES;
   }
 }
 function writeResourcesToStorage(id: string, value: ResourcesDraft) {
-  const key = getResourcesKey(id);
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch {
-    // ignore
-  }
+  storage.write(keys.resources(id), value);
 }
 
 // Traits (values + marked) with simple configurable budget
@@ -180,26 +176,12 @@ const DEFAULT_TRAITS: TraitsDraft = {
   Knowledge: { value: 0, marked: false },
 };
 
-function getTraitsKey(id: string) {
-  return `dh:characters:${id}:traits:v1`;
-}
 function readTraitsFromStorage(id: string): TraitsDraft {
-  try {
-    const raw = localStorage.getItem(getTraitsKey(id));
-    if (!raw) return DEFAULT_TRAITS;
-    const parsed = JSON.parse(raw);
-    const schema = z.record(z.string(), TraitStateSchema);
-    return schema.parse(parsed);
-  } catch {
-    return DEFAULT_TRAITS;
-  }
+  const schema = z.record(z.string(), TraitStateSchema);
+  return storage.read(keys.traits(id), DEFAULT_TRAITS, schema);
 }
 function writeTraitsToStorage(id: string, value: TraitsDraft) {
-  try {
-    localStorage.setItem(getTraitsKey(id), JSON.stringify(value));
-  } catch {
-    // ignore
-  }
+  storage.write(keys.traits(id), value);
 }
 
 // Per-character Class selection draft
@@ -214,25 +196,11 @@ const DEFAULT_CLASS: ClassDraft = {
   subclass: 'Call of the Brave',
 };
 
-function getClassKey(id: string) {
-  return `dh:characters:${id}:class:v1`;
-}
 function readClassFromStorage(id: string): ClassDraft {
-  try {
-    const raw = localStorage.getItem(getClassKey(id));
-    if (!raw) return DEFAULT_CLASS;
-    const parsed = JSON.parse(raw);
-    return ClassDraftSchema.parse(parsed);
-  } catch {
-    return DEFAULT_CLASS;
-  }
+  return storage.read(keys.class(id), DEFAULT_CLASS, ClassDraftSchema);
 }
 function writeClassToStorage(id: string, value: ClassDraft) {
-  try {
-    localStorage.setItem(getClassKey(id), JSON.stringify(value));
-  } catch {
-    // ignore
-  }
+  storage.write(keys.class(id), value);
 }
 
 function CharacterSheet() {
@@ -276,42 +244,8 @@ function CharacterSheet() {
   const [openClass, setOpenClass] = React.useState(false);
   const [openDomains, setOpenDomains] = React.useState(false);
 
-  // Domains draft: vault + loadout
-  const DomainCardSchemaLite = z
-    .object({
-      name: z.string(),
-      level: z.number().int().min(1).max(10),
-      domain: z.string(),
-      type: z.string(),
-      description: z.string().optional(),
-      hopeCost: z.number().int().min(0).optional(),
-      recallCost: z.number().int().min(0).optional(),
-      tags: z.array(z.string()).optional(),
-      metadata: z.record(z.string(), z.unknown()).optional(),
-    })
-    .passthrough();
-  const DomainsDraftSchema = z.object({
-    loadout: z.array(DomainCardSchemaLite).default([]),
-    vault: z.array(DomainCardSchemaLite).default([]),
-    creationComplete: z.boolean().default(false),
-  });
-  type DomainsDraft = z.infer<typeof DomainsDraftSchema>;
-
-  const DEFAULT_DOMAINS: DomainsDraft = {
-    loadout: [],
-    vault: [],
-    creationComplete: false,
-  };
-
-  function getDomainsKey(id: string) {
-    return `dh:characters:${id}:domains:v1`;
-  }
   function writeDomainsToStorage(id: string, value: DomainsDraft) {
-    try {
-      localStorage.setItem(getDomainsKey(id), JSON.stringify(value));
-    } catch {
-      // ignore
-    }
+    storage.write(keys.domains(id), value);
   }
   const [domainsDraft, setDomainsDraft] =
     React.useState<DomainsDraft>(DEFAULT_DOMAINS);
@@ -324,37 +258,11 @@ function CharacterSheet() {
     setTraits(readTraitsFromStorage(id));
     setConditions(readConditionsFromStorage(id));
     setClassDraft(readClassFromStorage(id));
+    const parsed = storage.read(keys.domains(id), DEFAULT_DOMAINS);
     try {
-      const raw = localStorage.getItem(`dh:characters:${id}:domains:v1`);
-      if (!raw) {
-        setDomainsDraft({ loadout: [], vault: [], creationComplete: false });
-      } else {
-        const parsed = JSON.parse(raw);
-        // Inline a lite schema to avoid effect deps churn
-        const Lite = z
-          .object({
-            name: z.string(),
-            level: z.number().int().min(1).max(10),
-            domain: z.string(),
-            type: z.string(),
-            description: z.string().optional(),
-            hopeCost: z.number().int().min(0).optional(),
-            recallCost: z.number().int().min(0).optional(),
-            tags: z.array(z.string()).optional(),
-            metadata: z.record(z.string(), z.unknown()).optional(),
-          })
-          .passthrough();
-        const safe = z
-          .object({
-            loadout: z.array(Lite).default([]),
-            vault: z.array(Lite).default([]),
-            creationComplete: z.boolean().default(false),
-          })
-          .parse(parsed);
-        setDomainsDraft(safe);
-      }
+      setDomainsDraft(DomainsDraftSchema.parse(parsed));
     } catch {
-      setDomainsDraft({ loadout: [], vault: [], creationComplete: false });
+      setDomainsDraft(DEFAULT_DOMAINS);
     }
   }, [id]);
 
