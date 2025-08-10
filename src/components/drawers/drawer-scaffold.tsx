@@ -8,6 +8,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from '@/components/ui/drawer';
+import { cn } from '@/lib/utils';
 
 export type DrawerScaffoldProps = {
   open: boolean;
@@ -34,6 +35,10 @@ export function DrawerScaffold({
   submitDisabled,
   footer,
 }: DrawerScaffoldProps) {
+  // When closing, prevent new scroll input & momentum from fighting the close animation
+  const scrollBehaviorClass = open
+    ? ''
+    : 'pointer-events-none touch-none overflow-hidden';
   return (
     <Drawer open={open} onOpenChange={onOpenChange} direction="bottom">
       <DrawerContent className="h-[100dvh] max-h-[100dvh]">
@@ -43,7 +48,10 @@ export function DrawerScaffold({
         <div
           // Mark as scrollable so Vaul won't treat fast scrolls as a drag-to-close
           data-vaul-scrollable
-          className="min-h-0 flex-1 [touch-action:pan-y] overflow-y-auto [overscroll-behavior:contain] px-4 [-webkit-overflow-scrolling:touch]"
+          className={cn(
+            'min-h-0 flex-1 [touch-action:pan-y] overflow-y-auto [overscroll-behavior:contain] px-4 [-webkit-overflow-scrolling:touch]',
+            scrollBehaviorClass
+          )}
         >
           {children}
         </div>

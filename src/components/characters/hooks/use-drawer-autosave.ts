@@ -31,11 +31,31 @@ export function useDrawerAutosaveOnClose({
         creationComplete || currentLoadoutCount <= startingLimit;
 
       if (!shouldSkip && withinLimit) {
-        Promise.resolve(trigger()).then(valid => {
-          if (valid) {
-            void Promise.resolve(submit());
+        // Defer validation + submit until after close animation / when idle
+        const w = window as unknown as {
+          requestIdleCallback?: (
+            cb: IdleRequestCallback,
+            opts?: { timeout?: number }
+          ) => number;
+          cancelIdleCallback?: (id: number) => void;
+        };
+        let idleId: number | undefined;
+        const run = () => {
+          Promise.resolve(trigger()).then(valid => {
+            if (valid) void Promise.resolve(submit());
+          });
+        };
+        if (typeof w.requestIdleCallback === 'function') {
+          idleId = w.requestIdleCallback!(run, { timeout: 500 });
+        } else {
+          // allow ~1 frame worth of breathing room
+          setTimeout(run, 200);
+        }
+        return () => {
+          if (idleId && typeof w.cancelIdleCallback === 'function') {
+            w.cancelIdleCallback!(idleId);
           }
-        });
+        };
       }
     }
     prevOpenRef.current = open;

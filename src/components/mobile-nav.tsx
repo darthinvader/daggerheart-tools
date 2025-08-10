@@ -6,7 +6,9 @@ import * as React from 'react';
 
 import { createPortal } from 'react-dom';
 
-import { Link } from '@tanstack/react-router';
+import { Link, useRouter } from '@tanstack/react-router';
+
+import { generateId } from '@/lib/utils';
 
 type NavItem = {
   to: string;
@@ -16,7 +18,6 @@ type NavItem = {
 
 type MobileNavBarProps = {
   items?: NavItem[];
-  addTo?: string;
   addLabel?: string;
 };
 
@@ -31,9 +32,9 @@ const defaultItems: NavItem[] = [
 
 export function MobileNavBar({
   items = defaultItems,
-  addTo = '/characters/new',
   addLabel = 'New Character',
 }: MobileNavBarProps) {
+  const router = useRouter();
   const [hideForKeyboard, setHideForKeyboard] = React.useState(false);
 
   React.useEffect(() => {
@@ -120,15 +121,23 @@ export function MobileNavBar({
 
         {/* Floating center action with visible caption */}
         <div className="pointer-events-none absolute -top-5 left-1/2 flex -translate-x-1/2 flex-col items-center">
-          <Link
-            to={addTo}
+          <button
+            type="button"
+            onClick={() => {
+              const id = generateId();
+              // Navigate directly to the new character route and replace history
+              router.navigate({
+                to: '/characters/$id',
+                params: { id },
+                replace: true,
+              });
+            }}
             aria-label={addLabel}
             title={addLabel}
             className="bg-primary text-primary-foreground pointer-events-auto inline-flex h-14 w-14 items-center justify-center rounded-full border shadow-lg ring-1 shadow-black/20 ring-black/5"
-            preload="intent"
           >
             <UserPlus className="h-6 w-6 text-white" strokeWidth={2.25} />
-          </Link>
+          </button>
           <span className="text-primary mt-1 text-[11px] font-medium">
             {addLabel}
           </span>

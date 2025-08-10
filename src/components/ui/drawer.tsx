@@ -56,6 +56,8 @@ function DrawerContent({
         data-slot="drawer-content"
         className={cn(
           'group/drawer-content bg-background fixed inset-x-0 z-50 flex h-[100dvh] max-h-[100dvh] flex-col',
+          // Hint the browser that transform/opacity will animate
+          'transform-gpu will-change-transform',
           // Top drawer: stick to top, allow full dvh height
           'data-[vaul-drawer-direction=top]:top-0 data-[vaul-drawer-direction=top]:rounded-b-lg data-[vaul-drawer-direction=top]:border-b',
           // Bottom drawer: stick to bottom, allow full dvh height; remove extra margins that caused a blue gap

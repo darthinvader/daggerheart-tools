@@ -13,8 +13,8 @@ import { CoreScoresCard } from '@/components/characters/core-scores-card';
 import { DomainsCard } from '@/components/characters/domains-card';
 import { IdentityCard } from '@/components/characters/identity-card';
 // Lazy-load heavy drawers to trim initial bundle
-import { SummaryStats } from '@/components/characters/pieces/summary-stats';
 import { ResourcesCard } from '@/components/characters/resources-card';
+import { SummaryStats } from '@/components/characters/summary-stats';
 import { TraitsCard } from '@/components/characters/traits-card';
 import { Button } from '@/components/ui/button';
 // No Card imports needed here; stub sections use dedicated components
@@ -22,22 +22,7 @@ import type { ComboboxItem } from '@/components/ui/combobox';
 import { ANCESTRIES } from '@/lib/data/characters/ancestries';
 import { COMMUNITIES } from '@/lib/data/characters/communities';
 import { ALL_CLASSES } from '@/lib/data/classes';
-import {
-  ARCANA_DOMAIN_CARDS,
-  BLADE_DOMAIN_CARDS,
-  BLOOD_DOMAIN_CARDS,
-  BONE_DOMAIN_CARDS,
-  CHAOS_DOMAIN_CARDS,
-  CODEX_DOMAIN_CARDS,
-  FATE_DOMAIN_CARDS,
-  GRACE_DOMAIN_CARDS,
-  MIDNIGHT_DOMAIN_CARDS,
-  MOON_DOMAIN_CARDS,
-  SAGE_DOMAIN_CARDS,
-  SPLENDOR_DOMAIN_CARDS,
-  SUN_DOMAIN_CARDS,
-  VALOR_DOMAIN_CARDS,
-} from '@/lib/data/domains';
+// Domain data is now lazy-loaded within the Domains drawer when needed.
 import {
   AncestryNameEnum,
   ClassNameEnum,
@@ -233,6 +218,33 @@ function CharacterSheet() {
     []
   );
 
+  // Warm up the Domains drawer chunk after mount/idle so opening feels instant.
+  React.useEffect(() => {
+    // Prefer requestIdleCallback when available to avoid competing with user work.
+    const w = window as unknown as {
+      requestIdleCallback?: (cb: () => void) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+    let idleId: number | undefined;
+    let timeoutId: number | undefined;
+    const warm = () => {
+      // Fire and forget; the dynamic import will be cached by the module loader.
+      void import('@/components/characters/domains-drawer');
+    };
+    if (typeof w.requestIdleCallback === 'function') {
+      idleId = w.requestIdleCallback!(warm);
+    } else {
+      // Fallback to next tick if rIC is unavailable (SSR-safe by hook location)
+      timeoutId = window.setTimeout(warm, 0);
+    }
+    return () => {
+      if (idleId && typeof w.cancelIdleCallback === 'function') {
+        w.cancelIdleCallback!(idleId);
+      }
+      if (timeoutId) window.clearTimeout(timeoutId);
+    };
+  }, []);
+
   const [identity, setIdentity] =
     React.useState<IdentityDraft>(DEFAULT_IDENTITY);
   const [openIdentity, setOpenIdentity] = React.useState(false);
@@ -327,7 +339,10 @@ function CharacterSheet() {
     defaultValues: domainsDraft,
   });
   React.useEffect(() => {
-    if (openDomains) domainsForm.reset(domainsDraft);
+    if (!openDomains) return;
+    // Defer the reset to the next frame so the open animation starts smoothly
+    const id = requestAnimationFrame(() => domainsForm.reset(domainsDraft));
+    return () => cancelAnimationFrame(id);
   }, [openDomains, domainsDraft, domainsForm]);
 
   // When class changes in form, ensure subclass list is valid; if current subclass not in new list, set first
@@ -372,26 +387,7 @@ function CharacterSheet() {
     onSubmitDomains(v as DomainsDraft)
   );
 
-  // All domain cards (flattened)
-  const ALL_DOMAIN_CARDS = React.useMemo(
-    () => [
-      ...ARCANA_DOMAIN_CARDS,
-      ...BLADE_DOMAIN_CARDS,
-      ...BONE_DOMAIN_CARDS,
-      ...CODEX_DOMAIN_CARDS,
-      ...GRACE_DOMAIN_CARDS,
-      ...MIDNIGHT_DOMAIN_CARDS,
-      ...SAGE_DOMAIN_CARDS,
-      ...SPLENDOR_DOMAIN_CARDS,
-      ...VALOR_DOMAIN_CARDS,
-      ...CHAOS_DOMAIN_CARDS,
-      ...MOON_DOMAIN_CARDS,
-      ...SUN_DOMAIN_CARDS,
-      ...BLOOD_DOMAIN_CARDS,
-      ...FATE_DOMAIN_CARDS,
-    ],
-    []
-  );
+  // All domain cards are now lazy-loaded inside the Domains drawer to reduce route weight.
 
   // Helpers for resources updates
   const clamp = (n: number, min: number, max: number) =>
@@ -664,7 +660,6 @@ function CharacterSheet() {
           open={openDomains}
           onOpenChange={setOpenDomains}
           form={domainsForm as never}
-          allCards={ALL_DOMAIN_CARDS}
           accessibleDomains={accessibleDomains as string[]}
           submit={submitDomains}
           onCancel={() => setOpenDomains(false)}
