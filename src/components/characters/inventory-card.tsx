@@ -1,7 +1,14 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import type { Inventory } from '@/lib/schemas/equipment';
 
-export function InventoryCard({ onEdit }: { onEdit?: () => void }) {
+type Props = { inventory?: Inventory; onEdit?: () => void };
+
+export function InventoryCard({ inventory, onEdit }: Props) {
+  const slots = inventory?.slots ?? [];
+  const totalItems = slots.reduce((sum, s) => sum + (s.quantity ?? 1), 0);
+  const equipped = slots.filter(s => s.isEquipped).slice(0, 3);
+  const remaining = Math.max(0, (inventory?.maxItems ?? 0) - slots.length);
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between gap-2">
@@ -10,8 +17,21 @@ export function InventoryCard({ onEdit }: { onEdit?: () => void }) {
           Edit
         </Button>
       </CardHeader>
-      <CardContent className="text-muted-foreground text-sm">
-        Items and quantities…
+      <CardContent className="space-y-2 text-sm">
+        <div className="text-muted-foreground">
+          {slots.length} slots · {totalItems} items
+          {inventory?.maxItems ? ` · ${remaining} free` : ''}
+        </div>
+        {equipped.length > 0 ? (
+          <div className="text-muted-foreground line-clamp-1 text-xs">
+            Equipped: {equipped.map(s => s.item.name).join(', ')}
+            {slots.filter(s => s.isEquipped).length > equipped.length
+              ? '…'
+              : ''}
+          </div>
+        ) : (
+          <div className="text-muted-foreground text-xs">No items equipped</div>
+        )}
       </CardContent>
     </Card>
   );

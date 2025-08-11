@@ -20,7 +20,7 @@ import { ResourcesCard } from '@/components/characters/resources-card';
 import { SummaryStats } from '@/components/characters/summary-stats';
 import { TraitsCard } from '@/components/characters/traits-card';
 // storage helpers moved to features/characters/storage
-import { QuickJump } from '@/components/layout/quick-jump';
+// QuickJump removed at user's request due to bugs; sticky header remains simple
 import { Button } from '@/components/ui/button';
 // No Card imports needed here; stub sections use dedicated components
 import type { ComboboxItem } from '@/components/ui/combobox';
@@ -497,22 +497,7 @@ function CharacterSheet() {
             </DropdownMenu>
           </div>
         </div>
-        <div className="w-full px-2 pb-0">
-          <QuickJump
-            items={[
-              { id: 'summary', label: 'Summary' },
-              { id: 'conditions', label: 'Conditions' },
-              { id: 'resources', label: 'Resources' },
-              { id: 'core', label: 'Core' },
-              { id: 'identity', label: 'Identity' },
-              { id: 'class', label: 'Class' },
-              { id: 'equipment', label: 'Equipment' },
-              { id: 'inventory', label: 'Inventory' },
-              { id: 'domains', label: 'Domains' },
-              { id: 'traits', label: 'Traits' },
-            ]}
-          />
-        </div>
+        {/* QuickJump removed per request */}
       </div>
       <div className="mx-auto max-w-screen-sm p-4">
         {/* Summary section */}
@@ -607,7 +592,10 @@ function CharacterSheet() {
           aria-label="Equipment"
           className="mt-4 scroll-mt-24 md:scroll-mt-28"
         >
-          <EquipmentCard onEdit={() => setOpenEquipment(true)} />
+          <EquipmentCard
+            equipment={equipment as unknown as EquipmentDraft}
+            onEdit={() => setOpenEquipment(true)}
+          />
         </section>
         <React.Suspense fallback={null}>
           <EquipmentDrawerLazy
@@ -625,7 +613,10 @@ function CharacterSheet() {
           aria-label="Inventory"
           className="mt-4 scroll-mt-24 md:scroll-mt-28"
         >
-          <InventoryCard onEdit={() => setOpenInventory(true)} />
+          <InventoryCard
+            inventory={inventory as unknown as InventoryDraft}
+            onEdit={() => setOpenInventory(true)}
+          />
         </section>
         <React.Suspense fallback={null}>
           <InventoryDrawerLazy

@@ -156,6 +156,8 @@ Play mode simplification
 
 Note (Aug 11, 2025): Deferred. We removed the Play Mode feature from the character sheet for simplicity. All sections remain visible; a future lightweight “condensed view” could be explored separately if needed. Also removed the BottomActionBar and extracted the section links bar (QuickJump) into `src/components/layout/quick-jump.tsx` with tighter mobile sizing.
 
+Note (Aug 11, 2025 - update): Per explicit user request, the top bar QuickJump was removed from the character sheet header because it was causing bugs and did not meet expectations. The user asked to record that this could not be implemented as desired under TASK005.
+
 Mobile polish
 
 22. Touch targets & spacing.
@@ -827,6 +829,14 @@ Quality bar
 - Tests: Expanded `inventory-logic.test.ts` to cover setEquipped and setLocation. Suite now 24/24 green.
 - Domains: Added recall-used summary in Domains card and drawer footer (read-only; marked REVIEW for future budget rules).
 - Equipment: Added concise detail readouts under weapon/armor pickers (trait, range, damage, burden; armor base score and thresholds).
+
+### August 11, 2025 (later 6)
+
+- QuickJump: Improved mobile top bar usability. The bar remains fixed at the top, is horizontally scrollable, and now (a) auto-centers the active section while scrolling and (b) centers the tapped section on selection. Buttons are compact (h-9) to keep the header small on mobile while maintaining clear targets. Accessibility: aria-label added to the scroller.
+- EquipmentCard: Now shows a compact summary mirroring Domain card patterns. Displays Primary, Secondary, and Armor with clear "Select…" hints when empty. For selected gear, shows concise stats (trait, range, damage dice/type, burden; armor base/thresholds and modifiers). This makes equipment selection obvious at a glance.
+- InventoryCard: Shows slot and item counts, remaining capacity, and a one-line list of equipped items (up to three) to surface what’s active. Clear Edit affordance remains.
+- Character route: passes equipment and inventory data to the cards to power the new summaries.
+- Quality gates: Type-check PASS; Build PASS. No API changes to drawers; only card props extended.
 
 ## Planned Subtasks (exact queue)
 
