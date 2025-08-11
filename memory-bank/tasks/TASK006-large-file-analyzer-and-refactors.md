@@ -2,7 +2,7 @@
 
 Status: In Progress
 Added: 2025-08-11
-Updated: 2025-08-11
+Updated: 2025-08-11 (later)
 
 ## Original Request
 
@@ -46,6 +46,10 @@ Overall Status: In Progress - 88%
 | 1.13 | Rewire drawer to use list item components               | Complete | 2025-08-11 | Tests PASS                      |
 | 1.14 | Fix analyzer CLI parsing and outDir writes              | Complete | 2025-08-11 | MD+JSON saved under coverage    |
 | 1.15 | Extract CharacterJsonMenu from $id route                | Complete | 2025-08-11 | Route size reduced              |
+| 1.16 | Extract Inventory SlotRow presenter                     | Complete | 2025-08-11 | inventory-drawer shrank         |
+| 1.17 | Add prefetchOnIdle helper and use in route              | Complete | 2025-08-11 | Warms Domains drawer chunk      |
+| 1.18 | Lazy-load Domains HomebrewCardForm                      | Complete | 2025-08-11 | Suspense-wrapped, no UX change  |
+| 1.19 | Attempt lazy-load Equipment homebrew forms              | Complete | 2025-08-11 | Reverted to keep tests green    |
 
 ## Progress Log
 
@@ -67,3 +71,5 @@ Overall Status: In Progress - 88%
 - Optional: Split sidebar group components (header/footer/group/group-label/actions) to `sidebar/group.tsx`.
 - Optional: Extract Domains drawer homebrew form into its own module.
 - Consider simple code-splitting for heavy UI to reduce initial chunk sizes.
+
+See also: `memory-bank/refactor-plan.md` for prioritized targets and thresholds. Latest analyzer run (Aug 11) top items: `equipment-drawer.tsx` (19.4 KB/505 LOC/Cx 47), `routes/characters/$id.tsx` (19.9 KB/566 LOC/Cx 15), `domains-drawer.tsx` (14.7 KB/350 LOC/Cx 22), `inventory-drawer.tsx` (7.4 KB/252 LOC).

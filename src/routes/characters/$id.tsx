@@ -118,28 +118,20 @@ function CharacterSheet() {
 
   // Warm up the Domains drawer chunk after mount/idle so opening feels instant.
   React.useEffect(() => {
-    // Prefer requestIdleCallback when available to avoid competing with user work.
-    const w = window as unknown as {
-      requestIdleCallback?: (cb: () => void) => number;
-      cancelIdleCallback?: (id: number) => void;
-    };
-    let idleId: number | undefined;
-    let timeoutId: number | undefined;
-    const warm = () => {
-      // Fire and forget; the dynamic import will be cached by the module loader.
-      void import('@/components/characters/domains-drawer');
-    };
-    if (typeof w.requestIdleCallback === 'function') {
-      idleId = w.requestIdleCallback!(warm);
-    } else {
-      // Fallback to next tick if rIC is unavailable (SSR-safe by hook location)
-      timeoutId = window.setTimeout(warm, 0);
-    }
+    // Warm up the Domains drawer chunk after idle to make opening feel instant.
+    const cleanup = (async () => {
+      const { prefetchOnIdle } = await import('@/features/characters/prefetch');
+      return prefetchOnIdle(() => {
+        void import('@/components/characters/domains-drawer');
+      });
+    })();
+    // When the promise resolves to a cleanup function, attach it
+    let disposer: undefined | (() => void);
+    cleanup.then(fn => {
+      if (typeof fn === 'function') disposer = fn;
+    });
     return () => {
-      if (idleId && typeof w.cancelIdleCallback === 'function') {
-        w.cancelIdleCallback!(idleId);
-      }
-      if (timeoutId) window.clearTimeout(timeoutId);
+      if (disposer) disposer();
     };
   }, []);
 

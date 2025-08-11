@@ -1,19 +1,19 @@
-import { Dice5, Hand, Ruler, Tag } from 'lucide-react';
 import type { UseFormReturn } from 'react-hook-form';
 
 import * as React from 'react';
 
-import { ArmorListItem } from '@/components/characters/equipment-drawer/armor-list-item';
+import { ArmorFiltersToolbar } from '@/components/characters/equipment-drawer/armor-filters-toolbar';
+import { ArmorResultsList } from '@/components/characters/equipment-drawer/armor-results-list';
+import { CurrentSelectionStrip } from '@/components/characters/equipment-drawer/current-selection-strip';
 import { HomebrewArmorForm } from '@/components/characters/equipment-drawer/homebrew-armor-form';
 import { HomebrewWeaponForm } from '@/components/characters/equipment-drawer/homebrew-weapon-form';
 import { SourceFilterToggle } from '@/components/characters/equipment-drawer/source-filter-toggle';
-import { WeaponListItem } from '@/components/characters/equipment-drawer/weapon-list-item';
+import { WeaponsFiltersToolbar } from '@/components/characters/equipment-drawer/weapons-filters-toolbar';
+import { WeaponsResultsList } from '@/components/characters/equipment-drawer/weapons-results-list';
 import { DrawerScaffold } from '@/components/drawers/drawer-scaffold';
-import { Badge } from '@/components/ui/badge';
 import { Form } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import type { EquipmentDraft } from '@/features/characters/storage';
 import {
   ALL_PRIMARY_WEAPONS,
@@ -39,6 +39,7 @@ function EquipmentDrawerImpl({
   section,
 }: EquipmentDrawerProps) {
   const skipRef = React.useRef(false);
+  // no-op
   type EquipmentMeta = {
     homebrew?: {
       primary?: MinimalWeapon[];
@@ -73,6 +74,7 @@ function EquipmentDrawerImpl({
     MinimalWeapon[]
   >([]);
   const [homebrewArmor, setHomebrewArmor] = React.useState<MinimalArmor[]>([]);
+  // no-op
   // Initialize homebrew lists from form metadata when opened
   React.useEffect(() => {
     if (!open) return;
@@ -271,53 +273,27 @@ function EquipmentDrawerImpl({
 
             <TabsContent value="primary" className="space-y-2">
               {currentPrimary ? (
-                <div className="bg-muted/30 rounded-md border px-3 py-2 text-xs">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="min-w-0 truncate">
-                      <span className="font-medium">Current:</span>{' '}
-                      <span className="truncate align-middle">
-                        {currentPrimary.name}
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      className="text-muted-foreground hover:text-foreground underline underline-offset-2"
-                      onClick={() =>
-                        form.setValue('primaryWeapon', undefined, {
-                          shouldDirty: true,
-                        })
-                      }
-                    >
-                      Clear
-                    </button>
-                  </div>
-                  <div className="mt-1 flex flex-wrap gap-1">
-                    <Badge variant="outline" className="px-1 py-0 text-[10px]">
-                      <Tag className="mr-1 inline size-3" aria-hidden />
-                      {currentPrimary.trait}
-                    </Badge>
-                    <Badge variant="outline" className="px-1 py-0 text-[10px]">
-                      <Ruler className="mr-1 inline size-3" aria-hidden />
-                      {currentPrimary.range}
-                    </Badge>
-                    <Badge variant="outline" className="px-1 py-0 text-[10px]">
-                      <Dice5 className="mr-1 inline size-3" aria-hidden />
-                      {`${currentPrimary.damage.count}d${currentPrimary.damage.diceType}${currentPrimary.damage.modifier ? `+${currentPrimary.damage.modifier}` : ''} ${currentPrimary.damage.type}`}
-                    </Badge>
-                    <Badge variant="outline" className="px-1 py-0 text-[10px]">
-                      <Hand className="mr-1 inline size-3" aria-hidden />
-                      {currentPrimary.burden}
-                    </Badge>
-                    {currentPrimary.domainAffinity ? (
-                      <Badge
-                        variant="outline"
-                        className="px-1 py-0 text-[10px]"
-                      >
-                        {currentPrimary.domainAffinity}
-                      </Badge>
-                    ) : null}
-                  </div>
-                </div>
+                <CurrentSelectionStrip
+                  kind="primary"
+                  name={currentPrimary.name}
+                  onClear={() =>
+                    form.setValue('primaryWeapon', undefined, {
+                      shouldDirty: true,
+                    })
+                  }
+                  tags={[
+                    { label: currentPrimary.trait, icon: 'trait' },
+                    { label: String(currentPrimary.range), icon: 'range' },
+                    {
+                      label: `${currentPrimary.damage.count}d${currentPrimary.damage.diceType}${currentPrimary.damage.modifier ? `+${currentPrimary.damage.modifier}` : ''} ${currentPrimary.damage.type}`,
+                      icon: 'damage',
+                    },
+                    { label: String(currentPrimary.burden), icon: 'burden' },
+                    ...(currentPrimary.domainAffinity
+                      ? [{ label: currentPrimary.domainAffinity }]
+                      : []),
+                  ]}
+                />
               ) : null}
               {/* Source filter */}
               <SourceFilterToggle
@@ -333,53 +309,23 @@ function EquipmentDrawerImpl({
                 enterKeyHint="search"
               />
               {/* Filters: Tier and Burden */}
-              <div className="flex flex-wrap items-center gap-2 text-xs">
-                <div className="flex items-center gap-1">
-                  <span className="text-muted-foreground">Tier:</span>
-                  <ToggleGroup
-                    type="single"
-                    value={primaryTier}
-                    onValueChange={v => setPrimaryTier(v)}
-                  >
-                    <ToggleGroupItem value="">All</ToggleGroupItem>
-                    <ToggleGroupItem value="1">1</ToggleGroupItem>
-                    <ToggleGroupItem value="2">2</ToggleGroupItem>
-                    <ToggleGroupItem value="3">3</ToggleGroupItem>
-                    <ToggleGroupItem value="4">4</ToggleGroupItem>
-                  </ToggleGroup>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-muted-foreground">Burden:</span>
-                  <ToggleGroup
-                    type="single"
-                    value={primaryBurden}
-                    onValueChange={v => setPrimaryBurden(v)}
-                  >
-                    <ToggleGroupItem value="">All</ToggleGroupItem>
-                    <ToggleGroupItem value="One-Handed">1H</ToggleGroupItem>
-                    <ToggleGroupItem value="Two-Handed">2H</ToggleGroupItem>
-                  </ToggleGroup>
-                </div>
-              </div>
-              <div className="max-h-72 overflow-auto rounded border">
-                {filteredPrimary.map(w => (
-                  <WeaponListItem
-                    key={w.name}
-                    weapon={w as never}
-                    selected={currentPrimary?.name === w.name}
-                    onSelect={ww =>
-                      form.setValue('primaryWeapon', ww as never, {
-                        shouldDirty: true,
-                      })
-                    }
-                  />
-                ))}
-                {filteredPrimary.length === 0 ? (
-                  <div className="text-muted-foreground p-3 text-xs">
-                    No items match. Try switching Source or clearing filters.
-                  </div>
-                ) : null}
-              </div>
+              <WeaponsFiltersToolbar
+                tier={primaryTier}
+                onTierChange={v => setPrimaryTier(v)}
+                burden={primaryBurden}
+                onBurdenChange={v => setPrimaryBurden(v)}
+              />
+              <WeaponsResultsList
+                items={filteredPrimary as never}
+                isSelected={w =>
+                  currentPrimary?.name === (w as { name: string }).name
+                }
+                onSelect={ww =>
+                  form.setValue('primaryWeapon', ww as never, {
+                    shouldDirty: true,
+                  })
+                }
+              />
               {/* Homebrew creation (Primary tab) */}
               <HomebrewWeaponForm
                 slotLabel="Primary"
@@ -407,53 +353,27 @@ function EquipmentDrawerImpl({
 
             <TabsContent value="secondary" className="space-y-2">
               {currentSecondary ? (
-                <div className="bg-muted/30 rounded-md border px-3 py-2 text-xs">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="min-w-0 truncate">
-                      <span className="font-medium">Current:</span>{' '}
-                      <span className="truncate align-middle">
-                        {currentSecondary.name}
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      className="text-muted-foreground hover:text-foreground underline underline-offset-2"
-                      onClick={() =>
-                        form.setValue('secondaryWeapon', undefined, {
-                          shouldDirty: true,
-                        })
-                      }
-                    >
-                      Clear
-                    </button>
-                  </div>
-                  <div className="mt-1 flex flex-wrap gap-1">
-                    <Badge variant="outline" className="px-1 py-0 text-[10px]">
-                      <Tag className="mr-1 inline size-3" aria-hidden />
-                      {currentSecondary.trait}
-                    </Badge>
-                    <Badge variant="outline" className="px-1 py-0 text-[10px]">
-                      <Ruler className="mr-1 inline size-3" aria-hidden />
-                      {currentSecondary.range}
-                    </Badge>
-                    <Badge variant="outline" className="px-1 py-0 text-[10px]">
-                      <Dice5 className="mr-1 inline size-3" aria-hidden />
-                      {`${currentSecondary.damage.count}d${currentSecondary.damage.diceType}${currentSecondary.damage.modifier ? `+${currentSecondary.damage.modifier}` : ''} ${currentSecondary.damage.type}`}
-                    </Badge>
-                    <Badge variant="outline" className="px-1 py-0 text-[10px]">
-                      <Hand className="mr-1 inline size-3" aria-hidden />
-                      {currentSecondary.burden}
-                    </Badge>
-                    {currentSecondary.domainAffinity ? (
-                      <Badge
-                        variant="outline"
-                        className="px-1 py-0 text-[10px]"
-                      >
-                        {currentSecondary.domainAffinity}
-                      </Badge>
-                    ) : null}
-                  </div>
-                </div>
+                <CurrentSelectionStrip
+                  kind="secondary"
+                  name={currentSecondary.name}
+                  onClear={() =>
+                    form.setValue('secondaryWeapon', undefined, {
+                      shouldDirty: true,
+                    })
+                  }
+                  tags={[
+                    { label: currentSecondary.trait, icon: 'trait' },
+                    { label: String(currentSecondary.range), icon: 'range' },
+                    {
+                      label: `${currentSecondary.damage.count}d${currentSecondary.damage.diceType}${currentSecondary.damage.modifier ? `+${currentSecondary.damage.modifier}` : ''} ${currentSecondary.damage.type}`,
+                      icon: 'damage',
+                    },
+                    { label: String(currentSecondary.burden), icon: 'burden' },
+                    ...(currentSecondary.domainAffinity
+                      ? [{ label: currentSecondary.domainAffinity }]
+                      : []),
+                  ]}
+                />
               ) : null}
               {/* Source filter */}
               <SourceFilterToggle
@@ -469,53 +389,23 @@ function EquipmentDrawerImpl({
                 enterKeyHint="search"
               />
               {/* Filters: Tier and Burden */}
-              <div className="flex flex-wrap items-center gap-2 text-xs">
-                <div className="flex items-center gap-1">
-                  <span className="text-muted-foreground">Tier:</span>
-                  <ToggleGroup
-                    type="single"
-                    value={secondaryTier}
-                    onValueChange={v => setSecondaryTier(v)}
-                  >
-                    <ToggleGroupItem value="">All</ToggleGroupItem>
-                    <ToggleGroupItem value="1">1</ToggleGroupItem>
-                    <ToggleGroupItem value="2">2</ToggleGroupItem>
-                    <ToggleGroupItem value="3">3</ToggleGroupItem>
-                    <ToggleGroupItem value="4">4</ToggleGroupItem>
-                  </ToggleGroup>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-muted-foreground">Burden:</span>
-                  <ToggleGroup
-                    type="single"
-                    value={secondaryBurden}
-                    onValueChange={v => setSecondaryBurden(v)}
-                  >
-                    <ToggleGroupItem value="">All</ToggleGroupItem>
-                    <ToggleGroupItem value="One-Handed">1H</ToggleGroupItem>
-                    <ToggleGroupItem value="Two-Handed">2H</ToggleGroupItem>
-                  </ToggleGroup>
-                </div>
-              </div>
-              <div className="max-h-72 overflow-auto rounded border">
-                {filteredSecondary.map(w => (
-                  <WeaponListItem
-                    key={w.name}
-                    weapon={w as never}
-                    selected={currentSecondary?.name === w.name}
-                    onSelect={ww =>
-                      form.setValue('secondaryWeapon', ww as never, {
-                        shouldDirty: true,
-                      })
-                    }
-                  />
-                ))}
-                {filteredSecondary.length === 0 ? (
-                  <div className="text-muted-foreground p-3 text-xs">
-                    No items match. Try switching Source or clearing filters.
-                  </div>
-                ) : null}
-              </div>
+              <WeaponsFiltersToolbar
+                tier={secondaryTier}
+                onTierChange={v => setSecondaryTier(v)}
+                burden={secondaryBurden}
+                onBurdenChange={v => setSecondaryBurden(v)}
+              />
+              <WeaponsResultsList
+                items={filteredSecondary as never}
+                isSelected={w =>
+                  currentSecondary?.name === (w as { name: string }).name
+                }
+                onSelect={ww =>
+                  form.setValue('secondaryWeapon', ww as never, {
+                    shouldDirty: true,
+                  })
+                }
+              />
               {/* Homebrew creation (Secondary tab) */}
               <HomebrewWeaponForm
                 slotLabel="Secondary"
@@ -544,64 +434,42 @@ function EquipmentDrawerImpl({
 
             <TabsContent value="armor" className="space-y-2">
               {currentArmor ? (
-                <div className="bg-muted/30 rounded-md border px-3 py-2 text-xs">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="min-w-0 truncate">
-                      <span className="font-medium">Current:</span>{' '}
-                      <span className="truncate align-middle">
-                        {currentArmor.name}
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      className="text-muted-foreground hover:text-foreground underline underline-offset-2"
-                      onClick={() =>
-                        form.setValue('armor', undefined, { shouldDirty: true })
-                      }
-                    >
-                      Clear
-                    </button>
-                  </div>
-                  <div className="mt-1 flex flex-wrap gap-1">
-                    <Badge variant="outline" className="px-1 py-0 text-[10px]">
-                      Base {currentArmor.baseScore}
-                    </Badge>
-                    <Badge variant="outline" className="px-1 py-0 text-[10px]">
-                      M{currentArmor.baseThresholds.major}/S
-                      {currentArmor.baseThresholds.severe}
-                    </Badge>
-                    {currentArmor.evasionModifier ? (
-                      <Badge
-                        variant="outline"
-                        className="px-1 py-0 text-[10px]"
-                      >
-                        Evasion{' '}
-                        {currentArmor.evasionModifier >= 0
-                          ? `+${currentArmor.evasionModifier}`
-                          : currentArmor.evasionModifier}
-                      </Badge>
-                    ) : null}
-                    {currentArmor.agilityModifier ? (
-                      <Badge
-                        variant="outline"
-                        className="px-1 py-0 text-[10px]"
-                      >
-                        Agility{' '}
-                        {currentArmor.agilityModifier >= 0
-                          ? `+${currentArmor.agilityModifier}`
-                          : currentArmor.agilityModifier}
-                      </Badge>
-                    ) : null}
-                    {currentArmorType ? (
-                      <Badge
-                        variant="outline"
-                        className="px-1 py-0 text-[10px]"
-                      >
-                        {currentArmorType}
-                      </Badge>
-                    ) : null}
-                  </div>
-                </div>
+                <CurrentSelectionStrip
+                  kind="armor"
+                  name={currentArmor.name}
+                  onClear={() =>
+                    form.setValue('armor', undefined, { shouldDirty: true })
+                  }
+                  tags={[
+                    { label: `Base ${currentArmor.baseScore}` },
+                    {
+                      label: `M${currentArmor.baseThresholds.major}/S${currentArmor.baseThresholds.severe}`,
+                    },
+                    ...(currentArmor.evasionModifier
+                      ? [
+                          {
+                            label: `Evasion ${
+                              currentArmor.evasionModifier >= 0
+                                ? `+${currentArmor.evasionModifier}`
+                                : currentArmor.evasionModifier
+                            }`,
+                          },
+                        ]
+                      : []),
+                    ...(currentArmor.agilityModifier
+                      ? [
+                          {
+                            label: `Agility ${
+                              currentArmor.agilityModifier >= 0
+                                ? `+${currentArmor.agilityModifier}`
+                                : currentArmor.agilityModifier
+                            }`,
+                          },
+                        ]
+                      : []),
+                    ...(currentArmorType ? [{ label: currentArmorType }] : []),
+                  ]}
+                />
               ) : null}
               <Input
                 placeholder="Search armor"
@@ -611,35 +479,20 @@ function EquipmentDrawerImpl({
                 enterKeyHint="search"
               />
               {/* Armor filters */}
-              <div className="flex flex-wrap items-center gap-2 text-xs">
-                <div className="flex items-center gap-1">
-                  <span className="text-muted-foreground">Type:</span>
-                  <ToggleGroup
-                    type="single"
-                    value={armorTypeFilter}
-                    onValueChange={v => setArmorTypeFilter(v)}
-                  >
-                    <ToggleGroupItem value="">All</ToggleGroupItem>
-                    {armorTypes.map(t => (
-                      <ToggleGroupItem key={t} value={t}>
-                        {t}
-                      </ToggleGroupItem>
-                    ))}
-                  </ToggleGroup>
-                </div>
-              </div>
-              <div className="max-h-72 overflow-auto rounded border">
-                {filteredArmor.map(a => (
-                  <ArmorListItem
-                    key={a.name}
-                    armor={a as never}
-                    selected={currentArmor?.name === a.name}
-                    onSelect={aa =>
-                      form.setValue('armor', aa as never, { shouldDirty: true })
-                    }
-                  />
-                ))}
-              </div>
+              <ArmorFiltersToolbar
+                armorType={armorTypeFilter}
+                onArmorTypeChange={v => setArmorTypeFilter(v)}
+                armorTypes={armorTypes}
+              />
+              <ArmorResultsList
+                items={filteredArmor as never}
+                isSelected={a =>
+                  currentArmor?.name === (a as { name: string }).name
+                }
+                onSelect={aa =>
+                  form.setValue('armor', aa as never, { shouldDirty: true })
+                }
+              />
               {/* Homebrew creation (Armor tab) */}
               <HomebrewArmorForm
                 onAdd={a => {

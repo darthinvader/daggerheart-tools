@@ -1,6 +1,6 @@
 # Progress Report - Daggerheart Tools
 
-Updated: August 11, 2025 (later)
+Updated: August 11, 2025 (latest)
 
 ## What's Working
 
@@ -25,6 +25,7 @@ Updated: August 11, 2025 (later)
 - Mobile navbar overlap fixed by setting navbar z-index to `z-40`; drawers render at `z-50` and include safe-area footer padding.
 - Domains drawer implemented with search and filters (domain/level/type) and non-submit Add/Remove to prevent auto-close; list rows show domain, level, type badge, costs, and tags; preview shows description; by-type summary counts surfaced on `DomainsCard`. Added autosave on drawer close and a Reset button to restore per-open baseline.
 - Resources show Hope as current/max with controls; migration from legacy numeric Hope supported.
+- Mobile tabs: Tab lists are horizontally scrollable; tab triggers no longer stretch, improving swipe/scroll UX. Drawer description text referring to "Use Tab" removed from visual layout and kept as screen-reader-only.
 - Equipment & Inventory: Added `EquipmentCard` and `InventoryCard` sections with Edit buttons; drawers are lazy-loaded and wired to per-id localStorage. Equipment supports free-form selection (primary/secondary/armor) with concise stat previews; Inventory supports add-by-name and add-from-library with quantity steppers, Equipped toggle, and Location select.
 
 Refactors and reductions (Aug 11, 2025)
@@ -36,6 +37,25 @@ Refactors and reductions (Aug 11, 2025)
 - Character route `$id.tsx` simplified further: removed BottomActionBar and Play Mode; extracted QuickJump (section links) into `src/components/layout/quick-jump.tsx` with tighter mobile styles. Typecheck/Build PASS.
 - `scripts/size-report.mjs` now supports optional `size-report.config.json` to customize scan without changing defaults.
 - Added read-only HP thresholds chips to `ResourcesCard` (Major ≤ floor(max/2), Severe ≤ floor(max/4)).
+
+Refactors and reductions (Aug 11, 2025 - later)
+
+- Extracted `SlotRow` for inventory rows and integrated into `inventory-drawer.tsx` to remove duplicated markup.
+- Added `prefetchOnIdle` helper under `src/features/characters/prefetch.ts` and used in `src/routes/characters/$id.tsx` to warm Domains drawer chunk during idle.
+- Domains drawer: `HomebrewCardForm` lazy-loaded behind `Suspense` (no behavior change).
+- Equipment drawer: Attempted lazy-load for homebrew forms, but reverted to synchronous imports to keep tests stable. Maintains behavior parity.
+
+Analyzer (latest run on Aug 11, refreshed):
+
+- By size: `$id.tsx` 19.9 KB; `equipment-drawer.tsx` 19.2 KB; `domains-drawer.tsx` 14.8 KB; `inventory-drawer.tsx` 7.4 KB.
+- By LOC: `$id.tsx` 566; `equipment-drawer.tsx` 501; `domains-drawer.tsx` 350; `inventory-drawer.tsx` 252.
+- Homebrew forms: `homebrew-weapon-form.tsx` 7.5 KB/222 LOC; `homebrew-armor-form.tsx` 5.8 KB/164 LOC.
+
+Quality gates (Aug 11):
+
+- Type-check: PASS
+- Build: PASS (chunk size warnings expected; heavy vendor chunks present)
+- Tests: PASS (24/24). DialogContent now auto-adds sr-only description/aria-describedby when missing.
 
 ## What's Left to Build
 

@@ -27,6 +27,7 @@ Equipment drawer (Aug 11, 2025 - latest):
 - Added empty-state notice under lists when filters yield no items.
 - Fixed onValueChange to ignore empty values so selection always updates; lists now respond reliably to Source changes.
 - Accessibility: DrawerScaffold includes a description wired via aria-describedby.
+  Updated Aug 11: The description text is now screen-reader-only and no longer references keyboard Tabs (mobile-first). Tabs now horizontally scroll on mobile.
 
 Code structure and size improvements (Aug 11, 2025):
 
@@ -69,6 +70,29 @@ Small refactors (Aug 11, 2025):
     `src/routes/characters/$id.tsx` now imports these, reducing local boilerplate. File size dropped from ~17.1 KB → ~14.0 KB per analyzer.
 - Enhanced `scripts/size-report.mjs` to support optional `size-report.config.json` for customizeable include/exclude roots/paths/extensions while preserving defaults (still excludes `src/lib/data`, `src/lib/schemas`, and `src/routes/showcase.tsx`).
 - Extracted QuickJump (section links bar) from route to `src/components/layout/quick-jump.tsx`, reduced `$id.tsx` surface and tightened mobile styles (smaller font/padding, reduced gaps). Typecheck/build PASS.
+
+Aug 11, 2025 (later updates):
+
+- Introduced `prefetchOnIdle` helper at `src/features/characters/prefetch.ts` and used it in `src/routes/characters/$id.tsx` to warm the Domains drawer chunk during idle time.
+- Domains drawer: `HomebrewCardForm` is now lazy-loaded behind `Suspense` (no behavior change).
+- Inventory drawer: extracted `SlotRow` presenter to `src/components/characters/inventory/slot-row.tsx` and rewired usage to reduce duplication.
+- Equipment drawer: attempted lazy-load for homebrew forms but reverted to synchronous imports to keep tests reliable; behavior unchanged.
+
+Latest analyzer snapshot (Aug 11, refreshed):
+
+- Top by size/loc (excluding data/schemas):
+  - `src/components/characters/equipment-drawer.tsx` — 19.2 KB, 501 LOC, Cx 47
+  - `src/routes/characters/$id.tsx` — 19.9 KB, 566 LOC, Cx 15
+  - `src/components/characters/domains-drawer.tsx` — 14.8 KB, 350 LOC, Cx 22
+  - `src/components/characters/inventory-drawer.tsx` — 7.4 KB, 252 LOC, Cx 7
+  - UI vendor-like shells remain large due to long lines (dropdown/menu/context-menu/sidebar).
+  - Homebrew forms split: weapon ~7.5 KB (222 LOC), armor ~5.8 KB (164 LOC).
+
+A11y:
+
+- DialogContent now auto-provides an sr-only description and sets aria-describedby when not supplied, eliminating missing-description warnings at source without changing consumers.
+
+Notes: All validations are green after these changes (type-check, build, tests). No file deletions needed.
 
 ### Recently Completed
 
@@ -125,6 +149,10 @@ Schema completion and validation; mobile-first sheet assembly with drawer editor
 - Sidebar split into context/variants/menu modules; removed re-export of `useSidebar` in `sidebar.tsx` to satisfy react-refresh rule.
 - Domains drawer logic/UI extractions: `use-loadout-lists.ts`, `available-cards-section.tsx`, and `type-summary-chips.tsx`.
 - Tests added for `useLoadoutLists`; full test suite green.
+
+Refactor plan (Aug 11, 2025):
+
+- Added `memory-bank/refactor-plan.md` capturing prioritized targets based on analyzer output. Top items: `equipment-drawer.tsx`, `$id.tsx`, `inventory-drawer.tsx`, `domains-drawer.tsx`. Goals defined per file for KB/LOC/Cx reduction. Phased approach (extractions, organization/fan-in, and code-splitting).
 
 ### New Decisions (Aug 10, 2025)
 

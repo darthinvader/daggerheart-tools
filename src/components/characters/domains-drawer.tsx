@@ -7,7 +7,6 @@ import * as React from 'react';
 import { AvailableCardsSection } from '@/components/characters/domains-drawer/available-cards-section';
 import { CreationCompleteToggle } from '@/components/characters/domains-drawer/creation-complete-toggle';
 import { DomainsFilterBar } from '@/components/characters/domains-drawer/domains-filter-bar';
-import { HomebrewCardForm } from '@/components/characters/domains-drawer/homebrew-card-form';
 import { getLoadoutLimits } from '@/components/characters/domains-drawer/loadout-limits';
 import { LoadoutList } from '@/components/characters/domains-drawer/loadout-list';
 import { TabsHeader } from '@/components/characters/domains-drawer/tabs-header';
@@ -30,6 +29,12 @@ import { useCoarsePointer } from '@/hooks/use-coarse-pointer';
 import { useMeasureReady } from '@/hooks/use-measure-ready';
 // Using CSS dynamic viewport units (dvh) for correct keyboard interactions
 import type { DomainCard } from '@/lib/schemas/domains';
+
+const HomebrewCardFormLazy = React.lazy(() =>
+  import('@/components/characters/domains-drawer/homebrew-card-form').then(
+    m => ({ default: m.HomebrewCardForm })
+  )
+);
 
 // import { cn } from '@/lib/utils';
 
@@ -305,51 +310,53 @@ function DomainsDrawerImpl({
               </TabsContent>
 
               <TabsContent value="homebrew" className="space-y-3">
-                <HomebrewCardForm
-                  hbName={hb.hbName}
-                  hbDomain={hb.hbDomain}
-                  hbType={hb.hbType}
-                  hbLevel={hb.hbLevel}
-                  hbDescription={hb.hbDescription}
-                  hbHopeCost={hb.hbHopeCost}
-                  hbRecallCost={hb.hbRecallCost}
-                  disableAdd={disableAdd}
-                  onChange={next => {
-                    const mapped = {
-                      hbName:
-                        'hbName' in next
-                          ? String(next.hbName ?? '')
-                          : undefined,
-                      hbDomain:
-                        'hbDomain' in next
-                          ? String(next.hbDomain ?? '')
-                          : undefined,
-                      hbType:
-                        'hbType' in next
-                          ? String(next.hbType ?? '')
-                          : undefined,
-                      hbLevel:
-                        'hbLevel' in next
-                          ? Number(next.hbLevel ?? 1)
-                          : undefined,
-                      hbDescription:
-                        'hbDescription' in next
-                          ? String(next.hbDescription ?? '')
-                          : undefined,
-                      hbHopeCost:
-                        'hbHopeCost' in next
-                          ? ((next.hbHopeCost as number | '') ?? '')
-                          : undefined,
-                      hbRecallCost:
-                        'hbRecallCost' in next
-                          ? ((next.hbRecallCost as number | '') ?? '')
-                          : undefined,
-                    };
-                    setHb(mapped);
-                  }}
-                  onAdd={addToLoadout}
-                  onClear={clearHb}
-                />
+                <React.Suspense fallback={null}>
+                  <HomebrewCardFormLazy
+                    hbName={hb.hbName}
+                    hbDomain={hb.hbDomain}
+                    hbType={hb.hbType}
+                    hbLevel={hb.hbLevel}
+                    hbDescription={hb.hbDescription}
+                    hbHopeCost={hb.hbHopeCost}
+                    hbRecallCost={hb.hbRecallCost}
+                    disableAdd={disableAdd}
+                    onChange={next => {
+                      const mapped = {
+                        hbName:
+                          'hbName' in next
+                            ? String(next.hbName ?? '')
+                            : undefined,
+                        hbDomain:
+                          'hbDomain' in next
+                            ? String(next.hbDomain ?? '')
+                            : undefined,
+                        hbType:
+                          'hbType' in next
+                            ? String(next.hbType ?? '')
+                            : undefined,
+                        hbLevel:
+                          'hbLevel' in next
+                            ? Number(next.hbLevel ?? 1)
+                            : undefined,
+                        hbDescription:
+                          'hbDescription' in next
+                            ? String(next.hbDescription ?? '')
+                            : undefined,
+                        hbHopeCost:
+                          'hbHopeCost' in next
+                            ? ((next.hbHopeCost as number | '') ?? '')
+                            : undefined,
+                        hbRecallCost:
+                          'hbRecallCost' in next
+                            ? ((next.hbRecallCost as number | '') ?? '')
+                            : undefined,
+                      };
+                      setHb(mapped);
+                    }}
+                    onAdd={addToLoadout}
+                    onClear={clearHb}
+                  />
+                </React.Suspense>
               </TabsContent>
             </Tabs>
 
