@@ -2,7 +2,7 @@
 
 **Status:** In Progress (Milestone 1 shipped)
 **Added:** August 9, 2025
-**Updated:** August 11, 2025
+**Updated:** August 11, 2025 (later)
 
 ## Original Request
 
@@ -153,6 +153,8 @@ Play mode simplification
 
 - 21.1 Condensed layout: sticky summary + HP/Stress/Conditions/Loadout quick actions only.
 - 21.2 Toggle returns to full view with sections; persist preference locally.
+
+Note (Aug 11, 2025): Deferred. We removed the Play Mode feature from the character sheet for simplicity. All sections remain visible; a future lightweight “condensed view” could be explored separately if needed. Also removed the BottomActionBar and extracted the section links bar (QuickJump) into `src/components/layout/quick-jump.tsx` with tighter mobile sizing.
 
 Mobile polish
 

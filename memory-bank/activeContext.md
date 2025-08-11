@@ -16,6 +16,7 @@ Changes implemented (recent):
 - `/characters/new` generates a UUID and redirects to `/characters/$id`; characters index lists entries and links to New.
 - Mobile: Ensured drawers appear above the MobileNavBar by lowering navbar z-index to `z-40` and keeping drawers at `z-50`; confirmed footer safe-area padding prevents action buttons from being obscured.
 - Global bottom padding remains on `<main>` to avoid overlap with the navbar; drawers sized with 100dvh.
+- Character sheet mobile nav: Removed BottomActionBar and eliminated Play Mode; added a compact QuickJump section links bar.
 - Typecheck/build/tests pass consistently (chunk-size warnings accepted for now).
 
 Code structure and size improvements (Aug 11, 2025):
@@ -58,6 +59,7 @@ Small refactors (Aug 11, 2025):
   - `conditions.ts` with `createConditionActions`
     `src/routes/characters/$id.tsx` now imports these, reducing local boilerplate. File size dropped from ~17.1 KB → ~14.0 KB per analyzer.
 - Enhanced `scripts/size-report.mjs` to support optional `size-report.config.json` for customizeable include/exclude roots/paths/extensions while preserving defaults (still excludes `src/lib/data`, `src/lib/schemas`, and `src/routes/showcase.tsx`).
+- Extracted QuickJump (section links bar) from route to `src/components/layout/quick-jump.tsx`, reduced `$id.tsx` surface and tightened mobile styles (smaller font/padding, reduced gaps). Typecheck/build PASS.
 
 ### Recently Completed
 
@@ -174,7 +176,7 @@ Pending decisions
 
 ### In Progress (Character Sheet UI)
 
-- Per-id character sheet at `/characters/$id` with modular cards, Identity + Class drawers (lazy), Traits steppers with budget, Resources quick controls, and Summary identity + HP/Stress snapshot. Bottom action bar removed in favor of header actions. Drawers use 100dvh with safe-area padding.
+- Per-id character sheet at `/characters/$id` with modular cards, Identity + Class drawers (lazy), Traits steppers with budget, Resources quick controls, and Summary identity + HP/Stress snapshot. Bottom action bar removed; Play Mode removed. QuickJump extracted and styled for mobile. Drawers use 100dvh with safe-area padding.
 - Next: Implement Domains and Equipment drawers following the same pattern (lazy, per-id persistence, validation).
 
 ## Context for Next Session

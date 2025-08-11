@@ -32,6 +32,7 @@ Refactors and reductions (Aug 11, 2025)
 - `src/components/characters/domains-drawer.tsx` reduced to ~15.1 KB with new `useLoadoutLists` hook and small components (`AvailableCardsSection`, `TypeSummaryChips`).
 - Character route `$id.tsx` previously reduced by moving storage/schemas into `src/features/characters/storage.ts` (now ~17.1 KB).
 - Character route `$id.tsx` further reduced to ~14.0 KB by extracting resource/traits/conditions actions to `src/features/characters/logic/*`.
+- Character route `$id.tsx` simplified further: removed BottomActionBar and Play Mode; extracted QuickJump (section links) into `src/components/layout/quick-jump.tsx` with tighter mobile styles. Typecheck/Build PASS.
 - `scripts/size-report.mjs` now supports optional `size-report.config.json` to customize scan without changing defaults.
 
 ## What's Left to Build
