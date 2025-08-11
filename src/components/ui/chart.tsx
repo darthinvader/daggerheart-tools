@@ -2,10 +2,31 @@ import * as RechartsPrimitive from 'recharts';
 
 import * as React from 'react';
 
+import { getPayloadConfigFromPayload } from '@/components/ui/chart-utils';
 import { cn } from '@/lib/utils';
 
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: '', dark: '.dark' } as const;
+
+// Base classes for the chart container (split to avoid very long lines)
+const CHART_BASE_CLASSES = [
+  '[&_.recharts-cartesian-axis-tick_text]:fill-muted-foreground',
+  "[&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-border/50",
+  '[&_.recharts-curve.recharts-tooltip-cursor]:stroke-border',
+  "[&_.recharts-polar-grid_[stroke='#ccc']]:stroke-border",
+  '[&_.recharts-radial-bar-background-sector]:fill-muted',
+  '[&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted',
+  "[&_.recharts-reference-line_[stroke='#ccc']]:stroke-border",
+  'flex',
+  'aspect-video',
+  'justify-center',
+  'text-xs',
+  "[&_.recharts-dot[stroke='#fff']]:stroke-transparent",
+  '[&_.recharts-layer]:outline-hidden',
+  '[&_.recharts-sector]:outline-hidden',
+  "[&_.recharts-sector[stroke='#fff']]:stroke-transparent",
+  '[&_.recharts-surface]:outline-hidden',
+].join(' ');
 
 export type ChartConfig = {
   [k in string]: {
@@ -53,10 +74,7 @@ function ChartContainer({
       <div
         data-slot="chart"
         data-chart={chartId}
-        className={cn(
-          "[&_.recharts-cartesian-axis-tick_text]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line_[stroke='#ccc']]:stroke-border flex aspect-video justify-center text-xs [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-hidden [&_.recharts-sector]:outline-hidden [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-surface]:outline-hidden",
-          className
-        )}
+        className={cn(CHART_BASE_CLASSES, className)}
         {...props}
       >
         <ChartStyle id={chartId} config={config} />
@@ -103,6 +121,38 @@ ${colorConfig
 
 const ChartTooltip = RechartsPrimitive.Tooltip;
 
+// Small helpers to simplify renderers
+type SeriesItemLike = {
+  name?: string | number;
+  dataKey?: string | number;
+  color?: string;
+  payload?: { fill?: string } | Record<string, unknown>;
+};
+
+function getSeriesKey(
+  item: unknown,
+  nameKey?: string,
+  fallback: string = 'value'
+) {
+  const it = (item as SeriesItemLike) || {};
+  return `${nameKey || it.name || it.dataKey || fallback}`;
+}
+
+function getLabelKey(
+  item: unknown,
+  labelKey?: string,
+  fallback: string = 'value'
+) {
+  const it = (item as SeriesItemLike) || {};
+  return `${labelKey || it.dataKey || it.name || fallback}`;
+}
+
+function getIndicatorColor(item: unknown, override?: string) {
+  const it = (item as SeriesItemLike) || {};
+  const fill = (it.payload as { fill?: string } | undefined)?.fill;
+  return override || fill || it.color;
+}
+
 function ChartTooltipContent({
   active,
   payload,
@@ -133,7 +183,7 @@ function ChartTooltipContent({
     }
 
     const [item] = payload;
-    const key = `${labelKey || item?.dataKey || item?.name || 'value'}`;
+    const key = getLabelKey(item, labelKey);
     const itemConfig = getPayloadConfigFromPayload(config, item, key);
     const value =
       !labelKey && typeof label === 'string'
@@ -179,9 +229,9 @@ function ChartTooltipContent({
       {!nestLabel ? tooltipLabel : null}
       <div className="grid gap-1.5">
         {payload.map((item, index) => {
-          const key = `${nameKey || item.name || item.dataKey || 'value'}`;
+          const key = getSeriesKey(item, nameKey);
           const itemConfig = getPayloadConfigFromPayload(config, item, key);
-          const indicatorColor = color || item.payload.fill || item.color;
+          const indicatorColor = getIndicatorColor(item, color);
 
           return (
             <div
@@ -304,49 +354,13 @@ function ChartLegendContent({
 }
 
 // Helper to extract item config from a payload.
-function getPayloadConfigFromPayload(
-  config: ChartConfig,
-  payload: unknown,
-  key: string
-) {
-  if (typeof payload !== 'object' || payload === null) {
-    return undefined;
-  }
-
-  const payloadPayload =
-    'payload' in payload &&
-    typeof payload.payload === 'object' &&
-    payload.payload !== null
-      ? payload.payload
-      : undefined;
-
-  let configLabelKey: string = key;
-
-  if (
-    key in payload &&
-    typeof payload[key as keyof typeof payload] === 'string'
-  ) {
-    configLabelKey = payload[key as keyof typeof payload] as string;
-  } else if (
-    payloadPayload &&
-    key in payloadPayload &&
-    typeof payloadPayload[key as keyof typeof payloadPayload] === 'string'
-  ) {
-    configLabelKey = payloadPayload[
-      key as keyof typeof payloadPayload
-    ] as string;
-  }
-
-  return configLabelKey in config
-    ? config[configLabelKey]
-    : config[key as keyof typeof config];
-}
+// helper imported from chart-utils
 
 export {
   ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
   ChartLegend,
   ChartLegendContent,
   ChartStyle,
+  ChartTooltip,
+  ChartTooltipContent,
 };

@@ -1,8 +1,13 @@
-import { CheckIcon, Dice5, Hand, Ruler, Tag } from 'lucide-react';
+import { Dice5, Hand, Ruler, Tag } from 'lucide-react';
 import type { UseFormReturn } from 'react-hook-form';
 
 import * as React from 'react';
 
+import { ArmorListItem } from '@/components/characters/equipment-drawer/armor-list-item';
+import { HomebrewArmorForm } from '@/components/characters/equipment-drawer/homebrew-armor-form';
+import { HomebrewWeaponForm } from '@/components/characters/equipment-drawer/homebrew-weapon-form';
+import { SourceFilterToggle } from '@/components/characters/equipment-drawer/source-filter-toggle';
+import { WeaponListItem } from '@/components/characters/equipment-drawer/weapon-list-item';
 import { DrawerScaffold } from '@/components/drawers/drawer-scaffold';
 import { Badge } from '@/components/ui/badge';
 import { Form } from '@/components/ui/form';
@@ -15,7 +20,6 @@ import {
   ALL_SECONDARY_WEAPONS,
   ALL_STANDARD_ARMOR,
 } from '@/lib/data/equipment';
-import { cn } from '@/lib/utils';
 
 export type EquipmentDrawerProps = {
   open: boolean;
@@ -316,29 +320,11 @@ function EquipmentDrawerImpl({
                 </div>
               ) : null}
               {/* Source filter */}
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-muted-foreground">Source:</span>
-                <ToggleGroup
-                  type="single"
-                  aria-label="Source filter"
-                  variant="outline"
-                  size="lg"
-                  value={primarySourceFilter}
-                  onValueChange={v =>
-                    v && setPrimarySourceFilter(v as SourceFilter)
-                  }
-                >
-                  <ToggleGroupItem value="default">
-                    Default ({primaryCounts.default})
-                  </ToggleGroupItem>
-                  <ToggleGroupItem value="homebrew">
-                    Homebrew ({primaryCounts.homebrew})
-                  </ToggleGroupItem>
-                  <ToggleGroupItem value="all">
-                    All ({primaryCounts.all})
-                  </ToggleGroupItem>
-                </ToggleGroup>
-              </div>
+              <SourceFilterToggle
+                value={primarySourceFilter}
+                counts={primaryCounts}
+                onChange={v => setPrimarySourceFilter(v)}
+              />
               <Input
                 placeholder="Search primary weapons"
                 value={qPrimary}
@@ -377,103 +363,16 @@ function EquipmentDrawerImpl({
               </div>
               <div className="max-h-72 overflow-auto rounded border">
                 {filteredPrimary.map(w => (
-                  <button
+                  <WeaponListItem
                     key={w.name}
-                    type="button"
-                    aria-selected={currentPrimary?.name === w.name}
-                    className={cn(
-                      'hover:bg-muted/50 w-full text-left',
-                      currentPrimary?.name === w.name &&
-                        'bg-accent/30 ring-ring ring-1'
-                    )}
-                    onClick={() =>
-                      form.setValue('primaryWeapon', w, { shouldDirty: true })
+                    weapon={w as never}
+                    selected={currentPrimary?.name === w.name}
+                    onSelect={ww =>
+                      form.setValue('primaryWeapon', ww as never, {
+                        shouldDirty: true,
+                      })
                     }
-                  >
-                    <div className="grid grid-cols-[1fr_auto] items-start gap-1 px-3 py-2">
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 truncate font-medium">
-                          {w.name}
-                          {(
-                            w as unknown as {
-                              metadata?: { homebrew?: boolean };
-                            }
-                          ).metadata?.homebrew ? (
-                            <Badge
-                              variant="outline"
-                              className="px-1 py-0 text-[10px]"
-                            >
-                              Homebrew
-                            </Badge>
-                          ) : null}
-                          {currentPrimary?.name === w.name ? (
-                            <Badge
-                              variant="secondary"
-                              className="px-1 py-0 text-[10px]"
-                            >
-                              Selected
-                            </Badge>
-                          ) : null}
-                        </div>
-                        <div className="text-muted-foreground mt-0.5 flex flex-wrap gap-1 text-xs">
-                          <Badge
-                            variant="outline"
-                            className="px-1 py-0 text-[10px]"
-                          >
-                            {w.trait}
-                          </Badge>
-                          <Badge
-                            variant="outline"
-                            className="px-1 py-0 text-[10px]"
-                          >
-                            {w.range}
-                          </Badge>
-                          <Badge
-                            variant="outline"
-                            className="px-1 py-0 text-[10px]"
-                          >{`${w.damage.count}d${w.damage.diceType}${w.damage.modifier ? `+${w.damage.modifier}` : ''} ${w.damage.type}`}</Badge>
-                          <Badge
-                            variant="outline"
-                            className="px-1 py-0 text-[10px]"
-                          >
-                            {w.burden}
-                          </Badge>
-                          {w.domainAffinity ? (
-                            <Badge
-                              variant="outline"
-                              className="px-1 py-0 text-[10px]"
-                            >
-                              {w.domainAffinity}
-                            </Badge>
-                          ) : null}
-                        </div>
-                        {w.features?.length ? (
-                          <ul className="text-muted-foreground mt-1 list-disc space-y-0.5 pl-5 text-[11px]">
-                            {w.features.map((f, i) => (
-                              <li key={i}>
-                                <span className="font-medium">{f.name}:</span>{' '}
-                                {f.description}
-                              </li>
-                            ))}
-                          </ul>
-                        ) : null}
-                        {w.description ? (
-                          <div className="text-muted-foreground mt-1 text-[11px]">
-                            {w.description}
-                          </div>
-                        ) : null}
-                      </div>
-                      <div className="text-muted-foreground flex items-start gap-2 text-right text-[11px]">
-                        <span>T{w.tier}</span>
-                        {currentPrimary?.name === w.name ? (
-                          <CheckIcon
-                            className="text-primary size-4"
-                            aria-hidden
-                          />
-                        ) : null}
-                      </div>
-                    </div>
-                  </button>
+                  />
                 ))}
                 {filteredPrimary.length === 0 ? (
                   <div className="text-muted-foreground p-3 text-xs">
@@ -557,29 +456,11 @@ function EquipmentDrawerImpl({
                 </div>
               ) : null}
               {/* Source filter */}
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-muted-foreground">Source:</span>
-                <ToggleGroup
-                  type="single"
-                  aria-label="Source filter"
-                  variant="outline"
-                  size="lg"
-                  value={secondarySourceFilter}
-                  onValueChange={v =>
-                    v && setSecondarySourceFilter(v as SourceFilter)
-                  }
-                >
-                  <ToggleGroupItem value="default">
-                    Default ({secondaryCounts.default})
-                  </ToggleGroupItem>
-                  <ToggleGroupItem value="homebrew">
-                    Homebrew ({secondaryCounts.homebrew})
-                  </ToggleGroupItem>
-                  <ToggleGroupItem value="all">
-                    All ({secondaryCounts.all})
-                  </ToggleGroupItem>
-                </ToggleGroup>
-              </div>
+              <SourceFilterToggle
+                value={secondarySourceFilter}
+                counts={secondaryCounts}
+                onChange={v => setSecondarySourceFilter(v)}
+              />
               <Input
                 placeholder="Search secondary weapons"
                 value={qSecondary}
@@ -618,103 +499,16 @@ function EquipmentDrawerImpl({
               </div>
               <div className="max-h-72 overflow-auto rounded border">
                 {filteredSecondary.map(w => (
-                  <button
+                  <WeaponListItem
                     key={w.name}
-                    type="button"
-                    aria-selected={currentSecondary?.name === w.name}
-                    className={cn(
-                      'hover:bg-muted/50 w-full text-left',
-                      currentSecondary?.name === w.name &&
-                        'bg-accent/30 ring-ring ring-1'
-                    )}
-                    onClick={() =>
-                      form.setValue('secondaryWeapon', w, { shouldDirty: true })
+                    weapon={w as never}
+                    selected={currentSecondary?.name === w.name}
+                    onSelect={ww =>
+                      form.setValue('secondaryWeapon', ww as never, {
+                        shouldDirty: true,
+                      })
                     }
-                  >
-                    <div className="grid grid-cols-[1fr_auto] items-start gap-1 px-3 py-2">
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 truncate font-medium">
-                          {w.name}
-                          {(
-                            w as unknown as {
-                              metadata?: { homebrew?: boolean };
-                            }
-                          ).metadata?.homebrew ? (
-                            <Badge
-                              variant="outline"
-                              className="px-1 py-0 text-[10px]"
-                            >
-                              Homebrew
-                            </Badge>
-                          ) : null}
-                          {currentSecondary?.name === w.name ? (
-                            <Badge
-                              variant="secondary"
-                              className="px-1 py-0 text-[10px]"
-                            >
-                              Selected
-                            </Badge>
-                          ) : null}
-                        </div>
-                        <div className="text-muted-foreground mt-0.5 flex flex-wrap gap-1 text-xs">
-                          <Badge
-                            variant="outline"
-                            className="px-1 py-0 text-[10px]"
-                          >
-                            {w.trait}
-                          </Badge>
-                          <Badge
-                            variant="outline"
-                            className="px-1 py-0 text-[10px]"
-                          >
-                            {w.range}
-                          </Badge>
-                          <Badge
-                            variant="outline"
-                            className="px-1 py-0 text-[10px]"
-                          >{`${w.damage.count}d${w.damage.diceType}${w.damage.modifier ? `+${w.damage.modifier}` : ''} ${w.damage.type}`}</Badge>
-                          <Badge
-                            variant="outline"
-                            className="px-1 py-0 text-[10px]"
-                          >
-                            {w.burden}
-                          </Badge>
-                          {w.domainAffinity ? (
-                            <Badge
-                              variant="outline"
-                              className="px-1 py-0 text-[10px]"
-                            >
-                              {w.domainAffinity}
-                            </Badge>
-                          ) : null}
-                        </div>
-                        {w.features?.length ? (
-                          <ul className="text-muted-foreground mt-1 list-disc space-y-0.5 pl-5 text-[11px]">
-                            {w.features.map((f, i) => (
-                              <li key={i}>
-                                <span className="font-medium">{f.name}:</span>{' '}
-                                {f.description}
-                              </li>
-                            ))}
-                          </ul>
-                        ) : null}
-                        {w.description ? (
-                          <div className="text-muted-foreground mt-1 text-[11px]">
-                            {w.description}
-                          </div>
-                        ) : null}
-                      </div>
-                      <div className="text-muted-foreground flex items-start gap-2 text-right text-[11px]">
-                        <span>T{w.tier}</span>
-                        {currentSecondary?.name === w.name ? (
-                          <CheckIcon
-                            className="text-primary size-4"
-                            aria-hidden
-                          />
-                        ) : null}
-                      </div>
-                    </div>
-                  </button>
+                  />
                 ))}
                 {filteredSecondary.length === 0 ? (
                   <div className="text-muted-foreground p-3 text-xs">
@@ -836,115 +630,14 @@ function EquipmentDrawerImpl({
               </div>
               <div className="max-h-72 overflow-auto rounded border">
                 {filteredArmor.map(a => (
-                  <button
+                  <ArmorListItem
                     key={a.name}
-                    type="button"
-                    aria-selected={currentArmor?.name === a.name}
-                    className={cn(
-                      'hover:bg-muted/50 w-full text-left',
-                      currentArmor?.name === a.name &&
-                        'bg-accent/30 ring-ring ring-1'
-                    )}
-                    onClick={() =>
-                      form.setValue('armor', a, { shouldDirty: true })
+                    armor={a as never}
+                    selected={currentArmor?.name === a.name}
+                    onSelect={aa =>
+                      form.setValue('armor', aa as never, { shouldDirty: true })
                     }
-                  >
-                    <div className="grid grid-cols-[1fr_auto] items-start gap-1 px-3 py-2">
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 truncate font-medium">
-                          {a.name}
-                          {(
-                            a as unknown as {
-                              metadata?: { homebrew?: boolean };
-                            }
-                          ).metadata?.homebrew ? (
-                            <Badge
-                              variant="outline"
-                              className="px-1 py-0 text-[10px]"
-                            >
-                              Homebrew
-                            </Badge>
-                          ) : null}
-                          {currentArmor?.name === a.name ? (
-                            <Badge
-                              variant="secondary"
-                              className="px-1 py-0 text-[10px]"
-                            >
-                              Selected
-                            </Badge>
-                          ) : null}
-                        </div>
-                        <div className="text-muted-foreground mt-0.5 flex flex-wrap gap-1 text-xs">
-                          <Badge
-                            variant="outline"
-                            className="px-1 py-0 text-[10px]"
-                          >
-                            Base {a.baseScore}
-                          </Badge>
-                          <Badge
-                            variant="outline"
-                            className="px-1 py-0 text-[10px]"
-                          >
-                            M{a.baseThresholds.major}/S{a.baseThresholds.severe}
-                          </Badge>
-                          {a.evasionModifier ? (
-                            <Badge
-                              variant="outline"
-                              className="px-1 py-0 text-[10px]"
-                            >
-                              Evasion{' '}
-                              {a.evasionModifier >= 0
-                                ? `+${a.evasionModifier}`
-                                : a.evasionModifier}
-                            </Badge>
-                          ) : null}
-                          {a.agilityModifier ? (
-                            <Badge
-                              variant="outline"
-                              className="px-1 py-0 text-[10px]"
-                            >
-                              Agility{' '}
-                              {a.agilityModifier >= 0
-                                ? `+${a.agilityModifier}`
-                                : a.agilityModifier}
-                            </Badge>
-                          ) : null}
-                          {a['armorType'] ? (
-                            <Badge
-                              variant="outline"
-                              className="px-1 py-0 text-[10px]"
-                            >
-                              {String(a['armorType'])}
-                            </Badge>
-                          ) : null}
-                        </div>
-                        {a.features?.length ? (
-                          <ul className="text-muted-foreground mt-1 list-disc space-y-0.5 pl-5 text-[11px]">
-                            {a.features.map((f, i) => (
-                              <li key={i}>
-                                <span className="font-medium">{f.name}:</span>{' '}
-                                {f.description}
-                              </li>
-                            ))}
-                          </ul>
-                        ) : null}
-                        {a.description ? (
-                          <div className="text-muted-foreground mt-1 text-[11px]">
-                            {a.description}
-                          </div>
-                        ) : null}
-                      </div>
-                      <div className="text-muted-foreground flex items-start gap-2 text-right text-[11px]">
-                        <span>T{a.tier}</span>
-                        {currentArmor?.name === a.name ? (
-                          <CheckIcon
-                            className="text-primary size-4"
-                            aria-hidden
-                          />
-                        ) : null}
-                      </div>
-                    </div>
-                  </button>
+                  />
                 ))}
               </div>
               {/* Homebrew creation (Armor tab) */}
@@ -974,403 +667,6 @@ function EquipmentDrawerImpl({
         </form>
       </Form>
     </DrawerScaffold>
-  );
-}
-
-// ----------------------------------------
-// Homebrew forms (inline, minimal fields)
-// ----------------------------------------
-
-type HomebrewWeaponFormProps = {
-  slotLabel: 'Primary' | 'Secondary';
-  onAdd: (w: unknown) => void;
-  defaultType?: 'Primary' | 'Secondary';
-};
-
-function HomebrewWeaponForm({
-  slotLabel,
-  onAdd,
-  defaultType,
-}: HomebrewWeaponFormProps) {
-  const [open, setOpen] = React.useState(false);
-  const [name, setName] = React.useState('');
-  const [tier, setTier] = React.useState<'1' | '2' | '3' | '4'>('1');
-  const [trait, setTrait] = React.useState('Strength');
-  const [range, setRange] = React.useState('Melee');
-  const [damageCount, setDamageCount] = React.useState(1);
-  const [damageDice, setDamageDice] = React.useState(6);
-  const [damageMod, setDamageMod] = React.useState(0);
-  const [damageType, setDamageType] = React.useState<'phy' | 'mag'>('phy');
-  const [burden, setBurden] = React.useState<'One-Handed' | 'Two-Handed'>(
-    'One-Handed'
-  );
-  const [description, setDescription] = React.useState('');
-
-  const add = () => {
-    if (!name.trim()) return;
-    const weapon = {
-      name: name.trim(),
-      tier,
-      type: defaultType ?? slotLabel,
-      trait,
-      range,
-      damage: {
-        diceType: damageDice,
-        count: damageCount,
-        modifier: damageMod,
-        type: damageType,
-      },
-      burden,
-      description: description.trim() || undefined,
-      features: [],
-      metadata: { homebrew: true, createdAt: Date.now() },
-    } as const;
-    onAdd(weapon);
-    // reset minimal
-    setOpen(false);
-    setName('');
-    setTier('1');
-    setTrait('Strength');
-    setRange('Melee');
-    setDamageCount(1);
-    setDamageDice(6);
-    setDamageMod(0);
-    setDamageType('phy');
-    setBurden('One-Handed');
-    setDescription('');
-  };
-
-  return (
-    <div className="mt-3 rounded-md border p-2">
-      <button
-        type="button"
-        className="text-xs font-medium underline underline-offset-2"
-        onClick={() => setOpen(o => !o)}
-        aria-expanded={open}
-        aria-controls={`homebrew-${slotLabel.toLowerCase()}-form`}
-      >
-        {open
-          ? 'Hide custom weapon'
-          : `Add custom ${slotLabel.toLowerCase()} weapon`}
-      </button>
-      {open ? (
-        <div
-          id={`homebrew-${slotLabel.toLowerCase()}-form`}
-          className="mt-2 grid grid-cols-2 gap-2 text-xs md:grid-cols-3"
-        >
-          <label className="col-span-2 flex flex-col gap-1">
-            <span className="text-muted-foreground">Name</span>
-            <input
-              className="rounded border px-2 py-1"
-              value={name}
-              onChange={e => setName(e.target.value)}
-            />
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-muted-foreground">Tier</span>
-            <select
-              className="rounded border px-2 py-1"
-              value={tier}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                setTier(e.target.value as '1' | '2' | '3' | '4')
-              }
-            >
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-            </select>
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-muted-foreground">Trait</span>
-            <select
-              className="rounded border px-2 py-1"
-              value={trait}
-              onChange={e => setTrait(e.target.value)}
-            >
-              {[
-                'Agility',
-                'Strength',
-                'Finesse',
-                'Instinct',
-                'Presence',
-                'Knowledge',
-                'Spellcast',
-              ].map(t => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-muted-foreground">Range</span>
-            <select
-              className="rounded border px-2 py-1"
-              value={range}
-              onChange={e => setRange(e.target.value)}
-            >
-              {['Melee', 'Very Close', 'Close', 'Far', 'Very Far'].map(r => (
-                <option key={r} value={r}>
-                  {r}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-muted-foreground">Damage</span>
-            <div className="flex items-center gap-1">
-              <input
-                type="number"
-                min={1}
-                className="w-16 rounded border px-2 py-1"
-                value={damageCount}
-                onChange={e =>
-                  setDamageCount(parseInt(e.target.value || '1', 10))
-                }
-                aria-label="Damage dice count"
-              />
-              <span>d</span>
-              <input
-                type="number"
-                min={4}
-                max={20}
-                step={2}
-                className="w-16 rounded border px-2 py-1"
-                value={damageDice}
-                onChange={e =>
-                  setDamageDice(parseInt(e.target.value || '6', 10))
-                }
-                aria-label="Damage dice type"
-              />
-              <span>+</span>
-              <input
-                type="number"
-                className="w-16 rounded border px-2 py-1"
-                value={damageMod}
-                onChange={e =>
-                  setDamageMod(parseInt(e.target.value || '0', 10))
-                }
-                aria-label="Damage modifier"
-              />
-              <select
-                className="rounded border px-2 py-1"
-                value={damageType}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                  setDamageType(e.target.value as 'phy' | 'mag')
-                }
-                aria-label="Damage type"
-              >
-                <option value="phy">phy</option>
-                <option value="mag">mag</option>
-              </select>
-            </div>
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-muted-foreground">Burden</span>
-            <select
-              className="rounded border px-2 py-1"
-              value={burden}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                setBurden(e.target.value as 'One-Handed' | 'Two-Handed')
-              }
-            >
-              <option value="One-Handed">One-Handed</option>
-              <option value="Two-Handed">Two-Handed</option>
-            </select>
-          </label>
-          <label className="col-span-2 flex flex-col gap-1 md:col-span-3">
-            <span className="text-muted-foreground">
-              Description (optional)
-            </span>
-            <textarea
-              className="min-h-16 rounded border px-2 py-1"
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-            />
-          </label>
-          <div className="col-span-2 flex items-center gap-2 md:col-span-3">
-            <button
-              type="button"
-              className="bg-primary text-primary-foreground rounded border px-2 py-1 text-xs"
-              onClick={add}
-            >
-              Add to list
-            </button>
-            <span className="text-muted-foreground">
-              New item will appear in the list above with a Homebrew badge.
-            </span>
-          </div>
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
-type HomebrewArmorFormProps = {
-  onAdd: (a: unknown) => void;
-};
-
-function HomebrewArmorForm({ onAdd }: HomebrewArmorFormProps) {
-  const [open, setOpen] = React.useState(false);
-  const [name, setName] = React.useState('');
-  const [tier, setTier] = React.useState<'1' | '2' | '3' | '4'>('1');
-  const [baseScore, setBaseScore] = React.useState(10);
-  const [major, setMajor] = React.useState(1);
-  const [severe, setSevere] = React.useState(2);
-  const [evasionMod, setEvasionMod] = React.useState(0);
-  const [agilityMod, setAgilityMod] = React.useState(0);
-  const [armorType, setArmorType] = React.useState('Gambeson');
-  const [description, setDescription] = React.useState('');
-
-  const add = () => {
-    if (!name.trim()) return;
-    const armor = {
-      name: name.trim(),
-      tier,
-      baseScore,
-      baseThresholds: { major, severe },
-      evasionModifier: evasionMod,
-      agilityModifier: agilityMod,
-      armorType,
-      isStandard: true,
-      description: description.trim() || undefined,
-      features: [],
-      metadata: { homebrew: true, createdAt: Date.now() },
-    } as const;
-    onAdd(armor);
-    setOpen(false);
-    setName('');
-    setTier('1');
-    setBaseScore(10);
-    setMajor(1);
-    setSevere(2);
-    setEvasionMod(0);
-    setAgilityMod(0);
-    setArmorType('Gambeson');
-    setDescription('');
-  };
-
-  return (
-    <div className="mt-3 rounded-md border p-2">
-      <button
-        type="button"
-        className="text-xs font-medium underline underline-offset-2"
-        onClick={() => setOpen(o => !o)}
-        aria-expanded={open}
-        aria-controls="homebrew-armor-form"
-      >
-        {open ? 'Hide custom armor' : 'Add custom armor'}
-      </button>
-      {open ? (
-        <div
-          id="homebrew-armor-form"
-          className="mt-2 grid grid-cols-2 gap-2 text-xs md:grid-cols-3"
-        >
-          <label className="col-span-2 flex flex-col gap-1">
-            <span className="text-muted-foreground">Name</span>
-            <input
-              className="rounded border px-2 py-1"
-              value={name}
-              onChange={e => setName(e.target.value)}
-            />
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-muted-foreground">Tier</span>
-            <select
-              className="rounded border px-2 py-1"
-              value={tier}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                setTier(e.target.value as '1' | '2' | '3' | '4')
-              }
-            >
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-            </select>
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-muted-foreground">Armor type</span>
-            <input
-              className="rounded border px-2 py-1"
-              value={armorType}
-              onChange={e => setArmorType(e.target.value)}
-            />
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-muted-foreground">Base score</span>
-            <input
-              type="number"
-              className="rounded border px-2 py-1"
-              value={baseScore}
-              onChange={e => setBaseScore(parseInt(e.target.value || '0', 10))}
-            />
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-muted-foreground">Thresholds (M/S)</span>
-            <div className="flex items-center gap-1">
-              <input
-                type="number"
-                min={0}
-                className="w-20 rounded border px-2 py-1"
-                value={major}
-                onChange={e => setMajor(parseInt(e.target.value || '0', 10))}
-                aria-label="Major threshold"
-              />
-              <input
-                type="number"
-                min={0}
-                className="w-20 rounded border px-2 py-1"
-                value={severe}
-                onChange={e => setSevere(parseInt(e.target.value || '0', 10))}
-                aria-label="Severe threshold"
-              />
-            </div>
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-muted-foreground">Evasion mod</span>
-            <input
-              type="number"
-              className="rounded border px-2 py-1"
-              value={evasionMod}
-              onChange={e => setEvasionMod(parseInt(e.target.value || '0', 10))}
-            />
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-muted-foreground">Agility mod</span>
-            <input
-              type="number"
-              className="rounded border px-2 py-1"
-              value={agilityMod}
-              onChange={e => setAgilityMod(parseInt(e.target.value || '0', 10))}
-            />
-          </label>
-          <label className="col-span-2 flex flex-col gap-1 md:col-span-3">
-            <span className="text-muted-foreground">
-              Description (optional)
-            </span>
-            <textarea
-              className="min-h-16 rounded border px-2 py-1"
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-            />
-          </label>
-          <div className="col-span-2 flex items-center gap-2 md:col-span-3">
-            <button
-              type="button"
-              className="bg-primary text-primary-foreground rounded border px-2 py-1 text-xs"
-              onClick={add}
-            >
-              Add to list
-            </button>
-            <span className="text-muted-foreground">
-              New item will appear in the list above with a Homebrew badge.
-            </span>
-          </div>
-        </div>
-      ) : null}
-    </div>
   );
 }
 

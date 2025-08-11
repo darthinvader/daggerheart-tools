@@ -27,6 +27,23 @@ export default defineConfig({
         ]
       : []),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined;
+          if (id.includes('/react-day-picker')) return 'vendor-daypicker';
+          if (id.includes('/recharts')) return 'vendor-recharts';
+          if (id.includes('/@radix-ui/')) return 'vendor-radix';
+          if (id.includes('/@tanstack/')) return 'vendor-tanstack';
+          if (id.includes('/lucide-react')) return 'vendor-icons';
+          if (id.includes('/cmdk')) return 'vendor-cmdk';
+          if (id.includes('/react/')) return 'vendor-react';
+          return 'vendor';
+        },
+      },
+    },
+  },
   resolve: {
     alias: {
       // __dirname is not available in ESM; derive it from the current module URL
