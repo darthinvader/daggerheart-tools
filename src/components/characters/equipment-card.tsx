@@ -1,5 +1,4 @@
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { Armor, EquipmentLoadout, Weapon } from '@/lib/schemas/equipment';
 
@@ -16,11 +15,9 @@ export function EquipmentCard({ equipment, onEdit }: Props) {
   const armor = equipment?.armor as Armor | undefined;
   return (
     <Card>
-      <CardHeader className="flex-row items-center justify-between gap-2">
+      <CardHeader className="gap-1">
         <CardTitle>Equipment</CardTitle>
-        <Button size="sm" variant="outline" onClick={() => onEdit?.()}>
-          Edit Equipment
-        </Button>
+        <p className="text-muted-foreground text-xs">Tap a slot to edit</p>
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
