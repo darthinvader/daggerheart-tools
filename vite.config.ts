@@ -34,7 +34,14 @@ export default defineConfig({
     },
   },
   server: {
-    host: '127.0.0.1',
+    // Expose dev server on LAN so phones can connect via <your-ip>:5173
+    host: true,
+    port: 5173,
+    strictPort: true,
+  },
+  preview: {
+    // Also expose preview server on LAN for production-like testing
+    host: true,
     port: 5173,
     strictPort: true,
   },

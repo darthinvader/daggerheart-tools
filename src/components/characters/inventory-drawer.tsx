@@ -62,6 +62,7 @@ function InventoryDrawerImpl({
   const skipRef = React.useRef(false);
   const [newName, setNewName] = React.useState('');
   const [libValue, setLibValue] = React.useState<string | null>(null);
+  const [expanded, setExpanded] = React.useState<Record<number, boolean>>({});
 
   const slots = form.watch('slots');
 
@@ -105,6 +106,14 @@ function InventoryDrawerImpl({
       })),
     [libraryItems]
   );
+  const [libQuery, setLibQuery] = React.useState('');
+  const filteredLibraryItems = React.useMemo(() => {
+    const q = libQuery.trim().toLowerCase();
+    if (!q) return libraryComboboxItems;
+    return libraryComboboxItems.filter(it =>
+      it.label.toLowerCase().includes(q)
+    );
+  }, [libraryComboboxItems, libQuery]);
 
   const addFromLibrary = React.useCallback(
     (name: string | null) => {
@@ -214,8 +223,15 @@ function InventoryDrawerImpl({
           {/* Add from library */}
           <div className="space-y-1">
             <div className="text-sm font-medium">Add from library</div>
+            <Input
+              placeholder="Search items"
+              value={libQuery}
+              onChange={e => setLibQuery(e.target.value)}
+              inputMode="search"
+              enterKeyHint="search"
+            />
             <Combobox
-              items={libraryComboboxItems}
+              items={filteredLibraryItems}
               value={libValue}
               onChange={v => {
                 setLibValue(v);
@@ -231,17 +247,27 @@ function InventoryDrawerImpl({
               slots.map((s, idx) => (
                 <div
                   key={`${s.item.name}-${idx}`}
-                  className="border-muted flex items-center justify-between rounded border p-2"
+                  className="border-muted rounded border"
                 >
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-medium">
-                      {s.item.name}
+                  <button
+                    type="button"
+                    className="hover:bg-muted/50 flex w-full items-center justify-between p-2 text-left"
+                    onClick={() =>
+                      setExpanded(prev => ({ ...prev, [idx]: !prev[idx] }))
+                    }
+                    aria-expanded={!!expanded[idx]}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-medium">
+                        {s.item.name}
+                      </div>
+                      <div className="text-muted-foreground text-xs">
+                        {s.item.rarity} • Tier {s.item.tier}
+                      </div>
                     </div>
-                    <div className="text-muted-foreground text-xs">
-                      {s.item.rarity} • Tier {s.item.tier}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
+                    <div className="text-muted-foreground text-xs">Details</div>
+                  </button>
+                  <div className="flex items-center justify-between gap-2 p-2 pt-0">
                     <Button
                       type="button"
                       size="icon"
@@ -310,6 +336,26 @@ function InventoryDrawerImpl({
                       Remove
                     </Button>
                   </div>
+                  {expanded[idx] ? (
+                    <div className="text-muted-foreground border-t p-2 text-xs">
+                      {s.item.description ? (
+                        <div className="mb-1">{s.item.description}</div>
+                      ) : null}
+                      {Array.isArray(s.item.features) &&
+                      s.item.features.length ? (
+                        <ul className="list-disc pl-4">
+                          {s.item.features.map((f, i) => (
+                            <li key={i}>
+                              <span className="font-medium">{f.name}:</span>{' '}
+                              {f.description}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <div>No extra details.</div>
+                      )}
+                    </div>
+                  ) : null}
                 </div>
               ))
             ) : (

@@ -19,6 +19,15 @@ Changes implemented (recent):
 - Character sheet mobile nav: Removed BottomActionBar and eliminated Play Mode; added a compact QuickJump section links bar.
 - Typecheck/build/tests pass consistently (chunk-size warnings accepted for now).
 
+Equipment drawer (Aug 11, 2025 - latest):
+
+- Replaced global Pack/Free toggle with per-tab Source filters on Primary and Secondary tabs: Default (slotstandard only), Homebrew (homebrew-only for slot), and All (primary + secondary + both homebrew lists).
+- Made Source controls larger and clearly selected using ToggleGroup variant="outline" and size="lg".
+- Added live counts to each Source option label (Default/Homebrew/All) so the effect is visible at a glance.
+- Added empty-state notice under lists when filters yield no items.
+- Fixed onValueChange to ignore empty values so selection always updates; lists now respond reliably to Source changes.
+- Accessibility: DrawerScaffold includes a description wired via aria-describedby.
+
 Code structure and size improvements (Aug 11, 2025):
 
 - Added a repository file analyzer script `scripts/size-report.mjs` with pnpm alias `size:report` to find large files. It excludes `src/lib/data`, `src/lib/schemas`, and the demo route `src/routes/showcase.tsx`. Supports `--by=size|loc`, `--top`, `--minKB`, and `--json`.

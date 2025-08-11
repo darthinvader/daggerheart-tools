@@ -163,6 +163,9 @@ function CharacterSheet() {
   const [openClass, setOpenClass] = React.useState(false);
   const [openDomains, setOpenDomains] = React.useState(false);
   const [openEquipment, setOpenEquipment] = React.useState(false);
+  const [equipmentSection, setEquipmentSection] = React.useState<
+    'primary' | 'secondary' | 'armor' | undefined
+  >(undefined);
   const [openInventory, setOpenInventory] = React.useState(false);
 
   const [domainsDraft, setDomainsDraft] =
@@ -594,7 +597,10 @@ function CharacterSheet() {
         >
           <EquipmentCard
             equipment={equipment as unknown as EquipmentDraft}
-            onEdit={() => setOpenEquipment(true)}
+            onEdit={section => {
+              setEquipmentSection(section);
+              setOpenEquipment(true);
+            }}
           />
         </section>
         <React.Suspense fallback={null}>
@@ -604,6 +610,7 @@ function CharacterSheet() {
             form={equipmentForm as never}
             submit={submitEquipment}
             onCancel={() => setOpenEquipment(false)}
+            section={equipmentSection}
           />
         </React.Suspense>
 

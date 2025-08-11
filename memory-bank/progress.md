@@ -1,6 +1,6 @@
 # Progress Report - Daggerheart Tools
 
-Updated: August 11, 2025
+Updated: August 11, 2025 (later)
 
 ## What's Working
 
@@ -25,6 +25,7 @@ Updated: August 11, 2025
 - Mobile navbar overlap fixed by setting navbar z-index to `z-40`; drawers render at `z-50` and include safe-area footer padding.
 - Domains drawer implemented with search and filters (domain/level/type) and non-submit Add/Remove to prevent auto-close; list rows show domain, level, type badge, costs, and tags; preview shows description; by-type summary counts surfaced on `DomainsCard`. Added autosave on drawer close and a Reset button to restore per-open baseline.
 - Resources show Hope as current/max with controls; migration from legacy numeric Hope supported.
+- Equipment & Inventory: Added `EquipmentCard` and `InventoryCard` sections with Edit buttons; drawers are lazy-loaded and wired to per-id localStorage. Equipment supports free-form selection (primary/secondary/armor) with concise stat previews; Inventory supports add-by-name and add-from-library with quantity steppers, Equipped toggle, and Location select.
 
 Refactors and reductions (Aug 11, 2025)
 
@@ -34,6 +35,7 @@ Refactors and reductions (Aug 11, 2025)
 - Character route `$id.tsx` further reduced to ~14.0 KB by extracting resource/traits/conditions actions to `src/features/characters/logic/*`.
 - Character route `$id.tsx` simplified further: removed BottomActionBar and Play Mode; extracted QuickJump (section links) into `src/components/layout/quick-jump.tsx` with tighter mobile styles. Typecheck/Build PASS.
 - `scripts/size-report.mjs` now supports optional `size-report.config.json` to customize scan without changing defaults.
+- Added read-only HP thresholds chips to `ResourcesCard` (Major ≤ floor(max/2), Severe ≤ floor(max/4)).
 
 ## What's Left to Build
 
@@ -63,7 +65,7 @@ Technical health
 - Type safety: Excellent
 - Lint/format: Good
 - Performance/Mobile/A11y: Not yet assessed
-- Tests: PASS (12). Build: PASS. Type-check: PASS.
+- Tests: PASS (20). Build: PASS. Type-check: PASS.
 - Analyzer: PASS. `$id.tsx` down to ~14.0 KB; domains-drawer remains top at ~15.2 KB (already split earlier).
 
 ## Known Issues
@@ -149,5 +151,15 @@ Deliverables: Equipment pack/free modes; schema validation and mobile-friendly d
 
 - Sidebar refactor part 2: extracted group primitives to `src/components/ui/sidebar/group.tsx` (Header, Footer, Group, GroupLabel, GroupAction, GroupContent) and updated `sidebar.tsx` to import/re-export. Type-check and tests remain PASS. Size report now shows:
   - `src/components/ui/sidebar.tsx` ~7.9 KB (down from ~10.1 KB)
-  - `src/components/ui/sidebar/menu.tsx` ~6.9 KB
-  - `src/routes/characters/$id.tsx` ~17.1 KB; `domains-drawer.tsx` ~15.1 KB
+
+### August 11, 2025 (latest)
+
+- Equipment drawer: Replaced global Pack/Free with per-tab Source filters (Default/Homebrew/All) on Primary and Secondary. Enlarged controls (outline, lg), added option counts, and an empty-state hint when filters hide all items. Fixed onValueChange to ignore empty values so lists update reliably. Accessibility: drawer scaffold now has a description wired via aria-describedby.
+- Tests: Updated equipment drawer test to use Source=All for cross-slot behavior and to scope queries to visible tab panels. Full suite green locally.
+- Quality gates: Type-check PASS; Build PASS.
+
+### August 11, 2025 (later 2)
+
+- Equipment & Inventory drawers wired to the route with RHF and persistence; cards summarize selections and equipped items.
+- Resources: HP thresholds UI added with read-only chips. New test `tests/resources-card.test.tsx` verifies rendering.
+- Full test suite green locally; build and type-check pass.

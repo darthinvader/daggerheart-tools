@@ -2,7 +2,7 @@
 
 **Status:** In Progress (Milestone 1 shipped)
 **Added:** August 9, 2025
-**Updated:** August 11, 2025 (latest)
+**Updated:** August 11, 2025 (later)
 
 ## Original Request
 
@@ -415,7 +415,7 @@ Companion
 
 ## Progress Tracking
 
-**Overall Status:** In Progress - 61% Complete
+**Overall Status:** In Progress - 66% Complete
 
 ### Subtasks
 
@@ -430,15 +430,15 @@ Companion
 | 1.7 | Default valid character snapshot             | Not Started | -            | -                                                                                                                            |
 | 2.1 | Mobile skeleton layout                       | Complete    | Aug 9, 2025  | `/characters/new` scaffolded → now lives at per-id route                                                                     |
 | 2.2 | BottomActionBar (Edit/Save)                  | Not Started | -            | -                                                                                                                            |
-| 2.3 | Section edit entry points                    | In Progress | Aug 11, 2025 | Identity, Class, Domains wired; added Equipment & Inventory sections and stub drawers (lazy)                                 |
+| 2.3 | Section edit entry points                    | Complete    | Aug 11, 2025 | Identity, Class, Domains wired; Equipment & Inventory cards + drawers wired (lazy), with per-id persistence                  |
 | 3.1 | Hook form + zod for Identity/Traits subset   | Complete    | Aug 9, 2025  | Identity form with zodResolver                                                                                               |
 | 3.2 | Inline validation + messages                 | Complete    | Aug 9, 2025  | Name/pronouns required; enum validation                                                                                      |
 | 3.3 | Save/Cancel flows (local state)              | Complete    | Aug 9, 2025  | Save persists; Cancel closes without commit                                                                                  |
 | 4.1 | Class/Subclass picker                        | Complete    | Aug 10, 2025 | Drawer implemented, lazy-loaded                                                                                              |
 | 4.2 | Domain card selector                         | In Progress | Aug 11, 2025 | Drawer with search/filters; add/remove UX wired; autosave-on-close + Reset; footer now shows Recall Cost used (read-only)\*  |
-| 4.3 | Equipment selector (pack/free)               | In Progress | Aug 11, 2025 | Free-form selectors for primary/secondary/armor added via Combobox in Equipment drawer                                       |
+| 4.3 | Equipment selector (pack/free)               | In Progress | Aug 11, 2025 | Free-form selectors for primary/secondary/armor added via Combobox in Equipment drawer; Pack mode UI placeholder present     |
 | 4.4 | Resources panel (HP/Stress/Armor/Gold)       | In Progress | Aug 10, 2025 | Hope now Score with current/max; handlers wired                                                                              |
-| 4.5 | Notes/Inventory text                         | In Progress | Aug 11, 2025 | Inventory drawer now supports add-by-name, add-from-library, quantity steppers, remove, Equipped toggle, and Location select |
+| 4.5 | Notes/Inventory text                         | Complete    | Aug 11, 2025 | Inventory drawer supports add-by-name, add-from-library, qty steppers, remove, Equipped toggle, Location select; tests added |
 | 4.6 | Simple View play mode                        | Not Started | -            | -                                                                                                                            |
 | 5.1 | Mobile polish (touch targets, headers, a11y) | Not Started | -            | -                                                                                                                            |
 | 5.2 | Keyboard & safe areas                        | Not Started | -            | -                                                                                                                            |
@@ -450,6 +450,17 @@ Companion
 | 7.4 | README route docs                            | Not Started | -            | -                                                                                                                            |
 
 ## Progress Log
+
+### 2025-08-11 (latest)
+
+- Equipment Drawer: Replaced global Pack/Free control with per-tab Source filters for Weapons tabs (Primary/Secondary): Default (slot standard), Homebrew (homebrew-only), All (primary + secondary + homebrew). Controls enlarged (outline, lg), added option counts in labels, and empty-state hint when no results. Fixed toggle onValueChange to ignore empty values so selection always applies. Added a drawer description for a11y via aria-describedby.
+- Tests: Stabilized the cross-slot listing test to use Source=All and scoped queries to visible tab panels to avoid hidden content. All tests pass locally.
+
+### 2025-08-11 (later)
+
+- Equipment drawer: Added a "Current" selection strip at the top of each tab (Primary/Secondary/Armor) with quick Clear action and attribute badges. Included small icons for trait, range, damage, and burden to improve scannability on mobile. Save behavior unchanged (uses DrawerScaffold default footer). Typecheck/build PASS.
+- Equipment card: Mirrored drawer details with iconized badges and now render description text under Primary/Secondary/Armor when available (including optional armor description). Typecheck/build/tests PASS.
+  - Also renders feature lists (name: description) for primary/secondary/armor when provided, matching drawer detail density. Typecheck/build/tests PASS.
 
 ### August 9, 2025
 
@@ -859,13 +870,13 @@ Quality bar
 
 - Ensure correct active item on deep-link hash load (call measure on mount with hash)
 
-5. Tests: Resources thresholds display
+5. Tests: Resources thresholds display — Done
 
 - Simple render test verifying chips render for default schema thresholds
 
-6. Persistence: Export/Import
+6. Persistence: Export/Import — Done
 
-- Add Export JSON / Import JSON to the sheet overflow menu; validate on import
+- Added Export JSON / Import JSON to the sheet overflow menu; validates slices on import and persists if valid
 
 7. Docs: Update README route docs
 
@@ -874,3 +885,10 @@ Quality bar
 ### August 11, 2025 (later)
 
 - Implemented IntersectionObserver-based active section highlighting in `QuickJump` with sticky-header offset and fallbacks to scroll/resize listeners. Improves accuracy while scrolling and preserves click-initiated navigation behavior. No API changes to `QuickJump` consumer sites.
+
+### August 11, 2025 (later 7)
+
+- Resources: Added read-only HP thresholds chips (Major ≤ floor(max/2), Severe ≤ floor(max/4)) under HP controls in `ResourcesCard`.
+- Tests: Added `tests/resources-card.test.tsx` to verify thresholds rendering. Suite PASS locally.
+- Equipment & Inventory: Cards show concise summaries; drawers wired with RHF and per-id persistence; Equipment drawer includes mode toggle placeholder (Pack/Free). No breaking API changes.
+- Quality gates: Type-check PASS; Build PASS; Tests PASS.

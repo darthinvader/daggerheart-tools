@@ -1,9 +1,10 @@
-import type { BaseSyntheticEvent, ReactNode } from 'react';
+import React, { type BaseSyntheticEvent, type ReactNode } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
   Drawer,
   DrawerContent,
+  DrawerDescription,
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
@@ -39,12 +40,21 @@ export function DrawerScaffold({
   const scrollBehaviorClass = open
     ? ''
     : 'pointer-events-none touch-none overflow-hidden';
+  const descriptionId = React.useId();
   return (
     <Drawer open={open} onOpenChange={onOpenChange} direction="bottom">
-      <DrawerContent className="h-[100dvh] max-h-[100dvh]">
+      <DrawerContent
+        className="h-[100dvh] max-h-[100dvh]"
+        aria-describedby={descriptionId}
+      >
         <DrawerHeader>
           <DrawerTitle>{title}</DrawerTitle>
         </DrawerHeader>
+        {/* Provide a generic description for a11y; callers can override by rendering their own header copy later if needed */}
+        <DrawerDescription id={descriptionId}>
+          Use Tab to navigate sections. Make a selection and choose Save to
+          apply changes.
+        </DrawerDescription>
         <div
           // Mark as scrollable so Vaul won't treat fast scrolls as a drag-to-close
           data-vaul-scrollable
