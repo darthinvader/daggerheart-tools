@@ -1,8 +1,8 @@
 # [TASK005] - Mobile character display and editor (research-first)
 
-**Status:** In Progress
+**Status:** In Progress (Milestone 1 shipped)
 **Added:** August 9, 2025
-**Updated:** August 10, 2025
+**Updated:** August 11, 2025
 
 ## Original Request
 
@@ -782,3 +782,20 @@ Quality bar
 
 - Task benchmarks: HP change ≤ 2 taps; Add condition ≤ 3 taps; Add loadout card ≤ 5 taps including search.
 - Readability at small widths; supports large text; clear icon+label pairs.
+
+## Milestone 1 (Aug 11, 2025) — Shipped
+
+- Sticky header with compact title and QuickJump chip row linking to section anchors
+- Anchored sections on /characters/$id: summary, conditions, resources, core, identity, class, domains, traits
+- BottomActionBar (safe-area aware) with Play Mode toggle and Save
+- Per-character Play Mode preference persisted in localStorage (key: dh:characters:{id}:playMode:v1)
+- In Play Mode, non-critical sections are hidden (identity/class/domains/traits), keeping Conditions, Resources, Core visible
+- Existing drawers and cards (Identity, Class, Domains, Resources, Traits, Conditions) integrated; auto-persist to localStorage remains
+
+### Next (Milestone 2)
+
+- Domain Loadout limits in UI (counters/disable adds at cap)
+- Equipment & Inventory panels and editors
+- HP thresholds display and richer resource controls
+- UX polish: active section highlight in QuickJump via IntersectionObserver
+- Tests for QuickJump anchors and playMode persistence

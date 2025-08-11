@@ -1,6 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { toast } from 'sonner';
 
 // zod only used via imported schemas
 
@@ -17,10 +16,11 @@ import { IdentityCard } from '@/components/characters/identity-card';
 import { ResourcesCard } from '@/components/characters/resources-card';
 import { SummaryStats } from '@/components/characters/summary-stats';
 import { TraitsCard } from '@/components/characters/traits-card';
+// storage helpers moved to features/characters/storage
+import { QuickJump } from '@/components/layout/quick-jump';
 import { Button } from '@/components/ui/button';
 // No Card imports needed here; stub sections use dedicated components
 import type { ComboboxItem } from '@/components/ui/combobox';
-// storage helpers moved to features/characters/storage
 import {
   countByType,
   createConditionActions,
@@ -286,146 +286,212 @@ function CharacterSheet() {
   );
 
   return (
-    <div className="w-full space-y-4 p-4">
-      <div className="flex flex-wrap items-center justify-between gap-2 sm:flex-nowrap">
-        <h1 className="text-xl font-semibold">
-          <button
-            type="button"
-            aria-label="Edit name"
-            onClick={() => setOpenIdentity(true)}
-            className="cursor-pointer text-left hover:underline"
-          >
-            {identity.name ? (
-              identity.name
-            ) : (
-              <span className="text-muted-foreground font-normal">
-                Set a name
-              </span>
-            )}
-          </button>
-        </h1>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={() => {
-              // Currently, edits auto-persist; this provides user feedback.
-              toast('Saved');
-            }}
-          >
-            Save
-          </Button>
-          <Button asChild variant="ghost">
-            <Link to="/characters">Go to Characters</Link>
-          </Button>
+    <div className="w-full pb-24">
+      {/* Sticky header with summary and quick jump */}
+      <div
+        id="sheet-header"
+        className="bg-background/95 supports-[backdrop-filter]:bg-background/80 sticky top-0 z-20 border-b backdrop-blur"
+      >
+        <div className="mx-auto flex max-w-screen-sm flex-wrap items-center justify-between gap-2 px-4 py-0 sm:flex-nowrap">
+          <h1 className="text-sm font-medium sm:text-lg sm:font-semibold">
+            <button
+              type="button"
+              aria-label="Edit name"
+              onClick={() => setOpenIdentity(true)}
+              className="cursor-pointer text-left hover:underline"
+            >
+              {identity.name ? (
+                identity.name
+              ) : (
+                <span className="text-muted-foreground font-normal">
+                  Set a name
+                </span>
+              )}
+            </button>
+          </h1>
+          <div className="flex items-center gap-1">
+            <Button asChild size="sm" variant="ghost">
+              <Link to="/characters">Back</Link>
+            </Button>
+          </div>
+        </div>
+        <div className="w-full px-2 pb-0">
+          <QuickJump
+            items={[
+              { id: 'summary', label: 'Summary' },
+              { id: 'conditions', label: 'Conditions' },
+              { id: 'resources', label: 'Resources' },
+              { id: 'core', label: 'Core' },
+              { id: 'identity', label: 'Identity' },
+              { id: 'class', label: 'Class' },
+              { id: 'domains', label: 'Domains' },
+              { id: 'traits', label: 'Traits' },
+            ]}
+          />
         </div>
       </div>
+      <div className="mx-auto max-w-screen-sm p-4">
+        {/* Summary section */}
+        <section
+          id="summary"
+          aria-label="Summary"
+          className="scroll-mt-24 space-y-4 md:scroll-mt-28"
+        >
+          <SummaryStats id={id} identity={identity} resources={resources} />
+        </section>
 
-      {/* Summary section */}
-      <SummaryStats id={id} identity={identity} resources={resources} />
+        {/* Conditions */}
+        <section
+          id="conditions"
+          aria-label="Conditions"
+          className="mt-4 scroll-mt-24 md:scroll-mt-28"
+        >
+          <ConditionsCard
+            conditions={conditions}
+            addCondition={addCondition}
+            removeCondition={removeCondition}
+          />
+        </section>
 
-      {/* Conditions (gameplay-important) */}
-      <ConditionsCard
-        conditions={conditions}
-        addCondition={addCondition}
-        removeCondition={removeCondition}
-      />
+        {/* Resources prioritized for gameplay */}
+        <section
+          id="resources"
+          aria-label="Resources"
+          className="mt-4 scroll-mt-24 md:scroll-mt-28"
+        >
+          <ResourcesCard
+            id="resources"
+            resources={{ hp: resources.hp, stress: resources.stress }}
+            updateHp={updateHp}
+            updateHpMax={updateHpMax}
+            updateStress={updateStress}
+            updateStressMax={updateStressMax}
+          />
+        </section>
 
-      {/* Resources prioritized for gameplay */}
-      <ResourcesCard
-        id="resources"
-        resources={{ hp: resources.hp, stress: resources.stress }}
-        updateHp={updateHp}
-        updateHpMax={updateHpMax}
-        updateStress={updateStress}
-        updateStressMax={updateStressMax}
-      />
+        {/* Quick stats: Evasion, Hope, Proficiency */}
+        <section
+          id="core"
+          aria-label="Core scores"
+          className="mt-4 scroll-mt-24 md:scroll-mt-28"
+        >
+          <CoreScoresCard
+            scores={{
+              evasion: resources.evasion,
+              hope: resources.hope,
+              proficiency: resources.proficiency,
+            }}
+            updateEvasion={delta => updateNumber('evasion', delta, 0)}
+            updateHope={delta => updateHope(delta)}
+            updateHopeMax={delta => updateHopeMax(delta)}
+            updateProficiency={delta => updateNumber('proficiency', delta, 1)}
+          />
+        </section>
 
-      {/* Quick stats: Evasion, Hope, Proficiency */}
-      <CoreScoresCard
-        scores={{
-          evasion: resources.evasion,
-          hope: resources.hope,
-          proficiency: resources.proficiency,
-        }}
-        updateEvasion={delta => updateNumber('evasion', delta, 0)}
-        updateHope={delta => updateHope(delta)}
-        updateHopeMax={delta => updateHopeMax(delta)}
-        updateProficiency={delta => updateNumber('proficiency', delta, 1)}
-      />
+        {/* Identity section */}
+        <section
+          id="identity"
+          aria-label="Identity"
+          className="mt-4 scroll-mt-24 md:scroll-mt-28"
+        >
+          <IdentityCard
+            identity={identity}
+            onEdit={() => setOpenIdentity(true)}
+          />
+        </section>
 
-      {/* Identity section */}
-      <IdentityCard identity={identity} onEdit={() => setOpenIdentity(true)} />
+        {/* Identity Drawer */}
+        <React.Suspense
+          fallback={
+            <div className="text-muted-foreground p-4 text-sm">Loading…</div>
+          }
+        >
+          <IdentityDrawerLazy
+            open={openIdentity}
+            onOpenChange={setOpenIdentity}
+            form={form as never}
+            ancestryItems={ancestryItems}
+            communityItems={communityItems}
+            submit={submit}
+            onCancel={() => setOpenIdentity(false)}
+          />
+        </React.Suspense>
 
-      {/* Identity Drawer */}
-      <React.Suspense
-        fallback={
-          <div className="text-muted-foreground p-4 text-sm">Loading…</div>
-        }
-      >
-        <IdentityDrawerLazy
-          open={openIdentity}
-          onOpenChange={setOpenIdentity}
-          form={form as never}
-          ancestryItems={ancestryItems}
-          communityItems={communityItems}
-          submit={submit}
-          onCancel={() => setOpenIdentity(false)}
-        />
-      </React.Suspense>
+        {/* Class & Subclass */}
+        <section
+          id="class"
+          aria-label="Class & Subclass"
+          className="mt-4 scroll-mt-24 md:scroll-mt-28"
+        >
+          <ClassCard
+            disabled={false}
+            onEdit={() => setOpenClass(true)}
+            selectedClass={classDraft.className}
+            selectedSubclass={classDraft.subclass}
+          />
+        </section>
+        <React.Suspense fallback={null}>
+          <ClassDrawerLazy
+            open={openClass}
+            onOpenChange={setOpenClass}
+            form={classForm as never}
+            classItems={classItems}
+            subclassItems={subclassItemsFor(currentClassName)}
+            submit={submitClass}
+            onCancel={() => setOpenClass(false)}
+          />
+        </React.Suspense>
+        {/* Domains */}
+        <section
+          id="domains"
+          aria-label="Domains"
+          className="mt-4 scroll-mt-24 md:scroll-mt-28"
+        >
+          <DomainsCard
+            onEdit={() => setOpenDomains(true)}
+            summary={{
+              total: normalizedLoadout.length,
+              byDomain: groupByDomain(normalizedLoadout).filter(g =>
+                accessibleDomains.includes(g.domain)
+              ),
+              byType: countByType(normalizedLoadout),
+              sample: normalizedLoadout.slice(0, 3).map(c => c.name),
+            }}
+            loadout={normalizedLoadout}
+          />
+        </section>
+        <React.Suspense fallback={null}>
+          <DomainsDrawerLazy
+            open={openDomains}
+            onOpenChange={setOpenDomains}
+            form={domainsForm as never}
+            accessibleDomains={accessibleDomains as string[]}
+            submit={submitDomains}
+            onCancel={() => setOpenDomains(false)}
+            startingLimit={3}
+            softLimit={6}
+          />
+        </React.Suspense>
 
-      {/* Class & Subclass */}
-      <ClassCard
-        disabled={false}
-        onEdit={() => setOpenClass(true)}
-        selectedClass={classDraft.className}
-        selectedSubclass={classDraft.subclass}
-      />
-      <React.Suspense fallback={null}>
-        <ClassDrawerLazy
-          open={openClass}
-          onOpenChange={setOpenClass}
-          form={classForm as never}
-          classItems={classItems}
-          subclassItems={subclassItemsFor(currentClassName)}
-          submit={submitClass}
-          onCancel={() => setOpenClass(false)}
-        />
-      </React.Suspense>
-      {/* Domains */}
-      <DomainsCard
-        onEdit={() => setOpenDomains(true)}
-        summary={{
-          total: normalizedLoadout.length,
-          byDomain: groupByDomain(normalizedLoadout).filter(g =>
-            accessibleDomains.includes(g.domain)
-          ),
-          byType: countByType(normalizedLoadout),
-          sample: normalizedLoadout.slice(0, 3).map(c => c.name),
-        }}
-        loadout={normalizedLoadout}
-      />
-      <React.Suspense fallback={null}>
-        <DomainsDrawerLazy
-          open={openDomains}
-          onOpenChange={setOpenDomains}
-          form={domainsForm as never}
-          accessibleDomains={accessibleDomains as string[]}
-          submit={submitDomains}
-          onCancel={() => setOpenDomains(false)}
-          startingLimit={3}
-          softLimit={6}
-        />
-      </React.Suspense>
+        {/* Traits */}
+        <section
+          id="traits"
+          aria-label="Traits"
+          className="mt-4 scroll-mt-24 md:scroll-mt-28"
+        >
+          <TraitsCard
+            traits={
+              traits as Record<string, { value: number; marked: boolean }>
+            }
+            canIncrement={k => canIncrement(k)}
+            incTrait={(k, d) => incTrait(k, d)}
+            toggleMarked={k => toggleMarked(k)}
+          />
+        </section>
+        {/* Domains & Equipment sections removed per UX: empty stubs don't add value */}
+      </div>
 
-      {/* Traits */}
-      <TraitsCard
-        traits={traits as Record<string, { value: number; marked: boolean }>}
-        canIncrement={k => canIncrement(k)}
-        incTrait={(k, d) => incTrait(k, d)}
-        toggleMarked={k => toggleMarked(k)}
-      />
-
-      {/* Domains & Equipment sections removed per UX: empty stubs don't add value */}
+      {/* Bottom action bar removed */}
     </div>
   );
 }
@@ -433,3 +499,5 @@ function CharacterSheet() {
 export const Route = createFileRoute('/characters/$id')({
   component: CharacterSheet,
 });
+
+// QuickJump extracted to components/layout/quick-jump
