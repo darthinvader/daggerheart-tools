@@ -2,7 +2,7 @@
 
 **Status:** In Progress (Milestone 1 shipped)
 **Added:** August 9, 2025
-**Updated:** August 11, 2025 (later)
+**Updated:** August 11, 2025 (latest)
 
 ## Original Request
 
@@ -413,39 +413,39 @@ Companion
 
 ## Progress Tracking
 
-**Overall Status:** In Progress - 55% Complete
+**Overall Status:** In Progress - 61% Complete
 
 ### Subtasks
 
-| ID  | Description                                  | Status      | Updated      | Notes                                                                                                                         |
-| --- | -------------------------------------------- | ----------- | ------------ | ----------------------------------------------------------------------------------------------------------------------------- |
-| 1.1 | Extract PlayerCharacter field inventory      | Complete    | Aug 9, 2025  | Field inventory documented                                                                                                    |
-| 1.2 | Field classification (edit frequency)        | Complete    | Aug 9, 2025  | Frequent/Occasional/Rare lists added                                                                                          |
-| 1.3 | Control type decisions per field             | Complete    | Aug 9, 2025  | Control map defined                                                                                                           |
-| 1.4 | Presentation pattern per field               | Complete    | Aug 9, 2025  | Section order, edit entry, quick-jump defined                                                                                 |
-| 1.5 | Validation/hints copy per field              | Complete    | Aug 9, 2025  | Helper/error guidance added                                                                                                   |
-| 1.6 | Section grouping and navigation              | Not Started | -            | -                                                                                                                             |
-| 1.7 | Default valid character snapshot             | Not Started | -            | -                                                                                                                             |
-| 2.1 | Mobile skeleton layout                       | Complete    | Aug 9, 2025  | `/characters/new` scaffolded → now lives at per-id route                                                                      |
-| 2.2 | BottomActionBar (Edit/Save)                  | Not Started | -            | -                                                                                                                             |
-| 2.3 | Section edit entry points                    | In Progress | Aug 10, 2025 | Identity & Class drawers wired; Domains drawer added (autosave-on-close + Reset)                                              |
-| 3.1 | Hook form + zod for Identity/Traits subset   | Complete    | Aug 9, 2025  | Identity form with zodResolver                                                                                                |
-| 3.2 | Inline validation + messages                 | Complete    | Aug 9, 2025  | Name/pronouns required; enum validation                                                                                       |
-| 3.3 | Save/Cancel flows (local state)              | Complete    | Aug 9, 2025  | Save persists; Cancel closes without commit                                                                                   |
-| 4.1 | Class/Subclass picker                        | Complete    | Aug 10, 2025 | Drawer implemented, lazy-loaded                                                                                               |
-| 4.2 | Domain card selector                         | In Progress | Aug 10, 2025 | Drawer with search/filters; add/remove UX wired; autosave-on-close + Reset added; Vault layout narrowed with vertical actions |
-| 4.3 | Equipment selector (pack/free)               | Not Started | -            | -                                                                                                                             |
-| 4.4 | Resources panel (HP/Stress/Armor/Gold)       | In Progress | Aug 10, 2025 | Hope now Score with current/max; handlers wired                                                                               |
-| 4.5 | Notes/Inventory text                         | Not Started | -            | -                                                                                                                             |
-| 4.6 | Simple View play mode                        | Not Started | -            | -                                                                                                                             |
-| 5.1 | Mobile polish (touch targets, headers, a11y) | Not Started | -            | -                                                                                                                             |
-| 5.2 | Keyboard & safe areas                        | Not Started | -            | -                                                                                                                             |
-| 6.1 | LocalStorage persistence + hydrate           | Complete    | Aug 9, 2025  | Per-id storage key: `dh:characters:{id}:identity:v1`                                                                          |
-| 6.2 | Reset/Export/Import actions                  | Not Started | -            | -                                                                                                                             |
-| 7.1 | Tests for mapping and validation             | Not Started | -            | -                                                                                                                             |
-| 7.2 | UX metrics instrumentation                   | Not Started | -            | -                                                                                                                             |
-| 7.3 | Memory bank docs update                      | In Progress | Aug 10, 2025 | Active context and progress updated                                                                                           |
-| 7.4 | README route docs                            | Not Started | -            | -                                                                                                                             |
+| ID  | Description                                  | Status      | Updated      | Notes                                                                                                                        |
+| --- | -------------------------------------------- | ----------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| 1.1 | Extract PlayerCharacter field inventory      | Complete    | Aug 9, 2025  | Field inventory documented                                                                                                   |
+| 1.2 | Field classification (edit frequency)        | Complete    | Aug 9, 2025  | Frequent/Occasional/Rare lists added                                                                                         |
+| 1.3 | Control type decisions per field             | Complete    | Aug 9, 2025  | Control map defined                                                                                                          |
+| 1.4 | Presentation pattern per field               | Complete    | Aug 9, 2025  | Section order, edit entry, quick-jump defined                                                                                |
+| 1.5 | Validation/hints copy per field              | Complete    | Aug 9, 2025  | Helper/error guidance added                                                                                                  |
+| 1.6 | Section grouping and navigation              | Not Started | -            | -                                                                                                                            |
+| 1.7 | Default valid character snapshot             | Not Started | -            | -                                                                                                                            |
+| 2.1 | Mobile skeleton layout                       | Complete    | Aug 9, 2025  | `/characters/new` scaffolded → now lives at per-id route                                                                     |
+| 2.2 | BottomActionBar (Edit/Save)                  | Not Started | -            | -                                                                                                                            |
+| 2.3 | Section edit entry points                    | In Progress | Aug 11, 2025 | Identity, Class, Domains wired; added Equipment & Inventory sections and stub drawers (lazy)                                 |
+| 3.1 | Hook form + zod for Identity/Traits subset   | Complete    | Aug 9, 2025  | Identity form with zodResolver                                                                                               |
+| 3.2 | Inline validation + messages                 | Complete    | Aug 9, 2025  | Name/pronouns required; enum validation                                                                                      |
+| 3.3 | Save/Cancel flows (local state)              | Complete    | Aug 9, 2025  | Save persists; Cancel closes without commit                                                                                  |
+| 4.1 | Class/Subclass picker                        | Complete    | Aug 10, 2025 | Drawer implemented, lazy-loaded                                                                                              |
+| 4.2 | Domain card selector                         | In Progress | Aug 11, 2025 | Drawer with search/filters; add/remove UX wired; autosave-on-close + Reset; footer now shows Recall Cost used (read-only)\*  |
+| 4.3 | Equipment selector (pack/free)               | In Progress | Aug 11, 2025 | Free-form selectors for primary/secondary/armor added via Combobox in Equipment drawer                                       |
+| 4.4 | Resources panel (HP/Stress/Armor/Gold)       | In Progress | Aug 10, 2025 | Hope now Score with current/max; handlers wired                                                                              |
+| 4.5 | Notes/Inventory text                         | In Progress | Aug 11, 2025 | Inventory drawer now supports add-by-name, add-from-library, quantity steppers, remove, Equipped toggle, and Location select |
+| 4.6 | Simple View play mode                        | Not Started | -            | -                                                                                                                            |
+| 5.1 | Mobile polish (touch targets, headers, a11y) | Not Started | -            | -                                                                                                                            |
+| 5.2 | Keyboard & safe areas                        | Not Started | -            | -                                                                                                                            |
+| 6.1 | LocalStorage persistence + hydrate           | Complete    | Aug 9, 2025  | Per-id storage key: `dh:characters:{id}:identity:v1`                                                                         |
+| 6.2 | Reset/Export/Import actions                  | Not Started | -            | -                                                                                                                            |
+| 7.1 | Tests for mapping and validation             | Not Started | -            | -                                                                                                                            |
+| 7.2 | UX metrics instrumentation                   | Not Started | -            | -                                                                                                                            |
+| 7.3 | Memory bank docs update                      | In Progress | Aug 10, 2025 | Active context and progress updated                                                                                          |
+| 7.4 | README route docs                            | Not Started | -            | -                                                                                                                            |
 
 ## Progress Log
 
@@ -796,8 +796,71 @@ Quality bar
 
 ### Next (Milestone 2)
 
-- Domain Loadout limits in UI (counters/disable adds at cap)
+- Domain Loadout limits in UI — Deferred: Loadout capacity depends on Recall Cost, not count. Temporarily removed count-based caps and disabled gating. Marked with \* REVIEW notes.
 - Equipment & Inventory panels and editors
 - HP thresholds display and richer resource controls
-- UX polish: active section highlight in QuickJump via IntersectionObserver
+- UX polish: active section highlight in QuickJump via IntersectionObserver (Done Aug 11)
 - Tests for QuickJump anchors and playMode persistence
+
+### August 11, 2025 (later 2)
+
+- Domains: Initially added summary cap display (n/max) and creation-cap gating; per revised rule, removed both since capacity will be Recall Cost-based. Left \* REVIEW notes in code. QuickJump test added; jsdom scroll shims added.
+
+### August 11, 2025 (later 3)
+
+- Added Equipment and Inventory sections to `/characters/$id` with minimal cards and Edit buttons. Implemented lazy-loaded `EquipmentDrawer` and `InventoryDrawer` skeletons using RHF; added per-id localStorage storage keys and read/write helpers. Wired hydration on route load.
+- Domains Drawer footer now shows a read-only "Recall used" total based on sum of `recallCost` in the current Loadout; marked with \* REVIEW for final budget rules.
+- Quality gates: Type-check PASS; Build PASS (chunk-size warnings only); Tests PASS (13/13).
+
+### August 11, 2025 (later 4)
+
+- Inventory: Added "Add from library" Combobox sourcing Utility, Consumables, Potions, Relics, Weapon/Armor Mods, and Recipes; selection merges quantities with clamping to maxQuantity. Kept add-by-name flow.
+- Logic: Introduced reusable helpers in `src/features/characters/logic/inventory.ts` (addItemToSlots, incrementQuantity, removeAtIndex).
+- Tests: Added `tests/inventory-logic.test.ts` covering add/merge/clamp/remove. Full suite now 22/22 green.
+- Equipment: Free-form pickers (primary/secondary/armor) in Equipment drawer wired to data collections.
+- Gates: Type-check PASS; Build PASS; Tests PASS.
+
+### August 11, 2025 (later 5)
+
+- Inventory: Added per-row Equipped switch and Location selector (Backpack/Belt/Equipped/Stored). Wired changes to immutable helpers.
+- Logic: Extended `inventory.ts` with setEquipped and setLocation.
+- Tests: Expanded `inventory-logic.test.ts` to cover setEquipped and setLocation. Suite now 24/24 green.
+- Domains: Added recall-used summary in Domains card and drawer footer (read-only; marked REVIEW for future budget rules).
+- Equipment: Added concise detail readouts under weapon/armor pickers (trait, range, damage, burden; armor base score and thresholds).
+
+## Planned Subtasks (exact queue)
+
+1. Resources: HP thresholds UI
+
+- Show thresholds (e.g., Injured/Downed) under HP, read-only chips; no business logic yet
+- File: `src/components/characters/resources-card.tsx`
+
+2. Equipment & Inventory skeleton
+
+- Add `EquipmentCard` and `InventoryCard` sections with Edit buttons — Done (Aug 11)
+- Stub drawers for each with RHF context only — Done (Aug 11)
+
+3. Domains: Recall Cost capacity groundwork
+
+- Add a computed "recall budget used" summary row in the drawer footer (read-only) — Done (Aug 11)
+- Add \* REVIEW placeholder for final budget numbers — Done (Aug 11)
+
+4. QuickJump: improve initial active detection
+
+- Ensure correct active item on deep-link hash load (call measure on mount with hash)
+
+5. Tests: Resources thresholds display
+
+- Simple render test verifying chips render for default schema thresholds
+
+6. Persistence: Export/Import
+
+- Add Export JSON / Import JSON to the sheet overflow menu; validate on import
+
+7. Docs: Update README route docs
+
+- Document character routes and current limitations (no count-based loadout cap)
+
+### August 11, 2025 (later)
+
+- Implemented IntersectionObserver-based active section highlighting in `QuickJump` with sticky-header offset and fallbacks to scroll/resize listeners. Improves accuracy while scrolling and preserves click-initiated navigation behavior. No API changes to `QuickJump` consumer sites.

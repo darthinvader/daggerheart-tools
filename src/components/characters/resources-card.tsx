@@ -20,6 +20,9 @@ export function ResourcesCard({
   updateStress,
   updateStressMax,
 }: ResourcesCardProps) {
+  // NOTE: Placeholder thresholds. REVIEW: incorporate armor/equipment modifiers when model is available.
+  const majorHp = Math.max(0, Math.floor(resources.hp.max / 2));
+  const severeHp = Math.max(0, Math.floor(resources.hp.max / 4));
   return (
     <Card id={id}>
       <CardHeader>
@@ -74,6 +77,16 @@ export function ResourcesCard({
               </Button>
             </div>
           </div>
+        </div>
+        {/* HP Thresholds (read-only, computed) */}
+        <div className="text-muted-foreground -mt-1 flex flex-wrap items-center gap-1 pl-1 text-[11px]">
+          <span className="bg-muted rounded px-1 py-0.5">
+            Major ≤ {majorHp}
+          </span>
+          <span className="bg-muted rounded px-1 py-0.5">
+            Severe ≤ {severeHp}
+          </span>
+          <span className="pl-1">*</span>
         </div>
         {/* Stress Controls */}
         <div className="flex items-center justify-between gap-2">

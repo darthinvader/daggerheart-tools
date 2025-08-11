@@ -15,6 +15,7 @@ export type DomainsCardProps = {
   disabled?: boolean;
   summary?: LoadoutSummary;
   loadout?: DomainCard[]; // actual selected cards to render below summary
+  recallUsed?: number; // optional read-only sum of recallCost for current loadout
 };
 
 export function DomainsCard({
@@ -22,6 +23,7 @@ export function DomainsCard({
   disabled = false,
   summary,
   loadout,
+  recallUsed,
 }: DomainsCardProps) {
   return (
     <Card>
@@ -47,6 +49,11 @@ export function DomainsCard({
                     .filter(t => t.count > 0)
                     .map(t => `${t.type} ${t.count}`)
                     .join(' · ')}
+                </div>
+              ) : null}
+              {typeof recallUsed === 'number' ? (
+                <div className="text-muted-foreground mt-1 text-xs">
+                  Recall used: <span className="font-medium">{recallUsed}</span>
                 </div>
               ) : null}
               {summary.sample && summary.sample.length > 0 ? (

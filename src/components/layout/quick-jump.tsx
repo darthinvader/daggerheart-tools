@@ -10,6 +10,7 @@ export function QuickJump({ items }: { items: JumpItem[] }) {
   );
   const clickScrollingRef = React.useRef(false);
   const scrollTimeoutRef = React.useRef<number | null>(null);
+  const observerRef = React.useRef<IntersectionObserver | null>(null);
 
   const getHeaderH = React.useCallback(() => {
     const header = document.getElementById('sheet-header');
@@ -62,6 +63,61 @@ export function QuickJump({ items }: { items: JumpItem[] }) {
     };
   }, [measureAndSetActive]);
 
+  // Use IntersectionObserver to more reliably track active section under the sticky header.
+  React.useEffect(() => {
+    if (typeof window === 'undefined' || !('IntersectionObserver' in window)) {
+      return; // fallback to scroll listener already set up
+    }
+    // Clean up any existing observer first
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+      observerRef.current = null;
+    }
+
+    const headerOffset = getHeaderH() + 8; // match scroll offset used elsewhere
+    const rootMargin = `-${headerOffset}px 0px -60% 0px`;
+    const thresholds = [0, 0.25, 0.5, 0.75, 1];
+
+    const io = new IntersectionObserver(
+      entries => {
+        if (clickScrollingRef.current) return; // don't fight explicit navigation
+        // Consider only intersecting sections and pick the one closest to the top after header
+        const visible = entries.filter(e => e.isIntersecting);
+        if (visible.length === 0) return;
+        // Prefer the one with highest intersection ratio; tie-breaker by top proximity
+        let best = visible[0];
+        for (const e of visible) {
+          if (e.intersectionRatio > best.intersectionRatio) {
+            best = e;
+          } else if (e.intersectionRatio === best.intersectionRatio) {
+            const aTop = (best.boundingClientRect?.top ?? 0) - headerOffset;
+            const bTop = (e.boundingClientRect?.top ?? 0) - headerOffset;
+            if (Math.abs(bTop) < Math.abs(aTop)) best = e;
+          }
+        }
+        const id = best.target.id;
+        if (id && id !== active) setActive(id);
+      },
+      { root: null, rootMargin, threshold: thresholds }
+    );
+
+    // Observe all known section elements
+    items.forEach(i => {
+      const el = document.getElementById(i.id);
+      if (el) io.observe(el);
+    });
+
+    observerRef.current = io;
+
+    // Recompute active on start in case we're mid-page
+    measureAndSetActive();
+
+    return () => {
+      io.disconnect();
+      if (observerRef.current === io) observerRef.current = null;
+    };
+  }, [items, getHeaderH, measureAndSetActive, active]);
+
   const scrollToId = React.useCallback(
     (id: string) => {
       const el = document.getElementById(id);
@@ -75,6 +131,7 @@ export function QuickJump({ items }: { items: JumpItem[] }) {
         window.clearTimeout(scrollTimeoutRef.current);
       scrollTimeoutRef.current = window.setTimeout(() => {
         clickScrollingRef.current = false;
+        // After scroll completes, allow IO or fallback to update active
         measureAndSetActive();
       }, 450);
     },
@@ -88,6 +145,29 @@ export function QuickJump({ items }: { items: JumpItem[] }) {
     },
     []
   );
+
+  // On initial mount, if there's a hash in the URL matching an item, scroll to it and set active.
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const hash = window.location.hash?.slice(1);
+    if (!hash) return;
+    if (!items.some(i => i.id === hash)) return;
+    // Use the same path as clicks to ensure header offset and state sync.
+    scrollToId(hash);
+  }, [items, scrollToId]);
+
+  // Keep in sync with hash changes from back/forward or external updates
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const onHashChange = () => {
+      const hash = window.location.hash?.slice(1);
+      if (!hash) return;
+      if (!items.some(i => i.id === hash)) return;
+      scrollToId(hash);
+    };
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, [items, scrollToId]);
 
   return (
     <div className="w-full">
@@ -108,6 +188,14 @@ export function QuickJump({ items }: { items: JumpItem[] }) {
                 )}
                 onClick={e => {
                   e.preventDefault();
+                  // Update hash for shareable deep-link without native jump
+                  const nextHash = `#${i.id}`;
+                  if (typeof window !== 'undefined') {
+                    if (window.location.hash !== nextHash) {
+                      // pushState avoids default hashjump; we control scroll offset
+                      window.history.pushState({}, '', nextHash);
+                    }
+                  }
                   scrollToId(i.id);
                   // Nudge into view for native scrollbar users
                   (e.currentTarget as HTMLAnchorElement).scrollIntoView({

@@ -30,7 +30,8 @@ import { useCoarsePointer } from '@/hooks/use-coarse-pointer';
 import { useMeasureReady } from '@/hooks/use-measure-ready';
 // Using CSS dynamic viewport units (dvh) for correct keyboard interactions
 import type { DomainCard } from '@/lib/schemas/domains';
-import { cn } from '@/lib/utils';
+
+// import { cn } from '@/lib/utils';
 
 export type DomainsFormValues = {
   loadout: DomainCard[];
@@ -160,11 +161,17 @@ function DomainsDrawerImpl({
 
   // Handlers provided by hook
 
-  const { maxAllowed, overHardLimit, disableAdd } = getLoadoutLimits(
+  const { disableAdd } = getLoadoutLimits(
     creationComplete,
     currentLoadout.length,
     startingLimit,
     softLimit
+  );
+
+  // Compute recall-cost budget used (read-only for now). Costs may be undefined; treat missing as 0.
+  const recallBudgetUsed = React.useMemo(
+    () => currentLoadout.reduce((sum, c) => sum + (c.recallCost ?? 0), 0),
+    [currentLoadout]
   );
 
   return (
@@ -187,9 +194,9 @@ function DomainsDrawerImpl({
       }}
       footer={
         <div className="flex w-full items-center justify-between gap-2">
-          <div className={cn('text-xs', overHardLimit && 'text-destructive')}>
-            Loadout: {currentLoadout.length}/{maxAllowed}{' '}
-            {!creationComplete && '(creation limit)'}
+          <div className="text-muted-foreground text-xs">
+            {/* * REVIEW: Final budget TBD. Showing read-only Recall Cost used. */}
+            Recall used: <span className="font-medium">{recallBudgetUsed}</span>
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -208,10 +215,7 @@ function DomainsDrawerImpl({
               onClick={() => {
                 skipAutoSaveRef.current = true;
               }}
-              disabled={
-                !form.formState.isValid ||
-                (!creationComplete && currentLoadout.length > startingLimit)
-              }
+              disabled={!form.formState.isValid}
             >
               Save
             </Button>
@@ -349,12 +353,7 @@ function DomainsDrawerImpl({
               </TabsContent>
             </Tabs>
 
-            {!creationComplete && (
-              <div className="text-muted-foreground text-xs">
-                Starting limit {startingLimit} cards. After creation you can
-                exceed this (soft cap {softLimit}).
-              </div>
-            )}
+            {/* * REVIEW: Limits and costs TBD — earlier count-based guidance removed. */}
             <CreationCompleteToggle form={form as never} />
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

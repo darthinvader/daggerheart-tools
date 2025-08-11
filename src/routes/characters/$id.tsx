@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { MoreHorizontalIcon } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 
 // zod only used via imported schemas
@@ -11,7 +12,9 @@ import { ClassCard } from '@/components/characters/class-card';
 import { ConditionsCard } from '@/components/characters/conditions-card';
 import { CoreScoresCard } from '@/components/characters/core-scores-card';
 import { DomainsCard } from '@/components/characters/domains-card';
+import { EquipmentCard } from '@/components/characters/equipment-card';
 import { IdentityCard } from '@/components/characters/identity-card';
+import { InventoryCard } from '@/components/characters/inventory-card';
 // Lazy-load heavy drawers to trim initial bundle
 import { ResourcesCard } from '@/components/characters/resources-card';
 import { SummaryStats } from '@/components/characters/summary-stats';
@@ -21,6 +24,12 @@ import { QuickJump } from '@/components/layout/quick-jump';
 import { Button } from '@/components/ui/button';
 // No Card imports needed here; stub sections use dedicated components
 import type { ComboboxItem } from '@/components/ui/combobox';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   countByType,
   createConditionActions,
@@ -44,16 +53,25 @@ import {
   DEFAULT_RESOURCES,
   DEFAULT_TRAITS,
   DomainsDraftSchema,
+  type EquipmentDraft,
   IdentityDraftSchema,
+  type InventoryDraft,
   readClassFromStorage,
   readConditionsFromStorage,
   readDomainsFromStorage,
+  readEquipmentFromStorage,
   readIdentityFromStorage,
+  readInventoryFromStorage,
   readResourcesFromStorage,
   readTraitsFromStorage,
   writeClassToStorage,
+  writeConditionsToStorage,
   writeDomainsToStorage,
+  writeEquipmentToStorage,
   writeIdentityToStorage,
+  writeInventoryToStorage,
+  writeResourcesToStorage,
+  writeTraitsToStorage,
 } from '@/features/characters/storage';
 import { ANCESTRIES } from '@/lib/data/characters/ancestries';
 import { COMMUNITIES } from '@/lib/data/characters/communities';
@@ -84,6 +102,24 @@ function CharacterSheet() {
       React.lazy(() =>
         import('@/components/characters/domains-drawer').then(m => ({
           default: m.DomainsDrawer,
+        }))
+      ),
+    []
+  );
+  const EquipmentDrawerLazy = React.useMemo(
+    () =>
+      React.lazy(() =>
+        import('@/components/characters/equipment-drawer').then(m => ({
+          default: m.EquipmentDrawer,
+        }))
+      ),
+    []
+  );
+  const InventoryDrawerLazy = React.useMemo(
+    () =>
+      React.lazy(() =>
+        import('@/components/characters/inventory-drawer').then(m => ({
+          default: m.InventoryDrawer,
         }))
       ),
     []
@@ -126,9 +162,17 @@ function CharacterSheet() {
   const [classDraft, setClassDraft] = React.useState<ClassDraft>(DEFAULT_CLASS);
   const [openClass, setOpenClass] = React.useState(false);
   const [openDomains, setOpenDomains] = React.useState(false);
+  const [openEquipment, setOpenEquipment] = React.useState(false);
+  const [openInventory, setOpenInventory] = React.useState(false);
 
   const [domainsDraft, setDomainsDraft] =
     React.useState<DomainsDraft>(DEFAULT_DOMAINS);
+  const [equipment, setEquipment] = React.useState(() =>
+    readEquipmentFromStorage(id)
+  );
+  const [inventory, setInventory] = React.useState(() =>
+    readInventoryFromStorage(id)
+  );
 
   // Hydrate from localStorage when id changes
 
@@ -139,6 +183,8 @@ function CharacterSheet() {
     setConditions(readConditionsFromStorage(id));
     setClassDraft(readClassFromStorage(id));
     setDomainsDraft(readDomainsFromStorage(id));
+    setEquipment(readEquipmentFromStorage(id));
+    setInventory(readInventoryFromStorage(id));
   }, [id]);
 
   // Items for identity
@@ -250,6 +296,40 @@ function CharacterSheet() {
     onSubmitDomains(v as DomainsDraft)
   );
 
+  // Equipment form
+  const equipmentForm = useForm<EquipmentDraft>({
+    mode: 'onChange',
+    defaultValues: equipment,
+  });
+  React.useEffect(() => {
+    if (openEquipment) equipmentForm.reset(equipment);
+  }, [openEquipment, equipment, equipmentForm]);
+  const onSubmitEquipment = (values: EquipmentDraft) => {
+    setEquipment(values);
+    writeEquipmentToStorage(id, values);
+    setOpenEquipment(false);
+  };
+  const submitEquipment = equipmentForm.handleSubmit(v =>
+    onSubmitEquipment(v as EquipmentDraft)
+  );
+
+  // Inventory form
+  const inventoryForm = useForm<InventoryDraft>({
+    mode: 'onChange',
+    defaultValues: inventory,
+  });
+  React.useEffect(() => {
+    if (openInventory) inventoryForm.reset(inventory);
+  }, [openInventory, inventory, inventoryForm]);
+  const onSubmitInventory = (values: InventoryDraft) => {
+    setInventory(values);
+    writeInventoryToStorage(id, values);
+    setOpenInventory(false);
+  };
+  const submitInventory = inventoryForm.handleSubmit(v =>
+    onSubmitInventory(v as InventoryDraft)
+  );
+
   // All domain cards are now lazy-loaded inside the Domains drawer to reduce route weight.
 
   // Normalize loadout/vault cards where description may be optional from storage
@@ -313,6 +393,108 @@ function CharacterSheet() {
             <Button asChild size="sm" variant="ghost">
               <Link to="/characters">Back</Link>
             </Button>
+            {/* Export/Import */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="icon" variant="ghost" aria-label="More">
+                  <MoreHorizontalIcon className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={() => {
+                    const payload = {
+                      identity,
+                      resources,
+                      traits,
+                      conditions,
+                      classDraft,
+                      domainsDraft,
+                      equipment,
+                      inventory,
+                    };
+                    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+                      type: 'application/json',
+                    });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${id}-character.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    URL.revokeObjectURL(url);
+                  }}
+                >
+                  Export JSON
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'application/json';
+                    input.onchange = async () => {
+                      const file = input.files?.[0];
+                      if (!file) return;
+                      try {
+                        const text = await file.text();
+                        const raw = JSON.parse(text);
+                        // Validate slices individually to be resilient to partial data
+                        const nextIdentity = IdentityDraftSchema.safeParse(
+                          raw.identity
+                        ).success
+                          ? (raw.identity as IdentityDraft)
+                          : identity;
+                        const nextTraits =
+                          (raw.traits as TraitsDraft | undefined) ?? traits;
+                        const nextConditions = Array.isArray(raw.conditions)
+                          ? (raw.conditions as ConditionsDraft)
+                          : conditions;
+                        const nextClass = ClassDraftSchema.safeParse(
+                          raw.classDraft
+                        ).success
+                          ? (raw.classDraft as ClassDraft)
+                          : classDraft;
+                        const nextDomains = DomainsDraftSchema.safeParse(
+                          raw.domainsDraft
+                        ).success
+                          ? (raw.domainsDraft as DomainsDraft)
+                          : domainsDraft;
+                        const nextEquipment =
+                          (raw.equipment as EquipmentDraft | undefined) ??
+                          equipment;
+                        const nextInventory =
+                          (raw.inventory as InventoryDraft | undefined) ??
+                          inventory;
+
+                        // Update state and persist
+                        setIdentity(nextIdentity);
+                        writeIdentityToStorage(id, nextIdentity);
+                        setResources(raw.resources ?? resources);
+                        writeResourcesToStorage(id, raw.resources ?? resources);
+                        setTraits(nextTraits);
+                        writeTraitsToStorage(id, nextTraits);
+                        setConditions(nextConditions);
+                        writeConditionsToStorage(id, nextConditions);
+                        setClassDraft(nextClass);
+                        writeClassToStorage(id, nextClass);
+                        setDomainsDraft(nextDomains);
+                        writeDomainsToStorage(id, nextDomains);
+                        setEquipment(nextEquipment);
+                        writeEquipmentToStorage(id, nextEquipment);
+                        setInventory(nextInventory);
+                        writeInventoryToStorage(id, nextInventory);
+                      } catch {
+                        // silently ignore invalid file
+                      }
+                    };
+                    input.click();
+                  }}
+                >
+                  Import JSON
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
         <div className="w-full px-2 pb-0">
@@ -324,6 +506,8 @@ function CharacterSheet() {
               { id: 'core', label: 'Core' },
               { id: 'identity', label: 'Identity' },
               { id: 'class', label: 'Class' },
+              { id: 'equipment', label: 'Equipment' },
+              { id: 'inventory', label: 'Inventory' },
               { id: 'domains', label: 'Domains' },
               { id: 'traits', label: 'Traits' },
             ]}
@@ -417,6 +601,42 @@ function CharacterSheet() {
           />
         </React.Suspense>
 
+        {/* Equipment */}
+        <section
+          id="equipment"
+          aria-label="Equipment"
+          className="mt-4 scroll-mt-24 md:scroll-mt-28"
+        >
+          <EquipmentCard onEdit={() => setOpenEquipment(true)} />
+        </section>
+        <React.Suspense fallback={null}>
+          <EquipmentDrawerLazy
+            open={openEquipment}
+            onOpenChange={setOpenEquipment}
+            form={equipmentForm as never}
+            submit={submitEquipment}
+            onCancel={() => setOpenEquipment(false)}
+          />
+        </React.Suspense>
+
+        {/* Inventory */}
+        <section
+          id="inventory"
+          aria-label="Inventory"
+          className="mt-4 scroll-mt-24 md:scroll-mt-28"
+        >
+          <InventoryCard onEdit={() => setOpenInventory(true)} />
+        </section>
+        <React.Suspense fallback={null}>
+          <InventoryDrawerLazy
+            open={openInventory}
+            onOpenChange={setOpenInventory}
+            form={inventoryForm as never}
+            submit={submitInventory}
+            onCancel={() => setOpenInventory(false)}
+          />
+        </React.Suspense>
+
         {/* Class & Subclass */}
         <section
           id="class"
@@ -457,6 +677,10 @@ function CharacterSheet() {
               byType: countByType(normalizedLoadout),
               sample: normalizedLoadout.slice(0, 3).map(c => c.name),
             }}
+            recallUsed={normalizedLoadout.reduce(
+              (sum, c) => sum + (c.recallCost ?? 0),
+              0
+            )}
             loadout={normalizedLoadout}
           />
         </section>

@@ -31,6 +31,7 @@ export function AvailableCardsSection({
   return (
     <div className="space-y-2">
       <div className="text-sm font-medium">{title}</div>
+      {/* * REVIEW: Loadout size will depend on Recall Cost, not count. Disabling Add is removed for now. */}
       <div className="divide-border rounded-md border">
         {visible &&
           (isLoading ? (

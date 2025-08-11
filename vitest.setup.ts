@@ -23,3 +23,21 @@ class MockResizeObserver {
 }
 type AnyObject = Record<string, unknown>;
 (globalThis as unknown as AnyObject).ResizeObserver = MockResizeObserver;
+
+// JSDOM doesn't implement smooth scrolling APIs; provide no-op shims for tests
+if (typeof window !== 'undefined') {
+  (window as unknown as { scrollTo: (...args: unknown[]) => void }).scrollTo = (
+    ..._args: unknown[]
+  ): void => {
+    /* no-op for tests */
+  };
+}
+if (typeof Element !== 'undefined') {
+  (
+    Element.prototype as unknown as {
+      scrollIntoView: (opts?: unknown) => void;
+    }
+  ).scrollIntoView = (_opts?: unknown): void => {
+    /* no-op for tests */
+  };
+}

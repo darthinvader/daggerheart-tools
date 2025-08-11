@@ -6,6 +6,12 @@ import {
   CommunityNameEnum,
   SubclassNameSchema,
 } from '@/lib/schemas/core';
+import {
+  type EquipmentLoadout,
+  EquipmentLoadoutSchema,
+  type Inventory,
+  InventorySchema,
+} from '@/lib/schemas/equipment';
 import { characterKeys as keys, storage } from '@/lib/storage';
 
 // Domains draft (lite card shape to avoid importing all domain schemas)
@@ -166,4 +172,46 @@ export function readDomainsFromStorage(id: string): DomainsDraft {
 }
 export function writeDomainsToStorage(id: string, value: DomainsDraft) {
   storage.write(keys.domains(id), value);
+}
+
+// Equipment (loadout): weapons, armor, items
+export type EquipmentDraft = EquipmentLoadout;
+export const DEFAULT_EQUIPMENT: EquipmentDraft = {
+  primaryWeapon: undefined,
+  secondaryWeapon: undefined,
+  armor: undefined,
+  items: [],
+  consumables: {},
+};
+export function readEquipmentFromStorage(id: string): EquipmentDraft {
+  const fallback = DEFAULT_EQUIPMENT;
+  try {
+    return storage.read(keys.equipment(id), fallback, EquipmentLoadoutSchema);
+  } catch {
+    return fallback;
+  }
+}
+export function writeEquipmentToStorage(id: string, value: EquipmentDraft) {
+  storage.write(keys.equipment(id), value);
+}
+
+// Inventory (bag/slots)
+export type InventoryDraft = Inventory;
+export const DEFAULT_INVENTORY: InventoryDraft = {
+  slots: [],
+  maxItems: 50,
+  weightCapacity: undefined,
+  currentWeight: 0,
+  metadata: {},
+};
+export function readInventoryFromStorage(id: string): InventoryDraft {
+  const fallback = DEFAULT_INVENTORY;
+  try {
+    return storage.read(keys.inventory(id), fallback, InventorySchema);
+  } catch {
+    return fallback;
+  }
+}
+export function writeInventoryToStorage(id: string, value: InventoryDraft) {
+  storage.write(keys.inventory(id), value);
 }
