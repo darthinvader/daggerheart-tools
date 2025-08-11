@@ -100,6 +100,35 @@ export function createResourceActions(
     });
   };
 
+  const updateGold = (kind: 'handfuls' | 'bags' | 'chests', delta: number) => {
+    setResources(prev => {
+      const current = prev.gold?.[kind] ?? 0;
+      const nextGold = {
+        handfuls: prev.gold?.handfuls ?? 0,
+        bags: prev.gold?.bags ?? 0,
+        chests: prev.gold?.chests ?? 0,
+        [kind]: Math.max(0, current + delta),
+      } as ResourcesDraft['gold'];
+      const next: ResourcesDraft = { ...prev, gold: nextGold };
+      writeResourcesToStorage(id, next);
+      return next;
+    });
+  };
+
+  const setGold = (kind: 'handfuls' | 'bags' | 'chests', value: number) => {
+    setResources(prev => {
+      const nextGold = {
+        handfuls: prev.gold?.handfuls ?? 0,
+        bags: prev.gold?.bags ?? 0,
+        chests: prev.gold?.chests ?? 0,
+        [kind]: Math.max(0, Math.floor(value) || 0),
+      } as ResourcesDraft['gold'];
+      const next: ResourcesDraft = { ...prev, gold: nextGold };
+      writeResourcesToStorage(id, next);
+      return next;
+    });
+  };
+
   return {
     updateStress,
     updateStressMax,
@@ -108,5 +137,7 @@ export function createResourceActions(
     updateHope,
     updateHopeMax,
     updateNumber,
+    updateGold,
+    setGold,
   } as const;
 }

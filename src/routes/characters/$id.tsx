@@ -14,6 +14,7 @@ import { ConditionsCard } from '@/components/characters/conditions-card';
 import { CoreScoresCard } from '@/components/characters/core-scores-card';
 import { DomainsCard } from '@/components/characters/domains-card';
 import { EquipmentCard } from '@/components/characters/equipment-card';
+import { GoldCard } from '@/components/characters/gold-card';
 import { IdentityCard } from '@/components/characters/identity-card';
 import { InventoryCard } from '@/components/characters/inventory-card';
 // Lazy-load heavy drawers to trim initial bundle
@@ -371,6 +372,7 @@ function CharacterSheet() {
     updateHope,
     updateHopeMax,
     updateNumber,
+    setGold,
   } = createResourceActions(id, setResources);
 
   // Traits helpers (extracted)
@@ -493,6 +495,15 @@ function CharacterSheet() {
             updateHopeMax={delta => updateHopeMax(delta)}
             updateProficiency={delta => updateNumber('proficiency', delta, 1)}
           />
+        </section>
+
+        {/* Gold */}
+        <section
+          id="gold"
+          aria-label="Gold"
+          className="mt-4 scroll-mt-24 md:scroll-mt-28"
+        >
+          <GoldCard gold={resources.gold} set={setGold} />
         </section>
 
         {/* Identity section */}

@@ -2,7 +2,7 @@
 
 **Status:** In Progress (Milestone 1 shipped)
 **Added:** August 9, 2025
-**Updated:** August 11, 2025 (later)
+**Updated:** August 11, 2025 (latest)
 
 ## Original Request
 
@@ -72,8 +72,9 @@ Research (schema → UI mapping)
    - 7.1 Select valid ancestry/community combo from SRD list.
    - 7.2 Pick a default class/subclass with 2 domains.
    - 7.3 Set trait defaults within budget.
-   - 7.4 Choose starting equipment (pack mode) and a minimal domain loadout.
-   - 7.5 Define baseline resources (hp/stress/armor/hope/evasion/proficiency/gold) from schema defaults.
+
+- 7.4 Choose starting equipment (free-form) and a minimal domain loadout.
+- 7.5 Define baseline resources (hp/stress/armor/hope/evasion/proficiency/gold) from schema defaults.
 
 UX skeleton (single-route, non-functional or minimal)
 
@@ -133,9 +134,9 @@ Expand coverage
 - 17.1 Filter by accessible domains.
 - 17.2 Enforce starting count; show remaining counter.
 
-18. Equipment selector (pack vs free-form).
+18. Equipment selector (free-form only).
 
-- 18.1 Prebuilt packs list; one-tap apply.
+- 18.1 Removed: Prebuilt packs (standardize on free-form only).
 - 18.2 Free-form search + add; compute load.
 
 19. Resources panel with safe steppers.
@@ -298,7 +299,7 @@ Frequent (in-session)
 Occasional (between sessions / setup)
 
 - traits.values, level, hope, proficiency, evasion, armorScore.current/max
-- weapons[], armor[], inventory[], equipment pack changes
+- weapons[], armor[], inventory[], equipment changes
 - domain loadout/vault adjustments, experience total
 
 Rare (initial setup)
@@ -319,7 +320,7 @@ Notes: Frequent items should be one-tap reachable with large steppers/switches; 
 - rallyDie: Segmented control (d6/d8/d10...), show active
 - gold: Three steppers (handfuls/bags/chests)
 - weapons/armor/inventory: Searchable combobox + list with quantity steppers; remove via trash
-- equipment: Radio (pack mode) or search-add (free mode)
+- equipment: Search-add (free-form only)
 - domainCards/vault/loadout: Filterable list with chips; tap to add/remove; enforce limits
 - classDetails.name/subclass: Searchable combobox; subclass filtered by class
 - identity text fields: Input/Textarea with helper text
@@ -394,7 +395,7 @@ Domains & Cards
 
 Equipment & Inventory
 
-- equipment: Pack or Free-form; switching modes prompts confirm
+- equipment: Free-form only; per-tab Source filters (Default/Homebrew/All)
 - weapons/armor/inventory: quantities ints ≥ 0; confirm destructive remove
 
 Economy & Conditions
@@ -415,46 +416,55 @@ Companion
 
 ## Progress Tracking
 
-**Overall Status:** In Progress - 66% Complete
+**Overall Status:** In Progress - 72% Complete
 
 ### Subtasks
 
-| ID  | Description                                  | Status      | Updated      | Notes                                                                                                                        |
-| --- | -------------------------------------------- | ----------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------- |
-| 1.1 | Extract PlayerCharacter field inventory      | Complete    | Aug 9, 2025  | Field inventory documented                                                                                                   |
-| 1.2 | Field classification (edit frequency)        | Complete    | Aug 9, 2025  | Frequent/Occasional/Rare lists added                                                                                         |
-| 1.3 | Control type decisions per field             | Complete    | Aug 9, 2025  | Control map defined                                                                                                          |
-| 1.4 | Presentation pattern per field               | Complete    | Aug 9, 2025  | Section order, edit entry, quick-jump defined                                                                                |
-| 1.5 | Validation/hints copy per field              | Complete    | Aug 9, 2025  | Helper/error guidance added                                                                                                  |
-| 1.6 | Section grouping and navigation              | Not Started | -            | -                                                                                                                            |
-| 1.7 | Default valid character snapshot             | Not Started | -            | -                                                                                                                            |
-| 2.1 | Mobile skeleton layout                       | Complete    | Aug 9, 2025  | `/characters/new` scaffolded → now lives at per-id route                                                                     |
-| 2.2 | BottomActionBar (Edit/Save)                  | Not Started | -            | -                                                                                                                            |
-| 2.3 | Section edit entry points                    | Complete    | Aug 11, 2025 | Identity, Class, Domains wired; Equipment & Inventory cards + drawers wired (lazy), with per-id persistence                  |
-| 3.1 | Hook form + zod for Identity/Traits subset   | Complete    | Aug 9, 2025  | Identity form with zodResolver                                                                                               |
-| 3.2 | Inline validation + messages                 | Complete    | Aug 9, 2025  | Name/pronouns required; enum validation                                                                                      |
-| 3.3 | Save/Cancel flows (local state)              | Complete    | Aug 9, 2025  | Save persists; Cancel closes without commit                                                                                  |
-| 4.1 | Class/Subclass picker                        | Complete    | Aug 10, 2025 | Drawer implemented, lazy-loaded                                                                                              |
-| 4.2 | Domain card selector                         | In Progress | Aug 11, 2025 | Drawer with search/filters; add/remove UX wired; autosave-on-close + Reset; footer now shows Recall Cost used (read-only)\*  |
-| 4.3 | Equipment selector (pack/free)               | In Progress | Aug 11, 2025 | Free-form selectors for primary/secondary/armor added via Combobox in Equipment drawer; Pack mode UI placeholder present     |
-| 4.4 | Resources panel (HP/Stress/Armor/Gold)       | In Progress | Aug 10, 2025 | Hope now Score with current/max; handlers wired                                                                              |
-| 4.5 | Notes/Inventory text                         | Complete    | Aug 11, 2025 | Inventory drawer supports add-by-name, add-from-library, qty steppers, remove, Equipped toggle, Location select; tests added |
-| 4.6 | Simple View play mode                        | Not Started | -            | -                                                                                                                            |
-| 5.1 | Mobile polish (touch targets, headers, a11y) | Not Started | -            | -                                                                                                                            |
-| 5.2 | Keyboard & safe areas                        | Not Started | -            | -                                                                                                                            |
-| 6.1 | LocalStorage persistence + hydrate           | Complete    | Aug 9, 2025  | Per-id storage key: `dh:characters:{id}:identity:v1`                                                                         |
-| 6.2 | Reset/Export/Import actions                  | Not Started | -            | -                                                                                                                            |
-| 7.1 | Tests for mapping and validation             | Not Started | -            | -                                                                                                                            |
-| 7.2 | UX metrics instrumentation                   | Not Started | -            | -                                                                                                                            |
-| 7.3 | Memory bank docs update                      | In Progress | Aug 10, 2025 | Active context and progress updated                                                                                          |
-| 7.4 | README route docs                            | Not Started | -            | -                                                                                                                            |
+| ID  | Description                                  | Status      | Updated      | Notes                                                                                                                                                                                                         |
+| --- | -------------------------------------------- | ----------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.1 | Extract PlayerCharacter field inventory      | Complete    | Aug 9, 2025  | Field inventory documented                                                                                                                                                                                    |
+| 1.2 | Field classification (edit frequency)        | Complete    | Aug 9, 2025  | Frequent/Occasional/Rare lists added                                                                                                                                                                          |
+| 1.3 | Control type decisions per field             | Complete    | Aug 9, 2025  | Control map defined                                                                                                                                                                                           |
+| 1.4 | Presentation pattern per field               | Complete    | Aug 9, 2025  | Section order, edit entry, quick-jump defined                                                                                                                                                                 |
+| 1.5 | Validation/hints copy per field              | Complete    | Aug 9, 2025  | Helper/error guidance added                                                                                                                                                                                   |
+| 1.6 | Section grouping and navigation              | Not Started | -            | -                                                                                                                                                                                                             |
+| 1.7 | Default valid character snapshot             | Not Started | -            | -                                                                                                                                                                                                             |
+| 2.1 | Mobile skeleton layout                       | Complete    | Aug 9, 2025  | `/characters/new` scaffolded → now lives at per-id route                                                                                                                                                      |
+| 2.2 | BottomActionBar (Edit/Save)                  | Not Started | -            | -                                                                                                                                                                                                             |
+| 2.3 | Section edit entry points                    | Complete    | Aug 11, 2025 | Identity, Class, Domains wired; Equipment & Inventory cards + drawers wired (lazy), with per-id persistence                                                                                                   |
+| 3.1 | Hook form + zod for Identity/Traits subset   | Complete    | Aug 9, 2025  | Identity form with zodResolver                                                                                                                                                                                |
+| 3.2 | Inline validation + messages                 | Complete    | Aug 9, 2025  | Name/pronouns required; enum validation                                                                                                                                                                       |
+| 3.3 | Save/Cancel flows (local state)              | Complete    | Aug 9, 2025  | Save persists; Cancel closes without commit                                                                                                                                                                   |
+| 4.1 | Class/Subclass picker                        | Complete    | Aug 10, 2025 | Drawer implemented, lazy-loaded                                                                                                                                                                               |
+| 4.2 | Domain card selector                         | In Progress | Aug 11, 2025 | Drawer with search/filters; add/remove UX wired; autosave-on-close + Reset; footer now shows Recall Cost used (read-only)\*                                                                                   |
+| 4.3 | Equipment selector (free-form only)          | In Progress | Aug 11, 2025 | Free-form selectors for primary/secondary/armor via Combobox in Equipment drawer; Pack mode removed; per-tab Source filters                                                                                   |
+| 4.4 | Resources panel (HP/Stress/Armor/Gold)       | In Progress | Aug 11, 2025 | Hope now Score with current/max; handlers wired. Gold: replaced +/- with emoji tap-to-set (1–9) and label sets 0; compact rows wrap; opacity indicates selection; emoji set: 🪙 handfuls, 💰 bags, 🧰 chests. |
+| 4.7 | EquipmentCard a11y labels                    | Complete    | Aug 11, 2025 | Added aria-labels to slot buttons for SR clarity (primary/secondary/armor)                                                                                                                                    |
+| 4.8 | EquipmentCard unit tests                     | Complete    | Aug 11, 2025 | Added tests for placeholders, badges, tier chip, and onEdit invocations; suite green                                                                                                                          |
+| 4.5 | Notes/Inventory text                         | Complete    | Aug 11, 2025 | Inventory drawer supports add-by-name, add-from-library, qty steppers, remove, Equipped toggle, Location select; tests added                                                                                  |
+| 4.6 | Simple View play mode                        | Not Started | -            | -                                                                                                                                                                                                             |
+| 5.1 | Mobile polish (touch targets, headers, a11y) | Not Started | -            | -                                                                                                                                                                                                             |
+| 5.2 | Keyboard & safe areas                        | Not Started | -            | -                                                                                                                                                                                                             |
+| 6.1 | LocalStorage persistence + hydrate           | Complete    | Aug 9, 2025  | Per-id storage key: `dh:characters:{id}:identity:v1`                                                                                                                                                          |
+| 6.2 | Reset/Export/Import actions                  | Complete    | Aug 11, 2025 | Header menu now includes Reset to defaults and robust Export/Import JSON (schema-validated; persists per-id)                                                                                                  |
+| 7.1 | Tests for mapping and validation             | Not Started | -            | -                                                                                                                                                                                                             |
+| 7.2 | UX metrics instrumentation                   | Not Started | -            | -                                                                                                                                                                                                             |
+| 7.3 | Memory bank docs update                      | In Progress | Aug 10, 2025 | Active context and progress updated                                                                                                                                                                           |
+| 7.4 | README route docs                            | Not Started | -            | -                                                                                                                                                                                                             |
 
 ## Progress Log
 
 ### 2025-08-11 (latest)
 
-- Equipment Drawer: Replaced global Pack/Free control with per-tab Source filters for Weapons tabs (Primary/Secondary): Default (slot standard), Homebrew (homebrew-only), All (primary + secondary + homebrew). Controls enlarged (outline, lg), added option counts in labels, and empty-state hint when no results. Fixed toggle onValueChange to ignore empty values so selection always applies. Added a drawer description for a11y via aria-describedby.
+- Equipment Drawer: Replaced global Pack/Free control with per-tab Source filters for Weapons tabs (Primary/Secondary): Default (slot standard), Homebrew (homebrew-only), All (primary + secondary + homebrew). Controls enlarged (outline, lg), added option counts in labels, and empty-state hint when no results. Fixed toggle onValueChange to ignore empty values so selection always applies. Added a drawer description for a11y via aria-describedby. Decision: remove Pack mode entirely; free-form only moving forward.
 - Tests: Stabilized the cross-slot listing test to use Source=All and scoped queries to visible tab panels to avoid hidden content. All tests pass locally.
+
+- Added Gold controls: Introduced `GoldCard` with steppers for Handfuls/Bags/Chests; extended resources model/actions to include `gold` with clamp-at-0 logic; wired into `/characters/$id` under its own section. Typecheck/build/tests PASS.
+- Reworked Gold UI to emoji-based tap-to-set: 1–9 emojis per row, label tap sets 0; used opacity for unselected; added top summary. Then made rows narrower for phones, removed hint text, and replaced emojis to avoid tofu: 🪙 for handfuls, 💰 for bags, 🧰 as chest stand-in; removed horizontal scroll in favor of wrapping. Typecheck/build PASS.
+- Reset/Import/Export: `CharacterJsonMenu` now supports Reset to defaults (all sections) and Import/Export continues to validate via zod schemas; all state changes persist to per-id localStorage keys.
+- Drawer safe area: `DrawerScaffold` footer now pads against `env(safe-area-inset-bottom)` to keep Save/Cancel tappable above gesture areas.
+
+- Gold UI: Replaced +/- with emoji-based tap-to-set for Handfuls/Bags/Chests (0–9). Selected show full-color emoji with higher opacity; unselected appear dimmed. Added top summary line (counts) and aria-labels for each tap target. Route now passes a `setGold` action for direct updates (persisted).
 
 #### 2025-08-11 (later) — Armor mobile display parity
 
@@ -468,6 +478,11 @@ Companion
 - Equipment drawer: Added a "Current" selection strip at the top of each tab (Primary/Secondary/Armor) with quick Clear action and attribute badges. Included small icons for trait, range, damage, and burden to improve scannability on mobile. Save behavior unchanged (uses DrawerScaffold default footer). Typecheck/build PASS.
 - Equipment card: Mirrored drawer details with iconized badges and now render description text under Primary/Secondary/Armor when available (including optional armor description). Typecheck/build/tests PASS.
   - Also renders feature lists (name: description) for primary/secondary/armor when provided, matching drawer detail density. Typecheck/build/tests PASS.
+
+#### 2025-08-11 (later) — EquipmentCard a11y + tests
+
+- Accessibility: Added aria-labels to EquipmentCard slot buttons so screen readers announce intent, e.g., "Edit primary weapon: Longsword" or "Select armor" when empty.
+- Tests: Created tests/equipment-card.test.tsx to verify placeholders when empty, badges (Homebrew, T1), and onEdit callbacks for each slot. Full test suite PASS (27/27).
 
 ### August 9, 2025
 
@@ -591,8 +606,7 @@ This maps schema fields to concrete mobile interactions (add/edit/remove) and th
 
 - Equipment & Inventory
   - equipment (EquipmentLoadoutSchema):
-    - Pack mode: Radio list of packs; Apply button.
-    - Free-form: Search + add items; quantities via stepper.
+    - Free-form: Search + add items; quantities via stepper. Pack mode dropped.
   - inventory[]: List of items with quantity steppers; Remove via trash.
   - weapons[] / armor[]: Specialized lists with tags (damage/armor type); Add via search, Remove via icon.
   - armorStatus?: Toggle states where applicable.
@@ -711,7 +725,7 @@ Controls & affordances (what)
 
 - Stepper: Big +/– buttons (≥44×44) with a readable number; long-press accelerates; double-tap +1 is acceptable but not required.
 - Switch vs Checkbox: Switch for immediate state (Conditions on/off), checkbox for multi-select lists inside drawers.
-- Segmented control: For small, exclusive sets (rally die sizes, pack modes). Show active state clearly.
+- Segmented control: For small, exclusive sets (rally die sizes). Show active state clearly.
 - Combobox: Always searchable; include clear button; show selected as chip; avoid empty states—provide "+ Add new" only where schema allows.
 - Chips/Tags: Large touchable area with clear labels; “x” affordance for removal.
 - Buttons: Prefer labeled buttons over icon-only for primary actions; amplify hit area via padding.
@@ -897,5 +911,5 @@ Quality bar
 
 - Resources: Added read-only HP thresholds chips (Major ≤ floor(max/2), Severe ≤ floor(max/4)) under HP controls in `ResourcesCard`.
 - Tests: Added `tests/resources-card.test.tsx` to verify thresholds rendering. Suite PASS locally.
-- Equipment & Inventory: Cards show concise summaries; drawers wired with RHF and per-id persistence; Equipment drawer includes mode toggle placeholder (Pack/Free). No breaking API changes.
+- Equipment & Inventory: Cards show concise summaries; drawers wired with RHF and per-id persistence; Equipment drawer no longer includes a Pack/Free toggle (free-form only). No breaking API changes.
 - Quality gates: Type-check PASS; Build PASS; Tests PASS.

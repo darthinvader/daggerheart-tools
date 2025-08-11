@@ -12,6 +12,13 @@ import {
   type ClassDraft,
   ClassDraftSchema,
   type ConditionsDraft,
+  DEFAULT_CLASS,
+  DEFAULT_DOMAINS,
+  DEFAULT_EQUIPMENT,
+  DEFAULT_IDENTITY,
+  DEFAULT_INVENTORY,
+  DEFAULT_RESOURCES,
+  DEFAULT_TRAITS,
   type DomainsDraft,
   DomainsDraftSchema,
   type EquipmentDraft,
@@ -79,6 +86,29 @@ export function CharacterJsonMenu(props: CharacterJsonMenuProps) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
+        <DropdownMenuItem
+          onClick={() => {
+            // Reset all character state to defaults
+            setIdentity(DEFAULT_IDENTITY);
+            writeIdentityToStorage(id, DEFAULT_IDENTITY);
+            setResources(DEFAULT_RESOURCES);
+            writeResourcesToStorage(id, DEFAULT_RESOURCES);
+            setTraits(DEFAULT_TRAITS);
+            writeTraitsToStorage(id, DEFAULT_TRAITS);
+            setConditions([]);
+            writeConditionsToStorage(id, []);
+            setClassDraft(DEFAULT_CLASS);
+            writeClassToStorage(id, DEFAULT_CLASS);
+            setDomainsDraft(DEFAULT_DOMAINS);
+            writeDomainsToStorage(id, DEFAULT_DOMAINS);
+            setEquipment(DEFAULT_EQUIPMENT);
+            writeEquipmentToStorage(id, DEFAULT_EQUIPMENT);
+            setInventory(DEFAULT_INVENTORY);
+            writeInventoryToStorage(id, DEFAULT_INVENTORY);
+          }}
+        >
+          Reset to defaults
+        </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => {
             const payload = {

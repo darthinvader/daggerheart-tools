@@ -86,6 +86,13 @@ export const ResourcesSchema = z.object({
   evasion: z.number().int().min(0).default(10),
   hope: ScoreSchema.default({ current: 2, max: 6 }),
   proficiency: z.number().int().min(1).default(1),
+  gold: z
+    .object({
+      handfuls: z.number().int().min(0).default(1),
+      bags: z.number().int().min(0).default(0),
+      chests: z.number().int().min(0).default(0),
+    })
+    .default({ handfuls: 1, bags: 0, chests: 0 }),
 });
 export type ResourcesDraft = z.infer<typeof ResourcesSchema>;
 export const DEFAULT_RESOURCES: ResourcesDraft = {
@@ -94,6 +101,7 @@ export const DEFAULT_RESOURCES: ResourcesDraft = {
   evasion: 10,
   hope: { current: 2, max: 6 },
   proficiency: 1,
+  gold: { handfuls: 1, bags: 0, chests: 0 },
 };
 export function readResourcesFromStorage(id: string): ResourcesDraft {
   const parsedUnknown = storage.read<unknown>(

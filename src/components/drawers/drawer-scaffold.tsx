@@ -65,7 +65,7 @@ export function DrawerScaffold({
         >
           {children}
         </div>
-        <DrawerFooter>
+        <DrawerFooter className="pb-[max(env(safe-area-inset-bottom),0px)]">
           {footer ?? (
             <div className="flex items-center justify-end gap-2">
               <Button type="button" variant="outline" onClick={onCancel}>

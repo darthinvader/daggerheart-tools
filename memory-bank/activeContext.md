@@ -15,13 +15,14 @@ Changes implemented (recent):
 - Identity and Class/Subclass editors implemented as lazy-loaded Drawers (RHF + zod), with Save/Cancel and safe-area aware footers.
 - `/characters/new` generates a UUID and redirects to `/characters/$id`; characters index lists entries and links to New.
 - Mobile: Ensured drawers appear above the MobileNavBar by lowering navbar z-index to `z-40` and keeping drawers at `z-50`; confirmed footer safe-area padding prevents action buttons from being obscured.
+- Resources/Gold (Aug 11): Switched Gold controls to emoji tap-to-set with label-to-zero behavior. Narrowed rows for small phones, removed hint text, and used opacity to indicate selection. Emoji set updated for broad support: 🪙 for handfuls, 💰 for bags, 🧰 as a chest stand-in. Horizontal scroll removed in favor of wrapping.
 - Global bottom padding remains on `<main>` to avoid overlap with the navbar; drawers sized with 100dvh.
 - Character sheet mobile nav: Removed BottomActionBar and eliminated Play Mode; added a compact QuickJump section links bar.
 - Typecheck/build/tests pass consistently (chunk-size warnings accepted for now).
 
 Equipment drawer (Aug 11, 2025 - latest):
 
-- Replaced global Pack/Free toggle with per-tab Source filters on Primary and Secondary tabs: Default (slotstandard only), Homebrew (homebrew-only for slot), and All (primary + secondary + both homebrew lists).
+- Removed Pack mode entirely. Standardized on free-form selection with per-tab Source filters on Primary and Secondary tabs: Default (slot standard only), Homebrew (homebrew-only for slot), and All (primary + secondary + both homebrew lists).
 - Made Source controls larger and clearly selected using ToggleGroup variant="outline" and size="lg".
 - Added live counts to each Source option label (Default/Homebrew/All) so the effect is visible at a glance.
 - Added empty-state notice under lists when filters yield no items.

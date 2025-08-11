@@ -24,7 +24,7 @@ Updated: August 11, 2025 (latest)
 - Identity drawer implemented (RHF + zod) and lazy-loaded. Class/Subclass drawer added and lazy-loaded; `ClassCard` shows current selection and opens it.
 - Mobile navbar overlap fixed by setting navbar z-index to `z-40`; drawers render at `z-50` and include safe-area footer padding.
 - Domains drawer implemented with search and filters (domain/level/type) and non-submit Add/Remove to prevent auto-close; list rows show domain, level, type badge, costs, and tags; preview shows description; by-type summary counts surfaced on `DomainsCard`. Added autosave on drawer close and a Reset button to restore per-open baseline.
-- Resources show Hope as current/max with controls; migration from legacy numeric Hope supported.
+- Resources show Hope as current/max with controls; migration from legacy numeric Hope supported. Gold now uses emoji-based tap-to-set (0–9) with label-to-zero and opacity selection; rows are compact and wrap to fit small screens.
 - Mobile tabs: Tab lists are horizontally scrollable; tab triggers no longer stretch, improving swipe/scroll UX. Drawer description text referring to "Use Tab" removed from visual layout and kept as screen-reader-only.
 - Equipment & Inventory: Added `EquipmentCard` and `InventoryCard` sections with Edit buttons; drawers are lazy-loaded and wired to per-id localStorage. Equipment supports free-form selection (primary/secondary/armor) with concise stat previews; Inventory supports add-by-name and add-from-library with quantity steppers, Equipped toggle, and Location select.
 
@@ -64,7 +64,7 @@ Quality gates (Aug 11):
 
 Immediate priorities
 
-1. Equipment & Inventory drawers (pack mode + free mode) with validation and persistence
+1. Equipment & Inventory drawers (free-form only) with validation and persistence
 2. Character creation rules (multiclass at creation, starting card count enforcement)
 3. Character creation rules (multiclass at creation, starting card count enforcement)
 4. Additional code-splitting to reduce initial bundle
@@ -112,7 +112,7 @@ Technical health
 
 Target: Domain & Equipment drawers wired into per-id sheet
 Timeline: 1–2 weeks
-Deliverables: Equipment pack/free modes; schema validation and mobile-friendly drawers; begin code-splitting for heavy lists; continue trimming oversized UI files using analyzer output
+Deliverables: Equipment free-form mode; schema validation and mobile-friendly drawers; begin code-splitting for heavy lists; continue trimming oversized UI files using analyzer output
 
 ## Recent Progress Log
 
@@ -177,7 +177,7 @@ Deliverables: Equipment pack/free modes; schema validation and mobile-friendly d
 
 ### August 11, 2025 (latest)
 
-- Equipment drawer: Replaced global Pack/Free with per-tab Source filters (Default/Homebrew/All) on Primary and Secondary. Enlarged controls (outline, lg), added option counts, and an empty-state hint when filters hide all items. Fixed onValueChange to ignore empty values so lists update reliably. Accessibility: drawer scaffold now has a description wired via aria-describedby.
+- Equipment drawer: Replaced global Pack/Free with per-tab Source filters (Default/Homebrew/All) on Primary and Secondary and removed Pack mode entirely (free-form only). Enlarged controls (outline, lg), added option counts, and an empty-state hint when filters hide all items. Fixed onValueChange to ignore empty values so lists update reliably. Accessibility: drawer scaffold now has a description wired via aria-describedby.
 - Tests: Updated equipment drawer test to use Source=All for cross-slot behavior and to scope queries to visible tab panels. Full suite green locally.
 - Quality gates: Type-check PASS; Build PASS.
 

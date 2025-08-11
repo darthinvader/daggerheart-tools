@@ -23,6 +23,11 @@ export function EquipmentCard({ equipment, onEdit }: Props) {
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
           <button
             type="button"
+            aria-label={
+              primary
+                ? `Edit primary weapon: ${primary.name}`
+                : 'Select primary weapon'
+            }
             onClick={() => onEdit?.('primary')}
             className="min-w-0 text-left"
           >
@@ -61,6 +66,11 @@ export function EquipmentCard({ equipment, onEdit }: Props) {
           </button>
           <button
             type="button"
+            aria-label={
+              secondary
+                ? `Edit secondary weapon: ${secondary.name}`
+                : 'Select secondary weapon'
+            }
             onClick={() => onEdit?.('secondary')}
             className="min-w-0 text-left"
           >
@@ -99,6 +109,7 @@ export function EquipmentCard({ equipment, onEdit }: Props) {
           </button>
           <button
             type="button"
+            aria-label={armor ? `Edit armor: ${armor.name}` : 'Select armor'}
             onClick={() => onEdit?.('armor')}
             className="min-w-0 text-left"
           >
