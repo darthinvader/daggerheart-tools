@@ -5,6 +5,7 @@ import { Outlet, createRootRoute } from '@tanstack/react-router';
 import { MobileNavBar } from '@/components/mobile-nav';
 
 function RootComponent() {
+  const useDevTools = false;
   const Devtools = React.useMemo(
     () =>
       import.meta.env.DEV
@@ -21,7 +22,7 @@ function RootComponent() {
         <Outlet />
       </main>
       <MobileNavBar />
-      {Devtools ? (
+      {Devtools && useDevTools ? (
         <React.Suspense fallback={null}>
           <Devtools position="bottom-right" />
         </React.Suspense>

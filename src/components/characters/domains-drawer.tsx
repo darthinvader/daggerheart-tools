@@ -7,6 +7,7 @@ import * as React from 'react';
 import { AvailableCardsSection } from '@/components/characters/domains-drawer/available-cards-section';
 import { CreationCompleteToggle } from '@/components/characters/domains-drawer/creation-complete-toggle';
 import { DomainsFilterBar } from '@/components/characters/domains-drawer/domains-filter-bar';
+import { LoadoutFooter } from '@/components/characters/domains-drawer/loadout-footer';
 import { getLoadoutLimits } from '@/components/characters/domains-drawer/loadout-limits';
 import { LoadoutList } from '@/components/characters/domains-drawer/loadout-list';
 import { TabsHeader } from '@/components/characters/domains-drawer/tabs-header';
@@ -21,7 +22,6 @@ import { VaultList } from '@/components/characters/domains-drawer/vault-list';
 import { useBaselineSnapshot } from '@/components/characters/hooks/use-baseline-snapshot';
 import { useDrawerAutosaveOnClose } from '@/components/characters/hooks/use-drawer-autosave';
 import { DrawerScaffold } from '@/components/drawers/drawer-scaffold';
-import { Button } from '@/components/ui/button';
 import { Form, FormField } from '@/components/ui/form';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { filterCards as filterCardsShared } from '@/features/characters/logic';
@@ -198,34 +198,16 @@ function DomainsDrawerImpl({
         return submit();
       }}
       footer={
-        <div className="flex w-full items-center justify-between gap-2">
-          <div className="text-muted-foreground text-xs">
-            {/* * REVIEW: Final budget TBD. Showing read-only Recall Cost used. */}
-            Recall used: <span className="font-medium">{recallBudgetUsed}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => {
-                if (baselineRef.current) {
-                  form.reset(baselineRef.current);
-                }
-              }}
-            >
-              Reset
-            </Button>
-            <Button
-              type="submit"
-              onClick={() => {
-                skipAutoSaveRef.current = true;
-              }}
-              disabled={!form.formState.isValid}
-            >
-              Save
-            </Button>
-          </div>
-        </div>
+        <LoadoutFooter
+          recallBudgetUsed={recallBudgetUsed}
+          canSave={form.formState.isValid}
+          onReset={() => {
+            if (baselineRef.current) form.reset(baselineRef.current);
+          }}
+          onSaveClick={() => {
+            skipAutoSaveRef.current = true;
+          }}
+        />
       }
     >
       {/* Wrap content to suppress interactions while closing */}

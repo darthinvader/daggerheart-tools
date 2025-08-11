@@ -74,6 +74,7 @@ Small refactors (Aug 11, 2025):
 Aug 11, 2025 (later updates):
 
 - Introduced `prefetchOnIdle` helper at `src/features/characters/prefetch.ts` and used it in `src/routes/characters/$id.tsx` to warm the Domains drawer chunk during idle time.
+- Extended idle prefetch in `$id.tsx` to also warm Equipment and Inventory drawers during idle (snappier open, no behavior change).
 - Domains drawer: `HomebrewCardForm` is now lazy-loaded behind `Suspense` (no behavior change).
 - Inventory drawer: extracted `SlotRow` presenter to `src/components/characters/inventory/slot-row.tsx` and rewired usage to reduce duplication.
 - Equipment drawer: attempted lazy-load for homebrew forms but reverted to synchronous imports to keep tests reliable; behavior unchanged.
@@ -82,11 +83,18 @@ Latest analyzer snapshot (Aug 11, refreshed):
 
 - Top by size/loc (excluding data/schemas):
   - `src/components/characters/equipment-drawer.tsx` — 19.2 KB, 501 LOC, Cx 47
-  - `src/routes/characters/$id.tsx` — 19.9 KB, 566 LOC, Cx 15
-  - `src/components/characters/domains-drawer.tsx` — 14.8 KB, 350 LOC, Cx 22
+  - `src/routes/characters/$id.tsx` — 20.9 KB, 596 LOC, Cx 19 (after small additions)
+  - `src/components/characters/domains-drawer.tsx` — 14.2 KB, 332 LOC, Cx 22 (after LoadoutFooter extraction)
   - `src/components/characters/inventory-drawer.tsx` — 7.4 KB, 252 LOC, Cx 7
   - UI vendor-like shells remain large due to long lines (dropdown/menu/context-menu/sidebar).
   - Homebrew forms split: weapon ~7.5 KB (222 LOC), armor ~5.8 KB (164 LOC).
+
+Armor (mobile) UI updates (Aug 11):
+
+- Expanded drawer source to include non-standard armor (ALL_ARMOR), so special armor appears in search and selection.
+- Enhanced ArmorChips to surface Material and a “Special” badge; made Base score and Major/Severe thresholds visually prominent for small screens.
+- Unified UI by reusing ArmorChips in drawer list items and the Equipment card, ensuring consistent badges/values.
+- Validations: type-check PASS, build PASS, tests PASS (24/24). Note: equipment drawer tests still emit non-blocking DialogContent description warnings; will address separately in a11y pass.
 
 A11y:
 

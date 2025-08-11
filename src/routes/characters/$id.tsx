@@ -135,6 +135,40 @@ function CharacterSheet() {
     };
   }, []);
 
+  // Warm up the Equipment drawer chunk during idle
+  React.useEffect(() => {
+    const cleanup = (async () => {
+      const { prefetchOnIdle } = await import('@/features/characters/prefetch');
+      return prefetchOnIdle(() => {
+        void import('@/components/characters/equipment-drawer');
+      });
+    })();
+    let disposer: undefined | (() => void);
+    cleanup.then(fn => {
+      if (typeof fn === 'function') disposer = fn;
+    });
+    return () => {
+      if (disposer) disposer();
+    };
+  }, []);
+
+  // Warm up the Inventory drawer chunk during idle
+  React.useEffect(() => {
+    const cleanup = (async () => {
+      const { prefetchOnIdle } = await import('@/features/characters/prefetch');
+      return prefetchOnIdle(() => {
+        void import('@/components/characters/inventory-drawer');
+      });
+    })();
+    let disposer: undefined | (() => void);
+    cleanup.then(fn => {
+      if (typeof fn === 'function') disposer = fn;
+    });
+    return () => {
+      if (disposer) disposer();
+    };
+  }, []);
+
   const [identity, setIdentity] =
     React.useState<IdentityDraft>(DEFAULT_IDENTITY);
   const [openIdentity, setOpenIdentity] = React.useState(false);

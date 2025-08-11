@@ -1,5 +1,6 @@
 import { CheckIcon } from 'lucide-react';
 
+import { ArmorChips } from '@/components/characters/equipment-chips';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
@@ -14,6 +15,9 @@ type Armor = {
   description?: string;
   features?: { name: string; description: string }[];
   metadata?: { homebrew?: boolean };
+  // Optional special fields from SpecialArmor
+  isStandard?: boolean;
+  materialType?: string;
 };
 
 export function ArmorListItem({
@@ -50,35 +54,10 @@ export function ArmorListItem({
               </Badge>
             ) : null}
           </div>
-          <div className="text-muted-foreground mt-0.5 flex flex-wrap gap-1 text-xs">
-            <Badge variant="outline" className="px-1 py-0 text-[10px]">
-              Base {armor.baseScore}
-            </Badge>
-            <Badge variant="outline" className="px-1 py-0 text-[10px]">
-              M{armor.baseThresholds.major}/S{armor.baseThresholds.severe}
-            </Badge>
-            {typeof armor.evasionModifier === 'number' ? (
-              <Badge variant="outline" className="px-1 py-0 text-[10px]">
-                Evasion{' '}
-                {armor.evasionModifier >= 0
-                  ? `+${armor.evasionModifier}`
-                  : armor.evasionModifier}
-              </Badge>
-            ) : null}
-            {typeof armor.agilityModifier === 'number' ? (
-              <Badge variant="outline" className="px-1 py-0 text-[10px]">
-                Agility{' '}
-                {armor.agilityModifier >= 0
-                  ? `+${armor.agilityModifier}`
-                  : armor.agilityModifier}
-              </Badge>
-            ) : null}
-            {armor.armorType ? (
-              <Badge variant="outline" className="px-1 py-0 text-[10px]">
-                {armor.armorType}
-              </Badge>
-            ) : null}
-          </div>
+          <ArmorChips
+            armor={armor as unknown as import('@/lib/schemas/equipment').Armor}
+            size="xs"
+          />
           {armor.features?.length ? (
             <ul className="text-muted-foreground mt-1 list-disc space-y-0.5 pl-5 text-[11px]">
               {armor.features.map((f, i) => (

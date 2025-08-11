@@ -1,7 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { EquipmentLoadout } from '@/lib/schemas/equipment';
+import type { Armor, EquipmentLoadout, Weapon } from '@/lib/schemas/equipment';
 
 import { ArmorChips, WeaponChips } from './equipment-chips';
 
@@ -11,9 +11,9 @@ type Props = {
 };
 
 export function EquipmentCard({ equipment, onEdit }: Props) {
-  const primary = equipment?.primaryWeapon;
-  const secondary = equipment?.secondaryWeapon;
-  const armor = equipment?.armor;
+  const primary = equipment?.primaryWeapon as Weapon | undefined;
+  const secondary = equipment?.secondaryWeapon as Weapon | undefined;
+  const armor = equipment?.armor as Armor | undefined;
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between gap-2">
@@ -33,6 +33,11 @@ export function EquipmentCard({ equipment, onEdit }: Props) {
             {primary ? (
               <div className="flex items-center gap-2 truncate font-medium">
                 {primary.name}
+                {primary.metadata?.homebrew ? (
+                  <Badge variant="outline" className="px-1 py-0 text-[10px]">
+                    Homebrew
+                  </Badge>
+                ) : null}
                 <Badge variant="secondary" className="px-1 py-0 text-[10px]">
                   T{primary.tier}
                 </Badge>
@@ -66,6 +71,11 @@ export function EquipmentCard({ equipment, onEdit }: Props) {
             {secondary ? (
               <div className="flex items-center gap-2 truncate font-medium">
                 {secondary.name}
+                {secondary.metadata?.homebrew ? (
+                  <Badge variant="outline" className="px-1 py-0 text-[10px]">
+                    Homebrew
+                  </Badge>
+                ) : null}
                 <Badge variant="secondary" className="px-1 py-0 text-[10px]">
                   T{secondary.tier}
                 </Badge>
@@ -99,6 +109,11 @@ export function EquipmentCard({ equipment, onEdit }: Props) {
             {armor ? (
               <div className="flex items-center gap-2 truncate font-medium">
                 {armor.name}
+                {armor.metadata?.homebrew ? (
+                  <Badge variant="outline" className="px-1 py-0 text-[10px]">
+                    Homebrew
+                  </Badge>
+                ) : null}
                 <Badge variant="secondary" className="px-1 py-0 text-[10px]">
                   T{armor.tier}
                 </Badge>
@@ -107,10 +122,9 @@ export function EquipmentCard({ equipment, onEdit }: Props) {
               <div className="text-muted-foreground">Select armor</div>
             )}
             {armor ? <ArmorChips armor={armor} /> : null}
-            {armor &&
-            (armor as unknown as { description?: string })?.description ? (
+            {armor?.description ? (
               <div className="text-muted-foreground mt-1 text-[11px]">
-                {(armor as unknown as { description?: string }).description}
+                {armor.description}
               </div>
             ) : null}
             {armor?.features?.length ? (

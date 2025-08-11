@@ -456,6 +456,13 @@ Companion
 - Equipment Drawer: Replaced global Pack/Free control with per-tab Source filters for Weapons tabs (Primary/Secondary): Default (slot standard), Homebrew (homebrew-only), All (primary + secondary + homebrew). Controls enlarged (outline, lg), added option counts in labels, and empty-state hint when no results. Fixed toggle onValueChange to ignore empty values so selection always applies. Added a drawer description for a11y via aria-describedby.
 - Tests: Stabilized the cross-slot listing test to use Source=All and scoped queries to visible tab panels to avoid hidden content. All tests pass locally.
 
+#### 2025-08-11 (later) — Armor mobile display parity
+
+- Changed Equipment drawer armor source from ONLY standard to ALL_ARMOR to include special/non-standard armor.
+- Upgraded ArmorChips to show Material and a Special badge; made Base score and thresholds visually prominent (mobile readability).
+- Drawer list items now reuse ArmorChips; Equipment card already uses ArmorChips, achieving consistent presentation across contexts.
+- Validation: type-check PASS; build PASS; tests PASS (24/24). Pending: address DialogContent description warnings in separate a11y task.
+
 ### 2025-08-11 (later)
 
 - Equipment drawer: Added a "Current" selection strip at the top of each tab (Primary/Secondary/Armor) with quick Clear action and attribute badges. Included small icons for trait, range, damage, and burden to improve scannability on mobile. Save behavior unchanged (uses DrawerScaffold default footer). Typecheck/build PASS.

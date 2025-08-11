@@ -42,12 +42,15 @@ Refactors and reductions (Aug 11, 2025 - later)
 
 - Extracted `SlotRow` for inventory rows and integrated into `inventory-drawer.tsx` to remove duplicated markup.
 - Added `prefetchOnIdle` helper under `src/features/characters/prefetch.ts` and used in `src/routes/characters/$id.tsx` to warm Domains drawer chunk during idle.
+- Extended idle prefetch in `$id.tsx` to warm Equipment and Inventory drawers as well.
 - Domains drawer: `HomebrewCardForm` lazy-loaded behind `Suspense` (no behavior change).
 - Equipment drawer: Attempted lazy-load for homebrew forms, but reverted to synchronous imports to keep tests stable. Maintains behavior parity.
+- Extracted `LoadoutFooter` from `domains-drawer.tsx` into `domains-drawer/loadout-footer.tsx`, shrinking the main file.
 
 Analyzer (latest run on Aug 11, refreshed):
 
 - By size: `$id.tsx` 19.9 KB; `equipment-drawer.tsx` 19.2 KB; `domains-drawer.tsx` 14.8 KB; `inventory-drawer.tsx` 7.4 KB.
+  Updated after this change: `$id.tsx` 20.9 KB (prefetch additions), `domains-drawer.tsx` 14.2 KB (footer extracted).
 - By LOC: `$id.tsx` 566; `equipment-drawer.tsx` 501; `domains-drawer.tsx` 350; `inventory-drawer.tsx` 252.
 - Homebrew forms: `homebrew-weapon-form.tsx` 7.5 KB/222 LOC; `homebrew-armor-form.tsx` 5.8 KB/164 LOC.
 
@@ -181,5 +184,13 @@ Deliverables: Equipment pack/free modes; schema validation and mobile-friendly d
 ### August 11, 2025 (later 2)
 
 - Equipment & Inventory drawers wired to the route with RHF and persistence; cards summarize selections and equipped items.
+
+### August 11, 2025 (later 7)
+
+- Armor (mobile) parity and visibility improvements:
+  - Drawer now lists both standard and special armor by switching to ALL_ARMOR as the source.
+  - ArmorChips updated to emphasize Base score and thresholds and to show Material and a “Special” badge when applicable.
+  - Drawer list items now reuse ArmorChips for the same look/labels as the Equipment card.
+  - Quality gates: Type-check PASS; Build PASS; Tests PASS (24/24). Non-blocking a11y warnings remain for DialogContent description and are tracked for a future pass.
 - Resources: HP thresholds UI added with read-only chips. New test `tests/resources-card.test.tsx` verifies rendering.
 - Full test suite green locally; build and type-check pass.

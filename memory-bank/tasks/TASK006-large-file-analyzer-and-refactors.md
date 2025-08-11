@@ -50,6 +50,8 @@ Overall Status: In Progress - 88%
 | 1.17 | Add prefetchOnIdle helper and use in route              | Complete | 2025-08-11 | Warms Domains drawer chunk      |
 | 1.18 | Lazy-load Domains HomebrewCardForm                      | Complete | 2025-08-11 | Suspense-wrapped, no UX change  |
 | 1.19 | Attempt lazy-load Equipment homebrew forms              | Complete | 2025-08-11 | Reverted to keep tests green    |
+| 1.20 | Extract Domains LoadoutFooter                           | Complete | 2025-08-11 | Footer moved; main file shrank  |
+| 1.21 | Prefetch Equipment & Inventory drawers on idle          | Complete | 2025-08-11 | Faster open; no behavior change |
 
 ## Progress Log
 
@@ -65,6 +67,7 @@ Overall Status: In Progress - 88%
 - Source filter deduped via `SourceFilterToggle`; then rewired primary/secondary/armor lists to use `WeaponListItem` and `ArmorListItem`. Drawer now at ~26.6 KB, 650 LOC, Cx 41; fanOut 12. All tests pass.
 - Fixed analyzer `--md/--json --outDir` bug (space-separated flags) and mkdirp for outDir; reports now write to `coverage/size-report.{json,md}`.
 - Extracted route export/import dropdown to `CharacterJsonMenu` component; `$id.tsx` dropped to ~20.2 KB, 573 LOC, Cx 19.
+- Added idle prefetch for Equipment and Inventory drawers in `$id.tsx`. Analyzer now reports `$id.tsx` at ~20.9 KB / 596 LOC (expected small increase), while `domains-drawer.tsx` decreased to ~14.2 KB / 332 LOC after extracting `LoadoutFooter` to `domains-drawer/loadout-footer.tsx`.
 
 ## Next Steps
 

@@ -16,9 +16,9 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { EquipmentDraft } from '@/features/characters/storage';
 import {
+  ALL_ARMOR,
   ALL_PRIMARY_WEAPONS,
   ALL_SECONDARY_WEAPONS,
-  ALL_STANDARD_ARMOR,
 } from '@/lib/data/equipment';
 
 export type EquipmentDrawerProps = {
@@ -66,7 +66,7 @@ function EquipmentDrawerImpl({
 
   // Homebrew lists scoped to drawer session
   type MinimalWeapon = (typeof ALL_PRIMARY_WEAPONS)[number];
-  type MinimalArmor = (typeof ALL_STANDARD_ARMOR)[number];
+  type MinimalArmor = (typeof ALL_ARMOR)[number];
   const [homebrewPrimary, setHomebrewPrimary] = React.useState<MinimalWeapon[]>(
     []
   );
@@ -127,7 +127,7 @@ function EquipmentDrawerImpl({
     return [...ALL_SECONDARY_WEAPONS];
   }, [secondarySourceFilter, homebrewPrimary, homebrewSecondary]);
   const armorSource = React.useMemo(
-    () => ALL_STANDARD_ARMOR.concat(homebrewArmor),
+    () => ALL_ARMOR.concat(homebrewArmor),
     [homebrewArmor]
   );
 
@@ -203,7 +203,7 @@ function EquipmentDrawerImpl({
     () =>
       Array.from(
         new Set(
-          ALL_STANDARD_ARMOR.map(a =>
+          ALL_ARMOR.map(a =>
             String((a as unknown as { armorType?: string }).armorType || '')
           )
         )

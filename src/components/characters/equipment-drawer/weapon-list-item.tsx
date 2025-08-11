@@ -1,5 +1,6 @@
 import { CheckIcon } from 'lucide-react';
 
+import { WeaponChips } from '@/components/characters/equipment-chips';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
@@ -51,24 +52,12 @@ export function WeaponListItem({
             ) : null}
           </div>
           <div className="text-muted-foreground mt-0.5 flex flex-wrap gap-1 text-xs">
-            <Badge variant="outline" className="px-1 py-0 text-[10px]">
-              {weapon.trait}
-            </Badge>
-            <Badge variant="outline" className="px-1 py-0 text-[10px]">
-              {weapon.range}
-            </Badge>
-            <Badge
-              variant="outline"
-              className="px-1 py-0 text-[10px]"
-            >{`${weapon.damage.count}d${weapon.damage.diceType}${weapon.damage.modifier ? `+${weapon.damage.modifier}` : ''} ${weapon.damage.type}`}</Badge>
-            <Badge variant="outline" className="px-1 py-0 text-[10px]">
-              {weapon.burden}
-            </Badge>
-            {weapon.domainAffinity ? (
-              <Badge variant="outline" className="px-1 py-0 text-[10px]">
-                {weapon.domainAffinity}
-              </Badge>
-            ) : null}
+            <WeaponChips
+              weapon={
+                weapon as unknown as import('@/lib/schemas/equipment').Weapon
+              }
+              size="xs"
+            />
           </div>
           {weapon.features?.length ? (
             <ul className="text-muted-foreground mt-1 list-disc space-y-0.5 pl-5 text-[11px]">
