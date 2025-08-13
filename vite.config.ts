@@ -27,29 +27,7 @@ export default defineConfig({
         ]
       : []),
   ],
-  build: {
-    rollupOptions: {
-      output: {
-        // Disabled custom manualChunks temporarily to debug runtime error:
-        // "forwardRef of undefined" seen in the vendor-radix chunk on prod hosts.
-        // Hypothesis: overly aggressive splitting isolates React internals / symbol hoisting
-        // order so Radix gets an incomplete namespace import when executed early.
-        // If removing manualChunks fixes the issue, we can reintroduce a safer
-        // strategy (e.g., only group large, self-contained libs) or rely on default.
-        // manualChunks(id) {
-        //   if (!id.includes('node_modules')) return undefined;
-        //   if (id.includes('/react-day-picker')) return 'vendor-daypicker';
-        //   if (id.includes('/recharts')) return 'vendor-recharts';
-        //   if (id.includes('/@radix-ui/')) return 'vendor-radix';
-        //   if (id.includes('/@tanstack/')) return 'vendor-tanstack';
-        //   if (id.includes('/lucide-react')) return 'vendor-icons';
-        //   if (id.includes('/cmdk')) return 'vendor-cmdk';
-        //   if (id.includes('/react/')) return 'vendor-react';
-        //   return 'vendor';
-        // },
-      },
-    },
-  },
+
   resolve: {
     alias: {
       // __dirname is not available in ESM; derive it from the current module URL
