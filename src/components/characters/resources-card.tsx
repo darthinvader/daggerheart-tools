@@ -5,11 +5,13 @@ export type Score = { current: number; max: number };
 
 export type ResourcesCardProps = {
   id?: string;
-  resources: { hp: Score; stress: Score };
+  resources: { hp: Score; stress: Score; hope: Score };
   updateHp: (delta: number) => void;
   updateHpMax: (delta: number) => void;
   updateStress: (delta: number) => void;
   updateStressMax: (delta: number) => void;
+  updateHope: (delta: number) => void;
+  updateHopeMax: (delta: number) => void;
 };
 
 export function ResourcesCard({
@@ -19,6 +21,8 @@ export function ResourcesCard({
   updateHpMax,
   updateStress,
   updateStressMax,
+  updateHope,
+  updateHopeMax,
 }: ResourcesCardProps) {
   // NOTE: Placeholder thresholds. REVIEW: incorporate armor/equipment modifiers when model is available.
   const majorHp = Math.max(0, Math.floor(resources.hp.max / 2));
@@ -131,6 +135,56 @@ export function ResourcesCard({
                 size="icon"
                 variant="ghost"
                 onClick={() => updateStressMax(1)}
+              >
+                +
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Hope Controls */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="text-sm">
+            <div className="font-medium">Hope</div>
+            <div className="text-muted-foreground text-xs">
+              Max {resources.hope.max}
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              aria-label="Decrease Hope"
+              size="sm"
+              variant="outline"
+              onClick={() => updateHope(-1)}
+            >
+              -
+            </Button>
+            <div className="min-w-12 text-center tabular-nums">
+              {resources.hope.current}
+            </div>
+            <Button
+              aria-label="Increase Hope"
+              size="sm"
+              variant="outline"
+              onClick={() => updateHope(1)}
+            >
+              +
+            </Button>
+            <div className="text-muted-foreground ml-2 flex items-center gap-1 text-xs">
+              <Button
+                aria-label="Decrease Hope max"
+                size="icon"
+                variant="ghost"
+                onClick={() => updateHopeMax(-1)}
+              >
+                -
+              </Button>
+              <span>max</span>
+              <Button
+                aria-label="Increase Hope max"
+                size="icon"
+                variant="ghost"
+                onClick={() => updateHopeMax(1)}
               >
                 +
               </Button>

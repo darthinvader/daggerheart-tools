@@ -85,6 +85,7 @@ export function LibraryResultsList({
                       type="button"
                       size="icon"
                       variant="outline"
+                      className="h-6 w-6 text-xs"
                       onClick={() => onDecrement(it.name)}
                       aria-label="Decrease quantity"
                     >
@@ -97,6 +98,7 @@ export function LibraryResultsList({
                       type="button"
                       size="icon"
                       variant="outline"
+                      className="h-6 w-6 text-xs"
                       onClick={() => onAdd(it.name)}
                       aria-label="Increase quantity"
                     >
@@ -105,6 +107,7 @@ export function LibraryResultsList({
                     <Button
                       type="button"
                       size="sm"
+                      className="h-6 px-2 text-xs"
                       variant={equipped ? 'default' : 'outline'}
                       onClick={() => onToggleEquipped(it.name)}
                       aria-label="Toggle equipped"
@@ -114,6 +117,7 @@ export function LibraryResultsList({
                     <Button
                       type="button"
                       size="sm"
+                      className="h-6 px-2 text-xs"
                       variant="ghost"
                       onClick={() => onRemoveAll(it.name)}
                       aria-label="Remove from inventory"
@@ -125,6 +129,7 @@ export function LibraryResultsList({
                   <Button
                     type="button"
                     size="sm"
+                    className="h-6 px-2 text-xs"
                     onClick={() => onAdd(it.name)}
                     aria-label="Add to inventory"
                   >

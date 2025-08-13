@@ -41,6 +41,62 @@ export function DrawerScaffold({
     ? ''
     : 'pointer-events-none touch-none overflow-hidden';
   const descriptionId = React.useId();
+  // Track history state pushed for this drawer session to intercept back button
+  const pushedRef = React.useRef(false);
+  const closingByPopRef = React.useRef(false);
+  const popHandlerRef = React.useRef<((e: PopStateEvent) => void) | null>(null);
+  // Push a history state when opening so a single Back closes the drawer
+  React.useEffect(() => {
+    if (open && !pushedRef.current && typeof window !== 'undefined') {
+      try {
+        window.history.pushState({ __drawer__: true }, '');
+        pushedRef.current = true;
+        const handler = () => {
+          // When user presses back, close the drawer instead of navigating away
+          closingByPopRef.current = true;
+          onOpenChange(false);
+        };
+        popHandlerRef.current = handler as unknown as (
+          e: PopStateEvent
+        ) => void;
+        window.addEventListener('popstate', handler as EventListener);
+      } catch {
+        // ignore history errors (older browsers or restricted environments)
+      }
+    }
+    // When closing via UI, consume our pushed state to keep history clean
+    if (!open && pushedRef.current && typeof window !== 'undefined') {
+      try {
+        // Remove listener before navigating back to avoid double-calls
+        if (popHandlerRef.current) {
+          window.removeEventListener(
+            'popstate',
+            popHandlerRef.current as unknown as EventListener
+          );
+        }
+        popHandlerRef.current = null;
+        // Only navigate back if this close was not initiated by a popstate event
+        if (!closingByPopRef.current) {
+          window.history.back();
+        }
+        // Reset flags after consuming state
+        pushedRef.current = false;
+        closingByPopRef.current = false;
+      } catch {
+        // ignore
+      }
+    }
+    return () => {
+      // Cleanup listeners if component unmounts while drawer open
+      if (popHandlerRef.current) {
+        window.removeEventListener(
+          'popstate',
+          popHandlerRef.current as unknown as EventListener
+        );
+        popHandlerRef.current = null;
+      }
+    };
+  }, [open, onOpenChange]);
   return (
     <Drawer open={open} onOpenChange={onOpenChange} direction="bottom">
       <DrawerContent

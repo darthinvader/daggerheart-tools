@@ -543,11 +543,17 @@ function CharacterSheet() {
         >
           <ResourcesCard
             id="resources"
-            resources={{ hp: resources.hp, stress: resources.stress }}
+            resources={{
+              hp: resources.hp,
+              stress: resources.stress,
+              hope: resources.hope,
+            }}
             updateHp={updateHp}
             updateHpMax={updateHpMax}
             updateStress={updateStress}
             updateStressMax={updateStressMax}
+            updateHope={delta => updateHope(delta)}
+            updateHopeMax={delta => updateHopeMax(delta)}
           />
         </section>
 
@@ -560,12 +566,9 @@ function CharacterSheet() {
           <CoreScoresCard
             scores={{
               evasion: resources.evasion,
-              hope: resources.hope,
               proficiency: resources.proficiency,
             }}
             updateEvasion={delta => updateNumber('evasion', delta, 0)}
-            updateHope={delta => updateHope(delta)}
-            updateHopeMax={delta => updateHopeMax(delta)}
             updateProficiency={delta => updateNumber('proficiency', delta, 1)}
           />
         </section>

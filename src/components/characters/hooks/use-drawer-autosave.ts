@@ -3,9 +3,6 @@ import * as React from 'react';
 type AutosaveArgs = {
   open: boolean;
   trigger: () => Promise<boolean> | boolean;
-  creationComplete: boolean;
-  currentLoadoutCount: number;
-  startingLimit: number;
   submit: () => void | Promise<void>;
   skipRef: React.MutableRefObject<boolean>;
 };
@@ -14,9 +11,6 @@ type AutosaveArgs = {
 export function useDrawerAutosaveOnClose({
   open,
   trigger,
-  creationComplete,
-  currentLoadoutCount,
-  startingLimit,
   submit,
   skipRef,
 }: AutosaveArgs) {
@@ -27,10 +21,8 @@ export function useDrawerAutosaveOnClose({
       const shouldSkip = skipRef.current;
       skipRef.current = false;
 
-      const withinLimit =
-        creationComplete || currentLoadoutCount <= startingLimit;
-
-      if (!shouldSkip && withinLimit) {
+      // Always attempt to save on close unless explicitly skipped
+      if (!shouldSkip) {
         // Defer validation + submit until after close animation / when idle
         const w = window as unknown as {
           requestIdleCallback?: (
@@ -63,13 +55,5 @@ export function useDrawerAutosaveOnClose({
       }
     }
     prevOpenRef.current = open;
-  }, [
-    open,
-    creationComplete,
-    currentLoadoutCount,
-    startingLimit,
-    submit,
-    trigger,
-    skipRef,
-  ]);
+  }, [open, submit, trigger, skipRef]);
 }

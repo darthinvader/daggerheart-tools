@@ -157,9 +157,6 @@ function DomainsDrawerImpl({
   useDrawerAutosaveOnClose({
     open,
     trigger: () => form.trigger(),
-    creationComplete,
-    currentLoadoutCount: currentLoadout.length,
-    startingLimit,
     submit: () => submit(),
     skipRef: skipAutoSaveRef,
   });
@@ -188,7 +185,11 @@ function DomainsDrawerImpl({
         else if (next) clearClosing();
         onOpenChange(next);
       }}
-      title="Manage Domains & Loadout"
+      title={
+        <span className="text-base leading-snug break-words">
+          Manage Domains & Loadout
+        </span>
+      }
       onCancel={() => {
         skipAutoSaveRef.current = true;
         onCancel();
@@ -207,6 +208,7 @@ function DomainsDrawerImpl({
           onSaveClick={() => {
             skipAutoSaveRef.current = true;
           }}
+          formId="domains-drawer-form"
         />
       }
     >
@@ -217,7 +219,12 @@ function DomainsDrawerImpl({
         }
       >
         <Form {...form}>
-          <form className="space-y-4" onSubmit={submit} noValidate>
+          <form
+            id="domains-drawer-form"
+            className="space-y-4"
+            onSubmit={submit}
+            noValidate
+          >
             <Tabs
               value={activeTab}
               onValueChange={v => setActiveTab(v as typeof activeTab)}

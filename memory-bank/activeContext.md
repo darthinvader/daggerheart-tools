@@ -29,6 +29,15 @@ Changes implemented (recent):
 
 Equipment drawer (Aug 11, 2025 - latest):
 
+Aug 13, 2025 (UX polish):
+
+- Drawers: Added back-button interception. When a drawer opens, we push a history state and close the drawer on popstate. Pressing Back on mobile now closes the drawer first instead of navigating away. Implemented in `src/components/drawers/drawer-scaffold.tsx` with safe cleanup to avoid double back.
+- Equipment > Armor filters: Simplified the “Mods” filter from multi-select toggles to explicit checkboxes: “Only show armor that modifies: Evasion, Agility”. Clearer mental model and more compact on mobile. File: `equipment-drawer/armor-filters-toolbar.tsx`.
+- Resources/Core: Moved Hope from Core Scores into Resources. Resources now manages HP, Stress, and Hope (each with current/max). Core Scores now shows Evasion and Proficiency only. Route wiring updated accordingly and tests adjusted.
+- Inventory visibility: Added an “Inventory Items” subheader and a divider before the Equipped summary so users can distinguish the sections at a glance.
+- Inventory list parity: Normalized action button sizes in the Inventory drawer results list to match the Inventory card controls (smaller h-6 icon/sm buttons), improving consistency.
+- Identity editor: Converted Description to a multi-line textarea and kept Calling as a dedicated input to better guide players.
+
 - Removed Pack mode entirely. Standardized on free-form selection with per-tab Source filters on Primary and Secondary tabs: Default (slot standard only), Homebrew (homebrew-only for slot), and All (primary + secondary + both homebrew lists).
 - Made Source controls larger and clearly selected using ToggleGroup variant="outline" and size="lg".
 - Added live counts to each Source option label (Default/Homebrew/All) so the effect is visible at a glance.

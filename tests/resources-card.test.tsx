@@ -8,11 +8,17 @@ import {
 
 describe('ResourcesCard thresholds', () => {
   const baseProps: ResourcesCardProps = {
-    resources: { hp: { current: 10, max: 20 }, stress: { current: 0, max: 6 } },
+    resources: {
+      hp: { current: 10, max: 20 },
+      stress: { current: 0, max: 6 },
+      hope: { current: 0, max: 3 },
+    },
     updateHp: () => {},
     updateHpMax: () => {},
     updateStress: () => {},
     updateStressMax: () => {},
+    updateHope: () => {},
+    updateHopeMax: () => {},
   };
 
   it('renders computed Major and Severe thresholds', () => {

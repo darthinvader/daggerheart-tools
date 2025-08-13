@@ -1,4 +1,4 @@
-// no React value usage needed here
+import { Checkbox } from '@/components/ui/checkbox';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 export type ArmorFiltersToolbarProps = {
@@ -62,24 +62,26 @@ export function ArmorFiltersToolbar({
           <ToggleGroupItem value="4">T4</ToggleGroupItem>
         </ToggleGroup>
       </div>
-      <div className="flex min-w-0 items-center gap-1">
-        <span className="text-muted-foreground shrink-0">Mods:</span>
-        <ToggleGroup
-          type="multiple"
-          // encode boolean toggles into a small multi-select
-          value={[
-            withEvasionMod ? 'evasion' : '',
-            withAgilityMod ? 'agility' : '',
-          ].filter(Boolean)}
-          onValueChange={vals => {
-            onWithEvasionModChange(vals.includes('evasion'));
-            onWithAgilityModChange(vals.includes('agility'));
-          }}
-          className="flex flex-wrap gap-1"
-        >
-          <ToggleGroupItem value="evasion">Evasion ≠ 0</ToggleGroupItem>
-          <ToggleGroupItem value="agility">Agility ≠ 0</ToggleGroupItem>
-        </ToggleGroup>
+      <div className="flex min-w-0 items-center gap-2">
+        <span className="text-muted-foreground shrink-0">
+          Only show armor that modifies:
+        </span>
+        <div className="flex items-center gap-3">
+          <label className="inline-flex items-center gap-1">
+            <Checkbox
+              checked={withEvasionMod}
+              onCheckedChange={v => onWithEvasionModChange(!!v)}
+            />
+            <span>Evasion</span>
+          </label>
+          <label className="inline-flex items-center gap-1">
+            <Checkbox
+              checked={withAgilityMod}
+              onCheckedChange={v => onWithAgilityModChange(!!v)}
+            />
+            <span>Agility</span>
+          </label>
+        </div>
       </div>
     </div>
   );

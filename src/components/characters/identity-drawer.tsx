@@ -8,6 +8,13 @@ import { FormInput } from '@/components/forms/form-input';
 import { FormSelect } from '@/components/forms/form-select';
 import type { ComboboxItem } from '@/components/ui/combobox';
 import { Form } from '@/components/ui/form';
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from '@/components/ui/form';
+import { Textarea } from '@/components/ui/textarea';
 
 // Using CSS dynamic viewport units (dvh) for correct keyboard interactions
 
@@ -76,11 +83,22 @@ function IdentityDrawerImpl({
               items={communityItems}
             />
           </div>
-          <FormInput<IdentityFormValues, 'description'>
+          <FormField<IdentityFormValues, 'description'>
             name="description"
-            label="Description"
-            placeholder="Appearance, demeanor, goals..."
-            inputMode="text"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Description</FormLabel>
+                <FormControl>
+                  <Textarea
+                    {...(field as unknown as React.ComponentProps<
+                      typeof Textarea
+                    >)}
+                    placeholder="Appearance, demeanor, goals..."
+                    rows={3}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
           />
           <FormInput<IdentityFormValues, 'calling'>
             name="calling"

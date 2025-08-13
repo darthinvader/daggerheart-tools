@@ -149,6 +149,9 @@ export function InventoryCard({
         {/* Detailed items list (scrollable) */}
         {slots.length ? (
           <div className="max-h-[45dvh] overflow-auto">
+            <div className="text-muted-foreground mb-1 text-[11px] tracking-wide uppercase">
+              Inventory Items
+            </div>
             <ul className="divide-border divide-y">
               {slots.map((s, i) => {
                 const emoji = getEmoji(
@@ -323,10 +326,12 @@ export function InventoryCard({
           <div className="text-muted-foreground text-sm">No items yet.</div>
         )}
 
-        <EquippedList
-          items={equipped as Array<{ item: Item }>}
-          getEmoji={getEmoji}
-        />
+        <div className="mt-3 border-t pt-2">
+          <EquippedList
+            items={equipped as Array<{ item: Item }>}
+            getEmoji={getEmoji}
+          />
+        </div>
       </CardContent>
       {/* Removal confirmation dialog */}
       <AlertDialog

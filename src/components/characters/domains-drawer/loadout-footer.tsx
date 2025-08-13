@@ -5,6 +5,7 @@ export type LoadoutFooterProps = {
   canSave: boolean;
   onReset: () => void;
   onSaveClick: () => void;
+  formId?: string;
 };
 
 export function LoadoutFooter({
@@ -12,6 +13,7 @@ export function LoadoutFooter({
   canSave,
   onReset,
   onSaveClick,
+  formId,
 }: LoadoutFooterProps) {
   return (
     <div className="flex w-full items-center justify-between gap-2">
@@ -22,7 +24,12 @@ export function LoadoutFooter({
         <Button type="button" variant="ghost" onClick={onReset}>
           Reset
         </Button>
-        <Button type="submit" onClick={onSaveClick} disabled={!canSave}>
+        <Button
+          type="submit"
+          form={formId}
+          onClick={onSaveClick}
+          disabled={!canSave}
+        >
           Save
         </Button>
       </div>

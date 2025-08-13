@@ -50,7 +50,7 @@ function DomainCardItemImpl({
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="text-sm font-semibold break-words">
+          <div className="text-[13px] leading-snug font-semibold break-words">
             <span className="mr-1" aria-hidden>
               {emoji}
             </span>
