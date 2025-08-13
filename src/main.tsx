@@ -11,6 +11,18 @@ import { routeTree } from './routeTree.gen';
 
 const router = createRouter({ routeTree });
 
+// Boot diagnostics: expose a marker to confirm script executed in production
+if (typeof window !== 'undefined') {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (window as any).__APP_BOOT__ = {
+    ts: Date.now(),
+    routes: Object.keys(router.routesById),
+  };
+  // Keep log concise; helps verify hydration
+  // eslint-disable-next-line no-console, @typescript-eslint/no-explicit-any
+  console.log('[app] boot', (window as any).__APP_BOOT__);
+}
+
 declare module '@tanstack/react-router' {
   interface Register {
     router: typeof router;
