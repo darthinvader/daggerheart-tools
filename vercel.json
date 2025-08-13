@@ -1,12 +1,12 @@
 {
   "version": 2,
+  "framework": "vite",
   "buildCommand": "pnpm build",
   "outputDirectory": "dist",
   "installCommand": "pnpm install --frozen-lockfile",
-  "framework": null,
   "routes": [
     { "handle": "filesystem" },
-    { "src": "/.*", "dest": "/index.html" }
+    { "src": "/[^.]*", "dest": "/index.html" }
   ],
   "cleanUrls": true,
   "trailingSlash": false
