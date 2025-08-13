@@ -1,6 +1,6 @@
 # Active Context - Daggerheart Tools
 
-Updated: August 13, 2025
+Updated: August 14, 2025
 
 ## Current Work Focus
 
@@ -65,6 +65,18 @@ Code structure and size improvements (Aug 11, 2025):
     Result: domains-drawer.tsx down to ~15.1 KB.
 
 We're focused on the core data models and validation schemas, while incrementally wiring the mobile-first character sheet with modular components and drawer editors.
+
+Aug 14, 2025 (latest):
+
+- Added ThresholdsCard below Resources and removed inline thresholds from ResourcesCard to keep one source of truth. Implemented `getThresholds` helper in `features/characters/logic/progression.ts` and basic progression helpers (tier, points, options, validator) with tests. Added storage keys for `level`, `progression`, and `features` with draft helpers for upcoming leveling flow.
+
+- Damage thresholds UX polish: Implemented a compact inline thresholds preview and a dedicated settings drawer with Auto vs Custom values. Added explicit Double Severe (DS) support with an optional Custom DS override controlled by a switch. Persisted `dsOverride` and `ds` in per-character storage with back-compat migration. Updated `classifyDamage` to accept an optional DS override parameter.
+
+- Replaced native browser alerts with app toasts: Mounted a global `Toaster` in the app root and swapped validation/cancel alerts in thresholds components for `toast` messages.
+
+- Layout: Inline thresholds header now left-aligned with a right-side edit icon; interleaved row centered as “1 | M≤X | 2 | S≤Y | 3 | DS≥Z | 4”. Drawer shows a compact summary instead of a wide table.
+
+- Quality gates: Typecheck PASS; tests PASS (37/37 at latest). Existing non-blocking a11y warnings for equipment drawer dialogs remain and are tracked for a later pass.
 
 Recent cleanups:
 

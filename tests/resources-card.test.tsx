@@ -6,7 +6,7 @@ import {
   type ResourcesCardProps,
 } from '../src/components/characters/resources-card';
 
-describe('ResourcesCard thresholds', () => {
+describe('ResourcesCard', () => {
   const baseProps: ResourcesCardProps = {
     resources: {
       hp: { current: 10, max: 20 },
@@ -21,10 +21,9 @@ describe('ResourcesCard thresholds', () => {
     updateHopeMax: () => {},
   };
 
-  it('renders computed Major and Severe thresholds', () => {
+  it('does not render thresholds inline (moved to ThresholdsCard)', () => {
     render(<ResourcesCard {...baseProps} />);
-    // Major = floor(20/2) = 10, Severe = floor(20/4) = 5
-    expect(screen.getByText(/Major ≤ 10/)).toBeInTheDocument();
-    expect(screen.getByText(/Severe ≤ 5/)).toBeInTheDocument();
+    expect(screen.queryByText(/Major ≤/)).toBeNull();
+    expect(screen.queryByText(/Severe ≤/)).toBeNull();
   });
 });

@@ -3,6 +3,7 @@ import * as React from 'react';
 import { Outlet, createRootRoute } from '@tanstack/react-router';
 
 import { MobileNavBar } from '@/components/mobile-nav';
+import { Toaster } from '@/components/ui/sonner';
 
 function RootComponent() {
   const useDevTools = false;
@@ -21,6 +22,7 @@ function RootComponent() {
       <main className="pb-[calc(4rem+max(env(safe-area-inset-bottom),0px)+24px)]">
         <Outlet />
       </main>
+      <Toaster />
       <MobileNavBar />
       {Devtools && useDevTools ? (
         <React.Suspense fallback={null}>

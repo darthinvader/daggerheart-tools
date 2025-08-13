@@ -558,6 +558,8 @@ function CharacterSheet() {
           />
         </section>
 
+        {/* Thresholds moved inline with Core Scores */}
+
         {/* Quick stats: Evasion, Hope, Proficiency */}
         <section
           id="core"
@@ -571,6 +573,8 @@ function CharacterSheet() {
             }}
             updateEvasion={delta => updateNumber('evasion', delta, 0)}
             updateProficiency={delta => updateNumber('proficiency', delta, 1)}
+            id={id}
+            updateHp={updateHp}
           />
         </section>
 

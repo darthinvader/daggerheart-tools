@@ -7,6 +7,10 @@ import {
   SubclassNameSchema,
 } from '@/lib/schemas/core';
 import {
+  CharacterProgressionSchema,
+  getTierForLevel,
+} from '@/lib/schemas/core';
+import {
   type EquipmentLoadout,
   EquipmentLoadoutSchema,
   type Inventory,
@@ -222,4 +226,148 @@ export function readInventoryFromStorage(id: string): InventoryDraft {
 }
 export function writeInventoryToStorage(id: string, value: InventoryDraft) {
   storage.write(keys.inventory(id), value);
+}
+
+// Level & progression
+export function readLevelFromStorage(id: string): number {
+  const n = storage.read<number>(keys.level(id), 1);
+  return Number.isFinite(n) && n >= 1 && n <= 10 ? n : 1;
+}
+export function writeLevelToStorage(id: string, value: number) {
+  const v = Math.max(1, Math.min(10, Math.floor(value)));
+  storage.write(keys.level(id), v);
+}
+
+export type FeatureSelections = Record<string, string | number | boolean>;
+
+export function readFeaturesFromStorage(id: string): FeatureSelections {
+  return storage.read(keys.features(id), {} as FeatureSelections);
+}
+export function writeFeaturesToStorage(id: string, map: FeatureSelections) {
+  storage.write(keys.features(id), map);
+}
+
+export type CharacterProgressionDraft = {
+  currentLevel: number;
+  currentTier: ReturnType<typeof getTierForLevel>;
+  availablePoints: number;
+  spentOptions: Record<string, number>;
+};
+
+export function readProgressionFromStorage(
+  id: string
+): CharacterProgressionDraft {
+  const level = readLevelFromStorage(id);
+  const fallback: CharacterProgressionDraft = {
+    currentLevel: level,
+    currentTier: getTierForLevel(level),
+    availablePoints: 2,
+    spentOptions: {},
+  };
+  try {
+    const raw = storage.read(keys.progression(id), fallback);
+    // Validate against schema shape but coerce to draft
+    const parsed = CharacterProgressionSchema.parse(raw);
+    return {
+      currentLevel: parsed.currentLevel,
+      currentTier: parsed.currentTier,
+      availablePoints: parsed.availablePoints,
+      spentOptions: parsed.spentOptions,
+    };
+  } catch {
+    return fallback;
+  }
+}
+export function writeProgressionToStorage(
+  id: string,
+  value: CharacterProgressionDraft
+) {
+  storage.write(keys.progression(id), value);
+}
+
+// Threshold overrides (editable by user). Persist per character.
+export const ThresholdsSettingsSchema = z.object({
+  auto: z.boolean().default(true),
+  values: z
+    .object({
+      major: z.number().int().min(0),
+      severe: z.number().int().min(0),
+      // When true, use custom ds instead of severe * 2
+      dsOverride: z.boolean().default(false),
+      // Stored custom Double Severe value when override is enabled
+      ds: z.number().int().min(0).default(0),
+    })
+    .refine(v => v.severe >= v.major, {
+      message: 'Severe threshold must be greater than or equal to Major',
+    }),
+  enableCritical: z.boolean().default(false),
+});
+export type ThresholdsSettings = z.infer<typeof ThresholdsSettingsSchema>;
+
+export function readThresholdsSettingsFromStorage(
+  id: string
+): ThresholdsSettings | null {
+  // Back-compat: if old shape {major,severe}, map to manual settings
+  const raw = storage.read<unknown>(
+    keys.thresholds(id),
+    null as unknown as null
+  );
+  if (!raw) return null;
+  const isOld = (v: unknown): v is { major: number; severe: number } =>
+    typeof v === 'object' &&
+    v !== null &&
+    typeof (v as Record<string, unknown>).major === 'number' &&
+    typeof (v as Record<string, unknown>).severe === 'number';
+  if (isOld(raw))
+    return {
+      auto: false,
+      values: {
+        major: raw.major,
+        severe: raw.severe,
+        dsOverride: false,
+        ds: 0,
+      },
+      enableCritical: false,
+    };
+  try {
+    const parsed = ThresholdsSettingsSchema.safeParse(raw);
+    if (parsed.success) return parsed.data;
+    // Attempt soft migration for legacy shapes
+    const legacy = raw as {
+      auto?: boolean;
+      values?: {
+        major: number;
+        severe: number;
+        dsOverride?: boolean;
+        ds?: number;
+      };
+      enableCritical?: boolean;
+    };
+    if (
+      legacy &&
+      legacy.values &&
+      typeof legacy.values.major === 'number' &&
+      typeof legacy.values.severe === 'number'
+    ) {
+      return {
+        auto: legacy.auto ?? true,
+        values: {
+          major: legacy.values.major,
+          severe: legacy.values.severe,
+          dsOverride: legacy.values.dsOverride ?? false,
+          ds: legacy.values.ds ?? 0,
+        },
+        enableCritical: legacy.enableCritical ?? false,
+      };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+export function writeThresholdsSettingsToStorage(
+  id: string,
+  value: ThresholdsSettings
+) {
+  storage.write(keys.thresholds(id), value);
 }

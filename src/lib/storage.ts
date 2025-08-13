@@ -31,4 +31,8 @@ export const characterKeys = {
   domains: (id: string) => `dh:characters:${id}:domains:v1`,
   equipment: (id: string) => `dh:characters:${id}:equipment:v1`,
   inventory: (id: string) => `dh:characters:${id}:inventory:v1`,
+  level: (id: string) => `dh:characters:${id}:level:v1`,
+  progression: (id: string) => `dh:characters:${id}:progression:v1`,
+  features: (id: string) => `dh:characters:${id}:features:v1`,
+  thresholds: (id: string) => `dh:characters:${id}:thresholds:v1`,
 } as const;

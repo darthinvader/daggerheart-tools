@@ -1,8 +1,8 @@
 # TASK007 - Character Leveling, Thresholds, and Class/Subclass Features
 
-**Status:** Pending  
+**Status:** In Progress  
 **Added:** 2025-08-13  
-**Updated:** 2025-08-13
+**Updated:** 2025-08-14
 
 ## Original Request
 
@@ -266,24 +266,25 @@ Risks & mitigations
 
 ## Progress Tracking
 
-**Overall Status:** Not Started – 0%
+**Overall Status:** In Progress – 55%
 
 ### Subtasks
 
-| ID  | Description                                         | Status      | Updated    | Notes                                           |
-| --- | --------------------------------------------------- | ----------- | ---------- | ----------------------------------------------- |
-| 1.1 | Confirm level/xp fields; align progression          | Complete    | 2025-08-13 | Verified in `player-character.ts` and `core.ts` |
-| 1.2 | Progression helpers + applyLevelUp                  | Not Started | 2025-08-13 | New: logic/progression.ts with tests            |
-| 1.3 | Feature unlock derivation model                     | Not Started | 2025-08-13 | Logic-only types; no schema changes             |
-| 2.1 | Implement ThresholdsCard with explanation           | Not Started | 2025-08-13 |                                                 |
-| 2.2 | Remove inline thresholds from ResourcesCard         | Not Started | 2025-08-13 | After ThresholdsCard lands                      |
-| 3.1 | Implement LevelCard                                 | Not Started | 2025-08-13 | Shows level/tier/rally die                      |
-| 3.2 | Implement LevelUpDrawer (RHF+zod)                   | Not Started | 2025-08-13 | Validates costs and selections                  |
-| 4.1 | Implement FeaturesCard and FeaturesDrawer           | Not Started | 2025-08-13 |                                                 |
-| 5.1 | Add storage keys (level, progression, features)     | Not Started | 2025-08-13 | Update storage.ts                               |
-| 5.2 | Add storage helpers + migrations for level/features | Not Started | 2025-08-13 | Update features/characters/storage.ts           |
-| 6.1 | Add tests for thresholds/leveling/features          | Not Started | 2025-08-13 | 5 test files (logic/UI)                         |
-| 7.1 | Update README and Memory Bank progress              | Not Started | 2025-08-13 |                                                 |
+| ID  | Description                                         | Status      | Updated    | Notes                                                                        |
+| --- | --------------------------------------------------- | ----------- | ---------- | ---------------------------------------------------------------------------- |
+| 1.1 | Confirm level/xp fields; align progression          | Complete    | 2025-08-13 | Verified in `player-character.ts` and `core.ts`                              |
+| 1.2 | Progression helpers + applyLevelUp                  | In Progress | 2025-08-14 | Added logic/progression.ts (thresholds, tier, options, validator) + tests    |
+| 1.3 | Feature unlock derivation model                     | Not Started | 2025-08-13 | Logic-only types; no schema changes                                          |
+| 2.1 | Implement ThresholdsCard with explanation           | Complete    | 2025-08-14 | thresholds-card.tsx + tests added                                            |
+| 2.2 | Remove inline thresholds from ResourcesCard         | Complete    | 2025-08-14 | Inline chips removed; regression test updated                                |
+| 2.3 | DS override in thresholds and logic                 | Complete    | 2025-08-14 | Added dsOverride/ds storage, UI override switch, and classifyDamage override |
+| 3.1 | Implement LevelCard                                 | Not Started | 2025-08-13 | Shows level/tier/rally die                                                   |
+| 3.2 | Implement LevelUpDrawer (RHF+zod)                   | Not Started | 2025-08-13 | Validates costs and selections                                               |
+| 4.1 | Implement FeaturesCard and FeaturesDrawer           | Not Started | 2025-08-13 |                                                                              |
+| 5.1 | Add storage keys (level, progression, features)     | In Progress | 2025-08-14 | Keys added; helpers stubbed for follow-up                                    |
+| 5.2 | Add storage helpers + migrations for level/features | Not Started | 2025-08-13 | Update features/characters/storage.ts                                        |
+| 6.1 | Add tests for thresholds/leveling/features          | In Progress | 2025-08-14 | Added progression + thresholds tests; suite 37/37                            |
+| 7.1 | Update README and Memory Bank progress              | Not Started | 2025-08-13 |                                                                              |
 
 ## Acceptance Criteria
 
@@ -310,3 +311,17 @@ Risks & mitigations
 
 - Created task with end-to-end plan covering schemas, UI (thresholds/leveling/features), persistence, and tests. Marked Ranger companion as out-of-scope for this task.
 - Verified repo alignment: level/progression schemas present; route and drawer scaffolding confirmed; idle prefetch helper available; thresholds currently inline in ResourcesCard—will migrate to dedicated card.
+
+### 2025-08-14
+
+- Implemented thresholds logic helper `getThresholds` and added `progression.ts` with `getPointsForLevel`, `getOptionsForTier`, and `validateLevelUpDecisions`.
+- Added `ThresholdsCard` with an Info drawer; wired it into the character route below Resources. Removed duplicate inline thresholds from `ResourcesCard`.
+- Added storage keys for level/progression/features and stubbed read/write helpers for future leveling/features work.
+- Tests: new `progression.test.ts` and `thresholds-card.test.tsx`; updated `resources-card.test.tsx`. Full suite PASS locally.
+
+### 2025-08-14 (later)
+
+- Damage thresholds UX finalized: compact inline preview with centered interleaved row “1 | M≤X | 2 | S≤Y | 3 | DS≥Z | 4” and a settings drawer.
+- Added Double Severe (DS) override: storage schema extended with `dsOverride` and `ds` and migration for legacy shapes; UI switch gates editing the Custom DS input with validation (DS ≥ Severe). `classifyDamage` now supports a `doubleSevereOverride` param.
+- Replaced native alerts with toasts: mounted global Toaster and swapped alerts in thresholds components for toast errors/success.
+- Tests: Re-ran suite; now PASS (37/37). Typecheck PASS.
