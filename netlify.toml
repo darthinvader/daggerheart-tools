@@ -1,0 +1,31 @@
+[build]
+  command = "pnpm run build"
+  publish = "dist"
+  # Base left blank = repo root
+
+[build.environment]
+  NODE_VERSION = "20"
+  NPM_FLAGS = "--legacy-peer-deps=false"
+  # Ensure pnpm is used
+  PNPM_VERSION = "9"
+
+# Default edge handlers/functions directory (empty for now)
+# You can add serverless functions in `netlify/functions` and set:
+#[functions]
+#  directory = "netlify/functions"
+
+# Single Page App fallback for TanStack Router
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = true
+
+# Security & perf headers (optional minimal set)
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "0"
