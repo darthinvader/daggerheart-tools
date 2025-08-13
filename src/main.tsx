@@ -6,6 +6,7 @@ import { RouterProvider, createRouter } from '@tanstack/react-router';
 
 import { ThemeProvider } from '@/components/theme-provider';
 
+import './global-error-log';
 import './index.css';
 import { routeTree } from './routeTree.gen';
 
