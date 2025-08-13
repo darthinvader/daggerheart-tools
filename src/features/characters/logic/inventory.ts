@@ -1,8 +1,8 @@
 import type { InventorySlot, Item } from '@/lib/schemas/equipment';
 
-function clampQuantity(current: number, maxQuantity?: number) {
-  if (!maxQuantity || maxQuantity <= 0) return current; // treat missing/invalid as unlimited
-  return Math.min(current, maxQuantity);
+// Player inventory should not be constrained by shop-facing maxQuantity values.
+function clampQuantityPlayer(current: number) {
+  return current;
 }
 
 export function addItemToSlots(
@@ -13,13 +13,13 @@ export function addItemToSlots(
   const idx = list.findIndex(s => s.item.name === item.name);
   if (idx >= 0) {
     const prev = list[idx];
-    const nextQty = clampQuantity((prev.quantity ?? 1) + 1, item.maxQuantity);
+    const nextQty = clampQuantityPlayer((prev.quantity ?? 1) + 1);
     list[idx] = { ...prev, quantity: nextQty };
     return list;
   }
   const newSlot: InventorySlot = {
     item,
-    quantity: clampQuantity(1, item.maxQuantity),
+    quantity: clampQuantityPlayer(1),
     isEquipped: false,
     location: 'backpack',
   };
@@ -35,7 +35,7 @@ export function incrementQuantity(
   const target = list[index];
   if (!target) return list;
   const base = (target.quantity ?? 1) + delta;
-  const clamped = Math.max(0, clampQuantity(base, target.item.maxQuantity));
+  const clamped = Math.max(0, clampQuantityPlayer(base));
   if (clamped <= 0) {
     list.splice(index, 1);
   } else {

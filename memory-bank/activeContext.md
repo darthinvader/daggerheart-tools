@@ -1,8 +1,15 @@
 # Active Context - Daggerheart Tools
 
-Updated: August 11, 2025
+Updated: August 13, 2025
 
 ## Current Work Focus
+
+Aug 13, 2025 (latest):
+
+- UI Drawer primitive restored to minimal pass-through (`src/components/ui/drawer.tsx`). Accessibility description now owned by `src/components/drawers/drawer-scaffold.tsx`, which provides a screen-reader-only `DrawerDescription` and wires `aria-describedby` to `DrawerContent`.
+- Dialogs: `ui/dialog.tsx` keeps auto-description behavior to mitigate missing-description warnings for DialogContent when callers don’t pass `aria-describedby`.
+- Quality gates: Full test suite PASS (28/28). Non-blocking Radix Dialog warnings persist in equipment drawer tests; will be addressed in a dedicated a11y pass. Type-check task exits non-zero in wrapper, but changed files show no diagnostics.
+- Size snapshot (by analyzer): `equipment-drawer.tsx` ~9.6 KB; `inventory-drawer.tsx` ~9.0 KB; `inventory-card.tsx` ~12.6 KB; `inventory-drawer/homebrew-item-form.tsx` ~12.3 KB; `inventory-drawer/library-results-list.tsx` ~12.4 KB; `ui/drawer.tsx` ~4.3 KB.
 
 ### Routing & UI Flow
 
@@ -29,6 +36,10 @@ Equipment drawer (Aug 11, 2025 - latest):
 - Fixed onValueChange to ignore empty values so selection always updates; lists now respond reliably to Source changes.
 - Accessibility: DrawerScaffold includes a description wired via aria-describedby.
   Updated Aug 11: The description text is now screen-reader-only and no longer references keyboard Tabs (mobile-first). Tabs now horizontally scroll on mobile.
+
+Aug 11 (later):
+
+- Extracted a small hook `useEquipmentFilters` at `src/components/characters/equipment-drawer/hooks/use-equipment-filters.ts` to centralize source filters, search queries, counts, and filtered lists for Primary, Secondary, and Armor. Updated `equipment-drawer.tsx` to consume it, eliminating local duplication. Tests unchanged and passing.
 
 Code structure and size improvements (Aug 11, 2025):
 
@@ -83,12 +94,15 @@ Aug 11, 2025 (later updates):
 Latest analyzer snapshot (Aug 11, refreshed):
 
 - Top by size/loc (excluding data/schemas):
-  - `src/components/characters/equipment-drawer.tsx` — 19.2 KB, 501 LOC, Cx 47
-  - `src/routes/characters/$id.tsx` — 20.9 KB, 596 LOC, Cx 19 (after small additions)
-  - `src/components/characters/domains-drawer.tsx` — 14.2 KB, 332 LOC, Cx 22 (after LoadoutFooter extraction)
-  - `src/components/characters/inventory-drawer.tsx` — 7.4 KB, 252 LOC, Cx 7
-  - UI vendor-like shells remain large due to long lines (dropdown/menu/context-menu/sidebar).
-  - Homebrew forms split: weapon ~7.5 KB (222 LOC), armor ~5.8 KB (164 LOC).
+  - `src/routes/characters/$id.tsx` — 23.5 KB, 677 LOC, Cx 24
+  - `src/components/characters/equipment-drawer.tsx` — 20.3 KB, 516 LOC, Cx 54 (very long lines)
+  - `src/components/characters/inventory-drawer/homebrew-item-form.tsx` — 19.6 KB, 421 LOC, Cx 64 (heavy JSX; candidate to split)
+  - `src/components/characters/inventory-card.tsx` — 19.3 KB, 396 LOC, Cx 91
+  - `src/components/characters/domains-drawer.tsx` — 14.2 KB, 332 LOC, Cx 22
+  - `src/components/characters/inventory-drawer/library-results-list.tsx` — 12.4 KB, 291 LOC, Cx 54
+  - `src/components/characters/inventory/slot-row.tsx` — 11.7 KB, 288 LOC, Cx 13
+  - `src/components/characters/inventory-drawer.tsx` — 9.0 KB, 233 LOC, Cx 32 (post-extraction)
+  - UI shells with very long lines remain: menubar, dropdown-menu, context-menu, sidebar.
 
 Armor (mobile) UI updates (Aug 11):
 
@@ -96,6 +110,28 @@ Armor (mobile) UI updates (Aug 11):
 - Enhanced ArmorChips to surface Material and a “Special” badge; made Base score and Major/Severe thresholds visually prominent for small screens.
 - Unified UI by reusing ArmorChips in drawer list items and the Equipment card, ensuring consistent badges/values.
 - Validations: type-check PASS, build PASS, tests PASS (24/24). Note: equipment drawer tests still emit non-blocking DialogContent description warnings; will address separately in a11y pass.
+
+Inventory drawer refactor (Aug 11, 2025 - latest):
+
+- Extracted InventoryFiltersToolbar and LibraryResultsList from `inventory-drawer.tsx` into `src/components/characters/inventory-drawer/`.
+- Rewired `inventory-drawer.tsx` to consume them; removed unused imports; kept DrawerScaffold footer.
+- Behavior parity verified by tests; size redistributed: main file ~9.0 KB; new list presenter ~12.4 KB.
+- Next: consider splitting `homebrew-item-form.tsx` and trimming `inventory-card.tsx`.
+
+Inventory card refactor (Aug 13, 2025 - latest):
+
+- Extracted presentational components to reduce duplication and improve readability while preserving behavior:
+  - `src/components/characters/inventory/badges.tsx` (TierBadge, RarityBadge, WeightBadge)
+  - `src/components/characters/inventory/cost-chips.tsx` (CostChips using estimateItemCost)
+  - `src/components/characters/inventory/category-inline-details.tsx` (per-category inline detail text)
+  - `src/components/characters/inventory/equipped-list.tsx` (renders equipped items summary)
+- `inventory-card.tsx` updated to use these presenters; removed local helpers and redundant logic. Typecheck clean for changed files; full test suite PASS (28/28).
+
+Inventory homebrew form split (Aug 13, 2025 - latest):
+
+- Extracted category sections into presenters under `src/components/characters/inventory-drawer/homebrew/`:
+  - `shared-fields.tsx`, `utility-fields.tsx`, `consumable-fields.tsx`, `potion-fields.tsx`, `relic-fields.tsx`, `modification-fields.tsx`, `recipe-fields.tsx`
+- Refactored `homebrew-item-form.tsx` to consume them; behavior unchanged. Tests remain PASS (28/28). Next: refresh size report and capture deltas.
 
 A11y:
 

@@ -13,6 +13,7 @@ export function EquipmentCard({ equipment, onEdit }: Props) {
   const primary = equipment?.primaryWeapon as Weapon | undefined;
   const secondary = equipment?.secondaryWeapon as Weapon | undefined;
   const armor = equipment?.armor as Armor | undefined;
+  // Items managed in Inventory; not shown here
   return (
     <Card>
       <CardHeader className="gap-1">

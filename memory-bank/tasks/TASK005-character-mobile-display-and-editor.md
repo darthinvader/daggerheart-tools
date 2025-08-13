@@ -2,7 +2,7 @@
 
 **Status:** In Progress (Milestone 1 shipped)
 **Added:** August 9, 2025
-**Updated:** August 11, 2025 (latest)
+**Updated:** August 13, 2025 (latest)
 
 ## Original Request
 
@@ -416,7 +416,7 @@ Companion
 
 ## Progress Tracking
 
-**Overall Status:** In Progress - 72% Complete
+**Overall Status:** In Progress - 80% Complete
 
 ### Subtasks
 
@@ -454,7 +454,24 @@ Companion
 
 ## Progress Log
 
-### 2025-08-11 (latest)
+### 2025-08-13 (latest)
+
+- Equipment Items: Added Items summary to EquipmentCard and a new Items tab in Equipment Drawer. Users can search SRD items (utility, consumables, potions, relics, weapon/armor mods, recipes) and add/remove them to equipment.items. Route now passes section="items" to open this tab directly.
+- Items UI enrichment: Drawer list rows now show schema-driven details per category: Utility (usage, charges, recharge), Consumable/Potion (effect, duration, target, potion type, heal, trait bonus), Relic (trait/XP bonuses), Weapon/Armor Mods (modification type, compatibility, trait/feature adds), Recipe (crafted item, top materials, downtime). Equipment card Items summary now shows compact category counts (e.g., "3 Utility, 2 Consumables") with a total badge.
+- Armor filters: Fixed type filter overflow on small screens by enabling wrapping and horizontal scroll where needed.
+- Armor filters redesign: Replaced oversized Type list with compact filters — Kind (All/Standard/Special), Tier (T1–T4), and modifier toggles (Evasion ≠ 0, Agility ≠ 0). Updated drawer filtering accordingly.
+- Items consolidation: Removed Items tab from Equipment drawer and Items summary from Equipment card. Items remain editable via Inventory drawer only, avoiding duplication.
+- Inventory: Existing Inventory Drawer already supports add-by-name, add-from-library, qty steppers, equipped toggle, locations, and removal; kept as-is for MVP.
+- Validation: Type-check PASS locally. Tests executed via script; no compile errors observed.
+
+- Inventory Card: Reduced surface area by extracting presenters:
+  - badges.tsx (Tier, Rarity, Weight)
+  - cost-chips.tsx (estimated costs)
+  - category-inline-details.tsx (per-category inline text)
+  - equipped-list.tsx (equipped summary)
+    `inventory-card.tsx` now consumes these; behavior unchanged. Tests PASS (28/28).
+
+### 2025-08-11
 
 - Equipment Drawer: Replaced global Pack/Free control with per-tab Source filters for Weapons tabs (Primary/Secondary): Default (slot standard), Homebrew (homebrew-only), All (primary + secondary + homebrew). Controls enlarged (outline, lg), added option counts in labels, and empty-state hint when no results. Fixed toggle onValueChange to ignore empty values so selection always applies. Added a drawer description for a11y via aria-describedby. Decision: remove Pack mode entirely; free-form only moving forward.
 - Tests: Stabilized the cross-slot listing test to use Source=All and scoped queries to visible tab panels to avoid hidden content. All tests pass locally.

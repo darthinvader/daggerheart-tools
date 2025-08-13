@@ -194,3 +194,24 @@ Deliverables: Equipment free-form mode; schema validation and mobile-friendly dr
   - Quality gates: Type-check PASS; Build PASS; Tests PASS (24/24). Non-blocking a11y warnings remain for DialogContent description and are tracked for a future pass.
 - Resources: HP thresholds UI added with read-only chips. New test `tests/resources-card.test.tsx` verifies rendering.
 - Full test suite green locally; build and type-check pass.
+
+### August 11, 2025 (later 8)
+
+- Inventory drawer refactor: extracted `InventoryFiltersToolbar` and `LibraryResultsList` into `src/components/characters/inventory-drawer/` and rewired `inventory-drawer.tsx` to use them. Cleaned imports and kept DrawerScaffold footer/behavior unchanged.
+- Quality gates: Tests PASS (28/28), Type-check PASS, Build unchanged. Known non-blocking a11y warnings persist for Equipment drawer dialog description (tracked separately).
+- Analyzer (by size, top 25; excludes data/schemas): `$id.tsx` 23.5 KB; `equipment-drawer.tsx` 20.3 KB; `homebrew-item-form.tsx` 19.6 KB; `inventory-card.tsx` 19.3 KB; `domains-drawer.tsx` 14.2 KB; `library-results-list.tsx` 12.4 KB; `inventory/slot-row.tsx` 11.7 KB; `inventory-drawer.tsx` 9.0 KB.
+- Next refactor candidates: split `homebrew-item-form.tsx`; reduce `inventory-card.tsx`; extract tab panels and filters hook in `equipment-drawer.tsx`.
+
+### August 11, 2025 (later 9)
+
+- Introduced `useEquipmentFilters` to consolidate filter/search/state for Equipment drawer tabs and refactored `equipment-drawer.tsx` to use it. Removed duplicated local state and memo blocks. Quality gates: Tests PASS (28/28); Type-check PASS (manual run showed no file errors for changed files); size report to be refreshed next.
+
+### August 13, 2025
+
+- Inventory card refactor: extracted small presenters for badges, cost chips, category inline details, and equipped list under `src/components/characters/inventory/*` and rewired `inventory-card.tsx` to consume them. Cleaned unused imports and tightened types (replaced any with precise types). Quality gates: full test suite PASS (28/28); targeted file error checks show none. Next: split `inventory-drawer/homebrew-item-form.tsx` and refresh size report.
+
+- Inventory homebrew form: split category-specific JSX into `inventory-drawer/homebrew/*` presenters (SharedFields, UtilityFields, ConsumableFields, PotionFields, RelicFields, ModificationFields, RecipeFields). Updated `homebrew-item-form.tsx` to use them. Behavior unchanged; tests still PASS (28/28). Next: run size report and update docs with file deltas.
+
+- Drawer primitive reversion: Restored `src/components/ui/drawer.tsx` to minimal pass-through behavior; moved/kept accessibility description responsibility in `src/components/drawers/drawer-scaffold.tsx` (provides `DrawerDescription` and wires `aria-describedby`). Dialogs retain auto-description in `ui/dialog.tsx` to reduce missing-description warnings.
+- Validation snapshot: Full test suite PASS (28/28). Type-check task exits non-zero in CI task wrapper but targeted file checks show no diagnostics; behavior parity confirmed after drawer revert. Non-blocking Radix Dialog warnings persist in equipment drawer tests and will be handled in a focused a11y pass.
+- Size report (latest run): `equipment-drawer.tsx` ~9.6 KB; `inventory-drawer.tsx` ~9.0 KB; `inventory-card.tsx` ~12.6 KB; `inventory-drawer/homebrew-item-form.tsx` ~12.3 KB; `inventory-drawer/library-results-list.tsx` ~12.4 KB; `ui/drawer.tsx` ~4.3 KB.

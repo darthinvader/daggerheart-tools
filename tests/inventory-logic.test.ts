@@ -42,16 +42,16 @@ describe('inventory logic', () => {
     expect(next[0].quantity).toBe(2);
   });
 
-  it('clamps quantity to maxQuantity when merging', () => {
+  it('does not clamp quantity to maxQuantity when merging (shop-only cap ignored)', () => {
     const item = mkItem({ name: 'Apple', maxQuantity: 2 });
     const prev: InventorySlot[] = [
       { item, quantity: 2, isEquipped: false, location: 'backpack' },
     ];
     const next = addItemToSlots(prev, item);
-    expect(next[0].quantity).toBe(2);
+    expect(next[0].quantity).toBe(3);
   });
 
-  it('incrementQuantity respects maxQuantity and removes at 0', () => {
+  it('incrementQuantity ignores maxQuantity and removes at 0', () => {
     const item = mkItem({ name: 'Apple', maxQuantity: 2 });
     let slots: InventorySlot[] = [
       { item, quantity: 1, isEquipped: false, location: 'backpack' },
@@ -59,8 +59,8 @@ describe('inventory logic', () => {
     slots = incrementQuantity(slots, 0, +1);
     expect(slots[0].quantity).toBe(2);
     slots = incrementQuantity(slots, 0, +1);
-    expect(slots[0].quantity).toBe(2);
-    slots = incrementQuantity(slots, 0, -2);
+    expect(slots[0].quantity).toBe(3);
+    slots = incrementQuantity(slots, 0, -3);
     expect(slots).toHaveLength(0);
   });
 

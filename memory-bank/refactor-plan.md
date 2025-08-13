@@ -42,6 +42,7 @@ Phase 1 — Low-risk extractions (this week)
 - equipment-drawer.tsx
   - Already extracted: Filters toolbars, selection strip, results lists.
   - Next: extract tab panels into small components and centralize shared filter/search state into a tiny `useEquipmentFilters` hook to trim duplication.
+  - Also split homebrew forms by concern (shared schema fields presenter, weapon-only, armor-only) to reduce very long lines.
   - Target: < 18.5 KB, LOC < 460, maintain Cx ≤ 40.
 - domains-drawer.tsx
   - Already extracted: loadout lists, available cards section, summary chips.
@@ -52,14 +53,16 @@ Phase 1 — Low-risk extractions (this week)
   - Target: < 18.5 KB size equivalent and LOC < 520.
 - inventory-drawer.tsx
   - Already extracted: SlotRow presenter.
-  - Next: extract filter/search toolbar if further changes occur; otherwise consider done for now.
-  - Target: keep ~7.0–7.4 KB; no change required.
+  - Already extracted: SlotRow presenter, InventoryFiltersToolbar, LibraryResultsList.
+  - Next: consider splitting `homebrew-item-form.tsx` (heavy JSX) and trimming `inventory-card.tsx`.
+  - Target: keep `inventory-drawer.tsx` ≤ 9 KB; reduce `homebrew-item-form.tsx` below 12 KB via extraction.
 
 Phase 2 — Organization & fan-in (next)
 
 - features/characters/storage.ts
   - Split by concern: identity-storage.ts, resources-storage.ts, class-storage.ts, traits-storage.ts, domains-storage.ts, equipment-storage.ts.
   - Provide `index.ts` barrel to preserve imports. Avoid breaking public API.
+  - Target: individual files ≤ 3 KB each; keep fan-in via barrel.
 - ui/chart.tsx
   - If actively used by sheet: split into primitives (ChartContainer/Axis/Series) and lazy-load charts where used; otherwise defer.
 - ui/sidebar/\*
@@ -68,6 +71,7 @@ Phase 2 — Organization & fan-in (next)
 Phase 2.5 — Prefetch & code-splitting hygiene
 
 - Apply `prefetchOnIdle` to Equipment and Inventory drawers as well (already used for Domains) to keep open latency low without test changes.
+  - Status: Applied to all three drawers in `$id.tsx`.
 
 Phase 3 — Code-splitting & perf (opportunistic)
 
@@ -81,6 +85,30 @@ Phase 3 — Code-splitting & perf (opportunistic)
 - No user-facing behavior/regressions.
 - Analyzer shows target files under stated thresholds.
 - Bundle warnings reduced where feasible; no new large chunks introduced.
+
+## Actionable Next Steps (snapshot: Aug 11, 2025)
+
+1. equipment-drawer.tsx
+
+- Extract PrimaryPanel, SecondaryPanel, ArmorPanel components (props: sources, filters state, callbacks)
+- Add `useEquipmentFilters` hook encapsulating q/tier/burden/kind/modifier state and setters — DONE (Aug 11, later)
+- Create `equipment-drawer/panels/` folder for the three panels
+- Move shared chips/badges to `equipment-chips.tsx` if not already
+
+2. equipment homebrew forms
+
+- Create `equipment-drawer/homebrew-shared.tsx` for common labeled field rows
+- Keep `homebrew-weapon-form.tsx` and `homebrew-armor-form.tsx` thin presenters using shared pieces
+
+3. inventory homebrew form
+
+- Identify repeated field clusters and extract `inventory-drawer/homebrew-fields.tsx`
+- Wire `homebrew-item-form.tsx` to use them; keep validations unchanged
+
+4. inventory card
+
+- Split detail presenters (chips, badges, list rows) into `inventory/` subcomponents
+- Ensure InventoryCard stays under ~12 KB and break very long lines
 
 ## Tracking & Reporting
 

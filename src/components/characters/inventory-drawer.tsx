@@ -2,18 +2,23 @@ import type { UseFormReturn } from 'react-hook-form';
 
 import * as React from 'react';
 
-import { SlotRow } from '@/components/characters/inventory/slot-row';
+import { HomebrewItemForm } from '@/components/characters/inventory-drawer/homebrew-item-form';
+import {
+  type CategoryFilter,
+  InventoryFiltersToolbar,
+} from '@/components/characters/inventory-drawer/inventory-filters-toolbar';
+import {
+  type LibraryItem,
+  LibraryResultsList,
+} from '@/components/characters/inventory-drawer/library-results-list';
 import { DrawerScaffold } from '@/components/drawers/drawer-scaffold';
 import { Button } from '@/components/ui/button';
-import { Combobox, type ComboboxItem } from '@/components/ui/combobox';
 import { Form } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import {
   addItemToSlots,
   incrementQuantity,
   removeAtIndex,
-  setEquipped,
-  setLocation,
 } from '@/features/characters/logic/inventory';
 import type { InventoryDraft } from '@/features/characters/storage';
 import {
@@ -25,16 +30,7 @@ import {
   ALL_UTILITY_ITEMS,
   ALL_WEAPON_MODIFICATIONS,
 } from '@/lib/data/equipment';
-import type {
-  ArmorModification,
-  Consumable,
-  InventorySlot,
-  Potion,
-  Recipe,
-  Relic,
-  UtilityItem,
-  WeaponModification,
-} from '@/lib/schemas/equipment';
+import type { InventorySlot } from '@/lib/schemas/equipment';
 
 export type InventoryDrawerProps = {
   open: boolean;
@@ -52,9 +48,7 @@ function InventoryDrawerImpl({
   onCancel,
 }: InventoryDrawerProps) {
   const skipRef = React.useRef(false);
-  const [newName, setNewName] = React.useState('');
-  const [libValue, setLibValue] = React.useState<string | null>(null);
-  const [expanded, setExpanded] = React.useState<Record<number, boolean>>({});
+  // compact selected section; no row expansion needed
 
   const slots = form.watch('slots');
 
@@ -68,95 +62,118 @@ function InventoryDrawerImpl({
   );
 
   // Build library index for quick lookup by name across categories we support adding
-  type LibraryItem =
-    | UtilityItem
-    | Consumable
-    | Potion
-    | Relic
-    | WeaponModification
-    | ArmorModification
-    | Recipe;
-  const libraryItems: LibraryItem[] = React.useMemo(
-    () =>
-      [
-        ...ALL_UTILITY_ITEMS,
-        ...ALL_CONSUMABLES,
-        ...ALL_POTIONS,
-        ...ALL_RELICS,
-        ...ALL_WEAPON_MODIFICATIONS,
-        ...ALL_ARMOR_MODIFICATIONS,
-        ...ALL_RECIPES,
-      ] as LibraryItem[],
-    []
-  );
+  type LibraryItemLocal = LibraryItem;
+  const libraryItems: LibraryItemLocal[] = React.useMemo(() => {
+    // Merge and deduplicate by name to avoid duplicates (e.g., potions present in both CONSUMABLES and POTIONS)
+    const merged: LibraryItemLocal[] = [
+      ...ALL_UTILITY_ITEMS,
+      ...ALL_CONSUMABLES,
+      ...ALL_POTIONS,
+      ...ALL_RELICS,
+      ...ALL_WEAPON_MODIFICATIONS,
+      ...ALL_ARMOR_MODIFICATIONS,
+      ...ALL_RECIPES,
+    ] as LibraryItemLocal[];
+    const byName = new Map<string, LibraryItemLocal>();
+    for (const it of merged) {
+      if (!byName.has(it.name)) byName.set(it.name, it);
+    }
+    return Array.from(byName.values());
+  }, []);
 
-  const libraryComboboxItems: ComboboxItem[] = React.useMemo(
-    () =>
-      libraryItems.map(i => ({
-        value: i.name,
-        label: `${i.name} \u2022 ${i.category} \u2022 ${i.rarity} \u2022 T${i.tier}`,
-      })),
-    [libraryItems]
-  );
   const [libQuery, setLibQuery] = React.useState('');
-  const filteredLibraryItems = React.useMemo(() => {
+  // Filters similar to equipment drawer: category, rarity, tier
+  type CategoryFilterLocal = CategoryFilter;
+  const [categoryFilter, setCategoryFilter] =
+    React.useState<CategoryFilterLocal>('');
+  const [rarityFilter, setRarityFilter] = React.useState<
+    '' | 'Common' | 'Uncommon' | 'Rare' | 'Legendary'
+  >('');
+  const [tierFilter, setTierFilter] = React.useState<
+    '' | '1' | '2' | '3' | '4'
+  >('');
+  // Direct item matches for a browsable results list with full details
+  const libraryResults: LibraryItemLocal[] = React.useMemo(() => {
     const q = libQuery.trim().toLowerCase();
-    if (!q) return libraryComboboxItems;
-    return libraryComboboxItems.filter(it =>
-      it.label.toLowerCase().includes(q)
-    );
-  }, [libraryComboboxItems, libQuery]);
+    return libraryItems.filter(i => {
+      // text search
+      const text =
+        `${i.name} ${(i as { category?: string }).category ?? ''} ${(i as { rarity?: string }).rarity ?? ''} ${String((i as { tier?: string | number }).tier ?? '')} ${(i as { description?: string }).description ?? ''}`.toLowerCase();
+      if (q && !text.includes(q)) return false;
+      // category filter (Potion is a Consumable sub-type)
+      if (categoryFilter) {
+        const cat = (i as { category?: string }).category;
+        if (categoryFilter === 'Potion') {
+          const potionish =
+            (i as unknown as { potionType?: unknown; subcategory?: string })
+              .potionType != null ||
+            (i as unknown as { subcategory?: string }).subcategory === 'Potion';
+          if (!potionish) return false;
+        } else if (cat !== categoryFilter) {
+          return false;
+        }
+      }
+      // rarity filter
+      if (rarityFilter && (i as { rarity?: string }).rarity !== rarityFilter)
+        return false;
+      // tier filter
+      if (tierFilter) {
+        const rawTier = (i as { tier?: string | number | undefined }).tier;
+        const itemTier =
+          rawTier == null || rawTier === '' ? '' : String(Number(rawTier));
+        if (itemTier !== tierFilter) return false;
+      }
+      return true;
+    });
+  }, [libQuery, libraryItems, categoryFilter, rarityFilter, tierFilter]);
 
   const addFromLibrary = React.useCallback(
     (name: string | null) => {
       if (!name) return;
       const item = libraryItems.find(i => i.name === name);
       if (!item) return;
-      setSlots(prev => addItemToSlots(prev, item));
-      setLibValue(null);
+      setSlots(prev => addItemToSlots(prev, item as never));
     },
     [libraryItems, setSlots]
   );
+  const removeOneFromLibrary = React.useCallback(
+    (name: string) => {
+      setSlots(prev => {
+        const idx = prev.findIndex(s => s.item.name === name);
+        if (idx < 0) return prev;
+        return incrementQuantity(prev, idx, -1);
+      });
+    },
+    [setSlots]
+  );
+  const removeAllFromLibrary = React.useCallback(
+    (name: string) => {
+      setSlots(prev => {
+        const idx = prev.findIndex(s => s.item.name === name);
+        if (idx < 0) return prev;
+        return removeAtIndex(prev, idx);
+      });
+    },
+    [setSlots]
+  );
 
-  const addByName = React.useCallback(() => {
-    const name = newName.trim();
-    if (!name) return;
-    setSlots(prev => {
-      const idx = prev.findIndex(s => s.item.name === name);
-      if (idx >= 0) {
-        const copy = [...prev];
-        copy[idx] = { ...copy[idx], quantity: (copy[idx].quantity ?? 1) + 1 };
-        return copy;
-      }
-      const newItem: InventorySlot['item'] = {
-        name,
-        tier: '1',
-        rarity: 'Common',
-        description: '',
-        features: [],
-        tags: [],
-        metadata: {},
-        isConsumable: false,
-        maxQuantity: 99,
+  // map of selected state by name to feed stateless list component
+  const selectedByName = React.useMemo(() => {
+    const m: Record<
+      string,
+      { quantity: number; isEquipped?: boolean; location?: string } | undefined
+    > = {};
+    for (const s of slots ?? []) {
+      m[s.item.name] = {
+        quantity: s.quantity ?? 1,
+        isEquipped: s.isEquipped,
+        location: s.location,
       };
-      const newSlot: InventorySlot = {
-        item: newItem,
-        quantity: 1,
-        isEquipped: false,
-        location: 'backpack',
-      };
-      return [...prev, newSlot];
-    });
-    setNewName('');
-  }, [newName, setSlots]);
+    }
+    return m;
+  }, [slots]);
 
-  const incQty = (index: number, delta: number) => {
-    setSlots(prev => incrementQuantity(prev, index, delta));
-  };
-
-  const removeAt = (index: number) => {
-    setSlots(prev => removeAtIndex(prev, index));
-  };
+  // quantity helpers handled inline in list rows
   return (
     <DrawerScaffold
       open={open}
@@ -174,10 +191,15 @@ function InventoryDrawerImpl({
       }}
       footer={
         <div className="flex w-full items-center justify-end gap-2">
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
           <Button type="button" variant="ghost" onClick={() => form.reset()}>
             Reset
           </Button>
-          <Button type="submit">Save</Button>
+          <Button type="button" onClick={() => submit()}>
+            Save
+          </Button>
         </div>
       }
     >
@@ -190,27 +212,12 @@ function InventoryDrawerImpl({
           }}
           noValidate
         >
-          {/* Add-by-name */}
-          <div className="flex items-center gap-2">
-            <Input
-              placeholder="Add item by name"
-              value={newName}
-              onChange={e => setNewName(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  addByName();
-                }
-              }}
-            />
-            <Button
-              type="button"
-              onClick={addByName}
-              disabled={!newName.trim()}
-            >
-              Add
-            </Button>
-          </div>
+          {/* Homebrew item creation */}
+          <HomebrewItemForm
+            onAdd={item =>
+              setSlots(prev => addItemToSlots(prev, item as never))
+            }
+          />
 
           {/* Add from library */}
           <div className="space-y-1">
@@ -222,42 +229,47 @@ function InventoryDrawerImpl({
               inputMode="search"
               enterKeyHint="search"
             />
-            <Combobox
-              items={filteredLibraryItems}
-              value={libValue}
-              onChange={v => {
-                setLibValue(v);
-                addFromLibrary(v);
-              }}
-              placeholder="Search items..."
+            {/* Filters */}
+            <InventoryFiltersToolbar
+              category={categoryFilter}
+              onCategoryChange={setCategoryFilter}
+              rarity={rarityFilter}
+              onRarityChange={setRarityFilter}
+              tier={tierFilter}
+              onTierChange={setTierFilter}
+              className="grid grid-cols-1 gap-2 sm:grid-cols-3"
             />
-          </div>
-
-          {/* Slots list */}
-          <div className="space-y-2">
-            {slots?.length ? (
-              slots.map((s, idx) => (
-                <SlotRow
-                  key={`${s.item.name}-${idx}`}
-                  slot={s}
-                  index={idx}
-                  expanded={!!expanded[idx]}
-                  onToggleExpanded={i =>
-                    setExpanded(prev => ({ ...prev, [i]: !prev[i] }))
-                  }
-                  onIncQty={(i, d) => incQty(i, d)}
-                  onToggleEquipped={(i, checked) =>
-                    setSlots(prev => setEquipped(prev, i, !!checked))
-                  }
-                  onChangeLocation={(i, loc) =>
-                    setSlots(prev => setLocation(prev, i, loc))
-                  }
-                  onRemove={i => removeAt(i)}
-                />
-              ))
-            ) : (
-              <div className="text-muted-foreground text-sm">No items yet.</div>
-            )}
+            {/* Browsable results list with accents */}
+            <div className="max-h-[45dvh] overflow-auto rounded border">
+              <LibraryResultsList
+                items={libraryResults as LibraryItem[]}
+                selectedByName={selectedByName}
+                onAdd={name => addFromLibrary(name)}
+                onDecrement={name => removeOneFromLibrary(name)}
+                onRemoveAll={name => removeAllFromLibrary(name)}
+                onToggleEquipped={name => {
+                  setSlots(prev => {
+                    const idx = prev.findIndex(s => s.item.name === name);
+                    if (idx < 0) return prev;
+                    const cur = prev[idx];
+                    const nextEquipped = !(
+                      cur.isEquipped || cur.location === 'equipped'
+                    );
+                    const copy = prev.slice();
+                    copy[idx] = {
+                      ...cur,
+                      isEquipped: nextEquipped,
+                      location: nextEquipped
+                        ? 'equipped'
+                        : cur.location && cur.location !== 'equipped'
+                          ? cur.location
+                          : 'backpack',
+                    } as InventorySlot;
+                    return copy;
+                  });
+                }}
+              />
+            </div>
           </div>
         </form>
       </Form>

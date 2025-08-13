@@ -351,6 +351,79 @@ function CharacterSheet() {
     onSubmitInventory(v as InventoryDraft)
   );
 
+  // Inventory quick-edit handlers for card
+  const incInventoryQty = React.useCallback(
+    (index: number, delta: number) => {
+      setInventory(prev => {
+        const slots = prev.slots ?? [];
+        const list = [...slots];
+        const cur = list[index];
+        if (!cur) return prev;
+        const next = Math.max(0, (cur.quantity ?? 1) + delta);
+        if (next <= 0) {
+          list.splice(index, 1);
+        } else {
+          list[index] = { ...cur, quantity: next };
+        }
+        const updated = { ...prev, slots: list } as InventoryDraft;
+        writeInventoryToStorage(id, updated);
+        return updated;
+      });
+    },
+    [id]
+  );
+  const setInventoryQty = React.useCallback(
+    (index: number, value: number) => {
+      setInventory(prev => {
+        const slots = prev.slots ?? [];
+        const list = [...slots];
+        const cur = list[index];
+        if (!cur) return prev;
+        if (value <= 0) {
+          list.splice(index, 1);
+        } else {
+          list[index] = { ...cur, quantity: value };
+        }
+        const updated = { ...prev, slots: list } as InventoryDraft;
+        writeInventoryToStorage(id, updated);
+        return updated;
+      });
+    },
+    [id]
+  );
+  const removeInventoryAt = React.useCallback(
+    (index: number) => {
+      setInventory(prev => {
+        const list = (prev.slots ?? []).filter((_, i) => i !== index);
+        const updated = { ...prev, slots: list } as InventoryDraft;
+        writeInventoryToStorage(id, updated);
+        return updated;
+      });
+    },
+    [id]
+  );
+  const setInventoryLocation = React.useCallback(
+    (
+      index: number,
+      loc: 'backpack' | 'belt' | 'equipped' | 'stored' | (string & {})
+    ) => {
+      setInventory(prev => {
+        const list = [...(prev.slots ?? [])];
+        if (!list[index]) return prev;
+        list[index] = {
+          ...list[index],
+          location: loc,
+          // Keep flags in sync so outside can equip/unequip items that were equipped inside the drawer
+          isEquipped: loc === 'equipped',
+        };
+        const updated = { ...prev, slots: list } as InventoryDraft;
+        writeInventoryToStorage(id, updated);
+        return updated;
+      });
+    },
+    [id]
+  );
+
   // All domain cards are now lazy-loaded inside the Domains drawer to reduce route weight.
 
   // Normalize loadout/vault cards where description may be optional from storage
@@ -569,6 +642,10 @@ function CharacterSheet() {
           <InventoryCard
             inventory={inventory as unknown as InventoryDraft}
             onEdit={() => setOpenInventory(true)}
+            incQty={incInventoryQty}
+            setQty={setInventoryQty}
+            removeAt={removeInventoryAt}
+            setLocation={setInventoryLocation}
           />
         </section>
         <React.Suspense fallback={null}>
