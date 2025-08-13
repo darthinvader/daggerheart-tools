@@ -67,3 +67,33 @@ export default tseslint.config([
   },
 ]);
 ```
+
+## Deployment (Vercel)
+
+This project is a client-side rendered SPA using Vite + TanStack Router. To make it work on Vercel:
+
+1. Ensure a `vercel.json` exists at the repo root (already added) with a rewrite sending all routes to `/index.html` so client routing works.
+2. In Vercel project settings set:
+   - Build Command: `pnpm build`
+   - Install Command: `pnpm install --frozen-lockfile`
+   - Output Directory: `dist`
+3. Environment: Use Node 18+ (Vercel default is fine). No serverless functions are required.
+4. If you see a 404 on deep links (e.g. refreshing a nested route), confirm the rewrite rule is active (Deployment > View Build Output should show `vercel.json`).
+5. If build fails:
+   - Check that `pnpm` is the package manager (Vercel auto-detects via lockfile)
+   - Inspect logs for TypeScript errors from `tsc -b` (the build script runs type checking first). If needed you can temporarily adjust build script to `vite build` to confirm it's a type issue.
+6. After deploy, test both the root path and a nested character route directly via address bar.
+
+Common issues & fixes:
+- Blank page + console error about failing to load chunk: Clear browser cache after a deployment that changes chunk names (Vite hashing) or disable aggressive CDN caching.
+- 404 on refresh of nested route: Missing SPA rewrite — ensure `vercel.json` is present in the deployed commit.
+- Build times out: Remove optional analysis plugins (don't set `ANALYZE=true`).
+
+Local production preview:
+
+```bash
+pnpm build
+pnpm preview --host
+```
+
+Then open the LAN URL to verify before pushing.
