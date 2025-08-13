@@ -13,6 +13,7 @@
 
 - [TASK003] Character sheet interface - Build responsive character sheet display
 - [TASK004] Data persistence layer - Implement save/load functionality
+- [TASK007] Character Leveling, Thresholds, and Class/Subclass Features - Plan and implement level flow, dedicated thresholds section (migrate from Resources), and class/subclass feature displays and choices; add storage keys for level/progression/features (Ranger companion later)
 
 ## Completed
 
