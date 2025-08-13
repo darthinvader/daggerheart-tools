@@ -165,3 +165,14 @@ h1 {
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  /* Two-line clamp utility for wrapping long names without breaking layout */
+  .line-clamp-2 {
+    display: -webkit-box;
+    line-clamp: 2;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}

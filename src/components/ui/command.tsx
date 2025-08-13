@@ -48,16 +48,18 @@ function CommandDialog({
   className?: string;
   showCloseButton?: boolean;
 }) {
+  const descId = React.useId();
   return (
     <Dialog {...props}>
-      <DialogHeader className="sr-only">
-        <DialogTitle>{title}</DialogTitle>
-        <DialogDescription>{description}</DialogDescription>
-      </DialogHeader>
       <DialogContent
         className={cn('overflow-hidden p-0', className)}
         showCloseButton={showCloseButton}
+        aria-describedby={descId}
       >
+        <DialogHeader className="sr-only">
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription id={descId}>{description}</DialogDescription>
+        </DialogHeader>
         <Command className={COMMAND_DIALOG_COMMAND_CLASSES}>{children}</Command>
       </DialogContent>
     </Dialog>

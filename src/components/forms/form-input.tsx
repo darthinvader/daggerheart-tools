@@ -20,6 +20,7 @@ export type FormInputProps<
   label: React.ReactNode;
   placeholder?: string;
   inputMode?: React.ComponentProps<typeof Input>['inputMode'];
+  enterKeyHint?: React.ComponentProps<typeof Input>['enterKeyHint'];
   autoComplete?: string;
   disabled?: boolean;
 };
@@ -32,6 +33,7 @@ export function FormInput<
   label,
   placeholder,
   inputMode,
+  enterKeyHint,
   autoComplete,
   disabled,
 }: FormInputProps<TFieldValues, TName>) {
@@ -49,6 +51,7 @@ export function FormInput<
               {...(field as unknown as React.ComponentProps<typeof Input>)}
               placeholder={placeholder}
               inputMode={inputMode}
+              enterKeyHint={enterKeyHint}
               autoComplete={autoComplete}
               disabled={disabled}
               onChange={e =>

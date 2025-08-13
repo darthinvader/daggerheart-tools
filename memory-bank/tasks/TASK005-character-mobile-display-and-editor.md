@@ -450,9 +450,17 @@ Companion
 | 7.1 | Tests for mapping and validation             | Not Started | -            | -                                                                                                                                                                                                             |
 | 7.2 | UX metrics instrumentation                   | Not Started | -            | -                                                                                                                                                                                                             |
 | 7.3 | Memory bank docs update                      | In Progress | Aug 10, 2025 | Active context and progress updated                                                                                                                                                                           |
-| 7.4 | README route docs                            | Not Started | -            | -                                                                                                                                                                                                             |
+| 7.4 | README route docs                            | Complete    | Aug 13, 2025 | README now documents routes (/characters/new → /characters/$id), mobile drawer editing model, per-id localStorage keys, and current limitations (no count cap; Items via Inventory; a11y notes).              |
 
 ## Progress Log
+
+### 2025-08-13
+
+- Fixed lingering a11y warnings about missing Dialog description by updating `src/components/ui/command.tsx` CommandDialog to place a `DialogHeader` with `DialogTitle` and `DialogDescription` inside `DialogContent`, wiring `aria-describedby` to a generated id. This ensures a proper description descendant for the content.
+- Re-ran tests: PASS (28/28). Warnings no longer originate from CommandDialog usage. Equipment Drawer continues to rely on `DrawerScaffold` which already wires `aria-describedby` for drawers.
+- Mobile polish from earlier remains intact (enterKeyHint/inputMode on search and identity fields).
+- Header polish: Reduced name font size and applied `truncate` with `whitespace-nowrap` and `min-w-0` container so very long names fit without pushing action buttons. Buttons now stay aligned on the same row.
+- Drawer back button UX: Strengthened `DrawerScaffold` history handling with a unique token in `pushState` and popstate filtering; the first browser Back now reliably closes the open drawer (and does not navigate away).
 
 ### 2025-08-13 (latest)
 
@@ -463,6 +471,8 @@ Companion
 - Items consolidation: Removed Items tab from Equipment drawer and Items summary from Equipment card. Items remain editable via Inventory drawer only, avoiding duplication.
 - Inventory: Existing Inventory Drawer already supports add-by-name, add-from-library, qty steppers, equipped toggle, locations, and removal; kept as-is for MVP.
 - Validation: Type-check PASS locally. Tests executed via script; no compile errors observed.
+
+- Docs: Completed subtask 7.4 by updating README with character routes, mobile drawer editing model, persistence keys, and known limitations.
 
 - Inventory Card: Reduced surface area by extracting presenters:
   - badges.tsx (Tier, Rarity, Weight)

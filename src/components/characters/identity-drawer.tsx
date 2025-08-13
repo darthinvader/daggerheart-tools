@@ -62,12 +62,14 @@ function IdentityDrawerImpl({
             label="Name"
             placeholder="Character name"
             inputMode="text"
+            enterKeyHint="next"
           />
           <FormInput<IdentityFormValues, 'pronouns'>
             name="pronouns"
             label="Pronouns"
             placeholder="e.g., they/them"
             inputMode="text"
+            enterKeyHint="next"
           />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <FormSelect<IdentityFormValues, 'ancestry'>
@@ -94,6 +96,7 @@ function IdentityDrawerImpl({
                       typeof Textarea
                     >)}
                     placeholder="Appearance, demeanor, goals..."
+                    enterKeyHint="done"
                     rows={3}
                   />
                 </FormControl>
@@ -105,6 +108,7 @@ function IdentityDrawerImpl({
             label="Calling"
             placeholder="Archetype, vocation, destiny..."
             inputMode="text"
+            enterKeyHint="done"
           />
         </form>
       </Form>

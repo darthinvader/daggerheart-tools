@@ -103,6 +103,8 @@ export function DomainsFilterBar({
               value={search}
               onChange={e => onSearchChange(e.target.value)}
               placeholder="Search"
+              inputMode="search"
+              enterKeyHint="search"
             />
           </FormControl>
         </FormItem>

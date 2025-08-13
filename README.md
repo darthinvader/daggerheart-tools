@@ -1,11 +1,31 @@
-# React + TypeScript + Vite
+# Daggerheart Tools (React + TypeScript + Vite)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Web-based mobile-first toolkit for the Daggerheart TTRPG. Built with React 19, TypeScript, Vite, Tailwind, and TanStack Router. This README highlights routes, mobile editing patterns, deployment, and troubleshooting.
 
-Currently, two official plugins are available:
+## Character Routes & Flow
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- `/characters`  Characters hub (index/list)
+- `/characters/new`  Generates a UUID and redirects to `/characters/$id`
+- `/characters/$id`  Canonical per-character sheet route (all editing happens here)
+
+Editing model on mobile:
+
+- Each section (Identity, Class, Traits, Resources, Domains, Equipment, Inventory) opens a bottom Drawer for edits
+- Drawers use 100dvh and include safe-area padding so Save/Cancel remain tappable
+- Pressing the browser Back button while a drawer is open will close the drawer first (history interception)
+
+Persistence (localStorage, per character id):
+
+- `dh:characters:{id}:identity:v1`
+- `dh:characters:{id}:resources:v1`
+- `dh:characters:{id}:traits:v1`
+- `dh:characters:{id}:class:v1`
+
+Current limitations and notes:
+
+- Domains: Loadout capacity UI shows a read-only "Recall used" summary; final budget rules are pending (no count-based cap enforced)
+- Equipment Items: Items are edited via the Inventory drawer only; the Equipment drawer does not include an Items tab
+- Accessibility: Dialogs auto-provide an sr-only description; Drawers provide description via an internal scaffold; some test runs may log non-blocking a11y warnings
 
 ## Expanding the ESLint configuration
 
@@ -85,6 +105,7 @@ This project is a client-side rendered SPA using Vite + TanStack Router. To make
 6. After deploy, test both the root path and a nested character route directly via address bar.
 
 Common issues & fixes:
+
 - Blank page + console error about failing to load chunk: Clear browser cache after a deployment that changes chunk names (Vite hashing) or disable aggressive CDN caching.
 - 404 on refresh of nested route: Missing SPA rewrite — ensure `vercel.json` is present in the deployed commit.
 - Build times out: Remove optional analysis plugins (don't set `ANALYZE=true`).

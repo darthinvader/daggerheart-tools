@@ -467,13 +467,14 @@ function CharacterSheet() {
         id="sheet-header"
         className="bg-background/95 supports-[backdrop-filter]:bg-background/80 sticky top-0 z-20 border-b backdrop-blur"
       >
-        <div className="mx-auto flex max-w-screen-sm flex-wrap items-center justify-between gap-2 px-4 py-0 sm:flex-nowrap">
-          <h1 className="text-sm font-medium sm:text-lg sm:font-semibold">
+        <div className="mx-auto grid w-full max-w-screen-sm grid-cols-[1fr_auto] items-center gap-2 px-4 py-0">
+          <div className="text-foreground min-w-0 text-lg leading-tight font-semibold">
             <button
               type="button"
               aria-label="Edit name"
               onClick={() => setOpenIdentity(true)}
-              className="cursor-pointer text-left hover:underline"
+              className="line-clamp-2 block max-w-full cursor-pointer text-left text-lg font-semibold break-words hover:underline"
+              title={identity.name || 'Set a name'}
             >
               {identity.name ? (
                 identity.name
@@ -483,8 +484,8 @@ function CharacterSheet() {
                 </span>
               )}
             </button>
-          </h1>
-          <div className="flex items-center gap-1">
+          </div>
+          <div className="flex items-center justify-end gap-1">
             <Button asChild size="sm" variant="ghost">
               <Link to="/characters">Back</Link>
             </Button>
