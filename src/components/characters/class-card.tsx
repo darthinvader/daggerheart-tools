@@ -1,11 +1,18 @@
+import { ClassSummary } from '@/components/characters/class-summary';
+import { FeaturesList } from '@/components/characters/features-list';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import type { FeatureView } from '@/features/characters/logic';
 
 export type ClassCardProps = {
   selectedClass?: string;
   selectedSubclass?: string;
   onEdit?: () => void;
   disabled?: boolean;
+  // Combined Class Features display inside the Class section
+  level?: number;
+  features?: FeatureView[];
+  selections?: Record<string, string | number | boolean>;
 };
 
 export function ClassCard({
@@ -13,33 +20,40 @@ export function ClassCard({
   selectedSubclass,
   onEdit,
   disabled = false,
+  level = 1,
+  features = [],
+  selections,
 }: ClassCardProps) {
   return (
     <Card>
       <CardHeader>
         <CardTitle>Class & Subclass</CardTitle>
       </CardHeader>
-      <CardContent className="flex items-center justify-between">
-        <div className="text-sm">
-          {selectedClass ? (
-            <div className="space-y-0.5">
-              <div className="font-medium">{selectedClass}</div>
-              <div className="text-muted-foreground text-xs">
-                {selectedSubclass ?? 'Select a subclass'}
-              </div>
-            </div>
-          ) : (
-            <div className="text-muted-foreground">Pick a class</div>
-          )}
+      <CardContent>
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0 flex-1 text-sm">
+            <ClassSummary
+              className={selectedClass}
+              subclass={selectedSubclass}
+            />
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onEdit}
+            disabled={disabled}
+          >
+            Edit
+          </Button>
         </div>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={onEdit}
-          disabled={disabled}
-        >
-          Edit
-        </Button>
+        {/* Features displayed inside Class section */}
+        <div className="mt-4">
+          <FeaturesList
+            level={level}
+            features={features}
+            selections={selections}
+          />
+        </div>
       </CardContent>
     </Card>
   );

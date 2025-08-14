@@ -34,6 +34,7 @@ import {
   createTraitActions,
   groupByDomain,
 } from '@/features/characters/logic';
+import { deriveFeatureUnlocks } from '@/features/characters/logic';
 import type {
   ClassDraft,
   ConditionsDraft,
@@ -55,15 +56,20 @@ import {
   type InventoryDraft,
   readClassFromStorage,
   readConditionsFromStorage,
+  readCustomFeaturesFromStorage,
   readDomainsFromStorage,
   readEquipmentFromStorage,
+  readFeaturesFromStorage,
   readIdentityFromStorage,
   readInventoryFromStorage,
+  readLevelFromStorage,
   readResourcesFromStorage,
   readTraitsFromStorage,
   writeClassToStorage,
+  writeCustomFeaturesToStorage,
   writeDomainsToStorage,
   writeEquipmentToStorage,
+  writeFeaturesToStorage,
   writeIdentityToStorage,
   writeInventoryToStorage,
 } from '@/features/characters/storage';
@@ -107,6 +113,7 @@ function CharacterSheet() {
       ),
     []
   );
+  // Features drawer removed: features editing is embedded into the Class drawer
   const DomainsDrawerLazy = React.useMemo(
     () =>
       React.lazy(() =>
@@ -200,6 +207,7 @@ function CharacterSheet() {
   const [classDraft, setClassDraft] = React.useState<ClassDraft>(DEFAULT_CLASS);
   const [openClass, setOpenClass] = React.useState(false);
   const [openDomains, setOpenDomains] = React.useState(false);
+  // Features UI merged into ClassDrawer
   const [openEquipment, setOpenEquipment] = React.useState(false);
   const [equipmentSection, setEquipmentSection] = React.useState<
     'primary' | 'secondary' | 'armor' | undefined
@@ -208,11 +216,21 @@ function CharacterSheet() {
 
   const [domainsDraft, setDomainsDraft] =
     React.useState<DomainsDraft>(DEFAULT_DOMAINS);
+  const [featureSelections, setFeatureSelections] = React.useState(() =>
+    readFeaturesFromStorage(id)
+  );
+  const [customFeatures, setCustomFeatures] = React.useState(() =>
+    readCustomFeaturesFromStorage(id)
+  );
   const [equipment, setEquipment] = React.useState(() =>
     readEquipmentFromStorage(id)
   );
   const [inventory, setInventory] = React.useState(() =>
     readInventoryFromStorage(id)
+  );
+  // Character level (progression)
+  const [currentLevel, setCurrentLevel] = React.useState(() =>
+    readLevelFromStorage(id)
   );
 
   // Hydrate from localStorage when id changes
@@ -226,6 +244,9 @@ function CharacterSheet() {
     setDomainsDraft(readDomainsFromStorage(id));
     setEquipment(readEquipmentFromStorage(id));
     setInventory(readInventoryFromStorage(id));
+    setFeatureSelections(readFeaturesFromStorage(id));
+    setCustomFeatures(readCustomFeaturesFromStorage(id));
+    setCurrentLevel(readLevelFromStorage(id));
   }, [id]);
 
   // Items for identity (ancestry/community now edited in dedicated drawers)
@@ -343,6 +364,23 @@ function CharacterSheet() {
   };
   const submitDomains = domainsForm.handleSubmit(v =>
     onSubmitDomains(v as DomainsDraft)
+  );
+
+  // Features persistence
+  const onSaveFeatures = React.useCallback(
+    (next: Record<string, string | number | boolean>) => {
+      setFeatureSelections(next);
+      writeFeaturesToStorage(id, next);
+    },
+    [id]
+  );
+
+  const onSaveCustomFeatures = React.useCallback(
+    (list: ReturnType<typeof readCustomFeaturesFromStorage>) => {
+      setCustomFeatures(list);
+      writeCustomFeaturesToStorage(id, list);
+    },
+    [id]
   );
 
   // Equipment form
@@ -736,7 +774,7 @@ function CharacterSheet() {
           />
         </React.Suspense>
 
-        {/* Class & Subclass */}
+        {/* Class, Subclass, and Features */}
         <section
           id="class"
           aria-label="Class & Subclass"
@@ -747,6 +785,29 @@ function CharacterSheet() {
             onEdit={() => setOpenClass(true)}
             selectedClass={classDraft.className}
             selectedSubclass={classDraft.subclass}
+            level={currentLevel}
+            features={(() => {
+              const derived = deriveFeatureUnlocks(
+                classDraft.className,
+                classDraft.subclass
+              );
+              const custom = customFeatures.map(cf => ({
+                name: cf.name,
+                description: cf.description,
+                type: cf.type,
+                tags: cf.tags,
+                level: cf.level,
+                tier: cf.tier as never,
+                unlockCondition: cf.unlockCondition,
+                source: 'custom' as const,
+              }));
+              return [...derived, ...custom].sort((a, b) =>
+                a.level === b.level
+                  ? a.name.localeCompare(b.name)
+                  : a.level - b.level
+              );
+            })()}
+            selections={featureSelections}
           />
         </section>
         <React.Suspense fallback={null}>
@@ -758,6 +819,11 @@ function CharacterSheet() {
             subclassItems={subclassItemsFor(currentClassName)}
             submit={submitClass}
             onCancel={() => setOpenClass(false)}
+            level={currentLevel}
+            selections={featureSelections}
+            onSaveSelections={onSaveFeatures}
+            custom={customFeatures}
+            onSaveCustom={onSaveCustomFeatures}
           />
         </React.Suspense>
         {/* Domains */}

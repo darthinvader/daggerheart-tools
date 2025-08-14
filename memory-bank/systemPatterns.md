@@ -74,6 +74,15 @@ Per-id persistence keys (localStorage):
 - Traits: `dh:characters:{id}:traits:v1`
 - Class: `dh:characters:{id}:class:v1`
 
+#### Class/Subclass + Features Consolidation Pattern (Aug 14, 2025)
+
+- Single Class section with two surfaces:
+  - Outside card: `ClassSummary` plus an unlocked-and-enabled `FeaturesList` (Level 1 first, then ascending). Only items available at or below the current level and marked enabled are shown.
+  - Drawer: Class/Subclass selection at top, followed by `ClassSummary` with starting stats, then an embedded features editor that lists all features (class + subclass) with availability status, unlock level, and tier mapping chips (2–4 → Tier 2; 5–7 → Tier 3; 8–10 → Tier 4). Custom features CRUD is co-located and persisted with the class section.
+- Spellcasting trait: When a subclass grants a spellcasting trait, render it as a visible badge row within `ClassSummary` in both surfaces.
+- Persistence rules: Save is permitted even when only feature toggles/custom features change. Default enablement selects Level 1 features only; higher-tier features default disabled until unlocked.
+- Logic helpers: `src/features/characters/logic/features.ts` derives gated lists with an L1-first ordering and consistent tier mapping.
+
 #### Schema Composition Pattern
 
 ```typescript

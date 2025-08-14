@@ -4,6 +4,15 @@ Updated: August 14, 2025
 
 ## Current Work Focus
 
+Aug 14, 2025 (latest – Class/Subclass features consolidation):
+
+- Consolidated Class and Subclass presentation into a single experience. Outside card shows ClassSummary plus a compact FeaturesList of currently unlocked-and-enabled features only; the Class drawer contains selection controls, the full ClassSummary (with starting stats), and an embedded features editor (shows all features with availability, unlock level, and tier mapping; Level 1 default enabled; future features dimmed). Custom features CRUD lives alongside and persists with the class section.
+- Subclass spellcasting trait now appears as a visible badge row in ClassSummary (both the card and the drawer). This replaces the earlier muted text treatment.
+- Refactored ClassSummary to remove unsafe casts and rely on schema-typed properties directly; simplified props and improved readability.
+- Persistence: Save is allowed even when only feature toggles/custom features change (no class/subclass change). Default state enables only Level 1 features.
+- Feature derivation helpers added under `src/features/characters/logic/features.ts` (gate level from feature, tier mapping 2–4 → Tier 2, 5–7 → Tier 3, 8–10 → Tier 4; L1-first ordering). Outside card renders only unlocked-and-enabled; drawer editor shows all with clear labels.
+- Quality gates: typecheck PASS; full test suite PASS. A prior intermittent CommunityCard query flake stabilized on rerun; no changes needed there.
+
 Aug 13, 2025 (latest):
 
 - UI Drawer primitive restored to minimal pass-through (`src/components/ui/drawer.tsx`). Accessibility description now owned by `src/components/drawers/drawer-scaffold.tsx`, which provides a screen-reader-only `DrawerDescription` and wires `aria-describedby` to `DrawerContent`.

@@ -294,6 +294,43 @@ export function writeFeaturesToStorage(id: string, map: FeatureSelections) {
   storage.write(keys.features(id), map);
 }
 
+// Custom features (user-added)
+export const CustomFeatureSchema = z.object({
+  name: z.string().min(1),
+  description: z.string().min(1),
+  type: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+  level: z.number().int().min(1).max(10).default(1),
+  tier: z
+    .union([
+      z.literal('1'),
+      z.literal('2-4'),
+      z.literal('5-7'),
+      z.literal('8-10'),
+    ])
+    .optional(),
+  unlockCondition: z.string().optional(),
+});
+export type CustomFeature = z.infer<typeof CustomFeatureSchema>;
+export const CustomFeaturesSchema = z.array(CustomFeatureSchema);
+export type CustomFeatures = CustomFeature[];
+
+export function readCustomFeaturesFromStorage(id: string): CustomFeatures {
+  const fallback: CustomFeatures = [];
+  try {
+    return storage.read(
+      keys.customFeatures(id),
+      fallback,
+      CustomFeaturesSchema
+    );
+  } catch {
+    return fallback;
+  }
+}
+export function writeCustomFeaturesToStorage(id: string, list: CustomFeatures) {
+  storage.write(keys.customFeatures(id), list);
+}
+
 export type CharacterProgressionDraft = {
   currentLevel: number;
   currentTier: ReturnType<typeof getTierForLevel>;

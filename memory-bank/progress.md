@@ -156,6 +156,14 @@ Deliverables: Equipment free-form mode; schema validation and mobile-friendly dr
 ### August 10, 2025 (later)
 
 - Domains drawer: prevented auto-close on add/remove by using non-submit buttons; added search inputs and filters (domain, level, type All/Spell/Ability); displayed costs and tags; added type badges in list rows and preview; kept description in preview.
+
+### August 14, 2025 (even later)
+
+- Implemented Class/Subclass Features section:
+  - Added logic helper `deriveFeatureUnlocks` to compute gated feature list from class/subclass data; exported via logic index.
+  - New `FeaturesCard` and `FeaturesDrawer` components with per-character selections persisted in storage; wired into `/characters/$id` below the Class section.
+  - Ran full suite and typecheck: PASS (45/45). No regressions.
+
 - Domains summary: extended `DomainsCard` to optionally show by-type counts; route computes and passes counts (Spell/Ability).
 - Resources: converted `hope` to Score with current/max across schema, route, and UI; added migration from legacy numeric value in storage.
 - Traits: removed Remaining budget UI/state.
@@ -249,3 +257,12 @@ Deliverables: Equipment free-form mode; schema validation and mobile-friendly dr
   - Added `tests/community-card.test.tsx` covering standard, homebrew (with badge), and empty-state.
   - Resolved brittle queries by switching to `getAllByText` for trait chips.
 - Quality gates: Full suite PASS locally (18 files, 45/45 tests). Typecheck PASS. Non-blocking Radix Dialog description warnings remain as noted earlier.
+
+### August 14, 2025 (later 4)
+
+- Class/Subclass features consolidation and polish:
+  - Implemented feature derivation helpers (`deriveFeatureUnlocks`, `getUnlockedFeatures`) with tier mapping (2–4 → Tier 2, 5–7 → Tier 3, 8–10 → Tier 4) and L1-first ordering.
+  - Consolidated the outside Class card (ClassSummary + unlocked-and-enabled FeaturesList) and the inside Class drawer (selection + full features editor with unlock level/tier labels and custom features CRUD). Default state enables only Level 1 features; Save is permitted for feature-only edits.
+  - Upgraded subclass spellcasting trait from muted text to a visible badge row in ClassSummary on both the card and the drawer.
+  - Refactored ClassSummary to remove unsafe casts and use schema-typed properties directly.
+  - Validation: Full test suite PASS; Typecheck PASS. A transient CommunityCard test flake (broad regex) stabilized without code changes.

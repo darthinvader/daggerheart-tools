@@ -2,7 +2,7 @@
 
 **Status:** In Progress  
 **Added:** 2025-08-13  
-**Updated:** 2025-08-14
+**Updated:** 2025-08-14 (later)
 
 ## Original Request
 
@@ -266,25 +266,25 @@ Risks & mitigations
 
 ## Progress Tracking
 
-**Overall Status:** In Progress – 55%
+**Overall Status:** In Progress – 70%
 
 ### Subtasks
 
-| ID  | Description                                         | Status      | Updated    | Notes                                                                        |
-| --- | --------------------------------------------------- | ----------- | ---------- | ---------------------------------------------------------------------------- |
-| 1.1 | Confirm level/xp fields; align progression          | Complete    | 2025-08-13 | Verified in `player-character.ts` and `core.ts`                              |
-| 1.2 | Progression helpers + applyLevelUp                  | In Progress | 2025-08-14 | Added logic/progression.ts (thresholds, tier, options, validator) + tests    |
-| 1.3 | Feature unlock derivation model                     | Not Started | 2025-08-13 | Logic-only types; no schema changes                                          |
-| 2.1 | Implement ThresholdsCard with explanation           | Complete    | 2025-08-14 | thresholds-card.tsx + tests added                                            |
-| 2.2 | Remove inline thresholds from ResourcesCard         | Complete    | 2025-08-14 | Inline chips removed; regression test updated                                |
-| 2.3 | DS override in thresholds and logic                 | Complete    | 2025-08-14 | Added dsOverride/ds storage, UI override switch, and classifyDamage override |
-| 3.1 | Implement LevelCard                                 | Not Started | 2025-08-13 | Shows level/tier/rally die                                                   |
-| 3.2 | Implement LevelUpDrawer (RHF+zod)                   | Not Started | 2025-08-13 | Validates costs and selections                                               |
-| 4.1 | Implement FeaturesCard and FeaturesDrawer           | Not Started | 2025-08-13 |                                                                              |
-| 5.1 | Add storage keys (level, progression, features)     | In Progress | 2025-08-14 | Keys added; helpers stubbed for follow-up                                    |
-| 5.2 | Add storage helpers + migrations for level/features | Not Started | 2025-08-13 | Update features/characters/storage.ts                                        |
-| 6.1 | Add tests for thresholds/leveling/features          | In Progress | 2025-08-14 | Added progression + thresholds tests; suite 37/37                            |
-| 7.1 | Update README and Memory Bank progress              | Not Started | 2025-08-13 |                                                                              |
+| ID  | Description                                         | Status      | Updated    | Notes                                                                                                                                                                                |
+| --- | --------------------------------------------------- | ----------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1.1 | Confirm level/xp fields; align progression          | Complete    | 2025-08-13 | Verified in `player-character.ts` and `core.ts`                                                                                                                                      |
+| 1.2 | Progression helpers + applyLevelUp                  | In Progress | 2025-08-14 | Added logic/progression.ts (thresholds, tier, options, validator) + tests                                                                                                            |
+| 1.3 | Feature unlock derivation model                     | Not Started | 2025-08-13 | Logic-only types; no schema changes                                                                                                                                                  |
+| 2.1 | Implement ThresholdsCard with explanation           | Complete    | 2025-08-14 | thresholds-card.tsx + tests added                                                                                                                                                    |
+| 2.2 | Remove inline thresholds from ResourcesCard         | Complete    | 2025-08-14 | Inline chips removed; regression test updated                                                                                                                                        |
+| 2.3 | DS override in thresholds and logic                 | Complete    | 2025-08-14 | Added dsOverride/ds storage, UI override switch, and classifyDamage override                                                                                                         |
+| 3.1 | Implement LevelCard                                 | Not Started | 2025-08-13 | Shows level/tier/rally die                                                                                                                                                           |
+| 3.2 | Implement LevelUpDrawer (RHF+zod)                   | Not Started | 2025-08-13 | Validates costs and selections                                                                                                                                                       |
+| 4.1 | Implement FeaturesCard and FeaturesDrawer           | Complete    | 2025-08-14 | Features logic + card/drawer added; wired into $id route; persisted choices; ClassSummary shows subclass spellcasting as a badge; default L1 enabled; Save allows feature-only edits |
+| 5.1 | Add storage keys (level, progression, features)     | In Progress | 2025-08-14 | Keys added; helpers stubbed for follow-up                                                                                                                                            |
+| 5.2 | Add storage helpers + migrations for level/features | Not Started | 2025-08-13 | Update features/characters/storage.ts                                                                                                                                                |
+| 6.1 | Add tests for thresholds/leveling/features          | In Progress | 2025-08-14 | Added progression + thresholds tests; suite 37/37                                                                                                                                    |
+| 7.1 | Update README and Memory Bank progress              | Not Started | 2025-08-13 |                                                                                                                                                                                      |
 
 ## Acceptance Criteria
 
@@ -325,3 +325,10 @@ Risks & mitigations
 - Added Double Severe (DS) override: storage schema extended with `dsOverride` and `ds` and migration for legacy shapes; UI switch gates editing the Custom DS input with validation (DS ≥ Severe). `classifyDamage` now supports a `doubleSevereOverride` param.
 - Replaced native alerts with toasts: mounted global Toaster and swapped alerts in thresholds components for toast errors/success.
 - Tests: Re-ran suite; now PASS (37/37). Typecheck PASS.
+
+### 2025-08-14 (even later)
+
+- Implemented class/subclass feature derivation helpers (`deriveFeatureUnlocks`, `getUnlockedFeatures`).
+- Added `FeaturesCard` and `FeaturesDrawer` with per-character selections persisted via storage helpers; wired into `src/routes/characters/$id.tsx` below Class section. Refactored `ClassSummary` to typed accessors and upgraded subclass spellcasting trait from muted text to a visible badge row in both surfaces (card and drawer). Default Level 1 features enabled; higher tiers disabled until unlocked. Save permitted for feature-only edits.
+- Exported features helpers from logic index.
+- Ran full test suite and typecheck: PASS (45/45). No regressions.
