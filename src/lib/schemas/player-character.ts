@@ -55,7 +55,10 @@ const PlayerDomainSchema = z.object({
 });
 
 const CharacterTraitStateSchema = z.object({
+  // Base trait value (existing field retained for backward compatibility)
   value: z.number().int(),
+  // Optional small bonus modifier applied on top of base
+  bonus: z.number().int().optional().default(0),
   marked: z.boolean().default(false),
 });
 
@@ -80,6 +83,33 @@ const ExperienceCollectionSchema = z.array(ExperienceSchema);
 
 const AbilitySchema = NameDescriptionSchema;
 
+// Background can be a freeform text or a list of Q&A pairs
+const BackgroundQAPairSchema = z.object({
+  question: z.string(),
+  answer: z.string(),
+});
+const BackgroundSchema = z.union([z.string(), z.array(BackgroundQAPairSchema)]);
+
+// Structured physical description details (all optional)
+const DescriptionDetailsSchema = z.object({
+  eyes: z.string().optional(),
+  hair: z.string().optional(),
+  skin: z.string().optional(),
+  body: z.string().optional(),
+  clothing: z.string().optional(),
+  mannerisms: z.string().optional(),
+  other: z.string().optional(),
+});
+
+// Connections as Q&A with an optional reference to another player
+const ConnectionSchema = z.object({
+  prompt: z.string(),
+  answer: z.string(),
+  withPlayer: z
+    .object({ id: z.string().optional(), name: z.string().optional() })
+    .optional(),
+});
+
 const IdentitySchema = z.object({
   name: z.string(),
   pronouns: z.string(),
@@ -87,6 +117,9 @@ const IdentitySchema = z.object({
   community: CommunityNameSchema,
   description: z.string(),
   calling: z.string(),
+  background: BackgroundSchema.optional(),
+  descriptionDetails: DescriptionDetailsSchema.optional(),
+  connections: z.array(ConnectionSchema).optional(),
   abilities: z.array(AbilitySchema),
 });
 
@@ -141,6 +174,7 @@ export const PlayerCharacterSchema = z.object({
   experience: z.number().int().min(0).default(0),
   // Narrative experiences usable with Hope
   experiences: ExperienceCollectionSchema.default([]),
+  // Legacy simple connections list (kept for back-compat; prefer identity.connections)
   connections: z.array(z.string()).optional(),
   // Level progression tracking (optional; rules engine can compute if omitted)
   progression: z
@@ -148,6 +182,17 @@ export const PlayerCharacterSchema = z.object({
       rules: LevelUpPointSystemSchema,
       state: CharacterProgressionSchema,
     })
+    .optional(),
+  // Level-up selections log (per-level decisions chosen by the player)
+  leveling: z
+    .array(
+      z.object({
+        level: z.number().int().min(1).max(10),
+        selections: z.record(z.string(), z.number().int().min(0)).default({}),
+        notes: z.string().optional(),
+      })
+    )
+    .default([])
     .optional(),
 
   // Ranger Companion

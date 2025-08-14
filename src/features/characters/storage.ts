@@ -1,120 +1,15 @@
 import { z } from 'zod';
 
-import {
-  AncestryNameSchema,
-  ClassNameEnum,
-  CommunityNameSchema,
-  SubclassNameSchema,
-} from '@/lib/schemas/core';
-import {
-  CharacterProgressionSchema,
-  getTierForLevel,
-} from '@/lib/schemas/core';
-import {
-  type EquipmentLoadout,
-  EquipmentLoadoutSchema,
-  type Inventory,
-  InventorySchema,
-} from '@/lib/schemas/equipment';
 import { characterKeys as keys, storage } from '@/lib/storage';
 
-// Domains draft (lite card shape to avoid importing all domain schemas)
-const DomainCardSchemaLite = z
-  .object({
-    name: z.string(),
-    level: z.number().int().min(1).max(10),
-    domain: z.string(),
-    type: z.string(),
-    description: z.string().optional(),
-    hopeCost: z.number().int().min(0).optional(),
-    recallCost: z.number().int().min(0).optional(),
-    tags: z.array(z.string()).optional(),
-    metadata: z.record(z.string(), z.unknown()).optional(),
-  })
-  .passthrough();
-export const DomainsDraftSchema = z.object({
-  loadout: z.array(DomainCardSchemaLite).default([]),
-  vault: z.array(DomainCardSchemaLite).default([]),
-  creationComplete: z.boolean().default(false),
-});
-export type DomainsDraft = z.infer<typeof DomainsDraftSchema>;
-export const DEFAULT_DOMAINS: DomainsDraft = {
-  loadout: [],
-  vault: [],
-  creationComplete: false,
-};
-
-// Identity
-// Details to support richer ancestry/community editing: mixed and homebrew options
-const AncestryFeatureLiteSchema = z.object({
-  name: z.string().min(1),
-  description: z.string().min(1),
-});
-const AncestryDetailsSchema = z
-  .object({
-    type: z.enum(['standard', 'mixed', 'homebrew']).default('standard'),
-    mixed: z
-      .object({
-        name: z.string().optional(),
-        primaryFrom: z.string().min(1),
-        secondaryFrom: z.string().min(1),
-      })
-      .optional(),
-    homebrew: z
-      .object({
-        name: z.string().min(1),
-        description: z.string().optional().default(''),
-        heightRange: z.string().optional(),
-        lifespan: z.string().optional(),
-        physicalCharacteristics: z.array(z.string()).optional(),
-        primaryFeature: AncestryFeatureLiteSchema,
-        secondaryFeature: AncestryFeatureLiteSchema,
-      })
-      .optional(),
-  })
-  .optional();
-
-const CommunityDetailsSchema = z
-  .object({
-    type: z.enum(['standard', 'homebrew']).default('standard'),
-    homebrew: z
-      .object({
-        name: z.string().min(1),
-        description: z.string().optional().default(''),
-        commonTraits: z.array(z.string()).default([]),
-        feature: z.object({ name: z.string().min(1), description: z.string() }),
-      })
-      .optional(),
-  })
-  .optional();
-
-export const IdentityDraftSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  pronouns: z.string().min(1, 'Pronouns are required'),
-  // Allow official or custom names
-  ancestry: AncestryNameSchema,
-  community: CommunityNameSchema,
-  description: z.string().default(''),
-  calling: z.string().default(''),
-  // Rich details for UI; optional to preserve back-compat
-  ancestryDetails: AncestryDetailsSchema,
-  communityDetails: CommunityDetailsSchema,
-});
-export type IdentityDraft = z.infer<typeof IdentityDraftSchema>;
-export const DEFAULT_IDENTITY: IdentityDraft = {
-  name: '',
-  pronouns: 'they/them',
-  ancestry: 'Human',
-  community: 'Wanderborne',
-  description: '',
-  calling: '',
-};
-export function readIdentityFromStorage(id: string): IdentityDraft {
-  return storage.read(keys.identity(id), DEFAULT_IDENTITY, IdentityDraftSchema);
-}
-export function writeIdentityToStorage(id: string, value: IdentityDraft) {
-  storage.write(keys.identity(id), value);
-}
+// Barrel re-exports for split modules (keeps public API stable)
+export * from '@/features/characters/identity-storage';
+export * from '@/features/characters/class-storage';
+export * from '@/features/characters/domains-storage';
+export * from '@/features/characters/equipment-storage';
+export * from '@/features/characters/inventory-storage';
+export * from '@/features/characters/features-storage';
+export * from '@/features/characters/progression-storage';
 
 // Conditions (simple string tags)
 export const ConditionsSchema = z.array(z.string().min(1).max(40));
@@ -183,17 +78,18 @@ export function writeResourcesToStorage(id: string, value: ResourcesDraft) {
 // Traits
 export const TraitStateSchema = z.object({
   value: z.number().int().default(0),
+  bonus: z.number().int().default(0),
   marked: z.boolean().default(false),
 });
 export type TraitState = z.infer<typeof TraitStateSchema>;
 export type TraitsDraft = Record<string, TraitState>;
 export const DEFAULT_TRAITS: TraitsDraft = {
-  Agility: { value: 0, marked: false },
-  Strength: { value: 0, marked: false },
-  Finesse: { value: 0, marked: false },
-  Instinct: { value: 0, marked: false },
-  Presence: { value: 0, marked: false },
-  Knowledge: { value: 0, marked: false },
+  Agility: { value: 0, bonus: 0, marked: false },
+  Strength: { value: 0, bonus: 0, marked: false },
+  Finesse: { value: 0, bonus: 0, marked: false },
+  Instinct: { value: 0, bonus: 0, marked: false },
+  Presence: { value: 0, bonus: 0, marked: false },
+  Knowledge: { value: 0, bonus: 0, marked: false },
 };
 export function readTraitsFromStorage(id: string): TraitsDraft {
   const schema = z.record(z.string(), TraitStateSchema);
@@ -202,98 +98,6 @@ export function readTraitsFromStorage(id: string): TraitsDraft {
 export function writeTraitsToStorage(id: string, value: TraitsDraft) {
   storage.write(keys.traits(id), value);
 }
-
-// Class selection
-export const ClassDraftSchema = z.object({
-  className: ClassNameEnum,
-  subclass: SubclassNameSchema,
-});
-export type ClassDraft = z.infer<typeof ClassDraftSchema>;
-export const DEFAULT_CLASS: ClassDraft = {
-  className: 'Warrior',
-  subclass: 'Call of the Brave',
-};
-export function readClassFromStorage(id: string): ClassDraft {
-  return storage.read(keys.class(id), DEFAULT_CLASS, ClassDraftSchema);
-}
-export function writeClassToStorage(id: string, value: ClassDraft) {
-  storage.write(keys.class(id), value);
-}
-
-// Domains read/write
-export function readDomainsFromStorage(id: string): DomainsDraft {
-  const parsed = storage.read(keys.domains(id), DEFAULT_DOMAINS);
-  try {
-    return DomainsDraftSchema.parse(parsed);
-  } catch {
-    return DEFAULT_DOMAINS;
-  }
-}
-export function writeDomainsToStorage(id: string, value: DomainsDraft) {
-  storage.write(keys.domains(id), value);
-}
-
-// Equipment (loadout): weapons, armor, items
-export type EquipmentDraft = EquipmentLoadout;
-export const DEFAULT_EQUIPMENT: EquipmentDraft = {
-  primaryWeapon: undefined,
-  secondaryWeapon: undefined,
-  armor: undefined,
-  items: [],
-  consumables: {},
-};
-export function readEquipmentFromStorage(id: string): EquipmentDraft {
-  const fallback = DEFAULT_EQUIPMENT;
-  try {
-    return storage.read(keys.equipment(id), fallback, EquipmentLoadoutSchema);
-  } catch {
-    return fallback;
-  }
-}
-export function writeEquipmentToStorage(id: string, value: EquipmentDraft) {
-  storage.write(keys.equipment(id), value);
-}
-
-// Inventory (bag/slots)
-export type InventoryDraft = Inventory;
-export const DEFAULT_INVENTORY: InventoryDraft = {
-  slots: [],
-  maxItems: 50,
-  weightCapacity: undefined,
-  currentWeight: 0,
-  metadata: {},
-};
-export function readInventoryFromStorage(id: string): InventoryDraft {
-  const fallback = DEFAULT_INVENTORY;
-  try {
-    return storage.read(keys.inventory(id), fallback, InventorySchema);
-  } catch {
-    return fallback;
-  }
-}
-export function writeInventoryToStorage(id: string, value: InventoryDraft) {
-  storage.write(keys.inventory(id), value);
-}
-
-// Level & progression
-export function readLevelFromStorage(id: string): number {
-  const n = storage.read<number>(keys.level(id), 1);
-  return Number.isFinite(n) && n >= 1 && n <= 10 ? n : 1;
-}
-export function writeLevelToStorage(id: string, value: number) {
-  const v = Math.max(1, Math.min(10, Math.floor(value)));
-  storage.write(keys.level(id), v);
-}
-
-export type FeatureSelections = Record<string, string | number | boolean>;
-
-export function readFeaturesFromStorage(id: string): FeatureSelections {
-  return storage.read(keys.features(id), {} as FeatureSelections);
-}
-export function writeFeaturesToStorage(id: string, map: FeatureSelections) {
-  storage.write(keys.features(id), map);
-}
-
 // Custom features (user-added)
 export const CustomFeatureSchema = z.object({
   name: z.string().min(1),
@@ -331,44 +135,6 @@ export function writeCustomFeaturesToStorage(id: string, list: CustomFeatures) {
   storage.write(keys.customFeatures(id), list);
 }
 
-export type CharacterProgressionDraft = {
-  currentLevel: number;
-  currentTier: ReturnType<typeof getTierForLevel>;
-  availablePoints: number;
-  spentOptions: Record<string, number>;
-};
-
-export function readProgressionFromStorage(
-  id: string
-): CharacterProgressionDraft {
-  const level = readLevelFromStorage(id);
-  const fallback: CharacterProgressionDraft = {
-    currentLevel: level,
-    currentTier: getTierForLevel(level),
-    availablePoints: 2,
-    spentOptions: {},
-  };
-  try {
-    const raw = storage.read(keys.progression(id), fallback);
-    // Validate against schema shape but coerce to draft
-    const parsed = CharacterProgressionSchema.parse(raw);
-    return {
-      currentLevel: parsed.currentLevel,
-      currentTier: parsed.currentTier,
-      availablePoints: parsed.availablePoints,
-      spentOptions: parsed.spentOptions,
-    };
-  } catch {
-    return fallback;
-  }
-}
-export function writeProgressionToStorage(
-  id: string,
-  value: CharacterProgressionDraft
-) {
-  storage.write(keys.progression(id), value);
-}
-
 // Threshold overrides (editable by user). Persist per character.
 export const ThresholdsSettingsSchema = z.object({
   auto: z.boolean().default(true),
@@ -378,7 +144,7 @@ export const ThresholdsSettingsSchema = z.object({
       severe: z.number().int().min(0),
       // When true, use custom ds instead of severe * 2
       dsOverride: z.boolean().default(false),
-      // Stored custom Double Severe value when override is enabled
+      // Stored custom Major Damage (double severe) value when override is enabled
       ds: z.number().int().min(0).default(0),
     })
     .refine(v => v.severe >= v.major, {

@@ -3,10 +3,11 @@ import { toast } from 'sonner';
 
 import * as React from 'react';
 
+import { CharacterCardHeader } from '@/components/characters/presenters/card-header';
 import { ThresholdsSummary } from '@/components/characters/thresholds-summary';
 import { DrawerScaffold } from '@/components/drawers/drawer-scaffold';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { useThresholdsSettings } from '@/features/characters/logic/use-thresholds';
@@ -55,18 +56,20 @@ export function ThresholdsCard({ id, className }: ThresholdsCardProps) {
   };
   return (
     <Card id={id} className={className}>
-      <CardHeader className="flex-row items-center justify-between space-y-0">
-        <CardTitle>Damage Thresholds</CardTitle>
-        <Button
-          type="button"
-          aria-label="Explain thresholds"
-          variant="ghost"
-          size="icon"
-          onClick={() => setOpen(true)}
-        >
-          <Info className="h-4 w-4" />
-        </Button>
-      </CardHeader>
+      <CharacterCardHeader
+        title="Damage Thresholds"
+        actions={
+          <Button
+            type="button"
+            aria-label="Explain thresholds"
+            variant="ghost"
+            size="icon"
+            onClick={() => setOpen(true)}
+          >
+            <Info className="h-4 w-4" />
+          </Button>
+        }
+      />
       <CardContent>
         <ThresholdsSummary
           major={displayMajor}
@@ -86,6 +89,7 @@ export function ThresholdsCard({ id, className }: ThresholdsCardProps) {
           <div className="mx-auto max-w-screen-sm space-y-3 py-4 text-sm">
             <p>
               Minor damage costs 1 HP, Major costs 2 HP, and Severe costs 3 HP.
+              Optional Major Damage costs 4 HP.
             </p>
             <div className="flex items-center justify-between rounded-md border p-3">
               <div>
@@ -133,7 +137,7 @@ export function ThresholdsCard({ id, className }: ThresholdsCardProps) {
               <div className="col-span-2 grid grid-cols-[1fr_auto] items-end gap-3">
                 <label className="flex flex-col gap-1">
                   <span className="text-muted-foreground text-xs">
-                    Custom Double Severe:
+                    Custom Major Damage:
                   </span>
                   <Input
                     type="text"
@@ -159,10 +163,10 @@ export function ThresholdsCard({ id, className }: ThresholdsCardProps) {
                         },
                       }))
                     }
-                    aria-label="Customize Double Severe"
+                    aria-label="Customize Major Damage"
                   />
                   <span className="text-muted-foreground text-xs select-none">
-                    Customize Double Severe
+                    Customize Major Damage
                   </span>
                 </label>
               </div>

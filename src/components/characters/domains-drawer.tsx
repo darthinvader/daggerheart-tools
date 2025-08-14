@@ -4,37 +4,26 @@ import type { BaseSyntheticEvent } from 'react';
 import * as React from 'react';
 
 // Virtual list is used via AvailableCardsSection
-import { AvailableCardsSection } from '@/components/characters/domains-drawer/available-cards-section';
 import { CreationCompleteToggle } from '@/components/characters/domains-drawer/creation-complete-toggle';
-import { DomainsFilterBar } from '@/components/characters/domains-drawer/domains-filter-bar';
+import { DomainsListsSection } from '@/components/characters/domains-drawer/domains-lists-section';
+import { DomainsTabs } from '@/components/characters/domains-drawer/domains-tabs';
 import { LoadoutFooter } from '@/components/characters/domains-drawer/loadout-footer';
 import { getLoadoutLimits } from '@/components/characters/domains-drawer/loadout-limits';
-import { LoadoutList } from '@/components/characters/domains-drawer/loadout-list';
-import { TabsHeader } from '@/components/characters/domains-drawer/tabs-header';
-import { TypeSummaryChips } from '@/components/characters/domains-drawer/type-summary-chips';
-import { useAfterOpenFlag } from '@/components/characters/domains-drawer/use-after-open';
-import { useClosingFreeze } from '@/components/characters/domains-drawer/use-closing-freeze';
+import { useAutosaveAndBaseline } from '@/components/characters/domains-drawer/use-autosave-and-baseline';
 import { useDomainCardsLoader } from '@/components/characters/domains-drawer/use-domain-cards-loader';
 import { useDomainFilters } from '@/components/characters/domains-drawer/use-domain-filters';
+import { useDrawerStage } from '@/components/characters/domains-drawer/use-drawer-stage';
 import { useHomebrewForm } from '@/components/characters/domains-drawer/use-homebrew-form';
 import { useLoadoutLists } from '@/components/characters/domains-drawer/use-loadout-lists';
-import { VaultList } from '@/components/characters/domains-drawer/vault-list';
-import { useBaselineSnapshot } from '@/components/characters/hooks/use-baseline-snapshot';
-import { useDrawerAutosaveOnClose } from '@/components/characters/hooks/use-drawer-autosave';
 import { DrawerScaffold } from '@/components/drawers/drawer-scaffold';
-import { Form, FormField } from '@/components/ui/form';
-import { Tabs, TabsContent } from '@/components/ui/tabs';
+import { Form } from '@/components/ui/form';
+// Tabs are handled inside DomainsTabs presenter
 import { filterCards as filterCardsShared } from '@/features/characters/logic';
-import { useCoarsePointer } from '@/hooks/use-coarse-pointer';
-import { useMeasureReady } from '@/hooks/use-measure-ready';
+// Stage/overscan handled by useDrawerStage
 // Using CSS dynamic viewport units (dvh) for correct keyboard interactions
 import type { DomainCard } from '@/lib/schemas/domains';
 
-const HomebrewCardFormLazy = React.lazy(() =>
-  import('@/components/characters/domains-drawer/homebrew-card-form').then(
-    m => ({ default: m.HomebrewCardForm })
-  )
-);
+// Homebrew form UI is lazy-loaded inside DomainsTabs
 
 // import { cn } from '@/lib/utils';
 
@@ -67,11 +56,15 @@ function DomainsDrawerImpl({
   startingLimit = 3,
   softLimit = 6,
 }: DomainsDrawerProps) {
-  // Track when the drawer is closing to temporarily freeze heavy work & scrolling
-  const { closing, startClosing, clearClosing } = useClosingFreeze();
-  const [activeTab, setActiveTab] = React.useState<
-    'filtered' | 'any' | 'homebrew'
-  >('filtered');
+  // Track stage/ready/overscan using a small hook
+  const {
+    closing,
+    startClosing,
+    clearClosing,
+    afterOpen,
+    measureReady,
+    virtualOverscan,
+  } = useDrawerStage(open);
   // Debounced search + filters via shared hook
   // Replace local filter/search state with shared hook
   const {
@@ -93,16 +86,10 @@ function DomainsDrawerImpl({
   // Homebrew minimal fields; description carries the "what it does" text
   const { state: hb, setState: setHb, clear: clearHb } = useHomebrewForm();
 
-  // Track baseline form values when the drawer opens so we can Reset to it.
-  const baselineRef = useBaselineSnapshot(open, () => form.getValues());
-  // When Cancel/Save is pressed, we skip auto-save on close to avoid double-save.
-  const skipAutoSaveRef = React.useRef(false);
+  const { creationComplete, handleCancel, markSkip, resetToBaseline } =
+    useAutosaveAndBaseline({ open, form, submit: () => submit() });
 
-  // After-open flag: wait a couple of RAFs so CSS animations start before heavy work.
-  const afterOpen = useAfterOpenFlag(open);
-
-  // Cleanup any pending close timers on unmount
-  // cleanup handled in useClosingFreeze
+  // Cleanup handled in use-drawer-stage/use-closing-freeze
 
   const { cards, isLoadingCards } = useDomainCardsLoader(
     open,
@@ -132,34 +119,10 @@ function DomainsDrawerImpl({
     [accessibleDomains, domainFilter, levelFilter, typeFilter, debouncedSearch]
   );
 
-  // Only compute the active tab's list to reduce CPU work.
-  const activeList = React.useMemo(() => {
-    if (!open || !afterOpen) return [] as DomainCard[];
-    if (activeTab === 'filtered') return filterCards(cards, true);
-    if (activeTab === 'any') return filterCards(cards, false);
-    return [] as DomainCard[];
-  }, [activeTab, cards, filterCards, open, afterOpen]);
-
-  // Defer large list rendering to keep interactions responsive.
-  const deferredList = React.useDeferredValue(activeList);
-
-  const measureReady = useMeasureReady(open);
-
-  const virtualOverscan = useCoarsePointer() ? 1 : 3;
+  // provided by useDrawerStage
 
   // Virtualized list for large collections to improve performance.
   // Virtualized list extracted into a dedicated component for clarity
-
-  // (moved above)
-  const creationComplete = form.watch('creationComplete') ?? false;
-
-  // Auto-save on any close path, guarded by validation & limits.
-  useDrawerAutosaveOnClose({
-    open,
-    trigger: () => form.trigger(),
-    submit: () => submit(),
-    skipRef: skipAutoSaveRef,
-  });
 
   // Handlers provided by hook
 
@@ -190,24 +153,17 @@ function DomainsDrawerImpl({
           Manage Domains & Loadout
         </span>
       }
-      onCancel={() => {
-        skipAutoSaveRef.current = true;
-        onCancel();
-      }}
+      onCancel={() => handleCancel(onCancel)}
       onSubmit={() => {
-        skipAutoSaveRef.current = true;
+        markSkip();
         return submit();
       }}
       footer={
         <LoadoutFooter
           recallBudgetUsed={recallBudgetUsed}
           canSave={form.formState.isValid}
-          onReset={() => {
-            if (baselineRef.current) form.reset(baselineRef.current);
-          }}
-          onSaveClick={() => {
-            skipAutoSaveRef.current = true;
-          }}
+          onReset={resetToBaseline}
+          onSaveClick={markSkip}
           formId="domains-drawer-form"
         />
       }
@@ -225,161 +181,51 @@ function DomainsDrawerImpl({
             onSubmit={submit}
             noValidate
           >
-            <Tabs
-              value={activeTab}
-              onValueChange={v => setActiveTab(v as typeof activeTab)}
-              // Don’t mount inactive panels to reduce DOM & measurement during open
-              defaultValue="filtered"
-              activationMode="manual"
-            >
-              <TabsHeader />
+            <DomainsTabs
+              open={open}
+              afterOpen={afterOpen}
+              measureReady={measureReady}
+              closing={closing}
+              virtualOverscan={virtualOverscan}
+              accessibleDomains={accessibleDomains}
+              cards={cards}
+              isLoadingCards={isLoadingCards}
+              inLoadout={inLoadout}
+              disableAdd={disableAdd}
+              addToLoadout={addToLoadout}
+              removeFromLoadout={removeFromLoadout}
+              domainFilter={domainFilter}
+              levelFilter={levelFilter}
+              typeFilter={typeFilter}
+              search={search}
+              debouncedSearch={debouncedSearch}
+              setDomainFilter={setDomainFilter}
+              setLevelFilter={setLevelFilter}
+              setTypeFilter={setTypeFilter}
+              setSearch={setSearch}
+              filterCards={filterCards}
+              hb={hb}
+              onHomebrewChange={setHb}
+              onHomebrewAdd={addToLoadout}
+              onHomebrewClear={clearHb}
+            />
 
-              <TabsContent value="filtered" className="space-y-3" forceMount>
-                <DomainsFilterBar
-                  domainFilter={domainFilter}
-                  levelFilter={levelFilter}
-                  typeFilter={typeFilter}
-                  search={search}
-                  onDomainChange={setDomainFilter}
-                  onLevelChange={setLevelFilter}
-                  onTypeChange={setTypeFilter}
-                  onSearchChange={setSearch}
-                  accessibleDomains={accessibleDomains}
-                />
-
-                <AvailableCardsSection
-                  title="Available Cards"
-                  visible={activeTab === 'filtered'}
-                  isLoading={isLoadingCards}
-                  items={deferredList}
-                  measure={afterOpen && measureReady && !closing}
-                  closing={closing}
-                  virtualOverscan={virtualOverscan}
-                  inLoadout={inLoadout}
-                  disableAdd={disableAdd}
-                  addToLoadout={addToLoadout}
-                  removeFromLoadout={removeFromLoadout}
-                />
-              </TabsContent>
-
-              <TabsContent value="any" className="space-y-3">
-                <DomainsFilterBar
-                  domainFilter={domainFilter}
-                  levelFilter={levelFilter}
-                  typeFilter={typeFilter}
-                  search={search}
-                  onDomainChange={setDomainFilter}
-                  onLevelChange={setLevelFilter}
-                  onTypeChange={setTypeFilter}
-                  onSearchChange={setSearch}
-                  cardsForAnyTab={cards}
-                />
-                <div className="space-y-2">
-                  <div className="text-sm font-medium">
-                    Available Cards (All)
-                  </div>
-                  {/* Summary chips by type to mirror visible list */}
-                  {activeTab === 'any' && (
-                    <TypeSummaryChips items={deferredList} />
-                  )}
-                  <AvailableCardsSection
-                    title="Available Cards (All)"
-                    visible={activeTab === 'any'}
-                    isLoading={isLoadingCards}
-                    items={deferredList}
-                    measure={afterOpen && measureReady && !closing}
-                    closing={closing}
-                    virtualOverscan={virtualOverscan}
-                    inLoadout={inLoadout}
-                    disableAdd={disableAdd}
-                    addToLoadout={addToLoadout}
-                    removeFromLoadout={removeFromLoadout}
-                  />
-                </div>
-              </TabsContent>
-
-              <TabsContent value="homebrew" className="space-y-3">
-                <React.Suspense fallback={null}>
-                  <HomebrewCardFormLazy
-                    hbName={hb.hbName}
-                    hbDomain={hb.hbDomain}
-                    hbType={hb.hbType}
-                    hbLevel={hb.hbLevel}
-                    hbDescription={hb.hbDescription}
-                    hbHopeCost={hb.hbHopeCost}
-                    hbRecallCost={hb.hbRecallCost}
-                    disableAdd={disableAdd}
-                    onChange={next => {
-                      const mapped = {
-                        hbName:
-                          'hbName' in next
-                            ? String(next.hbName ?? '')
-                            : undefined,
-                        hbDomain:
-                          'hbDomain' in next
-                            ? String(next.hbDomain ?? '')
-                            : undefined,
-                        hbType:
-                          'hbType' in next
-                            ? String(next.hbType ?? '')
-                            : undefined,
-                        hbLevel:
-                          'hbLevel' in next
-                            ? Number(next.hbLevel ?? 1)
-                            : undefined,
-                        hbDescription:
-                          'hbDescription' in next
-                            ? String(next.hbDescription ?? '')
-                            : undefined,
-                        hbHopeCost:
-                          'hbHopeCost' in next
-                            ? ((next.hbHopeCost as number | '') ?? '')
-                            : undefined,
-                        hbRecallCost:
-                          'hbRecallCost' in next
-                            ? ((next.hbRecallCost as number | '') ?? '')
-                            : undefined,
-                      };
-                      setHb(mapped);
-                    }}
-                    onAdd={addToLoadout}
-                    onClear={clearHb}
-                  />
-                </React.Suspense>
-              </TabsContent>
-            </Tabs>
+            {/* Homebrew tab is handled inside DomainsTabs for consistency */}
 
             {/* * REVIEW: Limits and costs TBD — earlier count-based guidance removed. */}
             <CreationCompleteToggle form={form as never} />
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <FormField
-                control={form.control as never}
-                name="loadout"
-                render={() => (
-                  <LoadoutList
-                    items={currentLoadout}
-                    afterOpen={afterOpen}
-                    onRemove={removeFromLoadout}
-                  />
-                )}
-              />
-              <FormField
-                control={form.control as never}
-                name="vault"
-                render={() => (
-                  <VaultList
-                    items={currentVault}
-                    afterOpen={afterOpen}
-                    inLoadout={inLoadout}
-                    disableAdd={disableAdd}
-                    onAdd={addToLoadout}
-                    onRemoveFromLoadout={removeFromLoadout}
-                    onRemoveFromVault={removeFromVault}
-                  />
-                )}
-              />
-            </div>
+            <DomainsListsSection
+              form={form}
+              afterOpen={afterOpen}
+              currentLoadout={currentLoadout}
+              currentVault={currentVault}
+              inLoadout={inLoadout}
+              disableAdd={disableAdd}
+              addToLoadout={addToLoadout}
+              removeFromLoadout={removeFromLoadout}
+              removeFromVault={removeFromVault}
+            />
           </form>
         </Form>
         {/* Lightweight, ephemeral blocker to absorb touch/scroll during close on mobile */}

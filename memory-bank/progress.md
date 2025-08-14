@@ -118,6 +118,14 @@ Deliverables: Equipment free-form mode; schema validation and mobile-friendly dr
 
 ## Recent Progress Log
 
+### August 15, 2025
+
+- Inventory card trimmed: extracted `InventorySummaryChips` and `InventoryList` presenters and refactored `inventory-card.tsx` to use them. Fixed corrupted unicode in chips presenter. All tests PASS (49/49); typecheck PASS. Size report refreshed: `inventory-card.tsx` no longer in top offenders; remaining large UI files: `community-drawer.tsx`, `equipment-drawer.tsx`, inventory drawer presenters.
+
+- Community drawer trim (partial): extracted `CommunityList` and `HomebrewCommunityForm` presenters and refactored `community-drawer.tsx` to use them. Behavior unchanged; tests PASS (49/49); typecheck PASS. Next: measure size delta and consider extracting a tiny `useCommunityDraft` hook if further reduction is needed.
+
+- Equipment drawer trim: added `useHomebrewMeta` hook and refactored `equipment-drawer.tsx` to remove duplicated homebrew handlers/state. Full suite PASS (49/49); typecheck PASS. Analyzer refreshed: equipment-drawer ~7.0 KB (down from ~10.5 KB). Next candidates by size/complexity: `ui/chart.tsx`, `inventory-drawer/homebrew-item-form.tsx`, and `inventory-drawer/library-results-list.tsx`.
+
 - Audited codebase vs memory bank; aligned paths and scope (domain data in data/domains).
 - Ran type-check: PASS. Build path compiles.
 - Verified `PlayerCharacterSchema` and equipment/domain schemas exist and are consistent.

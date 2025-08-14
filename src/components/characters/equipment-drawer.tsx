@@ -3,6 +3,7 @@ import type { UseFormReturn } from 'react-hook-form';
 import * as React from 'react';
 
 import { useEquipmentFilters } from '@/components/characters/equipment-drawer/hooks/use-equipment-filters';
+import { useHomebrewMeta } from '@/components/characters/equipment-drawer/hooks/use-homebrew-meta';
 import { ArmorPanel } from '@/components/characters/equipment-drawer/panels/armor-panel';
 import { PrimaryPanel } from '@/components/characters/equipment-drawer/panels/primary-panel';
 import { SecondaryPanel } from '@/components/characters/equipment-drawer/panels/secondary-panel';
@@ -29,64 +30,17 @@ function EquipmentDrawerImpl({
   section,
 }: EquipmentDrawerProps) {
   const skipRef = React.useRef(false);
-  // no-op
-  type EquipmentMeta = {
-    homebrew?: {
-      primary?: MinimalWeapon[];
-      secondary?: MinimalWeapon[];
-      armor?: MinimalArmor[];
-    };
-  } & Record<string, unknown>;
   // Filters/search state via hook (initialized after homebrew state below)
   // Items moved to Inventory drawer (no state here)
 
-  // Homebrew lists scoped to drawer session
-  type MinimalWeapon = {
-    name: string;
-    tier?: string | number;
-    trait?: string;
-    range?: string | number;
-    burden?: string | number;
-  } & Record<string, unknown>;
-  type MinimalArmor = { name: string } & Record<string, unknown>;
-  const [homebrewPrimary, setHomebrewPrimary] = React.useState<MinimalWeapon[]>(
-    []
-  );
-  const [homebrewSecondary, setHomebrewSecondary] = React.useState<
-    MinimalWeapon[]
-  >([]);
-  const [homebrewArmor, setHomebrewArmor] = React.useState<MinimalArmor[]>([]);
-  // no-op
+  // Homebrew arrays + add helpers centralized
+  const hb = useHomebrewMeta(form, open);
   // Initialize filters now that homebrew state exists
   const filters = useEquipmentFilters({
-    homebrewPrimary,
-    homebrewSecondary,
-    homebrewArmor,
+    homebrewPrimary: hb.homebrew.primary,
+    homebrewSecondary: hb.homebrew.secondary,
+    homebrewArmor: hb.homebrew.armor,
   });
-  // Initialize homebrew lists from form metadata when opened
-  React.useEffect(() => {
-    if (!open) return;
-    const key = 'metadata' as unknown as keyof EquipmentDraft;
-    const meta = (form.getValues(key) as unknown as EquipmentMeta) || {};
-    const hb = (
-      meta as unknown as {
-        homebrew?: {
-          primary?: MinimalWeapon[];
-          secondary?: MinimalWeapon[];
-          armor?: MinimalArmor[];
-        };
-      }
-    ).homebrew;
-    if (hb) {
-      setHomebrewPrimary(hb.primary || []);
-      setHomebrewSecondary(hb.secondary || []);
-      setHomebrewArmor(hb.armor || []);
-    } else {
-      setHomebrewPrimary([]);
-      setHomebrewSecondary([]);
-      setHomebrewArmor([]);
-    }
-  }, [open, form]);
 
   // Sources and counts computed in the hook
   // Items library source (static lists)
@@ -166,25 +120,7 @@ function EquipmentDrawerImpl({
                     shouldDirty: true,
                   })
                 }
-                onAddHomebrew={w => {
-                  const next = [...homebrewPrimary, w as never];
-                  setHomebrewPrimary(next);
-                  const key = 'metadata' as unknown as keyof EquipmentDraft;
-                  const meta =
-                    (form.getValues(key) as unknown as EquipmentMeta) || {};
-                  const hb = (meta.homebrew || {}) as NonNullable<
-                    EquipmentMeta['homebrew']
-                  >;
-                  const updated: EquipmentMeta = {
-                    ...meta,
-                    homebrew: { ...hb, primary: next },
-                  };
-                  form.setValue(
-                    key,
-                    updated as unknown as EquipmentDraft[keyof EquipmentDraft],
-                    { shouldDirty: true }
-                  );
-                }}
+                onAddHomebrew={w => hb.addPrimary(w as never)}
               />
             </TabsContent>
 
@@ -214,25 +150,7 @@ function EquipmentDrawerImpl({
                     shouldDirty: true,
                   })
                 }
-                onAddHomebrew={w => {
-                  const next = [...homebrewSecondary, w as never];
-                  setHomebrewSecondary(next);
-                  const key = 'metadata' as unknown as keyof EquipmentDraft;
-                  const meta =
-                    (form.getValues(key) as unknown as EquipmentMeta) || {};
-                  const hb = (meta.homebrew || {}) as NonNullable<
-                    EquipmentMeta['homebrew']
-                  >;
-                  const updated: EquipmentMeta = {
-                    ...meta,
-                    homebrew: { ...hb, secondary: next },
-                  };
-                  form.setValue(
-                    key,
-                    updated as unknown as EquipmentDraft[keyof EquipmentDraft],
-                    { shouldDirty: true }
-                  );
-                }}
+                onAddHomebrew={w => hb.addSecondary(w as never)}
               />
             </TabsContent>
 
@@ -260,25 +178,7 @@ function EquipmentDrawerImpl({
                 onSelect={aa =>
                   form.setValue('armor', aa as never, { shouldDirty: true })
                 }
-                onAddHomebrew={a => {
-                  const next = [...homebrewArmor, a as never];
-                  setHomebrewArmor(next);
-                  const key = 'metadata' as unknown as keyof EquipmentDraft;
-                  const meta =
-                    (form.getValues(key) as unknown as EquipmentMeta) || {};
-                  const hb = (meta.homebrew || {}) as NonNullable<
-                    EquipmentMeta['homebrew']
-                  >;
-                  const updated: EquipmentMeta = {
-                    ...meta,
-                    homebrew: { ...hb, armor: next },
-                  };
-                  form.setValue(
-                    key,
-                    updated as unknown as EquipmentDraft[keyof EquipmentDraft],
-                    { shouldDirty: true }
-                  );
-                }}
+                onAddHomebrew={a => hb.addArmor(a as never)}
               />
             </TabsContent>
           </Tabs>

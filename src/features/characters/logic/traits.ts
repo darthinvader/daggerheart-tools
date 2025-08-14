@@ -32,5 +32,16 @@ export function createTraitActions(id: string, setTraits: Setter<TraitsDraft>) {
     });
   };
 
-  return { canIncrement, incTrait, toggleMarked } as const;
+  const setBonus = (key: string, bonus: number) => {
+    setTraits(prev => {
+      const next: TraitsDraft = {
+        ...prev,
+        [key]: { ...prev[key], bonus: Math.floor(bonus) || 0 },
+      } as TraitsDraft;
+      writeTraitsToStorage(id, next);
+      return next;
+    });
+  };
+
+  return { canIncrement, incTrait, toggleMarked, setBonus } as const;
 }

@@ -110,6 +110,21 @@ Phase 3 — Code-splitting & perf (opportunistic)
 - Split detail presenters (chips, badges, list rows) into `inventory/` subcomponents
 - Ensure InventoryCard stays under ~12 KB and break very long lines
 
+## Update — Aug 14, 2025
+
+Grounded in the latest `size-report.json` (top 40), we’ve formalized a script-driven refactor effort tracked under [TASK009](tasks/TASK009-refactor-heavy-modules.md).
+
+- Current priority targets:
+  - `src/routes/characters/$id.tsx` (~23.8 KB, 687 LOC, 102 fns, fan-out 28)
+  - `src/components/characters/inventory-card.tsx` (~14.8 KB, Cx 54)
+  - `src/components/characters/domains-drawer.tsx` (~14.4 KB, 339 LOC)
+  - `src/features/characters/storage.ts` (~11.1 KB, 50 exports, fan-in 11)
+  - Inventory drawer presenters around ~13 KB
+- Approach: extract route helpers, move derivations into logic hooks, and split `storage.ts` by concern behind an `index.ts` barrel to keep imports stable.
+- Measurement cadence: run `pnpm run size:report` (by size and by loc) before/after each targeted change; ensure `pnpm -w -s typecheck` and `pnpm -w -s test` remain PASS.
+
+See TASK009 for phased steps, acceptance criteria, and subtasks.
+
 ## Tracking & Reporting
 
 - Run `pnpm run size:report -- --by=size --top=25` and `--by=loc` before/after each refactor.

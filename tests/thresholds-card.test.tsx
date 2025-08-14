@@ -9,6 +9,6 @@ describe('ThresholdsCard', () => {
     expect(screen.queryByText(/M:/)).not.toBeNull();
     // Use start-of-string anchor to avoid matching DS:
     expect(screen.queryByText(/^S:/)).not.toBeNull();
-    expect(screen.queryByText(/DS:/)).not.toBeNull();
+    expect(screen.queryByText(/MD:/)).not.toBeNull();
   });
 });

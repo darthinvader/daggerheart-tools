@@ -1,10 +1,13 @@
 // Centralized helpers for formatting threshold chip labels
-export type ThresholdKind = 'major' | 'severe' | 'ds';
+// Migration: support both 'md' (Major Damage) and legacy 'ds' (Double Severe)
+export type ThresholdKind = 'major' | 'severe' | 'md' | 'ds';
 
 export const THRESHOLD_PREFIX: Record<ThresholdKind, string> = {
   major: 'M',
   severe: 'S',
-  ds: 'DS',
+  md: 'MD',
+  // legacy alias
+  ds: 'MD',
 } as const;
 
 export function formatThresholdChip(

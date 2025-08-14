@@ -1,6 +1,7 @@
 import { DomainCardItem } from '@/components/characters/domain-card-item';
+import { CharacterCardHeader } from '@/components/characters/presenters/card-header';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import type { DomainCard } from '@/lib/schemas/domains';
 
 export type LoadoutSummary = {
@@ -27,10 +28,20 @@ export function DomainsCard({
 }: DomainsCardProps) {
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Domains & Loadout</CardTitle>
-      </CardHeader>
-      <CardContent className="flex items-center justify-between gap-4">
+      <CharacterCardHeader
+        title="Domains & Loadout"
+        actions={
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onEdit}
+            disabled={disabled}
+          >
+            Edit
+          </Button>
+        }
+      />
+      <CardContent className="gap-4">
         <div className="text-sm">
           {summary ? (
             <div>
@@ -68,14 +79,6 @@ export function DomainsCard({
             </div>
           )}
         </div>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={onEdit}
-          disabled={disabled}
-        >
-          Edit
-        </Button>
       </CardContent>
       {loadout && loadout.length > 0 && (
         <div className="divide-border mx-4 mt-1 mb-4 rounded-md border">

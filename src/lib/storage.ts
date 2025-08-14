@@ -36,4 +36,5 @@ export const characterKeys = {
   features: (id: string) => `dh:characters:${id}:features:v1`,
   customFeatures: (id: string) => `dh:characters:${id}:custom-features:v1`,
   thresholds: (id: string) => `dh:characters:${id}:thresholds:v1`,
+  leveling: (id: string) => `dh:characters:${id}:leveling:v1`,
 } as const;

@@ -1,4 +1,6 @@
-import type { InventorySlot, Item } from '@/lib/schemas/equipment';
+import * as React from 'react';
+
+import type { Inventory, InventorySlot, Item } from '@/lib/schemas/equipment';
 
 // Player inventory should not be constrained by shop-facing maxQuantity values.
 function clampQuantityPlayer(current: number) {
@@ -68,4 +70,84 @@ export function setLocation(
   if (!list[index]) return list;
   list[index] = { ...list[index], location };
   return list;
+}
+
+// Hook: compute derived inventory summary for cards/drawers without duplicating logic
+export function useInventorySummary(inventory?: Inventory) {
+  const slots = React.useMemo(() => inventory?.slots ?? [], [inventory?.slots]);
+
+  const totalItems = React.useMemo(
+    () => slots.reduce((sum, s) => sum + (s.quantity ?? 1), 0),
+    [slots]
+  );
+
+  const isEquippedDerived = React.useCallback(
+    (s: { isEquipped?: boolean; location?: unknown }) =>
+      !!s.isEquipped || s.location === 'equipped',
+    []
+  );
+
+  const equipped = React.useMemo(
+    () => slots.filter(s => isEquippedDerived(s)),
+    [slots, isEquippedDerived]
+  );
+
+  const remaining = React.useMemo(
+    () => Math.max(0, (inventory?.maxItems ?? 0) - slots.length),
+    [inventory?.maxItems, slots.length]
+  );
+
+  const counts = React.useMemo(() => {
+    const acc = {
+      utility: 0,
+      consumables: 0,
+      potions: 0,
+      relics: 0,
+      weaponMods: 0,
+      armorMods: 0,
+      recipes: 0,
+    };
+    const getString = (obj: unknown, key: 'category' | 'subcategory') => {
+      if (typeof obj === 'object' && obj !== null) {
+        const v = (obj as { category?: unknown; subcategory?: unknown })[key];
+        return typeof v === 'string' ? v : undefined;
+      }
+      return undefined;
+    };
+    for (const s of slots) {
+      const it = s.item as unknown;
+      const cat = getString(it, 'category');
+      if (cat === 'Utility') acc.utility += s.quantity ?? 1;
+      else if (cat === 'Consumable') {
+        if (getString(it, 'subcategory') === 'Potion')
+          acc.potions += s.quantity ?? 1;
+        else acc.consumables += s.quantity ?? 1;
+      } else if (cat === 'Relic') acc.relics += s.quantity ?? 1;
+      else if (cat === 'Weapon Modification') acc.weaponMods += s.quantity ?? 1;
+      else if (cat === 'Armor Modification') acc.armorMods += s.quantity ?? 1;
+      else if (cat === 'Recipe') acc.recipes += s.quantity ?? 1;
+    }
+    return acc;
+  }, [slots]);
+
+  const getEmoji = React.useCallback((s: unknown): string => {
+    const cat = (s as { category?: string } | undefined)?.category;
+    if (cat === 'Utility') return '🧰';
+    if (cat === 'Consumable') return '🍽️';
+    if (cat === 'Relic') return '🗿';
+    if (cat === 'Weapon Modification') return '🛠️';
+    if (cat === 'Armor Modification') return '🛡️';
+    if (cat === 'Recipe') return '📜';
+    return '🎒';
+  }, []);
+
+  return {
+    slots,
+    totalItems,
+    isEquippedDerived,
+    equipped,
+    remaining,
+    counts,
+    getEmoji,
+  };
 }

@@ -55,15 +55,17 @@ function DialogContent({
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean;
 }) {
-  // Provide a default, screen-reader-only description when callers don't supply one
+  // Provide an a11y fallback: if callers don't pass aria-describedby
+  // and don't render a DialogDescription, we add a screen-reader-only
+  // description and wire it via aria-describedby.
   const generatedDescId = React.useId();
-  const { ['aria-describedby']: ariaDescribedByProp, ...rest } =
-    (props as unknown as { [k: string]: unknown }) || {};
-  const hasAriaDescribedBy =
-    typeof ariaDescribedByProp === 'string' && !!ariaDescribedByProp;
-  const ariaDescribedBy = hasAriaDescribedBy
-    ? (ariaDescribedByProp as string)
-    : generatedDescId;
+  const existingAriaDescribedBy =
+    (props &&
+      (props as unknown as { 'aria-describedby'?: string })[
+        'aria-describedby'
+      ]) ||
+    undefined;
+  const shouldInjectFallback = !existingAriaDescribedBy;
 
   return (
     <DialogPortal data-slot="dialog-portal">
@@ -74,16 +76,21 @@ function DialogContent({
           'bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg',
           className
         )}
-        aria-describedby={ariaDescribedBy}
-        {...(rest as React.ComponentProps<typeof DialogPrimitive.Content>)}
+        {...props}
+        // Always provide aria-describedby; ensure our override comes last so it isn't overwritten
+        // by a possibly undefined value from props.
+        {...({
+          'aria-describedby': shouldInjectFallback
+            ? generatedDescId
+            : `${existingAriaDescribedBy} ${generatedDescId}`.trim(),
+        } as React.ComponentProps<typeof DialogPrimitive.Content>)}
       >
+        {/* Fallback first so internal checks can find it immediately */}
+        <DialogDescription id={generatedDescId} className="sr-only">
+          This dialog contains interactive content. Use Tab to navigate and
+          Escape to close.
+        </DialogDescription>
         {children}
-        {!hasAriaDescribedBy ? (
-          <DialogDescription id={generatedDescId} className="sr-only">
-            Dialog. Review the content and use available actions to proceed or
-            close.
-          </DialogDescription>
-        ) : null}
         {showCloseButton && (
           <DialogPrimitive.Close
             data-slot="dialog-close"

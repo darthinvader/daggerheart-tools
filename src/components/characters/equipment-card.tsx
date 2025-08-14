@@ -1,5 +1,6 @@
+import { CharacterCardHeader } from '@/components/characters/presenters/card-header';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import type { Armor, EquipmentLoadout, Weapon } from '@/lib/schemas/equipment';
 
 import { ArmorChips, WeaponChips } from './equipment-chips';
@@ -16,10 +17,7 @@ export function EquipmentCard({ equipment, onEdit }: Props) {
   // Items managed in Inventory; not shown here
   return (
     <Card>
-      <CardHeader className="gap-1">
-        <CardTitle>Equipment</CardTitle>
-        <p className="text-muted-foreground text-xs">Tap a slot to edit</p>
-      </CardHeader>
+      <CharacterCardHeader title="Equipment" subtitle="Tap a slot to edit" />
       <CardContent className="space-y-3 text-sm">
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
           <button

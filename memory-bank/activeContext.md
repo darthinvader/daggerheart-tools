@@ -1,6 +1,6 @@
 # Active Context - Daggerheart Tools
 
-Updated: August 14, 2025
+Updated: August 15, 2025
 
 ## Current Work Focus
 
@@ -108,6 +108,16 @@ Domain management and resources (latest changes):
 - Domains summary: extended `DomainsCard` to optionally render by-type counts; route computes counts and passes them in.
 - Hope resource: converted `hope` from number to `Score` shape `{ current, max }` across schema (`player-character.ts`), route state, UI (`CoreScoresCard`, `SummaryStats`), and storage migration (upgrade legacy numeric to Score on read). Added handlers to update current and max.
 - Traits: removed “Remaining” budget UI and related state.
+
+Aug 15, 2025 (latest):
+
+- Trimmed `inventory-drawer/library-results-list.tsx` by extracting presenters and a helper:
+  - `presenters/ItemActions.tsx` for quantity/equip/remove controls
+  - `presenters/ItemBadges.tsx` for Tier/Rarity/Cost chips (uses estimateItemCost)
+  - `presenters/ItemFeatures.tsx` for description + features preview
+  - `presenters/emoji.ts` exporting `emojiForItem`
+- Updated `library-results-list.tsx` to consume presenters and removed inline logic. Tests/typecheck PASS.
+- Refreshed analyzer: `library-results-list.tsx` dropped off the top offenders; next candidates: `ui/chart.tsx` (~9.7 KB, high complexity) and `inventory-drawer/homebrew-item-form.tsx` (~8.9 KB).
 
 Small refactors (Aug 11, 2025):
 

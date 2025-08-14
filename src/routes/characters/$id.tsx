@@ -5,36 +5,55 @@ import { useForm } from 'react-hook-form';
 
 import * as React from 'react';
 
-import { Link, createFileRoute } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 
 import { AncestryCard } from '@/components/characters/ancestry-card';
 // No Card imports needed here; stub sections use dedicated components
-import { CharacterJsonMenu } from '@/components/characters/character-json-menu';
-import { ClassCard } from '@/components/characters/class-card';
+import {
+  ClassCardLazy,
+  DomainsCardLazy,
+  EquipmentCardLazy,
+  InventoryCardLazy,
+} from '@/components/characters/cards-lazy';
 import { CommunityCard } from '@/components/characters/community-card';
 import { ConditionsCard } from '@/components/characters/conditions-card';
 import { CoreScoresCard } from '@/components/characters/core-scores-card';
-import { DomainsCard } from '@/components/characters/domains-card';
-import { EquipmentCard } from '@/components/characters/equipment-card';
+import {
+  AncestryDrawerLazy,
+  ClassDrawerLazy,
+  CommunityDrawerLazy,
+  DomainsDrawerLazy,
+  EquipmentDrawerLazy,
+  IdentityDrawerLazy,
+  InventoryDrawerLazy,
+  LevelUpDrawerLazy,
+} from '@/components/characters/drawers-lazy';
+// Cards above are lazy-loaded via presenters
 import { GoldCard } from '@/components/characters/gold-card';
 import { IdentityCard } from '@/components/characters/identity-card';
-import { InventoryCard } from '@/components/characters/inventory-card';
+import { LevelCard } from '@/components/characters/leveling/level-card';
+// InventoryCard is lazy
 // Lazy-load heavy drawers to trim initial bundle
 import { ResourcesCard } from '@/components/characters/resources-card';
-import { SummaryStats } from '@/components/characters/summary-stats';
 import { TraitsCard } from '@/components/characters/traits-card';
+import { SheetHeader } from '@/components/layout/sheet-header';
 // storage helpers moved to features/characters/storage
 // QuickJump removed at user's request due to bugs; sticky header remains simple
-import { Button } from '@/components/ui/button';
 import type { ComboboxItem } from '@/components/ui/combobox';
 import {
+  accessibleDomainsFor,
   countByType,
   createConditionActions,
   createResourceActions,
   createTraitActions,
+  deriveFeatureUnlocks,
+  getClassItems,
+  getSubclassItems,
   groupByDomain,
+  normalizeDomainLoadout,
+  useWarmupModules,
 } from '@/features/characters/logic';
-import { deriveFeatureUnlocks } from '@/features/characters/logic';
+import { useInventoryActions } from '@/features/characters/logic/inventory-actions';
 import type {
   ClassDraft,
   ConditionsDraft,
@@ -63,6 +82,7 @@ import {
   readIdentityFromStorage,
   readInventoryFromStorage,
   readLevelFromStorage,
+  readLevelingFromStorage,
   readResourcesFromStorage,
   readTraitsFromStorage,
   writeClassToStorage,
@@ -72,128 +92,21 @@ import {
   writeFeaturesToStorage,
   writeIdentityToStorage,
   writeInventoryToStorage,
+  writeLevelToStorage,
+  writeLevelingToStorage,
 } from '@/features/characters/storage';
-import { ALL_CLASSES } from '@/lib/data/classes';
+import type { LevelUpEntry } from '@/features/characters/storage';
 
 function CharacterSheet() {
   const { id } = Route.useParams();
-  const IdentityDrawerLazy = React.useMemo(
-    () =>
-      React.lazy(() =>
-        import('@/components/characters/identity-drawer').then(m => ({
-          default: m.IdentityDrawer,
-        }))
-      ),
-    []
-  );
-  const AncestryDrawerLazy = React.useMemo(
-    () =>
-      React.lazy(() =>
-        import('@/components/characters/ancestry-drawer').then(m => ({
-          default: m.AncestryDrawer,
-        }))
-      ),
-    []
-  );
-  const CommunityDrawerLazy = React.useMemo(
-    () =>
-      React.lazy(() =>
-        import('@/components/characters/community-drawer').then(m => ({
-          default: m.CommunityDrawer,
-        }))
-      ),
-    []
-  );
-  const ClassDrawerLazy = React.useMemo(
-    () =>
-      React.lazy(() =>
-        import('@/components/characters/class-drawer').then(m => ({
-          default: m.ClassDrawer,
-        }))
-      ),
-    []
-  );
-  // Features drawer removed: features editing is embedded into the Class drawer
-  const DomainsDrawerLazy = React.useMemo(
-    () =>
-      React.lazy(() =>
-        import('@/components/characters/domains-drawer').then(m => ({
-          default: m.DomainsDrawer,
-        }))
-      ),
-    []
-  );
-  const EquipmentDrawerLazy = React.useMemo(
-    () =>
-      React.lazy(() =>
-        import('@/components/characters/equipment-drawer').then(m => ({
-          default: m.EquipmentDrawer,
-        }))
-      ),
-    []
-  );
-  const InventoryDrawerLazy = React.useMemo(
-    () =>
-      React.lazy(() =>
-        import('@/components/characters/inventory-drawer').then(m => ({
-          default: m.InventoryDrawer,
-        }))
-      ),
-    []
-  );
+  // Lazy drawers centralized in presenters module
 
-  // Warm up the Domains drawer chunk after mount/idle so opening feels instant.
-  React.useEffect(() => {
-    // Warm up the Domains drawer chunk after idle to make opening feel instant.
-    const cleanup = (async () => {
-      const { prefetchOnIdle } = await import('@/features/characters/prefetch');
-      return prefetchOnIdle(() => {
-        void import('@/components/characters/domains-drawer');
-      });
-    })();
-    // When the promise resolves to a cleanup function, attach it
-    let disposer: undefined | (() => void);
-    cleanup.then(fn => {
-      if (typeof fn === 'function') disposer = fn;
-    });
-    return () => {
-      if (disposer) disposer();
-    };
-  }, []);
-
-  // Warm up the Equipment drawer chunk during idle
-  React.useEffect(() => {
-    const cleanup = (async () => {
-      const { prefetchOnIdle } = await import('@/features/characters/prefetch');
-      return prefetchOnIdle(() => {
-        void import('@/components/characters/equipment-drawer');
-      });
-    })();
-    let disposer: undefined | (() => void);
-    cleanup.then(fn => {
-      if (typeof fn === 'function') disposer = fn;
-    });
-    return () => {
-      if (disposer) disposer();
-    };
-  }, []);
-
-  // Warm up the Inventory drawer chunk during idle
-  React.useEffect(() => {
-    const cleanup = (async () => {
-      const { prefetchOnIdle } = await import('@/features/characters/prefetch');
-      return prefetchOnIdle(() => {
-        void import('@/components/characters/inventory-drawer');
-      });
-    })();
-    let disposer: undefined | (() => void);
-    cleanup.then(fn => {
-      if (typeof fn === 'function') disposer = fn;
-    });
-    return () => {
-      if (disposer) disposer();
-    };
-  }, []);
+  // Warm up heavy drawer chunks during idle so opening feels instant
+  useWarmupModules([
+    () => import('@/components/characters/domains-drawer'),
+    () => import('@/components/characters/equipment-drawer'),
+    () => import('@/components/characters/inventory-drawer'),
+  ]);
 
   const [identity, setIdentity] =
     React.useState<IdentityDraft>(DEFAULT_IDENTITY);
@@ -213,6 +126,7 @@ function CharacterSheet() {
     'primary' | 'secondary' | 'armor' | undefined
   >(undefined);
   const [openInventory, setOpenInventory] = React.useState(false);
+  // Level up drawer also centralized
 
   const [domainsDraft, setDomainsDraft] =
     React.useState<DomainsDraft>(DEFAULT_DOMAINS);
@@ -232,6 +146,10 @@ function CharacterSheet() {
   const [currentLevel, setCurrentLevel] = React.useState(() =>
     readLevelFromStorage(id)
   );
+  const [levelHistory, setLevelHistory] = React.useState<LevelUpEntry[]>(() =>
+    readLevelingFromStorage(id)
+  );
+  const [openLevelUp, setOpenLevelUp] = React.useState(false);
 
   // Hydrate from localStorage when id changes
 
@@ -247,25 +165,15 @@ function CharacterSheet() {
     setFeatureSelections(readFeaturesFromStorage(id));
     setCustomFeatures(readCustomFeaturesFromStorage(id));
     setCurrentLevel(readLevelFromStorage(id));
+    setLevelHistory(readLevelingFromStorage(id));
   }, [id]);
 
   // Items for identity (ancestry/community now edited in dedicated drawers)
 
   // Items for class & subclass
-  const classItems: ComboboxItem[] = React.useMemo(
-    () => ALL_CLASSES.map(c => ({ value: c.name, label: c.name })),
-    []
-  );
+  const classItems: ComboboxItem[] = React.useMemo(() => getClassItems(), []);
   const subclassItemsFor = React.useCallback(
-    (className: string): ComboboxItem[] => {
-      const found = ALL_CLASSES.find(c => c.name === className);
-      if (!found) return [];
-      const subclasses = (
-        (found as unknown as { subclasses?: { name: string }[] }).subclasses ??
-        []
-      ).map(s => s.name);
-      return subclasses.map(name => ({ value: name, label: name }));
-    },
+    (className: string): ComboboxItem[] => getSubclassItems(className),
     []
   );
 
@@ -300,12 +208,10 @@ function CharacterSheet() {
 
   // Watch current class selection to drive subclass list options
   const currentClassName = classForm.watch('className') ?? classDraft.className;
-  const accessibleDomains = React.useMemo(() => {
-    const found = ALL_CLASSES.find(c => c.name === currentClassName);
-    return (
-      (found && (found as unknown as { domains?: string[] }).domains) || []
-    );
-  }, [currentClassName]);
+  const accessibleDomains = React.useMemo(
+    () => accessibleDomainsFor(currentClassName),
+    [currentClassName]
+  );
   React.useEffect(() => {
     if (openClass) classForm.reset(classDraft);
   }, [openClass, classDraft, classForm]);
@@ -418,88 +324,19 @@ function CharacterSheet() {
   );
 
   // Inventory quick-edit handlers for card
-  const incInventoryQty = React.useCallback(
-    (index: number, delta: number) => {
-      setInventory(prev => {
-        const slots = prev.slots ?? [];
-        const list = [...slots];
-        const cur = list[index];
-        if (!cur) return prev;
-        const next = Math.max(0, (cur.quantity ?? 1) + delta);
-        if (next <= 0) {
-          list.splice(index, 1);
-        } else {
-          list[index] = { ...cur, quantity: next };
-        }
-        const updated = { ...prev, slots: list } as InventoryDraft;
-        writeInventoryToStorage(id, updated);
-        return updated;
-      });
-    },
-    [id]
-  );
-  const setInventoryQty = React.useCallback(
-    (index: number, value: number) => {
-      setInventory(prev => {
-        const slots = prev.slots ?? [];
-        const list = [...slots];
-        const cur = list[index];
-        if (!cur) return prev;
-        if (value <= 0) {
-          list.splice(index, 1);
-        } else {
-          list[index] = { ...cur, quantity: value };
-        }
-        const updated = { ...prev, slots: list } as InventoryDraft;
-        writeInventoryToStorage(id, updated);
-        return updated;
-      });
-    },
-    [id]
-  );
-  const removeInventoryAt = React.useCallback(
-    (index: number) => {
-      setInventory(prev => {
-        const list = (prev.slots ?? []).filter((_, i) => i !== index);
-        const updated = { ...prev, slots: list } as InventoryDraft;
-        writeInventoryToStorage(id, updated);
-        return updated;
-      });
-    },
-    [id]
-  );
-  const setInventoryLocation = React.useCallback(
-    (
-      index: number,
-      loc: 'backpack' | 'belt' | 'equipped' | 'stored' | (string & {})
-    ) => {
-      setInventory(prev => {
-        const list = [...(prev.slots ?? [])];
-        if (!list[index]) return prev;
-        list[index] = {
-          ...list[index],
-          location: loc,
-          // Keep flags in sync so outside can equip/unequip items that were equipped inside the drawer
-          isEquipped: loc === 'equipped',
-        };
-        const updated = { ...prev, slots: list } as InventoryDraft;
-        writeInventoryToStorage(id, updated);
-        return updated;
-      });
-    },
-    [id]
-  );
+  const {
+    incQty: incInventoryQty,
+    setQty: setInventoryQty,
+    removeAt: removeInventoryAt,
+    setLocation: setInventoryLocation,
+  } = useInventoryActions(id, setInventory);
 
   // All domain cards are now lazy-loaded inside the Domains drawer to reduce route weight.
 
   // Normalize loadout/vault cards where description may be optional from storage
   const normalizedLoadout = React.useMemo(
-    () =>
-      domainsDraft.loadout.map(c => ({
-        ...c,
-        description: c.description ?? '',
-      })),
-    [domainsDraft.loadout]
+    () => normalizeDomainLoadout(domainsDraft),
+    [domainsDraft]
   );
 
   // Resource update helpers (extracted)
@@ -526,68 +363,57 @@ function CharacterSheet() {
     setConditions
   );
 
+  const onSaveLevelUp = React.useCallback(
+    (values: {
+      level: number;
+      notes?: string;
+      selections: Record<string, number>;
+    }) => {
+      const lv = Math.max(1, Math.min(10, Math.floor(values.level)));
+      const entry = {
+        level: lv,
+        selections: values.selections ?? {},
+        notes: values.notes,
+      };
+      setLevelHistory(prev => {
+        const next = [...prev.filter(e => e.level !== lv), entry].sort(
+          (a, b) => a.level - b.level
+        );
+        writeLevelingToStorage(id, next);
+        return next;
+      });
+      setCurrentLevel(lv);
+      writeLevelToStorage(id, lv);
+      setOpenLevelUp(false);
+    },
+    [id]
+  );
+
   return (
     <div className="w-full pb-24">
       {/* Sticky header with summary and quick jump */}
-      <div
-        id="sheet-header"
-        className="bg-background/95 supports-[backdrop-filter]:bg-background/80 sticky top-0 z-20 border-b backdrop-blur"
-      >
-        <div className="mx-auto grid w-full max-w-screen-sm grid-cols-[1fr_auto] items-center gap-2 px-4 py-0">
-          <div className="text-foreground min-w-0 text-lg leading-tight font-semibold">
-            <button
-              type="button"
-              aria-label="Edit name"
-              onClick={() => setOpenIdentity(true)}
-              className="line-clamp-2 block max-w-full cursor-pointer text-left text-lg font-semibold break-words hover:underline"
-              title={identity.name || 'Set a name'}
-            >
-              {identity.name ? (
-                identity.name
-              ) : (
-                <span className="text-muted-foreground font-normal">
-                  Set a name
-                </span>
-              )}
-            </button>
-          </div>
-          <div className="flex items-center justify-end gap-1">
-            <Button asChild size="sm" variant="ghost">
-              <Link to="/characters">Back</Link>
-            </Button>
-            {/* Export/Import */}
-            <CharacterJsonMenu
-              id={id}
-              identity={identity}
-              resources={resources}
-              traits={traits}
-              conditions={conditions}
-              classDraft={classDraft}
-              domainsDraft={domainsDraft}
-              equipment={equipment}
-              inventory={inventory}
-              setIdentity={setIdentity}
-              setResources={setResources}
-              setTraits={setTraits}
-              setConditions={setConditions}
-              setClassDraft={setClassDraft}
-              setDomainsDraft={setDomainsDraft}
-              setEquipment={setEquipment}
-              setInventory={setInventory}
-            />
-          </div>
-        </div>
-        {/* QuickJump removed per request */}
-      </div>
+      <SheetHeader
+        id={id}
+        identity={identity}
+        resources={resources}
+        traits={traits}
+        conditions={conditions}
+        classDraft={classDraft}
+        domainsDraft={domainsDraft}
+        equipment={equipment as EquipmentDraft}
+        inventory={inventory as InventoryDraft}
+        setIdentity={setIdentity}
+        setResources={setResources}
+        setTraits={setTraits}
+        setConditions={setConditions}
+        setClassDraft={setClassDraft}
+        setDomainsDraft={setDomainsDraft}
+        setEquipment={setEquipment}
+        setInventory={setInventory}
+        onEditName={() => setOpenIdentity(true)}
+      />
       <div className="mx-auto max-w-screen-sm p-4">
-        {/* Summary section */}
-        <section
-          id="summary"
-          aria-label="Summary"
-          className="scroll-mt-24 space-y-4 md:scroll-mt-28"
-        >
-          <SummaryStats id={id} identity={identity} resources={resources} />
-        </section>
+        {/* Summary section removed per user request */}
 
         {/* Conditions */}
         <section
@@ -660,8 +486,51 @@ function CharacterSheet() {
           className="mt-4 scroll-mt-24 md:scroll-mt-28"
         >
           <IdentityCard
-            identity={{ name: identity.name, pronouns: identity.pronouns }}
+            identity={{
+              name: identity.name,
+              pronouns: identity.pronouns,
+              description: identity.description,
+              calling: identity.calling,
+              connections: Array.isArray(
+                (identity as Record<string, unknown>).connections
+              )
+                ? (
+                    identity as unknown as {
+                      connections: { prompt: string; answer: string }[];
+                    }
+                  ).connections
+                : [],
+            }}
             onEdit={() => setOpenIdentity(true)}
+          />
+        </section>
+
+        {/* Leveling */}
+        <section
+          id="leveling"
+          aria-label="Leveling"
+          className="mt-4 scroll-mt-24 md:scroll-mt-28"
+        >
+          <LevelCard
+            level={currentLevel}
+            onEdit={() => setOpenLevelUp(true)}
+            onSetLevel={next => {
+              setCurrentLevel(next);
+              writeLevelToStorage(id, next);
+            }}
+            recent={
+              levelHistory.length > 0
+                ? {
+                    level: levelHistory[levelHistory.length - 1].level,
+                    summary:
+                      Object.entries(
+                        levelHistory[levelHistory.length - 1].selections || {}
+                      )
+                        .map(([k, v]) => `${k} x${v}`)
+                        .join(', ') || 'No selections',
+                  }
+                : null
+            }
           />
         </section>
 
@@ -730,13 +599,21 @@ function CharacterSheet() {
           aria-label="Equipment"
           className="mt-4 scroll-mt-24 md:scroll-mt-28"
         >
-          <EquipmentCard
-            equipment={equipment as unknown as EquipmentDraft}
-            onEdit={section => {
-              setEquipmentSection(section);
-              setOpenEquipment(true);
-            }}
-          />
+          <React.Suspense
+            fallback={
+              <div className="text-muted-foreground p-2 text-sm">
+                Loading equipment…
+              </div>
+            }
+          >
+            <EquipmentCardLazy
+              equipment={equipment as unknown as EquipmentDraft}
+              onEdit={(section?: 'primary' | 'secondary' | 'armor') => {
+                setEquipmentSection(section);
+                setOpenEquipment(true);
+              }}
+            />
+          </React.Suspense>
         </section>
         <React.Suspense fallback={null}>
           <EquipmentDrawerLazy
@@ -755,16 +632,31 @@ function CharacterSheet() {
           aria-label="Inventory"
           className="mt-4 scroll-mt-24 md:scroll-mt-28"
         >
-          <InventoryCard
-            inventory={inventory as unknown as InventoryDraft}
-            onEdit={() => setOpenInventory(true)}
-            incQty={incInventoryQty}
-            setQty={setInventoryQty}
-            removeAt={removeInventoryAt}
-            setLocation={setInventoryLocation}
-          />
+          <React.Suspense
+            fallback={
+              <div className="text-muted-foreground p-2 text-sm">
+                Loading inventory…
+              </div>
+            }
+          >
+            <InventoryCardLazy
+              inventory={inventory as unknown as InventoryDraft}
+              onEdit={() => setOpenInventory(true)}
+              incQty={incInventoryQty}
+              setQty={setInventoryQty}
+              removeAt={removeInventoryAt}
+              setLocation={setInventoryLocation}
+            />
+          </React.Suspense>
         </section>
         <React.Suspense fallback={null}>
+          <LevelUpDrawerLazy
+            open={openLevelUp}
+            onOpenChange={setOpenLevelUp}
+            level={currentLevel}
+            submit={onSaveLevelUp}
+            onCancel={() => setOpenLevelUp(false)}
+          />
           <InventoryDrawerLazy
             open={openInventory}
             onOpenChange={setOpenInventory}
@@ -780,35 +672,43 @@ function CharacterSheet() {
           aria-label="Class & Subclass"
           className="mt-4 scroll-mt-24 md:scroll-mt-28"
         >
-          <ClassCard
-            disabled={false}
-            onEdit={() => setOpenClass(true)}
-            selectedClass={classDraft.className}
-            selectedSubclass={classDraft.subclass}
-            level={currentLevel}
-            features={(() => {
-              const derived = deriveFeatureUnlocks(
-                classDraft.className,
-                classDraft.subclass
-              );
-              const custom = customFeatures.map(cf => ({
-                name: cf.name,
-                description: cf.description,
-                type: cf.type,
-                tags: cf.tags,
-                level: cf.level,
-                tier: cf.tier as never,
-                unlockCondition: cf.unlockCondition,
-                source: 'custom' as const,
-              }));
-              return [...derived, ...custom].sort((a, b) =>
-                a.level === b.level
-                  ? a.name.localeCompare(b.name)
-                  : a.level - b.level
-              );
-            })()}
-            selections={featureSelections}
-          />
+          <React.Suspense
+            fallback={
+              <div className="text-muted-foreground p-2 text-sm">
+                Loading class…
+              </div>
+            }
+          >
+            <ClassCardLazy
+              disabled={false}
+              onEdit={() => setOpenClass(true)}
+              selectedClass={classDraft.className}
+              selectedSubclass={classDraft.subclass}
+              level={currentLevel}
+              features={(() => {
+                const derived = deriveFeatureUnlocks(
+                  classDraft.className,
+                  classDraft.subclass
+                );
+                const custom = customFeatures.map(cf => ({
+                  name: cf.name,
+                  description: cf.description,
+                  type: cf.type,
+                  tags: cf.tags,
+                  level: cf.level,
+                  tier: cf.tier as never,
+                  unlockCondition: cf.unlockCondition,
+                  source: 'custom' as const,
+                }));
+                return [...derived, ...custom].sort((a, b) =>
+                  a.level === b.level
+                    ? a.name.localeCompare(b.name)
+                    : a.level - b.level
+                );
+              })()}
+              selections={featureSelections}
+            />
+          </React.Suspense>
         </section>
         <React.Suspense fallback={null}>
           <ClassDrawerLazy
@@ -832,22 +732,30 @@ function CharacterSheet() {
           aria-label="Domains"
           className="mt-4 scroll-mt-24 md:scroll-mt-28"
         >
-          <DomainsCard
-            onEdit={() => setOpenDomains(true)}
-            summary={{
-              total: normalizedLoadout.length,
-              byDomain: groupByDomain(normalizedLoadout).filter(g =>
-                accessibleDomains.includes(g.domain)
-              ),
-              byType: countByType(normalizedLoadout),
-              sample: normalizedLoadout.slice(0, 3).map(c => c.name),
-            }}
-            recallUsed={normalizedLoadout.reduce(
-              (sum, c) => sum + (c.recallCost ?? 0),
-              0
-            )}
-            loadout={normalizedLoadout}
-          />
+          <React.Suspense
+            fallback={
+              <div className="text-muted-foreground p-2 text-sm">
+                Loading domains…
+              </div>
+            }
+          >
+            <DomainsCardLazy
+              onEdit={() => setOpenDomains(true)}
+              summary={{
+                total: normalizedLoadout.length,
+                byDomain: groupByDomain(normalizedLoadout).filter(g =>
+                  accessibleDomains.includes(g.domain)
+                ),
+                byType: countByType(normalizedLoadout),
+                sample: normalizedLoadout.slice(0, 3).map(c => c.name),
+              }}
+              recallUsed={normalizedLoadout.reduce(
+                (sum, c) => sum + (c.recallCost ?? 0),
+                0
+              )}
+              loadout={normalizedLoadout}
+            />
+          </React.Suspense>
         </section>
         <React.Suspense fallback={null}>
           <DomainsDrawerLazy

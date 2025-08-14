@@ -1,7 +1,8 @@
 import { ClassSummary } from '@/components/characters/class-summary';
 import { FeaturesList } from '@/components/characters/features-list';
+import { CharacterCardHeader } from '@/components/characters/presenters/card-header';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import type { FeatureView } from '@/features/characters/logic';
 
 export type ClassCardProps = {
@@ -26,17 +27,9 @@ export function ClassCard({
 }: ClassCardProps) {
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Class & Subclass</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0 flex-1 text-sm">
-            <ClassSummary
-              className={selectedClass}
-              subclass={selectedSubclass}
-            />
-          </div>
+      <CharacterCardHeader
+        title="Class & Subclass"
+        actions={
           <Button
             size="sm"
             variant="outline"
@@ -45,6 +38,11 @@ export function ClassCard({
           >
             Edit
           </Button>
+        }
+      />
+      <CardContent>
+        <div className="min-w-0 text-sm">
+          <ClassSummary className={selectedClass} subclass={selectedSubclass} />
         </div>
         {/* Features displayed inside Class section */}
         <div className="mt-4">

@@ -49,6 +49,15 @@ function DrawerContent({
   children,
   ...props
 }: React.ComponentProps<typeof DrawerPrimitive.Content>) {
+  // Accessibility fallback: ensure DrawerContent always has a description.
+  const generatedDescId = React.useId();
+  const existingAriaDescribedBy =
+    (props &&
+      (props as unknown as { 'aria-describedby'?: string })[
+        'aria-describedby'
+      ]) ||
+    undefined;
+  const shouldInjectFallback = !existingAriaDescribedBy;
   return (
     <DrawerPortal data-slot="drawer-portal">
       <DrawerOverlay />
@@ -67,8 +76,18 @@ function DrawerContent({
           className
         )}
         {...props}
+        {...({
+          'aria-describedby': shouldInjectFallback
+            ? generatedDescId
+            : `${existingAriaDescribedBy} ${generatedDescId}`.trim(),
+        } as React.ComponentProps<typeof DrawerPrimitive.Content>)}
       >
         <div className="bg-muted mx-auto mt-2 hidden h-1.5 w-[64px] shrink-0 rounded-full group-data-[vaul-drawer-direction=bottom]/drawer-content:block" />
+        {/* Fallback first so internal checks can find it immediately */}
+        <DrawerPrimitive.Description id={generatedDescId} className="sr-only">
+          This drawer contains interactive content. Use Tab to navigate and drag
+          down or press Escape to close.
+        </DrawerPrimitive.Description>
         {children}
       </DrawerPrimitive.Content>
     </DrawerPortal>

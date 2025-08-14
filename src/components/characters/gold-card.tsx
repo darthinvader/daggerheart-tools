@@ -1,4 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CharacterCardHeader } from '@/components/characters/presenters/card-header';
+import { Card, CardContent } from '@/components/ui/card';
 
 export type Gold = { handfuls: number; bags: number; chests: number };
 
@@ -51,8 +52,9 @@ function Row({
             type="button"
             aria-label={`Set ${LABELS[kind]} to ${i}`}
             onClick={() => handleSet(i)}
-            className="h-5 w-5 [touch-action:manipulation] rounded text-[14px] leading-none"
-            style={{ opacity: i <= value ? 1 : 0.45 }}
+            className={`h-5 w-5 [touch-action:manipulation] rounded text-[14px] leading-none ${
+              i <= value ? '' : 'opacity-[0.45]'
+            }`}
           >
             {i <= value ? onEmoji : offEmoji}
           </button>
@@ -68,9 +70,7 @@ function Row({
 export function GoldCard({ gold, update: _update, set }: GoldCardProps) {
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Gold</CardTitle>
-      </CardHeader>
+      <CharacterCardHeader title="Gold" />
       <CardContent className="space-y-3">
         {/* Summary row */}
         <div className="text-muted-foreground text-sm">

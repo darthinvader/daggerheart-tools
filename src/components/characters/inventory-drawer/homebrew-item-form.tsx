@@ -1,15 +1,9 @@
 import * as React from 'react';
 
-import type {
-  ArmorModification,
-  Consumable,
-  Item,
-  Potion,
-  Relic,
-  UtilityItem,
-  WeaponModification,
-} from '@/lib/schemas/equipment';
+import type { Item } from '@/lib/schemas/equipment';
 
+import { buildHomebrewItem } from './homebrew/build-homebrew-item';
+import type { HomebrewCategory } from './homebrew/build-homebrew-item';
 import { ConsumableFields } from './homebrew/consumable-fields';
 import { ModificationFields } from './homebrew/modification-fields';
 import { PotionFields } from './homebrew/potion-fields';
@@ -22,14 +16,7 @@ export type HomebrewItemFormProps = {
   onAdd: (item: Item) => void;
 };
 
-type Category =
-  | 'Utility'
-  | 'Consumable'
-  | 'Potion'
-  | 'Relic'
-  | 'Weapon Modification'
-  | 'Armor Modification'
-  | 'Recipe';
+type Category = HomebrewCategory;
 
 export function HomebrewItemForm({ onAdd }: HomebrewItemFormProps) {
   const [open, setOpen] = React.useState(false);
@@ -88,162 +75,39 @@ export function HomebrewItemForm({ onAdd }: HomebrewItemFormProps) {
   };
 
   const handleAdd = () => {
-    const base: Partial<Item> = {
-      name: name.trim(),
-      tier,
-      rarity,
-      description: description.trim() || undefined,
-      features: [],
-      maxQuantity: Math.max(1, Number(maxQuantity) || 1),
-      isConsumable: !!isConsumable,
-      metadata: { homebrew: true, createdAt: Date.now() },
-    };
-    if (weight) base.weight = weight;
-    if (cost !== '' && !Number.isNaN(Number(cost))) base.cost = Number(cost);
-    if (!base.name) return;
-
-    let full: Item;
-    switch (category) {
-      case 'Utility': {
-        const it: UtilityItem = {
-          ...base,
-          category: 'Utility',
-          usageType: usageType || 'unlimited',
-          charges: charges === '' ? undefined : Number(charges) || 0,
-          rechargePeriod: recharge || undefined,
-          metadata: base.metadata as never,
-        } as unknown as UtilityItem;
-        full = it as unknown as Item;
-        break;
-      }
-      case 'Consumable': {
-        const it: Consumable = {
-          ...base,
-          category: 'Consumable',
-          isConsumable: true,
-          effect: effect || 'Effect',
-          duration: duration || undefined,
-          targetType: targetType || undefined,
-          metadata: base.metadata as never,
-        } as unknown as Consumable;
-        full = it as unknown as Item;
-        break;
-      }
-      case 'Potion': {
-        const it: Potion = {
-          ...(base as unknown as Consumable),
-          category: 'Consumable',
-          subcategory: 'Potion',
-          isConsumable: true,
-          potionType: (potionType || 'Health') as never,
-          healingAmount: healingAmount || undefined,
-          traitBonus:
-            traitBonusTrait && traitBonusAmount && traitBonusDuration
-              ? {
-                  trait: traitBonusTrait as never,
-                  bonus: Number(traitBonusAmount) || 1,
-                  duration: traitBonusDuration as never,
-                }
-              : undefined,
-          effect: effect || undefined,
-          duration: duration || undefined,
-          targetType: targetType || undefined,
-          metadata: base.metadata as never,
-        } as unknown as Potion;
-        full = it as unknown as Item;
-        break;
-      }
-      case 'Relic': {
-        const it: Relic = {
-          ...base,
-          category: 'Relic',
-          rarity: 'Legendary',
-          traitBonus:
-            relicTrait && relicTraitBonus !== ''
-              ? {
-                  trait: relicTrait as never,
-                  bonus: Number(relicTraitBonus) || 1,
-                }
-              : undefined,
-          experienceBonus:
-            relicXPTrack && relicXPBonus !== ''
-              ? { experience: relicXPTrack, bonus: Number(relicXPBonus) || 1 }
-              : undefined,
-          metadata: base.metadata as never,
-        } as unknown as Relic;
-        full = it as unknown as Item;
-        break;
-      }
-      case 'Weapon Modification': {
-        const it: WeaponModification = {
-          ...base,
-          category: 'Weapon Modification',
-          modificationType: (modType || 'enhancement') as never,
-          compatibleWeapons: compatible
-            ? compatible
-                .split(',')
-                .map(s => s.trim())
-                .filter(Boolean)
-            : [],
-          traitChange: modTraitChange
-            ? { trait: modTraitChange as never, description: 'Modified' }
-            : undefined,
-          featureAdded:
-            modFeatureName || modFeatureDesc
-              ? {
-                  name: modFeatureName || 'Feature',
-                  description: modFeatureDesc || '',
-                }
-              : undefined,
-          metadata: base.metadata as never,
-        } as unknown as WeaponModification;
-        full = it as unknown as Item;
-        break;
-      }
-      case 'Armor Modification': {
-        const it: ArmorModification = {
-          ...base,
-          category: 'Armor Modification',
-          modificationType: (modType || 'enhancement') as never,
-          compatibleArmor: compatible
-            ? compatible
-                .split(',')
-                .map(s => s.trim())
-                .filter(Boolean)
-            : [],
-          featureAdded:
-            modFeatureName || modFeatureDesc
-              ? {
-                  name: modFeatureName || 'Feature',
-                  description: modFeatureDesc || '',
-                }
-              : undefined,
-          metadata: base.metadata as never,
-        } as unknown as ArmorModification;
-        full = it as unknown as Item;
-        break;
-      }
-      case 'Recipe': {
-        const it = {
-          ...base,
-          category: 'Recipe' as const,
-          craftedItem: craftedItem || 'Unknown',
-          materials: materials
-            ? materials
-                .split(',')
-                .map(s => s.trim())
-                .filter(Boolean)
-            : [],
-          downtimeRequired: !!downtime,
-          instructions: instructions || 'Mix and craft',
-          metadata: base.metadata as never,
-        } as const;
-        full = it as unknown as Item;
-        break;
-      }
-    }
-
-    onAdd(full);
+    const built = buildHomebrewItem({
+      category,
+      base: {
+        name,
+        tier,
+        rarity,
+        description,
+        isConsumable,
+        maxQuantity,
+        weight,
+        cost,
+      },
+      utility: { usageType, charges, recharge },
+      consumable: { effect, duration, targetType },
+      potion: {
+        potionType,
+        healingAmount,
+        traitBonusTrait,
+        traitBonusAmount,
+        traitBonusDuration,
+      },
+      relic: { relicTrait, relicTraitBonus, relicXPTrack, relicXPBonus },
+      modification: {
+        modType,
+        compatible,
+        modTraitChange,
+        modFeatureName,
+        modFeatureDesc,
+      },
+      recipe: { craftedItem, materials, downtime, instructions },
+    });
+    if (!built) return;
+    onAdd(built);
     setOpen(false);
     resetCommon();
   };

@@ -37,7 +37,7 @@ export function ThresholdsSummary({
       </span>
       <span className="text-muted-foreground">|</span>
       <span className="bg-muted rounded px-1 py-0.5">3</span>
-      <span className="rounded px-1 py-0.5">
+      <span className="rounded px-1 py-0.5" title="Major Damage threshold">
         {formatThresholdChip('ds', String(doubleSevere))}
       </span>
       <span className="text-muted-foreground">|</span>

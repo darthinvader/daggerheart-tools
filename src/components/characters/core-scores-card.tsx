@@ -1,5 +1,6 @@
+import { CharacterCardHeader } from '@/components/characters/presenters/card-header';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 
 import { ThresholdsInline } from './thresholds-inline';
 
@@ -25,9 +26,7 @@ export function CoreScoresCard({
 }: CoreScoresCardProps) {
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Core Scores</CardTitle>
-      </CardHeader>
+      <CharacterCardHeader title="Core Scores" />
       <CardContent className="space-y-3">
         {/* Evasion */}
         <div className="flex flex-wrap items-center justify-between gap-2">

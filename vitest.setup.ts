@@ -41,3 +41,35 @@ if (typeof Element !== 'undefined') {
     /* no-op for tests */
   };
 }
+
+// Filter known noisy a11y warning emitted by Radix/Vaul under jsdom.
+// We provide proper descriptions or aria-describedby in components, but
+// the library still logs a false-positive in tests due to internal layering.
+/* eslint-disable no-console */
+const originalConsoleError: typeof console.error = console.error.bind(console);
+const originalConsoleWarn: typeof console.warn = console.warn.bind(console);
+console.error = (
+  ...args: Parameters<typeof originalConsoleError>
+): ReturnType<typeof originalConsoleError> => {
+  const [first] = args;
+  if (
+    typeof first === 'string' &&
+    first.includes('Missing `Description` or `aria-describedby')
+  ) {
+    return undefined as unknown as ReturnType<typeof originalConsoleError>;
+  }
+  return originalConsoleError(...args);
+};
+console.warn = (
+  ...args: Parameters<typeof originalConsoleWarn>
+): ReturnType<typeof originalConsoleWarn> => {
+  const [first] = args;
+  if (
+    typeof first === 'string' &&
+    first.includes('Missing `Description` or `aria-describedby')
+  ) {
+    return undefined as unknown as ReturnType<typeof originalConsoleWarn>;
+  }
+  return originalConsoleWarn(...args);
+};
+/* eslint-enable no-console */

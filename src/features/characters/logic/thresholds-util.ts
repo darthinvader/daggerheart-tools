@@ -19,8 +19,8 @@ export function validateThresholdsManual(
   if (dsOverride) {
     const ds = Number.parseInt(dsInput, 10);
     if (!Number.isFinite(ds) || ds < 0)
-      return 'Double Severe must be a non-negative number.';
-    if (ds < sv) return 'Double Severe must be ≥ Severe.';
+      return 'Major Damage must be a non-negative number.';
+    if (ds < sv) return 'Major Damage must be ≥ Severe.';
   }
   return null;
 }

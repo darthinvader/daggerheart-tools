@@ -1,5 +1,6 @@
+import { CharacterCardHeader } from '@/components/characters/presenters/card-header';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 
 export type Score = { current: number; max: number };
 
@@ -26,9 +27,7 @@ export function ResourcesCard({
 }: ResourcesCardProps) {
   return (
     <Card id={id}>
-      <CardHeader>
-        <CardTitle>Resources</CardTitle>
-      </CardHeader>
+      <CharacterCardHeader title="Resources" />
       <CardContent className="space-y-3">
         {/* HP Controls */}
         <div className="flex items-center justify-between gap-2">
