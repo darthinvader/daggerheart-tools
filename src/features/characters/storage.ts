@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
 import {
-  AncestryNameEnum,
+  AncestryNameSchema,
   ClassNameEnum,
-  CommunityNameEnum,
+  CommunityNameSchema,
   SubclassNameSchema,
 } from '@/lib/schemas/core';
 import {
@@ -45,13 +45,60 @@ export const DEFAULT_DOMAINS: DomainsDraft = {
 };
 
 // Identity
+// Details to support richer ancestry/community editing: mixed and homebrew options
+const AncestryFeatureLiteSchema = z.object({
+  name: z.string().min(1),
+  description: z.string().min(1),
+});
+const AncestryDetailsSchema = z
+  .object({
+    type: z.enum(['standard', 'mixed', 'homebrew']).default('standard'),
+    mixed: z
+      .object({
+        name: z.string().optional(),
+        primaryFrom: z.string().min(1),
+        secondaryFrom: z.string().min(1),
+      })
+      .optional(),
+    homebrew: z
+      .object({
+        name: z.string().min(1),
+        description: z.string().optional().default(''),
+        heightRange: z.string().optional(),
+        lifespan: z.string().optional(),
+        physicalCharacteristics: z.array(z.string()).optional(),
+        primaryFeature: AncestryFeatureLiteSchema,
+        secondaryFeature: AncestryFeatureLiteSchema,
+      })
+      .optional(),
+  })
+  .optional();
+
+const CommunityDetailsSchema = z
+  .object({
+    type: z.enum(['standard', 'homebrew']).default('standard'),
+    homebrew: z
+      .object({
+        name: z.string().min(1),
+        description: z.string().optional().default(''),
+        commonTraits: z.array(z.string()).default([]),
+        feature: z.object({ name: z.string().min(1), description: z.string() }),
+      })
+      .optional(),
+  })
+  .optional();
+
 export const IdentityDraftSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   pronouns: z.string().min(1, 'Pronouns are required'),
-  ancestry: AncestryNameEnum,
-  community: CommunityNameEnum,
+  // Allow official or custom names
+  ancestry: AncestryNameSchema,
+  community: CommunityNameSchema,
   description: z.string().default(''),
   calling: z.string().default(''),
+  // Rich details for UI; optional to preserve back-compat
+  ancestryDetails: AncestryDetailsSchema,
+  communityDetails: CommunityDetailsSchema,
 });
 export type IdentityDraft = z.infer<typeof IdentityDraftSchema>;
 export const DEFAULT_IDENTITY: IdentityDraft = {

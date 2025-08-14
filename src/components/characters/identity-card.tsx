@@ -4,8 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 export type IdentitySummary = {
   name: string;
   pronouns: string;
-  ancestry: string;
-  community: string;
 };
 
 export type IdentityCardProps = {
@@ -29,12 +27,9 @@ export function IdentityCard({ identity, onEdit }: IdentityCardProps) {
                   ({identity.pronouns})
                 </span>
               </div>
-              <div>
-                {identity.ancestry} · {identity.community}
-              </div>
             </div>
           ) : (
-            <span>Name, pronouns, ancestry, community…</span>
+            <span>Name and pronouns…</span>
           )}
         </div>
         <Button size="sm" variant="outline" onClick={onEdit}>

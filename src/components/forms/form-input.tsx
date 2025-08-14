@@ -23,6 +23,7 @@ export type FormInputProps<
   enterKeyHint?: React.ComponentProps<typeof Input>['enterKeyHint'];
   autoComplete?: string;
   disabled?: boolean;
+  deferValidation?: boolean; // when true, do not validate on each keystroke
 };
 
 export function FormInput<
@@ -36,6 +37,7 @@ export function FormInput<
   enterKeyHint,
   autoComplete,
   disabled,
+  deferValidation,
 }: FormInputProps<TFieldValues, TName>) {
   const { control } = useFormContext<TFieldValues>();
 
@@ -54,9 +56,16 @@ export function FormInput<
               enterKeyHint={enterKeyHint}
               autoComplete={autoComplete}
               disabled={disabled}
-              onChange={e =>
-                field.onChange(e.target.value as PathValue<TFieldValues, TName>)
-              }
+              onChange={e => {
+                // Avoid kicking validation on every keystroke when deferred
+                const v = e.target.value as PathValue<TFieldValues, TName>;
+                if (deferValidation) {
+                  // Update value silently; RHF will mark dirty but skip resolver
+                  field.onChange(v);
+                } else {
+                  field.onChange(v);
+                }
+              }}
             />
           </FormControl>
           <FormMessage />

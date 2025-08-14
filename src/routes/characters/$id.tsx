@@ -7,9 +7,11 @@ import * as React from 'react';
 
 import { Link, createFileRoute } from '@tanstack/react-router';
 
+import { AncestryCard } from '@/components/characters/ancestry-card';
 // No Card imports needed here; stub sections use dedicated components
 import { CharacterJsonMenu } from '@/components/characters/character-json-menu';
 import { ClassCard } from '@/components/characters/class-card';
+import { CommunityCard } from '@/components/characters/community-card';
 import { ConditionsCard } from '@/components/characters/conditions-card';
 import { CoreScoresCard } from '@/components/characters/core-scores-card';
 import { DomainsCard } from '@/components/characters/domains-card';
@@ -65,8 +67,6 @@ import {
   writeIdentityToStorage,
   writeInventoryToStorage,
 } from '@/features/characters/storage';
-import { ANCESTRIES } from '@/lib/data/characters/ancestries';
-import { COMMUNITIES } from '@/lib/data/characters/communities';
 import { ALL_CLASSES } from '@/lib/data/classes';
 
 function CharacterSheet() {
@@ -76,6 +76,24 @@ function CharacterSheet() {
       React.lazy(() =>
         import('@/components/characters/identity-drawer').then(m => ({
           default: m.IdentityDrawer,
+        }))
+      ),
+    []
+  );
+  const AncestryDrawerLazy = React.useMemo(
+    () =>
+      React.lazy(() =>
+        import('@/components/characters/ancestry-drawer').then(m => ({
+          default: m.AncestryDrawer,
+        }))
+      ),
+    []
+  );
+  const CommunityDrawerLazy = React.useMemo(
+    () =>
+      React.lazy(() =>
+        import('@/components/characters/community-drawer').then(m => ({
+          default: m.CommunityDrawer,
         }))
       ),
     []
@@ -173,6 +191,8 @@ function CharacterSheet() {
   const [identity, setIdentity] =
     React.useState<IdentityDraft>(DEFAULT_IDENTITY);
   const [openIdentity, setOpenIdentity] = React.useState(false);
+  const [openAncestry, setOpenAncestry] = React.useState(false);
+  const [openCommunity, setOpenCommunity] = React.useState(false);
   const [resources, setResources] =
     React.useState<ResourcesDraft>(DEFAULT_RESOURCES);
   const [traits, setTraits] = React.useState<TraitsDraft>(DEFAULT_TRAITS);
@@ -208,15 +228,7 @@ function CharacterSheet() {
     setInventory(readInventoryFromStorage(id));
   }, [id]);
 
-  // Items for identity
-  const ancestryItems: ComboboxItem[] = React.useMemo(
-    () => ANCESTRIES.map(a => ({ value: a.name, label: a.name })),
-    []
-  );
-  const communityItems: ComboboxItem[] = React.useMemo(
-    () => COMMUNITIES.map(c => ({ value: c.name, label: c.name })),
-    []
-  );
+  // Items for identity (ancestry/community now edited in dedicated drawers)
 
   // Items for class & subclass
   const classItems: ComboboxItem[] = React.useMemo(
@@ -241,6 +253,24 @@ function CharacterSheet() {
     mode: 'onChange',
     defaultValues: identity,
   });
+
+  // Use ref to capture latest identity without triggering re-renders
+  const identityRef = React.useRef(identity);
+  identityRef.current = identity;
+
+  // Only reset when drawer opens, using ref to get fresh data without loops
+  React.useEffect(() => {
+    if (openIdentity) form.reset(identityRef.current);
+  }, [openIdentity, form]);
+
+  React.useEffect(() => {
+    if (openAncestry) form.reset(identityRef.current);
+  }, [openAncestry, form]);
+
+  React.useEffect(() => {
+    if (openCommunity) form.reset(identityRef.current);
+  }, [openCommunity, form]);
+
   const classForm = useForm<ClassDraft>({
     resolver: zodResolver(ClassDraftSchema) as never,
     mode: 'onChange',
@@ -255,10 +285,6 @@ function CharacterSheet() {
       (found && (found as unknown as { domains?: string[] }).domains) || []
     );
   }, [currentClassName]);
-
-  React.useEffect(() => {
-    if (openIdentity) form.reset(identity);
-  }, [openIdentity, identity, form]);
   React.useEffect(() => {
     if (openClass) classForm.reset(classDraft);
   }, [openClass, classDraft, classForm]);
@@ -298,6 +324,8 @@ function CharacterSheet() {
     setIdentity(values);
     writeIdentityToStorage(id, values);
     setOpenIdentity(false);
+    setOpenAncestry(false);
+    setOpenCommunity(false);
   };
   const submit = form.handleSubmit(values => onSubmit(values as IdentityDraft));
   const onSubmitClass = (values: ClassDraft) => {
@@ -594,7 +622,7 @@ function CharacterSheet() {
           className="mt-4 scroll-mt-24 md:scroll-mt-28"
         >
           <IdentityCard
-            identity={identity}
+            identity={{ name: identity.name, pronouns: identity.pronouns }}
             onEdit={() => setOpenIdentity(true)}
           />
         </section>
@@ -609,10 +637,52 @@ function CharacterSheet() {
             open={openIdentity}
             onOpenChange={setOpenIdentity}
             form={form as never}
-            ancestryItems={ancestryItems}
-            communityItems={communityItems}
             submit={submit}
             onCancel={() => setOpenIdentity(false)}
+          />
+        </React.Suspense>
+
+        {/* Ancestry */}
+        <section
+          id="ancestry"
+          aria-label="Ancestry"
+          className="mt-4 scroll-mt-24 md:scroll-mt-28"
+        >
+          <AncestryCard
+            ancestry={identity.ancestry}
+            ancestryDetails={identity.ancestryDetails as never}
+            onEdit={() => setOpenAncestry(true)}
+          />
+        </section>
+        <React.Suspense fallback={null}>
+          <AncestryDrawerLazy
+            open={openAncestry}
+            onOpenChange={setOpenAncestry}
+            form={form as never}
+            submit={() => onSubmit(form.getValues() as IdentityDraft)}
+            onCancel={() => setOpenAncestry(false)}
+          />
+        </React.Suspense>
+
+        {/* Community */}
+        <section
+          id="community"
+          aria-label="Community"
+          className="mt-4 scroll-mt-24 md:scroll-mt-28"
+        >
+          <CommunityCard
+            community={identity.community}
+            communityDetails={identity.communityDetails as never}
+            onEdit={() => setOpenCommunity(true)}
+          />
+        </section>
+        <React.Suspense fallback={null}>
+          <CommunityDrawerLazy
+            open={openCommunity}
+            onOpenChange={setOpenCommunity}
+            form={form as never}
+            submit={() => onSubmit(form.getValues() as IdentityDraft)}
+            onCancel={() => setOpenCommunity(false)}
           />
         </React.Suspense>
 

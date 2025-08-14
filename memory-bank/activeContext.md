@@ -78,6 +78,12 @@ Aug 14, 2025 (latest):
 
 - Quality gates: Typecheck PASS; tests PASS (37/37 at latest). Existing non-blocking a11y warnings for equipment drawer dialogs remain and are tracked for a later pass.
 
+Aug 14, 2025 (later):
+
+- Ancestry & Community drawers (mobile polish): Restored a clean, compact, scrollable list UI. Standard list rows use small padding and inline detail expansion; Mixed ancestry uses two compact lists with feature previews and a name field up top. Removed erroneous aria-expanded usage and fixed community data keys to `commonTraits`. All tests and typecheck PASS (39/39).
+
+- Ancestry drawer performance/loop fix: Removed render feedback loops causing slow inputs and occasional "Maximum call stack" on reopen. Consolidated multiple `useWatch` subscriptions into a single watcher, avoided wrapping non-controlled container in `FormField`, guarded redundant `setValue` calls, and switched homebrew nested fields to field-level bindings (name/description) instead of object writes per keystroke. Root cause was also in the character route form reset effects that reset on every identity change - fixed by using refs to capture latest data without triggering dependency loops. Result: inputs are responsive; reopening Mixed/Homebrew no longer over-updates; tests and typecheck PASS.
+
 Recent cleanups:
 
 - Consolidated subclass schemas to a single BaseSubclassSchema across all classes; optional companion supported for Ranger Beastbound.

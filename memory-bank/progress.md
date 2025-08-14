@@ -224,3 +224,28 @@ Deliverables: Equipment free-form mode; schema validation and mobile-friendly dr
 - Added progression helpers (`getThresholds`, `getPointsForLevel`, `getOptionsForTier`, `validateLevelUpDecisions`) under `src/features/characters/logic/progression.ts` with tests.
 - Added storage keys for level/progression/features and draft helpers in `features/characters/storage.ts` for the upcoming LevelCard/Drawer and FeaturesCard/Drawer.
 - Tests: new `progression.test.ts` and `thresholds-card.test.tsx`; updated `resources-card.test.tsx`. Full suite PASS (36/36).
+
+### August 14, 2025 (later)
+
+- Ancestry & Community drawers: Implemented compact, scrollable list UIs with inline details; fixed a corrupted ancestry file by rewriting the panels; removed invalid aria-expanded in community and corrected trait key to `commonTraits`. Ran typecheck and full test suite: PASS (39/39).
+
+### August 14, 2025 (later 2)
+
+- Community editing parity and save fixes: Brought `CommunityDrawer` to match Ancestry patterns with a local draft model (tab-select/homebrew), enabled Save only when valid, and committed draft to form on submit. Fixed a bug where switching from Homebrew back to Select didn’t reset mode, causing saves to persist as the wrong type; synchronized `draftMode` with active tab.
+- CommunityCard enhancements: Now shows community name with a Homebrew badge when applicable, common trait chips, and a concise feature block (name + description) for both standard and homebrew communities to improve readability.
+- Visual polish: Added subtle color accents, badges, and emojis in both the drawer list and the card to make communities stand out; strengthened selected-row styling.
+- Route wiring: Drawer submit calls route `onSubmit(form.getValues())`, mirroring Ancestry, ensuring persistence and close on Save.
+- Quality gates: Ran test suite multiple times; transient ancestry test flake observed once then stabilized. Final runs green: 17/17 files, 42/42 tests; typecheck PASS.
+
+### August 14, 2025 (later 3)
+
+- Identity presenters and logic extracted:
+  - Added `FeatureBlock`, `TraitChips`, `HomebrewBadge`, and `CardScaffold` under `src/components/characters/identity/*` to reduce duplication across identity cards.
+  - Added `normalizeCommunity` and `getCommunityByName` wrapper under `src/features/characters/logic/identity.ts` to unify standard vs homebrew modes.
+- CommunityCard refactor:
+  - Rewrote `src/components/characters/community-card.tsx` to consume the shared presenters and normalization helper.
+  - A11y/text-query fix: separated emoji and name into spans and marked emoji `aria-hidden` to stabilize screen reader output and tests.
+- Tests:
+  - Added `tests/community-card.test.tsx` covering standard, homebrew (with badge), and empty-state.
+  - Resolved brittle queries by switching to `getAllByText` for trait chips.
+- Quality gates: Full suite PASS locally (18 files, 45/45 tests). Typecheck PASS. Non-blocking Radix Dialog description warnings remain as noted earlier.
