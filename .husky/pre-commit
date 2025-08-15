@@ -1,1 +1,7 @@
-pnpm exec lint-staged
+#!/usr/bin/env sh
+
+# Ensure Node is available in non-interactive Git hook environments
+export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+
+repo_root="$(git rev-parse --show-toplevel)"
+"$repo_root"/node_modules/.bin/lint-staged

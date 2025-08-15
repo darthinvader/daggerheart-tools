@@ -1,5 +1,3 @@
-import * as React from 'react';
-
 import { CurrentSelectionStrip } from '@/components/characters/equipment-drawer/current-selection-strip';
 import { HomebrewWeaponForm } from '@/components/characters/equipment-drawer/homebrew-weapon-form';
 import { SourceFilterToggle } from '@/components/characters/equipment-drawer/source-filter-toggle';
