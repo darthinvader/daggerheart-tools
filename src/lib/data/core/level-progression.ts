@@ -95,6 +95,10 @@ export const LEVEL_UP_OPTIONS = {
       cost: 1,
       maxSelections: 2,
     },
+    'Increase your Proficiency by +1': {
+      cost: 2,
+      maxSelections: 1,
+    },
     'Take an upgraded subclass card. Then cross out the multiclass option for this tier':
       {
         cost: 2,
@@ -131,6 +135,10 @@ export const LEVEL_UP_OPTIONS = {
     'Permanently gain one Stress slot': {
       cost: 1,
       maxSelections: 2,
+    },
+    'Increase your Proficiency by +1': {
+      cost: 2,
+      maxSelections: 1,
     },
     'Take an upgraded subclass card. Then cross out the multiclass option for this tier':
       {

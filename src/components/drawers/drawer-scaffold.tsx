@@ -71,7 +71,7 @@ export function DrawerScaffold({
                 Cancel
               </Button>
               <Button
-                type="submit"
+                type="button"
                 disabled={submitting || submitDisabled}
                 onClick={onSubmit}
               >

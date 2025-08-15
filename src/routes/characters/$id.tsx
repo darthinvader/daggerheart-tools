@@ -94,6 +94,8 @@ import {
   writeInventoryToStorage,
   writeLevelToStorage,
   writeLevelingToStorage,
+  writeResourcesToStorage,
+  writeTraitsToStorage,
 } from '@/features/characters/storage';
 import type { LevelUpEntry } from '@/features/characters/storage';
 
@@ -375,6 +377,70 @@ function CharacterSheet() {
         selections: values.selections ?? {},
         notes: values.notes,
       };
+      // Apply automatic level achievements and selection effects
+      setResources(prev => {
+        let next = { ...prev };
+        const sel = entry.selections;
+        const getCount = (name: string) => Math.max(0, sel[name] ?? 0);
+        // Automatic achievements: +1 Proficiency at 2,5,8
+        if (lv === 2 || lv === 5 || lv === 8) {
+          next = { ...next, proficiency: next.proficiency + 1 };
+        }
+        // HP/Stress slots
+        const hpAdds = getCount('Permanently gain one Hit Point slot');
+        const stressAdds = getCount('Permanently gain one Stress slot');
+        if (hpAdds > 0)
+          next = { ...next, hp: { ...next.hp, max: next.hp.max + hpAdds } };
+        if (stressAdds > 0)
+          next = {
+            ...next,
+            stress: { ...next.stress, max: next.stress.max + stressAdds },
+          };
+        // Evasion
+        if (getCount('Permanently gain a +1 bonus to your Evasion') > 0)
+          next = { ...next, evasion: next.evasion + 1 };
+        // Proficiency (costs both points; we only increment once)
+        if (getCount('Increase your Proficiency by +1') > 0)
+          next = { ...next, proficiency: next.proficiency + 1 };
+        writeResourcesToStorage(id, next);
+        return next;
+      });
+      // Traits: +1 to two unmarked character traits and mark them (per selection)
+      setTraits(prev => {
+        const next = { ...prev };
+        const traitOrder = [
+          'Agility',
+          'Strength',
+          'Finesse',
+          'Instinct',
+          'Presence',
+          'Knowledge',
+        ] as const;
+        // Clear marks automatically at level achievements (5 and 8)
+        if (lv === 5 || lv === 8) {
+          for (const name of traitOrder) {
+            const t = next[name];
+            if (t) next[name] = { ...t, marked: false };
+          }
+        }
+        const bumps =
+          entry.selections[
+            'Gain a +1 bonus to two unmarked character traits and mark them'
+          ] || 0;
+        // We can’t know which traits were chosen from this generic record; keep a minimal heuristic:
+        // Prefer boosting unmarked traits in a fixed order until we’ve applied bumps*2 increments.
+        let remaining = bumps * 2;
+        for (const name of traitOrder) {
+          if (remaining <= 0) break;
+          const t = next[name];
+          if (t && !t.marked) {
+            next[name] = { ...t, value: t.value + 1, marked: true };
+            remaining--;
+          }
+        }
+        writeTraitsToStorage(id, next);
+        return next;
+      });
       setLevelHistory(prev => {
         const next = [...prev.filter(e => e.level !== lv), entry].sort(
           (a, b) => a.level - b.level
@@ -386,7 +452,7 @@ function CharacterSheet() {
       writeLevelToStorage(id, lv);
       setOpenLevelUp(false);
     },
-    [id]
+    [id, setResources, setTraits]
   );
 
   return (
@@ -413,22 +479,213 @@ function CharacterSheet() {
         onEditName={() => setOpenIdentity(true)}
       />
       <div className="mx-auto max-w-screen-sm p-4">
-        {/* Summary section removed per user request */}
-
-        {/* Conditions */}
+        {/* Traits */}
         <section
-          id="conditions"
-          aria-label="Conditions"
+          id="traits"
+          aria-label="Traits"
           className="mt-4 scroll-mt-24 md:scroll-mt-28"
         >
-          <ConditionsCard
-            conditions={conditions}
-            addCondition={addCondition}
-            removeCondition={removeCondition}
+          <TraitsCard
+            traits={
+              traits as Record<string, { value: number; marked: boolean }>
+            }
+            canIncrement={k => canIncrement(k)}
+            incTrait={(k, d) => incTrait(k, d)}
+            toggleMarked={k => toggleMarked(k)}
           />
         </section>
 
-        {/* Resources prioritized for gameplay */}
+        {/* Core Scores */}
+        <section
+          id="core"
+          aria-label="Core scores"
+          className="mt-4 scroll-mt-24 md:scroll-mt-28"
+        >
+          <CoreScoresCard
+            scores={{
+              evasion: resources.evasion,
+              proficiency: resources.proficiency,
+            }}
+            updateEvasion={delta => updateNumber('evasion', delta, 0)}
+            updateProficiency={delta => updateNumber('proficiency', delta, 1)}
+            id={id}
+            updateHp={updateHp}
+          />
+        </section>
+
+        {/* Class, Subclass, and Features */}
+        <section
+          id="class"
+          aria-label="Class & Subclass"
+          className="mt-4 scroll-mt-24 md:scroll-mt-28"
+        >
+          <React.Suspense
+            fallback={
+              <div className="text-muted-foreground p-2 text-sm">
+                Loading class…
+              </div>
+            }
+          >
+            <ClassCardLazy
+              disabled={false}
+              onEdit={() => setOpenClass(true)}
+              selectedClass={classDraft.className}
+              selectedSubclass={classDraft.subclass}
+              level={currentLevel}
+              features={(() => {
+                const derived = deriveFeatureUnlocks(
+                  classDraft.className,
+                  classDraft.subclass
+                );
+                const custom = customFeatures.map(cf => ({
+                  name: cf.name,
+                  description: cf.description,
+                  type: cf.type,
+                  tags: cf.tags,
+                  level: cf.level,
+                  tier: cf.tier as never,
+                  unlockCondition: cf.unlockCondition,
+                  source: 'custom' as const,
+                }));
+                return [...derived, ...custom].sort((a, b) =>
+                  a.level === b.level
+                    ? a.name.localeCompare(b.name)
+                    : a.level - b.level
+                );
+              })()}
+              selections={featureSelections}
+            />
+          </React.Suspense>
+        </section>
+        <React.Suspense fallback={null}>
+          <ClassDrawerLazy
+            open={openClass}
+            onOpenChange={setOpenClass}
+            form={classForm as never}
+            classItems={classItems}
+            subclassItems={subclassItemsFor(currentClassName)}
+            submit={submitClass}
+            onCancel={() => setOpenClass(false)}
+            level={currentLevel}
+            selections={featureSelections}
+            onSaveSelections={onSaveFeatures}
+            custom={customFeatures}
+            onSaveCustom={onSaveCustomFeatures}
+          />
+        </React.Suspense>
+
+        {/* Level Up */}
+        <section
+          id="leveling"
+          aria-label="Leveling"
+          className="mt-4 scroll-mt-24 md:scroll-mt-28"
+        >
+          <LevelCard
+            level={currentLevel}
+            onEdit={() => setOpenLevelUp(true)}
+            onUndoLast={() => {
+              setLevelHistory(prev => {
+                if (prev.length === 0) return prev;
+                const last = prev[prev.length - 1];
+                // Revert resource effects from the last level-up entry (best-effort; traits not reverted)
+                setResources(prevRes => {
+                  let next = { ...prevRes };
+                  const sel = last.selections || {};
+                  const count = (name: string) => Math.max(0, sel[name] ?? 0);
+                  // Reverse automatic proficiency at 2,5,8
+                  if (
+                    last.level === 2 ||
+                    last.level === 5 ||
+                    last.level === 8
+                  ) {
+                    next = {
+                      ...next,
+                      proficiency: Math.max(0, next.proficiency - 1),
+                    };
+                  }
+                  // Reverse HP/Stress slots
+                  const hpAdds = count('Permanently gain one Hit Point slot');
+                  const stressAdds = count('Permanently gain one Stress slot');
+                  if (hpAdds > 0)
+                    next = {
+                      ...next,
+                      hp: {
+                        ...next.hp,
+                        max: Math.max(0, next.hp.max - hpAdds),
+                      },
+                    };
+                  if (stressAdds > 0)
+                    next = {
+                      ...next,
+                      stress: {
+                        ...next.stress,
+                        max: Math.max(0, next.stress.max - stressAdds),
+                      },
+                    };
+                  // Reverse Evasion
+                  if (count('Permanently gain a +1 bonus to your Evasion') > 0)
+                    next = { ...next, evasion: Math.max(0, next.evasion - 1) };
+                  // Reverse Proficiency selection (cost 2)
+                  if (count('Increase your Proficiency by +1') > 0)
+                    next = {
+                      ...next,
+                      proficiency: Math.max(0, next.proficiency - 1),
+                    };
+                  writeResourcesToStorage(id, next);
+                  return next;
+                });
+
+                const nextHistory = prev.slice(0, -1);
+                writeLevelingToStorage(id, nextHistory);
+                const nextLevel =
+                  nextHistory.length > 0
+                    ? nextHistory[nextHistory.length - 1].level
+                    : 1;
+                setCurrentLevel(nextLevel);
+                writeLevelToStorage(id, nextLevel);
+                return nextHistory;
+              });
+            }}
+            onResetAll={() => {
+              writeLevelingToStorage(id, []);
+              setLevelHistory([]);
+              setCurrentLevel(1);
+              writeLevelToStorage(id, 1);
+            }}
+            recent={
+              levelHistory.length > 0
+                ? {
+                    level: levelHistory[levelHistory.length - 1].level,
+                    summary:
+                      Object.entries(
+                        levelHistory[levelHistory.length - 1].selections || {}
+                      )
+                        .map(([k, v]) => `${k} x${v}`)
+                        .join(', ') || 'No selections',
+                  }
+                : null
+            }
+            history={levelHistory.map(h => ({
+              level: h.level,
+              summary:
+                Object.entries(h.selections || {})
+                  .map(([k, v]) => `${k} x${v}`)
+                  .join(', ') || 'No selections',
+            }))}
+          />
+        </section>
+        <React.Suspense fallback={null}>
+          <LevelUpDrawerLazy
+            open={openLevelUp}
+            onOpenChange={setOpenLevelUp}
+            level={currentLevel}
+            history={levelHistory}
+            submit={onSaveLevelUp}
+            onCancel={() => setOpenLevelUp(false)}
+          />
+        </React.Suspense>
+
+        {/* Resources */}
         <section
           id="resources"
           aria-label="Resources"
@@ -450,26 +707,6 @@ function CharacterSheet() {
           />
         </section>
 
-        {/* Thresholds moved inline with Core Scores */}
-
-        {/* Quick stats: Evasion, Hope, Proficiency */}
-        <section
-          id="core"
-          aria-label="Core scores"
-          className="mt-4 scroll-mt-24 md:scroll-mt-28"
-        >
-          <CoreScoresCard
-            scores={{
-              evasion: resources.evasion,
-              proficiency: resources.proficiency,
-            }}
-            updateEvasion={delta => updateNumber('evasion', delta, 0)}
-            updateProficiency={delta => updateNumber('proficiency', delta, 1)}
-            id={id}
-            updateHp={updateHp}
-          />
-        </section>
-
         {/* Gold */}
         <section
           id="gold"
@@ -479,75 +716,18 @@ function CharacterSheet() {
           <GoldCard gold={resources.gold} set={setGold} />
         </section>
 
-        {/* Identity section */}
+        {/* Conditions */}
         <section
-          id="identity"
-          aria-label="Identity"
+          id="conditions"
+          aria-label="Conditions"
           className="mt-4 scroll-mt-24 md:scroll-mt-28"
         >
-          <IdentityCard
-            identity={{
-              name: identity.name,
-              pronouns: identity.pronouns,
-              description: identity.description,
-              calling: identity.calling,
-              connections: Array.isArray(
-                (identity as Record<string, unknown>).connections
-              )
-                ? (
-                    identity as unknown as {
-                      connections: { prompt: string; answer: string }[];
-                    }
-                  ).connections
-                : [],
-            }}
-            onEdit={() => setOpenIdentity(true)}
+          <ConditionsCard
+            conditions={conditions}
+            addCondition={addCondition}
+            removeCondition={removeCondition}
           />
         </section>
-
-        {/* Leveling */}
-        <section
-          id="leveling"
-          aria-label="Leveling"
-          className="mt-4 scroll-mt-24 md:scroll-mt-28"
-        >
-          <LevelCard
-            level={currentLevel}
-            onEdit={() => setOpenLevelUp(true)}
-            onSetLevel={next => {
-              setCurrentLevel(next);
-              writeLevelToStorage(id, next);
-            }}
-            recent={
-              levelHistory.length > 0
-                ? {
-                    level: levelHistory[levelHistory.length - 1].level,
-                    summary:
-                      Object.entries(
-                        levelHistory[levelHistory.length - 1].selections || {}
-                      )
-                        .map(([k, v]) => `${k} x${v}`)
-                        .join(', ') || 'No selections',
-                  }
-                : null
-            }
-          />
-        </section>
-
-        {/* Identity Drawer */}
-        <React.Suspense
-          fallback={
-            <div className="text-muted-foreground p-4 text-sm">Loading…</div>
-          }
-        >
-          <IdentityDrawerLazy
-            open={openIdentity}
-            onOpenChange={setOpenIdentity}
-            form={form as never}
-            submit={submit}
-            onCancel={() => setOpenIdentity(false)}
-          />
-        </React.Suspense>
 
         {/* Ancestry */}
         <section
@@ -626,7 +806,7 @@ function CharacterSheet() {
           />
         </React.Suspense>
 
-        {/* Inventory */}
+        {/* Inventory / Items */}
         <section
           id="inventory"
           aria-label="Inventory"
@@ -650,13 +830,6 @@ function CharacterSheet() {
           </React.Suspense>
         </section>
         <React.Suspense fallback={null}>
-          <LevelUpDrawerLazy
-            open={openLevelUp}
-            onOpenChange={setOpenLevelUp}
-            level={currentLevel}
-            submit={onSaveLevelUp}
-            onCancel={() => setOpenLevelUp(false)}
-          />
           <InventoryDrawerLazy
             open={openInventory}
             onOpenChange={setOpenInventory}
@@ -666,67 +839,7 @@ function CharacterSheet() {
           />
         </React.Suspense>
 
-        {/* Class, Subclass, and Features */}
-        <section
-          id="class"
-          aria-label="Class & Subclass"
-          className="mt-4 scroll-mt-24 md:scroll-mt-28"
-        >
-          <React.Suspense
-            fallback={
-              <div className="text-muted-foreground p-2 text-sm">
-                Loading class…
-              </div>
-            }
-          >
-            <ClassCardLazy
-              disabled={false}
-              onEdit={() => setOpenClass(true)}
-              selectedClass={classDraft.className}
-              selectedSubclass={classDraft.subclass}
-              level={currentLevel}
-              features={(() => {
-                const derived = deriveFeatureUnlocks(
-                  classDraft.className,
-                  classDraft.subclass
-                );
-                const custom = customFeatures.map(cf => ({
-                  name: cf.name,
-                  description: cf.description,
-                  type: cf.type,
-                  tags: cf.tags,
-                  level: cf.level,
-                  tier: cf.tier as never,
-                  unlockCondition: cf.unlockCondition,
-                  source: 'custom' as const,
-                }));
-                return [...derived, ...custom].sort((a, b) =>
-                  a.level === b.level
-                    ? a.name.localeCompare(b.name)
-                    : a.level - b.level
-                );
-              })()}
-              selections={featureSelections}
-            />
-          </React.Suspense>
-        </section>
-        <React.Suspense fallback={null}>
-          <ClassDrawerLazy
-            open={openClass}
-            onOpenChange={setOpenClass}
-            form={classForm as never}
-            classItems={classItems}
-            subclassItems={subclassItemsFor(currentClassName)}
-            submit={submitClass}
-            onCancel={() => setOpenClass(false)}
-            level={currentLevel}
-            selections={featureSelections}
-            onSaveSelections={onSaveFeatures}
-            custom={customFeatures}
-            onSaveCustom={onSaveCustomFeatures}
-          />
-        </React.Suspense>
-        {/* Domains */}
+        {/* Domains & Loadout */}
         <section
           id="domains"
           aria-label="Domains"
@@ -770,22 +883,44 @@ function CharacterSheet() {
           />
         </React.Suspense>
 
-        {/* Traits */}
+        {/* Identity */}
         <section
-          id="traits"
-          aria-label="Traits"
+          id="identity"
+          aria-label="Identity"
           className="mt-4 scroll-mt-24 md:scroll-mt-28"
         >
-          <TraitsCard
-            traits={
-              traits as Record<string, { value: number; marked: boolean }>
-            }
-            canIncrement={k => canIncrement(k)}
-            incTrait={(k, d) => incTrait(k, d)}
-            toggleMarked={k => toggleMarked(k)}
+          <IdentityCard
+            identity={{
+              name: identity.name,
+              pronouns: identity.pronouns,
+              description: identity.description,
+              calling: identity.calling,
+              connections: Array.isArray(
+                (identity as Record<string, unknown>).connections
+              )
+                ? (
+                    identity as unknown as {
+                      connections: { prompt: string; answer: string }[];
+                    }
+                  ).connections
+                : [],
+            }}
+            onEdit={() => setOpenIdentity(true)}
           />
         </section>
-        {/* Domains & Equipment sections removed per UX: empty stubs don't add value */}
+        <React.Suspense
+          fallback={
+            <div className="text-muted-foreground p-4 text-sm">Loading…</div>
+          }
+        >
+          <IdentityDrawerLazy
+            open={openIdentity}
+            onOpenChange={setOpenIdentity}
+            form={form as never}
+            submit={submit}
+            onCancel={() => setOpenIdentity(false)}
+          />
+        </React.Suspense>
       </div>
 
       {/* Bottom action bar removed */}

@@ -7,14 +7,19 @@ export type LevelCardProps = {
   level: number;
   onEdit?: () => void;
   recent?: { level: number; summary: string } | null;
+  history?: { level: number; summary: string }[];
   onSetLevel?: (next: number) => void;
+  onUndoLast?: () => void;
+  onResetAll?: () => void;
 };
 
 export function LevelCard({
   level,
   onEdit,
   recent,
-  onSetLevel,
+  history,
+  onUndoLast,
+  onResetAll,
 }: LevelCardProps) {
   const tier = getTierForLevel(level);
   const tierNumber =
@@ -25,25 +30,15 @@ export function LevelCard({
         title={`Level ${level} (Tier ${tierNumber})`}
         actions={
           <div className="flex items-center gap-2">
-            {onSetLevel && (
-              <>
-                <Button
-                  size="icon"
-                  variant="outline"
-                  onClick={() => onSetLevel(Math.max(1, level - 1))}
-                  aria-label="Decrease level"
-                >
-                  −
-                </Button>
-                <Button
-                  size="icon"
-                  variant="outline"
-                  onClick={() => onSetLevel(Math.min(10, level + 1))}
-                  aria-label="Increase level"
-                >
-                  +
-                </Button>
-              </>
+            {onUndoLast && (
+              <Button size="sm" variant="outline" onClick={onUndoLast}>
+                Undo last level
+              </Button>
+            )}
+            {onResetAll && (
+              <Button size="sm" variant="ghost" onClick={onResetAll}>
+                Reset leveling
+              </Button>
             )}
             <Button size="sm" variant="outline" onClick={onEdit}>
               Level Up
@@ -52,7 +47,20 @@ export function LevelCard({
         }
       />
       <CardContent>
-        {recent ? (
+        {Array.isArray(history) && history.length > 0 ? (
+          <div className="space-y-1">
+            {history
+              .sort((a, b) => a.level - b.level)
+              .map((h, idx) => (
+                <div
+                  key={`${h.level}-${idx}`}
+                  className="text-muted-foreground text-sm"
+                >
+                  Lv {h.level} — {h.summary}
+                </div>
+              ))}
+          </div>
+        ) : recent ? (
           <div className="text-muted-foreground text-sm">
             Last: Lv {recent.level} – {recent.summary}
           </div>

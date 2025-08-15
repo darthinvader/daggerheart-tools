@@ -5,6 +5,7 @@ import type { BaseSyntheticEvent } from 'react';
 
 import { CommunityList } from '@/components/characters/community/CommunityList';
 import { HomebrewCommunityForm } from '@/components/characters/community/HomebrewCommunityForm';
+import { useDrawerAutosaveOnClose } from '@/components/characters/hooks/use-drawer-autosave';
 import { DrawerScaffold } from '@/components/drawers/drawer-scaffold';
 import { Form } from '@/components/ui/form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -35,6 +36,7 @@ export function CommunityDrawer({
   submit: (e?: BaseSyntheticEvent) => void | Promise<void>;
   onCancel: () => void;
 }) {
+  const skipRef = React.useRef(false);
   // Local draft model to mirror AncestryDrawer pattern
   const [tab, setTab] = React.useState<'select' | 'homebrew'>('select');
   const [draftMode, setDraftMode] = React.useState<'standard' | 'homebrew'>(
@@ -111,16 +113,31 @@ export function CommunityDrawer({
     );
   }, [draftMode, draftSelected, draftHomebrew, form]);
 
+  // Autosave on close if draft is valid by committing draft to the form first
+  useDrawerAutosaveOnClose({
+    open,
+    trigger: () => Promise.resolve(canSave),
+    submit: () => {
+      commitDraftToForm();
+      return submit();
+    },
+    skipRef: skipRef as React.MutableRefObject<boolean>,
+  });
+
   return (
     <DrawerScaffold
       open={open}
       onOpenChange={onOpenChange}
       title="Edit Community"
-      onCancel={onCancel}
+      onCancel={() => {
+        skipRef.current = true;
+        onCancel();
+      }}
       onSubmit={e => {
         if (e && 'preventDefault' in e)
           (e as BaseSyntheticEvent).preventDefault();
         commitDraftToForm();
+        skipRef.current = true;
         return submit();
       }}
       submitDisabled={!canSave}

@@ -2,13 +2,13 @@ import type { UseFormReturn } from 'react-hook-form';
 
 import * as React from 'react';
 
+import { useDrawerAutosaveOnClose } from '@/components/characters/hooks/use-drawer-autosave';
 import { HomebrewItemForm } from '@/components/characters/inventory-drawer/homebrew-item-form';
 import { useInventoryLibrary } from '@/components/characters/inventory-drawer/hooks/use-inventory-library';
 // CategoryFilter type consumed via hook result; no direct import needed here
 import { type LibraryItem } from '@/components/characters/inventory-drawer/library-results-list';
 import { LibrarySection } from '@/components/characters/inventory-drawer/library-section';
 import { DrawerScaffold } from '@/components/drawers/drawer-scaffold';
-import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import {
   addItemToSlots,
@@ -108,6 +108,12 @@ function InventoryDrawerImpl({
   }, [slots]);
 
   // quantity helpers handled inline in list rows
+  useDrawerAutosaveOnClose({
+    open,
+    trigger: () => form.trigger(),
+    submit: () => submit(),
+    skipRef,
+  });
   return (
     <DrawerScaffold
       open={open}
@@ -123,19 +129,6 @@ function InventoryDrawerImpl({
         skipRef.current = true;
         return submit();
       }}
-      footer={
-        <div className="flex w-full items-center justify-end gap-2">
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button type="button" variant="ghost" onClick={() => form.reset()}>
-            Reset
-          </Button>
-          <Button type="button" onClick={() => submit()}>
-            Save
-          </Button>
-        </div>
-      }
     >
       <Form {...form}>
         <form

@@ -1,8 +1,10 @@
 import { type UseFormReturn } from 'react-hook-form';
 
 // React import not required with automatic JSX runtime
+import * as React from 'react';
 import type { BaseSyntheticEvent } from 'react';
 
+import { useDrawerAutosaveOnClose } from '@/components/characters/hooks/use-drawer-autosave';
 import { DrawerScaffold } from '@/components/drawers/drawer-scaffold';
 import { Form } from '@/components/ui/form';
 import { FormLabel } from '@/components/ui/form';
@@ -47,6 +49,7 @@ export function AncestryDrawer({
   submit: (e?: BaseSyntheticEvent) => void | Promise<void>;
   onCancel: () => void;
 }) {
+  const skipRef = React.useRef(false);
   const {
     tab,
     setTab,
@@ -63,17 +66,28 @@ export function AncestryDrawer({
     filterAncestries,
   } = useAncestryDraft<AncestryFormValues>({ open, form });
 
+  useDrawerAutosaveOnClose({
+    open,
+    trigger: () => Promise.resolve(canSave),
+    submit: () => submit(),
+    skipRef,
+  });
+
   return (
     <DrawerScaffold
       open={open}
       onOpenChange={onOpenChange}
       title="Edit Ancestry"
-      onCancel={onCancel}
+      onCancel={() => {
+        skipRef.current = true;
+        onCancel();
+      }}
       onSubmit={e => {
         // prevent default if synthetic event provided
         if (e && 'preventDefault' in e)
           (e as BaseSyntheticEvent).preventDefault();
         commitDraftToForm();
+        skipRef.current = true;
         return submit();
       }}
       submitDisabled={!canSave}

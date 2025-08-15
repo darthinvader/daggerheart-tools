@@ -7,6 +7,7 @@ import { useHomebrewMeta } from '@/components/characters/equipment-drawer/hooks/
 import { ArmorPanel } from '@/components/characters/equipment-drawer/panels/armor-panel';
 import { PrimaryPanel } from '@/components/characters/equipment-drawer/panels/primary-panel';
 import { SecondaryPanel } from '@/components/characters/equipment-drawer/panels/secondary-panel';
+import { useDrawerAutosaveOnClose } from '@/components/characters/hooks/use-drawer-autosave';
 import { DrawerScaffold } from '@/components/drawers/drawer-scaffold';
 import { Form } from '@/components/ui/form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -60,6 +61,12 @@ function EquipmentDrawerImpl({
     currentArmor as unknown as { armorType?: string } | undefined
   )?.armorType;
   // Watching entire values not necessary for list selection; form.setValue commits selection.
+  useDrawerAutosaveOnClose({
+    open,
+    trigger: () => form.trigger(),
+    submit: () => submit(),
+    skipRef,
+  });
   return (
     <DrawerScaffold
       open={open}

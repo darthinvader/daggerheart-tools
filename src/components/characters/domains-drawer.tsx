@@ -86,8 +86,11 @@ function DomainsDrawerImpl({
   // Homebrew minimal fields; description carries the "what it does" text
   const { state: hb, setState: setHb, clear: clearHb } = useHomebrewForm();
 
-  const { creationComplete, handleCancel, markSkip, resetToBaseline } =
-    useAutosaveAndBaseline({ open, form, submit: () => submit() });
+  const { creationComplete, handleCancel, markSkip } = useAutosaveAndBaseline({
+    open,
+    form,
+    submit: () => submit(),
+  });
 
   // Cleanup handled in use-drawer-stage/use-closing-freeze
 
@@ -162,7 +165,7 @@ function DomainsDrawerImpl({
         <LoadoutFooter
           recallBudgetUsed={recallBudgetUsed}
           canSave={form.formState.isValid}
-          onReset={resetToBaseline}
+          onCancel={() => handleCancel(onCancel)}
           onSaveClick={markSkip}
           formId="domains-drawer-form"
         />

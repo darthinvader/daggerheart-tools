@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 
 import * as React from 'react';
 
+import { useDrawerAutosaveOnClose } from '@/components/characters/hooks/use-drawer-autosave';
 import { DrawerScaffold } from '@/components/drawers/drawer-scaffold';
 import { Button } from '@/components/ui/button';
 import { useThresholdsSettings } from '@/features/characters/logic/use-thresholds';
@@ -22,6 +23,7 @@ export function ThresholdsInline({
   className,
 }: ThresholdsInlineProps) {
   const [open, setOpen] = React.useState(false);
+  const skipRef = React.useRef(false);
   const {
     settings,
     setSettings,
@@ -52,6 +54,16 @@ export function ThresholdsInline({
     const delta = label === 1 ? -1 : label === 2 ? -2 : -3;
     onDamage(delta);
   };
+
+  // Autosave: if the settings are valid or auto mode is enabled, save on close
+  useDrawerAutosaveOnClose({
+    open,
+    trigger: () => Promise.resolve(settings.auto || !invalidManual()),
+    submit: () => {
+      void save();
+    },
+    skipRef,
+  });
 
   return (
     <div className={className}>
@@ -85,6 +97,7 @@ export function ThresholdsInline({
         onOpenChange={setOpen}
         title="Damage thresholds"
         onCancel={() => {
+          skipRef.current = true;
           if (!settings.auto && invalidManual()) {
             toast('Cannot close', {
               description: 'Fix thresholds or enable Auto-calculate.',
@@ -94,6 +107,7 @@ export function ThresholdsInline({
           setOpen(false);
         }}
         onSubmit={() => {
+          skipRef.current = true;
           if (save()) setOpen(false);
         }}
         submitLabel="Save"

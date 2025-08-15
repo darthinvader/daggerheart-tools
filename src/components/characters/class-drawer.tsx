@@ -7,6 +7,7 @@ import { CustomFeatureEditor } from '@/components/characters/class-drawer/custom
 import { CustomFeaturesList } from '@/components/characters/class-drawer/custom-features-list';
 import { FeaturesToggleList } from '@/components/characters/class-drawer/features-toggle-list';
 import { ClassSummary } from '@/components/characters/class-summary';
+import { useDrawerAutosaveOnClose } from '@/components/characters/hooks/use-drawer-autosave';
 import { DrawerScaffold } from '@/components/drawers/drawer-scaffold';
 import { FormCombobox } from '@/components/forms/form-combobox';
 import { Form } from '@/components/ui/form';
@@ -55,6 +56,7 @@ function ClassDrawerImpl({
   custom,
   onSaveCustom,
 }: ClassDrawerProps) {
+  const skipRef = React.useRef(false);
   const watchedClass = form.watch('className');
   const watchedSubclass = form.watch('subclass');
   const isSubmitting = form.formState.isSubmitting;
@@ -138,15 +140,27 @@ function ClassDrawerImpl({
     !isValid ||
     (mode === 'edit' ? !isDirty && !hasFeatureChanges : false);
 
+  // Autosave on close when form is valid and there are changes
+  useDrawerAutosaveOnClose({
+    open,
+    trigger: () => Promise.resolve(isValid && (isDirty || hasFeatureChanges)),
+    submit: () => submit(),
+    skipRef,
+  });
+
   return (
     <DrawerScaffold
       open={open}
       onOpenChange={onOpenChange}
       title={titleText}
-      onCancel={onCancel}
+      onCancel={() => {
+        skipRef.current = true;
+        onCancel();
+      }}
       onSubmit={e => {
         onSaveSelections(localSel);
         onSaveCustom(localCustom);
+        skipRef.current = true;
         return submit(e);
       }}
       submitLabel={ctaText}

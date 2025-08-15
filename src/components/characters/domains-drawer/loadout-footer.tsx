@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 export type LoadoutFooterProps = {
   recallBudgetUsed: number;
   canSave: boolean;
-  onReset: () => void;
+  onCancel: () => void;
   onSaveClick: () => void;
   formId?: string;
 };
@@ -11,7 +11,7 @@ export type LoadoutFooterProps = {
 export function LoadoutFooter({
   recallBudgetUsed,
   canSave,
-  onReset,
+  onCancel,
   onSaveClick,
   formId,
 }: LoadoutFooterProps) {
@@ -21,8 +21,8 @@ export function LoadoutFooter({
         Recall used: <span className="font-medium">{recallBudgetUsed}</span>
       </div>
       <div className="flex items-center gap-2">
-        <Button type="button" variant="ghost" onClick={onReset}>
-          Reset
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancel
         </Button>
         <Button
           type="submit"
