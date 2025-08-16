@@ -83,6 +83,36 @@ import {
   writeLevelingToStorage,
 } from '@/features/characters/storage';
 
+// Compact formatter for level-up option summaries shown in the Level card
+function abbrLevelUpOption(name: string): string {
+  if (name.startsWith('Gain a +1 bonus to two unmarked character traits'))
+    return 'Traits +1×2';
+  if (name.startsWith('Permanently gain a +1 bonus to two Experiences'))
+    return 'Exps +1×2';
+  if (name.startsWith('Choose an additional domain card')) return 'Domain +1';
+  if (name.startsWith('Permanently gain a +1 bonus to your Evasion'))
+    return 'Evasion +1';
+  if (name.startsWith('Permanently gain one Hit Point slot')) return 'HP +1';
+  if (name.startsWith('Permanently gain one Stress slot')) return 'Stress +1';
+  if (name.startsWith('Increase your Proficiency')) return 'Prof +1';
+  if (name.startsWith('Take an upgraded subclass card')) return 'Subclass ↑';
+  if (name.startsWith('Multiclass')) return 'Multiclass';
+  return name;
+}
+
+function formatLevelUpSummary(sel: Record<string, number> | undefined) {
+  const entries = Object.entries(sel || {}).filter(
+    ([, v]) => (v as number) > 0
+  );
+  if (entries.length === 0) return 'No selections';
+  return entries
+    .map(([k, v]) => {
+      const label = abbrLevelUpOption(k);
+      return v > 1 ? `${label} x${v}` : label;
+    })
+    .join(' • ');
+}
+
 function CharacterSheet() {
   const { id } = Route.useParams();
 
@@ -416,65 +446,6 @@ function CharacterSheet() {
         onEditName={() => setOpenIdentity(true)}
       />
       <div className="mx-auto max-w-screen-sm p-4">
-        {/* Traits */}
-        <section
-          id="traits"
-          aria-label="Traits"
-          className="mt-4 scroll-mt-24 md:scroll-mt-28"
-        >
-          <TraitsCard
-            traits={
-              traits as Record<string, { value: number; marked: boolean }>
-            }
-            canIncrement={k => canIncrement(k)}
-            incTrait={(k, d) => incTrait(k, d)}
-            toggleMarked={k => toggleMarked(k)}
-          />
-        </section>
-
-        {/* Core Scores */}
-        <section
-          id="core"
-          aria-label="Core scores"
-          className="mt-4 scroll-mt-24 md:scroll-mt-28"
-        >
-          <CoreScoresCard
-            scores={{
-              evasion: resources.evasion,
-              proficiency: resources.proficiency,
-            }}
-            updateEvasion={delta => updateNumber('evasion', delta, 0)}
-            updateProficiency={delta => updateNumber('proficiency', delta, 1)}
-            id={id}
-            updateHp={updateHp}
-          />
-        </section>
-
-        {/* Resources (moved above Class & Subclass) */}
-        <section
-          id="resources"
-          aria-label="Resources"
-          className="mt-4 scroll-mt-24 md:scroll-mt-28"
-        >
-          <ResourcesCard
-            id="resources"
-            resources={{
-              hp: resources.hp,
-              stress: resources.stress,
-              hope: resources.hope,
-              armorScore: resources.armorScore,
-            }}
-            updateHp={updateHp}
-            updateHpMax={updateHpMax}
-            updateStress={updateStress}
-            updateStressMax={updateStressMax}
-            updateHope={delta => updateHope(delta)}
-            updateHopeMax={delta => updateHopeMax(delta)}
-            updateArmorScore={delta => updateArmorScore(delta)}
-            updateArmorScoreMax={delta => updateArmorScoreMax(delta)}
-          />
-        </section>
-
         {/* Class, Subclass, and Features */}
         <section
           id="class"
@@ -556,31 +527,24 @@ function CharacterSheet() {
               writeLevelToStorage(id, nextLevel);
               setCurrentLevel(nextLevel);
             }}
-            onResetAll={() => {
-              writeLevelingToStorage(id, []);
-              setLevelHistory([]);
-              writeLevelToStorage(id, 1);
-              setCurrentLevel(1);
-            }}
             recent={
               levelHistory.length > 0
                 ? {
                     level: levelHistory[levelHistory.length - 1].level,
-                    summary:
-                      Object.entries(
-                        levelHistory[levelHistory.length - 1].selections || {}
-                      )
-                        .map(([k, v]) => `${k} x${v}`)
-                        .join(', ') || 'No selections',
+                    summary: formatLevelUpSummary(
+                      levelHistory[levelHistory.length - 1].selections
+                    ),
+                    selections:
+                      levelHistory[levelHistory.length - 1].selections,
+                    notes: levelHistory[levelHistory.length - 1].notes,
                   }
                 : null
             }
             history={levelHistory.map(h => ({
               level: h.level,
-              summary:
-                Object.entries(h.selections || {})
-                  .map(([k, v]) => `${k} x${v}`)
-                  .join(', ') || 'No selections',
+              summary: formatLevelUpSummary(h.selections),
+              selections: h.selections,
+              notes: h.notes,
             }))}
           />
         </section>
@@ -594,6 +558,65 @@ function CharacterSheet() {
             onCancel={() => setOpenLevelUp(false)}
           />
         </React.Suspense>
+
+        {/* Traits */}
+        <section
+          id="traits"
+          aria-label="Traits"
+          className="mt-4 scroll-mt-24 md:scroll-mt-28"
+        >
+          <TraitsCard
+            traits={
+              traits as Record<string, { value: number; marked: boolean }>
+            }
+            canIncrement={k => canIncrement(k)}
+            incTrait={(k, d) => incTrait(k, d)}
+            toggleMarked={k => toggleMarked(k)}
+          />
+        </section>
+
+        {/* Core Scores */}
+        <section
+          id="core"
+          aria-label="Core scores"
+          className="mt-4 scroll-mt-24 md:scroll-mt-28"
+        >
+          <CoreScoresCard
+            scores={{
+              evasion: resources.evasion,
+              proficiency: resources.proficiency,
+            }}
+            updateEvasion={delta => updateNumber('evasion', delta, 0)}
+            updateProficiency={delta => updateNumber('proficiency', delta, 1)}
+            id={id}
+            updateHp={updateHp}
+          />
+        </section>
+
+        {/* Resources (moved above Class & Subclass) */}
+        <section
+          id="resources"
+          aria-label="Resources"
+          className="mt-4 scroll-mt-24 md:scroll-mt-28"
+        >
+          <ResourcesCard
+            id="resources"
+            resources={{
+              hp: resources.hp,
+              stress: resources.stress,
+              hope: resources.hope,
+              armorScore: resources.armorScore,
+            }}
+            updateHp={updateHp}
+            updateHpMax={updateHpMax}
+            updateStress={updateStress}
+            updateStressMax={updateStressMax}
+            updateHope={delta => updateHope(delta)}
+            updateHopeMax={delta => updateHopeMax(delta)}
+            updateArmorScore={delta => updateArmorScore(delta)}
+            updateArmorScoreMax={delta => updateArmorScoreMax(delta)}
+          />
+        </section>
 
         {/* Gold */}
         <section

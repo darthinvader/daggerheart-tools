@@ -165,6 +165,7 @@ Deliverables: Equipment free-form mode; schema validation and mobile-friendly dr
 - Drawer ergonomics: Confirmed 100dvh + safe-area padding and scrollable content mitigate keyboard overlap.
 - Quality gates: Type-check PASS; build PASS (with large chunk warnings to address later via code-splitting).
 - Header: Title now shows only the character's name in a smaller font; when empty, displays a subtle 'Set a name' placeholder.
+- Header: Title now shows only the character's name in a smaller font; when empty, displays a subtle 'Add a name' placeholder (updated from 'Set a name').
 
 ### August 10, 2025
 

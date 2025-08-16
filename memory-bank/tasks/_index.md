@@ -22,6 +22,7 @@
 - [TASK015] Trim Equipment Drawer - Completed: added `useHomebrewMeta` and refactored drawer; tests/typecheck PASS; size now ~7.0 KB (from ~10.5 KB).
 - [TASK016] Trim Inventory Library Results List - Completed: presenters wired; inline logic removed; tests/typecheck PASS.
 - [TASK022] Edit affordances refactor - Replaced large Edit buttons with compact pencil icon actions in headers; moved identity card actions to header; a11y aria-labels added; tests/typecheck PASS (49/49) on 2025-08-16.
+- [TASK029] Improve header name UX - Placeholder changed to "Add a name"; dynamic aria-label (Add vs Edit); tooltip updated. Tests/typecheck PASS on 2025-08-16.
 
 ## Abandoned
 

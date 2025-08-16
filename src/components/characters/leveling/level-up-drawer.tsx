@@ -1,4 +1,4 @@
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 
 import * as React from 'react';
 import type { BaseSyntheticEvent } from 'react';
@@ -16,12 +16,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
 import {
   getOptionsForTier,
   getPointsForLevel,
   getTierForLevel,
-  validateLevelUpDecisions,
 } from '@/features/characters/logic/progression';
 import type { LevelUpEntry } from '@/features/characters/progression-storage';
 
@@ -29,7 +27,6 @@ export type LevelUpFormValues = {
   level: number;
   notes?: string;
   selections: Record<string, number>;
-  selectAny?: boolean;
 };
 
 export type LevelUpDrawerProps = {
@@ -60,7 +57,6 @@ export function LevelUpDrawer({
       level: targetLevel,
       notes: '',
       selections: {},
-      selectAny: false,
     },
   });
 
@@ -70,7 +66,6 @@ export function LevelUpDrawer({
         level: targetLevel,
         notes: '',
         selections: {},
-        selectAny: false,
       });
   }, [open, targetLevel, form]);
 
@@ -119,30 +114,23 @@ export function LevelUpDrawer({
     return tally;
   }, [history, tier, targetLevel]);
 
-  const selections = form.watch('selections');
-  const selectAny =
-    (form.watch('selectAny' as unknown as keyof LevelUpFormValues) as
-      | boolean
-      | undefined) ?? false;
+  // Watch selections so Spent updates live while changing pick counts
+  const selections = useWatch({ control: form.control, name: 'selections' });
   const totalCost = React.useMemo(() => {
-    if (selectAny) return 0; // bypass cost
-    try {
-      const res = validateLevelUpDecisions(selections ?? {}, tier);
-      return res.totalCost;
-    } catch {
-      return Infinity; // indicates invalid
+    const sel = selections || {};
+    let sum = 0;
+    for (const [k, v] of Object.entries(sel)) {
+      const def = (options as Record<string, { cost: number }>)[k];
+      if (!def) continue;
+      sum += (Number(v) || 0) * def.cost;
     }
-  }, [selections, tier, selectAny]);
-
-  const remaining = Number.isFinite(totalCost)
-    ? Math.max(0, budget - (totalCost as number))
-    : 0;
+    return sum;
+  }, [selections, options]);
 
   // Autosave on drawer close when selection state is valid
   useDrawerAutosaveOnClose({
     open,
-    trigger: () =>
-      Promise.resolve(selectAny ? true : Number.isFinite(totalCost)),
+    trigger: () => Promise.resolve(true),
     submit: () => submit(form.getValues()),
     skipRef: skipAutoSaveRef,
   });
@@ -189,29 +177,19 @@ export function LevelUpDrawer({
       title={`Level Up to ${targetLevel}`}
       onCancel={handleCancel}
       onSubmit={handleSave}
-      submitDisabled={!selectAny && !Number.isFinite(totalCost)}
+      submitDisabled={false}
       footer={
         <div className="flex w-full items-center justify-between gap-2">
           <div className="text-muted-foreground text-sm">
-            {selectAny ? (
-              <>Select Any enabled</>
-            ) : (
-              <>
-                Points: {budget} • Spent:{' '}
-                {Number.isFinite(totalCost) ? totalCost : '—'} • Remaining:{' '}
-                {Number.isFinite(totalCost) ? remaining : '—'}
-              </>
-            )}
+            <>
+              Points: {budget} • Spent: {totalCost}
+            </>
           </div>
           <div className="flex items-center gap-2">
             <Button type="button" variant="outline" onClick={handleCancel}>
               Cancel
             </Button>
-            <Button
-              type="button"
-              onClick={handleSave}
-              disabled={!selectAny && !Number.isFinite(totalCost)}
-            >
+            <Button type="button" onClick={handleSave} disabled={false}>
               Save
             </Button>
           </div>
@@ -236,15 +214,7 @@ export function LevelUpDrawer({
           {tier !== '1' && (
             <div className="flex items-center justify-between gap-2 text-sm">
               <div className="text-muted-foreground">{tierNote}</div>
-              <div className="flex items-center gap-2">
-                <span className="text-muted-foreground">Select Any</span>
-                <Switch
-                  checked={Boolean(selectAny)}
-                  onCheckedChange={val =>
-                    form.setValue('selectAny' as never, Boolean(val) as never)
-                  }
-                />
-              </div>
+              <div />
             </div>
           )}
           {tier !== '1' && (
@@ -340,38 +310,8 @@ export function LevelUpDrawer({
                             0,
                             Math.min(Number(val) || 0, remainingAllTime)
                           );
-                          if (selectAny) {
-                            form.setValue(`selections.${key}` as const, next, {
-                              shouldValidate: true,
-                            });
-                            return;
-                          }
-                          // Compute budget-aware maximum
-                          const budgetLocal = getPointsForLevel();
-                          let otherCost = 0;
-                          for (const [k2, v2] of Object.entries(
-                            selections || {}
-                          )) {
-                            if (k2 === key) continue;
-                            const def2 = (
-                              options as Record<
-                                string,
-                                { cost: number; maxSelections: number }
-                              >
-                            )[k2];
-                            if (
-                              !def2 ||
-                              !Number.isFinite(v2) ||
-                              (v2 as number) <= 0
-                            )
-                              continue;
-                            otherCost += (v2 as number) * def2.cost;
-                          }
-                          const maxByBudget = Math.max(
-                            0,
-                            Math.floor((budgetLocal - otherCost) / def.cost)
-                          );
-                          const safeVal = Math.min(next, maxByBudget);
+                          // Remove budget-based cap; clamp to option's own remaining allowance only
+                          const safeVal = Math.min(next, remainingAllTime);
                           form.setValue(`selections.${key}` as const, safeVal, {
                             shouldValidate: true,
                           });
@@ -385,46 +325,11 @@ export function LevelUpDrawer({
                           {Array.from(
                             { length: Math.max(0, remainingAllTime) + 1 },
                             (_, i) => i
-                          ).map(n => {
-                            if (selectAny) {
-                              return (
-                                <SelectItem key={n} value={String(n)}>
-                                  {n}
-                                </SelectItem>
-                              );
-                            }
-                            // Determine if choosing n would exceed budget given other picks
-                            let otherCost = 0;
-                            for (const [k2, v2] of Object.entries(
-                              selections || {}
-                            )) {
-                              if (k2 === key) continue;
-                              const def2 = (
-                                options as Record<
-                                  string,
-                                  { cost: number; maxSelections: number }
-                                >
-                              )[k2];
-                              if (
-                                !def2 ||
-                                !Number.isFinite(v2) ||
-                                (v2 as number) <= 0
-                              )
-                                continue;
-                              otherCost += (v2 as number) * def2.cost;
-                            }
-                            const canAfford =
-                              otherCost + n * def.cost <= budget;
-                            return (
-                              <SelectItem
-                                key={n}
-                                value={String(n)}
-                                disabled={!canAfford}
-                              >
-                                {n}
-                              </SelectItem>
-                            );
-                          })}
+                          ).map(n => (
+                            <SelectItem key={n} value={String(n)}>
+                              {n}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>

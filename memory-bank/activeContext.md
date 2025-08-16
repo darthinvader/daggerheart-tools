@@ -46,6 +46,14 @@ Aug 16, 2025 (latest – Leveling flow change to record-only):
 - Leveling flow is now record-only. The Level Up Drawer records the target level, notes, and selection counts into per-character leveling history and updates the current level number, but it does not mutate any other character data (Resources, Traits, etc.). Players manually apply HP/Stress/Evasion/Proficiency/Traits changes outside the leveling UI per table preference. Undo/Reset only affect the level history and current level, not other fields.
 - Implementation: removed side-effects in `$id.tsx` `onSaveLevelUp` and undo handlers; storage continues to use `level` and `leveling` keys. Tests/typecheck remain PASS.
 
+Aug 16, 2025 — Level Up Drawer Spent calculation:
+
+- The Level Up Drawer footer now shows live Points/Spent. Spent is computed from current in-drawer selections only (not prior tier history): sum(count × cost) over `selections`. Implemented with `react-hook-form` `useWatch` to keep the display reactive during selection changes.
+
+Aug 16, 2025 — Compact level-up summaries in Level card:
+
+- Implemented compact formatter for level-up selections shown in the character sheet: Traits +1×2, Exps +1×2, Domain +1, Evasion +1, HP +1, Stress +1, Prof +1, Subclass ↑, Multiclass. Summaries are joined with a middle dot and omit zero-counts. Applied to both Recent and History in the Level card.
+
 Aug 14, 2025 (latest – Class/Subclass features consolidation):
 
 - Consolidated Class and Subclass presentation into a single experience. Outside card shows ClassSummary plus a compact FeaturesList of currently unlocked-and-enabled features only; the Class drawer contains selection controls, the full ClassSummary (with starting stats), and an embedded features editor (shows all features with availability, unlock level, and tier mapping; Level 1 default enabled; future features dimmed). Custom features CRUD lives alongside and persists with the class section.

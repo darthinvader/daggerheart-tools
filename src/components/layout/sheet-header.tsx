@@ -68,52 +68,69 @@ export function SheetHeader({
   setInventory,
   onEditName,
 }: SheetHeaderProps) {
+  type SectionId = 'traits' | 'core' | 'resources' | 'class' | 'gold';
   // Compute thresholds values on demand (uses level + armor from storage)
   const { settings, displayMajor, displaySevere, displayDs } =
     useThresholdsSettings({
       id,
     });
 
-  // Track scroll progress to progressively reveal section summaries in the top bar on mobile
+  // Track per-section passed state (revealed when a section's bottom passes the header)
   const headerRef = React.useRef<HTMLDivElement | null>(null);
-  const [progress, setProgress] = React.useState(0);
-
-  // Ordered section IDs to observe (chips reveal only after fully passing each)
-  const sectionOrder = React.useMemo(() => {
-    // Reflect on-page order: Traits -> Core -> Resources -> Class -> Gold
-    return ['traits', 'core', 'resources', 'class', 'gold'];
-  }, []);
+  const [passed, setPassed] = React.useState<Record<SectionId, boolean>>({
+    traits: false,
+    core: false,
+    resources: false,
+    class: false,
+    gold: false,
+  });
 
   React.useEffect(() => {
-    const onScroll = () => {
+    const ids: SectionId[] = ['traits', 'core', 'resources', 'class', 'gold'];
+    const measure = () => {
       const headerH = headerRef.current?.getBoundingClientRect().height ?? 56;
-      let count = 0;
-      for (const id of sectionOrder) {
+      const next: Record<SectionId, boolean> = {
+        traits: false,
+        core: false,
+        resources: false,
+        class: false,
+        gold: false,
+      };
+      for (const id of ids) {
         const el = document.getElementById(id);
         if (!el) continue;
         const rect = el.getBoundingClientRect();
-        // Consider section "passed" only when its BOTTOM is above the header (fully scrolled past)
-        if (rect.bottom < headerH - 4) count += 1;
+        if (rect.bottom < headerH - 4) next[id] = true;
       }
-      setProgress(prev => (prev === count ? prev : count));
+      // Only update state if changed
+      setPassed(prev =>
+        prev.traits === next.traits &&
+        prev.core === next.core &&
+        prev.resources === next.resources &&
+        prev.class === next.class &&
+        prev.gold === next.gold
+          ? prev
+          : next
+      );
     };
-    // Initial measurement and scroll listener
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
+    measure();
+    window.addEventListener('scroll', measure, { passive: true });
+    window.addEventListener('resize', measure);
     return () => {
-      window.removeEventListener('scroll', onScroll as EventListener);
-      window.removeEventListener('resize', onScroll as EventListener);
+      window.removeEventListener('scroll', measure as EventListener);
+      window.removeEventListener('resize', measure as EventListener);
     };
-  }, [sectionOrder]);
+  }, []);
 
-  const showTraits = progress >= 1;
-  const showCore = progress >= 2;
-  const showResources = progress >= 3;
-  const showClass = progress >= 4;
-  const showGold = progress >= 5;
+  const showTraits = passed.traits;
+  const showCore = passed.core;
+  const showResources = passed.resources;
+  const showClass = passed.class;
+  const showGold = passed.gold;
   // Show thresholds together with Core (do not wait for thresholds section)
   const showThresholds = showCore;
+  const anyVisible =
+    showTraits || showCore || showClass || showResources || showGold;
 
   const traitAbbr: Array<{
     key: keyof typeof traits | string;
@@ -134,19 +151,21 @@ export function SheetHeader({
       className="bg-background/95 supports-[backdrop-filter]:bg-background/80 sticky top-0 z-20 border-b backdrop-blur"
     >
       <div className="mx-auto grid w-full max-w-screen-sm grid-cols-[1fr_auto] items-center gap-2 px-4 py-0">
-        <div className="text-foreground min-w-0 text-lg leading-tight font-semibold">
+        <div className="text-foreground min-w-0 text-2xl leading-tight font-semibold">
           <button
             type="button"
-            aria-label="Edit name"
+            aria-label={
+              identity.name ? 'Click To Edit Name' : 'Click To Add A Name'
+            }
             onClick={onEditName}
-            className="line-clamp-2 block max-w-full cursor-pointer text-left text-lg font-semibold break-words hover:underline"
-            title={identity.name || 'Set a name'}
+            className="line-clamp-2 block max-w-full cursor-pointer text-left text-2xl font-semibold break-words hover:underline"
+            title={identity.name || 'Click To Add A Name'}
           >
             {identity.name ? (
               identity.name
             ) : (
               <span className="text-muted-foreground font-normal">
-                Set a name
+                Click To Add A Name
               </span>
             )}
           </button>
@@ -178,9 +197,24 @@ export function SheetHeader({
       </div>
 
       {/* Mobile progressive info bar: hidden until at least one chip is visible */}
-      {progress > 0 && (
+      {anyVisible && (
         <div className="border-t px-4 py-1 md:hidden">
           <div className="flex flex-wrap gap-2">
+            {showClass && (
+              <div className="bg-muted/60 rounded-md px-2 py-1">
+                <div className="text-muted-foreground text-[10px] leading-3">
+                  Class/Subclass
+                </div>
+                <div className="text-[11px] leading-4 font-semibold whitespace-nowrap">
+                  {classDraft.className}
+                  {classDraft.subclass ? ` / ${classDraft.subclass}` : ''}
+                  <span className="text-muted-foreground ml-2">
+                    Lvl {level}
+                  </span>
+                </div>
+              </div>
+            )}
+
             {showTraits && (
               <div className="bg-muted/60 text-foreground rounded-md px-2 py-1">
                 <div className="text-muted-foreground grid grid-cols-6 gap-x-1 text-[10px] leading-3">
@@ -269,21 +303,6 @@ export function SheetHeader({
                       </button>
                     </>
                   )}
-                </div>
-              </div>
-            )}
-
-            {showClass && (
-              <div className="bg-muted/60 rounded-md px-2 py-1">
-                <div className="text-muted-foreground text-[10px] leading-3">
-                  Class
-                </div>
-                <div className="text-[11px] leading-4 font-semibold whitespace-nowrap">
-                  {classDraft.className}
-                  {classDraft.subclass ? ` / ${classDraft.subclass}` : ''}
-                  <span className="text-muted-foreground ml-2">
-                    Lvl {level}
-                  </span>
                 </div>
               </div>
             )}
