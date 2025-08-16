@@ -1,8 +1,45 @@
 # Active Context - Daggerheart Tools
 
-Updated: August 15, 2025
+Updated: August 16, 2025
 
 ## Current Work Focus
+
+Aug 16, 2025 (final – mobile header chips order/gating and labels):
+
+- Mobile-only progressive header finalized in `src/components/layout/sheet-header.tsx`.
+- Section pass detection tightened: a section counts as "passed" only when its `getBoundingClientRect().bottom` is above the header (with a small buffer). Outcome: chips appear strictly after fully passing a section.
+- Chip order and gating (mobile): Traits → Core → Thresholds → Class/Subclass (with Level) → Resources → Gold.
+  - Thresholds chip appears together with Core (showThresholds = showCore) and is rendered BEFORE Class.
+  - Thresholds labels now use colons: "M: X / S: Y / MD: Z" (MD only when enabled in settings). Clicking 1/2/3/(4) applies -1/-2/-3/(-4 when critical enabled) HP via `onDeltaHp`.
+  - Class chip shows class/subclass and current level; appears only after passing Class section.
+  - Resources chip includes quick +/- for HP, Stress, Hope, and Armor Score current (no Gold here).
+  - Gold is a separate compact chip (emoji summary), revealed only after passing the Gold section.
+- Duplicate thresholds chip removed; header stays hidden until at least one chip is visible.
+- Tests/typecheck: PASS (49/49 tests).
+- Note: This supersedes earlier Aug 16 notes that temporarily included Gold inside the Resources chip; final behavior keeps Gold as its own chip gated by the Gold section.
+
+Aug 16, 2025 (mobile topbar progressive info):
+
+- Added a mobile-only progressive info bar inside the sticky `SheetHeader`. As users scroll past sections, compact chips appear in order: Traits (Agi/Str/Fin/Inst/Pres/Know with numbers), Core (Evasion, Proficiency), Class/Subclass names, Resources (HP/Stress/Hope numbers), and Thresholds summary (1 | M≤X | 2 | S≤Y | 3 | DS≥Z | 4 without the trailing 4 chip). Thresholds values are sourced from `useThresholdsSettings` (auto/manual with DS override). The bar is horizontally scrollable, subtle (bg-muted/60), and hidden on md+.
+- Scroll detection uses header height vs section `getBoundingClientRect().top` for a lightweight solution. If a `#thresholds` section is absent, the last milestone falls back to `#equipment` so the bar still reveals thresholds after Resources.
+- Files: `src/components/layout/sheet-header.tsx` (UI + logic). Typecheck and tests PASS (49/49).
+
+Aug 16, 2025 (follow-up – header gating + gold):
+
+- Thresholds chip now appears as soon as Core is passed (with the Core chip) rather than waiting for the Thresholds section, per spec.
+- Updated later: Gold is not summarized inside Resources; see "final – mobile header chips" above for the final separation and gating.
+
+Aug 16, 2025 (mobile header polish + resources):
+
+- Top bar stays hidden until you scroll past the first section; earlier top-crossing gating has been replaced by the stricter bottom-crossing rule (see final above).
+- Resources chip uses `resources.armorScore.current` instead of armor base score. Gold is no longer shown inside Resources; it’s a separate chip gated by the Gold section.
+- `Resources` storage/actions include `armorScore` current/max and `gold` helpers (see `features/characters/logic/resources.ts`): `updateArmorScore`, `updateArmorScoreMax`, `updateGold`, `setGold`.
+- Thresholds chip in the header shows clickable 1/2/3 and an optional 4 (MD) when `enableCritical` is on; tapping applies HP deltas identical to the thresholds inline component.
+
+Aug 16, 2025 (latest – Leveling flow change to record-only):
+
+- Leveling flow is now record-only. The Level Up Drawer records the target level, notes, and selection counts into per-character leveling history and updates the current level number, but it does not mutate any other character data (Resources, Traits, etc.). Players manually apply HP/Stress/Evasion/Proficiency/Traits changes outside the leveling UI per table preference. Undo/Reset only affect the level history and current level, not other fields.
+- Implementation: removed side-effects in `$id.tsx` `onSaveLevelUp` and undo handlers; storage continues to use `level` and `leveling` keys. Tests/typecheck remain PASS.
 
 Aug 14, 2025 (latest – Class/Subclass features consolidation):
 

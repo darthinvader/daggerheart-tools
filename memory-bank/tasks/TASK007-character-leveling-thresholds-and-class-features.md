@@ -2,7 +2,7 @@
 
 **Status:** In Progress  
 **Added:** 2025-08-13  
-**Updated:** 2025-08-14 (later)
+**Updated:** 2025-08-16 (latest)
 
 ## Original Request
 
@@ -289,7 +289,7 @@ Risks & mitigations
 ## Acceptance Criteria
 
 - Thresholds are displayed in their own section with a concise, accurate explanation and stay in sync with HP changes (ResourcesCard no longer displays thresholds inline).
-- Leveling flow allows advancing from 1→10 with validation of required choices; Save persists and updates summary cards.
+- Leveling flow allows advancing from 1→10 with validation of required choices; Save persists the level number and a record of selections only (no automatic mutations to Resources or Traits). Summary shows the history. Players apply stat changes manually.
 - Class/Subclass features are listed by level, future features are indicated, and choice-based unlocks enforce selection at unlock time.
 - All new logic is covered by unit tests (threshold math + unlock gating + basic UI flows).
 - No regressions in existing tests; typecheck/build remain green.
@@ -332,3 +332,8 @@ Risks & mitigations
 - Added `FeaturesCard` and `FeaturesDrawer` with per-character selections persisted via storage helpers; wired into `src/routes/characters/$id.tsx` below Class section. Refactored `ClassSummary` to typed accessors and upgraded subclass spellcasting trait from muted text to a visible badge row in both surfaces (card and drawer). Default Level 1 features enabled; higher tiers disabled until unlocked. Save permitted for feature-only edits.
 - Exported features helpers from logic index.
 - Ran full test suite and typecheck: PASS (45/45). No regressions.
+
+### 2025-08-16
+
+- Changed leveling behavior to record-only per user guidance. Removed automatic mutations to Resources and Traits from Level Up save/undo/reset handlers. Kept `level` and `leveling` storage. Typecheck and tests PASS.
+- Header context: Thresholds chip appears alongside Core in the top header and uses colon labels (M: / S: / MD:) with click-to-damage; ordering is Thresholds before Class. This is informational for this task’s UX alignment.

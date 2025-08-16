@@ -94,8 +94,6 @@ import {
   writeInventoryToStorage,
   writeLevelToStorage,
   writeLevelingToStorage,
-  writeResourcesToStorage,
-  writeTraitsToStorage,
 } from '@/features/characters/storage';
 import type { LevelUpEntry } from '@/features/characters/storage';
 
@@ -350,6 +348,8 @@ function CharacterSheet() {
     updateHope,
     updateHopeMax,
     updateNumber,
+    updateArmorScore,
+    updateArmorScoreMax,
     setGold,
   } = createResourceActions(id, setResources);
 
@@ -377,70 +377,7 @@ function CharacterSheet() {
         selections: values.selections ?? {},
         notes: values.notes,
       };
-      // Apply automatic level achievements and selection effects
-      setResources(prev => {
-        let next = { ...prev };
-        const sel = entry.selections;
-        const getCount = (name: string) => Math.max(0, sel[name] ?? 0);
-        // Automatic achievements: +1 Proficiency at 2,5,8
-        if (lv === 2 || lv === 5 || lv === 8) {
-          next = { ...next, proficiency: next.proficiency + 1 };
-        }
-        // HP/Stress slots
-        const hpAdds = getCount('Permanently gain one Hit Point slot');
-        const stressAdds = getCount('Permanently gain one Stress slot');
-        if (hpAdds > 0)
-          next = { ...next, hp: { ...next.hp, max: next.hp.max + hpAdds } };
-        if (stressAdds > 0)
-          next = {
-            ...next,
-            stress: { ...next.stress, max: next.stress.max + stressAdds },
-          };
-        // Evasion
-        if (getCount('Permanently gain a +1 bonus to your Evasion') > 0)
-          next = { ...next, evasion: next.evasion + 1 };
-        // Proficiency (costs both points; we only increment once)
-        if (getCount('Increase your Proficiency by +1') > 0)
-          next = { ...next, proficiency: next.proficiency + 1 };
-        writeResourcesToStorage(id, next);
-        return next;
-      });
-      // Traits: +1 to two unmarked character traits and mark them (per selection)
-      setTraits(prev => {
-        const next = { ...prev };
-        const traitOrder = [
-          'Agility',
-          'Strength',
-          'Finesse',
-          'Instinct',
-          'Presence',
-          'Knowledge',
-        ] as const;
-        // Clear marks automatically at level achievements (5 and 8)
-        if (lv === 5 || lv === 8) {
-          for (const name of traitOrder) {
-            const t = next[name];
-            if (t) next[name] = { ...t, marked: false };
-          }
-        }
-        const bumps =
-          entry.selections[
-            'Gain a +1 bonus to two unmarked character traits and mark them'
-          ] || 0;
-        // We can’t know which traits were chosen from this generic record; keep a minimal heuristic:
-        // Prefer boosting unmarked traits in a fixed order until we’ve applied bumps*2 increments.
-        let remaining = bumps * 2;
-        for (const name of traitOrder) {
-          if (remaining <= 0) break;
-          const t = next[name];
-          if (t && !t.marked) {
-            next[name] = { ...t, value: t.value + 1, marked: true };
-            remaining--;
-          }
-        }
-        writeTraitsToStorage(id, next);
-        return next;
-      });
+      // Record-only: do not mutate resources or traits; just capture what was selected.
       setLevelHistory(prev => {
         const next = [...prev.filter(e => e.level !== lv), entry].sort(
           (a, b) => a.level - b.level
@@ -452,7 +389,7 @@ function CharacterSheet() {
       writeLevelToStorage(id, lv);
       setOpenLevelUp(false);
     },
-    [id, setResources, setTraits]
+    [id]
   );
 
   return (
@@ -468,6 +405,11 @@ function CharacterSheet() {
         domainsDraft={domainsDraft}
         equipment={equipment as EquipmentDraft}
         inventory={inventory as InventoryDraft}
+        level={currentLevel}
+        onDeltaHp={delta => updateHp(delta)}
+        onDeltaStress={delta => updateStress(delta)}
+        onDeltaHope={delta => updateHope(delta)}
+        onDeltaArmorScore={delta => updateArmorScore(delta)}
         setIdentity={setIdentity}
         setResources={setResources}
         setTraits={setTraits}
@@ -586,55 +528,6 @@ function CharacterSheet() {
             onUndoLast={() => {
               setLevelHistory(prev => {
                 if (prev.length === 0) return prev;
-                const last = prev[prev.length - 1];
-                // Revert resource effects from the last level-up entry (best-effort; traits not reverted)
-                setResources(prevRes => {
-                  let next = { ...prevRes };
-                  const sel = last.selections || {};
-                  const count = (name: string) => Math.max(0, sel[name] ?? 0);
-                  // Reverse automatic proficiency at 2,5,8
-                  if (
-                    last.level === 2 ||
-                    last.level === 5 ||
-                    last.level === 8
-                  ) {
-                    next = {
-                      ...next,
-                      proficiency: Math.max(0, next.proficiency - 1),
-                    };
-                  }
-                  // Reverse HP/Stress slots
-                  const hpAdds = count('Permanently gain one Hit Point slot');
-                  const stressAdds = count('Permanently gain one Stress slot');
-                  if (hpAdds > 0)
-                    next = {
-                      ...next,
-                      hp: {
-                        ...next.hp,
-                        max: Math.max(0, next.hp.max - hpAdds),
-                      },
-                    };
-                  if (stressAdds > 0)
-                    next = {
-                      ...next,
-                      stress: {
-                        ...next.stress,
-                        max: Math.max(0, next.stress.max - stressAdds),
-                      },
-                    };
-                  // Reverse Evasion
-                  if (count('Permanently gain a +1 bonus to your Evasion') > 0)
-                    next = { ...next, evasion: Math.max(0, next.evasion - 1) };
-                  // Reverse Proficiency selection (cost 2)
-                  if (count('Increase your Proficiency by +1') > 0)
-                    next = {
-                      ...next,
-                      proficiency: Math.max(0, next.proficiency - 1),
-                    };
-                  writeResourcesToStorage(id, next);
-                  return next;
-                });
-
                 const nextHistory = prev.slice(0, -1);
                 writeLevelingToStorage(id, nextHistory);
                 const nextLevel =
@@ -697,6 +590,7 @@ function CharacterSheet() {
               hp: resources.hp,
               stress: resources.stress,
               hope: resources.hope,
+              armorScore: resources.armorScore,
             }}
             updateHp={updateHp}
             updateHpMax={updateHpMax}
@@ -704,6 +598,8 @@ function CharacterSheet() {
             updateStressMax={updateStressMax}
             updateHope={delta => updateHope(delta)}
             updateHopeMax={delta => updateHopeMax(delta)}
+            updateArmorScore={delta => updateArmorScore(delta)}
+            updateArmorScoreMax={delta => updateArmorScoreMax(delta)}
           />
         </section>
 

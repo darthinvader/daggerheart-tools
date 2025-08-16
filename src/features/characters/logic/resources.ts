@@ -26,6 +26,34 @@ export function createResourceActions(
     });
   };
 
+  const updateArmorScore = (delta: number) => {
+    setResources(prev => {
+      const next: ResourcesDraft = {
+        ...prev,
+        armorScore: {
+          current: clamp(
+            prev.armorScore.current + delta,
+            0,
+            prev.armorScore.max
+          ),
+          max: prev.armorScore.max,
+        },
+      };
+      writeResourcesToStorage(id, next);
+      return next;
+    });
+  };
+
+  const updateArmorScoreMax = (delta: number) => {
+    setResources(prev => {
+      const max = Math.max(0, prev.armorScore.max + delta);
+      const current = clamp(prev.armorScore.current, 0, max);
+      const next: ResourcesDraft = { ...prev, armorScore: { current, max } };
+      writeResourcesToStorage(id, next);
+      return next;
+    });
+  };
+
   const updateStressMax = (delta: number) => {
     setResources(prev => {
       const max = Math.max(1, prev.stress.max + delta);
@@ -139,5 +167,7 @@ export function createResourceActions(
     updateNumber,
     updateGold,
     setGold,
+    updateArmorScore,
+    updateArmorScoreMax,
   } as const;
 }

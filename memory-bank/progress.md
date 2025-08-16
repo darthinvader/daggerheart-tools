@@ -1,6 +1,6 @@
 # Progress Report - Daggerheart Tools
 
-Updated: August 14, 2025 (latest)
+Updated: August 16, 2025 (latest)
 
 ## What's Working
 
@@ -26,6 +26,7 @@ Updated: August 14, 2025 (latest)
 - Domains drawer implemented with search and filters (domain/level/type) and non-submit Add/Remove to prevent auto-close; list rows show domain, level, type badge, costs, and tags; preview shows description; by-type summary counts surfaced on `DomainsCard`. Added autosave on drawer close and a Reset button to restore per-open baseline.
 - Resources show Hope as current/max with controls; migration from legacy numeric Hope supported. Gold now uses emoji-based tap-to-set (0–9) with label-to-zero and opacity selection; rows are compact and wrap to fit small screens.
 - Thresholds UX: Added a dedicated `ThresholdsCard` and removed inline thresholds from Resources. Introduced a settings flow with Auto vs Custom values and explicit Double Severe (DS) support. When DS override is enabled, users can set a Custom DS value (validated to be ≥ Severe). Inline preview renders “1 | M≤X | 2 | S≤Y | 3 | DS≥Z | 4”.
+  - Mobile header chips: Finalized progressive, mobile-only chips in `SheetHeader` that reveal strictly after a section is fully passed (rect.bottom-based). Order: Traits → Core → Thresholds → Class/Subclass (with Level) → Resources → Gold. Thresholds labels now use colons (M: X / S: Y / MD: Z). Gold is a separate chip shown only after the Gold section; it’s not included in the Resources chip.
 - Mobile tabs: Tab lists are horizontally scrollable; tab triggers no longer stretch, improving swipe/scroll UX. Drawer description text referring to "Use Tab" removed from visual layout and kept as screen-reader-only.
 - Equipment & Inventory: Added `EquipmentCard` and `InventoryCard` sections with Edit buttons; drawers are lazy-loaded and wired to per-id localStorage. Equipment supports free-form selection (primary/secondary/armor) with concise stat previews; Inventory supports add-by-name and add-from-library with quantity steppers, Equipped toggle, and Location select.
 
@@ -117,6 +118,11 @@ Timeline: 1–2 weeks
 Deliverables: Equipment free-form mode; schema validation and mobile-friendly drawers; begin code-splitting for heavy lists; continue trimming oversized UI files using analyzer output
 
 ## Recent Progress Log
+
+### August 16, 2025
+
+- Mobile header chips finalized. Tightened gating to "after fully passing" using element bottom vs header height. Reordered chips to place Thresholds immediately after Core and before Class; moved Class before Resources; restored Gold as its own chip gated by its section. Converted thresholds labels to colon format and ensured a single thresholds chip. Verified resource +/- controls (HP/Stress/Hope/Armor) work in the header. Ran typecheck and full test suite: PASS (49/49).
+- Resources logic updates documented: storage/actions expose `updateArmorScore`, `updateArmorScoreMax`, `updateGold`, and `setGold` in `src/features/characters/logic/resources.ts`. Armor Score is tracked as {current,max}. Gold adjustments clamp at 0 and persist.
 
 ### August 15, 2025
 

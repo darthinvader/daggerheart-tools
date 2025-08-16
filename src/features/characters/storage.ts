@@ -26,12 +26,19 @@ const ScoreSchema = z.object({
   current: z.number().int().min(0),
   max: z.number().int().min(1),
 });
+// Armor Score can reasonably have a max of 0 when no armor or features are active
+const ArmorScoreSchema = z.object({
+  current: z.number().int().min(0),
+  max: z.number().int().min(0),
+});
 export const ResourcesSchema = z.object({
   hp: ScoreSchema.default({ current: 10, max: 10 }),
   stress: ScoreSchema.default({ current: 0, max: 6 }),
   evasion: z.number().int().min(0).default(10),
   hope: ScoreSchema.default({ current: 2, max: 6 }),
   proficiency: z.number().int().min(1).default(1),
+  // Armor Score is modeled like a resource so it can be adjusted during play
+  armorScore: ArmorScoreSchema.default({ current: 0, max: 0 }),
   gold: z
     .object({
       handfuls: z.number().int().min(0).default(1),
@@ -47,6 +54,7 @@ export const DEFAULT_RESOURCES: ResourcesDraft = {
   evasion: 10,
   hope: { current: 2, max: 6 },
   proficiency: 1,
+  armorScore: { current: 0, max: 0 },
   gold: { handfuls: 1, bags: 0, chests: 0 },
 };
 export function readResourcesFromStorage(id: string): ResourcesDraft {
