@@ -1,6 +1,6 @@
 import { FeaturesList } from '@/components/characters/features-list';
 import { CharacterCardHeader } from '@/components/characters/presenters/card-header';
-import { Button } from '@/components/ui/button';
+// Title becomes tappable; no separate header icon
 import { Card, CardContent } from '@/components/ui/card';
 import type { FeatureView } from '@/features/characters/logic';
 
@@ -19,14 +19,7 @@ export function FeaturesCard({
 }: FeaturesCardProps) {
   return (
     <Card>
-      <CharacterCardHeader
-        title="Class Features"
-        actions={
-          <Button size="sm" variant="outline" onClick={onEdit}>
-            Edit
-          </Button>
-        }
-      />
+      <CharacterCardHeader title="Class Features" onTitleClick={onEdit} />
       <CardContent>
         <FeaturesList
           level={level}

@@ -16,6 +16,7 @@ Aug 16, 2025 (final – mobile header chips order/gating and labels):
   - Gold is a separate compact chip (emoji summary), revealed only after passing the Gold section.
 - Duplicate thresholds chip removed; header stays hidden until at least one chip is visible.
 - Tests/typecheck: PASS (49/49 tests).
+  Also addressed lingering type/lint issues in the main sheet route `$id.tsx` (imports/props). Typecheck and tests remain green after the cleanup.
 - Note: This supersedes earlier Aug 16 notes that temporarily included Gold inside the Resources chip; final behavior keeps Gold as its own chip gated by the Gold section.
 
 Aug 16, 2025 (mobile topbar progressive info):

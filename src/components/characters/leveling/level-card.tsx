@@ -28,6 +28,8 @@ export function LevelCard({
     <Card>
       <CharacterCardHeader
         title={`Level ${level} (Tier ${tierNumber})`}
+        subtitle={onEdit ? 'Tap the title to edit level' : undefined}
+        onTitleClick={onEdit}
         actions={
           <div className="flex items-center gap-2">
             {onUndoLast && (
@@ -40,9 +42,6 @@ export function LevelCard({
                 Reset leveling
               </Button>
             )}
-            <Button size="sm" variant="outline" onClick={onEdit}>
-              Level Up
-            </Button>
           </div>
         }
       />

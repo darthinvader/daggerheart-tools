@@ -80,7 +80,8 @@ export function SheetHeader({
 
   // Ordered section IDs to observe (chips reveal only after fully passing each)
   const sectionOrder = React.useMemo(() => {
-    return ['traits', 'core', 'class', 'resources', 'gold'];
+    // Reflect on-page order: Traits -> Core -> Resources -> Class -> Gold
+    return ['traits', 'core', 'resources', 'class', 'gold'];
   }, []);
 
   React.useEffect(() => {
@@ -108,8 +109,8 @@ export function SheetHeader({
 
   const showTraits = progress >= 1;
   const showCore = progress >= 2;
-  const showClass = progress >= 3;
-  const showResources = progress >= 4;
+  const showResources = progress >= 3;
+  const showClass = progress >= 4;
   const showGold = progress >= 5;
   // Show thresholds together with Core (do not wait for thresholds section)
   const showThresholds = showCore;

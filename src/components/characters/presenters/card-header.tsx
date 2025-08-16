@@ -10,6 +10,7 @@ export type CharacterCardHeaderProps = {
   className?: string;
   titleClassName?: string;
   subtitleClassName?: string;
+  onTitleClick?: () => void;
 };
 
 // Shared header presenter for character cards: title on left, optional actions on right
@@ -20,6 +21,7 @@ export function CharacterCardHeader({
   className,
   titleClassName,
   subtitleClassName,
+  onTitleClick,
 }: CharacterCardHeaderProps) {
   return (
     <CardHeader
@@ -29,7 +31,24 @@ export function CharacterCardHeader({
       )}
     >
       <div className="min-w-0">
-        <CardTitle className={titleClassName}>{title}</CardTitle>
+        {onTitleClick ? (
+          <button
+            type="button"
+            aria-label={
+              typeof title === 'string' ? `Open ${title} editor` : 'Open editor'
+            }
+            onClick={onTitleClick}
+            className={cn(
+              'line-clamp-1 block max-w-full cursor-pointer text-left hover:underline',
+              titleClassName
+            )}
+            title={typeof title === 'string' ? title : undefined}
+          >
+            <CardTitle className="inline text-inherit">{title}</CardTitle>
+          </button>
+        ) : (
+          <CardTitle className={titleClassName}>{title}</CardTitle>
+        )}
         {subtitle ? (
           <div
             className={cn('text-muted-foreground text-xs', subtitleClassName)}

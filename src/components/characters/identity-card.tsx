@@ -1,5 +1,5 @@
 import { CharacterCardHeader } from '@/components/characters/presenters/card-header';
-import { Button } from '@/components/ui/button';
+// No header action; title is tappable via onTitleClick
 import { Card, CardContent } from '@/components/ui/card';
 
 export type IdentitySummary = {
@@ -20,11 +20,8 @@ export function IdentityCard({ identity, onEdit }: IdentityCardProps) {
     <Card>
       <CharacterCardHeader
         title="Identity"
-        actions={
-          <Button size="sm" variant="outline" onClick={onEdit}>
-            Edit
-          </Button>
-        }
+        subtitle="Tap the title to edit"
+        onTitleClick={onEdit}
       />
       <CardContent className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">

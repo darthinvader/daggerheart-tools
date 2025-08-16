@@ -1,6 +1,6 @@
 import { DomainCardItem } from '@/components/characters/domain-card-item';
 import { CharacterCardHeader } from '@/components/characters/presenters/card-header';
-import { Button } from '@/components/ui/button';
+// Title becomes tappable; no separate header icon
 import { Card, CardContent } from '@/components/ui/card';
 import type { DomainCard } from '@/lib/schemas/domains';
 
@@ -13,7 +13,6 @@ export type LoadoutSummary = {
 
 export type DomainsCardProps = {
   onEdit?: () => void;
-  disabled?: boolean;
   summary?: LoadoutSummary;
   loadout?: DomainCard[]; // actual selected cards to render below summary
   recallUsed?: number; // optional read-only sum of recallCost for current loadout
@@ -21,7 +20,6 @@ export type DomainsCardProps = {
 
 export function DomainsCard({
   onEdit,
-  disabled = false,
   summary,
   loadout,
   recallUsed,
@@ -30,16 +28,8 @@ export function DomainsCard({
     <Card>
       <CharacterCardHeader
         title="Domains & Loadout"
-        actions={
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={onEdit}
-            disabled={disabled}
-          >
-            Edit
-          </Button>
-        }
+        subtitle="Tap the title to edit"
+        onTitleClick={onEdit}
       />
       <CardContent className="gap-4">
         <div className="text-sm">

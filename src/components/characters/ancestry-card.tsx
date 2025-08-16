@@ -1,7 +1,7 @@
 import { CardScaffold } from '@/components/characters/identity/card-scaffold';
 import { FeatureBlock } from '@/components/characters/identity/feature-block';
 import { HomebrewBadge } from '@/components/characters/identity/homebrew-badge';
-import { Button } from '@/components/ui/button';
+// Title becomes tappable via CardScaffold consumers; no separate header action needed
 import { ANCESTRIES } from '@/lib/data/characters/ancestries';
 
 type AncestryDetails = {
@@ -122,12 +122,11 @@ export function AncestryCard({
   return (
     <CardScaffold
       title="Ancestry"
-      actions={
-        <Button size="sm" variant="outline" onClick={onEdit}>
-          Edit
-        </Button>
-      }
+      subtitle="Tap the title to edit"
+      onTitleClick={onEdit}
+      actions={null}
     >
+      {/* Make the title act as the edit affordance by letting the parent handle click on its header label if needed. */}
       {content}
     </CardScaffold>
   );

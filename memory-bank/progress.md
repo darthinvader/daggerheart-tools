@@ -124,6 +124,8 @@ Deliverables: Equipment free-form mode; schema validation and mobile-friendly dr
 - Mobile header chips finalized. Tightened gating to "after fully passing" using element bottom vs header height. Reordered chips to place Thresholds immediately after Core and before Class; moved Class before Resources; restored Gold as its own chip gated by its section. Converted thresholds labels to colon format and ensured a single thresholds chip. Verified resource +/- controls (HP/Stress/Hope/Armor) work in the header. Ran typecheck and full test suite: PASS (49/49).
 - Resources logic updates documented: storage/actions expose `updateArmorScore`, `updateArmorScoreMax`, `updateGold`, and `setGold` in `src/features/characters/logic/resources.ts`. Armor Score is tracked as {current,max}. Gold adjustments clamp at 0 and persist.
 
+- Route cleanup: Fixed remaining type/lint issues in `src/routes/characters/$id.tsx` (removed unused storage writer imports, added missing `IdentityCard` import, dropped invalid `disabled` prop on `ClassCardLazy`). Re-ran typecheck and full test suite: PASS (49/49).
+
 ### August 15, 2025
 
 - Inventory card trimmed: extracted `InventorySummaryChips` and `InventoryList` presenters and refactored `inventory-card.tsx` to use them. Fixed corrupted unicode in chips presenter. All tests PASS (49/49); typecheck PASS. Size report refreshed: `inventory-card.tsx` no longer in top offenders; remaining large UI files: `community-drawer.tsx`, `equipment-drawer.tsx`, inventory drawer presenters.

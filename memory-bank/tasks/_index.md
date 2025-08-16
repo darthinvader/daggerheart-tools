@@ -10,7 +10,6 @@
 - [TASK007] Character Leveling, Thresholds, and Class/Subclass Features - ThresholdsCard implemented and wired; inline thresholds removed. Progression helpers (+ tests) and DS override shipped. Class/Subclass Features consolidated (card shows unlocked-and-enabled; drawer embeds full editor); subclass spellcasting trait visible as a badge; ClassSummary refactored to typed accessors. Next: LevelCard & LevelUpDrawer.
 - [TASK008] Enhance Identity, Leveling, and Traits - Schema additions for background/description/connections, leveling decisions, trait bonuses; LevelCard + LevelUpDrawer added; Summary removed
 - [TASK014] Trim Community Drawer - Completed: presenters extracted and wired; tests/typecheck PASS; analyzer confirms reduction
-- [TASK022] Idle Prefetch & Caching - Warm up heavy drawers with dynamic imports; validate cache hits
 
 ## Completed
 
@@ -22,6 +21,7 @@
 - [TASK013] Trim Inventory Card - Completed by extracting `InventorySummaryChips` and `InventoryList`, refactoring `inventory-card.tsx` to use them, fixing unicode issues, and keeping behavior parity. Tests/typecheck PASS.
 - [TASK015] Trim Equipment Drawer - Completed: added `useHomebrewMeta` and refactored drawer; tests/typecheck PASS; size now ~7.0 KB (from ~10.5 KB).
 - [TASK016] Trim Inventory Library Results List - Completed: presenters wired; inline logic removed; tests/typecheck PASS.
+- [TASK022] Edit affordances refactor - Replaced large Edit buttons with compact pencil icon actions in headers; moved identity card actions to header; a11y aria-labels added; tests/typecheck PASS (49/49) on 2025-08-16.
 
 ## Abandoned
 

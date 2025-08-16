@@ -1,7 +1,7 @@
 import { ClassSummary } from '@/components/characters/class-summary';
 import { FeaturesList } from '@/components/characters/features-list';
 import { CharacterCardHeader } from '@/components/characters/presenters/card-header';
-import { Button } from '@/components/ui/button';
+// Title becomes tappable; no separate header icon
 import { Card, CardContent } from '@/components/ui/card';
 import type { FeatureView } from '@/features/characters/logic';
 
@@ -9,7 +9,6 @@ export type ClassCardProps = {
   selectedClass?: string;
   selectedSubclass?: string;
   onEdit?: () => void;
-  disabled?: boolean;
   // Combined Class Features display inside the Class section
   level?: number;
   features?: FeatureView[];
@@ -20,7 +19,6 @@ export function ClassCard({
   selectedClass,
   selectedSubclass,
   onEdit,
-  disabled = false,
   level = 1,
   features = [],
   selections,
@@ -29,16 +27,8 @@ export function ClassCard({
     <Card>
       <CharacterCardHeader
         title="Class & Subclass"
-        actions={
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={onEdit}
-            disabled={disabled}
-          >
-            Edit
-          </Button>
-        }
+        subtitle="Tap the title to edit"
+        onTitleClick={onEdit}
       />
       <CardContent>
         <div className="min-w-0 text-sm">

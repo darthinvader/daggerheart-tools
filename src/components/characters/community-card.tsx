@@ -1,9 +1,10 @@
+// No header edit icon; title becomes tappable
+
 import { CardScaffold } from '@/components/characters/identity/card-scaffold';
 import { FeatureBlock } from '@/components/characters/identity/feature-block';
 import { HomebrewBadge } from '@/components/characters/identity/homebrew-badge';
 import { TraitChips } from '@/components/characters/identity/trait-chips';
 import type { CommunityDetails } from '@/components/characters/identity/types';
-import { Button } from '@/components/ui/button';
 import { normalizeCommunity } from '@/features/characters/logic/identity';
 
 export function CommunityCard({
@@ -50,11 +51,9 @@ export function CommunityCard({
   return (
     <CardScaffold
       title="Community"
-      actions={
-        <Button size="sm" variant="outline" onClick={onEdit}>
-          Edit
-        </Button>
-      }
+      subtitle="Tap the title to edit"
+      onTitleClick={onEdit}
+      actions={null}
     >
       {content}
     </CardScaffold>

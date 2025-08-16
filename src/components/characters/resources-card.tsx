@@ -31,7 +31,10 @@ export function ResourcesCard({
 }: ResourcesCardProps) {
   return (
     <Card id={id}>
-      <CharacterCardHeader title="Resources" />
+      <CharacterCardHeader
+        title="Resources"
+        subtitle="Use controls below to adjust"
+      />
       <CardContent className="space-y-4">
         {/* HP Controls */}
         <div className="flex items-center justify-between gap-3">

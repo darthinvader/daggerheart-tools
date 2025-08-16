@@ -1,14 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 
-// zod only used via imported schemas
-
 import * as React from 'react';
 
 import { createFileRoute } from '@tanstack/react-router';
 
 import { AncestryCard } from '@/components/characters/ancestry-card';
-// No Card imports needed here; stub sections use dedicated components
 import {
   ClassCardLazy,
   DomainsCardLazy,
@@ -28,49 +25,36 @@ import {
   InventoryDrawerLazy,
   LevelUpDrawerLazy,
 } from '@/components/characters/drawers-lazy';
-// Cards above are lazy-loaded via presenters
 import { GoldCard } from '@/components/characters/gold-card';
 import { IdentityCard } from '@/components/characters/identity-card';
 import { LevelCard } from '@/components/characters/leveling/level-card';
-// InventoryCard is lazy
-// Lazy-load heavy drawers to trim initial bundle
 import { ResourcesCard } from '@/components/characters/resources-card';
 import { TraitsCard } from '@/components/characters/traits-card';
 import { SheetHeader } from '@/components/layout/sheet-header';
-// storage helpers moved to features/characters/storage
-// QuickJump removed at user's request due to bugs; sticky header remains simple
 import type { ComboboxItem } from '@/components/ui/combobox';
+import { createConditionActions } from '@/features/characters/logic/conditions';
+import {
+  countByType,
+  groupByDomain,
+} from '@/features/characters/logic/domains';
+import { deriveFeatureUnlocks } from '@/features/characters/logic/features';
+import { useInventoryActions } from '@/features/characters/logic/inventory-actions';
+import { createResourceActions } from '@/features/characters/logic/resources';
 import {
   accessibleDomainsFor,
-  countByType,
-  createConditionActions,
-  createResourceActions,
-  createTraitActions,
-  deriveFeatureUnlocks,
   getClassItems,
   getSubclassItems,
-  groupByDomain,
   normalizeDomainLoadout,
-  useWarmupModules,
-} from '@/features/characters/logic';
-import { useInventoryActions } from '@/features/characters/logic/inventory-actions';
-import type {
-  ClassDraft,
-  ConditionsDraft,
-  DomainsDraft,
-  IdentityDraft,
-  ResourcesDraft,
-  TraitsDraft,
-} from '@/features/characters/storage';
+} from '@/features/characters/logic/route-helpers';
+import { createTraitActions } from '@/features/characters/logic/traits';
 import {
+  type ClassDraft,
   ClassDraftSchema,
   DEFAULT_CLASS,
-  DEFAULT_DOMAINS,
-  DEFAULT_IDENTITY,
-  DEFAULT_RESOURCES,
-  DEFAULT_TRAITS,
+  type DomainsDraft,
   DomainsDraftSchema,
   type EquipmentDraft,
+  type IdentityDraft,
   IdentityDraftSchema,
   type InventoryDraft,
   readClassFromStorage,
@@ -95,64 +79,60 @@ import {
   writeLevelToStorage,
   writeLevelingToStorage,
 } from '@/features/characters/storage';
-import type { LevelUpEntry } from '@/features/characters/storage';
 
 function CharacterSheet() {
   const { id } = Route.useParams();
-  // Lazy drawers centralized in presenters module
 
-  // Warm up heavy drawer chunks during idle so opening feels instant
-  useWarmupModules([
-    () => import('@/components/characters/domains-drawer'),
-    () => import('@/components/characters/equipment-drawer'),
-    () => import('@/components/characters/inventory-drawer'),
-  ]);
-
-  const [identity, setIdentity] =
-    React.useState<IdentityDraft>(DEFAULT_IDENTITY);
-  const [openIdentity, setOpenIdentity] = React.useState(false);
-  const [openAncestry, setOpenAncestry] = React.useState(false);
-  const [openCommunity, setOpenCommunity] = React.useState(false);
-  const [resources, setResources] =
-    React.useState<ResourcesDraft>(DEFAULT_RESOURCES);
-  const [traits, setTraits] = React.useState<TraitsDraft>(DEFAULT_TRAITS);
-  const [conditions, setConditions] = React.useState<ConditionsDraft>([]);
-  const [classDraft, setClassDraft] = React.useState<ClassDraft>(DEFAULT_CLASS);
-  const [openClass, setOpenClass] = React.useState(false);
-  const [openDomains, setOpenDomains] = React.useState(false);
-  // Features UI merged into ClassDrawer
-  const [openEquipment, setOpenEquipment] = React.useState(false);
-  const [equipmentSection, setEquipmentSection] = React.useState<
-    'primary' | 'secondary' | 'armor' | undefined
-  >(undefined);
-  const [openInventory, setOpenInventory] = React.useState(false);
-  // Level up drawer also centralized
-
-  const [domainsDraft, setDomainsDraft] =
-    React.useState<DomainsDraft>(DEFAULT_DOMAINS);
-  const [featureSelections, setFeatureSelections] = React.useState(() =>
-    readFeaturesFromStorage(id)
+  // Core state
+  const [identity, setIdentity] = React.useState<IdentityDraft>(() =>
+    readIdentityFromStorage(id)
   );
+  const [resources, setResources] = React.useState(() =>
+    readResourcesFromStorage(id)
+  );
+  const [traits, setTraits] = React.useState(() => readTraitsFromStorage(id));
+  const [conditions, setConditions] = React.useState(() =>
+    readConditionsFromStorage(id)
+  );
+  const [classDraft, setClassDraft] = React.useState<ClassDraft>(() =>
+    readClassFromStorage(id)
+  );
+  const [domainsDraft, setDomainsDraft] = React.useState<DomainsDraft>(() =>
+    readDomainsFromStorage(id)
+  );
+  const [equipment, setEquipment] = React.useState<EquipmentDraft>(() =>
+    readEquipmentFromStorage(id)
+  );
+  const [inventory, setInventory] = React.useState<InventoryDraft>(() =>
+    readInventoryFromStorage(id)
+  );
+  const [featureSelections, setFeatureSelections] = React.useState<
+    Record<string, string | number | boolean>
+  >(() => readFeaturesFromStorage(id));
   const [customFeatures, setCustomFeatures] = React.useState(() =>
     readCustomFeaturesFromStorage(id)
   );
-  const [equipment, setEquipment] = React.useState(() =>
-    readEquipmentFromStorage(id)
-  );
-  const [inventory, setInventory] = React.useState(() =>
-    readInventoryFromStorage(id)
-  );
-  // Character level (progression)
-  const [currentLevel, setCurrentLevel] = React.useState(() =>
+  const [currentLevel, setCurrentLevel] = React.useState<number>(() =>
     readLevelFromStorage(id)
   );
-  const [levelHistory, setLevelHistory] = React.useState<LevelUpEntry[]>(() =>
+  const [levelHistory, setLevelHistory] = React.useState(() =>
     readLevelingFromStorage(id)
   );
+
+  // Drawers and UI state
+  const [openIdentity, setOpenIdentity] = React.useState(false);
+  const [openAncestry, setOpenAncestry] = React.useState(false);
+  const [openCommunity, setOpenCommunity] = React.useState(false);
+  const [openClass, setOpenClass] = React.useState(false);
+  const [openDomains, setOpenDomains] = React.useState(false);
+  const [openEquipment, setOpenEquipment] = React.useState(false);
+  const [openInventory, setOpenInventory] = React.useState(false);
   const [openLevelUp, setOpenLevelUp] = React.useState(false);
+  const [equipmentSection, setEquipmentSection] = React.useState<
+    'primary' | 'secondary' | 'armor' | undefined
+  >(undefined);
 
-  // Hydrate from localStorage when id changes
-
+  // Reload all character data when id changes
   React.useEffect(() => {
     setIdentity(readIdentityFromStorage(id));
     setResources(readResourcesFromStorage(id));
@@ -168,34 +148,20 @@ function CharacterSheet() {
     setLevelHistory(readLevelingFromStorage(id));
   }, [id]);
 
-  // Items for identity (ancestry/community now edited in dedicated drawers)
-
-  // Items for class & subclass
-  const classItems: ComboboxItem[] = React.useMemo(() => getClassItems(), []);
-  const subclassItemsFor = React.useCallback(
-    (className: string): ComboboxItem[] => getSubclassItems(className),
-    []
-  );
-
+  // Forms
   const form = useForm<IdentityDraft>({
     resolver: zodResolver(IdentityDraftSchema) as never,
     mode: 'onChange',
     defaultValues: identity,
   });
-
-  // Use ref to capture latest identity without triggering re-renders
   const identityRef = React.useRef(identity);
   identityRef.current = identity;
-
-  // Only reset when drawer opens, using ref to get fresh data without loops
   React.useEffect(() => {
     if (openIdentity) form.reset(identityRef.current);
   }, [openIdentity, form]);
-
   React.useEffect(() => {
     if (openAncestry) form.reset(identityRef.current);
   }, [openAncestry, form]);
-
   React.useEffect(() => {
     if (openCommunity) form.reset(identityRef.current);
   }, [openCommunity, form]);
@@ -205,8 +171,6 @@ function CharacterSheet() {
     mode: 'onChange',
     defaultValues: classDraft,
   });
-
-  // Watch current class selection to drive subclass list options
   const currentClassName = classForm.watch('className') ?? classDraft.className;
   const accessibleDomains = React.useMemo(
     () => accessibleDomainsFor(currentClassName),
@@ -215,7 +179,7 @@ function CharacterSheet() {
   React.useEffect(() => {
     if (openClass) classForm.reset(classDraft);
   }, [openClass, classDraft, classForm]);
-  // Reset Domains form when opened
+
   const domainsForm = useForm<DomainsDraft>({
     resolver: zodResolver(DomainsDraftSchema) as never,
     mode: 'onChange',
@@ -223,12 +187,16 @@ function CharacterSheet() {
   });
   React.useEffect(() => {
     if (!openDomains) return;
-    // Defer the reset to the next frame so the open animation starts smoothly
-    const id = requestAnimationFrame(() => domainsForm.reset(domainsDraft));
-    return () => cancelAnimationFrame(id);
+    const raf = requestAnimationFrame(() => domainsForm.reset(domainsDraft));
+    return () => cancelAnimationFrame(raf);
   }, [openDomains, domainsDraft, domainsForm]);
 
-  // When class changes in form, ensure subclass list is valid; if current subclass not in new list, set first
+  // Ensure subclass stays valid for selected class
+  const classItems: ComboboxItem[] = React.useMemo(() => getClassItems(), []);
+  const subclassItemsFor = React.useCallback(
+    (className: string): ComboboxItem[] => getSubclassItems(className),
+    []
+  );
   React.useEffect(() => {
     const subscription = classForm.watch((values, { name }) => {
       if (name === 'className') {
@@ -247,30 +215,29 @@ function CharacterSheet() {
     return () => subscription.unsubscribe();
   }, [classForm, subclassItemsFor]);
 
-  const onSubmit = (values: IdentityDraft) => {
+  // Submit handlers
+  const onSubmitIdentity = (values: IdentityDraft) => {
     setIdentity(values);
     writeIdentityToStorage(id, values);
     setOpenIdentity(false);
     setOpenAncestry(false);
     setOpenCommunity(false);
   };
-  const submit = form.handleSubmit(values => onSubmit(values as IdentityDraft));
+  const submitIdentity = form.handleSubmit(v => onSubmitIdentity(v));
+
   const onSubmitClass = (values: ClassDraft) => {
     setClassDraft(values);
     writeClassToStorage(id, values);
     setOpenClass(false);
   };
-  const submitClass = classForm.handleSubmit(v =>
-    onSubmitClass(v as ClassDraft)
-  );
+  const submitClass = classForm.handleSubmit(v => onSubmitClass(v));
+
   const onSubmitDomains = (values: DomainsDraft) => {
     setDomainsDraft(values);
     writeDomainsToStorage(id, values);
     setOpenDomains(false);
   };
-  const submitDomains = domainsForm.handleSubmit(v =>
-    onSubmitDomains(v as DomainsDraft)
-  );
+  const submitDomains = domainsForm.handleSubmit(v => onSubmitDomains(v));
 
   // Features persistence
   const onSaveFeatures = React.useCallback(
@@ -280,7 +247,6 @@ function CharacterSheet() {
     },
     [id]
   );
-
   const onSaveCustomFeatures = React.useCallback(
     (list: ReturnType<typeof readCustomFeaturesFromStorage>) => {
       setCustomFeatures(list);
@@ -289,7 +255,7 @@ function CharacterSheet() {
     [id]
   );
 
-  // Equipment form
+  // Equipment & Inventory forms
   const equipmentForm = useForm<EquipmentDraft>({
     mode: 'onChange',
     defaultValues: equipment,
@@ -302,11 +268,8 @@ function CharacterSheet() {
     writeEquipmentToStorage(id, values);
     setOpenEquipment(false);
   };
-  const submitEquipment = equipmentForm.handleSubmit(v =>
-    onSubmitEquipment(v as EquipmentDraft)
-  );
+  const submitEquipment = equipmentForm.handleSubmit(v => onSubmitEquipment(v));
 
-  // Inventory form
   const inventoryForm = useForm<InventoryDraft>({
     mode: 'onChange',
     defaultValues: inventory,
@@ -319,11 +282,8 @@ function CharacterSheet() {
     writeInventoryToStorage(id, values);
     setOpenInventory(false);
   };
-  const submitInventory = inventoryForm.handleSubmit(v =>
-    onSubmitInventory(v as InventoryDraft)
-  );
+  const submitInventory = inventoryForm.handleSubmit(v => onSubmitInventory(v));
 
-  // Inventory quick-edit handlers for card
   const {
     incQty: incInventoryQty,
     setQty: setInventoryQty,
@@ -331,15 +291,11 @@ function CharacterSheet() {
     setLocation: setInventoryLocation,
   } = useInventoryActions(id, setInventory);
 
-  // All domain cards are now lazy-loaded inside the Domains drawer to reduce route weight.
-
-  // Normalize loadout/vault cards where description may be optional from storage
+  // Derived values
   const normalizedLoadout = React.useMemo(
     () => normalizeDomainLoadout(domainsDraft),
     [domainsDraft]
   );
-
-  // Resource update helpers (extracted)
   const {
     updateStress,
     updateStressMax,
@@ -352,14 +308,10 @@ function CharacterSheet() {
     updateArmorScoreMax,
     setGold,
   } = createResourceActions(id, setResources);
-
-  // Traits helpers (extracted)
   const { canIncrement, incTrait, toggleMarked } = createTraitActions(
     id,
     setTraits
   );
-
-  // Conditions helpers (extracted)
   const { addCondition, removeCondition } = createConditionActions(
     id,
     setConditions
@@ -377,7 +329,6 @@ function CharacterSheet() {
         selections: values.selections ?? {},
         notes: values.notes,
       };
-      // Record-only: do not mutate resources or traits; just capture what was selected.
       setLevelHistory(prev => {
         const next = [...prev.filter(e => e.level !== lv), entry].sort(
           (a, b) => a.level - b.level
@@ -394,7 +345,6 @@ function CharacterSheet() {
 
   return (
     <div className="w-full pb-24">
-      {/* Sticky header with summary and quick jump */}
       <SheetHeader
         id={id}
         identity={identity}
@@ -455,6 +405,31 @@ function CharacterSheet() {
           />
         </section>
 
+        {/* Resources (moved above Class & Subclass) */}
+        <section
+          id="resources"
+          aria-label="Resources"
+          className="mt-4 scroll-mt-24 md:scroll-mt-28"
+        >
+          <ResourcesCard
+            id="resources"
+            resources={{
+              hp: resources.hp,
+              stress: resources.stress,
+              hope: resources.hope,
+              armorScore: resources.armorScore,
+            }}
+            updateHp={updateHp}
+            updateHpMax={updateHpMax}
+            updateStress={updateStress}
+            updateStressMax={updateStressMax}
+            updateHope={delta => updateHope(delta)}
+            updateHopeMax={delta => updateHopeMax(delta)}
+            updateArmorScore={delta => updateArmorScore(delta)}
+            updateArmorScoreMax={delta => updateArmorScoreMax(delta)}
+          />
+        </section>
+
         {/* Class, Subclass, and Features */}
         <section
           id="class"
@@ -469,7 +444,6 @@ function CharacterSheet() {
             }
           >
             <ClassCardLazy
-              disabled={false}
               onEdit={() => setOpenClass(true)}
               selectedClass={classDraft.className}
               selectedSubclass={classDraft.subclass}
@@ -526,24 +500,22 @@ function CharacterSheet() {
             level={currentLevel}
             onEdit={() => setOpenLevelUp(true)}
             onUndoLast={() => {
-              setLevelHistory(prev => {
-                if (prev.length === 0) return prev;
-                const nextHistory = prev.slice(0, -1);
-                writeLevelingToStorage(id, nextHistory);
-                const nextLevel =
-                  nextHistory.length > 0
-                    ? nextHistory[nextHistory.length - 1].level
-                    : 1;
-                setCurrentLevel(nextLevel);
-                writeLevelToStorage(id, nextLevel);
-                return nextHistory;
-              });
+              if (levelHistory.length === 0) return;
+              const nextHistory = levelHistory.slice(0, -1);
+              writeLevelingToStorage(id, nextHistory);
+              setLevelHistory(nextHistory);
+              const nextLevel =
+                nextHistory.length > 0
+                  ? nextHistory[nextHistory.length - 1].level
+                  : 1;
+              writeLevelToStorage(id, nextLevel);
+              setCurrentLevel(nextLevel);
             }}
             onResetAll={() => {
               writeLevelingToStorage(id, []);
               setLevelHistory([]);
-              setCurrentLevel(1);
               writeLevelToStorage(id, 1);
+              setCurrentLevel(1);
             }}
             recent={
               levelHistory.length > 0
@@ -577,31 +549,6 @@ function CharacterSheet() {
             onCancel={() => setOpenLevelUp(false)}
           />
         </React.Suspense>
-
-        {/* Resources */}
-        <section
-          id="resources"
-          aria-label="Resources"
-          className="mt-4 scroll-mt-24 md:scroll-mt-28"
-        >
-          <ResourcesCard
-            id="resources"
-            resources={{
-              hp: resources.hp,
-              stress: resources.stress,
-              hope: resources.hope,
-              armorScore: resources.armorScore,
-            }}
-            updateHp={updateHp}
-            updateHpMax={updateHpMax}
-            updateStress={updateStress}
-            updateStressMax={updateStressMax}
-            updateHope={delta => updateHope(delta)}
-            updateHopeMax={delta => updateHopeMax(delta)}
-            updateArmorScore={delta => updateArmorScore(delta)}
-            updateArmorScoreMax={delta => updateArmorScoreMax(delta)}
-          />
-        </section>
 
         {/* Gold */}
         <section
@@ -642,7 +589,7 @@ function CharacterSheet() {
             open={openAncestry}
             onOpenChange={setOpenAncestry}
             form={form as never}
-            submit={() => onSubmit(form.getValues() as IdentityDraft)}
+            submit={() => onSubmitIdentity(form.getValues() as IdentityDraft)}
             onCancel={() => setOpenAncestry(false)}
           />
         </React.Suspense>
@@ -664,7 +611,7 @@ function CharacterSheet() {
             open={openCommunity}
             onOpenChange={setOpenCommunity}
             form={form as never}
-            submit={() => onSubmit(form.getValues() as IdentityDraft)}
+            submit={() => onSubmitIdentity(form.getValues() as IdentityDraft)}
             onCancel={() => setOpenCommunity(false)}
           />
         </React.Suspense>
@@ -813,13 +760,11 @@ function CharacterSheet() {
             open={openIdentity}
             onOpenChange={setOpenIdentity}
             form={form as never}
-            submit={submit}
+            submit={submitIdentity}
             onCancel={() => setOpenIdentity(false)}
           />
         </React.Suspense>
       </div>
-
-      {/* Bottom action bar removed */}
     </div>
   );
 }
@@ -827,5 +772,3 @@ function CharacterSheet() {
 export const Route = createFileRoute('/characters/$id')({
   component: CharacterSheet,
 });
-
-// QuickJump extracted to components/layout/quick-jump

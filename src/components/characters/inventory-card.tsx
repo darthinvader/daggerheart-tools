@@ -14,7 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
+// Title becomes tappable; no separate header icon
 import { Card, CardContent } from '@/components/ui/card';
 import { useInventorySummary } from '@/features/characters/logic';
 import type { Inventory, Item } from '@/lib/schemas/equipment';
@@ -56,11 +56,8 @@ export function InventoryCard({
     <Card>
       <CharacterCardHeader
         title="Inventory"
-        actions={
-          <Button size="sm" variant="outline" onClick={onEdit}>
-            Edit
-          </Button>
-        }
+        subtitle="Tap the title to edit"
+        onTitleClick={onEdit}
       />
       <CardContent className="space-y-3">
         {/* Quick summary chips */}
