@@ -1,6 +1,16 @@
 import * as React from 'react';
 
 import { CharacterCardHeader } from '@/components/characters/presenters/card-header';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -70,9 +80,28 @@ export function LevelCard({
               </Button>
             )}
             {onUndoLast && (
-              <Button size="sm" variant="outline" onClick={onUndoLast}>
-                Undo last level
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button size="sm" variant="destructive">
+                    Undo last level
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Undo last level?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will remove your most recent level-up and its
+                      selections. This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <div className="flex items-center justify-end gap-2">
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={onUndoLast}>
+                      Undo
+                    </AlertDialogAction>
+                  </div>
+                </AlertDialogContent>
+              </AlertDialog>
             )}
           </div>
         }
