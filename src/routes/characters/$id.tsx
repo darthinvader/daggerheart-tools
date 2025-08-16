@@ -25,6 +25,7 @@ import {
   InventoryDrawerLazy,
   LevelUpDrawerLazy,
 } from '@/components/characters/drawers-lazy';
+import { ExperiencesCard } from '@/components/characters/experiences-card';
 import { GoldCard } from '@/components/characters/gold-card';
 import { IdentityCard } from '@/components/characters/identity-card';
 import { LevelCard } from '@/components/characters/leveling/level-card';
@@ -62,6 +63,7 @@ import {
   readCustomFeaturesFromStorage,
   readDomainsFromStorage,
   readEquipmentFromStorage,
+  readExperiencesFromStorage,
   readFeaturesFromStorage,
   readIdentityFromStorage,
   readInventoryFromStorage,
@@ -73,6 +75,7 @@ import {
   writeCustomFeaturesToStorage,
   writeDomainsToStorage,
   writeEquipmentToStorage,
+  writeExperiencesToStorage,
   writeFeaturesToStorage,
   writeIdentityToStorage,
   writeInventoryToStorage,
@@ -118,6 +121,9 @@ function CharacterSheet() {
   const [levelHistory, setLevelHistory] = React.useState(() =>
     readLevelingFromStorage(id)
   );
+  const [experiences, setExperiences] = React.useState(() =>
+    readExperiencesFromStorage(id)
+  );
 
   // Drawers and UI state
   const [openIdentity, setOpenIdentity] = React.useState(false);
@@ -146,6 +152,7 @@ function CharacterSheet() {
     setCustomFeatures(readCustomFeaturesFromStorage(id));
     setCurrentLevel(readLevelFromStorage(id));
     setLevelHistory(readLevelingFromStorage(id));
+    setExperiences(readExperiencesFromStorage(id));
   }, [id]);
 
   // Forms
@@ -339,6 +346,44 @@ function CharacterSheet() {
       setCurrentLevel(lv);
       writeLevelToStorage(id, lv);
       setOpenLevelUp(false);
+    },
+    [id]
+  );
+
+  // Experiences handlers
+  const addExperience = React.useCallback(
+    (item: { name: string; trait?: string; bonus: number; notes?: string }) => {
+      setExperiences(prev => {
+        const next = [...prev, item];
+        writeExperiencesToStorage(id, next as never);
+        return next;
+      });
+    },
+    [id]
+  );
+  const updateExperienceAt = React.useCallback(
+    (
+      index: number,
+      next: { name: string; trait?: string; bonus: number; notes?: string }
+    ) => {
+      setExperiences(prev => {
+        const list = [...prev];
+        if (!list[index]) return prev;
+        list[index] = next;
+        writeExperiencesToStorage(id, list as never);
+        return list;
+      });
+    },
+    [id]
+  );
+  const removeExperienceAt = React.useCallback(
+    (index: number) => {
+      setExperiences(prev => {
+        const list = prev.slice();
+        list.splice(index, 1);
+        writeExperiencesToStorage(id, list as never);
+        return list;
+      });
     },
     [id]
   );
@@ -557,6 +602,20 @@ function CharacterSheet() {
           className="mt-4 scroll-mt-24 md:scroll-mt-28"
         >
           <GoldCard gold={resources.gold} set={setGold} />
+        </section>
+
+        {/* Experience & Experiences */}
+        <section
+          id="experiences"
+          aria-label="Experiences"
+          className="mt-4 scroll-mt-24 md:scroll-mt-28"
+        >
+          <ExperiencesCard
+            experiences={experiences as never}
+            addExperience={addExperience as never}
+            updateExperienceAt={updateExperienceAt as never}
+            removeExperienceAt={removeExperienceAt}
+          />
         </section>
 
         {/* Conditions */}

@@ -29,6 +29,11 @@ Updated: August 16, 2025 (latest)
   - Mobile header chips: Finalized progressive, mobile-only chips in `SheetHeader` that reveal strictly after a section is fully passed (rect.bottom-based). Order: Traits → Core → Thresholds → Class/Subclass (with Level) → Resources → Gold. Thresholds labels now use colons (M: X / S: Y / MD: Z). Gold is a separate chip shown only after the Gold section; it’s not included in the Resources chip.
 - Mobile tabs: Tab lists are horizontally scrollable; tab triggers no longer stretch, improving swipe/scroll UX. Drawer description text referring to "Use Tab" removed from visual layout and kept as screen-reader-only.
 - Equipment & Inventory: Added `EquipmentCard` and `InventoryCard` sections with Edit buttons; drawers are lazy-loaded and wired to per-id localStorage. Equipment supports free-form selection (primary/secondary/armor) with concise stat previews; Inventory supports add-by-name and add-from-library with quantity steppers, Equipped toggle, and Location select.
+- New: Experiences section — Added `ExperiencesCard` and wired it into `/characters/$id` between Resources and Class. Users can:
+  - Adjust total Experience (XP) used for leveling (clamped ≥ 0)
+  - Manage narrative Experiences list (name, optional trait, +1/+2 bonus, notes)
+  - Persisted via new storage keys `experience` and `experiences`; schema parity with `PlayerCharacterSchema` (name, trait?, bonus 1|2, notes?).
+  - Tests added (`tests/experiences-card.test.tsx`). Full suite PASS.
 
 Refactors and reductions (Aug 11, 2025)
 

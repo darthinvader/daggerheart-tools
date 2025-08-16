@@ -106,6 +106,34 @@ export function readTraitsFromStorage(id: string): TraitsDraft {
 export function writeTraitsToStorage(id: string, value: TraitsDraft) {
   storage.write(keys.traits(id), value);
 }
+
+// Experience & Experiences (narrative)
+export const ExperienceSchema = z.object({
+  name: z.string().min(1),
+  trait: z.string().optional(),
+  bonus: z.number().int().min(1).default(2),
+  notes: z.string().optional(),
+});
+export const ExperiencesSchema = z.array(ExperienceSchema);
+export type ExperienceDraft = z.infer<typeof ExperienceSchema>;
+export type ExperiencesDraft = z.infer<typeof ExperiencesSchema>;
+
+export function readExperienceTotalFromStorage(id: string): number {
+  return storage.read(keys.experience(id), 0);
+}
+export function writeExperienceTotalToStorage(id: string, value: number) {
+  storage.write(keys.experience(id), Math.max(0, Math.floor(value)));
+}
+export function readExperiencesFromStorage(id: string): ExperiencesDraft {
+  try {
+    return storage.read(keys.experiences(id), [], ExperiencesSchema);
+  } catch {
+    return [];
+  }
+}
+export function writeExperiencesToStorage(id: string, list: ExperiencesDraft) {
+  storage.write(keys.experiences(id), list);
+}
 // Custom features (user-added)
 export const CustomFeatureSchema = z.object({
   name: z.string().min(1),

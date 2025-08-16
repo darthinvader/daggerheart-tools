@@ -4,6 +4,10 @@ Updated: August 16, 2025
 
 ## Current Work Focus
 
+Aug 16, 2025 (new – Experiences section):
+
+- Added `ExperiencesCard` to `/characters/$id` (after Resources, before Class). Users can adjust total XP and manage narrative Experiences (name, optional trait, +1/+2, notes). Data persists per character with new storage keys: `experience` and `experiences`. Tests added and full suite PASS; typecheck PASS.
+
 Aug 16, 2025 (final – mobile header chips order/gating and labels):
 
 - Mobile-only progressive header finalized in `src/components/layout/sheet-header.tsx`.

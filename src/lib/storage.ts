@@ -37,4 +37,7 @@ export const characterKeys = {
   customFeatures: (id: string) => `dh:characters:${id}:custom-features:v1`,
   thresholds: (id: string) => `dh:characters:${id}:thresholds:v1`,
   leveling: (id: string) => `dh:characters:${id}:leveling:v1`,
+  // Experience total and experiences list
+  experience: (id: string) => `dh:characters:${id}:experience:v1`,
+  experiences: (id: string) => `dh:characters:${id}:experiences:v1`,
 } as const;

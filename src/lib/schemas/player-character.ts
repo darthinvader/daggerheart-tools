@@ -71,7 +71,7 @@ const CharacterTraitsSchema = z.record(
 const ExperienceSchema = z.object({
   name: z.string(),
   trait: CharacterTraitSchema.optional(),
-  bonus: z.number().int().min(1).max(2).default(2), // SRD often uses +2 starting experiences
+  bonus: z.number().int().min(1).default(2), // Allow +1 to any positive value; SRD often uses +2 starting experiences
   notes: z.string().optional(),
 });
 const ExperienceCollectionSchema = z.array(ExperienceSchema);
