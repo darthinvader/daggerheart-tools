@@ -22,6 +22,8 @@ export type DrawerScaffoldProps = {
   submitting?: boolean;
   submitDisabled?: boolean;
   footer?: ReactNode; // optional custom footer overrides default actions
+  stabilizeOpenChange?: boolean; // guard against immediate auto-close
+  closeBounceMs?: number; // window to ignore close after opening
 };
 
 export function DrawerScaffold({
@@ -35,13 +37,34 @@ export function DrawerScaffold({
   submitting,
   submitDisabled,
   footer,
+  stabilizeOpenChange = false,
+  closeBounceMs = 250,
 }: DrawerScaffoldProps) {
   const scrollBehaviorClass = open
     ? ''
     : 'pointer-events-none touch-none overflow-hidden';
   const descriptionId = React.useId();
+  const openedAtRef = React.useRef<number | null>(null);
+  React.useEffect(() => {
+    if (open) openedAtRef.current = Date.now();
+  }, [open]);
+  const handleOpenChange = React.useCallback(
+    (next: boolean) => {
+      if (
+        stabilizeOpenChange &&
+        !next &&
+        openedAtRef.current &&
+        Date.now() - openedAtRef.current < closeBounceMs
+      ) {
+        // Ignore spurious immediate close right after opening
+        return;
+      }
+      onOpenChange(next);
+    },
+    [stabilizeOpenChange, closeBounceMs, onOpenChange]
+  );
   return (
-    <Drawer open={open} onOpenChange={onOpenChange} direction="bottom">
+    <Drawer open={open} onOpenChange={handleOpenChange} direction="bottom">
       <DrawerContent
         className="h-[100dvh] max-h-[100dvh]"
         aria-describedby={descriptionId}

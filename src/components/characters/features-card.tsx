@@ -17,10 +17,39 @@ export function FeaturesCard({
   onEdit,
   selections,
 }: FeaturesCardProps) {
+  const isInteractive = (t: EventTarget | null) => {
+    if (!(t instanceof HTMLElement)) return false;
+    return !!t.closest(
+      'button, a, input, textarea, select, [role="button"], [role="link"], [contenteditable="true"], [data-no-open]'
+    );
+  };
   return (
     <Card>
-      <CharacterCardHeader title="Class Features" onTitleClick={onEdit} />
-      <CardContent>
+      <CharacterCardHeader
+        title="Class Features"
+        titleClassName="text-lg sm:text-xl"
+        onTitleClick={onEdit}
+      />
+      <CardContent
+        role={onEdit ? 'button' : undefined}
+        tabIndex={onEdit ? 0 : undefined}
+        onClick={e => {
+          if (!onEdit || isInteractive(e.target)) return;
+          onEdit();
+        }}
+        onKeyDown={e => {
+          if (!onEdit || isInteractive(e.target)) return;
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onEdit();
+          }
+        }}
+        className={
+          onEdit
+            ? 'hover:bg-accent/30 focus-visible:ring-ring cursor-pointer rounded-md transition-colors focus-visible:ring-2 focus-visible:outline-none'
+            : undefined
+        }
+      >
         <FeaturesList
           level={level}
           features={features}

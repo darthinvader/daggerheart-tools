@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
-import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
 import { toast } from 'sonner';
 
+import * as React from 'react';
 import { useState } from 'react';
 
 import { createFileRoute } from '@tanstack/react-router';
@@ -36,7 +36,6 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
 import {
   Card,
   CardContent,
@@ -51,13 +50,6 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
-import {
-  ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
-  ChartTooltip,
-  ChartTooltipContent,
-} from '@/components/ui/chart';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Collapsible,
@@ -84,7 +76,6 @@ import {
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
 import { DataTable } from '@/components/ui/data-table';
-import { DatePicker } from '@/components/ui/date-picker';
 import {
   Dialog,
   DialogContent,
@@ -223,6 +214,14 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { H3, P } from '@/components/ui/typography';
+
+// Lazy sections for heavy deps (recharts, react-day-picker/date-fns)
+const ShowcaseChartSection = React.lazy(
+  () => import('@/components/showcase/showcase-chart-section')
+);
+const ShowcaseDateSections = React.lazy(
+  () => import('@/components/showcase/showcase-date-sections')
+);
 
 function Showcase() {
   const [cmdOpen, setCmdOpen] = useState(false);
@@ -565,15 +564,14 @@ function Showcase() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Date Picker</CardTitle>
-          <CardDescription>Wrapped component</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <DatePicker value={picked} onChange={setPicked} />
-        </CardContent>
-      </Card>
+      <React.Suspense fallback={null}>
+        <ShowcaseDateSections
+          picked={picked}
+          onPicked={setPicked}
+          date={date}
+          onDate={setDate}
+        />
+      </React.Suspense>
 
       <Card>
         <CardHeader>
@@ -862,51 +860,11 @@ function Showcase() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Chart</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ChartContainer
-            config={{ value: { label: 'Value', color: 'hsl(var(--primary))' } }}
-            className="h-48"
-          >
-            <LineChart data={chartData} margin={{ left: 12, right: 12 }}>
-              <CartesianGrid vertical={false} strokeDasharray="3 3" />
-              <XAxis dataKey="level" tickLine={false} axisLine={false} />
-              <YAxis tickLine={false} axisLine={false} width={24} />
-              <ChartTooltip content={<ChartTooltipContent />} />
-              <Line
-                type="monotone"
-                dataKey="value"
-                stroke="var(--color-value)"
-                strokeWidth={2}
-                dot={false}
-              />
-              <ChartLegend content={<ChartLegendContent />} />
-            </LineChart>
-          </ChartContainer>
-        </CardContent>
-      </Card>
+      <React.Suspense fallback={null}>
+        <ShowcaseChartSection chartData={chartData} />
+      </React.Suspense>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Date Picker</CardTitle>
-          <CardDescription>Calendar in a popover</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="w-full justify-start">
-                {date ? date.toLocaleDateString() : 'Pick a date'}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="p-0" align="start">
-              <Calendar mode="single" selected={date} onSelect={setDate} />
-            </PopoverContent>
-          </Popover>
-        </CardContent>
-      </Card>
+      {/* Calendar popover moved into ShowcaseDateSections above */}
 
       <Card>
         <CardHeader>

@@ -1,4 +1,5 @@
 import type { DomainCard } from '@/lib/schemas/domains';
+import { rankAdvanced, rankings } from '@/utils/search/rank';
 
 export type DomainFilterOptions = {
   allowedDomains?: string[]; // if provided, only cards from these domains pass
@@ -17,27 +18,29 @@ export function filterCards(cards: DomainCard[], opts: DomainFilterOptions) {
     search = '',
   } = opts;
   const s = search.trim().toLowerCase();
-  return cards.filter(c => {
+  const filtered = cards.filter(c => {
     if (Array.isArray(allowedDomains) && allowedDomains.length > 0) {
       if (!allowedDomains.includes(String(c.domain))) return false;
     }
     if (domain !== 'All' && String(c.domain) !== String(domain)) return false;
     if (level !== 'All' && String(c.level) !== String(level)) return false;
     if (type !== 'All' && String(c.type) !== String(type)) return false;
-    if (s) {
-      const inName = c.name.toLowerCase().includes(s);
-      const inDesc = String(c.description ?? '')
-        .toLowerCase()
-        .includes(s);
-      const inDomain = String(c.domain).toLowerCase().includes(s);
-      const inType = String(c.type).toLowerCase().includes(s);
-      const inTags = Array.isArray(c.tags)
-        ? c.tags.some(t => String(t).toLowerCase().includes(s))
-        : false;
-      if (!inName && !inDesc && !inDomain && !inType && !inTags) return false;
-    }
     return true;
   });
+  if (!s) return filtered;
+  // Rank matching cards by relevance across key fields; also filters to matches
+  return rankAdvanced<DomainCard>(
+    filtered,
+    s,
+    [
+      'name',
+      (c: DomainCard) => String(c.description ?? ''),
+      (c: DomainCard) => String(c.domain),
+      (c: DomainCard) => String(c.type),
+      (c: DomainCard) => (Array.isArray(c.tags) ? c.tags.join(' ') : ''),
+    ],
+    rankings.CONTAINS
+  );
 }
 
 export function countByType(cards: DomainCard[]) {

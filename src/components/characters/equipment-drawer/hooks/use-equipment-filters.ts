@@ -5,6 +5,7 @@ import {
   ALL_PRIMARY_WEAPONS,
   ALL_SECONDARY_WEAPONS,
 } from '@/lib/data/equipment';
+import { rankAdvanced, rankings } from '@/utils/search/rank';
 
 export type SourceFilter = 'default' | 'homebrew' | 'all';
 
@@ -23,6 +24,139 @@ type MinimalArmor = {
   evasionModifier?: number;
   agilityModifier?: number;
 } & Record<string, unknown>;
+
+// --- helpers (extracted to keep main hook small)
+
+function buildPrimarySource(
+  filter: SourceFilter,
+  hbPrimary: MinimalWeapon[],
+  hbSecondary: MinimalWeapon[]
+) {
+  if (filter === 'homebrew') return [...hbPrimary];
+  if (filter === 'all')
+    return [
+      ...ALL_PRIMARY_WEAPONS,
+      ...ALL_SECONDARY_WEAPONS,
+      ...hbPrimary,
+      ...hbSecondary,
+    ];
+  return [...ALL_PRIMARY_WEAPONS];
+}
+
+function buildSecondarySource(
+  filter: SourceFilter,
+  hbPrimary: MinimalWeapon[],
+  hbSecondary: MinimalWeapon[]
+) {
+  if (filter === 'homebrew') return [...hbSecondary];
+  if (filter === 'all')
+    return [
+      ...ALL_SECONDARY_WEAPONS,
+      ...ALL_PRIMARY_WEAPONS,
+      ...hbPrimary,
+      ...hbSecondary,
+    ];
+  return [...ALL_SECONDARY_WEAPONS];
+}
+
+function filterWeaponsByFacets(
+  items: MinimalWeapon[],
+  tier: string,
+  burden: string
+) {
+  return items.filter(w => {
+    const tierOk = tier ? String(w.tier) === tier : true;
+    const burdenOk = burden ? String(w.burden) === burden : true;
+    return tierOk && burdenOk;
+  });
+}
+
+function rankWeapons(items: MinimalWeapon[], q: string) {
+  const qq = (q || '').trim();
+  if (!qq) return items;
+  return rankAdvanced<MinimalWeapon>(
+    items,
+    qq,
+    [
+      'name',
+      (w: MinimalWeapon) => String(w.trait ?? ''),
+      (w: MinimalWeapon) => String(w.range ?? ''),
+      (w: MinimalWeapon) => String(w.burden ?? ''),
+    ],
+    rankings.CONTAINS
+  );
+}
+
+function buildArmorSource(hbArmor: MinimalArmor[]) {
+  const base = ALL_ARMOR as unknown as MinimalArmor[];
+  return base.concat(hbArmor as unknown as MinimalArmor[]);
+}
+
+function filterArmorByFacets(
+  items: MinimalArmor[],
+  kind: '' | 'standard' | 'special',
+  tier: '' | '1' | '2' | '3' | '4',
+  withEvasionMod: boolean,
+  withAgilityMod: boolean
+) {
+  return items.filter(a => {
+    const any = a as unknown as {
+      armorType?: string;
+      isStandard?: boolean;
+      tier?: string | number;
+      evasionModifier?: number;
+      agilityModifier?: number;
+    };
+    const kindOk = kind
+      ? kind === 'standard'
+        ? any.isStandard === true
+        : any.isStandard === false
+      : true;
+    const tierOk = tier ? String(any.tier) === tier : true;
+    const evOk = withEvasionMod ? (any.evasionModifier || 0) !== 0 : true;
+    const agOk = withAgilityMod ? (any.agilityModifier || 0) !== 0 : true;
+    return kindOk && tierOk && evOk && agOk;
+  });
+}
+
+function rankArmor(items: MinimalArmor[], q: string) {
+  const qq = (q || '').trim();
+  if (!qq) return items;
+  return rankAdvanced<MinimalArmor>(
+    items,
+    qq,
+    [
+      'name',
+      (a: MinimalArmor) =>
+        String((a as { armorType?: string }).armorType ?? ''),
+    ],
+    rankings.CONTAINS
+  );
+}
+
+function countsForPrimary(hbP: MinimalWeapon[], hbS: MinimalWeapon[]) {
+  return {
+    default: ALL_PRIMARY_WEAPONS.length,
+    homebrew: hbP.length,
+    all:
+      ALL_PRIMARY_WEAPONS.length +
+      ALL_SECONDARY_WEAPONS.length +
+      hbP.length +
+      hbS.length,
+  } as const;
+}
+
+function countsForSecondary(hbP: MinimalWeapon[], hbS: MinimalWeapon[]) {
+  return {
+    default: ALL_SECONDARY_WEAPONS.length,
+    homebrew: hbS.length,
+    all:
+      ALL_SECONDARY_WEAPONS.length +
+      ALL_PRIMARY_WEAPONS.length +
+      hbP.length +
+      hbS.length,
+  } as const;
+}
 
 export function useEquipmentFilters(args: {
   homebrewPrimary: MinimalWeapon[];
@@ -57,160 +191,77 @@ export function useEquipmentFilters(args: {
   const [armorWithAgilityMod, setArmorWithAgilityMod] = React.useState(false);
 
   // Compute sources based on selected filters
-  const primarySource = React.useMemo(() => {
-    if (primarySourceFilter === 'homebrew') return [...homebrewPrimary];
-    if (primarySourceFilter === 'all') {
-      return [
-        ...ALL_PRIMARY_WEAPONS,
-        ...ALL_SECONDARY_WEAPONS,
-        ...homebrewPrimary,
-        ...homebrewSecondary,
-      ];
-    }
-    // default
-    return [...ALL_PRIMARY_WEAPONS];
-  }, [primarySourceFilter, homebrewPrimary, homebrewSecondary]);
+  const primarySource = React.useMemo(
+    () =>
+      buildPrimarySource(
+        primarySourceFilter,
+        homebrewPrimary,
+        homebrewSecondary
+      ),
+    [primarySourceFilter, homebrewPrimary, homebrewSecondary]
+  );
 
-  const secondarySource = React.useMemo(() => {
-    if (secondarySourceFilter === 'homebrew') return [...homebrewSecondary];
-    if (secondarySourceFilter === 'all') {
-      return [
-        ...ALL_SECONDARY_WEAPONS,
-        ...ALL_PRIMARY_WEAPONS,
-        ...homebrewPrimary,
-        ...homebrewSecondary,
-      ];
-    }
-    // default
-    return [...ALL_SECONDARY_WEAPONS];
-  }, [secondarySourceFilter, homebrewPrimary, homebrewSecondary]);
+  const secondarySource = React.useMemo(
+    () =>
+      buildSecondarySource(
+        secondarySourceFilter,
+        homebrewPrimary,
+        homebrewSecondary
+      ),
+    [secondarySourceFilter, homebrewPrimary, homebrewSecondary]
+  );
 
-  const armorSource = React.useMemo(() => {
-    const base = ALL_ARMOR as unknown as MinimalArmor[];
-    return base.concat(homebrewArmor as unknown as MinimalArmor[]);
-  }, [homebrewArmor]);
+  const armorSource = React.useMemo(
+    () => buildArmorSource(homebrewArmor),
+    [homebrewArmor]
+  );
 
   // Visible counts for source options
   const primaryCounts = React.useMemo(
-    () => ({
-      default: ALL_PRIMARY_WEAPONS.length,
-      homebrew: homebrewPrimary.length,
-      all:
-        ALL_PRIMARY_WEAPONS.length +
-        ALL_SECONDARY_WEAPONS.length +
-        homebrewPrimary.length +
-        homebrewSecondary.length,
-    }),
+    () => countsForPrimary(homebrewPrimary, homebrewSecondary),
     [homebrewPrimary, homebrewSecondary]
   );
 
   const secondaryCounts = React.useMemo(
-    () => ({
-      default: ALL_SECONDARY_WEAPONS.length,
-      homebrew: homebrewSecondary.length,
-      all:
-        ALL_SECONDARY_WEAPONS.length +
-        ALL_PRIMARY_WEAPONS.length +
-        homebrewPrimary.length +
-        homebrewSecondary.length,
-    }),
+    () => countsForSecondary(homebrewPrimary, homebrewSecondary),
     [homebrewPrimary, homebrewSecondary]
   );
 
-  const filteredPrimary = React.useMemo(
-    () =>
-      primarySource.filter(w => {
-        const matchesText = (qPrimary || '')
-          .split(/\s+/)
-          .every(t =>
-            t
-              ? `${w.name} ${w.trait} ${w.range} ${w.burden}`
-                  .toLowerCase()
-                  .includes(t.toLowerCase())
-              : true
-          );
-        const matchesTier = primaryTier ? String(w.tier) === primaryTier : true;
-        const matchesBurden = primaryBurden
-          ? String(w.burden) === primaryBurden
-          : true;
-        return matchesText && matchesTier && matchesBurden;
-      }),
-    [primarySource, qPrimary, primaryTier, primaryBurden]
-  );
+  const filteredPrimary = React.useMemo(() => {
+    const faceted = filterWeaponsByFacets(
+      primarySource,
+      primaryTier,
+      primaryBurden
+    );
+    return rankWeapons(faceted, qPrimary);
+  }, [primarySource, qPrimary, primaryTier, primaryBurden]);
 
-  const filteredSecondary = React.useMemo(
-    () =>
-      secondarySource.filter(w => {
-        const matchesText = (qSecondary || '')
-          .split(/\s+/)
-          .every(t =>
-            t
-              ? `${w.name} ${w.trait} ${w.range} ${w.burden}`
-                  .toLowerCase()
-                  .includes(t.toLowerCase())
-              : true
-          );
-        const matchesTier = secondaryTier
-          ? String(w.tier) === secondaryTier
-          : true;
-        const matchesBurden = secondaryBurden
-          ? String(w.burden) === secondaryBurden
-          : true;
-        return matchesText && matchesTier && matchesBurden;
-      }),
-    [secondarySource, qSecondary, secondaryTier, secondaryBurden]
-  );
+  const filteredSecondary = React.useMemo(() => {
+    const faceted = filterWeaponsByFacets(
+      secondarySource,
+      secondaryTier,
+      secondaryBurden
+    );
+    return rankWeapons(faceted, qSecondary);
+  }, [secondarySource, qSecondary, secondaryTier, secondaryBurden]);
 
-  const filteredArmor = React.useMemo(
-    () =>
-      armorSource.filter(a => {
-        const aAny = a as unknown as {
-          armorType?: string;
-          isStandard?: boolean;
-          tier?: string | number;
-          evasionModifier?: number;
-          agilityModifier?: number;
-          name?: string;
-        };
-        const aType = String(aAny.armorType || '');
-        const matchesText = (qArmor || '')
-          .split(/\s+/)
-          .every(t =>
-            t
-              ? `${aAny.name ?? ''} ${aType}`
-                  .toLowerCase()
-                  .includes(t.toLowerCase())
-              : true
-          );
-        const matchesKind = armorKind
-          ? armorKind === 'standard'
-            ? aAny.isStandard === true
-            : aAny.isStandard === false
-          : true;
-        const matchesTier = armorTier ? String(aAny.tier) === armorTier : true;
-        const matchesEvasion = armorWithEvasionMod
-          ? (aAny.evasionModifier || 0) !== 0
-          : true;
-        const matchesAgility = armorWithAgilityMod
-          ? (aAny.agilityModifier || 0) !== 0
-          : true;
-        return (
-          matchesText &&
-          matchesKind &&
-          matchesTier &&
-          matchesEvasion &&
-          matchesAgility
-        );
-      }),
-    [
+  const filteredArmor = React.useMemo(() => {
+    const faceted = filterArmorByFacets(
       armorSource,
-      qArmor,
       armorKind,
       armorTier,
       armorWithEvasionMod,
-      armorWithAgilityMod,
-    ]
-  );
+      armorWithAgilityMod
+    );
+    return rankArmor(faceted, qArmor);
+  }, [
+    armorSource,
+    qArmor,
+    armorKind,
+    armorTier,
+    armorWithEvasionMod,
+    armorWithAgilityMod,
+  ]);
 
   return {
     primary: {

@@ -51,15 +51,37 @@ export function InventoryCard({
   // removal confirm dialog state
   const [removeIdx, setRemoveIdx] = React.useState<number | null>(null);
   // presentational badges and cost chips moved to separate components
+  const isInteractive = (t: EventTarget | null) => {
+    if (!(t instanceof HTMLElement)) return false;
+    return !!t.closest(
+      'button, a, input, textarea, select, [role="button"], [role="link"], [contenteditable="true"], [data-no-open]'
+    );
+  };
 
   return (
     <Card>
       <CharacterCardHeader
         title="Inventory"
         subtitle="Tap the title to edit"
+        titleClassName="text-lg sm:text-xl"
         onTitleClick={onEdit}
       />
-      <CardContent className="space-y-3">
+      <CardContent
+        role={onEdit ? 'button' : undefined}
+        tabIndex={onEdit ? 0 : undefined}
+        onClick={e => {
+          if (!onEdit || isInteractive(e.target)) return;
+          onEdit();
+        }}
+        onKeyDown={e => {
+          if (!onEdit || isInteractive(e.target)) return;
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onEdit();
+          }
+        }}
+        className="hover:bg-accent/30 focus-visible:ring-ring cursor-pointer space-y-3 rounded-md transition-colors focus-visible:ring-2 focus-visible:outline-none"
+      >
         {/* Quick summary chips */}
         <InventorySummaryChips
           slotsCount={slots.length}

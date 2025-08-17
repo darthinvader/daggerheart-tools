@@ -27,6 +27,12 @@ export function AncestryCard({
   ancestryDetails?: AncestryDetails;
   onEdit: () => void;
 }) {
+  const isInteractive = (t: EventTarget | null) => {
+    if (!(t instanceof HTMLElement)) return false;
+    return !!t.closest(
+      'button, a, input, textarea, select, [role="button"], [role="link"], [contenteditable="true"], [data-no-open]'
+    );
+  };
   const mode = ancestryDetails?.type ?? 'standard';
 
   const content = (() => {
@@ -122,12 +128,29 @@ export function AncestryCard({
   return (
     <CardScaffold
       title="Ancestry"
-      subtitle="Tap the title to edit"
+      subtitle="Tap title or section to edit"
+      titleClassName="text-lg sm:text-xl"
       onTitleClick={onEdit}
       actions={null}
     >
-      {/* Make the title act as the edit affordance by letting the parent handle click on its header label if needed. */}
-      {content}
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={e => {
+          if (isInteractive(e.target)) return;
+          onEdit();
+        }}
+        onKeyDown={e => {
+          if (isInteractive(e.target)) return;
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onEdit();
+          }
+        }}
+        className="hover:bg-accent/30 focus-visible:ring-ring cursor-pointer rounded-md transition-colors focus-visible:ring-2 focus-visible:outline-none"
+      >
+        {content}
+      </div>
     </CardScaffold>
   );
 }

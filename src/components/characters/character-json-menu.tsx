@@ -154,7 +154,11 @@ export function CharacterJsonMenu(props: CharacterJsonMenuProps) {
                 const nextTraits =
                   (raw.traits as TraitsDraft | undefined) ?? traits;
                 const nextConditions = Array.isArray(raw.conditions)
-                  ? (raw.conditions as ConditionsDraft)
+                  ? (raw.conditions as unknown[]).map(v =>
+                      typeof v === 'string'
+                        ? ({ name: v } as ConditionsDraft[number])
+                        : (v as ConditionsDraft[number])
+                    )
                   : conditions;
                 const nextClass = ClassDraftSchema.safeParse(raw.classDraft)
                   .success

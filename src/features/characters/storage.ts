@@ -11,11 +11,26 @@ export * from '@/features/characters/inventory-storage';
 export * from '@/features/characters/features-storage';
 export * from '@/features/characters/progression-storage';
 
-// Conditions (simple string tags)
-export const ConditionsSchema = z.array(z.string().min(1).max(40));
+// Conditions (tags with optional description).
+// Back-compat: accept legacy string[] and map to {name,description?}
+export const ConditionItemSchema = z.object({
+  name: z.string().min(1).max(40),
+  description: z.string().optional(),
+});
+export const ConditionsSchema = z.array(ConditionItemSchema);
+export type ConditionItem = z.infer<typeof ConditionItemSchema>;
 export type ConditionsDraft = z.infer<typeof ConditionsSchema>;
 export function readConditionsFromStorage(id: string): ConditionsDraft {
-  return storage.read(keys.conditions(id), [], ConditionsSchema);
+  const raw = storage.read<unknown>(keys.conditions(id), []);
+  // Legacy string[] → structured
+  if (Array.isArray(raw) && raw.every(v => typeof v === 'string')) {
+    return (raw as string[]).map(v => ({ name: v }));
+  }
+  try {
+    return ConditionsSchema.parse(raw);
+  } catch {
+    return [];
+  }
 }
 export function writeConditionsToStorage(id: string, value: ConditionsDraft) {
   storage.write(keys.conditions(id), value);

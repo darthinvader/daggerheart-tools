@@ -54,10 +54,19 @@ export function ThresholdsCard({ id, className }: ThresholdsCardProps) {
     }
     setOpen(false);
   };
+  const isInteractive = (t: EventTarget | null) => {
+    if (!(t instanceof HTMLElement)) return false;
+    return !!t.closest(
+      'button, a, input, textarea, select, [role="button"], [role="link"], [contenteditable="true"], [data-no-open]'
+    );
+  };
   return (
     <Card id={id} className={className}>
       <CharacterCardHeader
         title="Damage Thresholds"
+        subtitle="Tap title or section to edit"
+        titleClassName="text-lg sm:text-xl"
+        onTitleClick={() => setOpen(true)}
         actions={
           <Button
             type="button"
@@ -70,7 +79,22 @@ export function ThresholdsCard({ id, className }: ThresholdsCardProps) {
           </Button>
         }
       />
-      <CardContent>
+      <CardContent
+        role="button"
+        tabIndex={0}
+        onClick={e => {
+          if (isInteractive(e.target)) return;
+          setOpen(true);
+        }}
+        onKeyDown={e => {
+          if (isInteractive(e.target)) return;
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setOpen(true);
+          }
+        }}
+        className="hover:bg-accent/30 focus-visible:ring-ring cursor-pointer rounded-md transition-colors focus-visible:ring-2 focus-visible:outline-none"
+      >
         <ThresholdsSummary
           major={displayMajor}
           severe={displaySevere}

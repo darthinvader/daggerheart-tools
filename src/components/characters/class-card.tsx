@@ -28,6 +28,7 @@ export function ClassCard({
       <CharacterCardHeader
         title="Class & Subclass"
         subtitle="Tap the title to edit"
+        titleClassName="text-lg sm:text-xl"
         onTitleClick={onEdit}
       />
       <CardContent>

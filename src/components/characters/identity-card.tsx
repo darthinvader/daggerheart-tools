@@ -16,14 +16,36 @@ export type IdentityCardProps = {
 };
 
 export function IdentityCard({ identity, onEdit }: IdentityCardProps) {
+  const isInteractive = (t: EventTarget | null) => {
+    if (!(t instanceof HTMLElement)) return false;
+    return !!t.closest(
+      'button, a, input, textarea, select, [role="button"], [role="link"], [contenteditable="true"], [data-no-open]'
+    );
+  };
   return (
     <Card>
       <CharacterCardHeader
         title="Identity"
-        subtitle="Tap the title to edit"
+        subtitle="Tap title or section to edit"
+        titleClassName="text-lg sm:text-xl"
         onTitleClick={onEdit}
       />
-      <CardContent className="space-y-3">
+      <CardContent
+        role="button"
+        tabIndex={0}
+        onClick={e => {
+          if (isInteractive(e.target)) return;
+          onEdit();
+        }}
+        onKeyDown={e => {
+          if (isInteractive(e.target)) return;
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onEdit();
+          }
+        }}
+        className="hover:bg-accent/30 focus-visible:ring-ring cursor-pointer space-y-3 rounded-md transition-colors focus-visible:ring-2 focus-visible:outline-none"
+      >
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="text-muted-foreground text-sm">
             {identity.name ? (

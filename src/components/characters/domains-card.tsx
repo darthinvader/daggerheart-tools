@@ -24,14 +24,36 @@ export function DomainsCard({
   loadout,
   recallUsed,
 }: DomainsCardProps) {
+  const isInteractive = (t: EventTarget | null) => {
+    if (!(t instanceof HTMLElement)) return false;
+    return !!t.closest(
+      'button, a, input, textarea, select, [role="button"], [role="link"], [contenteditable="true"], [data-no-open]'
+    );
+  };
   return (
     <Card>
       <CharacterCardHeader
         title="Domains & Loadout"
         subtitle="Tap the title to edit"
+        titleClassName="text-lg sm:text-xl"
         onTitleClick={onEdit}
       />
-      <CardContent className="gap-4">
+      <CardContent
+        role={onEdit ? 'button' : undefined}
+        tabIndex={onEdit ? 0 : undefined}
+        onClick={e => {
+          if (!onEdit || isInteractive(e.target)) return;
+          onEdit();
+        }}
+        onKeyDown={e => {
+          if (!onEdit || isInteractive(e.target)) return;
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onEdit();
+          }
+        }}
+        className="hover:bg-accent/30 focus-visible:ring-ring cursor-pointer gap-4 rounded-md transition-colors focus-visible:ring-2 focus-visible:outline-none"
+      >
         <div className="text-sm">
           {summary ? (
             <div>

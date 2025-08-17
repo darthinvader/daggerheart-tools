@@ -4,6 +4,8 @@ import * as React from 'react';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
 
+import './sidebar.css';
+
 export const SIDEBAR_COOKIE_NAME = 'sidebar_state';
 export const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 export const SIDEBAR_WIDTH = '16rem';
@@ -36,7 +38,6 @@ export function SidebarProvider({
   open: openProp,
   onOpenChange: setOpenProp,
   className,
-  style,
   children,
   ...props
 }: React.ComponentProps<'div'> & {
@@ -44,16 +45,58 @@ export function SidebarProvider({
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }) {
+  // Minimal CookieStore typing to avoid any
+  type CookieStoreLike =
+    | {
+        set?: (opts: {
+          name: string;
+          value: string;
+          path?: string;
+          expires?: number | Date;
+        }) => Promise<void> | void;
+      }
+    | undefined;
   const isMobile = useIsMobile();
   const [openMobile, setOpenMobile] = React.useState(false);
-  const [_open, _setOpen] = React.useState(defaultOpen);
+  // Initialize from Cookie Store API or localStorage to persist across reloads
+  const initialOpen = React.useMemo(() => {
+    try {
+      // Prefer Cookie Store API when available (modern browsers)
+      // Note: cookieStore is async; for init we read from localStorage instead
+      const persisted = localStorage.getItem(SIDEBAR_COOKIE_NAME);
+      if (persisted === 'true') return true;
+      if (persisted === 'false') return false;
+    } catch {
+      // ignore
+      void 0;
+    }
+    return defaultOpen;
+  }, [defaultOpen]);
+  const [_open, _setOpen] = React.useState(initialOpen);
   const open = openProp ?? _open;
   const setOpen = React.useCallback(
     (value: boolean | ((value: boolean) => boolean)) => {
       const openState = typeof value === 'function' ? value(open) : value;
       if (setOpenProp) setOpenProp(openState);
       else _setOpen(openState);
-      document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
+      // Persist using Cookie Store API if available, else fallback to localStorage
+      try {
+        const cs = (globalThis as unknown as { cookieStore?: CookieStoreLike })
+          .cookieStore;
+        if (cs?.set) {
+          cs.set({
+            name: SIDEBAR_COOKIE_NAME,
+            value: String(openState),
+            path: '/',
+            expires: Date.now() + SIDEBAR_COOKIE_MAX_AGE * 1000,
+          });
+        } else {
+          localStorage.setItem(SIDEBAR_COOKIE_NAME, String(openState));
+        }
+      } catch {
+        // Ignore persistence failures
+        void 0;
+      }
     },
     [setOpenProp, open]
   );
@@ -94,18 +137,7 @@ export function SidebarProvider({
   return (
     <SidebarContext.Provider value={contextValue}>
       <TooltipProvider delayDuration={0}>
-        <div
-          data-slot="sidebar-wrapper"
-          style={
-            {
-              '--sidebar-width': SIDEBAR_WIDTH,
-              '--sidebar-width-icon': SIDEBAR_WIDTH_ICON,
-              ...style,
-            } as React.CSSProperties
-          }
-          className={className}
-          {...props}
-        >
+        <div data-slot="sidebar-wrapper" className={className} {...props}>
           {children}
         </div>
       </TooltipProvider>

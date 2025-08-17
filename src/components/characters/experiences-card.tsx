@@ -3,6 +3,7 @@ import { Pencil, Trash2 } from 'lucide-react';
 import * as React from 'react';
 
 import { CharacterCardHeader } from '@/components/characters/presenters/card-header';
+import { DrawerScaffold } from '@/components/drawers/drawer-scaffold';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -56,6 +57,8 @@ export function ExperiencesCard({
 }: ExperiencesCardProps) {
   const [editingIndex, setEditingIndex] = React.useState<number | null>(null);
   const [draft, setDraft] = React.useState<ExperienceItem | null>(null);
+  const [addingOpen, setAddingOpen] = React.useState(false);
+  const [addDraft, setAddDraft] = React.useState<ExperienceItem | null>(null);
 
   const startEdit = (index: number) => {
     setEditingIndex(index);
@@ -70,6 +73,77 @@ export function ExperiencesCard({
     setEditingIndex(null);
     setDraft(null);
   };
+
+  // Reusable editor form used by both inline edit and add drawer
+  function ExperienceEditorForm({
+    value,
+    onChange,
+  }: {
+    value: ExperienceItem;
+    onChange: (next: ExperienceItem) => void;
+  }) {
+    return (
+      <div className="space-y-3">
+        <Input
+          className="min-w-0 text-base font-medium md:text-lg"
+          placeholder="Title"
+          value={value.name}
+          onChange={e => onChange({ ...value, name: e.target.value })}
+        />
+
+        <div className="flex flex-nowrap items-center gap-3">
+          <Select
+            value={value.trait}
+            onValueChange={(v: (typeof TRAITS)[number]) =>
+              onChange({ ...value, trait: v })
+            }
+          >
+            <SelectTrigger className="w-[120px] shrink-0">
+              <SelectValue placeholder="Trait" />
+            </SelectTrigger>
+            <SelectContent>
+              {TRAITS.map(t => (
+                <SelectItem key={t} value={t}>
+                  {t}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <div className="flex shrink-0 items-center gap-2">
+            <Button
+              aria-label="Decrease bonus"
+              size="sm"
+              variant="outline"
+              onClick={() =>
+                onChange({ ...value, bonus: Math.max(1, value.bonus - 1) })
+              }
+              disabled={value.bonus <= 1}
+            >
+              −
+            </Button>
+            <div className="min-w-10 text-center tabular-nums">
+              +{value.bonus}
+            </div>
+            <Button
+              aria-label="Increase bonus"
+              size="sm"
+              variant="outline"
+              onClick={() => onChange({ ...value, bonus: value.bonus + 1 })}
+            >
+              +
+            </Button>
+          </div>
+        </div>
+
+        <Textarea
+          placeholder="Notes"
+          value={value.notes ?? ''}
+          onChange={e => onChange({ ...value, notes: e.target.value })}
+        />
+      </div>
+    );
+  }
 
   return (
     <Card>
@@ -88,97 +162,10 @@ export function ExperiencesCard({
                 <li key={i} className="rounded-md border p-3">
                   {editingIndex === i ? (
                     <div className="space-y-3">
-                      {/* Title on top, larger for visibility */}
-                      <Input
-                        className="min-w-0 text-base font-medium md:text-lg"
-                        placeholder="Title"
-                        value={draft?.name ?? ''}
-                        onChange={e =>
-                          setDraft(prev => ({
-                            ...(prev ?? exp),
-                            name: e.target.value,
-                          }))
-                        }
+                      <ExperienceEditorForm
+                        value={draft ?? exp}
+                        onChange={next => setDraft(next)}
                       />
-
-                      {/* Trait and +/- stepper for bonus */}
-                      <div className="flex flex-nowrap items-center gap-3">
-                        <Select
-                          value={draft?.trait}
-                          onValueChange={(v: (typeof TRAITS)[number]) =>
-                            setDraft(prev => ({ ...(prev ?? exp), trait: v }))
-                          }
-                        >
-                          <SelectTrigger className="w-[120px] shrink-0">
-                            <SelectValue placeholder="Trait" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {TRAITS.map(t => (
-                              <SelectItem key={t} value={t}>
-                                {t}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-
-                        <div className="flex shrink-0 items-center gap-2">
-                          <Button
-                            aria-label="Decrease bonus"
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              const current = (draft?.bonus ?? exp.bonus) as
-                                | 1
-                                | 2;
-                              const next = Math.max(
-                                1,
-                                (current - 1) as 1 | 2
-                              ) as 1 | 2;
-                              setDraft(prev => ({
-                                ...(prev ?? exp),
-                                bonus: next,
-                              }));
-                            }}
-                            disabled={(draft?.bonus ?? exp.bonus) <= 1}
-                          >
-                            −
-                          </Button>
-                          <div className="min-w-10 text-center tabular-nums">
-                            +{draft?.bonus ?? exp.bonus}
-                          </div>
-                          <Button
-                            aria-label="Increase bonus"
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              const current = (draft?.bonus ??
-                                exp.bonus) as number;
-                              const next = Math.max(1, current + 1);
-                              setDraft(prev => ({
-                                ...(prev ?? exp),
-                                bonus: next,
-                              }));
-                            }}
-                            // No upper bound now
-                            disabled={false}
-                          >
-                            +
-                          </Button>
-                        </div>
-                      </div>
-
-                      {/* Notes below */}
-                      <Textarea
-                        placeholder="Notes"
-                        value={draft?.notes ?? ''}
-                        onChange={e =>
-                          setDraft(prev => ({
-                            ...(prev ?? exp),
-                            notes: e.target.value,
-                          }))
-                        }
-                      />
-
                       {/* Actions: Cancel / Save */}
                       <div className="flex items-center justify-end gap-2">
                         <Button
@@ -267,38 +254,91 @@ export function ExperiencesCard({
               ))}
             </ul>
           )}
-          <div className="flex items-center gap-2">
-            <Input
-              placeholder="New experience title"
-              onKeyDown={e => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  const el = e.target as HTMLInputElement;
-                  const name = el.value.trim();
-                  if (!name) return;
-                  addExperience({ name, bonus: 2 });
-                  el.value = '';
-                }
-              }}
-            />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                const el = document.querySelector<HTMLInputElement>(
-                  'input[placeholder="New experience title"]'
-                );
-                const name = el?.value.trim();
-                if (!name) return;
+          {/* Add new: if a title is provided, add immediately; otherwise open drawer */}
+          <AddExperienceRow
+            onOpen={(prefillName?: string) => {
+              const name = (prefillName ?? '').trim();
+              if (name) {
                 addExperience({ name, bonus: 2 });
-                if (el) el.value = '';
-              }}
-            >
-              Add
-            </Button>
-          </div>
+                return;
+              }
+              setAddDraft({ name: '', bonus: 2 });
+              setAddingOpen(true);
+            }}
+          />
         </div>
       </CardContent>
+
+      {/* Add Experience Drawer */}
+      <DrawerScaffold
+        open={addingOpen}
+        onOpenChange={open => {
+          setAddingOpen(open);
+          if (!open) setAddDraft(null);
+        }}
+        title="New Experience"
+        onCancel={() => {
+          setAddingOpen(false);
+          setAddDraft(null);
+        }}
+        onSubmit={() => {
+          if (addDraft && addDraft.name.trim()) {
+            addExperience(addDraft);
+            setAddingOpen(false);
+            setAddDraft(null);
+          }
+        }}
+        submitLabel="Add"
+        submitDisabled={!addDraft?.name?.trim()}
+      >
+        {addDraft ? (
+          <div className="py-2">
+            <ExperienceEditorForm
+              value={addDraft}
+              onChange={next => setAddDraft(next)}
+            />
+          </div>
+        ) : null}
+      </DrawerScaffold>
     </Card>
+  );
+}
+
+// Small helper to initiate add with an optional prefill name via input or button
+function AddExperienceRow({
+  onOpen,
+}: {
+  onOpen: (prefillName?: string) => void;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <Input
+        placeholder="New experience title"
+        aria-label="New experience title"
+        onKeyDown={e => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            const el = e.target as HTMLInputElement;
+            const name = el.value.trim();
+            onOpen(name);
+            el.value = '';
+          }
+        }}
+      />
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => {
+          const el = document.querySelector<HTMLInputElement>(
+            'input[placeholder="New experience title"]'
+          );
+          const name = el?.value.trim();
+          onOpen(name);
+          if (el) el.value = '';
+        }}
+      >
+        Add
+      </Button>
+    </div>
   );
 }

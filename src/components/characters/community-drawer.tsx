@@ -128,6 +128,7 @@ export function CommunityDrawer({
     <DrawerScaffold
       open={open}
       onOpenChange={onOpenChange}
+      stabilizeOpenChange
       title="Edit Community"
       onCancel={() => {
         skipRef.current = true;

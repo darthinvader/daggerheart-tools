@@ -15,10 +15,36 @@ export function EquipmentCard({ equipment, onEdit }: Props) {
   const secondary = equipment?.secondaryWeapon as Weapon | undefined;
   const armor = equipment?.armor as Armor | undefined;
   // Items managed in Inventory; not shown here
+  const isInteractive = (t: EventTarget | null) => {
+    if (!(t instanceof HTMLElement)) return false;
+    return !!t.closest(
+      'button, a, input, textarea, select, [role="button"], [role="link"], [contenteditable="true"], [data-no-open]'
+    );
+  };
   return (
     <Card>
-      <CharacterCardHeader title="Equipment" subtitle="Tap a slot to edit" />
-      <CardContent className="space-y-3 text-sm">
+      <CharacterCardHeader
+        title="Equipment"
+        subtitle="Tap a slot to edit"
+        titleClassName="text-lg sm:text-xl"
+        onTitleClick={() => onEdit?.()}
+      />
+      <CardContent
+        role={onEdit ? 'button' : undefined}
+        tabIndex={onEdit ? 0 : undefined}
+        onClick={e => {
+          if (!onEdit || isInteractive(e.target)) return;
+          onEdit();
+        }}
+        onKeyDown={e => {
+          if (!onEdit || isInteractive(e.target)) return;
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onEdit();
+          }
+        }}
+        className="hover:bg-accent/30 focus-visible:ring-ring cursor-pointer space-y-3 rounded-md text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
+      >
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
           <button
             type="button"

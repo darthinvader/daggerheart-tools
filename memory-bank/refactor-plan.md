@@ -35,6 +35,14 @@ By size/LOC combined (Cx = complexity proxy, MaxLine = longest line chars):
 - Introduce simple dynamic imports to code-split heavy drawers/routes where helpful.
 - Keep long-line UI shells stable unless we actively work inside them; if touched, break long lines and split primitives to reduce MaxLine.
 
+## Library Adoptions (explicit)
+
+- Virtualization: `@tanstack/react-virtual` (React adapter). Hooks: `useVirtualizer`, `useWindowVirtualizer`. For dynamic rows, attach `ref={virtualizer.measureElement}` and `data-index` to rows. Heuristic: enable when items.length > 150 (configurable).
+- State store: Zustand for per-character ephemeral UI state and selectors. Persist slices with middleware (start with localStorage parity; later switch per-slice to IndexedDB). Keep RHF for forms.
+- Persistence: Start with `idb-keyval` for small, tree‑shakeable KV; consider Dexie if we outgrow KV (indexes/queries). Use additive write-through (LS + IDB) behind a flag during migration.
+- Search: `match-sorter` (default). Optionally `Fuse.js` for deeper fuzzy. For very large lists (>5k), move ranking to a Web Worker via Comlink (behind a flag).
+- Charts: Keep Recharts; split `ui/chart.tsx` into primitives and lazy-load usage sites; revisit replacement only if necessary.
+
 ## Phased Plan
 
 Phase 1 — Low-risk extractions (this week)
@@ -85,6 +93,9 @@ Phase 3 — Code-splitting & perf (opportunistic)
 - No user-facing behavior/regressions.
 - Analyzer shows target files under stated thresholds.
 - Bundle warnings reduced where feasible; no new large chunks introduced.
+- Virtualization enabled only above threshold by default; falls back to non-virtual path via prop/flag.
+- State store adoption verified via Profiler (fewer renders) and selector coverage tests where practical.
+- IndexedDB migration is feature-flagged with read/write-through to avoid data loss.
 
 ## Actionable Next Steps (snapshot: Aug 11, 2025)
 
@@ -122,6 +133,14 @@ Grounded in the latest `size-report.json` (top 40), we’ve formalized a script-
   - Inventory drawer presenters around ~13 KB
 - Approach: extract route helpers, move derivations into logic hooks, and split `storage.ts` by concern behind an `index.ts` barrel to keep imports stable.
 - Measurement cadence: run `pnpm run size:report` (by size and by loc) before/after each targeted change; ensure `pnpm -w -s typecheck` and `pnpm -w -s test` remain PASS.
+
+Additional tracking tasks (Aug 17, 2025):
+
+- TASK030 — Introduce Zustand store and selectors (per-character slices; persistence middleware; selector-based hooks)
+- TASK031 — IndexedDB adapter migration (idb-keyval) with additive write-through and flag
+- TASK032 — Search upgrade + workerization (match-sorter/Fuse.js; Comlink for 5k+)
+- TASK033 — FormScaffold standardization (RHF + zodResolver patternization)
+- TASK034 — Chart split & lazy-load (extract primitives; lazy imports)
 
 See TASK009 for phased steps, acceptance criteria, and subtasks.
 

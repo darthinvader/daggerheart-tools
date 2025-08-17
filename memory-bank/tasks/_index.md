@@ -32,7 +32,7 @@ None currently
 
 - [TASK017] Trim UI Chart - Extract sub-presenters (Legend/Tooltip/Axis) and pure helpers; keep API stable.
 - [TASK018] Trim Inventory Homebrew Item Form - Extract repeated groups and helpers; maintain RHF wiring.
-- [TASK019] Virtualize Inventory and Domains Lists - Optional windowing for 150+ items; a11y preserved.
+- [TASK019] Virtualize Inventory and Domains Lists - Inventory card list and Inventory drawer library results use VirtualList (small-list/SSR fallback); Domains drawer migrated to shared VirtualList; next: analyzer-driven lazy-loads.
 - [TASK020] React 19 Compiler Evaluation - Audit, enable on branch, measure.
 - [TASK021] shadcn UI Alignment Audit - Reconcile wrappers with stock.
 - [TASK023] Trim Inventory Homebrew Item Form - Reduce complexity; no nested forms.
@@ -41,3 +41,9 @@ None currently
 - [TASK026] Domains UI Windowing - Reduce render work for many cards.
 - [TASK027] React Profiler Baseline - Capture current perf snapshots.
 - [TASK028] Route Splitting & Prefetch - Further reduce initial payload.
+
+- [TASK030] Introduce Zustand store and selectors - Per-character slices + persistence middleware
+- [TASK031] IndexedDB adapter migration (idb-keyval) - Add write-through + feature flag
+- [TASK032] Search upgrade + workerization - match-sorter/Fuse.js + Comlink for large lists
+- [TASK033] FormScaffold standardization (RHF + zod) - Shared scaffold & patterns
+- [TASK034] Chart split & lazy-load - Extract primitives and lazy imports

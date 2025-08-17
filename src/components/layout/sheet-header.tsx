@@ -3,6 +3,7 @@ import * as React from 'react';
 import { Link } from '@tanstack/react-router';
 
 import { CharacterJsonMenu } from '@/components/characters/character-json-menu';
+import { SheetHeaderMobileChips } from '@/components/layout/sheet-header-mobile-chips';
 import { Button } from '@/components/ui/button';
 import { useThresholdsSettings } from '@/features/characters/logic/use-thresholds';
 import type {
@@ -132,17 +133,7 @@ export function SheetHeader({
   const anyVisible =
     showTraits || showCore || showClass || showResources || showGold;
 
-  const traitAbbr: Array<{
-    key: keyof typeof traits | string;
-    label: string;
-  }> = [
-    { key: 'Agility', label: 'Agi' },
-    { key: 'Strength', label: 'Str' },
-    { key: 'Finesse', label: 'Fin' },
-    { key: 'Instinct', label: 'Inst' },
-    { key: 'Presence', label: 'Pres' },
-    { key: 'Knowledge', label: 'Know' },
-  ];
+  // Trait labels are only used in the mobile chips component
 
   return (
     <div
@@ -198,235 +189,26 @@ export function SheetHeader({
 
       {/* Mobile progressive info bar: hidden until at least one chip is visible */}
       {anyVisible && (
-        <div className="border-t px-4 py-1 md:hidden">
-          <div className="flex flex-wrap gap-2">
-            {showClass && (
-              <div className="bg-muted/60 rounded-md px-2 py-1">
-                <div className="text-muted-foreground text-[10px] leading-3">
-                  Class/Subclass
-                </div>
-                <div className="text-[11px] leading-4 font-semibold whitespace-nowrap">
-                  {classDraft.className}
-                  {classDraft.subclass ? ` / ${classDraft.subclass}` : ''}
-                  <span className="text-muted-foreground ml-2">
-                    Lvl {level}
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {showTraits && (
-              <div className="bg-muted/60 text-foreground rounded-md px-2 py-1">
-                <div className="text-muted-foreground grid grid-cols-6 gap-x-1 text-[10px] leading-3">
-                  {traitAbbr.map(t => (
-                    <div key={t.label} className="text-center">
-                      <div>{t.label}</div>
-                    </div>
-                  ))}
-                </div>
-                <div className="grid grid-cols-6 gap-x-1 text-[11px] leading-4 font-semibold">
-                  {traitAbbr.map(t => (
-                    <div key={t.label} className="text-center">
-                      {Number(
-                        (traits as Record<string, { value?: number }>)[
-                          String(t.key)
-                        ]?.value ?? 0
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {showCore && (
-              <div className="bg-muted/60 rounded-md px-2 py-1">
-                <div className="text-muted-foreground grid grid-cols-2 gap-x-2 text-[10px] leading-3">
-                  <div className="text-center">Prof</div>
-                  <div className="text-center">Evasion</div>
-                </div>
-                <div className="grid grid-cols-2 gap-x-2 text-[11px] leading-4 font-semibold">
-                  <div className="text-center">{resources.proficiency}</div>
-                  <div className="text-center">{resources.evasion}</div>
-                </div>
-              </div>
-            )}
-
-            {showThresholds && (
-              <div className="bg-muted/60 rounded-md px-2 py-1">
-                <div className="text-muted-foreground text-[10px] leading-3">
-                  Thresholds
-                </div>
-                {/* Interleaved display with clickable numbers */}
-                <div className="flex flex-wrap items-center gap-2 text-[11px] leading-4">
-                  <button
-                    type="button"
-                    className="bg-muted rounded px-1 py-0.5"
-                    title="1 HP (Minor)"
-                    onClick={() => onDeltaHp?.(-1)}
-                  >
-                    1
-                  </button>
-                  <span className="text-muted-foreground">
-                    M: {displayMajor}
-                  </span>
-                  <button
-                    type="button"
-                    className="bg-muted rounded px-1 py-0.5"
-                    title={`2 HP at Major: ${displayMajor}`}
-                    onClick={() => onDeltaHp?.(-2)}
-                  >
-                    2
-                  </button>
-                  <span className="text-muted-foreground">
-                    S: {displaySevere}
-                  </span>
-                  <button
-                    type="button"
-                    className="bg-muted rounded px-1 py-0.5"
-                    title={`3 HP at Severe: ${displaySevere}`}
-                    onClick={() => onDeltaHp?.(-3)}
-                  >
-                    3
-                  </button>
-                  {settings?.enableCritical && (
-                    <>
-                      <span className="text-muted-foreground">
-                        MD: {displayDs}
-                      </span>
-                      <button
-                        type="button"
-                        className="border-destructive/20 bg-destructive/10 text-destructive rounded border px-1 py-0.5"
-                        title={`4 HP at MD: ${displayDs}`}
-                        onClick={() => onDeltaHp?.(-4)}
-                      >
-                        4
-                      </button>
-                    </>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {showResources && (
-              <div className="bg-muted/60 rounded-md px-2 py-1">
-                <div className="text-muted-foreground grid grid-cols-4 gap-x-2 text-[10px] leading-3">
-                  <div className="text-center">HP</div>
-                  <div className="text-center">Stress</div>
-                  <div className="text-center">Hope</div>
-                  <div className="text-center">Armor</div>
-                </div>
-                <div className="grid grid-cols-4 gap-x-2 text-[11px] leading-4 font-semibold">
-                  {/* HP with +/- */}
-                  <div className="flex items-center justify-center gap-1">
-                    <button
-                      type="button"
-                      className="rounded border px-1 text-[11px]"
-                      aria-label="Decrease HP"
-                      onClick={() => onDeltaHp?.(-1)}
-                    >
-                      -
-                    </button>
-                    <div className="min-w-8 text-center tabular-nums">
-                      {resources.hp.current}
-                    </div>
-                    <button
-                      type="button"
-                      className="rounded border px-1 text-[11px]"
-                      aria-label="Increase HP"
-                      onClick={() => onDeltaHp?.(1)}
-                    >
-                      +
-                    </button>
-                  </div>
-                  {/* Stress with +/- */}
-                  <div className="flex items-center justify-center gap-1">
-                    <button
-                      type="button"
-                      className="rounded border px-1 text-[11px]"
-                      aria-label="Decrease Stress"
-                      onClick={() => onDeltaStress?.(-1)}
-                    >
-                      -
-                    </button>
-                    <div className="min-w-8 text-center tabular-nums">
-                      {resources.stress.current}
-                    </div>
-                    <button
-                      type="button"
-                      className="rounded border px-1 text-[11px]"
-                      aria-label="Increase Stress"
-                      onClick={() => onDeltaStress?.(1)}
-                    >
-                      +
-                    </button>
-                  </div>
-                  {/* Hope with +/- */}
-                  <div className="flex items-center justify-center gap-1">
-                    <button
-                      type="button"
-                      className="rounded border px-1 text-[11px]"
-                      aria-label="Decrease Hope"
-                      onClick={() => onDeltaHope?.(-1)}
-                    >
-                      -
-                    </button>
-                    <div className="min-w-8 text-center tabular-nums">
-                      {resources.hope.current}
-                    </div>
-                    <button
-                      type="button"
-                      className="rounded border px-1 text-[11px]"
-                      aria-label="Increase Hope"
-                      onClick={() => onDeltaHope?.(1)}
-                    >
-                      +
-                    </button>
-                  </div>
-                  {/* Armor Score with +/- */}
-                  <div className="flex items-center justify-center gap-1">
-                    <button
-                      type="button"
-                      className="rounded border px-1 text-[11px]"
-                      aria-label="Decrease Armor Score"
-                      onClick={() => onDeltaArmorScore?.(-1)}
-                    >
-                      -
-                    </button>
-                    <div className="min-w-8 text-center tabular-nums">
-                      {resources.armorScore?.current ?? 0}
-                    </div>
-                    <button
-                      type="button"
-                      className="rounded border px-1 text-[11px]"
-                      aria-label="Increase Armor Score"
-                      onClick={() => onDeltaArmorScore?.(1)}
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Compact Gold emoji chip shows only after passing the Gold section */}
-            {showGold && (
-              <div className="bg-muted/60 rounded-md px-2 py-1">
-                <div className="text-muted-foreground text-center text-[10px] leading-3">
-                  Gold
-                </div>
-                <div className="flex items-center justify-center gap-2 text-[11px] leading-4">
-                  <span title="Handfuls">
-                    🪙 {resources.gold?.handfuls ?? 0}
-                  </span>
-                  <span title="Bags">💰 {resources.gold?.bags ?? 0}</span>
-                  <span title="Chests">🧰 {resources.gold?.chests ?? 0}</span>
-                </div>
-              </div>
-            )}
-
-            {/* Removed duplicate Gold detail chip — Gold is shown within Resources */}
-          </div>
-        </div>
+        <SheetHeaderMobileChips
+          showClass={showClass}
+          showTraits={showTraits}
+          showCore={showCore}
+          showThresholds={showThresholds}
+          showResources={showResources}
+          showGold={showGold}
+          classDraft={classDraft}
+          level={level}
+          traits={traits}
+          resources={resources}
+          displayMajor={displayMajor}
+          displaySevere={displaySevere}
+          displayDs={displayDs}
+          enableCritical={settings?.enableCritical}
+          onDeltaHp={onDeltaHp}
+          onDeltaStress={onDeltaStress}
+          onDeltaHope={onDeltaHope}
+          onDeltaArmorScore={onDeltaArmorScore}
+        />
       )}
     </div>
   );

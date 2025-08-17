@@ -1,5 +1,4 @@
 // No header edit icon; title becomes tappable
-
 import { CardScaffold } from '@/components/characters/identity/card-scaffold';
 import { FeatureBlock } from '@/components/characters/identity/feature-block';
 import { HomebrewBadge } from '@/components/characters/identity/homebrew-badge';
@@ -16,6 +15,12 @@ export function CommunityCard({
   communityDetails?: CommunityDetails;
   onEdit: () => void;
 }) {
+  const isInteractive = (t: EventTarget | null) => {
+    if (!(t instanceof HTMLElement)) return false;
+    return !!t.closest(
+      'button, a, input, textarea, select, [role="button"], [role="link"], [contenteditable="true"], [data-no-open]'
+    );
+  };
   const normalized = normalizeCommunity({
     community,
     details: communityDetails,
@@ -36,7 +41,8 @@ export function CommunityCard({
           <span>{normalized.name}</span>
           {isHomebrew ? <HomebrewBadge /> : null}
         </div>
-        <TraitChips traits={normalized.traits} />
+        {/* Trait chips (compact) */}
+        <TraitChips traits={normalized.traits} prefix="🏷️" />
         {feature ? (
           <FeatureBlock
             icon={'✨'}
@@ -51,11 +57,29 @@ export function CommunityCard({
   return (
     <CardScaffold
       title="Community"
-      subtitle="Tap the title to edit"
+      subtitle="Tap title or section to edit"
+      titleClassName="text-lg sm:text-xl"
       onTitleClick={onEdit}
       actions={null}
     >
-      {content}
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={e => {
+          if (isInteractive(e.target)) return;
+          onEdit();
+        }}
+        onKeyDown={e => {
+          if (isInteractive(e.target)) return;
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onEdit();
+          }
+        }}
+        className="hover:bg-accent/30 focus-visible:ring-ring cursor-pointer rounded-md transition-colors focus-visible:ring-2 focus-visible:outline-none"
+      >
+        {content}
+      </div>
     </CardScaffold>
   );
 }

@@ -18,7 +18,7 @@ function useHarness(
   initial?: Partial<{ loadout: DomainCard[]; vault: DomainCard[] }>
 ) {
   const form = useForm<{ loadout: DomainCard[]; vault: DomainCard[] }>({
-    defaultValues: { loadout: [], vault: [], ...(initial ?? {}) },
+    defaultValues: { loadout: [], vault: [], ...initial },
     mode: 'onChange',
   });
   return useLoadoutLists(form as any);

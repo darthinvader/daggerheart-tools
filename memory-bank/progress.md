@@ -35,6 +35,14 @@ Updated: August 16, 2025 (latest)
   - Persisted via new storage keys `experience` and `experiences`; schema parity with `PlayerCharacterSchema` (name, trait?, bonus 1|2, notes?).
   - Tests added (`tests/experiences-card.test.tsx`). Full suite PASS.
 
+Virtualization (Aug 16, 2025):
+
+- Added a shared `VirtualList` component with SSR/small-list fallback, accurate dynamic measurement, and ul/li semantics.
+- Integrated `VirtualList` into Inventory surfaces:
+  - `src/components/characters/inventory/presenters/InventoryList.tsx` (card) — guarded virtualization with pagination preserved.
+  - `src/components/characters/inventory-drawer/library-results-list.tsx` (drawer library) — switched from map over <ul> to `VirtualList` with a `RowContent` presenter to avoid nested li.
+- Quality gates after each integration: full test suite PASS (54/54), typecheck PASS.
+
 Refactors and reductions (Aug 11, 2025)
 
 - `src/components/ui/sidebar.tsx` reduced to ~10.1 KB by extracting `context.tsx`, `variants.ts`, and `menu.tsx`.
@@ -90,7 +98,7 @@ Estimated completion
 - Features: ~15%
 - Tests: ~20%
 
-Technical health
+Last validated (2025-08-17): All tests green (54/54), typecheck clean. Inventory lists virtualized and ranked search in place. Domains drawer list migrated to shared VirtualList.
 
 - Type safety: Excellent
 - Lint/format: Good
@@ -98,11 +106,13 @@ Technical health
 - Tests: PASS (20). Build: PASS. Type-check: PASS.
 - Analyzer: PASS. `$id.tsx` down to ~14.0 KB; domains-drawer remains top at ~15.2 KB (already split earlier).
 
+- Domains drawer available cards list unified onto shared VirtualList (estimateSize ~120, overscan tuned; small-list fallback)
+
 ## Known Issues
 
 - Some domain descriptions need formatting polish; bundle has large chunk warnings
-- Vault layout still needs visual polish despite narrower width and vertical action buttons
-- Edge cases in progression need tests
+- Review analyzer output (stats.html) for further lazy-load and chunking opportunities
+- Reduce complexity in large/complex files (chart.tsx, library-results-list.tsx, build-homebrew-item.ts)
 - Broader persistence layer beyond localStorage is not started
 - ESLint shows some warnings (react-refresh only-export-components in UI files; console statements in test scripts); non-blocking.
 - Some shadcn-generated UI shells have very long lines; treat as vendor-like and defer changes unless ergonomics need improvement.
@@ -113,7 +123,8 @@ Technical health
 - [ ] End-to-end character creation (identity → class → traits → domains)
 - [ ] Character sheet with core interactions
 - [ ] Level-up with points
-- [ ] Save/load characters
+- Replaced Domains custom virtual list with shared VirtualList; resolved compile errors; validated via full test run
+- Refreshed size-limit and size report; bundle within limit (417.82 kB brotlied)
 - [ ] Mobile-friendly layout
 
 ## Next Milestone

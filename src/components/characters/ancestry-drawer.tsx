@@ -171,6 +171,8 @@ export function AncestryDrawer({
                             );
                           }}
                           featureType="primary"
+                          showSearch={false}
+                          collapsible
                         />
                         <MixedList
                           label="Secondary Feature From"
@@ -183,6 +185,8 @@ export function AncestryDrawer({
                             );
                           }}
                           featureType="secondary"
+                          showSearch={false}
+                          collapsible
                         />
                       </div>
                     </div>

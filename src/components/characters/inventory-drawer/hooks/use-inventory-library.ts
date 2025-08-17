@@ -11,6 +11,7 @@ import {
   ALL_UTILITY_ITEMS,
   ALL_WEAPON_MODIFICATIONS,
 } from '@/lib/data/equipment';
+import { rankAdvanced, rankings } from '@/utils/search/rank';
 
 export type UseInventoryLibraryState = {
   query: string;
@@ -58,17 +59,8 @@ export function useInventoryLibrary(): UseInventoryLibraryResult {
   const [tier, setTier] = React.useState<Tier>('');
 
   const results = React.useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return items.filter(i => {
-      // text search
-      const text = (
-        `${i.name} ${(i as { category?: string }).category ?? ''} ` +
-        `${(i as { rarity?: string }).rarity ?? ''} ` +
-        `${String((i as { tier?: string | number }).tier ?? '')} ` +
-        `${(i as { description?: string }).description ?? ''}`
-      ).toLowerCase();
-      if (q && !text.includes(q)) return false;
-      // category filter (Potion is a Consumable sub-type)
+    // Step 1: apply structural filters first (category, rarity, tier)
+    const filtered = items.filter(i => {
       if (category) {
         const cat = (i as { category?: string }).category;
         if (category === 'Potion') {
@@ -81,9 +73,7 @@ export function useInventoryLibrary(): UseInventoryLibraryResult {
           return false;
         }
       }
-      // rarity filter
       if (rarity && (i as { rarity?: string }).rarity !== rarity) return false;
-      // tier filter
       if (tier) {
         const rawTier = (i as { tier?: string | number | undefined }).tier;
         const itemTier =
@@ -92,6 +82,31 @@ export function useInventoryLibrary(): UseInventoryLibraryResult {
       }
       return true;
     });
+
+    const q = query.trim();
+    if (!q) return filtered;
+
+    // Step 2: rank results using shared rank util (name primary, then description/tags)
+    type Rankable = LibraryItem & {
+      category?: string;
+      rarity?: string;
+      tier?: string | number;
+      description?: string;
+      tags?: string[];
+    };
+    return rankAdvanced<Rankable>(
+      filtered as Rankable[],
+      q,
+      [
+        { key: i => i.name, threshold: rankings.CONTAINS },
+        i => i.category ?? '',
+        i => i.rarity ?? '',
+        i => String(i.tier ?? ''),
+        i => i.description ?? '',
+        i => (Array.isArray(i.tags) ? i.tags.join(' ') : ''),
+      ],
+      rankings.CONTAINS
+    );
   }, [items, query, category, rarity, tier]);
 
   const getByName = React.useCallback(
