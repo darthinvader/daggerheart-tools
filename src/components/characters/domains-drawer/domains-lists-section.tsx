@@ -48,7 +48,11 @@ export function DomainsListsSection({
           <LoadoutList
             items={currentLoadout}
             afterOpen={afterOpen}
+            inLoadout={inLoadout}
+            disableAdd={disableAdd}
+            addToLoadout={addToLoadout}
             onRemove={removeFromLoadout}
+            removeFromVault={removeFromVault}
           />
         )}
       />
@@ -63,7 +67,7 @@ export function DomainsListsSection({
             disableAdd={disableAdd}
             onAdd={addToLoadout}
             onRemoveFromLoadout={removeFromLoadout}
-            onRemoveFromVault={removeFromVault}
+            removeFromVault={removeFromVault}
           />
         )}
       />

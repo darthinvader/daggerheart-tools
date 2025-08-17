@@ -50,7 +50,17 @@ export function CardScaffold({
             <CardTitle className={titleClassName}>{title}</CardTitle>
           )}
           {subtitle ? (
-            <div className="text-muted-foreground text-xs">{subtitle}</div>
+            onTitleClick ? (
+              <button
+                type="button"
+                onClick={onTitleClick}
+                className="text-muted-foreground text-xs hover:underline"
+              >
+                {subtitle}
+              </button>
+            ) : (
+              <div className="text-muted-foreground text-xs">{subtitle}</div>
+            )
           ) : null}
         </div>
         {actions ? (

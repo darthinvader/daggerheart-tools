@@ -23,15 +23,40 @@ export function ClassCard({
   features = [],
   selections,
 }: ClassCardProps) {
+  const isInteractive = (t: EventTarget | null) => {
+    if (!(t instanceof HTMLElement)) return false;
+    return !!t.closest(
+      'button, a, input, textarea, select, [role="button"], [role="link"], [contenteditable="true"], [data-no-open]'
+    );
+  };
   return (
     <Card>
       <CharacterCardHeader
         title="Class & Subclass"
-        subtitle="Tap the title to edit"
+        subtitle="Tap title or section to edit"
         titleClassName="text-lg sm:text-xl"
         onTitleClick={onEdit}
       />
-      <CardContent>
+      <CardContent
+        role={onEdit ? 'button' : undefined}
+        tabIndex={onEdit ? 0 : undefined}
+        onClick={e => {
+          if (!onEdit || isInteractive(e.target)) return;
+          onEdit();
+        }}
+        onKeyDown={e => {
+          if (!onEdit || isInteractive(e.target)) return;
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onEdit();
+          }
+        }}
+        className={
+          onEdit
+            ? 'hover:bg-accent/30 focus-visible:ring-ring cursor-pointer rounded-md transition-colors focus-visible:ring-2 focus-visible:outline-none'
+            : undefined
+        }
+      >
         <div className="min-w-0 text-sm">
           <ClassSummary className={selectedClass} subclass={selectedSubclass} />
         </div>

@@ -50,11 +50,24 @@ export function CharacterCardHeader({
           <CardTitle className={titleClassName}>{title}</CardTitle>
         )}
         {subtitle ? (
-          <div
-            className={cn('text-muted-foreground text-xs', subtitleClassName)}
-          >
-            {subtitle}
-          </div>
+          onTitleClick ? (
+            <button
+              type="button"
+              onClick={onTitleClick}
+              className={cn(
+                'text-muted-foreground text-xs hover:underline',
+                subtitleClassName
+              )}
+            >
+              {subtitle}
+            </button>
+          ) : (
+            <div
+              className={cn('text-muted-foreground text-xs', subtitleClassName)}
+            >
+              {subtitle}
+            </div>
+          )
         ) : null}
       </div>
       {actions ? (

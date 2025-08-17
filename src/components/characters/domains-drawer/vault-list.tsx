@@ -1,6 +1,14 @@
-import { DomainCardItem } from '@/components/characters/domain-card-item';
-import { FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import * as React from 'react';
+
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { FormItem, FormMessage } from '@/components/ui/form';
 import type { DomainCard } from '@/lib/schemas/domains';
+
+import { DomainSimpleList } from './DomainSimpleList';
 
 type Props = {
   items: DomainCard[];
@@ -9,7 +17,7 @@ type Props = {
   disableAdd: boolean;
   onAdd: (card: DomainCard) => void;
   onRemoveFromLoadout: (card: DomainCard) => void;
-  onRemoveFromVault: (card: DomainCard) => void;
+  removeFromVault: (card: DomainCard) => void;
 };
 
 export function VaultList({
@@ -19,34 +27,47 @@ export function VaultList({
   disableAdd,
   onAdd,
   onRemoveFromLoadout,
-  onRemoveFromVault,
+  removeFromVault,
 }: Props) {
+  const visibleItems = React.useMemo(
+    () => items.filter(card => !inLoadout(card)),
+    [items, inLoadout]
+  );
   return (
     <FormItem>
-      <FormLabel>Vault ({items.length})</FormLabel>
-      <div className="divide-border rounded-md border">
-        {!afterOpen ? (
-          <div className="text-muted-foreground p-3 text-sm">Preparing…</div>
-        ) : items.length === 0 ? (
-          <div className="text-muted-foreground p-3 text-sm">
-            No owned cards
-          </div>
-        ) : (
-          items.map(card => (
-            <div key={`vault:${card.name}`} className="cv-auto-120">
-              <DomainCardItem
-                card={card}
-                context="vault"
-                inLoadout={inLoadout(card)}
+      <Collapsible defaultOpen>
+        <div className="flex items-center justify-between">
+          <CollapsibleTrigger
+            className="text-sm font-medium hover:underline"
+            aria-label="Toggle Vault list"
+          >
+            Vault ({visibleItems.length})
+          </CollapsibleTrigger>
+        </div>
+        <CollapsibleContent asChild>
+          <div className="mt-2">
+            {!afterOpen ? (
+              <div className="text-muted-foreground rounded-md border p-3 text-sm">
+                Preparing…
+              </div>
+            ) : visibleItems.length === 0 ? (
+              <div className="text-muted-foreground rounded-md border p-3 text-sm">
+                No owned cards
+              </div>
+            ) : (
+              <DomainSimpleList
+                items={visibleItems}
+                inLoadout={inLoadout}
                 disableAdd={disableAdd}
-                onAddToLoadout={onAdd}
-                onRemoveFromLoadout={onRemoveFromLoadout}
-                onRemoveFromVault={onRemoveFromVault}
+                addToLoadout={onAdd}
+                removeFromLoadout={onRemoveFromLoadout}
+                onRemoveCompletely={removeFromVault}
+                detailsVisibility="always"
               />
-            </div>
-          ))
-        )}
-      </div>
+            )}
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
       <FormMessage />
     </FormItem>
   );

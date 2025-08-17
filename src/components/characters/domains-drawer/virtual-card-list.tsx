@@ -46,7 +46,7 @@ export function VirtualCardList({
       className={containerClass}
       containerProps={{ 'aria-busy': closing || undefined }}
       getKey={item => `${item.domain}:${item.name}`}
-      renderRow={({ item }) => (
+      renderRow={({ item, measureElement }) => (
         <DomainCardItem
           card={item}
           context="available"
@@ -54,6 +54,7 @@ export function VirtualCardList({
           disableAdd={disableAdd}
           onAddToLoadout={addToLoadout}
           onRemoveFromLoadout={removeFromLoadout}
+          measureElement={measureElement}
         />
       )}
     />

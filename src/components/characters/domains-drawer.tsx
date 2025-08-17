@@ -142,6 +142,13 @@ function DomainsDrawerImpl({
     [currentLoadout]
   );
 
+  // Selected in Available if present in loadout OR in vault
+  const isSelected = React.useCallback(
+    (c: DomainCard) =>
+      inLoadout(c) || currentVault.some(v => v.name === c.name),
+    [inLoadout, currentVault]
+  );
+
   return (
     <DrawerScaffold
       open={open}
@@ -194,6 +201,7 @@ function DomainsDrawerImpl({
               cards={cards}
               isLoadingCards={isLoadingCards}
               inLoadout={inLoadout}
+              isSelected={isSelected}
               disableAdd={disableAdd}
               addToLoadout={addToLoadout}
               removeFromLoadout={removeFromLoadout}

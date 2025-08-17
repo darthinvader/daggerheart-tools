@@ -1,5 +1,6 @@
 import * as React from 'react';
 
+import { DomainSimpleList } from '@/components/characters/domains-drawer/DomainSimpleList';
 import { AvailableCardsSection } from '@/components/characters/domains-drawer/available-cards-section';
 import { DomainsFilterBar } from '@/components/characters/domains-drawer/domains-filter-bar';
 import { TabsHeader } from '@/components/characters/domains-drawer/tabs-header';
@@ -24,6 +25,7 @@ export type DomainsTabsProps = {
   cards: DomainCard[];
   isLoadingCards: boolean;
   inLoadout: (c: DomainCard) => boolean;
+  isSelected: (c: DomainCard) => boolean;
   disableAdd: boolean;
   addToLoadout: (c: DomainCard) => void;
   removeFromLoadout: (c: DomainCard) => void;
@@ -56,6 +58,7 @@ export function DomainsTabs(props: DomainsTabsProps) {
     cards,
     isLoadingCards,
     inLoadout,
+    isSelected,
     addToLoadout,
     removeFromLoadout,
     domainFilter,
@@ -74,13 +77,14 @@ export function DomainsTabs(props: DomainsTabsProps) {
   } = props;
 
   const [activeTab, setActiveTab] = React.useState<
-    'filtered' | 'any' | 'homebrew'
+    'filtered' | 'any' | 'simple' | 'homebrew'
   >('filtered');
 
   const activeList = React.useMemo(() => {
     if (!open || !afterOpen) return [] as DomainCard[];
     if (activeTab === 'filtered') return filterCards(cards, true);
-    if (activeTab === 'any') return filterCards(cards, false);
+    if (activeTab === 'any' || activeTab === 'simple')
+      return filterCards(cards, false);
     return [] as DomainCard[];
   }, [activeTab, cards, filterCards, open, afterOpen]);
 
@@ -117,6 +121,7 @@ export function DomainsTabs(props: DomainsTabsProps) {
           closing={closing}
           virtualOverscan={virtualOverscan}
           inLoadout={inLoadout}
+          isSelected={isSelected}
           disableAdd={disableAddFlag}
           addToLoadout={addToLoadout}
           removeFromLoadout={removeFromLoadout}
@@ -146,6 +151,20 @@ export function DomainsTabs(props: DomainsTabsProps) {
             measure={afterOpen && measureReady && !closing}
             closing={closing}
             virtualOverscan={virtualOverscan}
+            inLoadout={inLoadout}
+            isSelected={isSelected}
+            disableAdd={disableAddFlag}
+            addToLoadout={addToLoadout}
+            removeFromLoadout={removeFromLoadout}
+          />
+        </div>
+      </TabsContent>
+
+      <TabsContent value="simple" className="space-y-3">
+        <div className="space-y-2">
+          <div className="text-sm font-medium">Simple List</div>
+          <DomainSimpleList
+            items={deferredList}
             inLoadout={inLoadout}
             disableAdd={disableAddFlag}
             addToLoadout={addToLoadout}
