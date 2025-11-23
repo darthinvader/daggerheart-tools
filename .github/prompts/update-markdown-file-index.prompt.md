@@ -4,8 +4,8 @@ description: 'Update a markdown file section with an index/table of files from a
 tools:
   [
     'changes',
-    'codebase',
-    'editFiles',
+    'search/codebase',
+    'edit/editFiles',
     'extensions',
     'fetch',
     'findTestFiles',
@@ -16,9 +16,9 @@ tools:
     'runTasks',
     'runTests',
     'search',
-    'searchResults',
-    'terminalLastCommand',
-    'terminalSelection',
+    'search/searchResults',
+    'runCommands/terminalLastCommand',
+    'runCommands/terminalSelection',
     'testFailure',
     'usages',
     'vscodeAPI',

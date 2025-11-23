@@ -4,8 +4,8 @@ description: 'Create a new specification file for the solution, optimized for Ge
 tools:
   [
     'changes',
-    'codebase',
-    'editFiles',
+    'search/codebase',
+    'edit/editFiles',
     'extensions',
     'fetch',
     'githubRepo',
@@ -13,9 +13,9 @@ tools:
     'problems',
     'runTasks',
     'search',
-    'searchResults',
-    'terminalLastCommand',
-    'terminalSelection',
+    'search/searchResults',
+    'runCommands/terminalLastCommand',
+    'runCommands/terminalSelection',
     'testFailure',
     'usages',
     'vscodeAPI',
@@ -136,10 +136,9 @@ tags: [Optional: List of relevant tags or categories, e.g., `infrastructure`, `p
 
 ## 9. Examples & Edge Cases
 
-```code
-// Code snippet or data example demonstrating the correct application of the guidelines, including edge cases
-```
-````
+    ```code
+    // Code snippet or data example demonstrating the correct application of the guidelines, including edge cases
+    ```
 
 ## 10. Validation Criteria
 
@@ -149,7 +148,4 @@ tags: [Optional: List of relevant tags or categories, e.g., `infrastructure`, `p
 
 [Link to related spec 1]
 [Link to relevant external documentation]
-
-```
-
-```
+````

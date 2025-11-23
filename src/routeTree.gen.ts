@@ -9,156 +9,38 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ShowcaseDateSectionsRouteImport } from './routes/showcase-date-sections'
-import { Route as ShowcaseChartSectionRouteImport } from './routes/showcase-chart-section'
-import { Route as ShowcaseRouteImport } from './routes/showcase'
-import { Route as CharactersRouteImport } from './routes/characters'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as CharactersIndexRouteImport } from './routes/characters.index'
-import { Route as CharactersNewRouteImport } from './routes/characters/new'
-import { Route as CharactersIdRouteImport } from './routes/characters/$id'
 
-const ShowcaseDateSectionsRoute = ShowcaseDateSectionsRouteImport.update({
-  id: '/showcase-date-sections',
-  path: '/showcase-date-sections',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ShowcaseChartSectionRoute = ShowcaseChartSectionRouteImport.update({
-  id: '/showcase-chart-section',
-  path: '/showcase-chart-section',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ShowcaseRoute = ShowcaseRouteImport.update({
-  id: '/showcase',
-  path: '/showcase',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CharactersRoute = CharactersRouteImport.update({
-  id: '/characters',
-  path: '/characters',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CharactersIndexRoute = CharactersIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => CharactersRoute,
-} as any)
-const CharactersNewRoute = CharactersNewRouteImport.update({
-  id: '/new',
-  path: '/new',
-  getParentRoute: () => CharactersRoute,
-} as any)
-const CharactersIdRoute = CharactersIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => CharactersRoute,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/characters': typeof CharactersRouteWithChildren
-  '/showcase': typeof ShowcaseRoute
-  '/showcase-chart-section': typeof ShowcaseChartSectionRoute
-  '/showcase-date-sections': typeof ShowcaseDateSectionsRoute
-  '/characters/$id': typeof CharactersIdRoute
-  '/characters/new': typeof CharactersNewRoute
-  '/characters/': typeof CharactersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/showcase': typeof ShowcaseRoute
-  '/showcase-chart-section': typeof ShowcaseChartSectionRoute
-  '/showcase-date-sections': typeof ShowcaseDateSectionsRoute
-  '/characters/$id': typeof CharactersIdRoute
-  '/characters/new': typeof CharactersNewRoute
-  '/characters': typeof CharactersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/characters': typeof CharactersRouteWithChildren
-  '/showcase': typeof ShowcaseRoute
-  '/showcase-chart-section': typeof ShowcaseChartSectionRoute
-  '/showcase-date-sections': typeof ShowcaseDateSectionsRoute
-  '/characters/$id': typeof CharactersIdRoute
-  '/characters/new': typeof CharactersNewRoute
-  '/characters/': typeof CharactersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/characters'
-    | '/showcase'
-    | '/showcase-chart-section'
-    | '/showcase-date-sections'
-    | '/characters/$id'
-    | '/characters/new'
-    | '/characters/'
+  fullPaths: '/'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/showcase'
-    | '/showcase-chart-section'
-    | '/showcase-date-sections'
-    | '/characters/$id'
-    | '/characters/new'
-    | '/characters'
-  id:
-    | '__root__'
-    | '/'
-    | '/characters'
-    | '/showcase'
-    | '/showcase-chart-section'
-    | '/showcase-date-sections'
-    | '/characters/$id'
-    | '/characters/new'
-    | '/characters/'
+  to: '/'
+  id: '__root__' | '/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  CharactersRoute: typeof CharactersRouteWithChildren
-  ShowcaseRoute: typeof ShowcaseRoute
-  ShowcaseChartSectionRoute: typeof ShowcaseChartSectionRoute
-  ShowcaseDateSectionsRoute: typeof ShowcaseDateSectionsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/showcase-date-sections': {
-      id: '/showcase-date-sections'
-      path: '/showcase-date-sections'
-      fullPath: '/showcase-date-sections'
-      preLoaderRoute: typeof ShowcaseDateSectionsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/showcase-chart-section': {
-      id: '/showcase-chart-section'
-      path: '/showcase-chart-section'
-      fullPath: '/showcase-chart-section'
-      preLoaderRoute: typeof ShowcaseChartSectionRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/showcase': {
-      id: '/showcase'
-      path: '/showcase'
-      fullPath: '/showcase'
-      preLoaderRoute: typeof ShowcaseRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/characters': {
-      id: '/characters'
-      path: '/characters'
-      fullPath: '/characters'
-      preLoaderRoute: typeof CharactersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -166,52 +48,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/characters/': {
-      id: '/characters/'
-      path: '/'
-      fullPath: '/characters/'
-      preLoaderRoute: typeof CharactersIndexRouteImport
-      parentRoute: typeof CharactersRoute
-    }
-    '/characters/new': {
-      id: '/characters/new'
-      path: '/new'
-      fullPath: '/characters/new'
-      preLoaderRoute: typeof CharactersNewRouteImport
-      parentRoute: typeof CharactersRoute
-    }
-    '/characters/$id': {
-      id: '/characters/$id'
-      path: '/$id'
-      fullPath: '/characters/$id'
-      preLoaderRoute: typeof CharactersIdRouteImport
-      parentRoute: typeof CharactersRoute
-    }
   }
 }
 
-interface CharactersRouteChildren {
-  CharactersIdRoute: typeof CharactersIdRoute
-  CharactersNewRoute: typeof CharactersNewRoute
-  CharactersIndexRoute: typeof CharactersIndexRoute
-}
-
-const CharactersRouteChildren: CharactersRouteChildren = {
-  CharactersIdRoute: CharactersIdRoute,
-  CharactersNewRoute: CharactersNewRoute,
-  CharactersIndexRoute: CharactersIndexRoute,
-}
-
-const CharactersRouteWithChildren = CharactersRoute._addFileChildren(
-  CharactersRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  CharactersRoute: CharactersRouteWithChildren,
-  ShowcaseRoute: ShowcaseRoute,
-  ShowcaseChartSectionRoute: ShowcaseChartSectionRoute,
-  ShowcaseDateSectionsRoute: ShowcaseDateSectionsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

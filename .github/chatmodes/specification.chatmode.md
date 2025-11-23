@@ -3,8 +3,8 @@ description: 'Generate or update specification documents for new or existing fun
 tools:
   [
     'changes',
-    'codebase',
-    'editFiles',
+    'search/codebase',
+    'edit/editFiles',
     'extensions',
     'fetch',
     'findTestFiles',
@@ -16,9 +16,9 @@ tools:
     'runTasks',
     'runTests',
     'search',
-    'searchResults',
-    'terminalLastCommand',
-    'terminalSelection',
+    'search/searchResults',
+    'runCommands/terminalLastCommand',
+    'runCommands/terminalSelection',
     'testFailure',
     'usages',
     'vscodeAPI',

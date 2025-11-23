@@ -4,8 +4,8 @@ description: 'Update the llms.txt file in the root folder to reflect changes in 
 tools:
   [
     'changes',
-    'codebase',
-    'editFiles',
+    'search/codebase',
+    'edit/editFiles',
     'extensions',
     'fetch',
     'githubRepo',
@@ -13,9 +13,9 @@ tools:
     'problems',
     'runTasks',
     'search',
-    'searchResults',
-    'terminalLastCommand',
-    'terminalSelection',
+    'search/searchResults',
+    'runCommands/terminalLastCommand',
+    'runCommands/terminalSelection',
     'testFailure',
     'usages',
     'vscodeAPI',

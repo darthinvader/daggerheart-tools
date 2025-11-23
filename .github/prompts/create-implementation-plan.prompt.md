@@ -4,8 +4,8 @@ description: 'Create a new implementation plan file for new features, refactorin
 tools:
   [
     'changes',
-    'codebase',
-    'editFiles',
+    'search/codebase',
+    'edit/editFiles',
     'extensions',
     'fetch',
     'githubRepo',
@@ -13,9 +13,9 @@ tools:
     'problems',
     'runTasks',
     'search',
-    'searchResults',
-    'terminalLastCommand',
-    'terminalSelection',
+    'search/searchResults',
+    'runCommands/terminalLastCommand',
+    'runCommands/terminalSelection',
     'testFailure',
     'usages',
     'vscodeAPI',

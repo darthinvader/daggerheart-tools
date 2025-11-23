@@ -4,15 +4,15 @@ description: 'Generate a comprehensive repository summary and narrative story fr
 tools:
   [
     'changes',
-    'codebase',
-    'editFiles',
+    'search/codebase',
+    'edit/editFiles',
     'githubRepo',
     'runCommands',
     'runTasks',
     'search',
-    'searchResults',
-    'terminalLastCommand',
-    'terminalSelection',
+    'search/searchResults',
+    'runCommands/terminalLastCommand',
+    'runCommands/terminalSelection',
   ]
 ---
 

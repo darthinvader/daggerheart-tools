@@ -4,22 +4,21 @@ description: 'Generate a Playwright test based on a scenario using Playwright MC
 tools:
   [
     'changes',
-    'codebase',
-    'editFiles',
+    'search/codebase',
+    'edit/editFiles',
     'fetch',
-    'findTestFiles',
     'problems',
     'runCommands',
     'runTasks',
     'runTests',
     'search',
-    'searchResults',
-    'terminalLastCommand',
-    'terminalSelection',
+    'search/searchResults',
+    'runCommands/terminalLastCommand',
+    'runCommands/terminalSelection',
     'testFailure',
-    'playwright',
+    'playwright/*',
   ]
-model: 'Claude Sonnet 4'
+model: 'Claude Sonnet 4.5'
 ---
 
 # Test Generation with Playwright MCP

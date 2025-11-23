@@ -3,7 +3,7 @@ description: 'Generate a comprehensive Product Requirements Document (PRD) in Ma
 tools:
   [
     'codebase',
-    'editFiles',
+    'edit/editFiles',
     'fetch',
     'findTestFiles',
     'list_issues',

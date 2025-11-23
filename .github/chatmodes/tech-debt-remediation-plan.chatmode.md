@@ -4,7 +4,7 @@ tools:
   [
     'changes',
     'codebase',
-    'editFiles',
+    'edit/editFiles',
     'extensions',
     'fetch',
     'findTestFiles',

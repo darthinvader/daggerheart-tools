@@ -4,7 +4,7 @@ tools:
   [
     'github',
     'findTestFiles',
-    'editFiles',
+    'edit/editFiles',
     'runTests',
     'runCommands',
     'codebase',
