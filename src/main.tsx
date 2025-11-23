@@ -4,6 +4,7 @@ import { StrictMode } from 'react';
 
 import { RouterProvider, createRouter } from '@tanstack/react-router';
 
+import { DeviceTypeProvider } from '@/components/device-type-provider';
 import { ThemeProvider } from '@/components/theme-provider';
 
 import './global-error-log';
@@ -33,7 +34,9 @@ declare module '@tanstack/react-router' {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-      <RouterProvider router={router} />
+      <DeviceTypeProvider>
+        <RouterProvider router={router} />
+      </DeviceTypeProvider>
     </ThemeProvider>
   </StrictMode>
 );
