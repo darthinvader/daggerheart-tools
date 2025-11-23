@@ -38,7 +38,7 @@ describe('estimateItemCost samples', () => {
       const it = byName(n);
       expect(it, `Item not found: ${n}`).toBeTruthy();
       const c = estimateItemCost(it);
-       
+
       console.log(`${n}: H=${c.handfuls}, B=${c.bags}, C=${c.chests}`);
       expect(c.handfuls).toBeGreaterThanOrEqual(0);
       expect(c.bags).toBeGreaterThanOrEqual(0);
