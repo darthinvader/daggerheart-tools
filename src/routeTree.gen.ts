@@ -10,11 +10,19 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as DemonstrationRouteImport } from './routes/demonstration'
+import { Route as CharacterRouteImport } from './routes/character'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CharacterIndexRouteImport } from './routes/character/index'
+import { Route as CharacterNewRouteImport } from './routes/character/new'
 
 const DemonstrationRoute = DemonstrationRouteImport.update({
   id: '/demonstration',
   path: '/demonstration',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CharacterRoute = CharacterRouteImport.update({
+  id: '/character',
+  path: '/character',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -22,30 +30,60 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CharacterIndexRoute = CharacterIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CharacterRoute,
+} as any)
+const CharacterNewRoute = CharacterNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => CharacterRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/character': typeof CharacterRouteWithChildren
   '/demonstration': typeof DemonstrationRoute
+  '/character/new': typeof CharacterNewRoute
+  '/character/': typeof CharacterIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/demonstration': typeof DemonstrationRoute
+  '/character/new': typeof CharacterNewRoute
+  '/character': typeof CharacterIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/character': typeof CharacterRouteWithChildren
   '/demonstration': typeof DemonstrationRoute
+  '/character/new': typeof CharacterNewRoute
+  '/character/': typeof CharacterIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/demonstration'
+  fullPaths:
+    | '/'
+    | '/character'
+    | '/demonstration'
+    | '/character/new'
+    | '/character/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/demonstration'
-  id: '__root__' | '/' | '/demonstration'
+  to: '/' | '/demonstration' | '/character/new' | '/character'
+  id:
+    | '__root__'
+    | '/'
+    | '/character'
+    | '/demonstration'
+    | '/character/new'
+    | '/character/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CharacterRoute: typeof CharacterRouteWithChildren
   DemonstrationRoute: typeof DemonstrationRoute
 }
 
@@ -58,6 +96,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemonstrationRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/character': {
+      id: '/character'
+      path: '/character'
+      fullPath: '/character'
+      preLoaderRoute: typeof CharacterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -65,11 +110,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/character/': {
+      id: '/character/'
+      path: '/'
+      fullPath: '/character/'
+      preLoaderRoute: typeof CharacterIndexRouteImport
+      parentRoute: typeof CharacterRoute
+    }
+    '/character/new': {
+      id: '/character/new'
+      path: '/new'
+      fullPath: '/character/new'
+      preLoaderRoute: typeof CharacterNewRouteImport
+      parentRoute: typeof CharacterRoute
+    }
   }
 }
 
+interface CharacterRouteChildren {
+  CharacterNewRoute: typeof CharacterNewRoute
+  CharacterIndexRoute: typeof CharacterIndexRoute
+}
+
+const CharacterRouteChildren: CharacterRouteChildren = {
+  CharacterNewRoute: CharacterNewRoute,
+  CharacterIndexRoute: CharacterIndexRoute,
+}
+
+const CharacterRouteWithChildren = CharacterRoute._addFileChildren(
+  CharacterRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CharacterRoute: CharacterRouteWithChildren,
   DemonstrationRoute: DemonstrationRoute,
 }
 export const routeTree = rootRouteImport

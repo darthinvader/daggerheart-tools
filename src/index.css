@@ -27,13 +27,13 @@
   /* Darker primary for strong contrast with white text */
   --primary: oklch(0.52 0.2 235);
   --primary-foreground: oklch(0.985 0.001 106.423);
-  /* Lighter gold with dark text */
-  --secondary: oklch(0.88 0.14 85);
-  --secondary-foreground: oklch(0.22 0.02 255);
-  --muted: oklch(0.95 0.01 255);
-  --muted-foreground: oklch(0.45 0.03 255);
-  --accent: oklch(0.93 0.08 85);
-  --accent-foreground: oklch(0.22 0.02 255);
+  /* Lighter blue with dark text */
+  --secondary: oklch(0.9 0.05 235);
+  --secondary-foreground: oklch(0.22 0.02 235);
+  --muted: oklch(0.95 0.01 235);
+  --muted-foreground: oklch(0.45 0.03 235);
+  --accent: oklch(0.94 0.03 235);
+  --accent-foreground: oklch(0.22 0.02 235);
   --destructive: oklch(0.6 0.23 27);
   /* Match shadcn variable set */
   --destructive-foreground: oklch(0.985 0.001 106.423);
@@ -49,8 +49,8 @@
   --sidebar-foreground: oklch(0.22 0.02 255);
   --sidebar-primary: oklch(0.61 0.16 235);
   --sidebar-primary-foreground: oklch(0.985 0.001 106.423);
-  --sidebar-accent: oklch(0.92 0.12 85);
-  --sidebar-accent-foreground: oklch(0.22 0.02 255);
+  --sidebar-accent: oklch(0.92 0.04 235);
+  --sidebar-accent-foreground: oklch(0.22 0.02 235);
   --sidebar-border: oklch(0.92 0.01 255);
   --sidebar-ring: oklch(0.68 0.13 235);
 }
@@ -67,8 +67,15 @@ a:hover {
 body {
   margin: 0;
   display: flex;
-  place-items: center;
+  flex-direction: column;
   min-width: 320px;
+  min-height: 100vh;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
   min-height: 100vh;
 }
 
@@ -130,12 +137,12 @@ h1 {
   --popover-foreground: oklch(0.985 0.001 106.423);
   --primary: oklch(0.72 0.15 235);
   --primary-foreground: oklch(0.22 0.02 255);
-  --secondary: oklch(0.72 0.16 85);
-  --secondary-foreground: oklch(0.22 0.02 255);
-  --muted: oklch(0.28 0.01 255);
-  --muted-foreground: oklch(0.72 0.02 255);
-  --accent: oklch(0.7 0.13 90);
-  --accent-foreground: oklch(0.22 0.02 255);
+  --secondary: oklch(0.4 0.06 235);
+  --secondary-foreground: oklch(0.95 0.01 235);
+  --muted: oklch(0.28 0.01 235);
+  --muted-foreground: oklch(0.72 0.02 235);
+  --accent: oklch(0.3 0.04 235);
+  --accent-foreground: oklch(0.95 0.01 235);
   --destructive: oklch(0.72 0.2 22);
   /* Match shadcn variable set */
   --destructive-foreground: oklch(0.985 0.001 106.423);
@@ -151,8 +158,8 @@ h1 {
   --sidebar-foreground: oklch(0.985 0.001 106.423);
   --sidebar-primary: oklch(0.78 0.13 235);
   --sidebar-primary-foreground: oklch(0.22 0.02 255);
-  --sidebar-accent: oklch(0.74 0.13 90);
-  --sidebar-accent-foreground: oklch(0.22 0.02 255);
+  --sidebar-accent: oklch(0.3 0.05 235);
+  --sidebar-accent-foreground: oklch(0.95 0.01 235);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.7 0.12 235);
 }

@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 
 import { LabeledCounterDemo } from '@/components/demo/labeled-counter-demo';
+import { NavbarDemo } from '@/components/demo/navbar-demo';
 import { ResponsiveModalDemo } from '@/components/demo/responsive-modal-demo';
 
 export const Route = createFileRoute('/demonstration')({
@@ -10,6 +11,26 @@ export const Route = createFileRoute('/demonstration')({
 function Demonstration() {
   return (
     <div className="container mx-auto space-y-12 py-8">
+      <section>
+        <h1 className="mb-6 text-2xl font-bold">Navbar Demonstration</h1>
+        <div className="space-y-6">
+          <div>
+            <h2 className="text-muted-foreground mb-3 text-sm font-medium">
+              Desktop View
+            </h2>
+            <NavbarDemo forceMode="desktop" />
+          </div>
+          <div>
+            <h2 className="text-muted-foreground mb-3 text-sm font-medium">
+              Mobile View
+            </h2>
+            <div className="max-w-xs">
+              <NavbarDemo forceMode="mobile" />
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section>
         <h1 className="mb-6 text-2xl font-bold">
           Labeled Counter Demonstration
