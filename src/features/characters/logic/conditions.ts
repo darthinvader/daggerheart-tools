@@ -1,9 +1,9 @@
-import { DEFAULT_CONDITION_MAP } from '@/features/characters/data/conditions';
 import {
   type ConditionItem,
   type ConditionsDraft,
   writeConditionsToStorage,
 } from '@/features/characters/storage';
+import { DEFAULT_CONDITION_MAP } from '@/lib/data/core/conditions';
 
 type Setter<T> = (updater: (prev: T) => T) => void;
 
