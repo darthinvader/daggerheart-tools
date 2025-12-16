@@ -1,10 +1,17 @@
 import { z } from 'zod';
 
 import {
+  type LevelUpEntry,
+  LevelUpEntrySchema,
+} from '@/lib/schemas/character-state';
+import {
   CharacterProgressionSchema,
   getTierForLevel,
 } from '@/lib/schemas/core';
 import { characterKeys as keys, storage } from '@/lib/storage';
+
+export { LevelUpEntrySchema };
+export type { LevelUpEntry };
 
 export type CharacterProgressionDraft = {
   currentLevel: number;
@@ -52,14 +59,6 @@ export function writeProgressionToStorage(
 ) {
   storage.write(keys.progression(id), value);
 }
-
-// Level-up history entries (lightweight and decoupled from full PlayerCharacter)
-export const LevelUpEntrySchema = z.object({
-  level: z.number().int().min(1).max(10),
-  selections: z.record(z.string(), z.number().int().min(0)).default({}),
-  notes: z.string().optional(),
-});
-export type LevelUpEntry = z.infer<typeof LevelUpEntrySchema>;
 
 export function readLevelingFromStorage(id: string): LevelUpEntry[] {
   const fallback: LevelUpEntry[] = [];

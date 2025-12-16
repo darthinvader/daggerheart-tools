@@ -1,17 +1,18 @@
-import { create } from 'zustand';
+import { Store, useStore } from '@tanstack/react-store';
 
-type UIState = {
-  // how many inventory items to show initially for large lists (chunk rendering)
+interface UIState {
   inventoryShowCount: number;
+}
+
+const appStore = new Store<UIState>({ inventoryShowCount: 200 });
+
+export function useAppStore<T>(selector: (state: UIState) => T): T {
+  return useStore(appStore, selector);
+}
+
+export const appActions = {
+  setInventoryShowCount: (n: number) =>
+    appStore.setState(s => ({ ...s, inventoryShowCount: Math.max(0, n) })),
 };
 
-type UIActions = {
-  setInventoryShowCount: (n: number) => void;
-};
-
-type Store = UIState & UIActions;
-
-export const useAppStore = create<Store>(set => ({
-  inventoryShowCount: 200,
-  setInventoryShowCount: n => set({ inventoryShowCount: Math.max(0, n) }),
-}));
+export { appStore };

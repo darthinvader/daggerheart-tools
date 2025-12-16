@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { MetadataSchema } from '@/lib/schemas/core';
 import { characterKeys as keys, storage } from '@/lib/storage';
 
 // Domains draft (lite card shape to avoid importing all domain schemas)
@@ -13,7 +14,7 @@ const DomainCardSchemaLite = z
     hopeCost: z.number().int().min(0).optional(),
     recallCost: z.number().int().min(0).optional(),
     tags: z.array(z.string()).optional(),
-    metadata: z.record(z.string(), z.unknown()).optional(),
+    metadata: MetadataSchema,
   })
   .passthrough();
 export const DomainsDraftSchema = z.object({

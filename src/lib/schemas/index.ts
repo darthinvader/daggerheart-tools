@@ -4,9 +4,8 @@ export * from './core';
 // Character identity (Ancestry + Community consolidated)
 export * from './identity';
 
-// Equipment and domains are available via their modules (./equipment and ./domains)
-export * from './player-character';
+// Character state (resources, traits, conditions, etc.)
+export * from './character-state';
 
-// Equipment system
-// Equipment and domains are available via their modules
-// Domains and equipment are available via their modules
+// Player character schema
+export * from './player-character';
