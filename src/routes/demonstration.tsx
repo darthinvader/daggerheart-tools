@@ -4,6 +4,7 @@ import { IdentityEditorDemo } from '@/components/demo/identity-editor-demo';
 import { LabeledCounterDemo } from '@/components/demo/labeled-counter-demo';
 import { NavbarDemo } from '@/components/demo/navbar-demo';
 import { ResponsiveModalDemo } from '@/components/demo/responsive-modal-demo';
+import { ThresholdsEditorDemo } from '@/components/demo/thresholds-editor-demo';
 
 export const Route = createFileRoute('/demonstration')({
   component: Demonstration,
@@ -53,6 +54,13 @@ function Demonstration() {
           Identity Editor Demonstration
         </h1>
         <IdentityEditorDemo />
+      </section>
+
+      <section>
+        <h1 className="mb-6 text-2xl font-bold">
+          Thresholds Editor Demonstration
+        </h1>
+        <ThresholdsEditorDemo />
       </section>
     </div>
   );
