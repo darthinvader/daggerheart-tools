@@ -146,7 +146,40 @@ export type DescriptionDetails = z.infer<typeof DescriptionDetailsSchema>;
 export type Connection = z.infer<typeof ConnectionSchema>;
 export type LevelUpEntry = z.infer<typeof LevelUpEntrySchema>;
 
+// Identity Form Schema (for editing character identity)
+export const IdentityFormValuesSchema = z.object({
+  name: z.string(),
+  pronouns: z.string(),
+  calling: z.string(),
+  description: z.string(),
+  background: z.string(),
+  descriptionDetails: DescriptionDetailsSchema,
+  connections: z.array(ConnectionSchema),
+});
+
+export type IdentityFormValues = z.infer<typeof IdentityFormValuesSchema>;
+
 // Default values
+export const DEFAULT_DESCRIPTION_DETAILS: DescriptionDetails = {
+  eyes: '',
+  hair: '',
+  skin: '',
+  body: '',
+  clothing: '',
+  mannerisms: '',
+  other: '',
+};
+
+export const DEFAULT_IDENTITY_FORM_VALUES: IdentityFormValues = {
+  name: '',
+  pronouns: '',
+  calling: '',
+  description: '',
+  background: '',
+  descriptionDetails: DEFAULT_DESCRIPTION_DETAILS,
+  connections: [],
+};
+
 export const DEFAULT_RESOURCES: ResourcesDraft = {
   hp: { current: 10, max: 10 },
   stress: { current: 0, max: 6 },

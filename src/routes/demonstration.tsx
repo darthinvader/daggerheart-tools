@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 
+import { IdentityEditorDemo } from '@/components/demo/identity-editor-demo';
 import { LabeledCounterDemo } from '@/components/demo/labeled-counter-demo';
 import { NavbarDemo } from '@/components/demo/navbar-demo';
 import { ResponsiveModalDemo } from '@/components/demo/responsive-modal-demo';
@@ -45,6 +46,13 @@ function Demonstration() {
         <div className="bg-card rounded-lg border p-6">
           <ResponsiveModalDemo />
         </div>
+      </section>
+
+      <section>
+        <h1 className="mb-6 text-2xl font-bold">
+          Identity Editor Demonstration
+        </h1>
+        <IdentityEditorDemo />
       </section>
     </div>
   );
