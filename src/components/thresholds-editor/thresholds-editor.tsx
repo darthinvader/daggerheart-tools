@@ -17,11 +17,13 @@ interface ThresholdsEditorProps {
   severe: number;
   major?: number;
   autoCalculate?: boolean;
+  autoCalculateMajor?: boolean;
   showMajor?: boolean;
   onMinorChange?: (value: number) => void;
   onSevereChange?: (value: number) => void;
   onMajorChange?: (value: number) => void;
   onAutoCalculateChange?: (value: boolean) => void;
+  onAutoCalculateMajorChange?: (value: boolean) => void;
   onShowMajorChange?: (value: boolean) => void;
   baseHp?: number;
   className?: string;
@@ -47,17 +49,20 @@ export function ThresholdsEditor({
   severe,
   major,
   autoCalculate = true,
+  autoCalculateMajor = true,
   showMajor = false,
   onMinorChange,
   onSevereChange,
   onMajorChange,
   onAutoCalculateChange,
+  onAutoCalculateMajorChange,
   onShowMajorChange,
   baseHp = 6,
   className,
 }: ThresholdsEditorProps) {
   const baseId = useId();
   const autoId = `${baseId}-auto`;
+  const autoMajorId = `${baseId}-auto-major`;
   const majorId = `${baseId}-major`;
   const minorInputId = `${baseId}-minor`;
   const severeInputId = `${baseId}-severe`;
@@ -71,9 +76,10 @@ export function ThresholdsEditor({
 
   const effectiveMinor = autoCalculate ? autoThresholds.minor : minor;
   const effectiveSevere = autoCalculate ? autoThresholds.severe : severe;
-  const effectiveMajor = autoCalculate
-    ? autoThresholds.major
-    : (major ?? severe * 2);
+  const effectiveMajor =
+    autoCalculate || autoCalculateMajor
+      ? effectiveSevere * 2
+      : (major ?? severe * 2);
 
   const validationError = useMemo(() => {
     if (autoCalculate) return null;
@@ -156,6 +162,18 @@ export function ThresholdsEditor({
     [onShowMajorChange]
   );
 
+  const handleAutoMajorToggle = useCallback(
+    (checked: boolean) => {
+      onAutoCalculateMajorChange?.(checked);
+      if (checked) {
+        const newMajor = effectiveSevere * 2;
+        setLocalMajor(String(newMajor));
+        onMajorChange?.(newMajor);
+      }
+    },
+    [onAutoCalculateMajorChange, onMajorChange, effectiveSevere]
+  );
+
   return (
     <div className={cn('flex flex-col gap-4', className)}>
       <ThresholdsDisplay
@@ -207,6 +225,29 @@ export function ThresholdsEditor({
             </TooltipContent>
           </Tooltip>
         </div>
+
+        {showMajor && !autoCalculate && (
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id={autoMajorId}
+              checked={autoCalculateMajor}
+              onCheckedChange={handleAutoMajorToggle}
+            />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Label htmlFor={autoMajorId} className="cursor-pointer">
+                  Auto-calculate Major
+                </Label>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <p>
+                  Automatically set Major = Severe × 2. Disable to enter a
+                  custom Major threshold.
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        )}
       </div>
 
       {!autoCalculate && (
@@ -260,17 +301,24 @@ export function ThresholdsEditor({
               <div className="flex flex-col gap-1.5">
                 <Label
                   htmlFor={majorInputId}
-                  className="text-red-700 dark:text-red-400"
+                  className={cn(
+                    'text-red-700 dark:text-red-400',
+                    autoCalculateMajor && 'opacity-50'
+                  )}
                 >
-                  Major
+                  Major {autoCalculateMajor && '(auto)'}
                 </Label>
                 <Input
                   id={majorInputId}
                   type="number"
                   min={1}
-                  value={localMajor}
+                  value={autoCalculateMajor ? effectiveMajor : localMajor}
                   onChange={handleMajorInputChange}
-                  className="font-mono"
+                  disabled={autoCalculateMajor}
+                  className={cn(
+                    'font-mono',
+                    autoCalculateMajor && 'opacity-50'
+                  )}
                   aria-describedby={
                     validationError ? `${baseId}-error` : undefined
                   }

@@ -7,11 +7,13 @@ export function ThresholdsEditorDemo() {
   const [severe, setSevere] = useState(5);
   const [major, setMajor] = useState(10);
   const [autoCalculate, setAutoCalculate] = useState(true);
+  const [autoCalculateMajor, setAutoCalculateMajor] = useState(true);
   const [showMajor, setShowMajor] = useState(false);
 
   const [customMinor, setCustomMinor] = useState(3);
   const [customSevere, setCustomSevere] = useState(7);
   const [customMajor, setCustomMajor] = useState(14);
+  const [customAutoMajor, setCustomAutoMajor] = useState(false);
 
   return (
     <div className="space-y-8">
@@ -23,12 +25,14 @@ export function ThresholdsEditorDemo() {
             severe={severe}
             major={major}
             autoCalculate={autoCalculate}
+            autoCalculateMajor={autoCalculateMajor}
             showMajor={showMajor}
             baseHp={12}
             onMinorChange={setMinor}
             onSevereChange={setSevere}
             onMajorChange={setMajor}
             onAutoCalculateChange={setAutoCalculate}
+            onAutoCalculateMajorChange={setAutoCalculateMajor}
             onShowMajorChange={setShowMajor}
           />
         </div>
@@ -36,17 +40,22 @@ export function ThresholdsEditorDemo() {
 
       <section>
         <h2 className="mb-4 text-xl font-semibold">Manual Entry Mode</h2>
+        <p className="text-muted-foreground mb-4 text-sm">
+          All thresholds set manually with custom Major value
+        </p>
         <div className="bg-card rounded-lg border p-6">
           <ThresholdsEditor
             minor={customMinor}
             severe={customSevere}
             major={customMajor}
             autoCalculate={false}
+            autoCalculateMajor={customAutoMajor}
             showMajor={true}
             onMinorChange={setCustomMinor}
             onSevereChange={setCustomSevere}
             onMajorChange={setCustomMajor}
             onAutoCalculateChange={() => {}}
+            onAutoCalculateMajorChange={setCustomAutoMajor}
             onShowMajorChange={() => {}}
           />
         </div>
