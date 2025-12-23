@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 
+import { GoldTrackerDemo } from '@/components/demo/gold-tracker-demo';
 import { IdentityEditorDemo } from '@/components/demo/identity-editor-demo';
 import { LabeledCounterDemo } from '@/components/demo/labeled-counter-demo';
 import { NavbarDemo } from '@/components/demo/navbar-demo';
@@ -67,6 +68,11 @@ function Demonstration() {
       <section>
         <h1 className="mb-6 text-2xl font-bold">Simple List Demonstration</h1>
         <SimpleListDemo />
+      </section>
+
+      <section>
+        <h1 className="mb-6 text-2xl font-bold">Gold Tracker Demonstration</h1>
+        <GoldTrackerDemo />
       </section>
     </div>
   );
