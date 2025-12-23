@@ -5,6 +5,7 @@ import { CommunitySelectorDemo } from '@/components/demo/community-selector-demo
 import { EquipmentEditorDemo } from '@/components/demo/equipment-editor-demo';
 import { GoldTrackerDemo } from '@/components/demo/gold-tracker-demo';
 import { IdentityEditorDemo } from '@/components/demo/identity-editor-demo';
+import { InventoryEditorDemo } from '@/components/demo/inventory-editor-demo';
 import { LabeledCounterDemo } from '@/components/demo/labeled-counter-demo';
 import { NavbarDemo } from '@/components/demo/navbar-demo';
 import { ResponsiveModalDemo } from '@/components/demo/responsive-modal-demo';
@@ -97,6 +98,13 @@ function Demonstration() {
           ⚔️ Equipment Editor Demonstration
         </h1>
         <EquipmentEditorDemo />
+      </section>
+
+      <section>
+        <h1 className="mb-6 text-2xl font-bold">
+          🎒 Inventory Editor Demonstration
+        </h1>
+        <InventoryEditorDemo />
       </section>
     </div>
   );

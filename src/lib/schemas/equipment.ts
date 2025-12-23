@@ -349,3 +349,25 @@ export type Potion = z.infer<typeof PotionSchema>;
 export type ItemCollection = z.infer<typeof ItemCollectionSchema>;
 export type InventorySlot = z.infer<typeof InventorySlotSchema>;
 export type Inventory = z.infer<typeof InventorySchema>;
+
+export type AnyItem =
+  | UtilityItem
+  | Consumable
+  | Relic
+  | WeaponModification
+  | ArmorModification
+  | Recipe;
+
+export interface InventoryItemEntry {
+  id: string;
+  item: AnyItem;
+  quantity: number;
+  isEquipped: boolean;
+  location: 'backpack' | 'belt' | 'equipped' | 'stored';
+  isCustom?: boolean;
+}
+
+export interface InventoryState {
+  items: InventoryItemEntry[];
+  maxSlots: number;
+}
