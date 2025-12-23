@@ -36,6 +36,18 @@ export type AncestryFeature = z.infer<typeof AncestryFeatureSchema>;
 export type Ancestry = z.infer<typeof AncestrySchema>;
 export type MixedAncestry = z.infer<typeof MixedAncestrySchema>;
 
+export type AncestryMode = 'standard' | 'mixed' | 'homebrew';
+
+// Homebrew uses same shape as Ancestry but represents user-created content
+export type HomebrewAncestry = Ancestry;
+
+// Discriminated union for ancestry selection state
+export type AncestrySelection =
+  | { mode: 'standard'; ancestry: Ancestry }
+  | { mode: 'mixed'; mixedAncestry: MixedAncestry }
+  | { mode: 'homebrew'; homebrew: HomebrewAncestry }
+  | null;
+
 export const ANCESTRIES = RAW_ANCESTRIES as Ancestry[];
 
 export function getAncestryByName(name: string): Ancestry | undefined {
