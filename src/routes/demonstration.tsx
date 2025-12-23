@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 
 import { AncestrySelectorDemo } from '@/components/demo/ancestry-selector-demo';
+import { CommunitySelectorDemo } from '@/components/demo/community-selector-demo';
 import { GoldTrackerDemo } from '@/components/demo/gold-tracker-demo';
 import { IdentityEditorDemo } from '@/components/demo/identity-editor-demo';
 import { LabeledCounterDemo } from '@/components/demo/labeled-counter-demo';
@@ -81,6 +82,13 @@ function Demonstration() {
           Ancestry Selector Demonstration
         </h1>
         <AncestrySelectorDemo />
+      </section>
+
+      <section>
+        <h1 className="mb-6 text-2xl font-bold">
+          Community Selector Demonstration
+        </h1>
+        <CommunitySelectorDemo />
       </section>
     </div>
   );

@@ -172,6 +172,15 @@ export const CommunitySchema = z.object({
 export type CommunityFeature = z.infer<typeof CommunityFeatureSchema>;
 export type Community = z.infer<typeof CommunitySchema>;
 
+export type CommunityMode = 'standard' | 'homebrew';
+
+export type HomebrewCommunity = Community;
+
+export type CommunitySelection =
+  | { mode: 'standard'; community: Community }
+  | { mode: 'homebrew'; homebrew: HomebrewCommunity }
+  | null;
+
 export const COMMUNITIES = RAW_COMMUNITIES as Community[];
 
 export function getCommunityByName(name: string): Community | undefined {
