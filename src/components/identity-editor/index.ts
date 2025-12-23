@@ -5,3 +5,4 @@ export { BasicIdentitySection } from './basic-identity-section';
 export { ConnectionsList } from './connections-list';
 export { IdentityEditor } from './identity-editor';
 export { IdentityForm } from './identity-form';
+export { SimpleList } from './simple-list';

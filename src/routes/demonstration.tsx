@@ -4,6 +4,7 @@ import { IdentityEditorDemo } from '@/components/demo/identity-editor-demo';
 import { LabeledCounterDemo } from '@/components/demo/labeled-counter-demo';
 import { NavbarDemo } from '@/components/demo/navbar-demo';
 import { ResponsiveModalDemo } from '@/components/demo/responsive-modal-demo';
+import { SimpleListDemo } from '@/components/demo/simple-list-demo';
 import { ThresholdsEditorDemo } from '@/components/demo/thresholds-editor-demo';
 
 export const Route = createFileRoute('/demonstration')({
@@ -61,6 +62,11 @@ function Demonstration() {
           Thresholds Editor Demonstration
         </h1>
         <ThresholdsEditorDemo />
+      </section>
+
+      <section>
+        <h1 className="mb-6 text-2xl font-bold">Simple List Demonstration</h1>
+        <SimpleListDemo />
       </section>
     </div>
   );
