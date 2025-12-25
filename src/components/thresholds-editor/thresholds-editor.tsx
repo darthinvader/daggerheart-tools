@@ -3,11 +3,7 @@ import { useCallback, useId, useMemo, useState } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import { cn } from '@/lib/utils';
 
 import { ThresholdsDisplay } from './thresholds-display';
@@ -190,19 +186,19 @@ export function ThresholdsEditor({
             checked={autoCalculate}
             onCheckedChange={handleAutoToggle}
           />
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Label htmlFor={autoId} className="cursor-pointer">
-                Auto-calculate
-              </Label>
-            </TooltipTrigger>
-            <TooltipContent className="max-w-xs">
+          <SmartTooltip
+            className="max-w-xs"
+            content={
               <p>
                 Automatically calculate thresholds based on your base HP. Minor
                 = HP ÷ 6, Severe = HP ÷ 3, Major = Severe × 2.
               </p>
-            </TooltipContent>
-          </Tooltip>
+            }
+          >
+            <Label htmlFor={autoId} className="cursor-pointer">
+              Auto-calculate
+            </Label>
+          </SmartTooltip>
         </div>
 
         <div className="flex items-center gap-2">
@@ -211,19 +207,19 @@ export function ThresholdsEditor({
             checked={showMajor}
             onCheckedChange={handleShowMajorToggle}
           />
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Label htmlFor={majorId} className="cursor-pointer">
-                Enable Major Damage
-              </Label>
-            </TooltipTrigger>
-            <TooltipContent className="max-w-xs">
+          <SmartTooltip
+            className="max-w-xs"
+            content={
               <p>
                 Toggle the Major Damage threshold (optional 4th tier). When
                 enabled, extremely high damage deals even more HP loss.
               </p>
-            </TooltipContent>
-          </Tooltip>
+            }
+          >
+            <Label htmlFor={majorId} className="cursor-pointer">
+              Enable Major Damage
+            </Label>
+          </SmartTooltip>
         </div>
 
         {showMajor && !autoCalculate && (
@@ -233,19 +229,19 @@ export function ThresholdsEditor({
               checked={autoCalculateMajor}
               onCheckedChange={handleAutoMajorToggle}
             />
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Label htmlFor={autoMajorId} className="cursor-pointer">
-                  Auto-calculate Major
-                </Label>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-xs">
+            <SmartTooltip
+              className="max-w-xs"
+              content={
                 <p>
                   Automatically set Major = Severe × 2. Disable to enter a
                   custom Major threshold.
                 </p>
-              </TooltipContent>
-            </Tooltip>
+              }
+            >
+              <Label htmlFor={autoMajorId} className="cursor-pointer">
+                Auto-calculate Major
+              </Label>
+            </SmartTooltip>
           </div>
         )}
       </div>

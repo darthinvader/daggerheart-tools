@@ -28,7 +28,9 @@ export const characterKeys = {
   resources: (id: string) => `dh:characters:${id}:resources:v1`,
   traits: (id: string) => `dh:characters:${id}:traits:v1`,
   class: (id: string) => `dh:characters:${id}:class:v1`,
+  classDraft: (id: string) => `dh:characters:${id}:class-draft:v2`,
   domains: (id: string) => `dh:characters:${id}:domains:v1`,
+  loadout: (id: string) => `dh:characters:${id}:loadout:v1`,
   equipment: (id: string) => `dh:characters:${id}:equipment:v1`,
   inventory: (id: string) => `dh:characters:${id}:inventory:v1`,
   level: (id: string) => `dh:characters:${id}:level:v1`,
@@ -40,4 +42,7 @@ export const characterKeys = {
   // Experience total and experiences list
   experience: (id: string) => `dh:characters:${id}:experience:v1`,
   experiences: (id: string) => `dh:characters:${id}:experiences:v1`,
+  // Homebrew data
+  homebrewClasses: (id: string) => `dh:characters:${id}:homebrew-classes:v1`,
+  homebrewCards: (id: string) => `dh:characters:${id}:homebrew-cards:v1`,
 } as const;

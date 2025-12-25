@@ -70,6 +70,7 @@ body {
   flex-direction: column;
   min-width: 320px;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 #root {
@@ -77,6 +78,7 @@ body {
   flex-direction: column;
   width: 100%;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 h1 {

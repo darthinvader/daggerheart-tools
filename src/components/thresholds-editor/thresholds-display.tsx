@@ -1,8 +1,4 @@
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import { cn } from '@/lib/utils';
 
 import { ThresholdChip } from './threshold-chip';
@@ -32,58 +28,42 @@ export function ThresholdsDisplay({
       </div>
 
       <div className="flex items-center gap-1">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span className="text-muted-foreground bg-muted inline-flex size-6 cursor-help items-center justify-center rounded border font-mono text-xs">
-              1
-            </span>
-          </TooltipTrigger>
-          <TooltipContent>
-            Damage below Minor threshold has no lasting effect.
-          </TooltipContent>
-        </Tooltip>
+        <SmartTooltip content="Damage below Minor threshold has no lasting effect.">
+          <span className="text-muted-foreground bg-muted inline-flex size-6 cursor-help items-center justify-center rounded border font-mono text-xs">
+            1
+          </span>
+        </SmartTooltip>
 
         <ThresholdChip kind="minor" value={minor} />
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span className="text-muted-foreground bg-muted inline-flex size-6 cursor-help items-center justify-center rounded border font-mono text-xs">
-              2
-            </span>
-          </TooltipTrigger>
-          <TooltipContent>
-            Damage at or above Minor but below Severe.
-          </TooltipContent>
-        </Tooltip>
+        <SmartTooltip content="Damage at or above Minor but below Severe.">
+          <span className="text-muted-foreground bg-muted inline-flex size-6 cursor-help items-center justify-center rounded border font-mono text-xs">
+            2
+          </span>
+        </SmartTooltip>
 
         <ThresholdChip kind="severe" value={severe} />
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span className="text-muted-foreground bg-muted inline-flex size-6 cursor-help items-center justify-center rounded border font-mono text-xs">
-              3
-            </span>
-          </TooltipTrigger>
-          <TooltipContent>
-            {displayMajor
+        <SmartTooltip
+          content={
+            displayMajor
               ? 'Damage at or above Severe but below Major.'
-              : 'Damage at or above Severe threshold.'}
-          </TooltipContent>
-        </Tooltip>
+              : 'Damage at or above Severe threshold.'
+          }
+        >
+          <span className="text-muted-foreground bg-muted inline-flex size-6 cursor-help items-center justify-center rounded border font-mono text-xs">
+            3
+          </span>
+        </SmartTooltip>
 
         {displayMajor && (
           <>
             <ThresholdChip kind="major" value={effectiveMajor} />
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="text-muted-foreground bg-muted inline-flex size-6 cursor-help items-center justify-center rounded border font-mono text-xs">
-                  4
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>
-                Damage at or above Major threshold. Devastating!
-              </TooltipContent>
-            </Tooltip>
+            <SmartTooltip content="Damage at or above Major threshold. Devastating!">
+              <span className="text-muted-foreground bg-muted inline-flex size-6 cursor-help items-center justify-center rounded border font-mono text-xs">
+                4
+              </span>
+            </SmartTooltip>
           </>
         )}
       </div>

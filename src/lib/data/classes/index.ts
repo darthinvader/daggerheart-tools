@@ -33,3 +33,59 @@ export const ALL_CLASSES = [
   WARRIOR,
   WIZARD,
 ] as const;
+
+export type GameClass = (typeof ALL_CLASSES)[number];
+export type GameSubclass = GameClass['subclasses'][number];
+
+// Helper functions for class/subclass lookups
+export function getClassByName(name: string): GameClass | undefined {
+  return ALL_CLASSES.find(c => c.name.toLowerCase() === name.toLowerCase());
+}
+
+export function getSubclassesForClass(className: string): GameSubclass[] {
+  const gameClass = getClassByName(className);
+  return gameClass ? [...gameClass.subclasses] : [];
+}
+
+export function getSubclassByName(
+  className: string,
+  subclassName: string
+): GameSubclass | undefined {
+  const subclasses = getSubclassesForClass(className);
+  return subclasses.find(
+    s => s.name.toLowerCase() === subclassName.toLowerCase()
+  );
+}
+
+export function getDomainsForClass(className: string): string[] {
+  const gameClass = getClassByName(className);
+  return gameClass ? [...gameClass.domains] : [];
+}
+
+export function getAllClassNames(): string[] {
+  return ALL_CLASSES.map(c => c.name);
+}
+
+export function getAllSubclassNames(): string[] {
+  return ALL_CLASSES.flatMap(c => c.subclasses.map(s => s.name));
+}
+
+export function getClassForSubclass(
+  subclassName: string
+): GameClass | undefined {
+  return ALL_CLASSES.find(c =>
+    c.subclasses.some(s => s.name.toLowerCase() === subclassName.toLowerCase())
+  );
+}
+
+export function validateClassName(name: string): boolean {
+  return ALL_CLASSES.some(c => c.name.toLowerCase() === name.toLowerCase());
+}
+
+export function validateSubclassName(
+  className: string,
+  subclassName: string
+): boolean {
+  const subclass = getSubclassByName(className, subclassName);
+  return subclass !== undefined;
+}

@@ -11,6 +11,9 @@ import {
 // Enums and Basic Schemas (from core/enums.ts)
 // =====================================================================================
 
+// Per RAW (page 24): The following domains are included in this book:
+// Arcana, Blade, Bone, Codex, Grace, Midnight, Sage, Splendor, and Valor
+// Additional domains (Chaos, Moon, Sun, Blood, Fate) are homebrew/expansion content
 export const DomainNameEnum = z.enum([
   'Arcana',
   'Blade',
@@ -21,12 +24,22 @@ export const DomainNameEnum = z.enum([
   'Sage',
   'Splendor',
   'Valor',
+]);
+
+// Homebrew domain names for expansion content
+export const HomebrewDomainNameEnum = z.enum([
   'Chaos',
   'Moon',
   'Sun',
   'Blood',
   'Fate',
 ]);
+
+// Combined list of all known domain names (standard + homebrew)
+export const ALL_KNOWN_DOMAINS = [
+  ...DomainNameEnum.options,
+  ...HomebrewDomainNameEnum.options,
+] as const;
 
 export const CharacterTraitEnum = z.enum([
   'Agility',
@@ -336,6 +349,7 @@ export type WeaponTrait = z.infer<typeof WeaponTraitEnum>;
 export type ConditionName = z.infer<typeof ConditionNameSchema>;
 export type CharacterTier = z.infer<typeof CharacterTierSchema>;
 export type BaseFeature = z.infer<typeof BaseFeatureSchema>;
+export type ClassFeature = BaseFeature;
 export type SubclassFeature = z.infer<typeof SubclassFeatureSchema>;
 export type HopeFeature = z.infer<typeof HopeFeatureSchema>;
 export type BaseSubclass = z.infer<typeof BaseSubclassSchema>;

@@ -1,8 +1,4 @@
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import { cn } from '@/lib/utils';
 
 export type ThresholdKind = 'minor' | 'severe' | 'major';
@@ -45,27 +41,28 @@ export function ThresholdChip({ kind, value, className }: ThresholdChipProps) {
   const config = CHIP_CONFIG[kind];
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <span
-          className={cn(
-            'inline-flex cursor-help items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-semibold tabular-nums transition-colors',
-            config.color,
-            className
-          )}
-          aria-label={`${config.label} threshold: ${value}`}
-        >
-          <span className="font-bold">{config.abbr}</span>
-          <span className="opacity-60">:</span>
-          <span>{value}</span>
-        </span>
-      </TooltipTrigger>
-      <TooltipContent side="top" className="max-w-xs">
+    <SmartTooltip
+      side="top"
+      className="max-w-xs"
+      content={
         <div className="space-y-1">
           <p className="font-semibold">{config.label} Threshold</p>
           <p className="text-muted-foreground text-xs">{config.description}</p>
         </div>
-      </TooltipContent>
-    </Tooltip>
+      }
+    >
+      <span
+        className={cn(
+          'inline-flex cursor-help items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-semibold tabular-nums transition-colors',
+          config.color,
+          className
+        )}
+        aria-label={`${config.label} threshold: ${value}`}
+      >
+        <span className="font-bold">{config.abbr}</span>
+        <span className="opacity-60">:</span>
+        <span>{value}</span>
+      </span>
+    </SmartTooltip>
   );
 }

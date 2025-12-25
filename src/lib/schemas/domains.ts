@@ -2,7 +2,9 @@ import { z } from 'zod';
 
 import { DomainNameSchema, MetadataSchema, unionWithString } from './core';
 
-export const DomainCardTypeEnum = z.enum(['Spell', 'Ability']);
+// Per RAW (page 26): "There are three types of domain cards: abilities, spells, and grimoires.
+// Grimoires are unique to the Codex domain and are a collection of smaller spells bundled together."
+export const DomainCardTypeEnum = z.enum(['Spell', 'Ability', 'Grimoire']);
 export const DomainCardTypeSchema = unionWithString(DomainCardTypeEnum);
 
 export const DomainCardSchema = z

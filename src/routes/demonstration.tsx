@@ -1,12 +1,14 @@
 import { createFileRoute } from '@tanstack/react-router';
 
 import { AncestrySelectorDemo } from '@/components/demo/ancestry-selector-demo';
+import { ClassSelectorDemo } from '@/components/demo/class-selector-demo';
 import { CommunitySelectorDemo } from '@/components/demo/community-selector-demo';
 import { EquipmentEditorDemo } from '@/components/demo/equipment-editor-demo';
 import { GoldTrackerDemo } from '@/components/demo/gold-tracker-demo';
 import { IdentityEditorDemo } from '@/components/demo/identity-editor-demo';
 import { InventoryEditorDemo } from '@/components/demo/inventory-editor-demo';
 import { LabeledCounterDemo } from '@/components/demo/labeled-counter-demo';
+import { LoadoutSelectorDemo } from '@/components/demo/loadout-selector-demo';
 import { NavbarDemo } from '@/components/demo/navbar-demo';
 import { ResponsiveModalDemo } from '@/components/demo/responsive-modal-demo';
 import { SimpleListDemo } from '@/components/demo/simple-list-demo';
@@ -105,6 +107,20 @@ function Demonstration() {
           🎒 Inventory Editor Demonstration
         </h1>
         <InventoryEditorDemo />
+      </section>
+
+      <section>
+        <h1 className="mb-6 text-2xl font-bold">
+          ⚔️ Class Selector Demonstration
+        </h1>
+        <ClassSelectorDemo />
+      </section>
+
+      <section>
+        <h1 className="mb-6 text-2xl font-bold">
+          📜 Loadout Selector Demonstration
+        </h1>
+        <LoadoutSelectorDemo />
       </section>
     </div>
   );
