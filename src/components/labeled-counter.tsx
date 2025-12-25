@@ -123,6 +123,14 @@ export function LabeledCounter({
   const hasCheckbox = checkboxLabel && onCheckboxChange;
   const hasMax = maxValue !== undefined && onMaxChange;
 
+  const handleMaxChange = (newMax: number) => {
+    if (!onMaxChange) return;
+    onMaxChange(newMax);
+    if (value > newMax) {
+      onChange(newMax);
+    }
+  };
+
   if (orientation === 'vertical') {
     return (
       <div className={cn('flex flex-col items-center gap-2', className)}>
@@ -136,8 +144,8 @@ export function LabeledCounter({
         {hasMax && (
           <NumberControl
             value={maxValue}
-            onChange={onMaxChange}
-            min={value}
+            onChange={handleMaxChange}
+            min={min}
             size="sm"
             variant="secondary"
             label={maxLabel}
@@ -183,8 +191,8 @@ export function LabeledCounter({
         {hasMax && (
           <NumberControl
             value={maxValue}
-            onChange={onMaxChange}
-            min={value}
+            onChange={handleMaxChange}
+            min={min}
             variant="secondary"
           />
         )}

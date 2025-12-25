@@ -1,4 +1,5 @@
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import type { DomainCardLite } from '@/lib/schemas/loadout';
@@ -26,6 +27,9 @@ interface LoadoutSectionProps {
   onRemove: (cardName: string) => void;
   onSelectSwapTarget: (cardName: string) => void;
   tooltipContent: string;
+  canAdjustMax?: boolean;
+  onDecreaseMax?: () => void;
+  onIncreaseMax?: () => void;
 }
 
 export function LoadoutSection({
@@ -47,6 +51,9 @@ export function LoadoutSection({
   onRemove,
   onSelectSwapTarget,
   tooltipContent,
+  canAdjustMax = false,
+  onDecreaseMax,
+  onIncreaseMax,
 }: LoadoutSectionProps) {
   const totalRecall = countTotalRecallCost(cards);
   const inSwapMode = swapSourceCard !== null;
@@ -56,7 +63,7 @@ export function LoadoutSection({
       className={cn(
         borderClass,
         bgClass,
-        'overflow-hidden transition-all',
+        'min-w-0 transition-all',
         isSwapTarget && 'border-amber-500 ring-2 ring-amber-500'
       )}
     >
@@ -80,24 +87,47 @@ export function LoadoutSection({
               )}
             </span>
           </SmartTooltip>
-          <SmartTooltip
-            side="top"
-            content={
-              <p>
-                {hasLimit
-                  ? `${cards.length} of ${maxCards} slots used`
-                  : `${cards.length} cards stored (no limit)`}
-              </p>
-            }
-          >
-            <Badge variant="outline" className="cursor-help font-mono">
-              {cards.length}
-              {hasLimit ? `/${maxCards}` : ' cards'}
-            </Badge>
-          </SmartTooltip>
+          <div className="flex items-center gap-1">
+            {canAdjustMax && onDecreaseMax && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 text-xs"
+                onClick={onDecreaseMax}
+                disabled={maxCards <= cards.length}
+              >
+                −
+              </Button>
+            )}
+            <SmartTooltip
+              side="top"
+              content={
+                <p>
+                  {hasLimit
+                    ? `${cards.length} of ${maxCards} slots used`
+                    : `${cards.length} cards stored (no limit)`}
+                </p>
+              }
+            >
+              <Badge variant="outline" className="cursor-help font-mono">
+                {cards.length}
+                {hasLimit ? `/${maxCards}` : ' cards'}
+              </Badge>
+            </SmartTooltip>
+            {canAdjustMax && onIncreaseMax && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 text-xs"
+                onClick={onIncreaseMax}
+              >
+                +
+              </Button>
+            )}
+          </div>
         </CardTitle>
       </CardHeader>
-      <CardContent className="max-h-48 space-y-2 overflow-y-auto">
+      <CardContent className="max-h-48 min-w-0 space-y-2 overflow-y-auto">
         {cards.length === 0 ? (
           <p className="text-muted-foreground text-sm">
             {location === 'active'

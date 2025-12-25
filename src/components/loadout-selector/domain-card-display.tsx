@@ -32,18 +32,24 @@ interface DomainCardDisplayProps {
 }
 
 function SelectionIndicator({ type }: { type: SelectionType }) {
-  if (!type) return null;
-
   const isActive = type === 'active';
+  const isVault = type === 'vault';
+  const isVisible = type !== null;
+
   return (
-    <div
+    <span
       className={cn(
-        'absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white',
-        isActive ? 'bg-green-500' : 'bg-blue-500'
+        'inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold',
+        isVisible
+          ? isActive
+            ? 'bg-green-500 text-white'
+            : 'bg-blue-500 text-white'
+          : 'bg-transparent'
       )}
+      aria-hidden={!isVisible}
     >
-      {isActive ? '⚡' : '📦'}
-    </div>
+      {isActive ? '⚡' : isVault ? '📦' : '\u00A0'}
+    </span>
   );
 }
 
@@ -59,19 +65,17 @@ function CardBadges({ domain, type, level }: CardBadgesProps) {
   const typeEmoji = type === 'Spell' ? '✨' : type === 'Grimoire' ? '📖' : '💪';
 
   return (
-    <>
-      <div className="flex flex-wrap items-center gap-1.5">
-        <Badge variant="outline" className={cn('text-xs', domainColor)}>
-          {DOMAIN_EMOJIS[domain]} {domain}
-        </Badge>
-        <Badge variant="secondary" className={cn('text-xs', typeColor)}>
-          {typeEmoji} {type}
-        </Badge>
-      </div>
-      <Badge variant="outline" className="font-mono text-xs">
+    <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+      <Badge variant="outline" className={cn('shrink-0 text-xs', domainColor)}>
+        {DOMAIN_EMOJIS[domain]} {domain}
+      </Badge>
+      <Badge variant="secondary" className={cn('shrink-0 text-xs', typeColor)}>
+        {typeEmoji} {type}
+      </Badge>
+      <Badge variant="outline" className="shrink-0 font-mono text-xs">
         Lvl {level}
       </Badge>
-    </>
+    </div>
   );
 }
 
@@ -82,7 +86,7 @@ function getCardClassName(
   isDisabled: boolean
 ): string {
   const base =
-    'cursor-pointer transition-all hover:shadow-md border-2 relative h-full overflow-hidden';
+    'cursor-pointer transition-all hover:shadow-md border-2 h-full w-full min-w-0 max-w-full overflow-hidden box-border';
 
   if (isDisabled) {
     return cn(base, 'cursor-not-allowed opacity-50');
@@ -92,13 +96,20 @@ function getCardClassName(
     if (selectionType === 'active') {
       return cn(
         base,
-        'border-green-500 bg-green-500/5 ring-2 ring-green-500/50'
+        'border-green-500 bg-green-500/5 outline outline-2 -outline-offset-4 outline-green-500/50'
       );
     }
     if (selectionType === 'vault') {
-      return cn(base, 'border-blue-500 bg-blue-500/5 ring-2 ring-blue-500/50');
+      return cn(
+        base,
+        'border-blue-500 bg-blue-500/5 outline outline-2 -outline-offset-4 outline-blue-500/50'
+      );
     }
-    return cn(base, domainBg, 'ring-primary ring-2');
+    return cn(
+      base,
+      domainBg,
+      'outline-primary outline outline-2 -outline-offset-4'
+    );
   }
 
   return cn(base, 'hover:border-muted-foreground/50');
@@ -145,21 +156,18 @@ function DomainCardDisplayComponent({
       aria-pressed={isSelected}
       aria-disabled={isDisabled}
     >
-      <SelectionIndicator type={selectionType} />
-
-      <CardHeader className="pt-3 pb-2">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0 flex-1 space-y-1 overflow-hidden">
-            <CardTitle className="truncate text-sm leading-tight font-semibold">
-              {card.name}
-            </CardTitle>
-            <CardBadges
-              domain={card.domain}
-              type={card.type}
-              level={card.level}
-            />
-          </div>
-          <div className="flex shrink-0 flex-col items-end gap-1">
+      <CardHeader className="!block space-y-2 pt-3 pb-2">
+        <CardTitle className="flex items-center justify-between gap-2 text-sm leading-tight font-semibold">
+          <span className="min-w-0 truncate">{card.name}</span>
+          <SelectionIndicator type={selectionType} />
+        </CardTitle>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <CardBadges
+            domain={card.domain}
+            type={card.type}
+            level={card.level}
+          />
+          <div className="ml-auto">
             <CardCostBadges costs={costs} compact />
           </div>
         </div>

@@ -64,6 +64,7 @@ export function LoadoutSelector({
         onMoveToVault={state.handleMoveToVault}
         onMoveToActive={state.handleMoveToActive}
         onSwapCards={state.handleSwapCards}
+        onChangeMaxActiveCards={state.handleChangeMaxActiveCards}
       />
 
       <DomainFilter

@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/card';
 import type { ClassSelection } from '@/lib/schemas/class-selection';
 import type { LoadoutSelection } from '@/lib/schemas/loadout';
-import { cn } from '@/lib/utils';
+import { cn, generateId } from '@/lib/utils';
 
 export const Route = createFileRoute('/character/new')({
   component: NewCharacter,
@@ -118,7 +118,7 @@ function NewCharacter() {
 
   const handleCreateCharacter = useCallback(() => {
     // TODO: Generate character ID and persist to storage
-    const characterId = crypto.randomUUID();
+    const characterId = generateId();
     // TODO: Persist character data before navigating
     void classSelection;
     void loadout;

@@ -106,18 +106,19 @@ function CardGridComponent({
         )}
       </div>
       <div className="bg-muted/20 max-h-[500px] overflow-y-auto rounded-lg border p-4">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-[repeat(2,minmax(0,1fr))] lg:grid-cols-[repeat(3,minmax(0,1fr))]">
           {cards.map(card => {
             const selType = getSelectionType(card);
             return (
-              <DomainCardDisplay
-                key={`${card.domain}-${card.name}`}
-                card={card}
-                isSelected={selType !== null}
-                selectionType={selType}
-                onToggle={handleToggle}
-                isDisabled={isDisabledCheck(card)}
-              />
+              <div key={`${card.domain}-${card.name}`} className="min-w-0">
+                <DomainCardDisplay
+                  card={card}
+                  isSelected={selType !== null}
+                  selectionType={selType}
+                  onToggle={handleToggle}
+                  isDisabled={isDisabledCheck(card)}
+                />
+              </div>
             );
           })}
         </div>

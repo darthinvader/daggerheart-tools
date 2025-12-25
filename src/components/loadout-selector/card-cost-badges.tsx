@@ -128,7 +128,12 @@ export function CardCostBadges({
   compact = false,
 }: CardCostBadgesProps) {
   return (
-    <div className={cn('flex items-center gap-1', compact && 'gap-0.5')}>
+    <div
+      className={cn(
+        'flex min-w-0 flex-wrap items-center justify-end',
+        compact ? 'gap-0.5' : 'gap-1'
+      )}
+    >
       <RecallCostBadge cost={costs.recallCost} compact={compact} />
       <ActivationCostBadge costs={costs.activationCosts} compact={compact} />
       <StressCostBadge costs={costs.activationCosts} compact={compact} />
@@ -136,4 +141,4 @@ export function CardCostBadges({
   );
 }
 
-export { RecallCostBadge, ActivationCostBadge, StressCostBadge };
+export { ActivationCostBadge, RecallCostBadge, StressCostBadge };

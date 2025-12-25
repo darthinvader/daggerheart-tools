@@ -159,7 +159,7 @@ export function LabeledCounterDemo() {
       <section>
         <h2 className="mb-4 text-xl font-semibold">Side by Side Comparison</h2>
         <div className="grid gap-6 md:grid-cols-2">
-          <div className="bg-card rounded-lg border p-6">
+          <div className="bg-card min-w-0 overflow-x-auto rounded-lg border p-6">
             <h3 className="mb-4 text-center font-medium">Horizontal Layout</h3>
             <div className="space-y-4">
               <LabeledCounter
@@ -174,7 +174,7 @@ export function LabeledCounterDemo() {
               />
             </div>
           </div>
-          <div className="bg-card flex justify-center rounded-lg border p-6">
+          <div className="bg-card flex min-w-0 justify-center overflow-x-auto rounded-lg border p-6">
             <div>
               <h3 className="mb-4 text-center font-medium">Vertical Layout</h3>
               <LabeledCounter

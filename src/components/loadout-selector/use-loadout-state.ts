@@ -46,7 +46,15 @@ export function useLoadoutState({
   classDomains,
   tier,
 }: UseLoadoutStateProps) {
-  const rules: LoadoutRules = getLoadoutRulesForTier(tier);
+  const baseRules: LoadoutRules = getLoadoutRulesForTier(tier);
+
+  const [maxActiveCards, setMaxActiveCards] = useState<number>(
+    baseRules.maxActiveCards
+  );
+  const rules: LoadoutRules = useMemo(
+    () => ({ ...baseRules, maxActiveCards }),
+    [baseRules, maxActiveCards]
+  );
 
   const [mode, setMode] = useState<LoadoutMode>(value?.mode ?? 'class-domains');
   const [activeCards, setActiveCards] = useState<DomainCardLite[]>(
@@ -319,6 +327,17 @@ export function useLoadoutState({
     [homebrewCards, notifyChange]
   );
 
+  const handleChangeMaxActiveCards = useCallback(
+    (delta: number) => {
+      setMaxActiveCards(prev => {
+        const next = prev + delta;
+        if (next < 1 || next < activeCards.length) return prev;
+        return next;
+      });
+    },
+    [activeCards.length]
+  );
+
   const handleComplete = useCallback(() => {
     onComplete?.({
       mode,
@@ -361,6 +380,7 @@ export function useLoadoutState({
     handleQuickSwapToVault,
     handleQuickSwapToActive,
     handleAddHomebrew,
+    handleChangeMaxActiveCards,
     handleComplete,
   };
 }

@@ -127,13 +127,10 @@ function LoadoutCardRowComponent({
       onClick={isSwapTarget ? () => onSelectSwapTarget(card.name) : undefined}
       role={isSwapTarget ? 'button' : undefined}
     >
-      <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
-        <Badge
-          variant="outline"
-          className={cn('shrink-0 text-xs', domainColor)}
-        >
+      <div className="flex min-w-0 flex-1 items-center gap-1.5">
+        <span className={cn('shrink-0 text-sm', domainColor)}>
           {DOMAIN_EMOJIS[card.domain]}
-        </Badge>
+        </span>
         <span className="min-w-0 flex-1 truncate text-sm">{card.name}</span>
         <Badge variant="secondary" className="shrink-0 text-xs">
           Lv{card.level}

@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -48,6 +49,11 @@ export function CustomItemForm({
             <span className="text-2xl">{isEditing ? '✏️' : '🛠️'}</span>
             {isEditing ? 'Edit Item' : 'Create Custom Item'}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            {isEditing
+              ? 'Edit your custom item properties'
+              : 'Create a new custom item with your own properties'}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">

@@ -41,13 +41,30 @@ export function PickerItemCard({
   const tierConfig = TIER_CONFIG[item.tier as EquipmentTier];
   const isStackable = item.maxQuantity > 1;
 
+  const handleCardClick = () => {
+    if (!isAtMax) {
+      onToggle();
+    }
+  };
+
+  const handleQuantityClick = (e: React.MouseEvent, delta: number) => {
+    e.stopPropagation();
+    onQuantityChange(delta);
+  };
+
   return (
-    <button
-      type="button"
-      onClick={() => !isAtMax && onToggle()}
-      disabled={isAtMax}
+    <div
+      role="button"
+      tabIndex={isAtMax ? -1 : 0}
+      onClick={handleCardClick}
+      onKeyDown={e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleCardClick();
+        }
+      }}
       className={cn(
-        'flex cursor-pointer items-start gap-3 rounded-lg border-2 p-3 text-left transition-all hover:shadow-md',
+        'flex w-full cursor-pointer items-start gap-3 rounded-lg border-2 p-3 text-left transition-all select-none hover:shadow-md',
         isAtMax && 'cursor-not-allowed opacity-60',
         selected
           ? 'border-green-500 bg-green-50 dark:bg-green-950/40'
@@ -106,17 +123,14 @@ export function PickerItemCard({
           </div>
         )}
         {selected && (
-          <div
-            className="mt-2 flex items-center gap-2"
-            onClick={e => e.stopPropagation()}
-          >
+          <div className="mt-2 flex items-center gap-2">
             <span className="text-muted-foreground text-xs">Qty:</span>
             <Button
               type="button"
               variant="outline"
               size="icon"
               className="h-6 w-6"
-              onClick={() => onQuantityChange(-1)}
+              onClick={e => handleQuantityClick(e, -1)}
               disabled={selectedQuantity <= 1}
             >
               <Minus className="h-3 w-3" />
@@ -129,7 +143,7 @@ export function PickerItemCard({
               variant="outline"
               size="icon"
               className="h-6 w-6"
-              onClick={() => onQuantityChange(1)}
+              onClick={e => handleQuantityClick(e, 1)}
               disabled={selectedQuantity >= availableToAdd}
             >
               <Plus className="h-3 w-3" />
@@ -140,6 +154,6 @@ export function PickerItemCard({
           </div>
         )}
       </div>
-    </button>
+    </div>
   );
 }

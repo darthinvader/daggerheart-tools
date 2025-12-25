@@ -2,14 +2,28 @@ import { useState } from 'react';
 
 import { useForm } from '@tanstack/react-form';
 
-import { SimpleList } from '@/components/identity-editor/simple-list';
+import {
+  type NumberedItem,
+  NumberedList,
+  SimpleList,
+} from '@/components/identity-editor/simple-list';
 import { Button } from '@/components/ui/button';
 
 interface SimpleListFormValues {
-  skills: string[];
+  experiences: string[];
+  numberedExperiences: NumberedItem[];
 }
 
-const SAMPLE_SKILLS = ['Stealth', 'Swordsmanship', 'Lockpicking', 'Persuasion'];
+const SAMPLE_EXPERIENCES = [
+  'Stealth',
+  'Swordsmanship',
+  'Lockpicking',
+  'Persuasion',
+];
+const SAMPLE_NUMBERED: NumberedItem[] = [
+  { name: 'Acrobatics', value: 3 },
+  { name: 'Herbalism', value: 2 },
+];
 
 export function SimpleListDemo() {
   const [mode, setMode] = useState<'empty' | 'prefilled'>('empty');
@@ -17,7 +31,12 @@ export function SimpleListDemo() {
     useState<SimpleListFormValues | null>(null);
 
   const defaultValues: SimpleListFormValues =
-    mode === 'prefilled' ? { skills: [...SAMPLE_SKILLS] } : { skills: [] };
+    mode === 'prefilled'
+      ? {
+          experiences: [...SAMPLE_EXPERIENCES],
+          numberedExperiences: [...SAMPLE_NUMBERED],
+        }
+      : { experiences: [], numberedExperiences: [] };
 
   const form = useForm({
     defaultValues,
@@ -27,14 +46,30 @@ export function SimpleListDemo() {
   });
 
   const handleAdd = () => {
-    const current = form.getFieldValue('skills') ?? [];
-    form.setFieldValue('skills', [...current, '']);
+    const current = form.getFieldValue('experiences') ?? [];
+    form.setFieldValue('experiences', [...current, '']);
   };
 
   const handleRemove = (index: number) => {
-    const current = form.getFieldValue('skills') ?? [];
+    const current = form.getFieldValue('experiences') ?? [];
     form.setFieldValue(
-      'skills',
+      'experiences',
+      current.filter((_, i) => i !== index)
+    );
+  };
+
+  const handleAddNumbered = () => {
+    const current = form.getFieldValue('numberedExperiences') ?? [];
+    form.setFieldValue('numberedExperiences', [
+      ...current,
+      { name: '', value: 2 },
+    ]);
+  };
+
+  const handleRemoveNumbered = (index: number) => {
+    const current = form.getFieldValue('numberedExperiences') ?? [];
+    form.setFieldValue(
+      'numberedExperiences',
       current.filter((_, i) => i !== index)
     );
   };
@@ -45,7 +80,7 @@ export function SimpleListDemo() {
         <h2 className="mb-4 text-xl font-semibold">Simple List</h2>
         <p className="text-muted-foreground mb-4">
           A reusable component for managing a list of text fields. Useful for
-          skills, traits, notes, or any simple list of strings.
+          experiences, traits, notes, or any simple list of strings.
         </p>
 
         <div className="mb-4 flex gap-2">
@@ -72,21 +107,42 @@ export function SimpleListDemo() {
             form.handleSubmit();
           }}
         >
-          <form.Subscribe selector={state => state.values.skills}>
-            {skills => (
+          <form.Subscribe selector={state => state.values.experiences}>
+            {experiences => (
               <SimpleList
-                title="Skills"
-                items={skills}
-                fieldName="skills"
-                placeholder="Enter a skill..."
-                emptyMessage="No skills yet. Add one to get started."
-                addButtonLabel="Add Skill"
+                title="Experiences"
+                items={experiences}
+                fieldName="experiences"
+                placeholder="Enter an experience..."
+                emptyMessage="No experiences yet. Add one to get started."
+                addButtonLabel="Add Experience"
                 form={form}
                 onAdd={handleAdd}
                 onRemove={handleRemove}
               />
             )}
           </form.Subscribe>
+
+          <div className="mt-8">
+            <form.Subscribe
+              selector={state => state.values.numberedExperiences}
+            >
+              {numberedExperiences => (
+                <NumberedList
+                  title="Numbered Experiences"
+                  items={numberedExperiences}
+                  fieldName="numberedExperiences"
+                  placeholder="Enter experience name..."
+                  emptyMessage="No numbered experiences yet. Add one to get started."
+                  addButtonLabel="Add Experience"
+                  minValue={2}
+                  form={form}
+                  onAdd={handleAddNumbered}
+                  onRemove={handleRemoveNumbered}
+                />
+              )}
+            </form.Subscribe>
+          </div>
 
           <div className="mt-6">
             <Button type="submit">Submit</Button>

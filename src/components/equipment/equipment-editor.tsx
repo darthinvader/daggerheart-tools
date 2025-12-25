@@ -7,6 +7,7 @@ import type {
   SecondaryWeapon,
   StandardArmor,
 } from '@/lib/schemas/equipment';
+import { generateId } from '@/lib/utils';
 
 import type { CustomEquipment } from './custom-slot-editor';
 import { EquipmentSummary } from './equipment-summary';
@@ -94,7 +95,7 @@ export function EquipmentEditor({ value, onChange }: EquipmentEditorProps) {
 
   const handleAddCustomSlot = () => {
     const newSlot: CustomEquipment = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       name: '',
       slotName: 'Ring',
       slotIcon: '💍',

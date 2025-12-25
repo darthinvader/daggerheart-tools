@@ -19,6 +19,7 @@ interface LoadoutSummaryProps {
   onMoveToVault: (cardName: string) => void;
   onMoveToActive: (cardName: string) => void;
   onSwapCards: (activeCardName: string, vaultCardName: string) => void;
+  onChangeMaxActiveCards?: (delta: number) => void;
 }
 
 function SwapModeBanner({
@@ -56,6 +57,7 @@ export function LoadoutSummary({
   onMoveToVault,
   onMoveToActive,
   onSwapCards,
+  onChangeMaxActiveCards,
 }: LoadoutSummaryProps) {
   const [swapMode, setSwapMode] = useState<SwapMode>(null);
 
@@ -63,6 +65,14 @@ export function LoadoutSummary({
   const isVaultFull =
     hasVaultLimit && vaultCards.length >= (rules.maxVaultCards ?? Infinity);
   const isActiveFull = activeCards.length >= rules.maxActiveCards;
+
+  const handleDecreaseMax = useCallback(() => {
+    onChangeMaxActiveCards?.(-1);
+  }, [onChangeMaxActiveCards]);
+
+  const handleIncreaseMax = useCallback(() => {
+    onChangeMaxActiveCards?.(1);
+  }, [onChangeMaxActiveCards]);
 
   const handleInitiateSwap = useCallback(
     (source: 'active' | 'vault', cardName: string) => {
@@ -115,48 +125,55 @@ export function LoadoutSummary({
     <div className="space-y-4">
       <SwapModeBanner swapMode={swapMode} onCancel={handleCancelSwap} />
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <LoadoutSection
-          title="Active Loadout"
-          emoji="⚡"
-          cards={activeCards}
-          location="active"
-          maxCards={rules.maxActiveCards}
-          hasLimit={true}
-          isFull={isActiveFull}
-          isSwapTarget={swapMode?.source === 'vault'}
-          swapSourceCard={swapMode?.cardName ?? null}
-          swapSourceLocation={swapMode?.source ?? null}
-          targetIsFull={isVaultFull}
-          borderClass="border-green-500/30"
-          bgClass="bg-green-500/5"
-          fullTextClass="text-green-600"
-          onMove={handleMoveFromActive}
-          onRemove={onRemoveActive}
-          onSelectSwapTarget={handleSelectSwapTarget}
-          tooltipContent={`Cards in your loadout are active and can be used during play. You can have up to ${rules.maxActiveCards} active cards.`}
-        />
+      <div className="grid min-w-0 gap-4 md:grid-cols-2">
+        <div className="min-w-0">
+          <LoadoutSection
+            title="Active Loadout"
+            emoji="⚡"
+            cards={activeCards}
+            location="active"
+            maxCards={rules.maxActiveCards}
+            hasLimit={true}
+            isFull={isActiveFull}
+            isSwapTarget={swapMode?.source === 'vault'}
+            swapSourceCard={swapMode?.cardName ?? null}
+            swapSourceLocation={swapMode?.source ?? null}
+            targetIsFull={isVaultFull}
+            borderClass="border-green-500/30"
+            bgClass="bg-green-500/5"
+            fullTextClass="text-green-600"
+            onMove={handleMoveFromActive}
+            onRemove={onRemoveActive}
+            onSelectSwapTarget={handleSelectSwapTarget}
+            tooltipContent={`Cards in your loadout are active and can be used during play. You can have up to ${rules.maxActiveCards} active cards.`}
+            canAdjustMax={!!onChangeMaxActiveCards}
+            onDecreaseMax={handleDecreaseMax}
+            onIncreaseMax={handleIncreaseMax}
+          />
+        </div>
 
-        <LoadoutSection
-          title="Vault"
-          emoji="📦"
-          cards={vaultCards}
-          location="vault"
-          maxCards={rules.maxVaultCards ?? 0}
-          hasLimit={hasVaultLimit}
-          isFull={isVaultFull}
-          isSwapTarget={swapMode?.source === 'active'}
-          swapSourceCard={swapMode?.cardName ?? null}
-          swapSourceLocation={swapMode?.source ?? null}
-          targetIsFull={isActiveFull}
-          borderClass="border-blue-500/30"
-          bgClass="bg-blue-500/5"
-          fullTextClass="text-blue-600"
-          onMove={handleMoveFromVault}
-          onRemove={onRemoveVault}
-          onSelectSwapTarget={handleSelectSwapTarget}
-          tooltipContent="Your vault holds inactive domain cards. Swap cards into your loadout during a rest, or pay the Recall Cost (in Stress) to swap immediately."
-        />
+        <div className="min-w-0">
+          <LoadoutSection
+            title="Vault"
+            emoji="📦"
+            cards={vaultCards}
+            location="vault"
+            maxCards={rules.maxVaultCards ?? 0}
+            hasLimit={hasVaultLimit}
+            isFull={isVaultFull}
+            isSwapTarget={swapMode?.source === 'active'}
+            swapSourceCard={swapMode?.cardName ?? null}
+            swapSourceLocation={swapMode?.source ?? null}
+            targetIsFull={isActiveFull}
+            borderClass="border-blue-500/30"
+            bgClass="bg-blue-500/5"
+            fullTextClass="text-blue-600"
+            onMove={handleMoveFromVault}
+            onRemove={onRemoveVault}
+            onSelectSwapTarget={handleSelectSwapTarget}
+            tooltipContent="Your vault holds inactive domain cards. Swap cards into your loadout during a rest, or pay the Recall Cost (in Stress) to swap immediately."
+          />
+        </div>
       </div>
     </div>
   );

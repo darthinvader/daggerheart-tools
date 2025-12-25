@@ -6,6 +6,7 @@ import type {
   InventoryItemEntry,
   InventoryState,
 } from '@/lib/schemas/equipment';
+import { generateId } from '@/lib/utils';
 import { rankBy } from '@/utils/search/rank';
 
 import { CustomItemForm } from './custom-item-form';
@@ -42,7 +43,7 @@ function useInventoryActions(
         };
       } else {
         updatedItems.push({
-          id: crypto.randomUUID(),
+          id: generateId(),
           item,
           quantity: 1,
           isEquipped: false,
@@ -59,7 +60,7 @@ function useInventoryActions(
       items: [
         ...state.items,
         {
-          id: crypto.randomUUID(),
+          id: generateId(),
           item,
           quantity: 1,
           isEquipped: false,

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -158,15 +159,31 @@ function PickerFooter({
   disabled: boolean;
 }) {
   return (
-    <div className="flex shrink-0 items-center justify-between gap-4 border-t pt-4">
+    <div className="bg-background relative z-10 flex shrink-0 items-center justify-between gap-4 border-t pt-4">
       <span className="text-muted-foreground text-sm">
         {totalQuantity} items selected
       </span>
       <div className="flex gap-2">
-        <Button variant="outline" onClick={onCancel}>
+        <Button
+          type="button"
+          variant="outline"
+          className="touch-manipulation"
+          onPointerUp={e => {
+            e.preventDefault();
+            onCancel();
+          }}
+        >
           Cancel
         </Button>
-        <Button onClick={onConfirm} disabled={disabled}>
+        <Button
+          type="button"
+          className="touch-manipulation"
+          disabled={disabled}
+          onPointerUp={e => {
+            e.preventDefault();
+            if (!disabled) onConfirm();
+          }}
+        >
           ✅ Add Items
         </Button>
       </div>
@@ -229,7 +246,7 @@ export function ItemPickerModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[90vh] w-[98vw] max-w-350 flex-col sm:max-w-350 lg:max-w-400">
+      <DialogContent className="flex max-h-[90vh] w-[98vw] max-w-350 flex-col sm:max-w-350 lg:max-w-400">
         <DialogHeader className="shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <span className="text-2xl">🎒</span>
@@ -240,6 +257,9 @@ export function ItemPickerModal({
               </Badge>
             )}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Browse and select items to add to your inventory
+          </DialogDescription>
         </DialogHeader>
 
         <div className="shrink-0 space-y-4">
@@ -267,7 +287,7 @@ export function ItemPickerModal({
           )}
         </div>
 
-        <div className="mt-4 flex-1 overflow-y-auto pr-2">
+        <div className="mt-4 flex-1 touch-pan-y overflow-y-auto pr-2">
           <div className="text-muted-foreground mb-2 text-sm">
             {filteredItems.length} items found
           </div>
