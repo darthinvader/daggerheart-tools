@@ -1,3 +1,4 @@
+import { FeaturesEditor } from '@/components/shared';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -5,7 +6,6 @@ import { Textarea } from '@/components/ui/textarea';
 import type { PrimaryWeapon, SecondaryWeapon } from '@/lib/schemas/equipment';
 
 import { BURDENS, DEFAULT_DAMAGE, RANGES, TIERS, TRAITS } from './constants';
-import { FeaturesEditor } from './features-editor';
 import { DamageEditor, SelectField, TextField } from './form';
 
 type WeaponFormData = Omit<PrimaryWeapon | SecondaryWeapon, 'metadata'>;

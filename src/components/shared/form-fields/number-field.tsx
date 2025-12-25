@@ -1,7 +1,8 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
 
-interface NumberFieldProps {
+export interface NumberFieldProps {
   label: string;
   value: number;
   onChange: (value: number) => void;
@@ -19,7 +20,7 @@ export function NumberField({
   className,
 }: NumberFieldProps) {
   return (
-    <div className={`space-y-1.5 ${className ?? ''}`}>
+    <div className={cn('space-y-1.5', className)}>
       <Label>{label}</Label>
       <Input
         type="number"

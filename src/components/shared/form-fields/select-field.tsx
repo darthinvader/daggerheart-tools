@@ -6,13 +6,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 
-interface SelectFieldProps {
+export interface SelectFieldProps {
   label: string;
   value: string;
   onChange: (value: string) => void;
   options: readonly string[];
   placeholder?: string;
+  className?: string;
 }
 
 export function SelectField({
@@ -21,9 +23,10 @@ export function SelectField({
   onChange,
   options,
   placeholder,
+  className,
 }: SelectFieldProps) {
   return (
-    <div className="space-y-1.5">
+    <div className={cn('space-y-1.5', className)}>
       <Label>{label}</Label>
       <Select value={value} onValueChange={onChange}>
         <SelectTrigger>

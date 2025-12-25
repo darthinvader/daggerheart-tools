@@ -2,12 +2,11 @@ import { Plus, Trash2 } from 'lucide-react';
 
 import type { AnyFieldApi } from '@tanstack/react-form';
 
+import { FormField } from '@/components/shared/form-fields';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import type { Connection } from '@/lib/schemas/character-state';
-
-import { FormField } from './form-field';
 
 interface ConnectionItemProps {
   index: number;

@@ -1,9 +1,8 @@
 import type { AnyFieldApi } from '@tanstack/react-form';
 
+import { FormField } from '@/components/shared/form-fields';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-
-import { FormField } from './form-field';
 
 interface BasicIdentitySectionProps {
   form: {

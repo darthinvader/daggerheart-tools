@@ -6,11 +6,11 @@ import {
   type ThemeProviderState,
 } from './theme-context';
 
-type ThemeProviderProps = {
+interface ThemeProviderProps {
   children: ReactNode;
   defaultTheme?: Theme;
   storageKey?: string;
-};
+}
 
 export function ThemeProvider({
   children,

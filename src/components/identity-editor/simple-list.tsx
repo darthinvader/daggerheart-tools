@@ -1,9 +1,8 @@
 import { Minus, Plus, Trash2 } from 'lucide-react';
 
+import { FormField } from '@/components/shared';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-
-import { FormField } from './form-field';
 
 interface MinimalFieldApi {
   state: { value: unknown };

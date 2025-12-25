@@ -1,8 +1,7 @@
 import type { AnyFieldApi } from '@tanstack/react-form';
 
+import { FormField } from '@/components/shared';
 import { Input } from '@/components/ui/input';
-
-import { FormField } from './form-field';
 
 interface TextFieldProps {
   name: string;

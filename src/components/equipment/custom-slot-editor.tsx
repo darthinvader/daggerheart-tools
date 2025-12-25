@@ -1,10 +1,10 @@
 import { GripVertical, Trash2 } from 'lucide-react';
 
+import { FeaturesEditor } from '@/components/shared';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 
-import { FeaturesEditor } from './features-editor';
 import { TextField } from './form';
 import { SlotTypeSelector } from './slot-type-selector';
 

@@ -1,4 +1,8 @@
 export { DamageEditor } from './damage-editor';
-export { NumberField } from './number-field';
-export { SelectField } from './select-field';
-export { TextField } from './text-field';
+
+// Re-export shared form fields for convenience
+export {
+  NumberField,
+  SelectField,
+  TextField,
+} from '@/components/shared/form-fields';

@@ -1,3 +1,4 @@
+import { FeaturesEditor } from '@/components/shared';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -5,7 +6,6 @@ import { Textarea } from '@/components/ui/textarea';
 import type { StandardArmor } from '@/lib/schemas/equipment';
 
 import { ARMOR_TYPES, TIERS } from './constants';
-import { FeaturesEditor } from './features-editor';
 import { NumberField, SelectField, TextField } from './form';
 
 type ArmorFormData = Omit<StandardArmor, 'metadata' | 'isStandard'>;

@@ -4,10 +4,10 @@ import {
   CommunityFeatureDisplay,
   type CommunitySelection,
   CommunitySelector,
-  TraitsIcon,
   getCommunityColors,
   getCommunityEmoji,
 } from '@/components/community-selector';
+import { TraitsIcon } from '@/components/shared/icons';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 

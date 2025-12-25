@@ -1,16 +1,26 @@
-export { ArmorCard } from './armor-card';
-export { ArmorCardCompact } from './armor-card-compact';
-export * from './constants';
-export { CustomSlotEditor } from './custom-slot-editor';
+// Types
 export type { CustomEquipment } from './custom-slot-editor';
-export { EquipmentEditor } from './equipment-editor';
 export type { EquipmentState } from './equipment-editor';
+
+// Main editor
+export { EquipmentEditor } from './equipment-editor';
 export { EquipmentSection } from './equipment-section';
 export { EquipmentSummary } from './equipment-summary';
-export { FeaturesEditor } from './features-editor';
-export { HomebrewArmorForm } from './homebrew-armor-form';
-export { HomebrewWeaponForm } from './homebrew-weapon-form';
 export { SectionHeader } from './section-header';
-export { SlotTypeSelector } from './slot-type-selector';
+
+// Cards
+export { ArmorCard } from './armor-card';
+export { ArmorCardCompact } from './armor-card-compact';
 export { WeaponCard } from './weapon-card';
 export { WeaponCardCompact } from './weapon-card-compact';
+
+// Form components
+export { CustomSlotEditor } from './custom-slot-editor';
+export { SlotTypeSelector } from './slot-type-selector';
+
+// Homebrew forms
+export { HomebrewArmorForm } from './homebrew-armor-form';
+export { HomebrewWeaponForm } from './homebrew-weapon-form';
+
+// Constants
+export * from './constants';

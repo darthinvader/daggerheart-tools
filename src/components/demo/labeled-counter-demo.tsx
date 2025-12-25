@@ -1,7 +1,7 @@
 /* eslint-disable max-lines-per-function */
 import { useState } from 'react';
 
-import { LabeledCounter } from '@/components/labeled-counter';
+import { LabeledCounter } from '@/components/shared';
 
 export function LabeledCounterDemo() {
   const [basicValue, setBasicValue] = useState(5);

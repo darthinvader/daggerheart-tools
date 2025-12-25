@@ -4,29 +4,51 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 
-interface Feature {
+export interface Feature {
   name: string;
   description: string;
 }
 
-interface FeatureListEditorProps {
+export interface FeaturesEditorProps {
   features: Feature[];
-  onAdd: () => void;
-  onUpdate: (idx: number, field: keyof Feature, value: string) => void;
-  onRemove: (idx: number) => void;
+  onChange: (features: Feature[]) => void;
+  maxFeatures?: number;
+  label?: string;
 }
 
-export function FeatureListEditor({
+export function FeaturesEditor({
   features,
-  onAdd,
-  onUpdate,
-  onRemove,
-}: FeatureListEditorProps) {
+  onChange,
+  maxFeatures = 5,
+  label = '✨ Features',
+}: FeaturesEditorProps) {
+  const handleAdd = () => {
+    if (features.length < maxFeatures) {
+      onChange([...features, { name: '', description: '' }]);
+    }
+  };
+
+  const handleUpdate = (index: number, field: keyof Feature, value: string) => {
+    const updated = [...features];
+    updated[index] = { ...updated[index], [field]: value };
+    onChange(updated);
+  };
+
+  const handleRemove = (index: number) => {
+    onChange(features.filter((_, i) => i !== index));
+  };
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium">✨ Features</span>
-        <Button type="button" variant="outline" size="sm" onClick={onAdd}>
+        <span className="text-sm font-medium">{label}</span>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={handleAdd}
+          disabled={features.length >= maxFeatures}
+        >
           <Plus className="mr-1 h-4 w-4" />
           Add Feature
         </Button>
@@ -34,7 +56,7 @@ export function FeatureListEditor({
 
       {features.length === 0 && (
         <p className="text-muted-foreground text-center text-sm">
-          No features yet. Add one to give your item special abilities!
+          No features yet. Add one to give your item special abilities.
         </p>
       )}
 
@@ -44,15 +66,15 @@ export function FeatureListEditor({
             <Input
               placeholder="Feature name..."
               value={feature.name}
-              onChange={e => onUpdate(idx, 'name', e.target.value)}
+              onChange={e => handleUpdate(idx, 'name', e.target.value)}
               className="flex-1"
             />
             <Button
               type="button"
               variant="ghost"
               size="icon"
-              className="text-red-500 hover:bg-red-100"
-              onClick={() => onRemove(idx)}
+              className="text-destructive hover:bg-destructive/10"
+              onClick={() => handleRemove(idx)}
             >
               <Trash2 className="h-4 w-4" />
             </Button>
@@ -60,7 +82,7 @@ export function FeatureListEditor({
           <Textarea
             placeholder="Feature description..."
             value={feature.description}
-            onChange={e => onUpdate(idx, 'description', e.target.value)}
+            onChange={e => handleUpdate(idx, 'description', e.target.value)}
             rows={2}
           />
         </div>

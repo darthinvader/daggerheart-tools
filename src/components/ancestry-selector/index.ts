@@ -1,32 +1,31 @@
+// Types
 export type {
   AncestryMode,
   AncestrySelection,
   HomebrewAncestry,
 } from '@/lib/schemas/identity';
 
+// Main selector
+export { AncestryModeTabs } from './ancestry-mode-tabs';
+export { AncestrySelector } from './ancestry-selector';
+
+// Standard ancestry components
 export { AncestryCard } from './ancestry-card';
 export { AncestryDetail } from './ancestry-detail';
-export {
-  CharacteristicsIcon,
-  DescriptionIcon,
-  HeightIcon,
-  HomebrewIcon,
-  LifespanIcon,
-  MixedAncestryIcon,
-  PrimaryFeatureIcon,
-  SearchIcon,
-  SecondaryFeatureIcon,
-  StandardIcon,
-} from './ancestry-icons';
-export { AncestryModeTabs } from './ancestry-mode-tabs';
 export { AncestrySearch } from './ancestry-search';
-export { AncestrySelector } from './ancestry-selector';
+export { StandardAncestryList } from './standard-ancestry-list';
+
+// Mixed ancestry components
 export { FeatureDisplay } from './feature-display';
 export { FeaturePicker } from './feature-picker';
+export { MixedAncestryPreview } from './mixed-ancestry-preview';
+export { MixedAncestrySelector } from './mixed-ancestry-selector';
+
+// Homebrew components
 export { HomebrewAncestryForm } from './homebrew-ancestry-form';
 export { HomebrewBasicFields } from './homebrew-basic-fields';
 export { HomebrewCharacteristicsField } from './homebrew-characteristics-field';
 export { HomebrewFeatureFields } from './homebrew-feature-fields';
-export { MixedAncestryPreview } from './mixed-ancestry-preview';
-export { MixedAncestrySelector } from './mixed-ancestry-selector';
-export { StandardAncestryList } from './standard-ancestry-list';
+
+// Icons (domain-specific only - common icons come from shared/icons)
+export { MixedAncestryIcon, PrimaryFeatureIcon } from './ancestry-icons';

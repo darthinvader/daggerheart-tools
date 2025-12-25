@@ -4,8 +4,7 @@ import { StrictMode } from 'react';
 
 import { RouterProvider, createRouter } from '@tanstack/react-router';
 
-import { DeviceTypeProvider } from '@/components/device-type-provider';
-import { ThemeProvider } from '@/components/theme-provider';
+import { DeviceTypeProvider, ThemeProvider } from '@/components/providers';
 
 import './global-error-log';
 import './index.css';

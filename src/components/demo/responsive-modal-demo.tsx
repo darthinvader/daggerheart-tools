@@ -1,7 +1,7 @@
 import * as React from 'react';
 
-import { useDeviceType } from '@/components/device-type-context';
-import { ResponsiveModal } from '@/components/responsive-modal';
+import { useDeviceType } from '@/components/providers';
+import { ResponsiveModal } from '@/components/shared';
 import { Button } from '@/components/ui/button';
 
 export function ResponsiveModalDemo() {

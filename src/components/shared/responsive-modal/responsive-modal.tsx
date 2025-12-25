@@ -1,4 +1,4 @@
-import * as React from 'react';
+import type { ReactNode } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -10,18 +10,24 @@ import {
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 
-interface ResponsiveModalProps {
+export interface ResponsiveModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: () => void;
   autoSaveOnClose?: boolean;
   title?: string;
   description?: string;
-  children: React.ReactNode;
+  children: ReactNode;
   mode?: 'pc' | 'tablet' | 'phone';
   saveLabel?: string;
   closeLabel?: string;
 }
+
+const MODE_CLASSES = {
+  pc: 'sm:max-w-[800px]',
+  tablet: 'sm:max-w-[500px]',
+  phone: 'sm:max-w-[350px] w-full',
+} as const;
 
 export function ResponsiveModal({
   isOpen,
@@ -53,30 +59,21 @@ export function ResponsiveModal({
     onClose();
   };
 
-  const modeClasses = {
-    pc: 'sm:max-w-[800px]',
-    tablet: 'sm:max-w-[500px]',
-    phone: 'sm:max-w-[350px] w-full',
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent
         className={cn(
           'grid max-h-[90vh] grid-rows-[auto_1fr_auto] gap-0 p-0',
-          modeClasses[mode]
+          MODE_CLASSES[mode]
         )}
       >
-        {/* Header - fixed at top */}
         <DialogHeader className="shrink-0 p-6 pb-4">
           {title && <DialogTitle>{title}</DialogTitle>}
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
 
-        {/* Scrollable content area */}
         <div className="overflow-y-auto px-6 py-2">{children}</div>
 
-        {/* Footer - fixed at bottom */}
         <div className="flex shrink-0 flex-col-reverse gap-2 p-6 pt-4 sm:flex-row sm:justify-end">
           <Button variant="outline" onClick={handleFooterClose}>
             {closeLabel}

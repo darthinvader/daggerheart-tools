@@ -1,3 +1,4 @@
+import { FeaturesEditor } from '@/components/shared';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -15,7 +16,6 @@ import {
   ItemPreviewBadge,
   QuantityConsumableRow,
 } from './custom-item-subcomponents';
-import { FeatureListEditor } from './feature-list-editor';
 import { ItemPropertySelectors } from './item-property-selectors';
 import { useCustomItemForm } from './use-custom-item-form';
 
@@ -101,11 +101,9 @@ export function CustomItemForm({
             />
           </div>
 
-          <FeatureListEditor
+          <FeaturesEditor
             features={form.features}
-            onAdd={form.addFeature}
-            onUpdate={form.updateFeature}
-            onRemove={form.removeFeature}
+            onChange={features => form.setField('features', features)}
           />
         </div>
 

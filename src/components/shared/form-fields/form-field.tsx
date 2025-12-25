@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 
-interface FormFieldProps {
+export interface FormFieldProps {
   label: string;
   htmlFor?: string;
   error?: string;
