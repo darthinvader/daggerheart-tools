@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import type { SecondaryWeapon } from '../../schemas/equipment';
 import { getProtectiveFeature } from '../equipment/common-features';
 

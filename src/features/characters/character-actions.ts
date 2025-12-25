@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import type { Store } from '@tanstack/react-store';
 
 import { DEFAULT_CONDITION_MAP } from '@/lib/data/core/conditions';

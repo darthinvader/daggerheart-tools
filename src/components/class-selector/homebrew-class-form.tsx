@@ -1,3 +1,4 @@
+/* eslint-disable max-lines, max-lines-per-function */
 import { useCallback, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';

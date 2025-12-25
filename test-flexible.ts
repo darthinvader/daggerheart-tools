@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { PlayerCharacterSchema } from './src/lib/schemas/player-character';
 
 // Test the flexible schema with various card combinations

@@ -32,7 +32,7 @@ interface EquipmentSectionProps<T extends { name: string; tier: string }> {
 
 export function EquipmentSection<T extends { name: string; tier: string }>({
   title,
-  _icon,
+  icon: _icon,
   items,
   selectedItem,
   onSelect,

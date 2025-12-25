@@ -1,3 +1,4 @@
+export type { InventoryState } from '@/lib/schemas/equipment';
 export * from './constants';
 export { CustomItemForm } from './custom-item-form';
 export { EmptyInventory } from './empty-inventory';

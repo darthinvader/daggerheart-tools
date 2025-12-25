@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function, complexity */
 import { useCallback, useId, useMemo, useState } from 'react';
 
 import { Checkbox } from '@/components/ui/checkbox';

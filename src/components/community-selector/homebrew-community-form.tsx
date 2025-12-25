@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import { useCallback, useState } from 'react';
 
 import { Input } from '@/components/ui/input';

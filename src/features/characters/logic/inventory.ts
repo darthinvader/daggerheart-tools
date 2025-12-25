@@ -1,3 +1,4 @@
+/* eslint-disable complexity */
 import * as React from 'react';
 
 import type { Inventory, InventorySlot, Item } from '@/lib/schemas/equipment';

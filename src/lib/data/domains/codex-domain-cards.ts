@@ -250,7 +250,7 @@ export const CODEX_DOMAIN_CARD_NAMES = [
 export type CodexDomainCardName = (typeof CODEX_DOMAIN_CARD_NAMES)[number];
 
 // Export all individual cards
-export const CODEX_DOMAIN_CARDS = [
+export const CODEX_DOMAIN_CARDS: DomainCard[] = [
   BOOK_OF_AVA,
   BOOK_OF_ILLIAT,
   BOOK_OF_TYFAR,
@@ -272,4 +272,4 @@ export const CODEX_DOMAIN_CARDS = [
   DISINTEGRATION_WAVE,
   BOOK_OF_YARROW,
   TRANSCENDENT_UNION,
-] as const;
+];

@@ -132,8 +132,9 @@ function DesktopNavbar({ links, brandName }: NavbarInternalProps) {
                 </NavigationMenuItem>
               ) : (
                 <NavigationMenuItem key={link.to}>
-                  <Link to={link.to}>
-                    <NavigationMenuLink
+                  <NavigationMenuLink asChild>
+                    <Link
+                      to={link.to}
                       className={navigationMenuTriggerStyle()}
                       data-active={
                         location.pathname === link.to ||
@@ -141,8 +142,8 @@ function DesktopNavbar({ links, brandName }: NavbarInternalProps) {
                       }
                     >
                       {link.label}
-                    </NavigationMenuLink>
-                  </Link>
+                    </Link>
+                  </NavigationMenuLink>
                 </NavigationMenuItem>
               )
             )}

@@ -26,7 +26,7 @@ export function GoldTrackerDemo() {
             initialHandfuls={3}
             initialCoins={7}
             showCoinsInitially={true}
-            onChange={gold => console.log('Gold changed:', gold)}
+            onChange={() => {}}
           />
         </div>
       </section>

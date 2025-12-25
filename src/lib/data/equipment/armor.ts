@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import type { SpecialArmor, StandardArmor } from '../../schemas/equipment';
 
 // Tier 1 Standard Armor

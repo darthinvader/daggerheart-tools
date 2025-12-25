@@ -273,7 +273,9 @@ export class Announcer {
 </template>
 <script setup lang="ts">
 const live = ref<HTMLElement | null>(null);
-function announce(text: string) { if (live.value) live.value.textContent = text; }
+function announce(text: string) {
+  if (live.value) live.value.textContent = text;
+}
 </script>
 ```
 

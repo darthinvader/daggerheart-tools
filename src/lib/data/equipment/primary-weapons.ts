@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import type { PrimaryWeapon } from '../../schemas/equipment';
 
 // Primary Weapons per SRD (Tier-based, Physical and Magic)

@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { useCoarsePointer } from '../src/hooks/use-coarse-pointer';
@@ -50,7 +50,9 @@ describe('useCoarsePointer', () => {
     expect(result.current).toBe(false);
 
     mockMql.matches = true;
-    listeners.forEach(handler => handler());
+    act(() => {
+      listeners.forEach(handler => handler());
+    });
     rerender();
 
     expect(result.current).toBe(true);

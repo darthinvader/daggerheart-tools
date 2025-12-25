@@ -29,5 +29,5 @@ export const DomainCardCollectionSchema = z.array(DomainCardSchema);
 
 export type DomainCard = z.infer<typeof DomainCardSchema>;
 export type DomainCardCollection = z.infer<typeof DomainCardCollectionSchema>;
-export type DomainName = z.infer<typeof DomainNameSchema>;
+// DomainName type is exported from core.ts
 export type DomainCardType = z.infer<typeof DomainCardTypeSchema>;

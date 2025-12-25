@@ -1,8 +1,17 @@
-import type { CommunityDetails } from '@/components/characters/identity/types';
 import {
   type Community,
   getCommunityByName as getCommunityByNameRaw,
 } from '@/lib/schemas/identity';
+
+interface CommunityDetails {
+  type?: 'standard' | 'homebrew';
+  homebrew?: {
+    name: string;
+    description?: string;
+    commonTraits?: string[];
+    feature?: { name: string; description?: string };
+  };
+}
 
 export function getCommunityByName(name: string): Community | undefined {
   if (!name) return undefined;

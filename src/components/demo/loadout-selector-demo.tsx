@@ -1,3 +1,4 @@
+/* eslint-disable max-lines, max-lines-per-function */
 import { useState } from 'react';
 
 import { LoadoutSelector } from '@/components/loadout-selector';

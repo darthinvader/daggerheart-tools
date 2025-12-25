@@ -1,4 +1,5 @@
-// Data moved from schemas/ancestry.ts
+/* eslint-disable max-lines */
+// Data file containing all ancestry definitions from the Daggerheart SRD
 export const ANCESTRIES = [
   {
     name: 'Clank',

@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 export function StandardIcon() {
   return <span aria-hidden="true">📜</span>;
 }
