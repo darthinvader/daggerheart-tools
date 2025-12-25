@@ -1,5 +1,5 @@
 /* eslint-disable max-lines-per-function, complexity */
-import { useState } from 'react';
+import { memo, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -112,7 +112,7 @@ function CompanionBadge() {
   );
 }
 
-export function SubclassCard({
+function SubclassCardComponent({
   subclass,
   className,
   isSelected,
@@ -291,3 +291,5 @@ export function SubclassCard({
     </Card>
   );
 }
+
+export const SubclassCard = memo(SubclassCardComponent);

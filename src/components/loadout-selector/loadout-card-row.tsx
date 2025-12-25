@@ -1,3 +1,5 @@
+import { memo } from 'react';
+
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
@@ -105,7 +107,7 @@ function getRowClassName(isSwapSource: boolean, isSwapTarget: boolean): string {
   return cn(base, 'bg-background');
 }
 
-export function LoadoutCardRow({
+function LoadoutCardRowComponent({
   card,
   location,
   isSwapSource,
@@ -157,3 +159,5 @@ export function LoadoutCardRow({
     </div>
   );
 }
+
+export const LoadoutCardRow = memo(LoadoutCardRowComponent);

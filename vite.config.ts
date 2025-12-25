@@ -17,6 +17,16 @@ export default defineConfig({
     }),
     react(),
     tailwindcss(),
+    // Enable automatic modulepreload for faster parallel chunk loading
+    {
+      name: 'ensure-modulepreload',
+      enforce: 'post',
+      apply: 'build',
+      transformIndexHtml: {
+        order: 'post',
+        handler: html => html,
+      },
+    },
     // Pre-compress built assets for optimal delivery (gzip + brotli)
     viteCompression({ algorithm: 'gzip' }),
     viteCompression({ algorithm: 'brotliCompress', ext: '.br' }),
@@ -47,34 +57,34 @@ export default defineConfig({
   preview: {
     // Also expose preview server on LAN for production-like testing
     host: true,
-    port: 5173,
-    strictPort: true,
+    port: 4173,
+    strictPort: false,
   },
   build: {
-    // Use Terser for slightly smaller JS output; slower than esbuild
-    minify: 'terser',
+    // Use esbuild for faster builds; marginal size difference vs terser
+    minify: 'esbuild',
+    // Target modern browsers for smaller output
+    target: 'esnext',
+    // Enable CSS code splitting
+    cssCodeSplit: true,
     rollupOptions: {
       output: {
-        // Name chunks predictably and split heavy vendor groups for better caching
+        // Name chunks predictably
         chunkFileNames: 'assets/[name]-[hash].js',
         entryFileNames: 'assets/[name]-[hash].js',
-        manualChunks(id) {
-          if (!id.includes('node_modules')) return undefined;
-          // group by common, heavy ecosystems to avoid one giant vendor chunk
-          if (id.includes('/react/') || id.includes('/react-dom/'))
-            return 'vendor-react';
-          if (id.includes('/@tanstack/')) return 'vendor-tanstack';
-          if (id.includes('/@radix-ui/')) return 'vendor-radix';
-          if (id.includes('/recharts/')) return 'vendor-charts';
-          if (id.includes('/react-day-picker/') || id.includes('/date-fns/'))
-            return 'vendor-daypicker';
-          if (
-            id.includes('/zod/') ||
-            id.includes('/clsx/') ||
-            id.includes('/tailwind-merge/')
-          )
-            return 'vendor-utils';
-          return 'vendor';
+        // Manual chunk splitting for better caching
+        manualChunks: {
+          react: ['react', 'react-dom'],
+          router: ['@tanstack/react-router'],
+          radix: [
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-popover',
+            '@radix-ui/react-select',
+            '@radix-ui/react-navigation-menu',
+            '@radix-ui/react-tabs',
+            '@radix-ui/react-accordion',
+            '@radix-ui/react-collapsible',
+          ],
         },
       },
       treeshake: {

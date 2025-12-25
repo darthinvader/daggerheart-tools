@@ -1,18 +1,96 @@
+import { Suspense, lazy } from 'react';
+
 import { createFileRoute } from '@tanstack/react-router';
 
-import { AncestrySelectorDemo } from '@/components/demo/ancestry-selector-demo';
-import { ClassSelectorDemo } from '@/components/demo/class-selector-demo';
-import { CommunitySelectorDemo } from '@/components/demo/community-selector-demo';
-import { EquipmentEditorDemo } from '@/components/demo/equipment-editor-demo';
-import { GoldTrackerDemo } from '@/components/demo/gold-tracker-demo';
-import { IdentityEditorDemo } from '@/components/demo/identity-editor-demo';
-import { InventoryEditorDemo } from '@/components/demo/inventory-editor-demo';
-import { LabeledCounterDemo } from '@/components/demo/labeled-counter-demo';
-import { LoadoutSelectorDemo } from '@/components/demo/loadout-selector-demo';
-import { NavbarDemo } from '@/components/demo/navbar-demo';
-import { ResponsiveModalDemo } from '@/components/demo/responsive-modal-demo';
-import { SimpleListDemo } from '@/components/demo/simple-list-demo';
-import { ThresholdsEditorDemo } from '@/components/demo/thresholds-editor-demo';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const NavbarDemo = lazy(() =>
+  import('@/components/demo/navbar-demo').then(m => ({ default: m.NavbarDemo }))
+);
+const LabeledCounterDemo = lazy(() =>
+  import('@/components/demo/labeled-counter-demo').then(m => ({
+    default: m.LabeledCounterDemo,
+  }))
+);
+const ResponsiveModalDemo = lazy(() =>
+  import('@/components/demo/responsive-modal-demo').then(m => ({
+    default: m.ResponsiveModalDemo,
+  }))
+);
+const IdentityEditorDemo = lazy(() =>
+  import('@/components/demo/identity-editor-demo').then(m => ({
+    default: m.IdentityEditorDemo,
+  }))
+);
+const ThresholdsEditorDemo = lazy(() =>
+  import('@/components/demo/thresholds-editor-demo').then(m => ({
+    default: m.ThresholdsEditorDemo,
+  }))
+);
+const SimpleListDemo = lazy(() =>
+  import('@/components/demo/simple-list-demo').then(m => ({
+    default: m.SimpleListDemo,
+  }))
+);
+const GoldTrackerDemo = lazy(() =>
+  import('@/components/demo/gold-tracker-demo').then(m => ({
+    default: m.GoldTrackerDemo,
+  }))
+);
+const AncestrySelectorDemo = lazy(() =>
+  import('@/components/demo/ancestry-selector-demo').then(m => ({
+    default: m.AncestrySelectorDemo,
+  }))
+);
+const CommunitySelectorDemo = lazy(() =>
+  import('@/components/demo/community-selector-demo').then(m => ({
+    default: m.CommunitySelectorDemo,
+  }))
+);
+const EquipmentEditorDemo = lazy(() =>
+  import('@/components/demo/equipment-editor-demo').then(m => ({
+    default: m.EquipmentEditorDemo,
+  }))
+);
+const InventoryEditorDemo = lazy(() =>
+  import('@/components/demo/inventory-editor-demo').then(m => ({
+    default: m.InventoryEditorDemo,
+  }))
+);
+const ClassSelectorDemo = lazy(() =>
+  import('@/components/demo/class-selector-demo').then(m => ({
+    default: m.ClassSelectorDemo,
+  }))
+);
+const LoadoutSelectorDemo = lazy(() =>
+  import('@/components/demo/loadout-selector-demo').then(m => ({
+    default: m.LoadoutSelectorDemo,
+  }))
+);
+
+function DemoSkeleton() {
+  return (
+    <div className="space-y-4">
+      <Skeleton className="h-8 w-48" />
+      <Skeleton className="h-32 w-full" />
+    </div>
+  );
+}
+
+function DemoSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section>
+      <h1 className="mb-6 text-2xl font-bold">{title}</h1>
+      <Suspense fallback={<DemoSkeleton />}>{children}</Suspense>
+    </section>
+  );
+}
 
 export const Route = createFileRoute('/demonstration')({
   component: Demonstration,
@@ -21,8 +99,7 @@ export const Route = createFileRoute('/demonstration')({
 function Demonstration() {
   return (
     <div className="container mx-auto space-y-12 py-8">
-      <section>
-        <h1 className="mb-6 text-2xl font-bold">Navbar Demonstration</h1>
+      <DemoSection title="Navbar Demonstration">
         <div className="space-y-6">
           <div>
             <h2 className="text-muted-foreground mb-3 text-sm font-medium">
@@ -39,89 +116,57 @@ function Demonstration() {
             </div>
           </div>
         </div>
-      </section>
+      </DemoSection>
 
-      <section>
-        <h1 className="mb-6 text-2xl font-bold">
-          Labeled Counter Demonstration
-        </h1>
+      <DemoSection title="Labeled Counter Demonstration">
         <LabeledCounterDemo />
-      </section>
+      </DemoSection>
 
-      <section>
-        <h1 className="mb-6 text-2xl font-bold">
-          Responsive Modal Demonstration
-        </h1>
+      <DemoSection title="Responsive Modal Demonstration">
         <div className="bg-card rounded-lg border p-6">
           <ResponsiveModalDemo />
         </div>
-      </section>
+      </DemoSection>
 
-      <section>
-        <h1 className="mb-6 text-2xl font-bold">
-          Identity Editor Demonstration
-        </h1>
+      <DemoSection title="Identity Editor Demonstration">
         <IdentityEditorDemo />
-      </section>
+      </DemoSection>
 
-      <section>
-        <h1 className="mb-6 text-2xl font-bold">
-          Thresholds Editor Demonstration
-        </h1>
+      <DemoSection title="Thresholds Editor Demonstration">
         <ThresholdsEditorDemo />
-      </section>
+      </DemoSection>
 
-      <section>
-        <h1 className="mb-6 text-2xl font-bold">Simple List Demonstration</h1>
+      <DemoSection title="Simple List Demonstration">
         <SimpleListDemo />
-      </section>
+      </DemoSection>
 
-      <section>
-        <h1 className="mb-6 text-2xl font-bold">Gold Tracker Demonstration</h1>
+      <DemoSection title="Gold Tracker Demonstration">
         <GoldTrackerDemo />
-      </section>
+      </DemoSection>
 
-      <section>
-        <h1 className="mb-6 text-2xl font-bold">
-          Ancestry Selector Demonstration
-        </h1>
+      <DemoSection title="Ancestry Selector Demonstration">
         <AncestrySelectorDemo />
-      </section>
+      </DemoSection>
 
-      <section>
-        <h1 className="mb-6 text-2xl font-bold">
-          Community Selector Demonstration
-        </h1>
+      <DemoSection title="Community Selector Demonstration">
         <CommunitySelectorDemo />
-      </section>
+      </DemoSection>
 
-      <section>
-        <h1 className="mb-6 text-2xl font-bold">
-          ⚔️ Equipment Editor Demonstration
-        </h1>
+      <DemoSection title="⚔️ Equipment Editor Demonstration">
         <EquipmentEditorDemo />
-      </section>
+      </DemoSection>
 
-      <section>
-        <h1 className="mb-6 text-2xl font-bold">
-          🎒 Inventory Editor Demonstration
-        </h1>
+      <DemoSection title="🎒 Inventory Editor Demonstration">
         <InventoryEditorDemo />
-      </section>
+      </DemoSection>
 
-      <section>
-        <h1 className="mb-6 text-2xl font-bold">
-          ⚔️ Class Selector Demonstration
-        </h1>
+      <DemoSection title="⚔️ Class Selector Demonstration">
         <ClassSelectorDemo />
-      </section>
+      </DemoSection>
 
-      <section>
-        <h1 className="mb-6 text-2xl font-bold">
-          📜 Loadout Selector Demonstration
-        </h1>
+      <DemoSection title="📜 Loadout Selector Demonstration">
         <LoadoutSelectorDemo />
-      </section>
+      </DemoSection>
     </div>
   );
 }

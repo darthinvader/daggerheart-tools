@@ -1,5 +1,5 @@
 /* eslint-disable max-lines-per-function, complexity */
-import { useState } from 'react';
+import { memo, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -109,7 +109,11 @@ function HopeFeatureBadge({ hopeCost }: { hopeCost: number }) {
   );
 }
 
-export function ClassCard({ gameClass, isSelected, onSelect }: ClassCardProps) {
+export function ClassCardComponent({
+  gameClass,
+  isSelected,
+  onSelect,
+}: ClassCardProps) {
   const [showDetails, setShowDetails] = useState(false);
   const emoji = CLASS_EMOJIS[gameClass.name] ?? '⚔️';
   const colorClass = CLASS_COLORS[gameClass.name] ?? 'text-foreground';
@@ -320,3 +324,5 @@ export function ClassCard({ gameClass, isSelected, onSelect }: ClassCardProps) {
     </Card>
   );
 }
+
+export const ClassCard = memo(ClassCardComponent);
