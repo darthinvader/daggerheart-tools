@@ -1,4 +1,7 @@
+import { Plus, Sparkles } from 'lucide-react';
+
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import type { InventoryState } from '@/lib/schemas/equipment';
 import { cn } from '@/lib/utils';
@@ -6,35 +9,54 @@ import { cn } from '@/lib/utils';
 export function EmptyInventoryDisplay({
   maxSlots,
   unlimitedSlots,
+  onAddClick,
+  onCustomClick,
 }: {
   maxSlots: number;
   unlimitedSlots?: boolean;
+  onAddClick?: () => void;
+  onCustomClick?: () => void;
 }) {
+  const hasActions = onAddClick || onCustomClick;
+
   return (
     <div className="flex flex-col items-center justify-center py-8 text-center">
       <span className="text-4xl opacity-50">🎒</span>
       <p className="text-muted-foreground mt-2">Inventory is empty</p>
       <p className="text-muted-foreground text-sm">
-        Click edit to add items to your inventory
+        {hasActions
+          ? 'Add some items from the catalog or create your own custom items.'
+          : 'Click edit to add items to your inventory'}
       </p>
       <Badge variant="outline" className="mt-3 gap-1">
         🎒 {unlimitedSlots ? '0/∞' : `0/${maxSlots}`} slots
       </Badge>
+      {hasActions && (
+        <div className="mt-4 flex gap-2">
+          {onCustomClick && (
+            <Button variant="outline" onClick={onCustomClick}>
+              <Sparkles className="mr-1 size-4" />
+              Create Custom
+            </Button>
+          )}
+          {onAddClick && (
+            <Button onClick={onAddClick}>
+              <Plus className="mr-1 size-4" />
+              Browse Items
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
-export function InventoryStats({
-  inventory,
-  unlimitedSlots,
-}: {
-  inventory: InventoryState;
-  unlimitedSlots?: boolean;
-}) {
+export function InventoryStats({ inventory }: { inventory: InventoryState }) {
   const totalItems = inventory.items.length;
   const equippedItems = inventory.items.filter(i => i.isEquipped).length;
   const customItems = inventory.items.filter(i => i.isCustom).length;
   const totalQuantity = inventory.items.reduce((sum, i) => sum + i.quantity, 0);
+  const unlimitedSlots = inventory.unlimitedSlots;
 
   return (
     <div className="flex flex-wrap gap-2">
@@ -43,16 +65,6 @@ export function InventoryStats({
           📦 {totalItems} Item{totalItems !== 1 ? 's' : ''}
         </Badge>
       </SmartTooltip>
-      {totalQuantity > totalItems && (
-        <SmartTooltip content="Total quantity including stacks">
-          <Badge
-            variant="outline"
-            className="gap-1 border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-900/30"
-          >
-            🔢 {totalQuantity} Total
-          </Badge>
-        </SmartTooltip>
-      )}
       {equippedItems > 0 && (
         <SmartTooltip content="Currently equipped items">
           <Badge
@@ -77,22 +89,22 @@ export function InventoryStats({
         content={
           unlimitedSlots
             ? 'Unlimited slots'
-            : `${totalItems}/${inventory.maxSlots} slots used`
+            : `${totalQuantity}/${inventory.maxSlots} slots used`
         }
       >
         <Badge
           variant="outline"
           className={cn(
             'gap-1',
-            !unlimitedSlots && totalItems >= inventory.maxSlots
+            !unlimitedSlots && totalQuantity >= inventory.maxSlots
               ? 'border-red-300 bg-red-50 dark:border-red-700 dark:bg-red-900/30'
               : ''
           )}
         >
           🎒{' '}
           {unlimitedSlots
-            ? `${totalItems}/∞`
-            : `${totalItems}/${inventory.maxSlots}`}
+            ? `${totalQuantity}/∞`
+            : `${totalQuantity}/${inventory.maxSlots}`}
         </Badge>
       </SmartTooltip>
     </div>

@@ -1,16 +1,20 @@
-import { Minus, Plus } from 'lucide-react';
+import type {
+  EquipmentTier,
+  InventoryState,
+  Rarity,
+} from '@/lib/schemas/equipment';
 
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import type { InventoryState } from '@/lib/schemas/equipment';
-import { cn } from '@/lib/utils';
-
-import { getItemEmoji } from './item-utils';
+import { CompactItemCard } from './compact-item-card';
+import type { ItemCategory } from './constants';
+import type { InventoryFilters } from './inventory-filters-panel';
 
 interface CompactInventoryListProps {
   inventory: InventoryState;
   searchQuery?: string;
+  filters?: InventoryFilters;
   onQuantityChange?: (id: string, delta: number) => void;
+  onRemove?: (id: string) => void;
+  onConvertToHomebrew?: (id: string) => void;
   readOnly?: boolean;
 }
 
@@ -24,14 +28,39 @@ const LOCATION_EMOJIS: Record<string, string> = {
 export function CompactInventoryList({
   inventory,
   searchQuery,
+  filters,
   onQuantityChange,
+  onRemove,
+  onConvertToHomebrew,
   readOnly,
 }: CompactInventoryListProps) {
-  const filteredItems = searchQuery
-    ? inventory.items.filter(entry =>
-        entry.item.name.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : inventory.items;
+  let filteredItems = inventory.items;
+
+  if (searchQuery) {
+    filteredItems = filteredItems.filter(entry =>
+      entry.item.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }
+
+  if (filters) {
+    if (filters.categories.length > 0) {
+      filteredItems = filteredItems.filter(entry => {
+        const category = (entry.item as { category?: string })
+          .category as ItemCategory;
+        return filters.categories.includes(category);
+      });
+    }
+    if (filters.rarities.length > 0) {
+      filteredItems = filteredItems.filter(entry =>
+        filters.rarities.includes(entry.item.rarity as Rarity)
+      );
+    }
+    if (filters.tiers.length > 0) {
+      filteredItems = filteredItems.filter(entry =>
+        filters.tiers.includes(entry.item.tier as EquipmentTier)
+      );
+    }
+  }
 
   const groupedByLocation = filteredItems.reduce<
     Record<string, typeof inventory.items>
@@ -42,11 +71,24 @@ export function CompactInventoryList({
     return acc;
   }, {});
 
-  if (filteredItems.length === 0 && searchQuery) {
+  if (
+    filteredItems.length === 0 &&
+    (searchQuery ||
+      (filters &&
+        (filters.categories.length > 0 ||
+          filters.rarities.length > 0 ||
+          filters.tiers.length > 0)))
+  ) {
     return (
-      <p className="text-muted-foreground py-4 text-center text-sm">
-        No items match &quot;{searchQuery}&quot;
-      </p>
+      <div className="flex flex-col items-center py-8 text-center">
+        <span className="mb-2 text-4xl">🔍</span>
+        <p className="text-muted-foreground text-sm">
+          No items match your filters
+        </p>
+        <p className="text-muted-foreground mt-1 text-xs">
+          Try adjusting your search or filter criteria
+        </p>
+      </div>
     );
   }
 
@@ -57,7 +99,10 @@ export function CompactInventoryList({
           key={location}
           location={location}
           items={items}
+          unlimitedQuantity={inventory.unlimitedQuantity}
           onQuantityChange={onQuantityChange}
+          onRemove={onRemove}
+          onConvertToHomebrew={onConvertToHomebrew}
           readOnly={readOnly}
         />
       ))}
@@ -68,14 +113,20 @@ export function CompactInventoryList({
 interface LocationGroupProps {
   location: string;
   items: InventoryState['items'];
+  unlimitedQuantity?: boolean;
   onQuantityChange?: (id: string, delta: number) => void;
+  onRemove?: (id: string) => void;
+  onConvertToHomebrew?: (id: string) => void;
   readOnly?: boolean;
 }
 
 function LocationGroup({
   location,
   items,
+  unlimitedQuantity,
   onQuantityChange,
+  onRemove,
+  onConvertToHomebrew,
   readOnly,
 }: LocationGroupProps) {
   return (
@@ -85,80 +136,18 @@ function LocationGroup({
         <span className="capitalize">{location}</span>
         <span className="text-muted-foreground">({items.length})</span>
       </h5>
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-1 lg:grid-cols-2">
         {items.map(entry => (
-          <InventoryItemCard
+          <CompactItemCard
             key={entry.id}
             entry={entry}
+            unlimitedQuantity={unlimitedQuantity}
             onQuantityChange={onQuantityChange}
+            onRemove={onRemove}
+            onConvertToHomebrew={onConvertToHomebrew}
             readOnly={readOnly}
           />
         ))}
-      </div>
-    </div>
-  );
-}
-
-interface InventoryItemCardProps {
-  entry: InventoryState['items'][number];
-  onQuantityChange?: (id: string, delta: number) => void;
-  readOnly?: boolean;
-}
-
-function InventoryItemCard({
-  entry,
-  onQuantityChange,
-  readOnly,
-}: InventoryItemCardProps) {
-  return (
-    <div
-      className={cn(
-        'flex items-center justify-between rounded-lg border p-3',
-        entry.isEquipped &&
-          'border-green-300 bg-green-50/50 dark:border-green-700 dark:bg-green-900/20',
-        entry.isCustom &&
-          'border-purple-300 bg-purple-50/50 dark:border-purple-700 dark:bg-purple-900/20'
-      )}
-    >
-      <div className="flex items-center gap-2">
-        <span className="text-lg">{getItemEmoji(entry.item)}</span>
-        <div>
-          <p className="text-sm font-medium">{entry.item.name}</p>
-          <p className="text-muted-foreground text-xs">×{entry.quantity}</p>
-        </div>
-      </div>
-      <div className="flex items-center gap-1">
-        {!readOnly && onQuantityChange && (
-          <div className="flex items-center gap-0.5">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-6"
-              onClick={() => onQuantityChange(entry.id, -1)}
-              disabled={entry.quantity <= 1}
-            >
-              <Minus className="size-3" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-6"
-              onClick={() => onQuantityChange(entry.id, 1)}
-            >
-              <Plus className="size-3" />
-            </Button>
-          </div>
-        )}
-        {entry.isEquipped && (
-          <Badge variant="secondary" className="text-xs">
-            ⚔️
-          </Badge>
-        )}
-        {entry.isCustom && (
-          <Badge variant="secondary" className="text-xs">
-            ✨
-          </Badge>
-        )}
       </div>
     </div>
   );

@@ -1,11 +1,12 @@
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 
-import { EditableSection } from '@/components/shared/editable-section';
 import type { InventoryState } from '@/lib/schemas/equipment';
 import { cn } from '@/lib/utils';
 
+import { CustomItemForm } from './custom-item-form';
 import { InventoryContent } from './inventory-content';
-import { InventoryEditor } from './inventory-editor';
+import { ItemPickerModal } from './item-picker-modal';
+import { useInventoryHandlers } from './use-inventory-handlers';
 
 interface InventoryDisplayProps {
   inventory: InventoryState;
@@ -20,88 +21,78 @@ export function InventoryDisplay({
   className,
   readOnly = false,
 }: InventoryDisplayProps) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [draftInventory, setDraftInventory] =
-    useState<InventoryState>(inventory);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const handleEditToggle = useCallback(() => {
-    if (!isEditing) {
-      setDraftInventory(inventory);
-    }
-    setIsEditing(prev => !prev);
-  }, [isEditing, inventory]);
-
-  const handleSave = useCallback(() => {
-    onChange?.(draftInventory);
-  }, [draftInventory, onChange]);
-
-  const handleCancel = useCallback(() => {
-    setDraftInventory(inventory);
-  }, [inventory]);
-
-  const handleChange = useCallback((newInventory: InventoryState) => {
-    setDraftInventory(newInventory);
-  }, []);
-
-  const handleQuantityChange = useCallback(
-    (id: string, delta: number) => {
-      const updated: InventoryState = {
-        ...inventory,
-        items: inventory.items.map(item => {
-          if (item.id !== id) return item;
-          const newQty = Math.max(1, item.quantity + delta);
-          return { ...item, quantity: newQty };
-        }),
-      };
-      onChange?.(updated);
-    },
-    [inventory, onChange]
-  );
-
-  const handleMaxSlotsChange = useCallback(
-    (delta: number) => {
-      const newMax = Math.max(
-        inventory.items.length,
-        inventory.maxSlots + delta
-      );
-      onChange?.({
-        ...inventory,
-        maxSlots: newMax,
-      });
-    },
-    [inventory, onChange]
-  );
+  const {
+    pickerOpen,
+    setPickerOpen,
+    customFormOpen,
+    editingItem,
+    handleQuantityChange,
+    handleMaxSlotsChange,
+    handleUnlimitedSlotsChange,
+    handleUnlimitedQuantityChange,
+    handleRemove,
+    handleConvertToHomebrew,
+    handlePickerConvertToHomebrew,
+    handleAddItems,
+    handleAddCustomItem,
+    handleCustomFormClose,
+  } = useInventoryHandlers({ inventory, onChange });
 
   return (
-    <EditableSection
-      title="Inventory"
-      emoji="🎒"
-      isEditing={isEditing}
-      onEditToggle={handleEditToggle}
-      onSave={handleSave}
-      onCancel={handleCancel}
-      showEditButton={!readOnly}
-      modalSize="xl"
-      className={cn(className)}
-      editTitle="Manage Inventory"
-      editDescription="Add, remove, and organize items in your inventory."
-      editContent={
-        <InventoryEditor
-          value={draftInventory}
-          onChange={handleChange}
-          hideHeader
-        />
-      }
+    <section
+      className={cn(
+        'bg-card hover:border-primary/20 rounded-xl border shadow-sm transition-colors',
+        className
+      )}
     >
-      <InventoryContent
-        inventory={inventory}
-        searchQuery={searchQuery}
-        onSearchChange={readOnly ? undefined : setSearchQuery}
-        onQuantityChange={readOnly ? undefined : handleQuantityChange}
-        onMaxSlotsChange={readOnly ? undefined : handleMaxSlotsChange}
-        readOnly={readOnly}
+      <div className="flex items-center justify-between border-b px-4 py-3 sm:px-6">
+        <div className="flex items-center gap-2">
+          <span className="text-xl">🎒</span>
+          <h3 className="text-lg font-semibold">Inventory</h3>
+        </div>
+      </div>
+
+      <div className="p-4 sm:p-6">
+        <InventoryContent
+          inventory={inventory}
+          searchQuery={searchQuery}
+          onSearchChange={readOnly ? undefined : setSearchQuery}
+          onQuantityChange={readOnly ? undefined : handleQuantityChange}
+          onRemove={readOnly ? undefined : handleRemove}
+          onConvertToHomebrew={readOnly ? undefined : handleConvertToHomebrew}
+          onMaxSlotsChange={readOnly ? undefined : handleMaxSlotsChange}
+          onUnlimitedSlotsChange={
+            readOnly ? undefined : handleUnlimitedSlotsChange
+          }
+          onUnlimitedQuantityChange={
+            readOnly ? undefined : handleUnlimitedQuantityChange
+          }
+          onAddClick={readOnly ? undefined : () => setPickerOpen(true)}
+          onCustomClick={
+            readOnly ? undefined : () => handleCustomFormClose(true)
+          }
+          readOnly={readOnly}
+        />
+      </div>
+
+      <ItemPickerModal
+        open={pickerOpen}
+        onOpenChange={setPickerOpen}
+        onSelectItems={handleAddItems}
+        inventoryItems={inventory.items}
+        unlimitedQuantity={inventory.unlimitedQuantity}
+        unlimitedSlots={inventory.unlimitedSlots}
+        maxSlots={inventory.maxSlots}
+        onConvertToHomebrew={handlePickerConvertToHomebrew}
       />
-    </EditableSection>
+      <CustomItemForm
+        open={customFormOpen}
+        onOpenChange={handleCustomFormClose}
+        onSave={handleAddCustomItem}
+        initialItem={editingItem}
+      />
+    </section>
   );
 }

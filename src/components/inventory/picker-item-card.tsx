@@ -1,5 +1,6 @@
-import { AlertTriangle, Check } from 'lucide-react';
+import { AlertTriangle, Check, Sparkles } from 'lucide-react';
 
+import { Button } from '@/components/ui/button';
 import type { AnyItem, EquipmentTier, Rarity } from '@/lib/schemas/equipment';
 import { cn } from '@/lib/utils';
 
@@ -16,6 +17,16 @@ import {
   RarityTierDisplay,
 } from './picker-item-parts';
 
+function getCardIcon(
+  isAtMax: boolean,
+  selected: boolean,
+  emoji: string
+): React.ReactNode {
+  if (isAtMax) return <AlertTriangle className="h-5 w-5 text-amber-500" />;
+  if (selected) return <Check className="h-5 w-5 text-green-600" />;
+  return emoji;
+}
+
 interface PickerItemCardProps {
   item: AnyItem;
   selected: boolean;
@@ -26,6 +37,7 @@ interface PickerItemCardProps {
   unlimitedQuantity: boolean;
   onToggle: () => void;
   onQuantityChange: (delta: number) => void;
+  onConvertToHomebrew?: () => void;
 }
 
 export function PickerItemCard({
@@ -38,6 +50,7 @@ export function PickerItemCard({
   unlimitedQuantity,
   onToggle,
   onQuantityChange,
+  onConvertToHomebrew,
 }: PickerItemCardProps) {
   const category = (item as { category?: string }).category as ItemCategory;
   const catConfig = category ? CATEGORY_CONFIG[category] : null;
@@ -69,13 +82,7 @@ export function PickerItemCard({
       )}
     >
       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-lg dark:bg-gray-800">
-        {isAtMax ? (
-          <AlertTriangle className="h-5 w-5 text-amber-500" />
-        ) : selected ? (
-          <Check className="h-5 w-5 text-green-600" />
-        ) : (
-          (catConfig?.emoji ?? '📦')
-        )}
+        {getCardIcon(isAtMax, selected, catConfig?.emoji ?? '📦')}
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
@@ -120,6 +127,20 @@ export function PickerItemCard({
             unlimitedQuantity={unlimitedQuantity}
             onQuantityChange={onQuantityChange}
           />
+        )}
+        {onConvertToHomebrew && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="mt-2 h-7 gap-1 px-2 text-xs text-purple-600 hover:bg-purple-100 hover:text-purple-700 dark:text-purple-400 dark:hover:bg-purple-950/50 dark:hover:text-purple-300"
+            onClick={e => {
+              e.stopPropagation();
+              onConvertToHomebrew();
+            }}
+          >
+            <Sparkles className="h-3 w-3" />
+            Make Homebrew
+          </Button>
         )}
       </div>
     </div>

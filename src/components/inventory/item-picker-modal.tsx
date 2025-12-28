@@ -1,5 +1,3 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -9,26 +7,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  ALL_ARMOR_MODIFICATIONS,
-  ALL_CONSUMABLES,
-  ALL_RECIPES,
-  ALL_RELICS,
-  ALL_UTILITY_ITEMS,
-  ALL_WEAPON_MODIFICATIONS,
-} from '@/lib/data/equipment';
-import type {
-  AnyItem,
-  EquipmentTier,
-  InventoryItemEntry,
-  Rarity,
-} from '@/lib/schemas/equipment';
-import { rankBy } from '@/utils/search/rank';
+import type { AnyItem, InventoryItemEntry } from '@/lib/schemas/equipment';
 
-import type { ItemCategory } from './constants';
 import { ItemFilters } from './item-filters';
 import { ItemPickerGrid } from './item-picker-grid';
 import { ItemSearchHeader } from './item-search-header';
+import {
+  useItemFilters,
+  useItemSelection,
+  usePickerFiltersState,
+  usePickerReset,
+} from './use-item-picker';
 
 interface ItemPickerModalProps {
   open: boolean;
@@ -36,115 +25,63 @@ interface ItemPickerModalProps {
   onSelectItems: (items: AnyItem[]) => void;
   inventoryItems?: InventoryItemEntry[];
   unlimitedQuantity?: boolean;
+  unlimitedSlots?: boolean;
+  maxSlots?: number;
+  onConvertToHomebrew?: (item: AnyItem) => void;
 }
 
-const ALL_ITEMS: AnyItem[] = [
-  ...ALL_UTILITY_ITEMS,
-  ...ALL_CONSUMABLES,
-  ...ALL_RELICS,
-  ...ALL_WEAPON_MODIFICATIONS,
-  ...ALL_ARMOR_MODIFICATIONS,
-  ...ALL_RECIPES,
-];
-
-function useItemFilters(
-  selectedCategories: ItemCategory[],
-  selectedRarities: Rarity[],
-  selectedTiers: EquipmentTier[],
-  search: string
-) {
-  return useMemo(() => {
-    let result = ALL_ITEMS;
-
-    if (selectedCategories.length > 0) {
-      result = result.filter(item =>
-        selectedCategories.includes(
-          (item as { category?: string }).category as ItemCategory
-        )
-      );
-    }
-
-    if (selectedRarities.length > 0) {
-      result = result.filter(item =>
-        selectedRarities.includes(item.rarity as Rarity)
-      );
-    }
-
-    if (selectedTiers.length > 0) {
-      result = result.filter(item =>
-        selectedTiers.includes(item.tier as EquipmentTier)
-      );
-    }
-
-    if (search.trim()) {
-      result = rankBy(result, search, [
-        'name',
-        item => item.features?.map(f => f.name).join(' ') ?? '',
-        item => item.features?.map(f => f.description).join(' ') ?? '',
-      ]);
-    }
-
-    return result;
-  }, [search, selectedCategories, selectedRarities, selectedTiers]);
-}
-
-function useItemSelection() {
-  const [tempSelected, setTempSelected] = useState<
-    Map<string, { item: AnyItem; quantity: number }>
-  >(new Map());
-
-  const toggleItem = (item: AnyItem) => {
-    setTempSelected(prev => {
-      const next = new Map(prev);
-      if (next.has(item.name)) {
-        next.delete(item.name);
-      } else {
-        next.set(item.name, { item, quantity: 1 });
-      }
-      return next;
-    });
-  };
-
-  const handleQuantityChange = (
-    item: AnyItem,
-    delta: number,
-    maxAllowed?: number
-  ) => {
-    setTempSelected(prev => {
-      const next = new Map(prev);
-      const existing = next.get(item.name);
-      if (existing) {
-        const limit = maxAllowed ?? item.maxQuantity;
-        const newQty = Math.max(1, Math.min(limit, existing.quantity + delta));
-        next.set(item.name, { ...existing, quantity: newQty });
-      }
-      return next;
-    });
-  };
-
-  const reset = useCallback(() => setTempSelected(new Map()), []);
-
-  const totalQuantity = Array.from(tempSelected.values()).reduce(
-    (sum, s) => sum + s.quantity,
-    0
+function PickerHeader({
+  totalQuantity,
+  slotsRemaining,
+  isAtCapacity,
+  unlimitedSlots,
+}: {
+  totalQuantity: number;
+  slotsRemaining: number;
+  isAtCapacity: boolean;
+  unlimitedSlots: boolean;
+}) {
+  return (
+    <DialogHeader className="shrink-0">
+      <DialogTitle className="flex flex-wrap items-center gap-2">
+        <span className="text-2xl">🎒</span>
+        Add Items to Inventory
+        {totalQuantity > 0 && (
+          <Badge className="bg-green-500">{totalQuantity} selected</Badge>
+        )}
+        {!unlimitedSlots && (
+          <Badge
+            variant="outline"
+            className={
+              isAtCapacity
+                ? 'border-red-300 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/50 dark:text-red-300'
+                : 'border-blue-300 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/50 dark:text-blue-300'
+            }
+          >
+            {slotsRemaining <= 0
+              ? '🚫 Full'
+              : `📦 ${slotsRemaining} slots left`}
+          </Badge>
+        )}
+      </DialogTitle>
+      <DialogDescription className="sr-only">
+        Browse and select items to add to your inventory
+      </DialogDescription>
+    </DialogHeader>
   );
+}
 
-  const getItemsArray = (): AnyItem[] => {
-    const items: AnyItem[] = [];
-    tempSelected.forEach(({ item, quantity }) => {
-      for (let i = 0; i < quantity; i++) items.push(item);
-    });
-    return items;
-  };
-
-  return {
-    tempSelected,
-    toggleItem,
-    handleQuantityChange,
-    totalQuantity,
-    getItemsArray,
-    reset,
-  };
+function CapacityWarning({ maxSlots }: { maxSlots: number }) {
+  return (
+    <div className="flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-950/50 dark:text-amber-200">
+      <span className="text-lg">⚠️</span>
+      <div>
+        <span className="font-medium">Inventory Full!</span> You've reached your
+        maximum of <strong>{maxSlots} slots</strong>. Remove items or enable{' '}
+        <strong>∞ Slots</strong> to add more.
+      </div>
+    </div>
+  );
 }
 
 function PickerFooter({
@@ -197,14 +134,17 @@ export function ItemPickerModal({
   onSelectItems,
   inventoryItems = [],
   unlimitedQuantity = false,
+  unlimitedSlots = false,
+  maxSlots = 50,
+  onConvertToHomebrew,
 }: ItemPickerModalProps) {
-  const [search, setSearch] = useState('');
-  const [selectedCategories, setSelectedCategories] = useState<ItemCategory[]>(
-    []
+  const currentInventoryQuantity = inventoryItems.reduce(
+    (sum, i) => sum + i.quantity,
+    0
   );
-  const [selectedRarities, setSelectedRarities] = useState<Rarity[]>([]);
-  const [selectedTiers, setSelectedTiers] = useState<EquipmentTier[]>([]);
-  const [showFilters, setShowFilters] = useState(false);
+  const availableSlots = unlimitedSlots
+    ? Infinity
+    : Math.max(0, maxSlots - currentInventoryQuantity);
 
   const {
     tempSelected,
@@ -213,31 +153,23 @@ export function ItemPickerModal({
     totalQuantity,
     getItemsArray,
     reset,
-  } = useItemSelection();
+  } = useItemSelection(availableSlots);
 
-  useEffect(() => {
-    if (open) reset();
-  }, [open, reset]);
+  const filters = usePickerFiltersState();
+
+  usePickerReset(open, reset);
 
   const filteredItems = useItemFilters(
-    selectedCategories,
-    selectedRarities,
-    selectedTiers,
-    search
+    filters.selectedCategories,
+    filters.selectedRarities,
+    filters.selectedTiers,
+    filters.search
   );
 
-  const toggleArray = <T,>(arr: T[], item: T): T[] =>
-    arr.includes(item) ? arr.filter(i => i !== item) : [...arr, item];
-
-  const clearFilters = () => {
-    setSelectedCategories([]);
-    setSelectedRarities([]);
-    setSelectedTiers([]);
-    setSearch('');
-  };
-
-  const activeFilterCount =
-    selectedCategories.length + selectedRarities.length + selectedTiers.length;
+  const slotsRemaining = unlimitedSlots
+    ? Infinity
+    : availableSlots - totalQuantity;
+  const isAtCapacity = !unlimitedSlots && slotsRemaining <= 0;
 
   const handleConfirm = () => {
     onSelectItems(getItemsArray());
@@ -247,42 +179,32 @@ export function ItemPickerModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[90vh] w-[98vw] max-w-350 flex-col sm:max-w-350 lg:max-w-400">
-        <DialogHeader className="shrink-0">
-          <DialogTitle className="flex items-center gap-2">
-            <span className="text-2xl">🎒</span>
-            Add Items to Inventory
-            {totalQuantity > 0 && (
-              <Badge className="ml-2 bg-green-500">
-                {totalQuantity} selected
-              </Badge>
-            )}
-          </DialogTitle>
-          <DialogDescription className="sr-only">
-            Browse and select items to add to your inventory
-          </DialogDescription>
-        </DialogHeader>
+        <PickerHeader
+          totalQuantity={totalQuantity}
+          slotsRemaining={slotsRemaining}
+          isAtCapacity={isAtCapacity}
+          unlimitedSlots={unlimitedSlots}
+        />
+
+        {isAtCapacity && <CapacityWarning maxSlots={maxSlots} />}
 
         <div className="shrink-0 space-y-4">
           <ItemSearchHeader
-            search={search}
-            onSearchChange={setSearch}
-            showFilters={showFilters}
-            onToggleFilters={() => setShowFilters(v => !v)}
-            activeFilterCount={activeFilterCount}
-            onClearFilters={clearFilters}
+            search={filters.search}
+            onSearchChange={filters.setSearch}
+            showFilters={filters.showFilters}
+            onToggleFilters={() => filters.setShowFilters(v => !v)}
+            activeFilterCount={filters.activeFilterCount}
+            onClearFilters={filters.clearFilters}
           />
-          {showFilters && (
+          {filters.showFilters && (
             <ItemFilters
-              selectedCategories={selectedCategories}
-              selectedRarities={selectedRarities}
-              selectedTiers={selectedTiers}
-              onToggleCategory={c =>
-                setSelectedCategories(prev => toggleArray(prev, c))
-              }
-              onToggleRarity={r =>
-                setSelectedRarities(prev => toggleArray(prev, r))
-              }
-              onToggleTier={t => setSelectedTiers(prev => toggleArray(prev, t))}
+              selectedCategories={filters.selectedCategories}
+              selectedRarities={filters.selectedRarities}
+              selectedTiers={filters.selectedTiers}
+              onToggleCategory={filters.toggleCategory}
+              onToggleRarity={filters.toggleRarity}
+              onToggleTier={filters.toggleTier}
             />
           )}
         </div>
@@ -298,6 +220,7 @@ export function ItemPickerModal({
             onQuantityChange={handleQuantityChange}
             inventoryItems={inventoryItems}
             unlimitedQuantity={unlimitedQuantity}
+            onConvertToHomebrew={onConvertToHomebrew}
           />
         </div>
 

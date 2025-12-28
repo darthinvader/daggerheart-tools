@@ -9,6 +9,7 @@ interface ItemPickerGridProps {
   onQuantityChange: (item: AnyItem, delta: number, maxAllowed?: number) => void;
   inventoryItems?: InventoryItemEntry[];
   unlimitedQuantity?: boolean;
+  onConvertToHomebrew?: (item: AnyItem) => void;
 }
 
 export function ItemPickerGrid({
@@ -18,6 +19,7 @@ export function ItemPickerGrid({
   onQuantityChange,
   inventoryItems = [],
   unlimitedQuantity = false,
+  onConvertToHomebrew,
 }: ItemPickerGridProps) {
   return (
     <div className="grid gap-2 pb-4 sm:grid-cols-2">
@@ -47,6 +49,9 @@ export function ItemPickerGrid({
             onToggle={() => onToggleItem(item)}
             onQuantityChange={delta =>
               onQuantityChange(item, delta, availableToAdd)
+            }
+            onConvertToHomebrew={
+              onConvertToHomebrew ? () => onConvertToHomebrew(item) : undefined
             }
           />
         );
