@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import { type AncestrySelection } from '@/components/ancestry-selector';
 import { type ConditionsState } from '@/components/conditions';
@@ -13,12 +13,18 @@ import {
 import { type ExperiencesState } from '@/components/experiences';
 import { type InventoryState } from '@/components/inventory';
 import {
+  LEVEL_UP_OPTIONS_CONFIG,
+  LevelUpModal,
+  type LevelUpResult,
+} from '@/components/level-up';
+import {
   DEFAULT_RESOURCES_STATE,
   type ResourcesState,
 } from '@/components/resources';
 import { type ProgressionState } from '@/components/shared/progression-display';
 import { DEFAULT_TRAITS_STATE, type TraitsState } from '@/components/traits';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { getCardByName } from '@/lib/data/domains';
 import type {
   Gold,
   IdentityFormValues,
@@ -26,7 +32,7 @@ import type {
 } from '@/lib/schemas/character-state';
 import type { ClassSelection } from '@/lib/schemas/class-selection';
 import type { CommunitySelection } from '@/lib/schemas/identity';
-import type { LoadoutSelection } from '@/lib/schemas/loadout';
+import type { DomainCardLite, LoadoutSelection } from '@/lib/schemas/loadout';
 
 import { CombatTab, IdentityTab, ItemsTab, OverviewTab } from './demo-tabs';
 import {
@@ -72,6 +78,223 @@ export function CharacterSheetDemo() {
     DEFAULT_RESOURCES_STATE
   );
 
+  const [unlockedSubclassFeatures, setUnlockedSubclassFeatures] = useState<
+    Record<string, string[]>
+  >({});
+
+  const [isLevelUpOpen, setIsLevelUpOpen] = useState(false);
+
+  const handleLevelUp = useCallback(() => {
+    setIsLevelUpOpen(true);
+  }, []);
+
+  const handleLevelUpConfirm = useCallback(
+    (result: LevelUpResult) => {
+      const currentTier = progression.currentTier;
+      const tierChanged = result.newTier !== currentTier;
+
+      const updatedTierHistory = tierChanged
+        ? {}
+        : { ...progression.tierHistory };
+      const updatedLifetimeHistory = { ...progression.lifetimeHistory };
+
+      for (const selection of result.selections) {
+        const optionConfig = LEVEL_UP_OPTIONS_CONFIG.find(
+          o => o.id === selection.optionId
+        );
+        if (!optionConfig) continue;
+
+        if (optionConfig.maxScope === 'lifetime') {
+          updatedLifetimeHistory[selection.optionId] =
+            (updatedLifetimeHistory[selection.optionId] ?? 0) + selection.count;
+        } else {
+          updatedTierHistory[selection.optionId] =
+            (updatedTierHistory[selection.optionId] ?? 0) + selection.count;
+        }
+      }
+
+      setProgression({
+        currentLevel: result.newLevel,
+        currentTier: result.newTier,
+        tierHistory: updatedTierHistory,
+        lifetimeHistory: updatedLifetimeHistory,
+      });
+
+      if (result.automaticBenefits.proficiencyGained) {
+        setCoreScores(prev => ({
+          ...prev,
+          proficiency: prev.proficiency + 1,
+        }));
+      }
+
+      if (result.automaticBenefits.experienceGained) {
+        setExperiences(prev => ({
+          items: [
+            ...prev.items,
+            { id: crypto.randomUUID(), name: 'New Experience', value: 2 },
+          ],
+        }));
+      }
+
+      if (result.automaticBenefits.traitsCleared) {
+        setTraits(prev => {
+          const cleared = { ...prev };
+          for (const key of Object.keys(cleared) as (keyof TraitsState)[]) {
+            cleared[key] = { ...cleared[key], marked: false };
+          }
+          return cleared;
+        });
+      }
+
+      for (const selection of result.selections) {
+        switch (selection.optionId) {
+          case 'traits':
+            if (selection.details?.selectedTraits) {
+              setTraits(prev => {
+                const updated = { ...prev };
+                for (const traitName of selection.details!.selectedTraits!) {
+                  const key = traitName as keyof TraitsState;
+                  if (updated[key]) {
+                    updated[key] = {
+                      ...updated[key],
+                      value: updated[key].value + 1,
+                      marked: true,
+                    };
+                  }
+                }
+                return updated;
+              });
+            }
+            break;
+          case 'experiences':
+            if (selection.details?.selectedExperiences) {
+              setExperiences(prev => ({
+                items: prev.items.map(exp =>
+                  selection.details!.selectedExperiences!.includes(exp.id)
+                    ? { ...exp, value: exp.value + 1 }
+                    : exp
+                ),
+              }));
+            }
+            break;
+          case 'hp':
+            setResources(prev => ({
+              ...prev,
+              hp: { ...prev.hp, max: prev.hp.max + 1 },
+            }));
+            break;
+          case 'stress':
+            setResources(prev => ({
+              ...prev,
+              stress: { ...prev.stress, max: prev.stress.max + 1 },
+            }));
+            break;
+          case 'evasion':
+            setCoreScores(prev => ({
+              ...prev,
+              evasion: prev.evasion + 1,
+            }));
+            break;
+          case 'proficiency':
+            setCoreScores(prev => ({
+              ...prev,
+              proficiency: prev.proficiency + 1,
+            }));
+            break;
+          case 'domain-card':
+            if (selection.details?.selectedDomainCard) {
+              const card = getCardByName(selection.details.selectedDomainCard);
+              if (card) {
+                const cardLite: DomainCardLite = {
+                  name: card.name,
+                  domain: String(card.domain),
+                  level: card.level,
+                  type: String(card.type),
+                  description: card.description,
+                  hopeCost: card.hopeCost,
+                  recallCost: card.recallCost,
+                };
+                setLoadout(prev => ({
+                  ...prev,
+                  activeCards: [...prev.activeCards, cardLite],
+                }));
+              }
+            }
+            break;
+          case 'multiclass':
+            if (selection.details?.selectedMulticlass) {
+              const mc = selection.details.selectedMulticlass;
+              setClassSelection(prev => {
+                if (!prev) return prev;
+                return {
+                  ...prev,
+                  isMulticlass: true,
+                  classes: [
+                    ...(prev.classes ?? [
+                      {
+                        className: prev.className,
+                        subclassName: prev.subclassName,
+                        spellcastTrait: prev.spellcastTrait,
+                      },
+                    ]),
+                    {
+                      className: mc.className,
+                      subclassName: mc.subclassName,
+                    },
+                  ],
+                  domains: [...new Set([...prev.domains, ...mc.domains])],
+                };
+              });
+              setLoadout(prev => ({
+                ...prev,
+                classDomains: [
+                  ...new Set([...prev.classDomains, ...mc.domains]),
+                ],
+              }));
+            }
+            break;
+          case 'subclass':
+            if (selection.details?.selectedSubclassUpgrade) {
+              const upgrade = selection.details.selectedSubclassUpgrade;
+              const key = `${upgrade.className}:${upgrade.subclassName}`;
+              setUnlockedSubclassFeatures(prev => ({
+                ...prev,
+                [key]: [...(prev[key] ?? []), upgrade.featureName],
+              }));
+            }
+            break;
+        }
+      }
+
+      setThresholds(prev => ({
+        ...prev,
+        values: {
+          ...prev.values,
+          major: prev.values.major + 1,
+          severe: prev.values.severe + 1,
+        },
+      }));
+
+      setIsLevelUpOpen(false);
+    },
+    [
+      progression.currentTier,
+      progression.tierHistory,
+      progression.lifetimeHistory,
+    ]
+  );
+
+  const currentTraitsForModal = Object.entries(traits).map(([name, val]) => ({
+    name,
+    marked: val.marked,
+  }));
+
+  const currentExperiencesForModal = experiences.items.map(exp => ({
+    id: exp.id,
+    name: exp.name,
+    value: exp.value,
+  }));
+
   const state = {
     identity,
     ancestry,
@@ -88,6 +311,7 @@ export function CharacterSheetDemo() {
     traits,
     coreScores,
     resources,
+    unlockedSubclassFeatures,
   };
 
   const handlers = {
@@ -106,6 +330,7 @@ export function CharacterSheetDemo() {
     setTraits,
     setCoreScores,
     setResources,
+    onLevelUp: handleLevelUp,
   };
 
   return (
@@ -139,6 +364,20 @@ export function CharacterSheetDemo() {
           <ItemsTab state={state} handlers={handlers} />
         </TabsContent>
       </Tabs>
+
+      <LevelUpModal
+        isOpen={isLevelUpOpen}
+        onClose={() => setIsLevelUpOpen(false)}
+        onConfirm={handleLevelUpConfirm}
+        currentLevel={progression.currentLevel}
+        currentTier={progression.currentTier}
+        currentTraits={currentTraitsForModal}
+        currentExperiences={currentExperiencesForModal}
+        tierHistory={progression.tierHistory}
+        lifetimeHistory={progression.lifetimeHistory}
+        classSelection={classSelection}
+        unlockedSubclassFeatures={unlockedSubclassFeatures}
+      />
     </div>
   );
 }

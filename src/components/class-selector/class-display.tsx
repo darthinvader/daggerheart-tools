@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { EditableSection } from '@/components/shared/editable-section';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +21,7 @@ interface ClassDisplayProps {
   onChange?: (selection: ClassSelection) => void;
   className?: string;
   readOnly?: boolean;
+  unlockedSubclassFeatures?: Record<string, string[]>;
 }
 
 function EmptyClass() {
@@ -143,6 +144,7 @@ export function ClassDisplay({
   onChange,
   className,
   readOnly = false,
+  unlockedSubclassFeatures = {},
 }: ClassDisplayProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [draftSelection, setDraftSelection] = useState<ClassDraft>({
@@ -153,10 +155,23 @@ export function ClassDisplay({
   });
   const [pendingSelection, setPendingSelection] =
     useState<ClassSelection | null>(null);
-  const [unlockState, setUnlockState] = useState<FeatureUnlockState>({});
+  const [localUnlockState, setLocalUnlockState] = useState<FeatureUnlockState>(
+    {}
+  );
   const completeRef = useRef<{
     complete: () => ClassSelection | null;
   } | null>(null);
+
+  const unlockState = useMemo<FeatureUnlockState>(() => {
+    const state: FeatureUnlockState = { ...localUnlockState };
+    for (const [key, features] of Object.entries(unlockedSubclassFeatures)) {
+      const [clsName] = key.split(':');
+      for (const featureName of features) {
+        state[`${clsName}:${featureName}`] = true;
+      }
+    }
+    return state;
+  }, [localUnlockState, unlockedSubclassFeatures]);
 
   const handleEditToggle = useCallback(() => {
     if (!isEditing) {
@@ -199,7 +214,7 @@ export function ClassDisplay({
   }, []);
 
   const handleToggleUnlock = useCallback((featureName: string) => {
-    setUnlockState(prev => ({
+    setLocalUnlockState(prev => ({
       ...prev,
       [featureName]: !prev[featureName],
     }));

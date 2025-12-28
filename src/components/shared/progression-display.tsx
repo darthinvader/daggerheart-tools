@@ -5,24 +5,21 @@ import { useCallback, useState } from 'react';
 import { EditableSection } from '@/components/shared/editable-section';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import { getTierForLevel } from '@/lib/schemas/core';
 import { cn } from '@/lib/utils';
 
 export interface ProgressionState {
   currentLevel: number;
   currentTier: string;
-  experience?: number;
-  experienceToNext?: number;
+  tierHistory: Record<string, number>;
+  lifetimeHistory: Record<string, number>;
 }
 
 interface ProgressionDisplayProps {
   progression: ProgressionState;
   onChange?: (progression: ProgressionState) => void;
   onLevelUp?: () => void;
-  canLevelUp?: boolean;
   className?: string;
   readOnly?: boolean;
 }
@@ -48,6 +45,13 @@ const TIER_NAMES: Record<string, string> = {
   '8-10': 'Legend',
 };
 
+const TIER_NUMBERS: Record<string, number> = {
+  '1': 1,
+  '2-4': 2,
+  '5-7': 3,
+  '8-10': 4,
+};
+
 function EmptyProgression() {
   return (
     <div className="flex flex-col items-center justify-center py-8 text-center">
@@ -64,6 +68,7 @@ function LevelBadge({ level, tier }: { level: number; tier: string }) {
   const emoji = TIER_EMOJIS[tier] ?? '⭐';
   const tierName = TIER_NAMES[tier] ?? 'Unknown';
   const tierColor = TIER_COLORS[tier] ?? '';
+  const tierNumber = TIER_NUMBERS[tier] ?? 1;
 
   return (
     <div className="flex items-center gap-3">
@@ -84,30 +89,9 @@ function LevelBadge({ level, tier }: { level: number; tier: string }) {
         </p>
         <p className="font-semibold">{tierName}</p>
         <Badge variant="outline" className={cn('text-xs', tierColor)}>
-          Tier {tier}
+          Tier {tierNumber}
         </Badge>
       </div>
-    </div>
-  );
-}
-
-function ExperienceBar({ current, next }: { current?: number; next?: number }) {
-  if (current === undefined || next === undefined) return null;
-
-  const percentage = Math.min(100, (current / next) * 100);
-
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between text-sm">
-        <span className="text-muted-foreground">Experience</span>
-        <span className="font-medium">
-          {current} / {next} XP
-        </span>
-      </div>
-      <Progress value={percentage} className="h-2" />
-      <p className="text-muted-foreground text-xs">
-        {next - current} XP to next level
-      </p>
     </div>
   );
 }
@@ -115,14 +99,12 @@ function ExperienceBar({ current, next }: { current?: number; next?: number }) {
 function ProgressionContent({
   progression,
   onLevelUp,
-  canLevelUp,
 }: {
   progression: ProgressionState;
   onLevelUp?: () => void;
-  canLevelUp?: boolean;
 }) {
-  const { currentLevel, currentTier, experience, experienceToNext } =
-    progression;
+  const { currentLevel, currentTier } = progression;
+  const canLevelUp = currentLevel < 10;
 
   return (
     <div className="space-y-4">
@@ -130,37 +112,22 @@ function ProgressionContent({
         <LevelBadge level={currentLevel} tier={currentTier} />
 
         {onLevelUp && (
-          <SmartTooltip
-            content={
-              canLevelUp
-                ? 'Level up your character!'
-                : 'Not enough experience to level up'
-            }
+          <Button
+            variant={canLevelUp ? 'default' : 'outline'}
+            size="sm"
+            onClick={onLevelUp}
+            disabled={!canLevelUp}
+            className={cn(
+              'gap-2',
+              canLevelUp &&
+                'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600'
+            )}
           >
-            <Button
-              variant={canLevelUp ? 'default' : 'outline'}
-              size="sm"
-              onClick={onLevelUp}
-              disabled={!canLevelUp}
-              className={cn(
-                'gap-2',
-                canLevelUp &&
-                  'animate-pulse bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600'
-              )}
-            >
-              <ChevronUp className="size-4" />
-              Level Up
-            </Button>
-          </SmartTooltip>
+            <ChevronUp className="size-4" />
+            Level Up
+          </Button>
         )}
       </div>
-
-      {(experience !== undefined || experienceToNext !== undefined) && (
-        <>
-          <Separator />
-          <ExperienceBar current={experience} next={experienceToNext} />
-        </>
-      )}
 
       <Separator />
 
@@ -168,6 +135,7 @@ function ProgressionContent({
         {Object.entries(TIER_NAMES).map(([tier, name]) => {
           const isActive = tier === currentTier;
           const tierEmoji = TIER_EMOJIS[tier];
+          const tierNumber = TIER_NUMBERS[tier];
           return (
             <div
               key={tier}
@@ -187,7 +155,7 @@ function ProgressionContent({
               >
                 {name}
               </p>
-              <p className="text-muted-foreground text-xs">Tier {tier}</p>
+              <p className="text-muted-foreground text-xs">Tier {tierNumber}</p>
             </div>
           );
         })}
@@ -243,7 +211,6 @@ export function ProgressionDisplay({
   progression,
   onChange,
   onLevelUp,
-  canLevelUp = false,
   className,
   readOnly = false,
 }: ProgressionDisplayProps) {
@@ -280,11 +247,7 @@ export function ProgressionDisplay({
       editDescription="Adjust your character's level and progression."
       editContent={<LevelEditor level={draftLevel} onChange={setDraftLevel} />}
     >
-      <ProgressionContent
-        progression={progression}
-        onLevelUp={onLevelUp}
-        canLevelUp={canLevelUp}
-      />
+      <ProgressionContent progression={progression} onLevelUp={onLevelUp} />
     </EditableSection>
   );
 }

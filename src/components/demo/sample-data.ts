@@ -80,10 +80,10 @@ export const SAMPLE_COMMUNITY: CommunitySelection = {
 };
 
 export const SAMPLE_PROGRESSION: ProgressionState = {
-  currentLevel: 3,
-  currentTier: '2-4',
-  experience: 750,
-  experienceToNext: 1000,
+  currentLevel: 1,
+  currentTier: '1',
+  tierHistory: {},
+  lifetimeHistory: {},
 };
 
 export const SAMPLE_GOLD: Gold = {

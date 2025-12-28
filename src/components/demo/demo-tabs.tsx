@@ -53,6 +53,7 @@ export interface DemoState {
   traits: TraitsState;
   coreScores: CoreScoresState;
   resources: ResourcesState;
+  unlockedSubclassFeatures: Record<string, string[]>;
 }
 
 export interface DemoHandlers {
@@ -71,6 +72,7 @@ export interface DemoHandlers {
   setTraits: (v: TraitsState) => void;
   setCoreScores: (v: CoreScoresState) => void;
   setResources: (v: ResourcesState) => void;
+  onLevelUp: () => void;
 }
 
 interface TabProps {
@@ -89,6 +91,7 @@ export function OverviewTab({ state, handlers }: TabProps) {
         <ProgressionDisplay
           progression={state.progression}
           onChange={handlers.setProgression}
+          onLevelUp={handlers.onLevelUp}
         />
       </div>
 
@@ -104,6 +107,7 @@ export function OverviewTab({ state, handlers }: TabProps) {
         <ClassDisplay
           selection={state.classSelection}
           onChange={handlers.setClassSelection}
+          unlockedSubclassFeatures={state.unlockedSubclassFeatures}
         />
       </div>
 
@@ -189,6 +193,7 @@ export function CombatTab({ state, handlers }: TabProps) {
         <ClassDisplay
           selection={state.classSelection}
           onChange={handlers.setClassSelection}
+          unlockedSubclassFeatures={state.unlockedSubclassFeatures}
         />
         <div className="space-y-6">
           <ThresholdsEditableSection
