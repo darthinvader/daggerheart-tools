@@ -1,11 +1,9 @@
-import { Button } from '@/components/ui/button';
 import type { LoadoutSelection } from '@/lib/schemas/loadout';
 
 import { CardGrid } from './card-grid';
 import { DomainFilter } from './domain-filter';
 import { HomebrewCardForm } from './homebrew-card-form';
 import { LoadoutModeTabs } from './loadout-mode-tabs';
-import { LoadoutSummary } from './loadout-summary';
 import { useLoadoutState } from './use-loadout-state';
 
 interface LoadoutSelectorProps {
@@ -66,43 +64,32 @@ export function LoadoutSelector({
         />
       )}
 
-      <LoadoutSummary
-        activeCards={state.activeCards}
-        vaultCards={state.vaultCards}
-        rules={state.rules}
-        onRemoveActive={state.handleRemoveActive}
-        onRemoveVault={state.handleRemoveVault}
-        onMoveToVault={state.handleMoveToVault}
-        onMoveToActive={state.handleMoveToActive}
-        onSwapCards={state.handleSwapCards}
-        onChangeMaxActiveCards={state.handleChangeMaxActiveCards}
-      />
+      {state.mode !== 'homebrew' && (
+        <>
+          <DomainFilter
+            domains={state.domainsToShow}
+            selectedDomains={state.selectedDomains}
+            onToggle={state.handleToggleDomain}
+            onSelectAll={state.handleSelectAllDomains}
+            onClearAll={state.handleClearDomains}
+          />
 
-      <DomainFilter
-        domains={state.domainsToShow}
-        selectedDomains={state.selectedDomains}
-        onToggle={state.handleToggleDomain}
-        onSelectAll={state.handleSelectAllDomains}
-        onClearAll={state.handleClearDomains}
-      />
-
-      <CardGrid
-        cards={state.availableCards}
-        activeCards={state.activeCards}
-        vaultCards={state.vaultCards}
-        onToggleActive={state.handleToggleActive}
-        onToggleVault={state.handleToggleVault}
-        maxActiveCards={state.rules.maxActiveCards}
-        maxVaultCards={state.rules.maxVaultCards}
-        activeCardNames={state.activeCardNames}
-        vaultCardNames={state.vaultCardNames}
-      />
-
-      <div className="flex justify-end border-t pt-4">
-        <Button onClick={state.handleComplete} size="lg">
-          ✅ Complete Loadout Selection
-        </Button>
-      </div>
+          <CardGrid
+            cards={state.availableCards}
+            activeCards={state.activeCards}
+            vaultCards={state.vaultCards}
+            onToggleActive={state.handleToggleActive}
+            onToggleVault={state.handleToggleVault}
+            maxActiveCards={state.rules.maxActiveCards}
+            maxVaultCards={state.rules.maxVaultCards}
+            activeCardNames={state.activeCardNames}
+            vaultCardNames={state.vaultCardNames}
+            maxLevel={state.rules.maxCardLevel}
+            filters={state.cardFilters}
+            onFiltersChange={state.setCardFilters}
+          />
+        </>
+      )}
     </div>
   );
 }

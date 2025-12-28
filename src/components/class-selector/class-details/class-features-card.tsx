@@ -1,5 +1,12 @@
+import { useState } from 'react';
+
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { cn } from '@/lib/utils';
 
 interface ClassFeaturesCardProps {
   features: ReadonlyArray<{
@@ -9,40 +16,57 @@ interface ClassFeaturesCardProps {
 }
 
 export function ClassFeaturesCard({ features }: ClassFeaturesCardProps) {
+  const [openItems, setOpenItems] = useState<Record<number, boolean>>({});
+
   if (!features.length) return null;
 
+  const toggleItem = (idx: number) => {
+    setOpenItems(prev => ({ ...prev, [idx]: !prev[idx] }));
+  };
+
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-sm">
-          <span className="shrink-0">⭐</span>
-          <span>Class Features</span>
-          <Badge variant="secondary" className="shrink-0 text-xs">
-            {features.length}
-          </Badge>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="max-h-48 space-y-2 overflow-y-auto">
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-2 px-1 text-sm font-medium">
+        <span>⭐</span>
+        <span>Class Features</span>
+        <Badge variant="secondary" className="text-xs">
+          {features.length}
+        </Badge>
+      </div>
+      <div className="space-y-1">
         {features.map((feature, idx) => (
-          <div
+          <Collapsible
             key={idx}
-            className="bg-muted/30 overflow-hidden rounded border p-2"
+            open={openItems[idx]}
+            onOpenChange={() => toggleItem(idx)}
           >
-            <div className="mb-1 flex flex-wrap items-center gap-2">
-              <span className="text-sm font-medium">{feature.name}</span>
-              <Badge
-                variant="outline"
-                className="shrink-0 border-green-500/30 bg-green-500/10 text-xs text-green-700"
+            <CollapsibleTrigger className="flex w-full items-center justify-between rounded border bg-green-500/5 px-2.5 py-1.5 text-left text-sm hover:bg-green-500/10">
+              <div className="flex items-center gap-2">
+                <span className="font-medium">{feature.name}</span>
+                <Badge
+                  variant="outline"
+                  className="border-green-500/30 bg-green-500/10 text-[10px] text-green-700"
+                >
+                  ✓
+                </Badge>
+              </div>
+              <span
+                className={cn(
+                  'text-muted-foreground text-xs transition-transform',
+                  openItems[idx] && 'rotate-180'
+                )}
               >
-                ✓ Unlocked
-              </Badge>
-            </div>
-            <p className="text-muted-foreground text-xs">
-              {feature.description}
-            </p>
-          </div>
+                ▼
+              </span>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <p className="text-muted-foreground bg-muted/20 rounded-b border-x border-b px-2.5 py-2 text-xs">
+                {feature.description}
+              </p>
+            </CollapsibleContent>
+          </Collapsible>
         ))}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

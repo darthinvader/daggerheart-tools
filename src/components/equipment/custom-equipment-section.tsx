@@ -1,7 +1,8 @@
-import type { CustomEquipmentSlot } from '@/lib/schemas/equipment';
+import type { CustomEquipment } from './custom-slot-editor';
+import { CustomEquipmentSummaryCard } from './summary';
 
 interface CustomEquipmentSectionProps {
-  customSlots: CustomEquipmentSlot[];
+  customSlots: CustomEquipment[];
 }
 
 export function CustomEquipmentSection({
@@ -23,13 +24,7 @@ export function CustomEquipmentSection({
       {customSlots.length > 0 ? (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {customSlots.map(slot => (
-            <div
-              key={slot.id}
-              className="bg-muted/50 flex items-center gap-2 rounded-md px-3 py-2 text-sm"
-            >
-              <span>{slot.slotIcon}</span>
-              <span className="truncate">{slot.name || 'Unnamed'}</span>
-            </div>
+            <CustomEquipmentSummaryCard key={slot.id} slot={slot} />
           ))}
         </div>
       ) : (

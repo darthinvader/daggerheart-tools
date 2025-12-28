@@ -33,13 +33,13 @@ export function ArmorSummaryCard({
 }: ArmorSummaryCardProps) {
   return (
     <div
-      className={`rounded-lg border p-4 ${isEmpty ? 'border-dashed opacity-60' : 'bg-card'}`}
+      className={`flex h-full flex-col rounded-lg border p-4 ${isEmpty ? 'border-dashed opacity-60' : 'bg-card'}`}
     >
       <ArmorHeader isHomebrew={isHomebrew} tier={tier} />
       <ArmorTitle name={name} isEmpty={isEmpty} />
 
       {!isEmpty && (
-        <div className="mt-3 space-y-2">
+        <div className="mt-3 flex-1 space-y-2">
           {description && (
             <p className="text-muted-foreground text-sm italic">
               {description}

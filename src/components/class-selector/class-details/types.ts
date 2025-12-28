@@ -6,6 +6,7 @@ export interface ClassDetailsData {
   className: string;
   subclassName: string;
   spellcastTrait?: string;
+  domains?: string[];
   description?: string;
   subclassDescription?: string;
   classFeatures?: ReadonlyArray<{

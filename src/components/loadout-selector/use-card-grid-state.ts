@@ -3,6 +3,8 @@ import { useCallback, useMemo, useState } from 'react';
 import type { DomainCard } from '@/lib/schemas/domains';
 import type { DomainCardLite } from '@/lib/schemas/loadout';
 
+import type { CardFiltersState } from './card-filters-utils';
+
 interface UseCardGridStateProps {
   cards: DomainCard[];
   activeCards: DomainCardLite[];
@@ -13,6 +15,7 @@ interface UseCardGridStateProps {
   maxVaultCards?: number;
   activeCardNames?: Set<string>;
   vaultCardNames?: Set<string>;
+  filters?: CardFiltersState;
 }
 
 export function useCardGridState({
@@ -25,6 +28,7 @@ export function useCardGridState({
   maxVaultCards,
   activeCardNames: providedActiveNames,
   vaultCardNames: providedVaultNames,
+  filters,
 }: UseCardGridStateProps) {
   const [search, setSearch] = useState('');
 
@@ -42,16 +46,30 @@ export function useCardGridState({
   const isVaultFull = hasVaultLimit && vaultCards.length >= maxVaultCards;
 
   const filteredCards = useMemo(() => {
-    if (!search.trim()) return cards;
-    const term = search.toLowerCase();
-    return cards.filter(
-      card =>
-        card.name.toLowerCase().includes(term) ||
-        card.domain.toLowerCase().includes(term) ||
-        card.type.toLowerCase().includes(term) ||
-        card.description.toLowerCase().includes(term)
-    );
-  }, [cards, search]);
+    let result = cards;
+
+    if (filters) {
+      result = result.filter(
+        card =>
+          filters.types.includes(
+            card.type as CardFiltersState['types'][number]
+          ) && filters.levels.includes(card.level)
+      );
+    }
+
+    if (search.trim()) {
+      const term = search.toLowerCase();
+      result = result.filter(
+        card =>
+          card.name.toLowerCase().includes(term) ||
+          card.domain.toLowerCase().includes(term) ||
+          card.type.toLowerCase().includes(term) ||
+          card.description.toLowerCase().includes(term)
+      );
+    }
+
+    return result;
+  }, [cards, search, filters]);
 
   const getSelectionType = useCallback(
     (card: DomainCard): 'active' | 'vault' | null => {

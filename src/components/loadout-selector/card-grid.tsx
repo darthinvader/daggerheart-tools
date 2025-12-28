@@ -4,6 +4,11 @@ import { SearchInput } from '@/components/shared';
 import type { DomainCard } from '@/lib/schemas/domains';
 import type { DomainCardLite } from '@/lib/schemas/loadout';
 
+import { CardFilters } from './card-filters';
+import {
+  type CardFiltersState,
+  createDefaultFilters,
+} from './card-filters-utils';
 import { DomainCardDisplay } from './domain-card-display';
 import { useCardGridState } from './use-card-grid-state';
 
@@ -17,11 +22,19 @@ interface CardGridProps {
   maxVaultCards?: number;
   activeCardNames?: Set<string>;
   vaultCardNames?: Set<string>;
+  maxLevel?: number;
+  filters?: CardFiltersState;
+  onFiltersChange?: (filters: CardFiltersState) => void;
 }
 
 function CardGridComponent(props: CardGridProps) {
-  const { cards } = props;
-  const state = useCardGridState(props);
+  const {
+    cards,
+    maxLevel = 10,
+    filters = createDefaultFilters(maxLevel),
+    onFiltersChange,
+  } = props;
+  const state = useCardGridState({ ...props, filters });
 
   if (cards.length === 0) {
     return (
@@ -35,12 +48,21 @@ function CardGridComponent(props: CardGridProps) {
   return (
     <div className="space-y-2">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <SearchInput
-          value={state.search}
-          onChange={state.setSearch}
-          placeholder="Search cards by name, domain, type..."
-          className="sm:max-w-xs"
-        />
+        <div className="flex flex-1 items-center gap-2">
+          <SearchInput
+            value={state.search}
+            onChange={state.setSearch}
+            placeholder="Search cards by name, domain, type..."
+            className="flex-1 sm:max-w-md"
+          />
+          {onFiltersChange && (
+            <CardFilters
+              filters={filters}
+              onFiltersChange={onFiltersChange}
+              maxLevel={maxLevel}
+            />
+          )}
+        </div>
         <CardCountLabel
           filtered={state.filteredCards.length}
           total={cards.length}

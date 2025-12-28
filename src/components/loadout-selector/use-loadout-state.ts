@@ -11,6 +11,10 @@ import type {
 } from '@/lib/schemas/loadout';
 import { getLoadoutRulesForTier } from '@/lib/schemas/loadout';
 
+import {
+  type CardFiltersState,
+  createDefaultFilters,
+} from './card-filters-utils';
 import { cardToLite, homebrewToLite } from './card-utils';
 import { ALL_DOMAIN_NAMES, getAvailableCards } from './loadout-utils';
 
@@ -51,6 +55,9 @@ export function useLoadoutState({
   );
   const [selectedDomains, setSelectedDomains] = useState<string[]>(
     mode === 'class-domains' ? classDomains : ALL_DOMAIN_NAMES
+  );
+  const [cardFilters, setCardFilters] = useState<CardFiltersState>(() =>
+    createDefaultFilters(baseRules.maxCardLevel)
   );
 
   const stateRef = useRef({ mode, activeCards, vaultCards, homebrewCards });
@@ -366,6 +373,8 @@ export function useLoadoutState({
     vaultCardNames,
     isActiveFull,
     isVaultFull,
+    cardFilters,
+    setCardFilters,
     handleModeChange,
     handleToggleDomain,
     handleSelectAllDomains,

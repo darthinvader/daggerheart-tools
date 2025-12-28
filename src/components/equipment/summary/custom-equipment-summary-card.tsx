@@ -13,7 +13,7 @@ export function CustomEquipmentSummaryCard({
 
   return (
     <div
-      className={`rounded-lg border p-4 ${!hasContent ? 'border-dashed opacity-60' : 'bg-card'}`}
+      className={`flex h-full flex-col rounded-lg border p-4 ${!hasContent ? 'border-dashed opacity-60' : 'bg-card'}`}
     >
       <div className="mb-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -34,7 +34,7 @@ export function CustomEquipmentSummaryCard({
       </h3>
 
       {hasContent && (
-        <div className="mt-3 space-y-2">
+        <div className="mt-3 flex-1 space-y-2">
           {slot.description && (
             <p className="text-muted-foreground text-sm italic">
               "{slot.description}"

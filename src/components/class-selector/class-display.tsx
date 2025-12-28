@@ -2,21 +2,14 @@ import { useCallback, useRef, useState } from 'react';
 
 import { EditableSection } from '@/components/shared/editable-section';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import { getClassByName, getSubclassByName } from '@/lib/data/classes';
 import type {
   ClassDraft,
   ClassSelection,
   ClassSubclassPair,
 } from '@/lib/schemas/class-selection';
-import {
-  CLASS_BG_COLORS,
-  CLASS_COLORS,
-  CLASS_EMOJIS,
-} from '@/lib/schemas/class-selection';
-import { DOMAIN_COLORS, DOMAIN_EMOJIS } from '@/lib/schemas/loadout';
+import { CLASS_COLORS, CLASS_EMOJIS } from '@/lib/schemas/class-selection';
 import { cn } from '@/lib/utils';
 
 import type { ClassDetailsData, FeatureUnlockState } from './class-details';
@@ -39,58 +32,6 @@ function EmptyClass() {
         Click edit to choose your character&apos;s class
       </p>
     </div>
-  );
-}
-
-function DomainsCard({
-  domains,
-  isMulticlass,
-}: {
-  domains?: string[];
-  isMulticlass?: boolean;
-}) {
-  return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-sm">
-          <SmartTooltip
-            className="max-w-xs"
-            content={
-              <p>
-                {isMulticlass
-                  ? 'Combined domains from all your classes.'
-                  : 'Your class domains determine which cards you can choose.'}
-              </p>
-            }
-          >
-            <span className="flex cursor-help items-center gap-2">
-              <span>🌐</span>
-              <span>Domains</span>
-              {isMulticlass && (
-                <Badge variant="secondary" className="text-xs">
-                  Combined
-                </Badge>
-              )}
-            </span>
-          </SmartTooltip>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="flex flex-wrap gap-2">
-          {domains?.map(domain => {
-            const domainEmoji = DOMAIN_EMOJIS[domain] ?? '📜';
-            const domainColor = DOMAIN_COLORS[domain] ?? 'text-foreground';
-            return (
-              <Badge key={domain} variant="outline" className={cn(domainColor)}>
-                {domainEmoji} {domain}
-              </Badge>
-            );
-          }) ?? (
-            <span className="text-muted-foreground text-sm">No domains</span>
-          )}
-        </div>
-      </CardContent>
-    </Card>
   );
 }
 
@@ -127,6 +68,7 @@ function buildClassDetailsData(
       className: pair.className,
       subclassName: pair.subclassName,
       spellcastTrait: pair.spellcastTrait,
+      domains: selection.domains,
       description: selection.homebrewClass.description,
       subclassDescription: homebrewSubclass?.description,
       classFeatures: selection.homebrewClass.classFeatures,
@@ -145,6 +87,7 @@ function buildClassDetailsData(
     className: pair.className,
     subclassName: pair.subclassName,
     spellcastTrait: pair.spellcastTrait,
+    domains: selection.domains,
     description: gameClass?.description,
     subclassDescription: subclass?.description,
     classFeatures: gameClass?.classFeatures,
@@ -177,42 +120,9 @@ function ClassContent({
     },
   ];
 
-  const primaryClass = classPairs[0];
-  const emoji = CLASS_EMOJIS[primaryClass.className] ?? '⚔️';
-  const bgColors = CLASS_BG_COLORS[primaryClass.className] ?? '';
-
   return (
     <div className="space-y-4">
-      <div className={cn('rounded-lg border p-4', bgColors)}>
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="text-3xl">{emoji}</span>
-          <div>
-            <h4
-              className={cn(
-                'text-xl font-bold',
-                CLASS_COLORS[primaryClass.className]
-              )}
-            >
-              {primaryClass.className}
-            </h4>
-            <p className="text-muted-foreground text-sm">
-              {primaryClass.subclassName}
-            </p>
-          </div>
-          {selection.isHomebrew && (
-            <Badge variant="secondary" className="gap-1">
-              🛠️ Homebrew
-            </Badge>
-          )}
-        </div>
-      </div>
-
       {selection.isMulticlass && <MulticlassHeader classPairs={classPairs} />}
-
-      <DomainsCard
-        domains={selection.domains}
-        isMulticlass={selection.isMulticlass}
-      />
 
       {classPairs.map((pair, index) => (
         <div key={pair.className}>
