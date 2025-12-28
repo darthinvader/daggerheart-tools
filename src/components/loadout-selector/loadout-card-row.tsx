@@ -2,10 +2,11 @@ import { memo } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import type { DomainCardLite } from '@/lib/schemas/loadout';
 import { DOMAIN_COLORS, DOMAIN_EMOJIS } from '@/lib/schemas/loadout';
 import { cn } from '@/lib/utils';
+
+import { RecallCostBadge } from './card-cost-badges';
 
 interface LoadoutCardRowProps {
   card: DomainCardLite;
@@ -17,28 +18,6 @@ interface LoadoutCardRowProps {
   onRemove: (cardName: string) => void;
   onSelectSwapTarget: (cardName: string) => void;
   inSwapMode: boolean;
-}
-
-function RecallCostBadge({ cost }: { cost: number }) {
-  return (
-    <SmartTooltip
-      content={
-        <p className="text-xs">
-          Recall: {cost === 0 ? 'Free' : `${cost} Stress to swap from vault`}
-        </p>
-      }
-    >
-      <Badge
-        variant={cost === 0 ? 'secondary' : 'outline'}
-        className={cn(
-          'shrink-0 cursor-help text-xs',
-          cost > 0 && 'border-rose-500/50 text-rose-600'
-        )}
-      >
-        ⚡{cost}
-      </Badge>
-    </SmartTooltip>
-  );
 }
 
 function CardRowActions({

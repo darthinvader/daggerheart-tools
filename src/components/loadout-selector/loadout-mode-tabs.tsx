@@ -1,4 +1,4 @@
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { type ModeOption, ModeTabs } from '@/components/shared';
 import type { LoadoutMode } from '@/lib/schemas/loadout';
 
 interface LoadoutModeTabsProps {
@@ -7,33 +7,36 @@ interface LoadoutModeTabsProps {
   classDomains?: string[];
 }
 
+const MODES: ModeOption<LoadoutMode>[] = [
+  {
+    value: 'class-domains',
+    label: 'Class Domains',
+    shortLabel: 'Class',
+    icon: <span>📚</span>,
+  },
+  {
+    value: 'all-domains',
+    label: 'All Domains',
+    shortLabel: 'All',
+    icon: <span>🌟</span>,
+  },
+  {
+    value: 'homebrew',
+    label: 'Homebrew',
+    shortLabel: 'Custom',
+    icon: <span>🎨</span>,
+  },
+];
+
 export function LoadoutModeTabs({
   activeMode,
   onModeChange,
 }: LoadoutModeTabsProps) {
   return (
-    <Tabs
-      value={activeMode}
-      onValueChange={v => onModeChange(v as LoadoutMode)}
-      className="w-full"
-    >
-      <TabsList className="grid w-full grid-cols-3">
-        <TabsTrigger value="class-domains" className="gap-2">
-          <span>📚</span>
-          <span className="hidden sm:inline">Class Domains</span>
-          <span className="sm:hidden">Class</span>
-        </TabsTrigger>
-        <TabsTrigger value="all-domains" className="gap-2">
-          <span>🌟</span>
-          <span className="hidden sm:inline">All Domains</span>
-          <span className="sm:hidden">All</span>
-        </TabsTrigger>
-        <TabsTrigger value="homebrew" className="gap-2">
-          <span>🎨</span>
-          <span className="hidden sm:inline">Homebrew</span>
-          <span className="sm:hidden">Custom</span>
-        </TabsTrigger>
-      </TabsList>
-    </Tabs>
+    <ModeTabs
+      modes={MODES}
+      activeMode={activeMode}
+      onModeChange={onModeChange}
+    />
   );
 }

@@ -1,12 +1,17 @@
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { useMemo, useState } from 'react';
+
+import { SearchInput } from '@/components/shared';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import type { DomainCardLite } from '@/lib/schemas/loadout';
 import { countTotalRecallCost } from '@/lib/schemas/loadout';
 import { cn } from '@/lib/utils';
 
 import { LoadoutCardRow } from './loadout-card-row';
+import {
+  CardCountBadge,
+  RecallCostFooter,
+  SectionTitle,
+} from './loadout-section-parts';
 
 interface LoadoutSectionProps {
   title: string;
@@ -55,123 +60,152 @@ export function LoadoutSection({
   onDecreaseMax,
   onIncreaseMax,
 }: LoadoutSectionProps) {
+  const [search, setSearch] = useState('');
   const totalRecall = countTotalRecallCost(cards);
   const inSwapMode = swapSourceCard !== null;
 
+  const filteredCards = useMemo(() => {
+    if (!search.trim()) return cards;
+    const term = search.toLowerCase();
+    return cards.filter(
+      card =>
+        card.name.toLowerCase().includes(term) ||
+        card.domain.toLowerCase().includes(term) ||
+        card.description?.toLowerCase().includes(term)
+    );
+  }, [cards, search]);
+
+  const cardClassName = cn(
+    borderClass,
+    bgClass,
+    'min-w-0 transition-all',
+    isSwapTarget && 'border-amber-500 ring-2 ring-amber-500'
+  );
+
   return (
-    <Card
-      className={cn(
-        borderClass,
-        bgClass,
-        'min-w-0 transition-all',
-        isSwapTarget && 'border-amber-500 ring-2 ring-amber-500'
-      )}
-    >
+    <Card className={cardClassName}>
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center justify-between text-sm">
-          <SmartTooltip
-            side="top"
-            className="max-w-xs"
-            content={<p>{tooltipContent}</p>}
-          >
-            <span className="flex cursor-help items-center gap-2">
-              <span>{emoji}</span>
-              <span>{title}</span>
-              {isSwapTarget && (
-                <Badge
-                  variant="outline"
-                  className="border-amber-500 bg-amber-500/20 text-amber-700"
-                >
-                  👆 Select swap target
-                </Badge>
-              )}
-            </span>
-          </SmartTooltip>
-          <div className="flex items-center gap-1">
-            {canAdjustMax && onDecreaseMax && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0 text-xs"
-                onClick={onDecreaseMax}
-                disabled={maxCards <= cards.length}
-              >
-                −
-              </Button>
-            )}
-            <SmartTooltip
-              side="top"
-              content={
-                <p>
-                  {hasLimit
-                    ? `${cards.length} of ${maxCards} slots used`
-                    : `${cards.length} cards stored (no limit)`}
-                </p>
-              }
-            >
-              <Badge variant="outline" className="cursor-help font-mono">
-                {cards.length}
-                {hasLimit ? `/${maxCards}` : ' cards'}
-              </Badge>
-            </SmartTooltip>
-            {canAdjustMax && onIncreaseMax && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0 text-xs"
-                onClick={onIncreaseMax}
-              >
-                +
-              </Button>
-            )}
-          </div>
+          <SectionTitle
+            emoji={emoji}
+            title={title}
+            isSwapTarget={isSwapTarget}
+            tooltipContent={tooltipContent}
+          />
+          <CardCountBadge
+            cards={cards}
+            maxCards={maxCards}
+            hasLimit={hasLimit}
+            canAdjustMax={canAdjustMax}
+            onDecreaseMax={onDecreaseMax}
+            onIncreaseMax={onIncreaseMax}
+          />
         </CardTitle>
+        {cards.length > 3 && (
+          <SearchInput
+            value={search}
+            onChange={setSearch}
+            placeholder={`Search ${location} cards...`}
+            className="mt-2"
+          />
+        )}
       </CardHeader>
       <CardContent className="max-h-48 min-w-0 space-y-2 overflow-y-auto">
-        {cards.length === 0 ? (
-          <p className="text-muted-foreground text-sm">
-            {location === 'active'
-              ? 'No active cards selected.'
-              : 'No cards in vault.'}
-          </p>
-        ) : (
-          <>
-            {cards.map(card => (
-              <LoadoutCardRow
-                key={card.name}
-                card={card}
-                location={location}
-                isSwapSource={
-                  swapSourceLocation === location &&
-                  swapSourceCard === card.name
-                }
-                isSwapTarget={isSwapTarget}
-                targetIsFull={targetIsFull}
-                onMove={onMove}
-                onRemove={onRemove}
-                onSelectSwapTarget={onSelectSwapTarget}
-                inSwapMode={inSwapMode}
-              />
-            ))}
-            <div className="text-muted-foreground flex justify-between border-t pt-2 text-xs">
-              <SmartTooltip
-                side="bottom"
-                content={
-                  <p>
-                    Total Stress to recall all{' '}
-                    {location === 'vault' ? 'vault' : 'active'} cards
-                  </p>
-                }
-              >
-                <span className="cursor-help">
-                  Total Recall Cost: <strong>{totalRecall}</strong> Stress
-                </span>
-              </SmartTooltip>
-              {isFull && <span className={fullTextClass}>✓ Full</span>}
-            </div>
-          </>
-        )}
+        <CardList
+          cards={cards}
+          filteredCards={filteredCards}
+          location={location}
+          search={search}
+          swapSourceLocation={swapSourceLocation}
+          swapSourceCard={swapSourceCard}
+          isSwapTarget={isSwapTarget}
+          targetIsFull={targetIsFull}
+          inSwapMode={inSwapMode}
+          onMove={onMove}
+          onRemove={onRemove}
+          onSelectSwapTarget={onSelectSwapTarget}
+          totalRecall={totalRecall}
+          isFull={isFull}
+          fullTextClass={fullTextClass}
+        />
       </CardContent>
     </Card>
+  );
+}
+
+interface CardListProps {
+  cards: DomainCardLite[];
+  filteredCards: DomainCardLite[];
+  location: 'active' | 'vault';
+  search: string;
+  swapSourceLocation: 'active' | 'vault' | null;
+  swapSourceCard: string | null;
+  isSwapTarget: boolean;
+  targetIsFull: boolean;
+  inSwapMode: boolean;
+  onMove: (cardName: string) => void;
+  onRemove: (cardName: string) => void;
+  onSelectSwapTarget: (cardName: string) => void;
+  totalRecall: number;
+  isFull: boolean;
+  fullTextClass: string;
+}
+
+function CardList({
+  cards,
+  filteredCards,
+  location,
+  search,
+  swapSourceLocation,
+  swapSourceCard,
+  isSwapTarget,
+  targetIsFull,
+  inSwapMode,
+  onMove,
+  onRemove,
+  onSelectSwapTarget,
+  totalRecall,
+  isFull,
+  fullTextClass,
+}: CardListProps) {
+  if (cards.length === 0) {
+    const msg =
+      location === 'active'
+        ? 'No active cards selected.'
+        : 'No cards in vault.';
+    return <p className="text-muted-foreground text-sm">{msg}</p>;
+  }
+
+  if (filteredCards.length === 0) {
+    return (
+      <p className="text-muted-foreground text-sm">No cards match "{search}"</p>
+    );
+  }
+
+  return (
+    <>
+      {filteredCards.map(card => (
+        <LoadoutCardRow
+          key={card.name}
+          card={card}
+          location={location}
+          isSwapSource={
+            swapSourceLocation === location && swapSourceCard === card.name
+          }
+          isSwapTarget={isSwapTarget}
+          targetIsFull={targetIsFull}
+          onMove={onMove}
+          onRemove={onRemove}
+          onSelectSwapTarget={onSelectSwapTarget}
+          inSwapMode={inSwapMode}
+        />
+      ))}
+      <RecallCostFooter
+        totalRecall={totalRecall}
+        location={location}
+        isFull={isFull}
+        fullTextClass={fullTextClass}
+      />
+    </>
   );
 }

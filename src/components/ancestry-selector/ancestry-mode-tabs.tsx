@@ -1,11 +1,11 @@
-import { type ModeOption, ModeTabs } from '@/components/shared';
-import type { AncestryMode } from '@/lib/schemas/identity';
-
 import {
   HomebrewIcon,
-  MixedAncestryIcon,
+  MixedIcon,
+  type ModeOption,
+  ModeTabs,
   StandardIcon,
-} from './ancestry-icons';
+} from '@/components/shared';
+import type { AncestryMode } from '@/lib/schemas/identity';
 
 interface AncestryModeTabsProps {
   activeMode: AncestryMode;
@@ -14,7 +14,7 @@ interface AncestryModeTabsProps {
 
 const MODES: ModeOption<AncestryMode>[] = [
   { value: 'standard', label: 'Standard', icon: <StandardIcon /> },
-  { value: 'mixed', label: 'Mixed', icon: <MixedAncestryIcon /> },
+  { value: 'mixed', label: 'Mixed', icon: <MixedIcon /> },
   { value: 'homebrew', label: 'Homebrew', icon: <HomebrewIcon /> },
 ];
 

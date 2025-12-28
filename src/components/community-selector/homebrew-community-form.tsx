@@ -1,12 +1,11 @@
 /* eslint-disable max-lines-per-function */
 import { useCallback, useState } from 'react';
 
+import { HomebrewIcon, TraitsIcon } from '@/components/shared';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import type { HomebrewCommunity } from '@/lib/schemas/identity';
-
-import { HomebrewIcon, TraitsIcon } from './community-icons';
 
 interface HomebrewCommunityFormProps {
   homebrew: HomebrewCommunity | null;

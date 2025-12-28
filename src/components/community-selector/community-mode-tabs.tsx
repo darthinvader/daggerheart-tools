@@ -1,7 +1,10 @@
-import { type ModeOption, ModeTabs } from '@/components/shared';
+import {
+  HomebrewIcon,
+  type ModeOption,
+  ModeTabs,
+  StandardIcon,
+} from '@/components/shared';
 import type { CommunityMode } from '@/lib/schemas/identity';
-
-import { HomebrewIcon, StandardIcon } from './community-icons';
 
 interface CommunityModeTabsProps {
   activeMode: CommunityMode;

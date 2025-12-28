@@ -1,14 +1,17 @@
 import { useMemo, useState } from 'react';
 
+import {
+  FeatureIcon,
+  SearchInput,
+  SecondaryFeatureIcon,
+} from '@/components/shared';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { Ancestry, AncestryFeature } from '@/lib/schemas/identity';
 import { ANCESTRIES } from '@/lib/schemas/identity';
 import { cn } from '@/lib/utils';
 
-import { PrimaryFeatureIcon, SecondaryFeatureIcon } from './ancestry-icons';
-import { AncestrySearch } from './ancestry-search';
-import { FeatureDisplay } from './feature-display';
+import { FeatureCard } from './feature-card';
 
 interface FeaturePickerProps {
   label: string;
@@ -44,11 +47,11 @@ export function FeaturePicker({
   return (
     <div className="space-y-3">
       <Label className="flex items-center gap-2">
-        {isPrimary ? <PrimaryFeatureIcon /> : <SecondaryFeatureIcon />}
+        {isPrimary ? <FeatureIcon /> : <SecondaryFeatureIcon />}
         {label}
       </Label>
 
-      <AncestrySearch
+      <SearchInput
         value={search}
         onChange={setSearch}
         placeholder={`Search for ${featureType} feature...`}
@@ -96,7 +99,7 @@ export function FeaturePicker({
       </ScrollArea>
 
       {selectedFeature && (
-        <FeatureDisplay feature={selectedFeature} variant={featureType} />
+        <FeatureCard feature={selectedFeature} variant={featureType} />
       )}
     </div>
   );

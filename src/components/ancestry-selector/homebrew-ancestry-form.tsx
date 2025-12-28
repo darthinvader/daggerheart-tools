@@ -1,8 +1,9 @@
 import { useCallback, useState } from 'react';
 
+import { HomebrewIcon } from '@/components/shared';
+import { Button } from '@/components/ui/button';
 import type { HomebrewAncestry } from '@/lib/schemas/identity';
 
-import { HomebrewIcon } from './ancestry-icons';
 import { HomebrewBasicFields } from './homebrew-basic-fields';
 import { HomebrewCharacteristicsField } from './homebrew-characteristics-field';
 import { HomebrewFeatureFields } from './homebrew-feature-fields';
@@ -10,6 +11,7 @@ import { HomebrewFeatureFields } from './homebrew-feature-fields';
 interface HomebrewAncestryFormProps {
   homebrew: HomebrewAncestry | null;
   onChange: (homebrew: HomebrewAncestry) => void;
+  onSave?: (homebrew: HomebrewAncestry) => void;
 }
 
 const EMPTY_HOMEBREW: HomebrewAncestry = {
@@ -25,6 +27,7 @@ const EMPTY_HOMEBREW: HomebrewAncestry = {
 export function HomebrewAncestryForm({
   homebrew,
   onChange,
+  onSave,
 }: HomebrewAncestryFormProps) {
   const [formState, setFormState] = useState<HomebrewAncestry>(
     homebrew ?? EMPTY_HOMEBREW
@@ -53,6 +56,16 @@ export function HomebrewAncestryForm({
     },
     [updateForm]
   );
+
+  const handleSave = useCallback(() => {
+    onChange(formState);
+    onSave?.(formState);
+  }, [formState, onChange, onSave]);
+
+  const isValid =
+    formState.name.trim() &&
+    formState.primaryFeature.name.trim() &&
+    formState.secondaryFeature.name.trim();
 
   return (
     <div className="space-y-6">
@@ -102,6 +115,12 @@ export function HomebrewAncestryForm({
         characteristicsCount={formState.physicalCharacteristics.length}
         onChange={handleCharacteristicsChange}
       />
+
+      <div className="flex justify-end border-t pt-4">
+        <Button onClick={handleSave} disabled={!isValid} size="lg">
+          ✅ Save Homebrew Ancestry
+        </Button>
+      </div>
     </div>
   );
 }

@@ -3,16 +3,14 @@ import { Check } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import type { SpecialArmor, StandardArmor } from '@/lib/schemas/equipment';
 
+import { isStandardArmor } from './constants';
+
 type ArmorType = StandardArmor | SpecialArmor;
 
 interface ArmorCardCompactProps {
   armor: ArmorType;
   isSelected?: boolean;
   onClick?: () => void;
-}
-
-function isStandardArmor(armor: ArmorType): armor is StandardArmor {
-  return armor.isStandard === true;
 }
 
 export function ArmorCardCompact({

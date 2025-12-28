@@ -12,11 +12,10 @@ export { AncestrySelector } from './ancestry-selector';
 // Standard ancestry components
 export { AncestryCard } from './ancestry-card';
 export { AncestryDetail } from './ancestry-detail';
-export { AncestrySearch } from './ancestry-search';
 export { StandardAncestryList } from './standard-ancestry-list';
 
 // Mixed ancestry components
-export { FeatureDisplay } from './feature-display';
+export { FeatureCard } from './feature-card';
 export { FeaturePicker } from './feature-picker';
 export { MixedAncestryPreview } from './mixed-ancestry-preview';
 export { MixedAncestrySelector } from './mixed-ancestry-selector';
@@ -26,6 +25,3 @@ export { HomebrewAncestryForm } from './homebrew-ancestry-form';
 export { HomebrewBasicFields } from './homebrew-basic-fields';
 export { HomebrewCharacteristicsField } from './homebrew-characteristics-field';
 export { HomebrewFeatureFields } from './homebrew-feature-fields';
-
-// Icons (domain-specific only - common icons come from shared/icons)
-export { MixedAncestryIcon, PrimaryFeatureIcon } from './ancestry-icons';

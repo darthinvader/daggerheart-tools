@@ -1,7 +1,6 @@
+import { CharacteristicsIcon } from '@/components/shared';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-
-import { CharacteristicsIcon } from './ancestry-icons';
 
 interface HomebrewCharacteristicsFieldProps {
   value: string;

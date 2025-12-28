@@ -17,19 +17,7 @@ import type {
 } from '@/lib/schemas/loadout';
 import { getLoadoutRulesForTier } from '@/lib/schemas/loadout';
 
-function cardToLite(card: DomainCard): DomainCardLite {
-  return {
-    name: card.name,
-    level: card.level,
-    domain: card.domain,
-    type: card.type,
-    description: card.description,
-    hopeCost: card.hopeCost,
-    recallCost: card.recallCost,
-    tags: card.tags,
-    isHomebrew: false,
-  };
-}
+import { cardToLite, homebrewToLite } from './card-utils';
 
 interface UseLoadoutStateProps {
   value?: LoadoutSelection;
@@ -143,13 +131,12 @@ export function useLoadoutState({
   }, []);
 
   const handleSelectAllDomains = useCallback(() => {
-    const domains = mode === 'class-domains' ? classDomains : ALL_DOMAIN_NAMES;
-    setSelectedDomains(domains);
+    setSelectedDomains(
+      mode === 'class-domains' ? classDomains : ALL_DOMAIN_NAMES
+    );
   }, [mode, classDomains]);
 
-  const handleClearDomains = useCallback(() => {
-    setSelectedDomains([]);
-  }, []);
+  const handleClearDomains = useCallback(() => setSelectedDomains([]), []);
 
   const handleToggleActive = useCallback(
     (card: DomainCard) => {
@@ -327,6 +314,30 @@ export function useLoadoutState({
     [homebrewCards, notifyChange]
   );
 
+  const handleAddHomebrewToLoadout = useCallback(
+    (card: HomebrewDomainCard) => {
+      if (activeCards.length >= rules.maxActiveCards) return;
+      const newActive = [...activeCards, homebrewToLite(card)];
+      setActiveCards(newActive);
+      notifyChange({ activeCards: newActive });
+    },
+    [activeCards, rules.maxActiveCards, notifyChange]
+  );
+
+  const handleAddHomebrewToVault = useCallback(
+    (card: HomebrewDomainCard) => {
+      if (
+        rules.maxVaultCards !== undefined &&
+        vaultCards.length >= rules.maxVaultCards
+      )
+        return;
+      const newVault = [...vaultCards, homebrewToLite(card)];
+      setVaultCards(newVault);
+      notifyChange({ vaultCards: newVault });
+    },
+    [vaultCards, rules.maxVaultCards, notifyChange]
+  );
+
   const handleChangeMaxActiveCards = useCallback(
     (delta: number) => {
       setMaxActiveCards(prev => {
@@ -380,6 +391,8 @@ export function useLoadoutState({
     handleQuickSwapToVault,
     handleQuickSwapToActive,
     handleAddHomebrew,
+    handleAddHomebrewToLoadout,
+    handleAddHomebrewToVault,
     handleChangeMaxActiveCards,
     handleComplete,
   };

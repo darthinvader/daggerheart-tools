@@ -2,16 +2,14 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { SpecialArmor, StandardArmor } from '@/lib/schemas/equipment';
 
+import { isStandardArmor } from './constants';
+
 type ArmorType = StandardArmor | SpecialArmor;
 
 interface ArmorCardProps {
   armor: ArmorType;
   isSelected?: boolean;
   onSelect?: () => void;
-}
-
-function isStandardArmor(armor: ArmorType): armor is StandardArmor {
-  return armor.isStandard === true;
 }
 
 export function ArmorCard({ armor, isSelected, onSelect }: ArmorCardProps) {

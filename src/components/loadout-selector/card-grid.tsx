@@ -1,9 +1,11 @@
-import { memo, useCallback, useMemo } from 'react';
+import { memo } from 'react';
 
+import { SearchInput } from '@/components/shared';
 import type { DomainCard } from '@/lib/schemas/domains';
 import type { DomainCardLite } from '@/lib/schemas/loadout';
 
 import { DomainCardDisplay } from './domain-card-display';
+import { useCardGridState } from './use-card-grid-state';
 
 interface CardGridProps {
   cards: DomainCard[];
@@ -17,72 +19,9 @@ interface CardGridProps {
   vaultCardNames?: Set<string>;
 }
 
-function CardGridComponent({
-  cards,
-  activeCards,
-  vaultCards,
-  onToggleActive,
-  onToggleVault,
-  maxActiveCards,
-  maxVaultCards,
-  activeCardNames: providedActiveNames,
-  vaultCardNames: providedVaultNames,
-}: CardGridProps) {
-  const activeCardNames = useMemo(
-    () => providedActiveNames ?? new Set(activeCards.map(c => c.name)),
-    [providedActiveNames, activeCards]
-  );
-  const vaultCardNames = useMemo(
-    () => providedVaultNames ?? new Set(vaultCards.map(c => c.name)),
-    [providedVaultNames, vaultCards]
-  );
-
-  const hasVaultLimit = maxVaultCards !== undefined;
-  const isActiveFull = activeCards.length >= maxActiveCards;
-  const isVaultFull = hasVaultLimit && vaultCards.length >= maxVaultCards;
-
-  const getSelectionType = useCallback(
-    (card: DomainCard): 'active' | 'vault' | null => {
-      if (activeCardNames.has(card.name)) return 'active';
-      if (vaultCardNames.has(card.name)) return 'vault';
-      return null;
-    },
-    [activeCardNames, vaultCardNames]
-  );
-
-  const handleToggle = useCallback(
-    (card: DomainCard) => {
-      const inActive = activeCardNames.has(card.name);
-      const inVault = vaultCardNames.has(card.name);
-
-      if (inActive) {
-        onToggleActive(card);
-      } else if (inVault) {
-        onToggleVault(card);
-      } else if (!isActiveFull) {
-        onToggleActive(card);
-      } else if (!isVaultFull) {
-        onToggleVault(card);
-      }
-    },
-    [
-      activeCardNames,
-      vaultCardNames,
-      isActiveFull,
-      isVaultFull,
-      onToggleActive,
-      onToggleVault,
-    ]
-  );
-
-  const isDisabledCheck = useCallback(
-    (card: DomainCard) =>
-      !activeCardNames.has(card.name) &&
-      !vaultCardNames.has(card.name) &&
-      isActiveFull &&
-      isVaultFull,
-    [activeCardNames, vaultCardNames, isActiveFull, isVaultFull]
-  );
+function CardGridComponent(props: CardGridProps) {
+  const { cards } = props;
+  const state = useCardGridState(props);
 
   if (cards.length === 0) {
     return (
@@ -95,34 +34,78 @@ function CardGridComponent({
 
   return (
     <div className="space-y-2">
-      <div className="text-muted-foreground flex items-center justify-between px-1 text-sm">
-        <span>
-          📚 {cards.length} card{cards.length !== 1 ? 's' : ''} available
-        </span>
-        {isActiveFull && !isVaultFull && (
-          <span className="text-xs text-amber-600">
-            ⚠️ Active full — cards go to vault
-          </span>
-        )}
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <SearchInput
+          value={state.search}
+          onChange={state.setSearch}
+          placeholder="Search cards by name, domain, type..."
+          className="sm:max-w-xs"
+        />
+        <CardCountLabel
+          filtered={state.filteredCards.length}
+          total={cards.length}
+          hasSearch={Boolean(state.search)}
+          isActiveFull={state.isActiveFull}
+          isVaultFull={state.isVaultFull}
+        />
       </div>
-      <div className="bg-muted/20 max-h-[500px] overflow-y-auto rounded-lg border p-4">
-        <div className="grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-[repeat(2,minmax(0,1fr))] lg:grid-cols-[repeat(3,minmax(0,1fr))]">
-          {cards.map(card => {
-            const selType = getSelectionType(card);
-            return (
+      {state.filteredCards.length === 0 ? (
+        <NoMatchMessage search={state.search} />
+      ) : (
+        <div className="bg-muted/20 max-h-125 overflow-y-auto rounded-lg border p-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {state.filteredCards.map(card => (
               <div key={`${card.domain}-${card.name}`} className="min-w-0">
                 <DomainCardDisplay
                   card={card}
-                  isSelected={selType !== null}
-                  selectionType={selType}
-                  onToggle={handleToggle}
-                  isDisabled={isDisabledCheck(card)}
+                  isSelected={state.getSelectionType(card) !== null}
+                  selectionType={state.getSelectionType(card)}
+                  onToggle={state.handleToggle}
+                  isDisabled={state.isDisabled(card)}
                 />
               </div>
-            );
-          })}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
+    </div>
+  );
+}
+
+function CardCountLabel({
+  filtered,
+  total,
+  hasSearch,
+  isActiveFull,
+  isVaultFull,
+}: {
+  filtered: number;
+  total: number;
+  hasSearch: boolean;
+  isActiveFull: boolean;
+  isVaultFull: boolean;
+}) {
+  return (
+    <div className="text-muted-foreground flex items-center gap-2 px-1 text-sm">
+      <span>
+        📚 {filtered}
+        {hasSearch && ` of ${total}`} card{filtered !== 1 ? 's' : ''}
+        {hasSearch ? ' found' : ' available'}
+      </span>
+      {isActiveFull && !isVaultFull && (
+        <span className="text-xs text-amber-600">
+          ⚠️ Active full — cards go to vault
+        </span>
+      )}
+    </div>
+  );
+}
+
+function NoMatchMessage({ search }: { search: string }) {
+  return (
+    <div className="text-muted-foreground py-12 text-center">
+      <span className="mb-2 block text-4xl">🔍</span>
+      <p>No cards match "{search}"</p>
     </div>
   );
 }

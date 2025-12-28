@@ -12,16 +12,15 @@ export { CommunitySelector } from './community-selector';
 // Standard community components
 export { CommunityCard } from './community-card';
 export { CommunityFeatureDisplay } from './community-feature-display';
-export { CommunitySearch } from './community-search';
 export { StandardCommunityList } from './standard-community-list';
 
 // Homebrew components
 export { HomebrewCommunityForm } from './homebrew-community-form';
 
-// Utilities (icons come from shared/icons)
+// Community-specific data
 export {
   COMMUNITY_COLORS,
   COMMUNITY_EMOJIS,
   getCommunityColors,
   getCommunityEmoji,
-} from './community-icons';
+} from './community-config';

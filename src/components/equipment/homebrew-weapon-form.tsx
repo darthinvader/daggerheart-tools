@@ -1,5 +1,6 @@
 import { FeaturesEditor } from '@/components/shared';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,13 +15,22 @@ interface HomebrewWeaponFormProps {
   weaponType: 'Primary' | 'Secondary';
   value: Partial<WeaponFormData>;
   onChange: (value: Partial<WeaponFormData>) => void;
+  onSave?: (value: Partial<WeaponFormData>) => void;
 }
 
 export function HomebrewWeaponForm({
   weaponType,
   value,
   onChange,
+  onSave,
 }: HomebrewWeaponFormProps) {
+  const isValid = Boolean(value.name?.trim());
+
+  const handleSave = () => {
+    onChange(value);
+    onSave?.(value);
+  };
+
   return (
     <Card className="border-primary/50 border-dashed">
       <CardHeader className="pb-3">
@@ -79,7 +89,7 @@ export function HomebrewWeaponForm({
             value={value.description ?? ''}
             onChange={e => onChange({ ...value, description: e.target.value })}
             placeholder="Optional description..."
-            className="min-h-[60px]"
+            className="min-h-15"
           />
         </div>
 
@@ -90,6 +100,12 @@ export function HomebrewWeaponForm({
           }))}
           onChange={features => onChange({ ...value, features })}
         />
+
+        <div className="flex justify-end border-t pt-4">
+          <Button onClick={handleSave} disabled={!isValid}>
+            ✅ Save Homebrew {weaponType} Weapon
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

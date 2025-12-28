@@ -41,7 +41,7 @@ export function CustomSlotEditor({
   };
 
   return (
-    <div className="border-primary/20 from-primary/5 relative rounded-lg border-2 border-dashed bg-gradient-to-br to-transparent p-4">
+    <div className="border-primary/20 from-primary/5 relative rounded-lg border-2 border-dashed bg-linear-to-br to-transparent p-4">
       <DragHandle />
 
       <Header
@@ -68,7 +68,7 @@ export function CustomSlotEditor({
             value={equipment.description}
             onChange={e => update('description', e.target.value)}
             placeholder="Describe its appearance, origin, or lore..."
-            className="min-h-[60px] resize-none"
+            className="min-h-15 resize-none"
           />
         </div>
 
@@ -140,11 +140,20 @@ function Preview({ equipment }: { equipment: CustomEquipment }) {
         </p>
       )}
       {filledFeatures.length > 0 && (
-        <div className="mt-2 flex flex-wrap gap-1">
+        <div className="mt-2 space-y-2">
           {filledFeatures.map((f, i) => (
-            <Badge key={i} variant="secondary" className="text-[10px]">
-              {f.name}
-            </Badge>
+            <div key={i} className="bg-muted/50 rounded border p-2">
+              <div className="flex items-center gap-1">
+                <Badge variant="secondary" className="text-[10px]">
+                  ✨ {f.name}
+                </Badge>
+              </div>
+              {f.description && (
+                <p className="text-muted-foreground mt-1 text-xs">
+                  {f.description}
+                </p>
+              )}
+            </div>
           ))}
         </div>
       )}

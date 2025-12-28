@@ -52,7 +52,13 @@ export function LoadoutSelector({
       />
 
       {state.mode === 'homebrew' && (
-        <HomebrewCardForm onAdd={state.handleAddHomebrew} />
+        <HomebrewCardForm
+          onAdd={state.handleAddHomebrew}
+          onAddToLoadout={state.handleAddHomebrewToLoadout}
+          onAddToVault={state.handleAddHomebrewToVault}
+          isLoadoutFull={state.isActiveFull}
+          isVaultFull={state.isVaultFull}
+        />
       )}
 
       <LoadoutSummary

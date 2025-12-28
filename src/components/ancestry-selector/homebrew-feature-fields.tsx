@@ -1,9 +1,8 @@
+import { FeatureIcon, SecondaryFeatureIcon } from '@/components/shared';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import type { HomebrewAncestry } from '@/lib/schemas/identity';
-
-import { PrimaryFeatureIcon, SecondaryFeatureIcon } from './ancestry-icons';
 
 interface HomebrewFeatureFieldsProps {
   primaryFeature: HomebrewAncestry['primaryFeature'];
@@ -26,7 +25,7 @@ export function HomebrewFeatureFields({
     <div className="grid gap-6 md:grid-cols-2">
       <div className="space-y-4 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/30">
         <h3 className="flex items-center gap-2 font-semibold text-amber-700 dark:text-amber-400">
-          <PrimaryFeatureIcon />
+          <FeatureIcon />
           Primary Feature
         </h3>
 

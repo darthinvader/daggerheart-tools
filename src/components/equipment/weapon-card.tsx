@@ -6,45 +6,20 @@ import type {
   SecondaryWeapon,
 } from '@/lib/schemas/equipment';
 
+import {
+  BURDEN_EMOJI,
+  DAMAGE_TYPE_EMOJI,
+  RANGE_EMOJI,
+  formatDamage,
+  isCombatWheelchair,
+} from './constants';
+
 type WeaponType = PrimaryWeapon | SecondaryWeapon | CombatWheelchair;
 
 interface WeaponCardProps {
   weapon: WeaponType;
   isSelected?: boolean;
   onSelect?: () => void;
-}
-
-const DAMAGE_TYPE_EMOJI = {
-  phy: '⚔️',
-  mag: '✨',
-} as const;
-
-const RANGE_EMOJI = {
-  Melee: '👊',
-  'Very Close': '🗡️',
-  Close: '🏹',
-  Far: '🎯',
-  'Very Far': '🌟',
-} as const;
-
-const BURDEN_EMOJI = {
-  'One-Handed': '🖐️',
-  'Two-Handed': '🙌',
-} as const;
-
-function formatDamage(damage: WeaponType['damage']) {
-  const base = `${damage.count}d${damage.diceType}`;
-  const mod =
-    damage.modifier > 0
-      ? `+${damage.modifier}`
-      : damage.modifier < 0
-        ? damage.modifier.toString()
-        : '';
-  return `${base}${mod}`;
-}
-
-function isCombatWheelchair(weapon: WeaponType): weapon is CombatWheelchair {
-  return 'frameType' in weapon;
 }
 
 export function WeaponCard({ weapon, isSelected, onSelect }: WeaponCardProps) {

@@ -1,12 +1,12 @@
 import { useState } from 'react';
 
+import { MixedIcon } from '@/components/shared';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import type { Ancestry, MixedAncestry } from '@/lib/schemas/identity';
 import { ANCESTRIES } from '@/lib/schemas/identity';
 
-import { MixedAncestryIcon } from './ancestry-icons';
 import { FeaturePicker } from './feature-picker';
 import { MixedAncestryPreview } from './mixed-ancestry-preview';
 
@@ -75,7 +75,7 @@ export function MixedAncestrySelector({
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2 text-lg font-semibold">
-        <MixedAncestryIcon />
+        <MixedIcon />
         Create Mixed Ancestry
       </div>
 

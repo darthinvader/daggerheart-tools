@@ -1,14 +1,53 @@
 import type { AnyFieldApi } from '@tanstack/react-form';
 
-import { TextField } from './text-field';
+import { FormField } from '@/components/shared';
+import { Input } from '@/components/ui/input';
+
+interface FormProps {
+  Field: React.ComponentType<{
+    name: string;
+    children: (field: AnyFieldApi) => React.ReactNode;
+  }>;
+}
+
+interface TextFieldProps {
+  name: string;
+  label: string;
+  htmlFor: string;
+  placeholder: string;
+  form: FormProps;
+}
+
+function TextField({
+  name,
+  label,
+  htmlFor,
+  placeholder,
+  form,
+}: TextFieldProps) {
+  return (
+    <form.Field name={name}>
+      {(field: AnyFieldApi) => (
+        <FormField
+          label={label}
+          htmlFor={htmlFor}
+          error={field.state.meta.errors.join(', ')}
+        >
+          <Input
+            id={htmlFor}
+            placeholder={placeholder}
+            value={(field.state.value as string) ?? ''}
+            onChange={e => field.handleChange(e.target.value)}
+            onBlur={field.handleBlur}
+          />
+        </FormField>
+      )}
+    </form.Field>
+  );
+}
 
 interface AppearanceSectionProps {
-  form: {
-    Field: React.ComponentType<{
-      name: string;
-      children: (field: AnyFieldApi) => React.ReactNode;
-    }>;
-  };
+  form: FormProps;
 }
 
 export function AppearanceSection({ form }: AppearanceSectionProps) {

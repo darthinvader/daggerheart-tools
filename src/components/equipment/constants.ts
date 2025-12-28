@@ -1,7 +1,27 @@
+import type {
+  CombatWheelchair,
+  SpecialArmor,
+  StandardArmor,
+} from '@/lib/schemas/equipment';
+
 /**
  * Shared constants for equipment components.
  * Centralizes configuration to avoid duplication and ensure consistency.
  */
+
+/** Type guard for standard armor */
+export function isStandardArmor(
+  armor: StandardArmor | SpecialArmor
+): armor is StandardArmor {
+  return armor.isStandard === true;
+}
+
+/** Type guard for combat wheelchair */
+export function isCombatWheelchair(
+  weapon: unknown
+): weapon is CombatWheelchair {
+  return typeof weapon === 'object' && weapon !== null && 'frameType' in weapon;
+}
 
 /** Preset slot types for custom equipment with their icons */
 export const SLOT_PRESETS = [
@@ -77,3 +97,40 @@ export const DEFAULT_DAMAGE = {
   modifier: 0,
   type: 'phy',
 } as const;
+
+/** Emoji mappings for damage types */
+export const DAMAGE_TYPE_EMOJI = {
+  phy: '⚔️',
+  mag: '✨',
+} as const;
+
+/** Emoji mappings for weapon ranges */
+export const RANGE_EMOJI = {
+  Melee: '👊',
+  'Very Close': '🗡️',
+  Close: '🏹',
+  Far: '🎯',
+  'Very Far': '🌟',
+} as const;
+
+/** Emoji mappings for weapon burden */
+export const BURDEN_EMOJI = {
+  'One-Handed': '🖐️',
+  'Two-Handed': '🙌',
+} as const;
+
+/** Format damage dice for display */
+export function formatDamage(damage: {
+  count: number;
+  diceType: number;
+  modifier: number;
+}): string {
+  const base = `${damage.count}d${damage.diceType}`;
+  const mod =
+    damage.modifier > 0
+      ? `+${damage.modifier}`
+      : damage.modifier < 0
+        ? String(damage.modifier)
+        : '';
+  return `${base}${mod}`;
+}

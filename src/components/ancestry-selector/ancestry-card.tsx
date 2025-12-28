@@ -1,12 +1,11 @@
-import type { Ancestry } from '@/lib/schemas/identity';
-import { cn } from '@/lib/utils';
-
 import {
+  FeatureIcon,
   HeightIcon,
   LifespanIcon,
-  PrimaryFeatureIcon,
   SecondaryFeatureIcon,
-} from './ancestry-icons';
+} from '@/components/shared';
+import type { Ancestry } from '@/lib/schemas/identity';
+import { cn } from '@/lib/utils';
 
 interface AncestryCardProps {
   ancestry: Ancestry;
@@ -48,7 +47,7 @@ export function AncestryCard({
 
         <div className="flex flex-wrap gap-2 text-sm">
           <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
-            <PrimaryFeatureIcon />
+            <FeatureIcon />
             {ancestry.primaryFeature.name}
           </span>
           <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400">

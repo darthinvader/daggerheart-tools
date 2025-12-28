@@ -1,7 +1,8 @@
+import { FeatureIcon } from '@/components/shared';
 import type { CommunityFeature } from '@/lib/schemas/identity';
 import { cn } from '@/lib/utils';
 
-import { FeatureIcon, getCommunityColors } from './community-icons';
+import { getCommunityColors } from './community-config';
 
 interface CommunityFeatureDisplayProps {
   feature: CommunityFeature;

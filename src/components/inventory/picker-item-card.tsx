@@ -1,7 +1,5 @@
-import { AlertTriangle, Check, Minus, Plus } from 'lucide-react';
+import { AlertTriangle, Check } from 'lucide-react';
 
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import type { AnyItem, EquipmentTier, Rarity } from '@/lib/schemas/equipment';
 import { cn } from '@/lib/utils';
 
@@ -11,6 +9,12 @@ import {
   RARITY_CONFIG,
   TIER_CONFIG,
 } from './constants';
+import {
+  MaxBadge,
+  OwnedBadge,
+  QuantitySelector,
+  RarityTierDisplay,
+} from './picker-item-parts';
 
 interface PickerItemCardProps {
   item: AnyItem;
@@ -42,14 +46,7 @@ export function PickerItemCard({
   const isStackable = item.maxQuantity > 1;
 
   const handleCardClick = () => {
-    if (!isAtMax) {
-      onToggle();
-    }
-  };
-
-  const handleQuantityClick = (e: React.MouseEvent, delta: number) => {
-    e.stopPropagation();
-    onQuantityChange(delta);
+    if (!isAtMax) onToggle();
   };
 
   return (
@@ -84,32 +81,26 @@ export function PickerItemCard({
         <div className="flex items-center gap-2">
           <span className="truncate font-medium">{item.name}</span>
           {isAtMax ? (
-            <Badge
-              variant="outline"
-              className="shrink-0 border-amber-500 text-xs text-amber-600"
-            >
-              Max ({currentInventoryQty}/{item.maxQuantity})
-            </Badge>
+            <MaxBadge
+              currentQty={currentInventoryQty}
+              maxQty={item.maxQuantity}
+            />
           ) : (
             isStackable &&
             currentInventoryQty > 0 && (
-              <Badge
-                variant="outline"
-                className="text-muted-foreground shrink-0 text-xs"
-              >
-                Owned: {currentInventoryQty}/{item.maxQuantity}
-              </Badge>
+              <OwnedBadge
+                currentQty={currentInventoryQty}
+                maxQty={item.maxQuantity}
+              />
             )
           )}
         </div>
-        <div className="mt-1 flex flex-wrap gap-1">
-          <span className={cn('text-xs', rarityConfig.color)}>
-            {rarityConfig.emoji} {item.rarity}
-          </span>
-          <span className={cn('text-xs', tierConfig.color)}>
-            {tierConfig.emoji} T{item.tier}
-          </span>
-        </div>
+        <RarityTierDisplay
+          rarityConfig={rarityConfig}
+          tierConfig={tierConfig}
+          rarity={item.rarity}
+          tier={item.tier}
+        />
         {item.features && item.features.length > 0 && (
           <div className="mt-2 space-y-1">
             {item.features.map((feature, idx) => (
@@ -123,35 +114,12 @@ export function PickerItemCard({
           </div>
         )}
         {selected && (
-          <div className="mt-2 flex items-center gap-2">
-            <span className="text-muted-foreground text-xs">Qty:</span>
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              className="h-6 w-6"
-              onClick={e => handleQuantityClick(e, -1)}
-              disabled={selectedQuantity <= 1}
-            >
-              <Minus className="h-3 w-3" />
-            </Button>
-            <span className="min-w-6 text-center text-sm font-medium">
-              {selectedQuantity}
-            </span>
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              className="h-6 w-6"
-              onClick={e => handleQuantityClick(e, 1)}
-              disabled={selectedQuantity >= availableToAdd}
-            >
-              <Plus className="h-3 w-3" />
-            </Button>
-            <span className="text-muted-foreground text-xs">
-              / {unlimitedQuantity ? '∞' : availableToAdd}
-            </span>
-          </div>
+          <QuantitySelector
+            quantity={selectedQuantity}
+            maxAvailable={availableToAdd}
+            unlimitedQuantity={unlimitedQuantity}
+            onQuantityChange={onQuantityChange}
+          />
         )}
       </div>
     </div>

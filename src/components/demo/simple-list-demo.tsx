@@ -25,6 +25,33 @@ const SAMPLE_NUMBERED: NumberedItem[] = [
   { name: 'Herbalism', value: 2 },
 ];
 
+type DemoMode = 'empty' | 'prefilled';
+
+function ModeToggle({
+  mode,
+  setMode,
+}: {
+  mode: DemoMode;
+  setMode: (m: DemoMode) => void;
+}) {
+  return (
+    <div className="mb-4 flex gap-2">
+      <Button
+        variant={mode === 'empty' ? 'default' : 'outline'}
+        onClick={() => setMode('empty')}
+      >
+        Empty List
+      </Button>
+      <Button
+        variant={mode === 'prefilled' ? 'default' : 'outline'}
+        onClick={() => setMode('prefilled')}
+      >
+        Pre-filled Example
+      </Button>
+    </div>
+  );
+}
+
 export function SimpleListDemo() {
   const [mode, setMode] = useState<'empty' | 'prefilled'>('empty');
   const [lastSubmitted, setLastSubmitted] =
@@ -82,21 +109,7 @@ export function SimpleListDemo() {
           A reusable component for managing a list of text fields. Useful for
           experiences, traits, notes, or any simple list of strings.
         </p>
-
-        <div className="mb-4 flex gap-2">
-          <Button
-            variant={mode === 'empty' ? 'default' : 'outline'}
-            onClick={() => setMode('empty')}
-          >
-            Empty List
-          </Button>
-          <Button
-            variant={mode === 'prefilled' ? 'default' : 'outline'}
-            onClick={() => setMode('prefilled')}
-          >
-            Pre-filled Example
-          </Button>
-        </div>
+        <ModeToggle mode={mode} setMode={setMode} />
       </section>
 
       <section className="bg-card rounded-lg border p-4">

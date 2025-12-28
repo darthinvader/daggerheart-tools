@@ -8,10 +8,16 @@ export type ItemCategory =
   | 'Armor Modification'
   | 'Recipe';
 
-export const CATEGORY_CONFIG: Record<
-  ItemCategory,
-  { emoji: string; color: string; bgColor: string }
-> = {
+export type CategoryConfig = { emoji: string; color: string; bgColor: string };
+export type RarityConfig = {
+  emoji: string;
+  color: string;
+  bgColor: string;
+  borderColor: string;
+};
+export type TierConfig = { emoji: string; label: string; color: string };
+
+export const CATEGORY_CONFIG: Record<ItemCategory, CategoryConfig> = {
   Utility: {
     emoji: '🔧',
     color: 'text-blue-600 dark:text-blue-400',
@@ -44,10 +50,7 @@ export const CATEGORY_CONFIG: Record<
   },
 };
 
-export const RARITY_CONFIG: Record<
-  Rarity,
-  { emoji: string; color: string; bgColor: string; borderColor: string }
-> = {
+export const RARITY_CONFIG: Record<Rarity, RarityConfig> = {
   Common: {
     emoji: '⚪',
     color: 'text-gray-600 dark:text-gray-400',
@@ -74,10 +77,7 @@ export const RARITY_CONFIG: Record<
   },
 };
 
-export const TIER_CONFIG: Record<
-  EquipmentTier,
-  { emoji: string; label: string; color: string }
-> = {
+export const TIER_CONFIG: Record<EquipmentTier, TierConfig> = {
   '1': {
     emoji: '🥉',
     label: 'Tier 1',

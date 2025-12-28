@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
 
+import { SearchInput } from '@/components/shared';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { Ancestry } from '@/lib/schemas/identity';
 import { ANCESTRIES } from '@/lib/schemas/identity';
 
 import { AncestryCard } from './ancestry-card';
 import { AncestryDetail } from './ancestry-detail';
-import { AncestrySearch } from './ancestry-search';
 
 interface StandardAncestryListProps {
   selectedAncestry: Ancestry | null;
@@ -34,10 +34,14 @@ export function StandardAncestryList({
 
   return (
     <div className="space-y-4">
-      <AncestrySearch value={search} onChange={setSearch} />
+      <SearchInput
+        value={search}
+        onChange={setSearch}
+        placeholder="Search ancestries..."
+      />
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <ScrollArea className="h-[500px] pr-4">
+        <ScrollArea className="h-125 pr-4">
           <div className="space-y-2">
             {filteredAncestries.length === 0 ? (
               <p className="text-muted-foreground py-8 text-center">
@@ -56,7 +60,7 @@ export function StandardAncestryList({
           </div>
         </ScrollArea>
 
-        <div className="hidden h-[500px] lg:block">
+        <div className="hidden h-125 lg:block">
           {selectedAncestry ? (
             <ScrollArea className="h-full">
               <AncestryDetail ancestry={selectedAncestry} />

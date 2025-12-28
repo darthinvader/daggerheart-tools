@@ -1,6 +1,6 @@
 import type { Ancestry } from '@/lib/schemas/identity';
 
-import { FeatureDisplay } from './feature-display';
+import { FeatureCard } from './feature-card';
 
 interface MixedAncestryPreviewProps {
   name: string;
@@ -23,11 +23,11 @@ export function MixedAncestryPreview({
         Parent Ancestries: {primaryAncestry.name} & {secondaryAncestry.name}
       </p>
       <div className="grid gap-3 md:grid-cols-2">
-        <FeatureDisplay
+        <FeatureCard
           feature={primaryAncestry.primaryFeature}
           variant="primary"
         />
-        <FeatureDisplay
+        <FeatureCard
           feature={secondaryAncestry.secondaryFeature}
           variant="secondary"
         />

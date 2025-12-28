@@ -3,7 +3,7 @@ import { useState } from 'react';
 import {
   type AncestrySelection,
   AncestrySelector,
-  FeatureDisplay,
+  FeatureCard,
 } from '@/components/ancestry-selector';
 import { Separator } from '@/components/ui/separator';
 import { getAncestryByName } from '@/lib/schemas/identity';
@@ -44,8 +44,8 @@ function StandardSelectionDetails({
           ⚔️ Features
         </h5>
         <div className="grid gap-3 md:grid-cols-2">
-          <FeatureDisplay feature={ancestry.primaryFeature} variant="primary" />
-          <FeatureDisplay
+          <FeatureCard feature={ancestry.primaryFeature} variant="primary" />
+          <FeatureCard
             feature={ancestry.secondaryFeature}
             variant="secondary"
           />
@@ -143,11 +143,11 @@ function MixedSelectionDetails({
           ⚔️ Features
         </h5>
         <div className="grid gap-3 md:grid-cols-2">
-          <FeatureDisplay
+          <FeatureCard
             feature={mixedAncestry.primaryFeature}
             variant="primary"
           />
-          <FeatureDisplay
+          <FeatureCard
             feature={mixedAncestry.secondaryFeature}
             variant="secondary"
           />
@@ -243,13 +243,13 @@ function HomebrewSelectionDetails({
             </h5>
             <div className="grid gap-3 md:grid-cols-2">
               {homebrew.primaryFeature.name && (
-                <FeatureDisplay
+                <FeatureCard
                   feature={homebrew.primaryFeature}
                   variant="primary"
                 />
               )}
               {homebrew.secondaryFeature.name && (
-                <FeatureDisplay
+                <FeatureCard
                   feature={homebrew.secondaryFeature}
                   variant="secondary"
                 />

@@ -1,8 +1,7 @@
+import { DescriptionIcon, HeightIcon, LifespanIcon } from '@/components/shared';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-
-import { DescriptionIcon, HeightIcon, LifespanIcon } from './ancestry-icons';
 
 interface HomebrewBasicFieldsProps {
   name: string;

@@ -1,12 +1,8 @@
+import { FeatureIcon, TraitsIcon } from '@/components/shared';
 import type { Community } from '@/lib/schemas/identity';
 import { cn } from '@/lib/utils';
 
-import {
-  FeatureIcon,
-  TraitsIcon,
-  getCommunityColors,
-  getCommunityEmoji,
-} from './community-icons';
+import { getCommunityColors, getCommunityEmoji } from './community-config';
 
 interface CommunityCardProps {
   community: Community;

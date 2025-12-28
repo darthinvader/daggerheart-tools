@@ -29,7 +29,7 @@ export function CustomEquipmentSection({
   onDelete,
 }: CustomEquipmentSectionProps) {
   return (
-    <Card className="border-primary/20 from-primary/5 bg-gradient-to-br to-transparent">
+    <Card className="border-primary/20 from-primary/5 bg-linear-to-br to-transparent">
       <Collapsible open={isOpen} onOpenChange={onOpenChange}>
         <CardHeader className="pb-3">
           <div className="flex flex-wrap items-center justify-between gap-2">

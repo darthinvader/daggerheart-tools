@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
 
+import { SearchInput } from '@/components/shared';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { Community } from '@/lib/schemas/identity';
 import { COMMUNITIES } from '@/lib/schemas/identity';
 
 import { CommunityCard } from './community-card';
-import { CommunitySearch } from './community-search';
 
 interface StandardCommunityListProps {
   selectedCommunity: Community | null;
@@ -33,9 +33,13 @@ export function StandardCommunityList({
 
   return (
     <div className="space-y-4">
-      <CommunitySearch value={search} onChange={setSearch} />
+      <SearchInput
+        value={search}
+        onChange={setSearch}
+        placeholder="Search communities..."
+      />
 
-      <ScrollArea className="h-[500px] pr-4">
+      <ScrollArea className="h-125 pr-4">
         <div className="space-y-2">
           {filteredCommunities.length === 0 ? (
             <p className="text-muted-foreground py-8 text-center">

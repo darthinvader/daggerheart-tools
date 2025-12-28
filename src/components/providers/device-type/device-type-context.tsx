@@ -1,4 +1,4 @@
-import { createContext } from 'react';
+import { createContext, useContext } from 'react';
 
 export type DeviceType = 'phone' | 'tablet' | 'pc';
 
@@ -12,3 +12,13 @@ export interface DeviceTypeProviderState {
 export const DeviceTypeProviderContext = createContext<
   DeviceTypeProviderState | undefined
 >(undefined);
+
+export function useDeviceType() {
+  const context = useContext(DeviceTypeProviderContext);
+
+  if (context === undefined) {
+    throw new Error('useDeviceType must be used within a DeviceTypeProvider');
+  }
+
+  return context;
+}
