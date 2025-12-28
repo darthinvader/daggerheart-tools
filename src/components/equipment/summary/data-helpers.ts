@@ -37,6 +37,7 @@ export function getWeaponData(
       burden: homebrew.burden,
       features: homebrew.features ?? [],
       tier: homebrew.tier,
+      description: homebrew.description,
       isEmpty: false,
     };
   }
@@ -49,6 +50,7 @@ export function getWeaponData(
       burden: standard.burden,
       features: standard.features,
       tier: standard.tier,
+      description: standard.description,
       isEmpty: false,
     };
   }
@@ -71,6 +73,7 @@ export function getArmorData(
       armorType: homebrew.armorType,
       features: homebrew.features ?? [],
       tier: homebrew.tier,
+      description: homebrew.description,
       isEmpty: false,
     };
   }
@@ -85,6 +88,7 @@ export function getArmorData(
       armorType: armor.armorType,
       features: armor.features,
       tier: armor.tier,
+      description: armor.description,
       isEmpty: false,
     };
   }
@@ -110,6 +114,7 @@ export function getWheelchairData(
       tier: homebrew.tier,
       frameType: homebrew.frameType,
       wheelchairFeatures: homebrew.wheelchairFeatures ?? [],
+      description: homebrew.description,
       isEmpty: false,
     };
   }
@@ -124,6 +129,7 @@ export function getWheelchairData(
       tier: wheelchair.tier,
       frameType: wheelchair.frameType,
       wheelchairFeatures: wheelchair.wheelchairFeatures,
+      description: wheelchair.description,
       isEmpty: false,
     };
   }

@@ -14,6 +14,7 @@ interface LoadoutSelectorProps {
   onComplete?: (selection: LoadoutSelection) => void;
   classDomains: string[];
   tier?: string;
+  hideHeader?: boolean;
 }
 
 export function LoadoutSelector({
@@ -22,6 +23,7 @@ export function LoadoutSelector({
   onComplete,
   classDomains,
   tier = '1',
+  hideHeader = false,
 }: LoadoutSelectorProps) {
   const state = useLoadoutState({
     value,
@@ -33,17 +35,20 @@ export function LoadoutSelector({
 
   return (
     <div className="space-y-6">
-      <div className="space-y-4">
-        <h2 className="flex items-center gap-2 text-xl font-semibold">
-          <span>📜</span>
-          <span>Build Your Domain Loadout</span>
-        </h2>
-        <p className="text-muted-foreground">
-          Select cards for your active loadout (⚡) and vault (📦). You can
-          equip up to <strong>{state.rules.maxActiveCards}</strong> active cards
-          and store <strong>{state.rules.maxVaultCards}</strong> in your vault.
-        </p>
-      </div>
+      {!hideHeader && (
+        <div className="space-y-4">
+          <h2 className="flex items-center gap-2 text-xl font-semibold">
+            <span>📜</span>
+            <span>Build Your Domain Loadout</span>
+          </h2>
+          <p className="text-muted-foreground">
+            Select cards for your active loadout (⚡) and vault (📦). You can
+            equip up to <strong>{state.rules.maxActiveCards}</strong> active
+            cards and store <strong>{state.rules.maxVaultCards}</strong> in your
+            vault.
+          </p>
+        </div>
+      )}
 
       <LoadoutModeTabs
         activeMode={state.mode}

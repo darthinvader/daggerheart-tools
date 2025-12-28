@@ -5,47 +5,15 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getTierForLevel } from '@/lib/schemas/core';
 
-interface ProgressionState {
-  currentLevel: number;
-  currentTier: string;
-  experience?: number;
-  experienceToNext?: number;
-}
-
-const SAMPLE_NOVICE: ProgressionState = {
-  currentLevel: 1,
-  currentTier: '1',
-  experience: 150,
-  experienceToNext: 300,
-};
-
-const SAMPLE_ADVENTURER: ProgressionState = {
-  currentLevel: 3,
-  currentTier: '2-4',
-  experience: 800,
-  experienceToNext: 1000,
-};
-
-const SAMPLE_VETERAN: ProgressionState = {
-  currentLevel: 6,
-  currentTier: '5-7',
-  experience: 2400,
-  experienceToNext: 3000,
-};
-
-const SAMPLE_LEGEND: ProgressionState = {
-  currentLevel: 9,
-  currentTier: '8-10',
-  experience: 5500,
-  experienceToNext: 6000,
-};
-
-const SAMPLE_READY_TO_LEVEL: ProgressionState = {
-  currentLevel: 2,
-  currentTier: '2-4',
-  experience: 500,
-  experienceToNext: 500,
-};
+import { DemoCard } from './demo-card';
+import {
+  type ProgressionState,
+  SAMPLE_ADVENTURER,
+  SAMPLE_LEGEND,
+  SAMPLE_NOVICE,
+  SAMPLE_READY_TO_LEVEL,
+  SAMPLE_VETERAN,
+} from './progression-display-sample-data';
 
 export function ProgressionDisplayDemo() {
   const [novice, setNovice] = useState<ProgressionState>(SAMPLE_NOVICE);
@@ -82,82 +50,40 @@ export function ProgressionDisplayDemo() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm">
-              <Badge
-                variant="secondary"
-                className="border-green-500/30 bg-green-500/10 text-green-600"
-              >
-                🌱 Novice
-              </Badge>
-              <span className="text-muted-foreground font-normal">Tier 1</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <ProgressionDisplay progression={novice} onChange={setNovice} />
-          </CardContent>
-        </Card>
+        <DemoCard
+          badge="🌱 Novice"
+          badgeClassName="border-green-500/30 bg-green-500/10 text-green-600"
+          label="Tier 1"
+        >
+          <ProgressionDisplay progression={novice} onChange={setNovice} />
+        </DemoCard>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm">
-              <Badge
-                variant="secondary"
-                className="border-blue-500/30 bg-blue-500/10 text-blue-600"
-              >
-                ⚔️ Adventurer
-              </Badge>
-              <span className="text-muted-foreground font-normal">
-                Tier 2-4
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <ProgressionDisplay
-              progression={adventurer}
-              onChange={setAdventurer}
-            />
-          </CardContent>
-        </Card>
+        <DemoCard
+          badge="⚔️ Adventurer"
+          badgeClassName="border-blue-500/30 bg-blue-500/10 text-blue-600"
+          label="Tier 2-4"
+        >
+          <ProgressionDisplay
+            progression={adventurer}
+            onChange={setAdventurer}
+          />
+        </DemoCard>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm">
-              <Badge
-                variant="secondary"
-                className="border-purple-500/30 bg-purple-500/10 text-purple-600"
-              >
-                🔥 Veteran
-              </Badge>
-              <span className="text-muted-foreground font-normal">
-                Tier 5-7
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <ProgressionDisplay progression={veteran} onChange={setVeteran} />
-          </CardContent>
-        </Card>
+        <DemoCard
+          badge="🔥 Veteran"
+          badgeClassName="border-purple-500/30 bg-purple-500/10 text-purple-600"
+          label="Tier 5-7"
+        >
+          <ProgressionDisplay progression={veteran} onChange={setVeteran} />
+        </DemoCard>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm">
-              <Badge
-                variant="secondary"
-                className="border-amber-500/30 bg-amber-500/10 text-amber-600"
-              >
-                👑 Legend
-              </Badge>
-              <span className="text-muted-foreground font-normal">
-                Tier 8-10
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <ProgressionDisplay progression={legend} onChange={setLegend} />
-          </CardContent>
-        </Card>
+        <DemoCard
+          badge="👑 Legend"
+          badgeClassName="border-amber-500/30 bg-amber-500/10 text-amber-600"
+          label="Tier 8-10"
+        >
+          <ProgressionDisplay progression={legend} onChange={setLegend} />
+        </DemoCard>
       </div>
 
       <Card>

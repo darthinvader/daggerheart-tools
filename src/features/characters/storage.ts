@@ -160,9 +160,11 @@ export function readThresholdsSettingsFromStorage(
   if (isOld(raw)) {
     return {
       auto: false,
+      autoMajor: false,
       values: {
         major: raw.major,
         severe: raw.severe,
+        critical: 0,
         dsOverride: false,
         ds: 0,
       },
@@ -189,9 +191,11 @@ export function readThresholdsSettingsFromStorage(
     ) {
       return {
         auto: legacy.auto ?? true,
+        autoMajor: true,
         values: {
           major: legacy.values.major,
           severe: legacy.values.severe,
+          critical: 0,
           dsOverride: legacy.values.dsOverride ?? false,
           ds: legacy.values.ds ?? 0,
         },

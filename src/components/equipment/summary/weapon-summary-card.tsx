@@ -16,6 +16,7 @@ interface WeaponSummaryCardProps {
   tier?: string;
   frameType?: string;
   wheelchairFeatures?: string[];
+  description?: string;
 }
 
 export function WeaponSummaryCard({
@@ -32,6 +33,7 @@ export function WeaponSummaryCard({
   tier,
   frameType,
   wheelchairFeatures = [],
+  description,
 }: WeaponSummaryCardProps) {
   return (
     <div
@@ -47,6 +49,11 @@ export function WeaponSummaryCard({
 
       {!isEmpty && (
         <div className="mt-3 space-y-2">
+          {description && (
+            <p className="text-muted-foreground text-sm italic">
+              {description}
+            </p>
+          )}
           <StatBadges damage={damage} range={range} burden={burden} />
           <TraitDisplay trait={trait} />
           <FrameDisplay frameType={frameType} />

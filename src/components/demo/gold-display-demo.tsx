@@ -11,6 +11,7 @@ const SAMPLE_WEALTHY: Gold = {
   chests: 1,
   coins: 0,
   showCoins: false,
+  displayDenomination: 'handfuls',
 };
 
 const SAMPLE_MODERATE: Gold = {
@@ -19,6 +20,7 @@ const SAMPLE_MODERATE: Gold = {
   chests: 0,
   coins: 5,
   showCoins: true,
+  displayDenomination: 'handfuls',
 };
 
 const SAMPLE_POOR: Gold = {
@@ -27,6 +29,7 @@ const SAMPLE_POOR: Gold = {
   chests: 0,
   coins: 3,
   showCoins: true,
+  displayDenomination: 'handfuls',
 };
 
 const SAMPLE_EMPTY: Gold = {
@@ -35,6 +38,7 @@ const SAMPLE_EMPTY: Gold = {
   chests: 0,
   coins: 0,
   showCoins: false,
+  displayDenomination: 'handfuls',
 };
 
 export function GoldDisplayDemo() {

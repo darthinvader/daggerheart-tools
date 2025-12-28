@@ -21,7 +21,8 @@ export type UseThresholdsArgs = {
 export function useThresholdsSettings({ id, refreshKey }: UseThresholdsArgs) {
   const [settings, setSettings] = React.useState<ThresholdsSettings>({
     auto: true,
-    values: { major: 2, severe: 3, dsOverride: false, ds: 6 },
+    autoMajor: true,
+    values: { major: 2, severe: 3, critical: 0, dsOverride: false, ds: 6 },
     enableCritical: false,
   });
   const [auto, setAuto] = React.useState({ major: 2, severe: 3 });
@@ -112,9 +113,11 @@ export function useThresholdsSettings({ id, refreshKey }: UseThresholdsArgs) {
       );
       writeThresholdsSettingsToStorage(id, {
         auto: false,
+        autoMajor: settings.autoMajor ?? false,
         values: {
           major: mj,
           severe: sv,
+          critical: settings.values.critical ?? 0,
           dsOverride: settings.values.dsOverride ?? false,
           ds,
         },

@@ -71,8 +71,48 @@ function GoldCompactDisplay({ gold }: { gold: Gold }) {
 }
 
 function GoldDetailedDisplay({ gold }: { gold: Gold }) {
-  const totalInHandfuls =
-    gold.handfuls + gold.bags * 10 + gold.chests * 100 + (gold.coins ?? 0) / 10;
+  const totalInCoins =
+    (gold.coins ?? 0) +
+    gold.handfuls * 10 +
+    gold.bags * 100 +
+    gold.chests * 1000;
+
+  const displayDenom = gold.displayDenomination ?? 'handfuls';
+
+  const calculateTotal = (
+    denomination: 'coins' | 'handfuls' | 'bags' | 'chests'
+  ) => {
+    switch (denomination) {
+      case 'coins':
+        return totalInCoins;
+      case 'handfuls':
+        return totalInCoins / 10;
+      case 'bags':
+        return totalInCoins / 100;
+      case 'chests':
+        return totalInCoins / 1000;
+    }
+  };
+
+  const formatTotal = () => {
+    const value = calculateTotal(displayDenom);
+    const decimals =
+      displayDenom === 'coins'
+        ? 0
+        : displayDenom === 'handfuls'
+          ? 1
+          : displayDenom === 'bags'
+            ? 2
+            : 3;
+    return parseFloat(value.toFixed(decimals)).toString();
+  };
+
+  const denominationLabels = {
+    coins: 'Coins',
+    handfuls: 'Handfuls',
+    bags: 'Bags',
+    chests: 'Chests',
+  };
 
   return (
     <div className="space-y-4">
@@ -131,8 +171,8 @@ function GoldDetailedDisplay({ gold }: { gold: Gold }) {
       <div className="rounded-lg border bg-gradient-to-r from-yellow-500/5 to-amber-500/5 p-3">
         <p className="text-muted-foreground text-center text-sm">
           Total wealth:{' '}
-          <strong className="text-foreground">{totalInHandfuls}</strong>{' '}
-          handfuls equivalent
+          <strong className="text-foreground">{formatTotal()}</strong>{' '}
+          {denominationLabels[displayDenom]}
         </p>
       </div>
     </div>
@@ -183,6 +223,7 @@ export function GoldDisplay({
       bags: number;
       chests: number;
       showCoins: boolean;
+      displayDenomination: 'coins' | 'handfuls' | 'bags' | 'chests';
     }) => {
       setDraftGold({
         handfuls: state.handfuls,
@@ -190,6 +231,7 @@ export function GoldDisplay({
         chests: state.chests,
         coins: state.coins,
         showCoins: state.showCoins,
+        displayDenomination: state.displayDenomination,
       });
     },
     []
@@ -217,6 +259,7 @@ export function GoldDisplay({
           initialBags={draftGold.bags}
           initialChests={draftGold.chests}
           showCoinsInitially={draftGold.showCoins ?? false}
+          displayDenomination={draftGold.displayDenomination ?? 'handfuls'}
           onChange={handleChange}
         />
       }

@@ -9,11 +9,6 @@ export interface CoreScoresState {
   proficiency: number;
 }
 
-export const DEFAULT_CORE_SCORES: CoreScoresState = {
-  evasion: 10,
-  proficiency: 1,
-};
-
 interface CoreScoresDisplayProps {
   scores: CoreScoresState;
   onChange?: (scores: CoreScoresState) => void;

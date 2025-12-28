@@ -70,7 +70,7 @@ export function ThresholdsEditableSection({
   const handleMajorChange = useCallback((value: number) => {
     setDraftSettings(prev => ({
       ...prev,
-      values: { ...prev.values, ds: value },
+      values: { ...prev.values, critical: value },
     }));
   }, []);
 
@@ -81,12 +81,29 @@ export function ThresholdsEditableSection({
     }));
   }, []);
 
+  const handleAutoMajorChange = useCallback((value: boolean) => {
+    setDraftSettings(prev => ({
+      ...prev,
+      autoMajor: value,
+    }));
+  }, []);
+
   const handleShowMajorChange = useCallback((value: boolean) => {
     setDraftSettings(prev => ({
       ...prev,
       enableCritical: value,
     }));
   }, []);
+
+  const effectiveCritical =
+    (draftSettings.autoMajor ?? true)
+      ? draftSettings.values.severe * 2
+      : (draftSettings.values.critical ?? draftSettings.values.severe * 2);
+
+  const displayCritical =
+    (settings.autoMajor ?? true)
+      ? settings.values.severe * 2
+      : (settings.values.critical ?? settings.values.severe * 2);
 
   const hasSettings = settings !== null;
 
@@ -107,13 +124,15 @@ export function ThresholdsEditableSection({
         <ThresholdsEditor
           minor={draftSettings.values.major}
           severe={draftSettings.values.severe}
-          major={draftSettings.values.ds}
+          major={effectiveCritical}
           autoCalculate={draftSettings.auto}
+          autoCalculateMajor={draftSettings.autoMajor ?? true}
           showMajor={draftSettings.enableCritical}
           onMinorChange={handleMinorChange}
           onSevereChange={handleSevereChange}
           onMajorChange={handleMajorChange}
           onAutoCalculateChange={handleAutoChange}
+          onAutoCalculateMajorChange={handleAutoMajorChange}
           onShowMajorChange={handleShowMajorChange}
           baseHp={baseHp}
         />
@@ -123,7 +142,7 @@ export function ThresholdsEditableSection({
         <ThresholdsDisplay
           minor={settings.values.major}
           severe={settings.values.severe}
-          major={settings.values.ds}
+          major={displayCritical}
           showMajor={settings.enableCritical}
         />
       ) : (

@@ -1,5 +1,5 @@
 /* eslint-disable max-lines-per-function, complexity */
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -24,12 +24,18 @@ interface ClassSelectorProps {
   value?: ClassDraft;
   onChange?: (draft: ClassDraft) => void;
   onComplete?: (selection: ClassSelection) => void;
+  hideCompleteButton?: boolean;
+  completeRef?: React.MutableRefObject<{
+    complete: () => ClassSelection | null;
+  } | null>;
 }
 
 export function ClassSelector({
   value,
   onChange,
   onComplete,
+  hideCompleteButton = false,
+  completeRef,
 }: ClassSelectorProps) {
   const [mode, setMode] = useState<ClassMode>(value?.mode ?? 'standard');
   const [isMulticlass, setIsMulticlass] = useState(false);
@@ -120,7 +126,7 @@ export function ClassSelector({
     [homebrewSubclassName, onChange]
   );
 
-  const handleComplete = useCallback(() => {
+  const buildSelection = useCallback((): ClassSelection | null => {
     if (mode === 'standard' && selectedClasses.length > 0) {
       const allDomains = selectedClasses.flatMap(c =>
         getDomainsForClass(c.name)
@@ -130,7 +136,7 @@ export function ClassSelector({
       const primaryClass = selectedClasses[0];
       const primarySubclass = selectedSubclasses.get(primaryClass.name);
 
-      if (!primarySubclass) return;
+      if (!primarySubclass) return null;
 
       const spellcastTrait =
         'spellcastTrait' in primarySubclass
@@ -149,7 +155,7 @@ export function ClassSelector({
         };
       });
 
-      onComplete?.({
+      return {
         mode: 'standard',
         className: selectedClasses.map(c => c.name).join(' / '),
         subclassName: Array.from(selectedSubclasses.values())
@@ -160,7 +166,7 @@ export function ClassSelector({
         spellcastTrait,
         isMulticlass: selectedClasses.length > 1,
         classes: classPairs,
-      });
+      };
     } else if (mode === 'homebrew' && homebrewClass) {
       const subclassName =
         homebrewSubclassName ?? homebrewClass.subclasses[0]?.name ?? '';
@@ -168,7 +174,7 @@ export function ClassSelector({
         s => s.name === subclassName
       );
 
-      onComplete?.({
+      return {
         mode: 'homebrew',
         className: homebrewClass.name,
         subclassName,
@@ -176,16 +182,23 @@ export function ClassSelector({
         isHomebrew: true,
         spellcastTrait: selectedHomebrewSubclass?.spellcastTrait,
         homebrewClass,
-      });
+      };
     }
+    return null;
   }, [
     mode,
     selectedClasses,
     selectedSubclasses,
     homebrewClass,
     homebrewSubclassName,
-    onComplete,
   ]);
+
+  const handleComplete = useCallback(() => {
+    const selection = buildSelection();
+    if (selection) {
+      onComplete?.(selection);
+    }
+  }, [buildSelection, onComplete]);
 
   const allSubclassesSelected = selectedClasses.every(c =>
     selectedSubclasses.has(c.name)
@@ -197,6 +210,19 @@ export function ClassSelector({
     (mode === 'homebrew' &&
       homebrewClass?.name &&
       homebrewClass.subclasses[0]?.name);
+
+  useEffect(() => {
+    if (completeRef) {
+      completeRef.current = {
+        complete: () => {
+          if (canComplete) {
+            return buildSelection();
+          }
+          return null;
+        },
+      };
+    }
+  }, [completeRef, canComplete, buildSelection]);
 
   return (
     <div className="space-y-6">
@@ -262,7 +288,7 @@ export function ClassSelector({
         />
       )}
 
-      {canComplete && (
+      {canComplete && !hideCompleteButton && (
         <div className="flex justify-end border-t pt-4">
           <Button onClick={handleComplete} size="lg" className="max-w-full">
             {mode === 'standard' && selectedClasses.length > 0 && (

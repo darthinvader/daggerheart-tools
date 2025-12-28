@@ -1,16 +1,17 @@
 // Types
+export { DEFAULT_EQUIPMENT_STATE } from './constants';
 export type { CustomEquipment } from './custom-slot-editor';
-export { DEFAULT_EQUIPMENT_STATE } from './equipment-editor';
 export type { EquipmentState } from './equipment-editor';
+export type { EquipmentMode } from './equipment-mode-tabs';
 
 // Display component
 export { EquipmentDisplay } from './equipment-display';
 
 // Main editor
 export { EquipmentEditor } from './equipment-editor';
+export { EquipmentModeTabs } from './equipment-mode-tabs';
 export { EquipmentSection } from './equipment-section';
 export { EquipmentSummary } from './equipment-summary';
-export { SectionHeader } from './section-header';
 
 // Cards
 export { ArmorCard } from './armor-card';

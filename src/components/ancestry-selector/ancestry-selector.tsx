@@ -82,6 +82,7 @@ export function AncestrySelector({ value, onChange }: AncestrySelectorProps) {
         <HomebrewAncestryForm
           homebrew={homebrewSelection}
           onChange={handleHomebrewChange}
+          hideSaveButton
         />
       )}
     </div>

@@ -10,6 +10,8 @@ import { Label } from '@/components/ui/label';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import { cn } from '@/lib/utils';
 
+import { RESOURCE_CONFIG } from './constants';
+
 export interface ResourceValue {
   current: number;
   max: number;
@@ -20,28 +22,14 @@ export interface ResourcesState {
   stress: ResourceValue;
   hope: ResourceValue;
   armorScore: ResourceValue;
-  evasion?: ResourceValue;
   autoCalculateHp?: boolean;
   autoCalculateArmor?: boolean;
-  autoCalculateEvasion?: boolean;
 }
-
-export const DEFAULT_RESOURCES_STATE: ResourcesState = {
-  hp: { current: 10, max: 10 },
-  stress: { current: 0, max: 6 },
-  hope: { current: 2, max: 6 },
-  armorScore: { current: 0, max: 0 },
-  evasion: { current: 10, max: 10 },
-  autoCalculateHp: true,
-  autoCalculateArmor: true,
-  autoCalculateEvasion: true,
-};
 
 export interface AutoCalculateContext {
   classHp?: number;
   classTier?: number;
   armorScore?: number;
-  classEvasion?: number;
 }
 
 function computeAutoResources(ctx: AutoCalculateContext) {
@@ -50,37 +38,8 @@ function computeAutoResources(ctx: AutoCalculateContext) {
   return {
     maxHp: baseHp + tierBonus,
     armorScore: ctx.armorScore ?? 0,
-    evasion: ctx.classEvasion ?? 10,
   };
 }
-
-const RESOURCE_CONFIG = [
-  {
-    key: 'hp' as const,
-    label: 'Hit Points',
-    emoji: '❤️',
-    color: 'text-red-500',
-  },
-  {
-    key: 'stress' as const,
-    label: 'Stress',
-    emoji: '😰',
-    color: 'text-yellow-500',
-  },
-  { key: 'hope' as const, label: 'Hope', emoji: '✨', color: 'text-blue-500' },
-  {
-    key: 'armorScore' as const,
-    label: 'Armor Score',
-    emoji: '🛡️',
-    color: 'text-slate-500',
-  },
-  {
-    key: 'evasion' as const,
-    label: 'Evasion',
-    emoji: '🏃',
-    color: 'text-purple-500',
-  },
-];
 
 interface ResourcesDisplayProps {
   resources: ResourcesState;
@@ -163,7 +122,7 @@ function ResourcesDetailedDisplay({
   );
 
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
       {displayableResources.map(({ key, label, emoji, color }) => (
         <QuickResourceCard
           key={key}
@@ -209,7 +168,7 @@ function ResourcesEditor({
   };
 
   const handleAutoToggle = (
-    field: 'autoCalculateHp' | 'autoCalculateArmor' | 'autoCalculateEvasion'
+    field: 'autoCalculateHp' | 'autoCalculateArmor'
   ) => {
     const newValue = !resources[field];
     const updates: Partial<ResourcesState> = { [field]: newValue };
@@ -223,11 +182,6 @@ function ResourcesEditor({
         updates.armorScore = {
           current: autoValues.armorScore,
           max: autoValues.armorScore,
-        };
-      } else if (field === 'autoCalculateEvasion') {
-        updates.evasion = {
-          current: autoValues.evasion,
-          max: autoValues.evasion,
         };
       }
     }
@@ -266,20 +220,6 @@ function ResourcesEditor({
               </Label>
             </SmartTooltip>
           </div>
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="auto-evasion"
-              checked={resources.autoCalculateEvasion ?? true}
-              onCheckedChange={() => handleAutoToggle('autoCalculateEvasion')}
-            />
-            <SmartTooltip
-              content={`Auto Evasion: ${autoValues.evasion} (from class)`}
-            >
-              <Label htmlFor="auto-evasion" className="cursor-pointer">
-                Auto Evasion
-              </Label>
-            </SmartTooltip>
-          </div>
         </div>
       )}
 
@@ -291,9 +231,6 @@ function ResourcesEditor({
             (key === 'hp' && resources.autoCalculateHp && autoContext) ||
             (key === 'armorScore' &&
               resources.autoCalculateArmor &&
-              autoContext) ||
-            (key === 'evasion' &&
-              resources.autoCalculateEvasion &&
               autoContext);
           return (
             <LabeledCounter
@@ -361,7 +298,7 @@ export function ResourcesDisplay({
       isEditing={isEditing}
       onEditToggle={isEditing ? handleEditToggle : handleOpen}
       showEditButton={!readOnly}
-      modalSize="md"
+      modalSize="lg"
       className={cn(className)}
       editTitle="Manage Resources"
       editDescription="Track your character's HP, Stress, Hope, Armor, and Evasion."

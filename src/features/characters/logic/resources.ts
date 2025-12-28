@@ -138,6 +138,7 @@ export function createResourceActions(
         chests: prev.gold?.chests ?? 0,
         coins: prev.gold?.coins ?? 0,
         showCoins: prev.gold?.showCoins ?? false,
+        displayDenomination: prev.gold?.displayDenomination ?? 'handfuls',
         [kind]: Math.max(0, current + delta),
       };
       const next: ResourcesDraft = { ...prev, gold: nextGold };
@@ -154,6 +155,7 @@ export function createResourceActions(
         chests: prev.gold?.chests ?? 0,
         coins: prev.gold?.coins ?? 0,
         showCoins: prev.gold?.showCoins ?? false,
+        displayDenomination: prev.gold?.displayDenomination ?? 'handfuls',
         [kind]: Math.max(0, Math.floor(value) || 0),
       };
       const next: ResourcesDraft = { ...prev, gold: nextGold };

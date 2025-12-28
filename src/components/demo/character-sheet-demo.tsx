@@ -1,174 +1,47 @@
 import { useState } from 'react';
 
+import { type AncestrySelection } from '@/components/ancestry-selector';
+import { type ConditionsState } from '@/components/conditions';
 import {
-  AncestryDisplay,
-  type AncestrySelection,
-} from '@/components/ancestry-selector';
-import { ClassDisplay } from '@/components/class-selector';
-import { CommunityDisplay } from '@/components/community-selector';
-import {
-  ConditionsDisplay,
-  type ConditionsState,
-} from '@/components/conditions';
-import {
-  CoreScoresDisplay,
   type CoreScoresState,
   DEFAULT_CORE_SCORES,
 } from '@/components/core-scores';
 import {
   DEFAULT_EQUIPMENT_STATE,
-  EquipmentDisplay,
   type EquipmentState,
 } from '@/components/equipment';
-import {
-  ExperiencesDisplay,
-  type ExperiencesState,
-} from '@/components/experiences';
-import { GoldDisplay } from '@/components/gold';
-import { IdentityDisplay } from '@/components/identity-editor';
-import { InventoryDisplay, type InventoryState } from '@/components/inventory';
-import { LoadoutDisplay } from '@/components/loadout-selector';
+import { type ExperiencesState } from '@/components/experiences';
+import { type InventoryState } from '@/components/inventory';
 import {
   DEFAULT_RESOURCES_STATE,
-  ResourcesDisplay,
   type ResourcesState,
 } from '@/components/resources';
-import {
-  ProgressionDisplay,
-  type ProgressionState,
-} from '@/components/shared/progression-display';
-import { ThresholdsEditableSection } from '@/components/thresholds-editor';
-import {
-  DEFAULT_TRAITS_STATE,
-  TraitsDisplay,
-  type TraitsState,
-} from '@/components/traits';
+import { type ProgressionState } from '@/components/shared/progression-display';
+import { DEFAULT_TRAITS_STATE, type TraitsState } from '@/components/traits';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { getClassByName, getSubclassByName } from '@/lib/data/classes';
 import type {
   Gold,
   IdentityFormValues,
   ThresholdsSettings,
 } from '@/lib/schemas/character-state';
 import type { ClassSelection } from '@/lib/schemas/class-selection';
+import type { CommunitySelection } from '@/lib/schemas/identity';
+import type { LoadoutSelection } from '@/lib/schemas/loadout';
+
+import { CombatTab, IdentityTab, ItemsTab, OverviewTab } from './demo-tabs';
 import {
-  type CommunitySelection,
-  getAncestryByName,
-  getCommunityByName,
-} from '@/lib/schemas/identity';
-import {
-  DEFAULT_LOADOUT,
-  type DomainCardLite,
-  type LoadoutSelection,
-} from '@/lib/schemas/loadout';
-
-const sampleCard = (
-  name: string,
-  domain: string,
-  level: number,
-  type: string,
-  hopeCost?: number
-): DomainCardLite => ({
-  name,
-  domain,
-  level,
-  type,
-  description: `A ${domain.toLowerCase()} ability: ${name.toLowerCase()}.`,
-  hopeCost,
-  recallCost: type === 'Spell' ? 1 : undefined,
-});
-
-const buildClassSelection = (): ClassSelection | null => {
-  const gameClass = getClassByName('Wizard');
-  const subclass = getSubclassByName('Wizard', 'School of Knowledge');
-  if (!gameClass || !subclass) return null;
-  return {
-    mode: 'standard',
-    className: 'Wizard',
-    subclassName: 'School of Knowledge',
-    domains: [...gameClass.domains],
-    isHomebrew: false,
-    spellcastTrait:
-      'spellcastTrait' in subclass ? subclass.spellcastTrait : undefined,
-  };
-};
-
-const SAMPLE_IDENTITY: IdentityFormValues = {
-  name: 'Eryndor Ashwhisper',
-  pronouns: 'he/him',
-  calling: 'The Ember Sage',
-  description:
-    'A wandering scholar seeking ancient fire magic long thought lost to the ages.',
-  background:
-    'Former apprentice at the Arcane Academy who discovered forbidden texts.',
-  descriptionDetails: {},
-  connections: [
-    {
-      prompt: 'Who taught you magic?',
-      answer: 'Archmage Theloria, before her disappearance.',
-    },
-  ],
-};
-
-const SAMPLE_ANCESTRY: AncestrySelection = {
-  mode: 'standard',
-  ancestry: getAncestryByName('Elf')!,
-};
-
-const SAMPLE_COMMUNITY: CommunitySelection = {
-  mode: 'standard',
-  community: getCommunityByName('Loreborne')!,
-};
-
-const SAMPLE_PROGRESSION: ProgressionState = {
-  currentLevel: 3,
-  currentTier: '2-4',
-  experience: 750,
-  experienceToNext: 1000,
-};
-
-const SAMPLE_GOLD: Gold = {
-  handfuls: 5,
-  bags: 2,
-  chests: 0,
-  coins: 0,
-  showCoins: false,
-};
-
-const SAMPLE_THRESHOLDS: ThresholdsSettings = {
-  auto: false,
-  values: { major: 4, severe: 8, dsOverride: false, ds: 0 },
-  enableCritical: false,
-};
-
-const SAMPLE_INVENTORY: InventoryState = {
-  maxSlots: 30,
-  items: [],
-};
-
-const SAMPLE_LOADOUT: LoadoutSelection = {
-  ...DEFAULT_LOADOUT,
-  mode: 'class-domains',
-  classDomains: ['Sage', 'Arcana'],
-  activeCards: [
-    sampleCard('Firebolt', 'Arcana', 1, 'Spell', 1),
-    sampleCard('Shield', 'Codex', 1, 'Ability', 2),
-    sampleCard('Magic Missile', 'Arcana', 1, 'Spell', 1),
-  ],
-  vaultCards: [sampleCard('Counterspell', 'Arcana', 3, 'Spell', 2)],
-  creationComplete: true,
-};
-
-const SAMPLE_EXPERIENCES: ExperiencesState = {
-  items: [
-    { id: '1', name: 'Arcane Studies', value: 3 },
-    { id: '2', name: 'Combat Training', value: 2 },
-  ],
-};
-
-const SAMPLE_CONDITIONS: ConditionsState = {
-  items: ['Inspired'],
-};
+  SAMPLE_ANCESTRY,
+  SAMPLE_COMMUNITY,
+  SAMPLE_CONDITIONS,
+  SAMPLE_EXPERIENCES,
+  SAMPLE_GOLD,
+  SAMPLE_IDENTITY,
+  SAMPLE_INVENTORY,
+  SAMPLE_LOADOUT,
+  SAMPLE_PROGRESSION,
+  SAMPLE_THRESHOLDS,
+  buildClassSelection,
+} from './sample-data';
 
 export function CharacterSheetDemo() {
   const [identity, setIdentity] = useState<IdentityFormValues>(SAMPLE_IDENTITY);
@@ -199,6 +72,42 @@ export function CharacterSheetDemo() {
     DEFAULT_RESOURCES_STATE
   );
 
+  const state = {
+    identity,
+    ancestry,
+    community,
+    classSelection,
+    progression,
+    gold,
+    thresholds,
+    equipment,
+    inventory,
+    loadout,
+    experiences,
+    conditions,
+    traits,
+    coreScores,
+    resources,
+  };
+
+  const handlers = {
+    setIdentity,
+    setAncestry,
+    setCommunity,
+    setClassSelection,
+    setProgression,
+    setGold,
+    setThresholds,
+    setEquipment,
+    setInventory,
+    setLoadout,
+    setExperiences,
+    setConditions,
+    setTraits,
+    setCoreScores,
+    setResources,
+  };
+
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -217,105 +126,17 @@ export function CharacterSheetDemo() {
           <TabsTrigger value="items">🎒 Items</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6 pt-4">
-          <div className="grid gap-6 lg:grid-cols-2">
-            <IdentityDisplay identity={identity} onChange={setIdentity} />
-            <ProgressionDisplay
-              progression={progression}
-              onChange={setProgression}
-            />
-          </div>
-
-          <div className="grid gap-6 lg:grid-cols-3">
-            <AncestryDisplay selection={ancestry} onChange={setAncestry} />
-            <CommunityDisplay selection={community} onChange={setCommunity} />
-            <ClassDisplay
-              selection={classSelection}
-              onChange={setClassSelection}
-            />
-          </div>
-
-          <div className="grid gap-6 lg:grid-cols-2">
-            <TraitsDisplay traits={traits} onChange={setTraits} />
-            <div className="space-y-6">
-              <CoreScoresDisplay scores={coreScores} onChange={setCoreScores} />
-              <ResourcesDisplay resources={resources} onChange={setResources} />
-            </div>
-          </div>
-
-          <div className="grid gap-6 lg:grid-cols-3">
-            <ThresholdsEditableSection
-              settings={thresholds}
-              onChange={setThresholds}
-              baseHp={6}
-            />
-            <GoldDisplay gold={gold} onChange={setGold} />
-            <ConditionsDisplay
-              conditions={conditions}
-              onChange={setConditions}
-            />
-          </div>
-
-          <div className="grid gap-6 lg:grid-cols-2">
-            <ExperiencesDisplay
-              experiences={experiences}
-              onChange={setExperiences}
-            />
-            <EquipmentDisplay equipment={equipment} onChange={setEquipment} />
-          </div>
-
-          <LoadoutDisplay
-            selection={loadout}
-            onChange={setLoadout}
-            classDomains={classSelection?.domains ?? ['Arcana', 'Codex']}
-            tier={progression.currentTier as '1' | '2-4' | '5-7' | '8-10'}
-          />
-
-          <InventoryDisplay inventory={inventory} onChange={setInventory} />
+        <TabsContent value="overview">
+          <OverviewTab state={state} handlers={handlers} />
         </TabsContent>
-
-        <TabsContent value="identity" className="space-y-6 pt-4">
-          <IdentityDisplay identity={identity} onChange={setIdentity} />
-          <div className="grid gap-6 lg:grid-cols-2">
-            <AncestryDisplay selection={ancestry} onChange={setAncestry} />
-            <CommunityDisplay selection={community} onChange={setCommunity} />
-          </div>
+        <TabsContent value="identity">
+          <IdentityTab state={state} handlers={handlers} />
         </TabsContent>
-
-        <TabsContent value="combat" className="space-y-6 pt-4">
-          <div className="grid gap-6 lg:grid-cols-2">
-            <ClassDisplay
-              selection={classSelection}
-              onChange={setClassSelection}
-            />
-            <div className="space-y-6">
-              <ThresholdsEditableSection
-                settings={thresholds}
-                onChange={setThresholds}
-                baseHp={6}
-              />
-              <GoldDisplay gold={gold} onChange={setGold} />
-            </div>
-          </div>
-          <EquipmentDisplay equipment={equipment} onChange={setEquipment} />
-          <LoadoutDisplay
-            selection={loadout}
-            onChange={setLoadout}
-            classDomains={classSelection?.domains ?? ['Arcana', 'Codex']}
-            tier={progression.currentTier as '1' | '2-4' | '5-7' | '8-10'}
-          />
+        <TabsContent value="combat">
+          <CombatTab state={state} handlers={handlers} />
         </TabsContent>
-
-        <TabsContent value="items" className="space-y-6 pt-4">
-          <div className="grid gap-6 lg:grid-cols-3">
-            <div className="lg:col-span-2">
-              <InventoryDisplay inventory={inventory} onChange={setInventory} />
-            </div>
-            <div className="space-y-6">
-              <GoldDisplay gold={gold} onChange={setGold} compactMode />
-              <EquipmentDisplay equipment={equipment} onChange={setEquipment} />
-            </div>
-          </div>
+        <TabsContent value="items">
+          <ItemsTab state={state} handlers={handlers} />
         </TabsContent>
       </Tabs>
     </div>

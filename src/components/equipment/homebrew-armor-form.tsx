@@ -1,6 +1,5 @@
 import { FeaturesEditor } from '@/components/shared';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,24 +13,12 @@ type ArmorFormData = Omit<StandardArmor, 'metadata' | 'isStandard'>;
 interface HomebrewArmorFormProps {
   value: Partial<ArmorFormData>;
   onChange: (value: Partial<ArmorFormData>) => void;
-  onSave?: (value: Partial<ArmorFormData>) => void;
 }
 
-export function HomebrewArmorForm({
-  value,
-  onChange,
-  onSave,
-}: HomebrewArmorFormProps) {
+export function HomebrewArmorForm({ value, onChange }: HomebrewArmorFormProps) {
   const handleThresholdChange = (key: 'major' | 'severe', val: number) => {
     const current = value.baseThresholds ?? { major: 5, severe: 11 };
     onChange({ ...value, baseThresholds: { ...current, [key]: val } });
-  };
-
-  const isValid = Boolean(value.name?.trim());
-
-  const handleSave = () => {
-    onChange(value);
-    onSave?.(value);
   };
 
   return (
@@ -123,12 +110,6 @@ export function HomebrewArmorForm({
           }))}
           onChange={features => onChange({ ...value, features })}
         />
-
-        <div className="flex justify-end border-t pt-4">
-          <Button onClick={handleSave} disabled={!isValid}>
-            ✅ Save Homebrew Armor
-          </Button>
-        </div>
       </CardContent>
     </Card>
   );

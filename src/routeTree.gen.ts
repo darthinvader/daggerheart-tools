@@ -9,18 +9,12 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as DemonstrationRouteImport } from './routes/demonstration'
 import { Route as CharacterDemoRouteImport } from './routes/character-demo'
 import { Route as CharacterRouteImport } from './routes/character'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CharacterIndexRouteImport } from './routes/character/index'
 import { Route as CharacterNewRouteImport } from './routes/character/new'
 
-const DemonstrationRoute = DemonstrationRouteImport.update({
-  id: '/demonstration',
-  path: '/demonstration',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const CharacterDemoRoute = CharacterDemoRouteImport.update({
   id: '/character-demo',
   path: '/character-demo',
@@ -51,14 +45,12 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/character': typeof CharacterRouteWithChildren
   '/character-demo': typeof CharacterDemoRoute
-  '/demonstration': typeof DemonstrationRoute
   '/character/new': typeof CharacterNewRoute
   '/character/': typeof CharacterIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/character-demo': typeof CharacterDemoRoute
-  '/demonstration': typeof DemonstrationRoute
   '/character/new': typeof CharacterNewRoute
   '/character': typeof CharacterIndexRoute
 }
@@ -67,7 +59,6 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/character': typeof CharacterRouteWithChildren
   '/character-demo': typeof CharacterDemoRoute
-  '/demonstration': typeof DemonstrationRoute
   '/character/new': typeof CharacterNewRoute
   '/character/': typeof CharacterIndexRoute
 }
@@ -77,22 +68,15 @@ export interface FileRouteTypes {
     | '/'
     | '/character'
     | '/character-demo'
-    | '/demonstration'
     | '/character/new'
     | '/character/'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/character-demo'
-    | '/demonstration'
-    | '/character/new'
-    | '/character'
+  to: '/' | '/character-demo' | '/character/new' | '/character'
   id:
     | '__root__'
     | '/'
     | '/character'
     | '/character-demo'
-    | '/demonstration'
     | '/character/new'
     | '/character/'
   fileRoutesById: FileRoutesById
@@ -101,18 +85,10 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CharacterRoute: typeof CharacterRouteWithChildren
   CharacterDemoRoute: typeof CharacterDemoRoute
-  DemonstrationRoute: typeof DemonstrationRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/demonstration': {
-      id: '/demonstration'
-      path: '/demonstration'
-      fullPath: '/demonstration'
-      preLoaderRoute: typeof DemonstrationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/character-demo': {
       id: '/character-demo'
       path: '/character-demo'
@@ -169,7 +145,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CharacterRoute: CharacterRouteWithChildren,
   CharacterDemoRoute: CharacterDemoRoute,
-  DemonstrationRoute: DemonstrationRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 
 import { AncestrySelector } from './ancestry-selector';
 import { FeatureCard } from './feature-card';
+import { HomebrewAncestryContent } from './homebrew-ancestry-content';
 
 interface AncestryDisplayProps {
   selection: AncestrySelection;
@@ -191,91 +192,6 @@ function MixedAncestryContent({
           />
         </div>
       </div>
-    </div>
-  );
-}
-
-function HomebrewAncestryContent({ ancestry }: { ancestry: Ancestry }) {
-  return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <h4 className="text-xl font-bold">
-          {ancestry.name || '(Unnamed Homebrew)'}
-        </h4>
-        <Badge
-          variant="secondary"
-          className="gap-1 border-green-300 bg-green-100 text-green-700 dark:border-green-700 dark:bg-green-900/30 dark:text-green-300"
-        >
-          🛠️ Homebrew
-        </Badge>
-      </div>
-
-      {(ancestry.heightRange || ancestry.lifespan) && (
-        <div className="flex flex-wrap gap-3 text-sm">
-          {ancestry.heightRange && (
-            <span className="bg-muted flex items-center gap-1 rounded-full px-3 py-1">
-              📏 {ancestry.heightRange}
-            </span>
-          )}
-          {ancestry.lifespan && (
-            <span className="bg-muted flex items-center gap-1 rounded-full px-3 py-1">
-              ⏳ {ancestry.lifespan}
-            </span>
-          )}
-        </div>
-      )}
-
-      {ancestry.description && (
-        <>
-          <Separator />
-          <p className="text-muted-foreground text-sm leading-relaxed">
-            {ancestry.description}
-          </p>
-        </>
-      )}
-
-      {(ancestry.primaryFeature?.name || ancestry.secondaryFeature?.name) && (
-        <>
-          <Separator />
-          <div>
-            <h5 className="text-muted-foreground mb-3 flex items-center gap-2 text-xs font-medium tracking-wide uppercase">
-              ⚔️ Ancestry Features
-            </h5>
-            <div className="grid gap-3 md:grid-cols-2">
-              {ancestry.primaryFeature?.name && (
-                <FeatureCard
-                  feature={ancestry.primaryFeature}
-                  variant="primary"
-                />
-              )}
-              {ancestry.secondaryFeature?.name && (
-                <FeatureCard
-                  feature={ancestry.secondaryFeature}
-                  variant="secondary"
-                />
-              )}
-            </div>
-          </div>
-        </>
-      )}
-
-      {ancestry.physicalCharacteristics?.length > 0 && (
-        <>
-          <Separator />
-          <div>
-            <h5 className="text-muted-foreground mb-3 flex items-center gap-2 text-xs font-medium tracking-wide uppercase">
-              🎭 Physical Characteristics
-            </h5>
-            <div className="flex flex-wrap gap-2">
-              {ancestry.physicalCharacteristics.map(char => (
-                <Badge key={char} variant="outline" className="text-xs">
-                  {char}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        </>
-      )}
     </div>
   );
 }

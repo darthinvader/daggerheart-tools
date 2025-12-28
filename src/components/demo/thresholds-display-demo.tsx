@@ -10,9 +10,11 @@ import type { ThresholdsSettings } from '@/lib/schemas/character-state';
 
 const SAMPLE_AUTO: ThresholdsSettings = {
   auto: true,
+  autoMajor: true,
   values: {
     major: 3,
     severe: 6,
+    critical: 0,
     dsOverride: false,
     ds: 0,
   },
@@ -21,9 +23,11 @@ const SAMPLE_AUTO: ThresholdsSettings = {
 
 const SAMPLE_MANUAL: ThresholdsSettings = {
   auto: false,
+  autoMajor: false,
   values: {
     major: 5,
     severe: 10,
+    critical: 0,
     dsOverride: false,
     ds: 0,
   },
@@ -32,9 +36,11 @@ const SAMPLE_MANUAL: ThresholdsSettings = {
 
 const SAMPLE_WITH_MAJOR: ThresholdsSettings = {
   auto: false,
+  autoMajor: false,
   values: {
     major: 4,
     severe: 8,
+    critical: 0,
     dsOverride: false,
     ds: 16,
   },

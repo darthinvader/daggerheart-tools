@@ -9,6 +9,8 @@ interface IdentityEditorProps {
   onSubmit: (values: IdentityFormValues) => void;
   onCancel?: () => void;
   className?: string;
+  hideButtons?: boolean;
+  formRef?: React.MutableRefObject<{ submit: () => void } | null>;
 }
 
 export function IdentityEditor({
@@ -16,6 +18,8 @@ export function IdentityEditor({
   onSubmit,
   onCancel,
   className,
+  hideButtons,
+  formRef,
 }: IdentityEditorProps) {
   return (
     <div className={cn('flex flex-col', className)}>
@@ -25,6 +29,8 @@ export function IdentityEditor({
             defaultValues={defaultValues}
             onSubmit={onSubmit}
             onCancel={onCancel}
+            hideButtons={hideButtons}
+            formRef={formRef}
           />
         </div>
       </ScrollArea>

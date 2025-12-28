@@ -12,6 +12,7 @@ interface HomebrewAncestryFormProps {
   homebrew: HomebrewAncestry | null;
   onChange: (homebrew: HomebrewAncestry) => void;
   onSave?: (homebrew: HomebrewAncestry) => void;
+  hideSaveButton?: boolean;
 }
 
 const EMPTY_HOMEBREW: HomebrewAncestry = {
@@ -28,6 +29,7 @@ export function HomebrewAncestryForm({
   homebrew,
   onChange,
   onSave,
+  hideSaveButton = false,
 }: HomebrewAncestryFormProps) {
   const [formState, setFormState] = useState<HomebrewAncestry>(
     homebrew ?? EMPTY_HOMEBREW
@@ -116,11 +118,13 @@ export function HomebrewAncestryForm({
         onChange={handleCharacteristicsChange}
       />
 
-      <div className="flex justify-end border-t pt-4">
-        <Button onClick={handleSave} disabled={!isValid} size="lg">
-          ✅ Save Homebrew Ancestry
-        </Button>
-      </div>
+      {!hideSaveButton && (
+        <div className="flex justify-end border-t pt-4">
+          <Button onClick={handleSave} disabled={!isValid} size="lg">
+            ✅ Save Homebrew Ancestry
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

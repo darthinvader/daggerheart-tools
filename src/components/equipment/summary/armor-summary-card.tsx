@@ -14,6 +14,7 @@ interface ArmorSummaryCardProps {
   armorType?: string;
   features?: Array<{ name: string; description?: string }>;
   tier?: string;
+  description?: string;
 }
 
 export function ArmorSummaryCard({
@@ -28,6 +29,7 @@ export function ArmorSummaryCard({
   armorType,
   features = [],
   tier,
+  description,
 }: ArmorSummaryCardProps) {
   return (
     <div
@@ -38,6 +40,11 @@ export function ArmorSummaryCard({
 
       {!isEmpty && (
         <div className="mt-3 space-y-2">
+          {description && (
+            <p className="text-muted-foreground text-sm italic">
+              {description}
+            </p>
+          )}
           <ArmorStatBadges
             baseScore={baseScore}
             major={major}

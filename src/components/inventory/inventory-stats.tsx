@@ -1,0 +1,100 @@
+import { Badge } from '@/components/ui/badge';
+import { SmartTooltip } from '@/components/ui/smart-tooltip';
+import type { InventoryState } from '@/lib/schemas/equipment';
+import { cn } from '@/lib/utils';
+
+export function EmptyInventoryDisplay({
+  maxSlots,
+  unlimitedSlots,
+}: {
+  maxSlots: number;
+  unlimitedSlots?: boolean;
+}) {
+  return (
+    <div className="flex flex-col items-center justify-center py-8 text-center">
+      <span className="text-4xl opacity-50">🎒</span>
+      <p className="text-muted-foreground mt-2">Inventory is empty</p>
+      <p className="text-muted-foreground text-sm">
+        Click edit to add items to your inventory
+      </p>
+      <Badge variant="outline" className="mt-3 gap-1">
+        🎒 {unlimitedSlots ? '0/∞' : `0/${maxSlots}`} slots
+      </Badge>
+    </div>
+  );
+}
+
+export function InventoryStats({
+  inventory,
+  unlimitedSlots,
+}: {
+  inventory: InventoryState;
+  unlimitedSlots?: boolean;
+}) {
+  const totalItems = inventory.items.length;
+  const equippedItems = inventory.items.filter(i => i.isEquipped).length;
+  const customItems = inventory.items.filter(i => i.isCustom).length;
+  const totalQuantity = inventory.items.reduce((sum, i) => sum + i.quantity, 0);
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      <SmartTooltip content="Total unique items">
+        <Badge variant="outline" className="gap-1">
+          📦 {totalItems} Item{totalItems !== 1 ? 's' : ''}
+        </Badge>
+      </SmartTooltip>
+      {totalQuantity > totalItems && (
+        <SmartTooltip content="Total quantity including stacks">
+          <Badge
+            variant="outline"
+            className="gap-1 border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-900/30"
+          >
+            🔢 {totalQuantity} Total
+          </Badge>
+        </SmartTooltip>
+      )}
+      {equippedItems > 0 && (
+        <SmartTooltip content="Currently equipped items">
+          <Badge
+            variant="outline"
+            className="gap-1 border-green-300 bg-green-50 dark:border-green-700 dark:bg-green-900/30"
+          >
+            ✅ {equippedItems} Equipped
+          </Badge>
+        </SmartTooltip>
+      )}
+      {customItems > 0 && (
+        <SmartTooltip content="Custom/homebrew items">
+          <Badge
+            variant="outline"
+            className="gap-1 border-purple-300 bg-purple-50 dark:border-purple-700 dark:bg-purple-900/30"
+          >
+            ✨ {customItems} Custom
+          </Badge>
+        </SmartTooltip>
+      )}
+      <SmartTooltip
+        content={
+          unlimitedSlots
+            ? 'Unlimited slots'
+            : `${totalItems}/${inventory.maxSlots} slots used`
+        }
+      >
+        <Badge
+          variant="outline"
+          className={cn(
+            'gap-1',
+            !unlimitedSlots && totalItems >= inventory.maxSlots
+              ? 'border-red-300 bg-red-50 dark:border-red-700 dark:bg-red-900/30'
+              : ''
+          )}
+        >
+          🎒{' '}
+          {unlimitedSlots
+            ? `${totalItems}/∞`
+            : `${totalItems}/${inventory.maxSlots}`}
+        </Badge>
+      </SmartTooltip>
+    </div>
+  );
+}

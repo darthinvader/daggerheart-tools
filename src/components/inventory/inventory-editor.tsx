@@ -9,6 +9,7 @@ import type {
 import { generateId } from '@/lib/utils';
 import { rankBy } from '@/utils/search/rank';
 
+import { CompactToolbar } from './compact-toolbar';
 import { CustomItemForm } from './custom-item-form';
 import { EmptyInventory } from './empty-inventory';
 import { InventoryHeader } from './inventory-header';
@@ -18,6 +19,7 @@ import { ItemPickerModal } from './item-picker-modal';
 interface InventoryEditorProps {
   value?: InventoryState;
   onChange?: (value: InventoryState) => void;
+  hideHeader?: boolean;
 }
 
 const DEFAULT_STATE: InventoryState = { items: [], maxSlots: 50 };
@@ -130,7 +132,11 @@ function useFilteredItems(items: InventoryItemEntry[], searchQuery: string) {
   }, [items, searchQuery]);
 }
 
-export function InventoryEditor({ value, onChange }: InventoryEditorProps) {
+export function InventoryEditor({
+  value,
+  onChange,
+  hideHeader = false,
+}: InventoryEditorProps) {
   const [internalState, setInternalState] =
     useState<InventoryState>(DEFAULT_STATE);
   const state = value ?? internalState;
@@ -180,9 +186,9 @@ export function InventoryEditor({ value, onChange }: InventoryEditorProps) {
   const totalItems = state.items.reduce((sum, i) => sum + i.quantity, 0);
   const equippedItems = filteredItems.filter(i => i.isEquipped);
 
-  return (
+  const mainContent = (
     <>
-      <Card>
+      {!hideHeader && (
         <InventoryHeader
           totalItems={totalItems}
           maxSlots={state.maxSlots}
@@ -198,25 +204,41 @@ export function InventoryEditor({ value, onChange }: InventoryEditorProps) {
           onCustomClick={() => setCustomFormOpen(true)}
           onAddClick={() => setPickerOpen(true)}
         />
-        <CardContent>
-          {state.items.length === 0 ? (
-            <EmptyInventory
-              onCustomClick={() => setCustomFormOpen(true)}
-              onAddClick={() => setPickerOpen(true)}
-            />
-          ) : (
-            <InventoryTabs
-              items={filteredItems}
-              equippedItems={equippedItems}
-              onRemove={actions.handleRemove}
-              onQuantityChange={actions.handleQuantityChange}
-              onEquipToggle={actions.handleEquipToggle}
-              onEdit={handleEdit}
-              unlimitedQuantity={unlimitedQuantity}
-            />
-          )}
-        </CardContent>
-      </Card>
+      )}
+      {hideHeader && (
+        <CompactToolbar
+          onCustomClick={() => setCustomFormOpen(true)}
+          onAddClick={() => setPickerOpen(true)}
+        />
+      )}
+      <CardContent className={hideHeader ? 'p-0' : ''}>
+        {state.items.length === 0 ? (
+          <EmptyInventory
+            onCustomClick={() => setCustomFormOpen(true)}
+            onAddClick={() => setPickerOpen(true)}
+          />
+        ) : (
+          <InventoryTabs
+            items={filteredItems}
+            equippedItems={equippedItems}
+            onRemove={actions.handleRemove}
+            onQuantityChange={actions.handleQuantityChange}
+            onEquipToggle={actions.handleEquipToggle}
+            onEdit={handleEdit}
+            unlimitedQuantity={unlimitedQuantity}
+          />
+        )}
+      </CardContent>
+    </>
+  );
+
+  return (
+    <>
+      {hideHeader ? (
+        <div className="space-y-4">{mainContent}</div>
+      ) : (
+        <Card>{mainContent}</Card>
+      )}
 
       <ItemPickerModal
         open={pickerOpen}

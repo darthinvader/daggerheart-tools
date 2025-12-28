@@ -16,12 +16,19 @@ export const ConditionItemSchema = z.object({
 export const ConditionsSchema = z.array(ConditionItemSchema);
 
 // Gold currency
+export const GoldDenominationEnum = z.enum([
+  'coins',
+  'handfuls',
+  'bags',
+  'chests',
+]);
 export const GoldSchema = z.object({
   handfuls: z.number().int().min(0).default(1),
   bags: z.number().int().min(0).default(0),
   chests: z.number().int().min(0).default(0),
   coins: z.number().int().min(0).default(0),
   showCoins: z.boolean().default(false),
+  displayDenomination: GoldDenominationEnum.default('handfuls'),
 });
 
 // Resources (hp, stress, hope, etc.)
@@ -38,6 +45,7 @@ export const ResourcesSchema = z.object({
     chests: 0,
     coins: 0,
     showCoins: false,
+    displayDenomination: 'handfuls',
   }),
 });
 
@@ -84,10 +92,12 @@ export const CustomFeaturesSchema = z.array(CustomFeatureSchema);
 // Thresholds settings
 export const ThresholdsSettingsSchema = z.object({
   auto: z.boolean().default(true),
+  autoMajor: z.boolean().default(true),
   values: z
     .object({
       major: z.number().int().min(0),
       severe: z.number().int().min(0),
+      critical: z.number().int().min(0).default(0),
       dsOverride: z.boolean().default(false),
       ds: z.number().int().min(0).default(0),
     })
@@ -195,7 +205,14 @@ export const DEFAULT_RESOURCES: ResourcesDraft = {
   hope: { current: 2, max: 6 },
   proficiency: 1,
   armorScore: { current: 0, max: 0 },
-  gold: { handfuls: 1, bags: 0, chests: 0, coins: 0, showCoins: false },
+  gold: {
+    handfuls: 1,
+    bags: 0,
+    chests: 0,
+    coins: 0,
+    showCoins: false,
+    displayDenomination: 'handfuls',
+  },
 };
 
 export const DEFAULT_TRAITS: TraitsDraft = {

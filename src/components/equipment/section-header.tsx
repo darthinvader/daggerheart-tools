@@ -15,6 +15,7 @@ interface SectionHeaderProps {
   isHomebrew: boolean;
   onHomebrewChange: (value: boolean) => void;
   selectedName?: string;
+  disableCollapsible?: boolean;
 }
 
 export function SectionHeader({
@@ -26,31 +27,39 @@ export function SectionHeader({
   isHomebrew,
   onHomebrewChange,
   selectedName,
+  disableCollapsible = false,
 }: SectionHeaderProps) {
+  const buttonContent = (
+    <Button
+      variant="ghost"
+      className="flex items-center gap-2 p-0 hover:bg-transparent"
+      onClick={onToggle}
+    >
+      {icon}
+      <span className="text-lg font-semibold">
+        {emoji} {title}
+      </span>
+      {selectedName && !isOpen && (
+        <Badge variant="secondary" className="ml-2">
+          {selectedName}
+        </Badge>
+      )}
+      {!disableCollapsible &&
+        (isOpen ? (
+          <ChevronUp className="h-4 w-4" />
+        ) : (
+          <ChevronDown className="h-4 w-4" />
+        ))}
+    </Button>
+  );
+
   return (
     <div className="flex flex-wrap items-center justify-between gap-2">
-      <CollapsibleTrigger asChild>
-        <Button
-          variant="ghost"
-          className="flex items-center gap-2 p-0 hover:bg-transparent"
-          onClick={onToggle}
-        >
-          {icon}
-          <span className="text-lg font-semibold">
-            {emoji} {title}
-          </span>
-          {selectedName && !isOpen && (
-            <Badge variant="secondary" className="ml-2">
-              {selectedName}
-            </Badge>
-          )}
-          {isOpen ? (
-            <ChevronUp className="h-4 w-4" />
-          ) : (
-            <ChevronDown className="h-4 w-4" />
-          )}
-        </Button>
-      </CollapsibleTrigger>
+      {disableCollapsible ? (
+        buttonContent
+      ) : (
+        <CollapsibleTrigger asChild>{buttonContent}</CollapsibleTrigger>
+      )}
       <div className="flex items-center gap-2">
         <Label className="text-muted-foreground text-xs">Homebrew</Label>
         <Switch checked={isHomebrew} onCheckedChange={onHomebrewChange} />

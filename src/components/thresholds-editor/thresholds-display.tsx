@@ -68,38 +68,56 @@ export function ThresholdsDisplay({
         )}
       </div>
 
-      <p className="text-muted-foreground text-xs">
-        Below{' '}
-        <strong className="text-amber-600 dark:text-amber-400">{minor}</strong>{' '}
-        = 1 damage. Below{' '}
-        <strong className="text-orange-600 dark:text-orange-400">
-          {severe}
-        </strong>{' '}
-        = 2 damage.
+      <ul className="text-muted-foreground list-inside list-disc space-y-1 text-xs">
+        <li>
+          Below or equal to{' '}
+          <strong className="text-amber-600 dark:text-amber-400">
+            {minor - 1}
+          </strong>{' '}
+          → 1 damage
+        </li>
+        <li>
+          Above{' '}
+          <strong className="text-amber-600 dark:text-amber-400">
+            {minor - 1}
+          </strong>{' '}
+          and below or equal to{' '}
+          <strong className="text-orange-600 dark:text-orange-400">
+            {severe - 1}
+          </strong>{' '}
+          → 2 damage
+        </li>
         {displayMajor ? (
           <>
-            {' '}
-            Below{' '}
-            <strong className="text-red-600 dark:text-red-400">
-              {effectiveMajor}
-            </strong>{' '}
-            = 3 damage. At{' '}
-            <strong className="text-red-600 dark:text-red-400">
-              {effectiveMajor}+
-            </strong>{' '}
-            = 4 damage.
+            <li>
+              Above{' '}
+              <strong className="text-orange-600 dark:text-orange-400">
+                {severe - 1}
+              </strong>{' '}
+              and below or equal to{' '}
+              <strong className="text-red-600 dark:text-red-400">
+                {effectiveMajor - 1}
+              </strong>{' '}
+              → 3 damage
+            </li>
+            <li>
+              Above or equal to{' '}
+              <strong className="text-red-600 dark:text-red-400">
+                {effectiveMajor}
+              </strong>{' '}
+              → 4 damage
+            </li>
           </>
         ) : (
-          <>
-            {' '}
-            At{' '}
+          <li>
+            Above or equal to{' '}
             <strong className="text-orange-600 dark:text-orange-400">
-              {severe}+
+              {severe}
             </strong>{' '}
-            = 3 damage.
-          </>
+            → 3 damage
+          </li>
         )}
-      </p>
+      </ul>
     </div>
   );
 }

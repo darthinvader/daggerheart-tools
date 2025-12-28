@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useForm } from '@tanstack/react-form';
 
@@ -19,12 +19,16 @@ interface IdentityFormProps {
   defaultValues?: Partial<IdentityFormValues>;
   onSubmit: (values: IdentityFormValues) => void;
   onCancel?: () => void;
+  hideButtons?: boolean;
+  formRef?: React.MutableRefObject<{ submit: () => void } | null>;
 }
 
 export function IdentityForm({
   defaultValues,
   onSubmit,
   onCancel,
+  hideButtons = false,
+  formRef,
 }: IdentityFormProps) {
   const mergedDefaults = { ...DEFAULT_IDENTITY_FORM_VALUES, ...defaultValues };
   const [connections, setConnections] = useState<Connection[]>(
@@ -37,6 +41,14 @@ export function IdentityForm({
       onSubmit(value);
     },
   });
+
+  useEffect(() => {
+    if (formRef) {
+      formRef.current = {
+        submit: () => form.handleSubmit(),
+      };
+    }
+  }, [formRef, form]);
 
   const handleAddConnection = () => {
     const newConnections = [...connections, { prompt: '', answer: '' }];
@@ -78,24 +90,28 @@ export function IdentityForm({
         onRemove={handleRemoveConnection}
       />
 
-      <Separator />
+      {!hideButtons && (
+        <>
+          <Separator />
 
-      <div className="flex justify-end gap-2">
-        {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
-        )}
-        <form.Subscribe
-          selector={state => [state.canSubmit, state.isSubmitting]}
-        >
-          {([canSubmit, isSubmitting]) => (
-            <Button type="submit" disabled={!canSubmit}>
-              {isSubmitting ? 'Saving...' : 'Save Identity'}
-            </Button>
-          )}
-        </form.Subscribe>
-      </div>
+          <div className="flex justify-end gap-2">
+            {onCancel && (
+              <Button type="button" variant="outline" onClick={onCancel}>
+                Cancel
+              </Button>
+            )}
+            <form.Subscribe
+              selector={state => [state.canSubmit, state.isSubmitting]}
+            >
+              {([canSubmit, isSubmitting]) => (
+                <Button type="submit" disabled={!canSubmit}>
+                  {isSubmitting ? 'Saving...' : 'Save Identity'}
+                </Button>
+              )}
+            </form.Subscribe>
+          </div>
+        </>
+      )}
     </form>
   );
 }

@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 import { EditableSection } from '@/components/shared/editable-section';
 import { Badge } from '@/components/ui/badge';
@@ -244,6 +244,9 @@ export function ClassDisplay({
   const [pendingSelection, setPendingSelection] =
     useState<ClassSelection | null>(null);
   const [unlockState, setUnlockState] = useState<FeatureUnlockState>({});
+  const completeRef = useRef<{
+    complete: () => ClassSelection | null;
+  } | null>(null);
 
   const handleEditToggle = useCallback(() => {
     if (!isEditing) {
@@ -259,7 +262,10 @@ export function ClassDisplay({
   }, [isEditing, selection]);
 
   const handleSave = useCallback(() => {
-    if (pendingSelection) {
+    const newSelection = completeRef.current?.complete();
+    if (newSelection) {
+      onChange?.(newSelection);
+    } else if (pendingSelection) {
       onChange?.(pendingSelection);
     }
   }, [pendingSelection, onChange]);
@@ -307,6 +313,8 @@ export function ClassDisplay({
           value={draftSelection}
           onChange={handleDraftChange}
           onComplete={handleComplete}
+          hideCompleteButton
+          completeRef={completeRef}
         />
       }
     >

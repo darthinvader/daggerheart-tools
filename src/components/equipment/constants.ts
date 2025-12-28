@@ -134,3 +134,30 @@ export function formatDamage(damage: {
         : '';
   return `${base}${mod}`;
 }
+
+/** Default equipment state for new characters */
+export const DEFAULT_EQUIPMENT_STATE = {
+  primaryWeapon: null,
+  primaryWeaponMode: 'standard' as const,
+  homebrewPrimaryWeapon: { type: 'Primary' as const, features: [] },
+
+  secondaryWeapon: null,
+  secondaryWeaponMode: 'standard' as const,
+  homebrewSecondaryWeapon: { type: 'Secondary' as const, features: [] },
+
+  armor: null,
+  armorMode: 'standard' as const,
+  homebrewArmor: { features: [] },
+
+  useCombatWheelchair: false,
+  combatWheelchair: null,
+  wheelchairMode: 'standard' as const,
+  homebrewWheelchair: {
+    type: 'Primary' as const,
+    features: [],
+    wheelchairFeatures: [],
+    frameType: 'Light' as const,
+  },
+
+  customSlots: [],
+};

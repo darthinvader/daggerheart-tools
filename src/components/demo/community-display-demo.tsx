@@ -1,47 +1,15 @@
 import { useState } from 'react';
 
 import { CommunityDisplay } from '@/components/community-selector';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { CommunitySelection } from '@/lib/schemas/identity';
-import { getCommunityByName } from '@/lib/schemas/identity';
 
-const SAMPLE_HIGHBORNE: CommunitySelection = {
-  mode: 'standard',
-  community: getCommunityByName('Highborne')!,
-};
-
-const SAMPLE_WANDERBORNE: CommunitySelection = {
-  mode: 'standard',
-  community: getCommunityByName('Wanderborne')!,
-};
-
-const SAMPLE_LOREBORNE: CommunitySelection = {
-  mode: 'standard',
-  community: getCommunityByName('Loreborne')!,
-};
-
-const SAMPLE_HOMEBREW: CommunitySelection = {
-  mode: 'homebrew',
-  homebrew: {
-    name: 'Skyborne',
-    description:
-      'Those who dwell among the floating islands and airships, where the wind is home and the ground is but a distant memory. Skyborne communities value freedom, innovation, and adaptability above all else.',
-    commonTraits: [
-      'adventurous',
-      'resourceful',
-      'independent',
-      'daring',
-      'curious',
-      'carefree',
-    ],
-    feature: {
-      name: 'Sky Legs',
-      description:
-        'You have advantage on rolls to maintain balance, navigate aerial vessels, or resist vertigo and fear of heights.',
-    },
-  },
-};
+import {
+  SAMPLE_HIGHBORNE,
+  SAMPLE_HOMEBREW,
+  SAMPLE_LOREBORNE,
+  SAMPLE_WANDERBORNE,
+} from './community-display-sample-data';
+import { DemoCard, EmptyStateCard } from './demo-card';
 
 export function CommunityDisplayDemo() {
   const [highborneSelection, setHighborneSelection] =
@@ -66,110 +34,56 @@ export function CommunityDisplayDemo() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm">
-              <Badge
-                variant="secondary"
-                className="border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300"
-              >
-                👑 Highborne
-              </Badge>
-              <span className="text-muted-foreground font-normal">
-                Noble society
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <CommunityDisplay
-              selection={highborneSelection}
-              onChange={setHighborneSelection}
-            />
-          </CardContent>
-        </Card>
+        <DemoCard
+          badge="👑 Highborne"
+          badgeClassName="border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300"
+          label="Noble society"
+        >
+          <CommunityDisplay
+            selection={highborneSelection}
+            onChange={setHighborneSelection}
+          />
+        </DemoCard>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm">
-              <Badge
-                variant="secondary"
-                className="border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300"
-              >
-                🚶 Wanderborne
-              </Badge>
-              <span className="text-muted-foreground font-normal">
-                Nomadic travelers
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <CommunityDisplay
-              selection={wanderborneSelection}
-              onChange={setWanderborneSelection}
-            />
-          </CardContent>
-        </Card>
+        <DemoCard
+          badge="🚶 Wanderborne"
+          badgeClassName="border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300"
+          label="Nomadic travelers"
+        >
+          <CommunityDisplay
+            selection={wanderborneSelection}
+            onChange={setWanderborneSelection}
+          />
+        </DemoCard>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm">
-              <Badge
-                variant="secondary"
-                className="border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300"
-              >
-                📚 Loreborne
-              </Badge>
-              <span className="text-muted-foreground font-normal">
-                Scholarly pursuit
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <CommunityDisplay
-              selection={loreborneSelection}
-              onChange={setLoreborneSelection}
-            />
-          </CardContent>
-        </Card>
+        <DemoCard
+          badge="📚 Loreborne"
+          badgeClassName="border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300"
+          label="Scholarly pursuit"
+        >
+          <CommunityDisplay
+            selection={loreborneSelection}
+            onChange={setLoreborneSelection}
+          />
+        </DemoCard>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm">
-              <Badge
-                variant="secondary"
-                className="border-green-300 bg-green-100 text-green-700 dark:border-green-700 dark:bg-green-900/30 dark:text-green-300"
-              >
-                🛠️ Homebrew
-              </Badge>
-              <span className="text-muted-foreground font-normal">
-                Custom community
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <CommunityDisplay
-              selection={homebrewSelection}
-              onChange={setHomebrewSelection}
-            />
-          </CardContent>
-        </Card>
+        <DemoCard
+          badge="🛠️ Homebrew"
+          badgeClassName="border-green-300 bg-green-100 text-green-700 dark:border-green-700 dark:bg-green-900/30 dark:text-green-300"
+          label="Custom community"
+        >
+          <CommunityDisplay
+            selection={homebrewSelection}
+            onChange={setHomebrewSelection}
+          />
+        </DemoCard>
 
-        <Card className="lg:col-span-2">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm">
-              <Badge variant="outline">Empty State</Badge>
-              <span className="text-muted-foreground font-normal">
-                No selection
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <CommunityDisplay
-              selection={emptySelection}
-              onChange={setEmptySelection}
-            />
-          </CardContent>
-        </Card>
+        <EmptyStateCard label="No selection" className="lg:col-span-2">
+          <CommunityDisplay
+            selection={emptySelection}
+            onChange={setEmptySelection}
+          />
+        </EmptyStateCard>
       </div>
     </div>
   );

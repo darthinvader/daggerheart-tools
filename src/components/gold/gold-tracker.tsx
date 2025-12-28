@@ -6,12 +6,15 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 
+type GoldDenomination = 'coins' | 'handfuls' | 'bags' | 'chests';
+
 interface GoldTrackerProps {
   initialCoins?: number;
   initialHandfuls?: number;
   initialBags?: number;
   initialChests?: number;
   showCoinsInitially?: boolean;
+  displayDenomination?: GoldDenomination;
   onChange?: (gold: GoldState) => void;
 }
 
@@ -21,6 +24,7 @@ interface GoldState {
   bags: number;
   chests: number;
   showCoins: boolean;
+  displayDenomination: GoldDenomination;
 }
 
 interface DenominationRowProps {
@@ -127,6 +131,7 @@ export function GoldTracker({
   initialBags = 0,
   initialChests = 0,
   showCoinsInitially = false,
+  displayDenomination: initialDenomination = 'handfuls',
   onChange,
 }: GoldTrackerProps) {
   const [coins, setCoins] = useState(initialCoins);
@@ -134,17 +139,19 @@ export function GoldTracker({
   const [bags, setBags] = useState(initialBags);
   const [chests, setChests] = useState(initialChests);
   const [showCoins, setShowCoins] = useState(showCoinsInitially);
-  const [totalDenomination, setTotalDenomination] = useState<
-    'coins' | 'handfuls' | 'bags' | 'chests'
-  >(showCoinsInitially ? 'coins' : 'handfuls');
+  const [totalDenomination, setTotalDenomination] =
+    useState<GoldDenomination>(initialDenomination);
 
-  const updateGold = (newState: Partial<GoldState>) => {
+  const updateGold = (
+    newState: Partial<GoldState & { displayDenomination: GoldDenomination }>
+  ) => {
     const state: GoldState = {
       coins: newState.coins ?? coins,
       handfuls: newState.handfuls ?? handfuls,
       bags: newState.bags ?? bags,
       chests: newState.chests ?? chests,
       showCoins: newState.showCoins ?? showCoins,
+      displayDenomination: newState.displayDenomination ?? totalDenomination,
     };
     onChange?.(state);
   };
@@ -288,7 +295,10 @@ export function GoldTracker({
               <button
                 key={denom}
                 type="button"
-                onClick={() => setTotalDenomination(denom)}
+                onClick={() => {
+                  setTotalDenomination(denom);
+                  updateGold({ displayDenomination: denom });
+                }}
                 className={cn(
                   'rounded px-2 py-0.5 text-xs transition-colors',
                   totalDenomination === denom

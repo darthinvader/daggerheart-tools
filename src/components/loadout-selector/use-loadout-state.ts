@@ -1,12 +1,6 @@
 /* eslint-disable max-lines-per-function */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import {
-  ALL_DOMAIN_NAMES,
-  getAllDomainCards,
-  getCardsForDomainsAndLevel,
-  sortCardsByLevel,
-} from '@/lib/data/domains';
 import type { DomainCard } from '@/lib/schemas/domains';
 import type {
   DomainCardLite,
@@ -18,6 +12,7 @@ import type {
 import { getLoadoutRulesForTier } from '@/lib/schemas/loadout';
 
 import { cardToLite, homebrewToLite } from './card-utils';
+import { ALL_DOMAIN_NAMES, getAvailableCards } from './loadout-utils';
 
 interface UseLoadoutStateProps {
   value?: LoadoutSelection;
@@ -90,23 +85,17 @@ export function useLoadoutState({
     [vaultCards]
   );
 
-  const availableCards = useMemo(() => {
-    const allCards =
-      mode === 'class-domains'
-        ? getCardsForDomainsAndLevel(classDomains, rules.maxCardLevel)
-        : getAllDomainCards().filter(c => c.level <= rules.maxCardLevel);
-
-    const filtered = allCards.filter(card =>
-      selectedDomains.includes(card.domain)
-    );
-
-    const combinedCards = [
-      ...filtered,
-      ...homebrewCards.filter(c => selectedDomains.includes(c.domain)),
-    ] as DomainCard[];
-
-    return sortCardsByLevel(combinedCards);
-  }, [mode, classDomains, rules.maxCardLevel, selectedDomains, homebrewCards]);
+  const availableCards = useMemo(
+    () =>
+      getAvailableCards(
+        mode,
+        classDomains,
+        rules.maxCardLevel,
+        selectedDomains,
+        homebrewCards
+      ),
+    [mode, classDomains, rules.maxCardLevel, selectedDomains, homebrewCards]
+  );
 
   const handleModeChange = useCallback(
     (newMode: LoadoutMode) => {

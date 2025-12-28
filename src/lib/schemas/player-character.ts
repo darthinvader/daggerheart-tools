@@ -114,6 +114,7 @@ export const PlayerCharacterSchema = z.object({
     chests: 0,
     coins: 0,
     showCoins: false,
+    displayDenomination: 'handfuls',
   }),
   conditions: z.array(ConditionNameSchema).default([]),
 

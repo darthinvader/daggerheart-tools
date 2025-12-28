@@ -219,9 +219,11 @@ function hydrateThresholds(id: string, state: CharacterState): void {
     if (isOld(raw)) {
       state.thresholds = {
         auto: false,
+        autoMajor: false,
         values: {
           major: raw.major,
           severe: raw.severe,
+          critical: 0,
           dsOverride: false,
           ds: 0,
         },

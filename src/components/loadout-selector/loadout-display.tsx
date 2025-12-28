@@ -319,6 +319,7 @@ export function LoadoutDisplay({
           onComplete={handleComplete}
           classDomains={classDomains}
           tier={tier}
+          hideHeader
         />
       }
     >
