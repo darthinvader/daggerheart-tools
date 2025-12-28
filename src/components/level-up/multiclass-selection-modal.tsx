@@ -160,22 +160,15 @@ export function MulticlassSelectionModal({
                       >
                         {subclass.name}
                       </span>
-                      {subclass.spellcastTrait &&
-                        subclass.spellcastTrait !== 'Spellcast' && (
-                          <Badge variant="outline" className="text-xs">
-                            Spellcast: {subclass.spellcastTrait}
-                          </Badge>
-                        )}
+                      {'spellcastTrait' in subclass && (
+                        <Badge variant="outline" className="text-xs">
+                          Spellcast: {String(subclass.spellcastTrait)}
+                        </Badge>
+                      )}
                     </div>
                     <p className="text-muted-foreground mt-1 text-sm">
                       {subclass.description}
                     </p>
-                    {subclass.foundationFeature && (
-                      <div className="bg-muted/50 mt-2 rounded p-2 text-sm">
-                        <span className="font-medium">Foundation: </span>
-                        {subclass.foundationFeature.name}
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>

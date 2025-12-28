@@ -171,13 +171,13 @@ function ToolbarActionButtons({
       <div className="ml-auto flex items-center gap-2">
         {onUnlimitedSlotsChange && (
           <UnlimitedSlotsToggle
-            enabled={inventory.unlimitedSlots}
+            enabled={inventory.unlimitedSlots ?? false}
             onChange={onUnlimitedSlotsChange}
           />
         )}
         {onUnlimitedQuantityChange && (
           <UnlimitedQuantityToggle
-            enabled={inventory.unlimitedQuantity}
+            enabled={inventory.unlimitedQuantity ?? false}
             onChange={onUnlimitedQuantityChange}
           />
         )}

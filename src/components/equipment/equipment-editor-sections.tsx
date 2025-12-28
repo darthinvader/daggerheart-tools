@@ -1,5 +1,4 @@
 import { CustomEquipmentSection } from './custom-equipment-section';
-import type { CustomEquipment } from './custom-slot-editor';
 import type { EquipmentState } from './equipment-editor';
 import type { EquipmentFilter } from './equipment-filter-bar';
 import {
@@ -13,32 +12,18 @@ interface EquipmentEditorSectionsProps {
   filter: EquipmentFilter;
   state: EquipmentState;
   updateState: (updates: Partial<EquipmentState>) => void;
-  onAddCustomSlot: () => void;
 }
 
 export function EquipmentEditorSections({
   filter,
   state,
   updateState,
-  onAddCustomSlot,
 }: EquipmentEditorSectionsProps) {
   const showPrimary = filter === 'all' || filter === 'primary';
   const showSecondary = filter === 'all' || filter === 'secondary';
   const showArmor = filter === 'all' || filter === 'armor';
   const showWheelchair = filter === 'all' || filter === 'wheelchair';
   const showCustom = filter === 'all' || filter === 'custom';
-
-  const handleCustomUpdate = (id: string, eq: CustomEquipment) => {
-    updateState({
-      customSlots: state.customSlots.map(s => (s.id === id ? eq : s)),
-    });
-  };
-
-  const handleCustomDelete = (id: string) => {
-    updateState({
-      customSlots: state.customSlots.filter(s => s.id !== id),
-    });
-  };
 
   return (
     <>
@@ -88,14 +73,7 @@ export function EquipmentEditorSections({
         />
       )}
 
-      {showCustom && (
-        <CustomEquipmentSection
-          slots={state.customSlots}
-          onAdd={onAddCustomSlot}
-          onUpdate={handleCustomUpdate}
-          onDelete={handleCustomDelete}
-        />
-      )}
+      {showCustom && <CustomEquipmentSection customSlots={state.customSlots} />}
     </>
   );
 }

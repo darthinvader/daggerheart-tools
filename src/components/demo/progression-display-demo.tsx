@@ -105,9 +105,6 @@ export function ProgressionDisplayDemo() {
             progression={readyToLevel}
             onChange={setReadyToLevel}
             onLevelUp={handleLevelUp}
-            canLevelUp={
-              readyToLevel.experience === readyToLevel.experienceToNext
-            }
           />
         </CardContent>
       </Card>

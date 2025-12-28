@@ -7,7 +7,6 @@ import type {
   SecondaryWeapon,
   StandardArmor,
 } from '@/lib/schemas/equipment';
-import { generateId } from '@/lib/utils';
 
 import { DEFAULT_EQUIPMENT_STATE } from './constants';
 import type { CustomEquipment } from './custom-slot-editor';
@@ -62,18 +61,6 @@ export function EquipmentEditor({ value, onChange }: EquipmentEditorProps) {
     }
   };
 
-  const handleAddCustomSlot = () => {
-    const newSlot: CustomEquipment = {
-      id: generateId(),
-      name: '',
-      slotName: 'Ring',
-      slotIcon: '💍',
-      description: '',
-      features: [],
-    };
-    updateState({ customSlots: [...state.customSlots, newSlot] });
-  };
-
   return (
     <div className="space-y-4">
       <EquipmentFilterBar
@@ -86,7 +73,6 @@ export function EquipmentEditor({ value, onChange }: EquipmentEditorProps) {
         filter={filter}
         state={state}
         updateState={updateState}
-        onAddCustomSlot={handleAddCustomSlot}
       />
 
       <SummaryCard state={state} />
