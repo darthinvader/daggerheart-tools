@@ -108,7 +108,13 @@ export const PlayerCharacterSchema = z.object({
   armorStatus: ArmorStatusSchema.optional(),
   weapons: z.array(WeaponSchema),
   armor: z.array(ArmorSchema),
-  gold: GoldSchema.default({ handfuls: 1, bags: 0, chests: 0 }),
+  gold: GoldSchema.default({
+    handfuls: 1,
+    bags: 0,
+    chests: 0,
+    coins: 0,
+    showCoins: false,
+  }),
   conditions: z.array(ConditionNameSchema).default([]),
 
   // Experience & Connections

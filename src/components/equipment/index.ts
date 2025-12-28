@@ -1,6 +1,10 @@
 // Types
 export type { CustomEquipment } from './custom-slot-editor';
+export { DEFAULT_EQUIPMENT_STATE } from './equipment-editor';
 export type { EquipmentState } from './equipment-editor';
+
+// Display component
+export { EquipmentDisplay } from './equipment-display';
 
 // Main editor
 export { EquipmentEditor } from './equipment-editor';

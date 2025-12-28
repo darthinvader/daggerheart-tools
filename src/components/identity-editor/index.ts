@@ -1,6 +1,9 @@
 // Types
 export type { IdentityFormValues } from '@/lib/schemas/character-state';
 
+// Display component
+export { IdentityDisplay } from './identity-display';
+
 // Main editor
 export { IdentityEditor } from './identity-editor';
 export { IdentityForm } from './identity-form';

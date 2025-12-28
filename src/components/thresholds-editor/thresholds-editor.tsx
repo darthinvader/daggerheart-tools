@@ -132,7 +132,8 @@ export function ThresholdsEditor({
   );
 
   const handleAutoToggle = useCallback(
-    (checked: boolean) => {
+    (checked: boolean | 'indeterminate') => {
+      if (checked === 'indeterminate') return;
       onAutoCalculateChange?.(checked);
       if (checked) {
         setLocalMinor(String(autoThresholds.minor));
@@ -153,14 +154,16 @@ export function ThresholdsEditor({
   );
 
   const handleShowMajorToggle = useCallback(
-    (checked: boolean) => {
+    (checked: boolean | 'indeterminate') => {
+      if (checked === 'indeterminate') return;
       onShowMajorChange?.(checked);
     },
     [onShowMajorChange]
   );
 
   const handleAutoMajorToggle = useCallback(
-    (checked: boolean) => {
+    (checked: boolean | 'indeterminate') => {
+      if (checked === 'indeterminate') return;
       onAutoCalculateMajorChange?.(checked);
       if (checked) {
         const newMajor = effectiveSevere * 2;

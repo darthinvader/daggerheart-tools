@@ -5,6 +5,9 @@ export type {
   HomebrewCommunity,
 } from '@/lib/schemas/identity';
 
+// Display component
+export { CommunityDisplay } from './community-display';
+
 // Main selector
 export { CommunityModeTabs } from './community-mode-tabs';
 export { CommunitySelector } from './community-selector';

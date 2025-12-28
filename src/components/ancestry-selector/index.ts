@@ -5,6 +5,9 @@ export type {
   HomebrewAncestry,
 } from '@/lib/schemas/identity';
 
+// Display component
+export { AncestryDisplay } from './ancestry-display';
+
 // Main selector
 export { AncestryModeTabs } from './ancestry-mode-tabs';
 export { AncestrySelector } from './ancestry-selector';

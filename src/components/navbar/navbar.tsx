@@ -1,4 +1,12 @@
-import { ChevronDown, Menu, Plus, Users } from 'lucide-react';
+import {
+  BookOpen,
+  ChevronDown,
+  Dices,
+  Menu,
+  Plus,
+  Scroll,
+  Users,
+} from 'lucide-react';
 
 import * as React from 'react';
 
@@ -38,7 +46,23 @@ interface NavbarProps {
 }
 
 const defaultLinks: NavLink[] = [
-  { to: '/demonstration', label: 'Demo' },
+  {
+    to: '/demonstration',
+    label: 'Demos',
+    icon: <Dices className="size-4" />,
+    children: [
+      {
+        to: '/demonstration',
+        label: '📋 All Demos',
+        icon: <BookOpen className="size-4" />,
+      },
+      {
+        to: '/character-demo',
+        label: '📜 Character Sheet',
+        icon: <Scroll className="size-4" />,
+      },
+    ],
+  },
   {
     to: '/character',
     label: 'Character',

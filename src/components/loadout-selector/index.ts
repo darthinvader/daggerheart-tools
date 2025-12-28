@@ -1,3 +1,6 @@
+// Display component
+export { LoadoutDisplay } from './loadout-display';
+
 // Main selector
 export { LoadoutModeTabs } from './loadout-mode-tabs';
 export { LoadoutSection } from './loadout-section';

@@ -1,3 +1,6 @@
+// Display component
+export { ClassDisplay } from './class-display';
+
 // Main selector
 export { ClassModeTabs } from './class-mode-tabs';
 export { ClassSelector } from './class-selector';

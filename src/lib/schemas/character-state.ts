@@ -20,6 +20,8 @@ export const GoldSchema = z.object({
   handfuls: z.number().int().min(0).default(1),
   bags: z.number().int().min(0).default(0),
   chests: z.number().int().min(0).default(0),
+  coins: z.number().int().min(0).default(0),
+  showCoins: z.boolean().default(false),
 });
 
 // Resources (hp, stress, hope, etc.)
@@ -30,7 +32,13 @@ export const ResourcesSchema = z.object({
   hope: ScoreSchema.default({ current: 2, max: 6 }),
   proficiency: z.number().int().min(1).default(1),
   armorScore: ArmorScoreSchema.default({ current: 0, max: 0 }),
-  gold: GoldSchema.default({ handfuls: 1, bags: 0, chests: 0 }),
+  gold: GoldSchema.default({
+    handfuls: 1,
+    bags: 0,
+    chests: 0,
+    coins: 0,
+    showCoins: false,
+  }),
 });
 
 // Trait state (used by both store and PlayerCharacter)
@@ -187,7 +195,7 @@ export const DEFAULT_RESOURCES: ResourcesDraft = {
   hope: { current: 2, max: 6 },
   proficiency: 1,
   armorScore: { current: 0, max: 0 },
-  gold: { handfuls: 1, bags: 0, chests: 0 },
+  gold: { handfuls: 1, bags: 0, chests: 0, coins: 0, showCoins: false },
 };
 
 export const DEFAULT_TRAITS: TraitsDraft = {

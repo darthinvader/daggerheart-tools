@@ -28,7 +28,7 @@ export function ThresholdsDisplay({
       </div>
 
       <div className="flex items-center gap-1">
-        <SmartTooltip content="Damage below Minor threshold has no lasting effect.">
+        <SmartTooltip content="Damage below Minor threshold - take 1 damage.">
           <span className="text-muted-foreground bg-muted inline-flex size-6 cursor-help items-center justify-center rounded border font-mono text-xs">
             1
           </span>
@@ -36,7 +36,7 @@ export function ThresholdsDisplay({
 
         <ThresholdChip kind="minor" value={minor} />
 
-        <SmartTooltip content="Damage at or above Minor but below Severe.">
+        <SmartTooltip content="Damage at or above Minor but below Severe - take 2 damage.">
           <span className="text-muted-foreground bg-muted inline-flex size-6 cursor-help items-center justify-center rounded border font-mono text-xs">
             2
           </span>
@@ -47,8 +47,8 @@ export function ThresholdsDisplay({
         <SmartTooltip
           content={
             displayMajor
-              ? 'Damage at or above Severe but below Major.'
-              : 'Damage at or above Severe threshold.'
+              ? 'Damage at or above Severe but below Major - take 3 damage.'
+              : 'Damage at or above Severe threshold - take 3 damage.'
           }
         >
           <span className="text-muted-foreground bg-muted inline-flex size-6 cursor-help items-center justify-center rounded border font-mono text-xs">
@@ -59,7 +59,7 @@ export function ThresholdsDisplay({
         {displayMajor && (
           <>
             <ThresholdChip kind="major" value={effectiveMajor} />
-            <SmartTooltip content="Damage at or above Major threshold. Devastating!">
+            <SmartTooltip content="Damage at or above Major threshold - take 4 damage.">
               <span className="text-muted-foreground bg-muted inline-flex size-6 cursor-help items-center justify-center rounded border font-mono text-xs">
                 4
               </span>
@@ -69,23 +69,34 @@ export function ThresholdsDisplay({
       </div>
 
       <p className="text-muted-foreground text-xs">
-        Damage below{' '}
+        Below{' '}
         <strong className="text-amber-600 dark:text-amber-400">{minor}</strong>{' '}
-        has no effect. At{' '}
-        <strong className="text-amber-600 dark:text-amber-400">{minor}+</strong>{' '}
-        mark 1 HP. At{' '}
+        = 1 damage. Below{' '}
         <strong className="text-orange-600 dark:text-orange-400">
-          {severe}+
+          {severe}
         </strong>{' '}
-        mark 2 HP.
-        {displayMajor && (
+        = 2 damage.
+        {displayMajor ? (
           <>
             {' '}
-            At{' '}
+            Below{' '}
+            <strong className="text-red-600 dark:text-red-400">
+              {effectiveMajor}
+            </strong>{' '}
+            = 3 damage. At{' '}
             <strong className="text-red-600 dark:text-red-400">
               {effectiveMajor}+
             </strong>{' '}
-            mark 3 HP.
+            = 4 damage.
+          </>
+        ) : (
+          <>
+            {' '}
+            At{' '}
+            <strong className="text-orange-600 dark:text-orange-400">
+              {severe}+
+            </strong>{' '}
+            = 3 damage.
           </>
         )}
       </p>

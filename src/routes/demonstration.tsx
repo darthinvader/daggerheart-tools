@@ -68,6 +68,58 @@ const LoadoutSelectorDemo = lazy(() =>
   }))
 );
 
+// Display demos (show-only with edit modals)
+const AncestryDisplayDemo = lazy(() =>
+  import('@/components/demo/ancestry-display-demo').then(m => ({
+    default: m.AncestryDisplayDemo,
+  }))
+);
+const ClassDisplayDemo = lazy(() =>
+  import('@/components/demo/class-display-demo').then(m => ({
+    default: m.ClassDisplayDemo,
+  }))
+);
+const CommunityDisplayDemo = lazy(() =>
+  import('@/components/demo/community-display-demo').then(m => ({
+    default: m.CommunityDisplayDemo,
+  }))
+);
+const EquipmentDisplayDemo = lazy(() =>
+  import('@/components/demo/equipment-display-demo').then(m => ({
+    default: m.EquipmentDisplayDemo,
+  }))
+);
+const GoldDisplayDemo = lazy(() =>
+  import('@/components/demo/gold-display-demo').then(m => ({
+    default: m.GoldDisplayDemo,
+  }))
+);
+const IdentityDisplayDemo = lazy(() =>
+  import('@/components/demo/identity-display-demo').then(m => ({
+    default: m.IdentityDisplayDemo,
+  }))
+);
+const InventoryDisplayDemo = lazy(() =>
+  import('@/components/demo/inventory-display-demo').then(m => ({
+    default: m.InventoryDisplayDemo,
+  }))
+);
+const LoadoutDisplayDemo = lazy(() =>
+  import('@/components/demo/loadout-display-demo').then(m => ({
+    default: m.LoadoutDisplayDemo,
+  }))
+);
+const ThresholdsDisplayDemo = lazy(() =>
+  import('@/components/demo/thresholds-display-demo').then(m => ({
+    default: m.ThresholdsDisplayDemo,
+  }))
+);
+const ProgressionDisplayDemo = lazy(() =>
+  import('@/components/demo/progression-display-demo').then(m => ({
+    default: m.ProgressionDisplayDemo,
+  }))
+);
+
 function DemoSkeleton() {
   return (
     <div className="space-y-4">
@@ -166,6 +218,55 @@ function Demonstration() {
 
       <DemoSection title="📜 Loadout Selector Demonstration">
         <LoadoutSelectorDemo />
+      </DemoSection>
+
+      {/* Display Components (Show-only with Edit Modals) */}
+      <div className="border-t pt-12">
+        <h2 className="mb-8 text-3xl font-bold">📋 Display Components</h2>
+        <p className="text-muted-foreground mb-8">
+          These components show character data in a read-only format with edit
+          buttons that open modal dialogs for editing.
+        </p>
+      </div>
+
+      <DemoSection title="🧬 Ancestry Display">
+        <AncestryDisplayDemo />
+      </DemoSection>
+
+      <DemoSection title="⚔️ Class Display">
+        <ClassDisplayDemo />
+      </DemoSection>
+
+      <DemoSection title="🏘️ Community Display">
+        <CommunityDisplayDemo />
+      </DemoSection>
+
+      <DemoSection title="🛡️ Equipment Display">
+        <EquipmentDisplayDemo />
+      </DemoSection>
+
+      <DemoSection title="💰 Gold Display">
+        <GoldDisplayDemo />
+      </DemoSection>
+
+      <DemoSection title="👤 Identity Display">
+        <IdentityDisplayDemo />
+      </DemoSection>
+
+      <DemoSection title="🎒 Inventory Display">
+        <InventoryDisplayDemo />
+      </DemoSection>
+
+      <DemoSection title="📜 Loadout Display">
+        <LoadoutDisplayDemo />
+      </DemoSection>
+
+      <DemoSection title="❤️ Thresholds Display">
+        <ThresholdsDisplayDemo />
+      </DemoSection>
+
+      <DemoSection title="⬆️ Progression Display">
+        <ProgressionDisplayDemo />
       </DemoSection>
     </div>
   );

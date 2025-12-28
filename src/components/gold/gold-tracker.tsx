@@ -20,6 +20,7 @@ interface GoldState {
   handfuls: number;
   bags: number;
   chests: number;
+  showCoins: boolean;
 }
 
 interface DenominationRowProps {
@@ -143,6 +144,7 @@ export function GoldTracker({
       handfuls: newState.handfuls ?? handfuls,
       bags: newState.bags ?? bags,
       chests: newState.chests ?? chests,
+      showCoins: newState.showCoins ?? showCoins,
     };
     onChange?.(state);
   };
@@ -215,6 +217,7 @@ export function GoldTracker({
                   setTotalDenomination('handfuls');
                 }
               }
+              updateGold({ showCoins: enabled, coins: enabled ? coins : 0 });
             }}
           />
           <Label htmlFor="show-coins" className="text-sm">

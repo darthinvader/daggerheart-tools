@@ -1,6 +1,9 @@
 // Types
 export type { InventoryState } from '@/lib/schemas/equipment';
 
+// Display component
+export { InventoryDisplay } from './inventory-display';
+
 // Main editor
 export { EmptyInventory } from './empty-inventory';
 export { InventoryEditor } from './inventory-editor';

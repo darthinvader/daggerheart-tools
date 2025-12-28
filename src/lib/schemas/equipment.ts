@@ -370,4 +370,6 @@ export interface InventoryItemEntry {
 export interface InventoryState {
   items: InventoryItemEntry[];
   maxSlots: number;
+  unlimitedSlots?: boolean;
+  unlimitedQuantity?: boolean;
 }

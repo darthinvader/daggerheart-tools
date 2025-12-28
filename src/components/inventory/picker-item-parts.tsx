@@ -39,7 +39,7 @@ interface RarityTierDisplayProps {
   rarityConfig: RarityConfig;
   tierConfig: TierConfig;
   rarity: string;
-  tier: number;
+  tier: string;
 }
 
 export function RarityTierDisplay({
