@@ -59,15 +59,15 @@ function DenominationRow({
   };
 
   return (
-    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
-      <div className="flex items-center gap-2">
-        <span className="w-20 text-sm font-medium">{label}</span>
-        <span className="text-muted-foreground w-8 text-center text-sm">
+    <div className="flex items-center justify-between gap-3">
+      <div className="flex min-w-[80px] items-center gap-2">
+        <span className="text-sm font-medium">{label}</span>
+        <span className="text-muted-foreground w-6 text-center text-sm tabular-nums">
           {value}
         </span>
       </div>
 
-      <div className="flex flex-1 items-center gap-1">
+      <div className="flex items-center gap-1.5">
         <Button
           variant="outline"
           size="icon-sm"
@@ -78,14 +78,14 @@ function DenominationRow({
           -
         </Button>
 
-        <div className="flex shrink-0 gap-0.5">
+        <div className="hidden flex-wrap gap-0.5 sm:flex">
           {Array.from({ length: maxValue }, (_, i) => (
             <button
               key={i}
               type="button"
               onClick={() => handleEmojiClick(i)}
               className={cn(
-                'size-5 cursor-pointer text-sm transition-opacity select-none sm:size-6 sm:text-base',
+                'size-6 cursor-pointer text-base transition-opacity select-none',
                 i < value ? 'opacity-100' : 'opacity-30 grayscale'
               )}
               aria-label={`Set ${label} to ${i + 1}`}
@@ -107,13 +107,13 @@ function DenominationRow({
 
         <Button
           variant="ghost"
-          size="sm"
+          size="icon-sm"
           onClick={handleReset}
           disabled={value === 0}
-          className="text-muted-foreground ml-1 text-xs"
+          className="text-muted-foreground"
           aria-label={`Reset ${label} to zero`}
         >
-          x
+          ×
         </Button>
       </div>
     </div>
@@ -208,32 +208,29 @@ export function GoldTracker({
     : (['handfuls', 'bags', 'chests'] as const);
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Gold</h3>
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="show-coins"
-            checked={showCoins}
-            onCheckedChange={checked => {
-              const enabled = checked === true;
-              setShowCoins(enabled);
-              if (!enabled) {
-                setCoins(0);
-                if (totalDenomination === 'coins') {
-                  setTotalDenomination('handfuls');
-                }
+    <div className="space-y-5">
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id="show-coins"
+          checked={showCoins}
+          onCheckedChange={checked => {
+            const enabled = checked === true;
+            setShowCoins(enabled);
+            if (!enabled) {
+              setCoins(0);
+              if (totalDenomination === 'coins') {
+                setTotalDenomination('handfuls');
               }
-              updateGold({ showCoins: enabled, coins: enabled ? coins : 0 });
-            }}
-          />
-          <Label htmlFor="show-coins" className="text-sm">
-            Show Coins
-          </Label>
-        </div>
+            }
+            updateGold({ showCoins: enabled, coins: enabled ? coins : 0 });
+          }}
+        />
+        <Label htmlFor="show-coins" className="text-sm">
+          Track individual coins (1/10 of a handful)
+        </Label>
       </div>
 
-      <div className="bg-card space-y-3 rounded-lg border p-4">
+      <div className="bg-muted/30 space-y-3 rounded-lg border p-4">
         {showCoins && (
           <DenominationRow
             label="Coins"

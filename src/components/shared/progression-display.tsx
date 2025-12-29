@@ -13,7 +13,6 @@ export interface ProgressionState {
   currentLevel: number;
   currentTier: string;
   tierHistory: Record<string, number>;
-  lifetimeHistory: Record<string, number>;
 }
 
 interface ProgressionDisplayProps {

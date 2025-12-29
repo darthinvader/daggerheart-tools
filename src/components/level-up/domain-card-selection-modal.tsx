@@ -33,6 +33,7 @@ export type DomainCardSelectionModalProps = {
   onConfirm: (cardName: string) => void;
   targetLevel: number;
   allowedDomains?: string[];
+  ownedCardNames?: string[];
 };
 
 export function DomainCardSelectionModal({
@@ -41,6 +42,7 @@ export function DomainCardSelectionModal({
   onConfirm,
   targetLevel,
   allowedDomains,
+  ownedCardNames = [],
 }: DomainCardSelectionModalProps) {
   const [selectedCard, setSelectedCard] = useState<DomainCard | null>(null);
   const [search, setSearch] = useState('');
@@ -50,13 +52,23 @@ export function DomainCardSelectionModal({
   const filteredCards = useMemo(() => {
     const allCards = getAllDomainCards();
     const levelFiltered = allCards.filter(c => c.level <= targetLevel);
-    return filterCards(levelFiltered, {
+    const notOwned = levelFiltered.filter(
+      c => !ownedCardNames.includes(c.name)
+    );
+    return filterCards(notOwned, {
       allowedDomains,
       domain: domainFilter,
       type: typeFilter,
       search,
     });
-  }, [targetLevel, allowedDomains, domainFilter, typeFilter, search]);
+  }, [
+    targetLevel,
+    allowedDomains,
+    domainFilter,
+    typeFilter,
+    search,
+    ownedCardNames,
+  ]);
 
   const availableDomains = useMemo(() => {
     if (allowedDomains && allowedDomains.length > 0) {

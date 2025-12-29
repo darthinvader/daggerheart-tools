@@ -12,11 +12,7 @@ import {
 } from '@/components/equipment';
 import { type ExperiencesState } from '@/components/experiences';
 import { type InventoryState } from '@/components/inventory';
-import {
-  LEVEL_UP_OPTIONS_CONFIG,
-  LevelUpModal,
-  type LevelUpResult,
-} from '@/components/level-up';
+import { LevelUpModal, type LevelUpResult } from '@/components/level-up';
 import {
   DEFAULT_RESOURCES_STATE,
   type ResourcesState,
@@ -96,28 +92,16 @@ export function CharacterSheetDemo() {
       const updatedTierHistory = tierChanged
         ? {}
         : { ...progression.tierHistory };
-      const updatedLifetimeHistory = { ...progression.lifetimeHistory };
 
       for (const selection of result.selections) {
-        const optionConfig = LEVEL_UP_OPTIONS_CONFIG.find(
-          o => o.id === selection.optionId
-        );
-        if (!optionConfig) continue;
-
-        if (optionConfig.maxScope === 'lifetime') {
-          updatedLifetimeHistory[selection.optionId] =
-            (updatedLifetimeHistory[selection.optionId] ?? 0) + selection.count;
-        } else {
-          updatedTierHistory[selection.optionId] =
-            (updatedTierHistory[selection.optionId] ?? 0) + selection.count;
-        }
+        updatedTierHistory[selection.optionId] =
+          (updatedTierHistory[selection.optionId] ?? 0) + selection.count;
       }
 
       setProgression({
         currentLevel: result.newLevel,
         currentTier: result.newTier,
         tierHistory: updatedTierHistory,
-        lifetimeHistory: updatedLifetimeHistory,
       });
 
       if (result.automaticBenefits.proficiencyGained) {
@@ -127,13 +111,48 @@ export function CharacterSheetDemo() {
         }));
       }
 
-      if (result.automaticBenefits.experienceGained) {
+      if (
+        result.automaticBenefits.experienceGained &&
+        result.automaticBenefits.experienceName
+      ) {
+        const expSelection = result.selections.find(
+          s => s.optionId === 'experiences'
+        );
+        const boostedNewExp = expSelection?.details?.selectedExperiences?.some(
+          id => id === `new-exp-${result.newLevel}`
+        );
         setExperiences(prev => ({
           items: [
             ...prev.items,
-            { id: crypto.randomUUID(), name: 'New Experience', value: 2 },
+            {
+              id: crypto.randomUUID(),
+              name: result.automaticBenefits.experienceName!,
+              value: boostedNewExp ? 3 : 2,
+            },
           ],
         }));
+      }
+
+      if (result.automaticBenefits.freeDomainCard) {
+        const card = getCardByName(result.automaticBenefits.freeDomainCard);
+        if (card) {
+          const cardLite: DomainCardLite = {
+            name: card.name,
+            domain: String(card.domain),
+            level: card.level,
+            type: String(card.type),
+            description: card.description,
+            hopeCost: card.hopeCost,
+            recallCost: card.recallCost,
+          };
+          setLoadout(prev => {
+            const maxActive = 5;
+            if (prev.activeCards.length < maxActive) {
+              return { ...prev, activeCards: [...prev.activeCards, cardLite] };
+            }
+            return { ...prev, vaultCards: [...prev.vaultCards, cardLite] };
+          });
+        }
       }
 
       if (result.automaticBenefits.traitsCleared) {
@@ -168,37 +187,47 @@ export function CharacterSheetDemo() {
             break;
           case 'experiences':
             if (selection.details?.selectedExperiences) {
-              setExperiences(prev => ({
-                items: prev.items.map(exp =>
-                  selection.details!.selectedExperiences!.includes(exp.id)
-                    ? { ...exp, value: exp.value + 1 }
-                    : exp
-                ),
-              }));
+              const newExpId = `new-exp-${result.newLevel}`;
+              const regularExpIds =
+                selection.details.selectedExperiences.filter(
+                  id => id !== newExpId
+                );
+              if (regularExpIds.length > 0) {
+                setExperiences(prev => ({
+                  items: prev.items.map(exp =>
+                    regularExpIds.includes(exp.id)
+                      ? { ...exp, value: exp.value + 1 }
+                      : exp
+                  ),
+                }));
+              }
             }
             break;
           case 'hp':
             setResources(prev => ({
               ...prev,
-              hp: { ...prev.hp, max: prev.hp.max + 1 },
+              hp: { ...prev.hp, max: prev.hp.max + selection.count },
             }));
             break;
           case 'stress':
             setResources(prev => ({
               ...prev,
-              stress: { ...prev.stress, max: prev.stress.max + 1 },
+              stress: {
+                ...prev.stress,
+                max: prev.stress.max + selection.count,
+              },
             }));
             break;
           case 'evasion':
             setCoreScores(prev => ({
               ...prev,
-              evasion: prev.evasion + 1,
+              evasion: prev.evasion + selection.count,
             }));
             break;
           case 'proficiency':
             setCoreScores(prev => ({
               ...prev,
-              proficiency: prev.proficiency + 1,
+              proficiency: prev.proficiency + selection.count,
             }));
             break;
           case 'domain-card':
@@ -214,10 +243,19 @@ export function CharacterSheetDemo() {
                   hopeCost: card.hopeCost,
                   recallCost: card.recallCost,
                 };
-                setLoadout(prev => ({
-                  ...prev,
-                  activeCards: [...prev.activeCards, cardLite],
-                }));
+                setLoadout(prev => {
+                  const maxActive = 5;
+                  if (prev.activeCards.length < maxActive) {
+                    return {
+                      ...prev,
+                      activeCards: [...prev.activeCards, cardLite],
+                    };
+                  }
+                  return {
+                    ...prev,
+                    vaultCards: [...prev.vaultCards, cardLite],
+                  };
+                });
               }
             }
             break;
@@ -277,11 +315,7 @@ export function CharacterSheetDemo() {
 
       setIsLevelUpOpen(false);
     },
-    [
-      progression.currentTier,
-      progression.tierHistory,
-      progression.lifetimeHistory,
-    ]
+    [progression.currentTier, progression.tierHistory]
   );
 
   const currentTraitsForModal = Object.entries(traits).map(([name, val]) => ({
@@ -374,9 +408,12 @@ export function CharacterSheetDemo() {
         currentTraits={currentTraitsForModal}
         currentExperiences={currentExperiencesForModal}
         tierHistory={progression.tierHistory}
-        lifetimeHistory={progression.lifetimeHistory}
         classSelection={classSelection}
         unlockedSubclassFeatures={unlockedSubclassFeatures}
+        ownedCardNames={[
+          ...loadout.activeCards.map(c => c.name),
+          ...loadout.vaultCards.map(c => c.name),
+        ]}
       />
     </div>
   );

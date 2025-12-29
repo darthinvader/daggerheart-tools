@@ -5,8 +5,7 @@ export interface LevelUpOptionConfig {
   label: string;
   description: string;
   cost: 1 | 2;
-  maxSelections: number;
-  maxScope: 'tier' | 'lifetime';
+  maxSelectionsPerTier: number;
   requiresSubModal: boolean;
   subModalType?:
     | 'traits'
@@ -19,7 +18,7 @@ export interface LevelUpOptionConfig {
     | 'subclass'
     | 'multiclass';
   availableInTiers: CharacterTier[];
-  disabledBy?: string[];
+  exclusiveWith?: string[];
 }
 
 export interface LevelUpSelection {
@@ -68,8 +67,7 @@ export const LEVEL_UP_OPTIONS_CONFIG: LevelUpOptionConfig[] = [
     description:
       'Gain a +1 bonus to two unmarked character traits and mark them.',
     cost: 1,
-    maxSelections: 3,
-    maxScope: 'tier',
+    maxSelectionsPerTier: 3,
     requiresSubModal: true,
     subModalType: 'traits',
     availableInTiers: ['2-4', '5-7', '8-10'],
@@ -79,8 +77,7 @@ export const LEVEL_UP_OPTIONS_CONFIG: LevelUpOptionConfig[] = [
     label: 'Gain Hit Point Slot',
     description: 'Permanently gain one Hit Point slot.',
     cost: 1,
-    maxSelections: 2,
-    maxScope: 'lifetime',
+    maxSelectionsPerTier: 2,
     requiresSubModal: false,
     subModalType: 'hp',
     availableInTiers: ['2-4', '5-7', '8-10'],
@@ -90,8 +87,7 @@ export const LEVEL_UP_OPTIONS_CONFIG: LevelUpOptionConfig[] = [
     label: 'Gain Stress Slot',
     description: 'Permanently gain one Stress slot.',
     cost: 1,
-    maxSelections: 2,
-    maxScope: 'lifetime',
+    maxSelectionsPerTier: 2,
     requiresSubModal: false,
     subModalType: 'stress',
     availableInTiers: ['2-4', '5-7', '8-10'],
@@ -101,8 +97,7 @@ export const LEVEL_UP_OPTIONS_CONFIG: LevelUpOptionConfig[] = [
     label: 'Boost Two Experiences',
     description: 'Permanently gain a +1 bonus to two Experiences.',
     cost: 1,
-    maxSelections: 1,
-    maxScope: 'tier',
+    maxSelectionsPerTier: 1,
     requiresSubModal: true,
     subModalType: 'experiences',
     availableInTiers: ['2-4', '5-7', '8-10'],
@@ -113,8 +108,7 @@ export const LEVEL_UP_OPTIONS_CONFIG: LevelUpOptionConfig[] = [
     description:
       'Choose an additional domain card of your level or lower from a domain you have access to.',
     cost: 1,
-    maxSelections: 1,
-    maxScope: 'tier',
+    maxSelectionsPerTier: 1,
     requiresSubModal: true,
     subModalType: 'domain-card',
     availableInTiers: ['2-4', '5-7', '8-10'],
@@ -124,8 +118,7 @@ export const LEVEL_UP_OPTIONS_CONFIG: LevelUpOptionConfig[] = [
     label: 'Boost Evasion',
     description: 'Permanently gain a +1 bonus to your Evasion.',
     cost: 1,
-    maxSelections: 1,
-    maxScope: 'lifetime',
+    maxSelectionsPerTier: 1,
     requiresSubModal: false,
     subModalType: 'evasion',
     availableInTiers: ['2-4', '5-7', '8-10'],
@@ -133,11 +126,9 @@ export const LEVEL_UP_OPTIONS_CONFIG: LevelUpOptionConfig[] = [
   {
     id: 'proficiency',
     label: 'Boost Proficiency',
-    description:
-      'Increase your Proficiency by +1. This costs 2 advancement slots.',
+    description: 'Increase your Proficiency by +1.',
     cost: 2,
-    maxSelections: 1,
-    maxScope: 'tier',
+    maxSelectionsPerTier: 1,
     requiresSubModal: false,
     subModalType: 'proficiency',
     availableInTiers: ['5-7', '8-10'],
@@ -146,27 +137,25 @@ export const LEVEL_UP_OPTIONS_CONFIG: LevelUpOptionConfig[] = [
     id: 'subclass',
     label: 'Upgraded Subclass Card',
     description:
-      'Take the next subclass card (specialization or mastery). This locks out multiclass for this tier.',
+      'Take an upgraded subclass card. Then cross out the multiclass option for this tier.',
     cost: 1,
-    maxSelections: 1,
-    maxScope: 'tier',
+    maxSelectionsPerTier: 1,
     requiresSubModal: true,
     subModalType: 'subclass',
     availableInTiers: ['5-7', '8-10'],
-    disabledBy: ['multiclass'],
+    exclusiveWith: ['multiclass'],
   },
   {
     id: 'multiclass',
     label: 'Multiclass',
     description:
-      'Choose an additional class for your character, then cross out an unused Take an upgraded subclass card and the other multiclass option',
+      'Choose an additional class for your character, then cross out an unused "Take an upgraded subclass card" and the other multiclass option on this sheet.',
     cost: 2,
-    maxSelections: 1,
-    maxScope: 'tier',
+    maxSelectionsPerTier: 1,
     requiresSubModal: true,
     subModalType: 'multiclass',
     availableInTiers: ['5-7', '8-10'],
-    disabledBy: ['subclass'],
+    exclusiveWith: ['subclass'],
   },
 ];
 
@@ -181,14 +170,14 @@ export function isOptionDisabled(
   currentSelections: LevelUpSelection[],
   tierHistory: Record<string, number>
 ): boolean {
-  if (!option.disabledBy || option.disabledBy.length === 0) return false;
+  if (!option.exclusiveWith || option.exclusiveWith.length === 0) return false;
 
-  const disabledByCurrent = option.disabledBy.some(disablerId =>
-    currentSelections.some(sel => sel.optionId === disablerId && sel.count > 0)
+  const disabledByCurrent = option.exclusiveWith.some(exclusiveId =>
+    currentSelections.some(sel => sel.optionId === exclusiveId && sel.count > 0)
   );
 
-  const disabledByHistory = option.disabledBy.some(
-    disablerId => (tierHistory[disablerId] ?? 0) > 0
+  const disabledByHistory = option.exclusiveWith.some(
+    exclusiveId => (tierHistory[exclusiveId] ?? 0) > 0
   );
 
   return disabledByCurrent || disabledByHistory;
@@ -201,38 +190,30 @@ export function getSelectionCount(
   return selections.find(s => s.optionId === optionId)?.count ?? 0;
 }
 
-export function getTotalSelectionCount(
+export function getTotalSelectionCountForTier(
   option: LevelUpOptionConfig,
   currentSelections: LevelUpSelection[],
-  tierHistory: Record<string, number>,
-  lifetimeHistory: Record<string, number>
+  tierHistory: Record<string, number>
 ): number {
   const currentCount = getSelectionCount(option.id, currentSelections);
-  const history =
-    option.maxScope === 'lifetime' ? lifetimeHistory : tierHistory;
-  const historyCount = history[option.id] ?? 0;
+  const historyCount = tierHistory[option.id] ?? 0;
   return currentCount + historyCount;
 }
 
 export function isOptionMaxed(
   option: LevelUpOptionConfig,
   currentSelections: LevelUpSelection[],
-  tierHistory: Record<string, number>,
-  lifetimeHistory: Record<string, number>
+  tierHistory: Record<string, number>
 ): boolean {
-  const totalCount = getTotalSelectionCount(
+  const totalCount = getTotalSelectionCountForTier(
     option,
     currentSelections,
-    tierHistory,
-    lifetimeHistory
+    tierHistory
   );
-  return totalCount >= option.maxSelections;
+  return totalCount >= option.maxSelectionsPerTier;
 }
 
-export function getAutomaticBenefits(
-  level: number,
-  tierChanged: boolean
-): string[] {
+export function getAutomaticBenefits(level: number): string[] {
   const benefits: string[] = [];
 
   if (level === 2 || level === 5 || level === 8) {
@@ -240,7 +221,7 @@ export function getAutomaticBenefits(
     benefits.push('Gain +1 Proficiency');
   }
 
-  if (tierChanged && level > 1) {
+  if (level === 5 || level === 8) {
     benefits.push('Clear all marks on character traits');
   }
 

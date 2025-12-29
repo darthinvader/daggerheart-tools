@@ -83,7 +83,6 @@ export const SAMPLE_PROGRESSION: ProgressionState = {
   currentLevel: 1,
   currentTier: '1',
   tierHistory: {},
-  lifetimeHistory: {},
 };
 
 export const SAMPLE_GOLD: Gold = {

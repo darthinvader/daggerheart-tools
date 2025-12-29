@@ -1,4 +1,4 @@
-import { Check, ChevronUp, Lock, Minus, Plus } from 'lucide-react';
+import { ArrowRight, Check, ChevronUp, Lock, Minus, Plus } from 'lucide-react';
 
 import { useCallback, useMemo, useState } from 'react';
 
@@ -24,13 +24,13 @@ import { cn } from '@/lib/utils';
 import { DomainCardSelectionModal } from './domain-card-selection-modal';
 import { ExperienceBoostModal } from './experience-boost-modal';
 import { MulticlassSelectionModal } from './multiclass-selection-modal';
+import { NewExperienceModal } from './new-experience-modal';
 import { SubclassUpgradeModal } from './subclass-upgrade-modal';
 import { TraitSelectionModal } from './trait-selection-modal';
 import {
   type LevelUpOptionConfig,
   type LevelUpSelection,
   type LevelUpSelectionDetails,
-  getAutomaticBenefits,
   getOptionsForTier,
   getSelectionCount,
   isOptionDisabled,
@@ -41,8 +41,10 @@ export interface LevelUpResult {
   newTier: CharacterTier;
   automaticBenefits: {
     experienceGained: boolean;
+    experienceName?: string;
     proficiencyGained: boolean;
     traitsCleared: boolean;
+    freeDomainCard?: string;
   };
   selections: LevelUpSelection[];
 }
@@ -56,9 +58,9 @@ interface LevelUpModalProps {
   currentTraits: { name: string; marked: boolean }[];
   currentExperiences: { id: string; name: string; value: number }[];
   tierHistory: Record<string, number>;
-  lifetimeHistory: Record<string, number>;
   classSelection: ClassSelection | null;
   unlockedSubclassFeatures: Record<string, string[]>;
+  ownedCardNames: string[];
 }
 
 const POINTS_PER_LEVEL = 2;
@@ -79,19 +81,48 @@ export function LevelUpModal({
   currentTraits,
   currentExperiences,
   tierHistory,
-  lifetimeHistory,
   classSelection,
   unlockedSubclassFeatures,
+  ownedCardNames,
 }: LevelUpModalProps) {
   const targetLevel = currentLevel + 1;
   const targetTier = getTierForLevel(targetLevel);
   const tierChanged = targetTier !== currentTier;
 
+  type LevelUpStep = 'automatic-benefits' | 'advancement-options';
+  const [currentStep, setCurrentStep] =
+    useState<LevelUpStep>('automatic-benefits');
   const [selections, setSelections] = useState<LevelUpSelection[]>([]);
   const [pendingOption, setPendingOption] =
     useState<LevelUpOptionConfig | null>(null);
 
+  const [freeDomainCard, setFreeDomainCard] = useState<string | null>(null);
+  const [newExperienceName, setNewExperienceName] = useState<string | null>(
+    null
+  );
+  const [showFreeDomainCardModal, setShowFreeDomainCardModal] = useState(false);
+  const [showNewExperienceModal, setShowNewExperienceModal] = useState(false);
+
+  const getsNewExperience =
+    targetLevel === 2 || targetLevel === 5 || targetLevel === 8;
+
   const effectiveTierHistory = tierChanged ? {} : tierHistory;
+
+  const cardsSelectedThisSession = useMemo(() => {
+    const cards: string[] = [];
+    if (freeDomainCard) cards.push(freeDomainCard);
+    const domainCardSelection = selections.find(
+      s => s.optionId === 'domain-card'
+    );
+    if (domainCardSelection?.details?.selectedDomainCard) {
+      cards.push(domainCardSelection.details.selectedDomainCard);
+    }
+    return cards;
+  }, [freeDomainCard, selections]);
+
+  const allOwnedCardNames = useMemo(() => {
+    return [...ownedCardNames, ...cardsSelectedThisSession];
+  }, [ownedCardNames, cardsSelectedThisSession]);
 
   const classPairs = useMemo<ClassSubclassPair[]>(() => {
     if (!classSelection) return [];
@@ -110,10 +141,6 @@ export function LevelUpModal({
   const availableOptions = useMemo(
     () => getOptionsForTier(targetTier),
     [targetTier]
-  );
-  const automaticBenefits = useMemo(
-    () => getAutomaticBenefits(targetLevel, tierChanged),
-    [targetLevel, tierChanged]
   );
 
   const pointsSpent = useMemo(
@@ -151,8 +178,20 @@ export function LevelUpModal({
       if (existing.count <= 1) {
         return prev.filter(s => s.optionId !== optionId);
       }
+      const updatedDetails = existing.details
+        ? {
+            ...existing.details,
+            selectedTraits: existing.details.selectedTraits?.slice(0, -2),
+            selectedExperiences: existing.details.selectedExperiences?.slice(
+              0,
+              -2
+            ),
+          }
+        : undefined;
       return prev.map(s =>
-        s.optionId === optionId ? { ...s, count: s.count - 1 } : s
+        s.optionId === optionId
+          ? { ...s, count: s.count - 1, details: updatedDetails }
+          : s
       );
     });
   }, []);
@@ -196,31 +235,63 @@ export function LevelUpModal({
     [pendingOption]
   );
 
+  const resetState = useCallback(() => {
+    setCurrentStep('automatic-benefits');
+    setSelections([]);
+    setFreeDomainCard(null);
+    setNewExperienceName(null);
+    setPendingOption(null);
+  }, []);
+
   const handleConfirm = useCallback(() => {
     const result: LevelUpResult = {
       newLevel: targetLevel,
       newTier: targetTier,
       automaticBenefits: {
-        experienceGained:
-          targetLevel === 2 || targetLevel === 5 || targetLevel === 8,
-        proficiencyGained:
-          targetLevel === 2 || targetLevel === 5 || targetLevel === 8,
+        experienceGained: getsNewExperience,
+        experienceName: newExperienceName ?? undefined,
+        proficiencyGained: getsNewExperience,
         traitsCleared: targetLevel === 5 || targetLevel === 8,
+        freeDomainCard: freeDomainCard ?? undefined,
       },
       selections,
     };
     onConfirm(result);
-    setSelections([]);
-  }, [targetLevel, targetTier, selections, onConfirm]);
+    resetState();
+  }, [
+    targetLevel,
+    targetTier,
+    selections,
+    onConfirm,
+    getsNewExperience,
+    newExperienceName,
+    freeDomainCard,
+    resetState,
+  ]);
 
   const handleClose = useCallback(() => {
-    setSelections([]);
+    resetState();
     onClose();
-  }, [onClose]);
+  }, [onClose, resetState]);
+
+  const canProceedToOptions =
+    freeDomainCard !== null &&
+    (!getsNewExperience || newExperienceName !== null);
+
+  const handleProceedToOptions = useCallback(() => {
+    if (canProceedToOptions) {
+      setCurrentStep('advancement-options');
+    }
+  }, [canProceedToOptions]);
 
   const alreadySelectedTraitsThisSession = useMemo(() => {
     const traitSelection = selections.find(s => s.optionId === 'traits');
     return traitSelection?.details?.selectedTraits ?? [];
+  }, [selections]);
+
+  const alreadyBoostedExperiencesThisSession = useMemo(() => {
+    const expSelection = selections.find(s => s.optionId === 'experiences');
+    return expSelection?.details?.selectedExperiences ?? [];
   }, [selections]);
 
   const availableTraitsForSelection = useMemo(() => {
@@ -229,10 +300,34 @@ export function LevelUpModal({
     );
   }, [currentTraits, alreadySelectedTraitsThisSession]);
 
+  const availableExperiencesForSelection = useMemo(() => {
+    const baseExperiences =
+      getsNewExperience && newExperienceName
+        ? [
+            ...currentExperiences,
+            { id: `new-exp-${targetLevel}`, name: newExperienceName, value: 2 },
+          ]
+        : currentExperiences;
+    return baseExperiences.filter(
+      e => !alreadyBoostedExperiencesThisSession.includes(e.id)
+    );
+  }, [
+    currentExperiences,
+    alreadyBoostedExperiencesThisSession,
+    getsNewExperience,
+    newExperienceName,
+    targetLevel,
+  ]);
+
   return (
     <>
       <Dialog
-        open={isOpen && !pendingOption}
+        open={
+          isOpen &&
+          !pendingOption &&
+          !showFreeDomainCardModal &&
+          !showNewExperienceModal
+        }
         onOpenChange={open => !open && handleClose()}
       >
         <DialogContent className="grid max-h-[90vh] grid-rows-[auto_1fr_auto] gap-0 overflow-hidden p-0 sm:max-w-[600px]">
@@ -242,146 +337,268 @@ export function LevelUpModal({
               Level Up to {targetLevel}
             </DialogTitle>
             <DialogDescription>
-              Choose your advancements for Tier{' '}
-              {TIER_NUMBERS[targetTier] ?? targetTier}
+              {currentStep === 'automatic-benefits'
+                ? 'Complete your automatic level-up benefits'
+                : `Choose your advancements for Tier ${TIER_NUMBERS[targetTier] ?? targetTier}`}
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-6 overflow-y-auto p-6">
-            <section>
-              <h4 className="mb-3 font-semibold">✨ Automatic Benefits</h4>
-              <div className="space-y-2">
-                {automaticBenefits.map((benefit, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center gap-2 rounded-lg border border-green-500/30 bg-green-500/10 p-3 text-sm"
-                  >
+          {currentStep === 'automatic-benefits' && (
+            <div className="space-y-4 overflow-y-auto p-6">
+              <section>
+                <h4 className="mb-3 font-semibold">✨ Automatic Benefits</h4>
+                <div className="space-y-2">
+                  {(targetLevel === 2 ||
+                    targetLevel === 5 ||
+                    targetLevel === 8) && (
+                    <div className="flex items-center gap-2 rounded-lg border border-green-500/30 bg-green-500/10 p-3 text-sm">
+                      <Check className="size-4 text-green-600" />
+                      <span>Gain +1 Proficiency</span>
+                    </div>
+                  )}
+                  {(targetLevel === 5 || targetLevel === 8) && (
+                    <div className="flex items-center gap-2 rounded-lg border border-green-500/30 bg-green-500/10 p-3 text-sm">
+                      <Check className="size-4 text-green-600" />
+                      <span>Clear all marks on character traits</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 rounded-lg border border-green-500/30 bg-green-500/10 p-3 text-sm">
                     <Check className="size-4 text-green-600" />
-                    <span>{benefit}</span>
+                    <span>Damage thresholds increase by +1</span>
                   </div>
-                ))}
-              </div>
-            </section>
+                </div>
+              </section>
 
-            <Separator />
+              <Separator />
 
-            <section>
-              <div className="mb-3 flex items-center justify-between">
-                <h4 className="font-semibold">🎯 Choose Advancements</h4>
-                <Badge
-                  variant={pointsRemaining > 0 ? 'default' : 'secondary'}
-                  className="text-sm"
-                >
-                  {pointsRemaining} / {POINTS_PER_LEVEL} points
-                </Badge>
-              </div>
+              <section>
+                <h4 className="mb-3 font-semibold">🎁 Select Your Benefits</h4>
+                <div className="space-y-3">
+                  <div
+                    className={cn(
+                      'flex items-center justify-between rounded-lg border p-4 transition-colors',
+                      freeDomainCard
+                        ? 'border-green-500/50 bg-green-500/10'
+                        : 'border-amber-500/50 bg-amber-500/10'
+                    )}
+                  >
+                    <div>
+                      <div className="font-medium">Free Domain Card</div>
+                      <p className="text-muted-foreground text-sm">
+                        {freeDomainCard
+                          ? `Selected: ${freeDomainCard}`
+                          : 'Choose a domain card of your level or lower'}
+                      </p>
+                    </div>
+                    <Button
+                      variant={freeDomainCard ? 'secondary' : 'default'}
+                      size="sm"
+                      onClick={() => setShowFreeDomainCardModal(true)}
+                    >
+                      {freeDomainCard ? 'Change' : 'Select'}
+                    </Button>
+                  </div>
 
-              <div className="space-y-2">
-                {availableOptions.map(option => {
-                  const currentSelectionCount = getSelectionCount(
-                    option.id,
-                    selections
-                  );
-                  const isLifetime = option.maxScope === 'lifetime';
-                  const relevantHistory = isLifetime
-                    ? lifetimeHistory
-                    : effectiveTierHistory;
-                  const historyCount = relevantHistory[option.id] ?? 0;
-                  const totalCount = currentSelectionCount + historyCount;
-                  const isDisabled = isOptionDisabled(
-                    option,
-                    selections,
-                    effectiveTierHistory
-                  );
-                  const isMaxed = totalCount >= option.maxSelections;
-                  const cantAffordMore = option.cost > pointsRemaining;
-                  const cantAdd = isDisabled || isMaxed || cantAffordMore;
-
-                  return (
+                  {getsNewExperience && (
                     <div
-                      key={option.id}
                       className={cn(
-                        'flex items-center justify-between rounded-lg border p-3 transition-colors',
-                        currentSelectionCount > 0 &&
-                          'border-primary bg-primary/10',
-                        cantAdd && currentSelectionCount === 0 && 'opacity-50'
+                        'flex items-center justify-between rounded-lg border p-4 transition-colors',
+                        newExperienceName
+                          ? 'border-green-500/50 bg-green-500/10'
+                          : 'border-amber-500/50 bg-amber-500/10'
                       )}
                     >
-                      <div className="flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-medium">{option.label}</span>
-                          <Badge variant="outline" className="text-xs">
-                            {option.cost} {option.cost === 1 ? 'pt' : 'pts'}
-                          </Badge>
-                          <Badge
-                            variant={isMaxed ? 'destructive' : 'secondary'}
-                            className="text-xs"
-                            title={
-                              historyCount > 0
-                                ? `${historyCount} from previous level-ups${isLifetime ? '' : ' this tier'}`
-                                : undefined
-                            }
-                          >
-                            {isLifetime ? 'Total' : 'Tier'}: {totalCount}/
-                            {option.maxSelections}
-                          </Badge>
-                          {isDisabled && (
-                            <Lock className="text-muted-foreground size-3" />
-                          )}
-                        </div>
-                        <p className="text-muted-foreground mt-1 text-sm">
-                          {option.description}
+                      <div>
+                        <div className="font-medium">New Experience (+2)</div>
+                        <p className="text-muted-foreground text-sm">
+                          {newExperienceName
+                            ? `Added: ${newExperienceName}`
+                            : 'Name your new experience'}
                         </p>
                       </div>
-
-                      <div className="ml-4 flex items-center gap-2">
-                        {currentSelectionCount > 0 && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleRemoveSelection(option.id)}
-                          >
-                            <Minus className="size-4" />
-                          </Button>
-                        )}
-                        {currentSelectionCount > 0 && (
-                          <span className="min-w-[1.5rem] text-center font-medium">
-                            {currentSelectionCount}
-                          </span>
-                        )}
-                        <Button
-                          variant={
-                            currentSelectionCount > 0 ? 'secondary' : 'outline'
-                          }
-                          size="icon"
-                          disabled={cantAdd}
-                          onClick={() => handleSelectOption(option)}
-                        >
-                          <Plus className="size-4" />
-                        </Button>
-                      </div>
+                      <Button
+                        variant={newExperienceName ? 'secondary' : 'default'}
+                        size="sm"
+                        onClick={() => setShowNewExperienceModal(true)}
+                      >
+                        {newExperienceName ? 'Change' : 'Add'}
+                      </Button>
                     </div>
-                  );
-                })}
-              </div>
-            </section>
-          </div>
+                  )}
+                </div>
+              </section>
+            </div>
+          )}
+
+          {currentStep === 'advancement-options' && (
+            <div className="space-y-6 overflow-y-auto p-6">
+              <section>
+                <div className="mb-3 flex items-center justify-between">
+                  <h4 className="font-semibold">🎯 Choose Advancements</h4>
+                  <Badge
+                    variant={pointsRemaining > 0 ? 'default' : 'secondary'}
+                    className="text-sm"
+                  >
+                    {pointsRemaining} / {POINTS_PER_LEVEL} points
+                  </Badge>
+                </div>
+
+                <div className="space-y-2">
+                  {availableOptions.map(option => {
+                    const currentSelectionCount = getSelectionCount(
+                      option.id,
+                      selections
+                    );
+                    const historyCount = effectiveTierHistory[option.id] ?? 0;
+                    const totalCount = currentSelectionCount + historyCount;
+                    const isDisabled = isOptionDisabled(
+                      option,
+                      selections,
+                      effectiveTierHistory
+                    );
+                    const isMaxed = totalCount >= option.maxSelectionsPerTier;
+                    const cantAffordMore = option.cost > pointsRemaining;
+
+                    const notEnoughResources =
+                      (option.id === 'traits' &&
+                        availableTraitsForSelection.length < 2) ||
+                      (option.id === 'experiences' &&
+                        availableExperiencesForSelection.length < 2);
+
+                    const cantAdd =
+                      isDisabled ||
+                      isMaxed ||
+                      cantAffordMore ||
+                      notEnoughResources;
+
+                    return (
+                      <div
+                        key={option.id}
+                        className={cn(
+                          'flex items-center justify-between rounded-lg border p-3 transition-colors',
+                          currentSelectionCount > 0 &&
+                            'border-primary bg-primary/10',
+                          cantAdd && currentSelectionCount === 0 && 'opacity-50'
+                        )}
+                      >
+                        <div className="flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-medium">{option.label}</span>
+                            <Badge variant="outline" className="text-xs">
+                              {option.cost} {option.cost === 1 ? 'pt' : 'pts'}
+                            </Badge>
+                            <Badge
+                              variant={isMaxed ? 'destructive' : 'secondary'}
+                              className="text-xs"
+                              title={
+                                historyCount > 0
+                                  ? `${historyCount} from previous level-ups this tier`
+                                  : undefined
+                              }
+                            >
+                              Tier: {totalCount}/{option.maxSelectionsPerTier}
+                            </Badge>
+                            {isDisabled && (
+                              <Lock className="text-muted-foreground size-3" />
+                            )}
+                          </div>
+                          <p className="text-muted-foreground mt-1 text-sm">
+                            {option.description}
+                          </p>
+                        </div>
+
+                        <div className="ml-4 flex items-center gap-2">
+                          {currentSelectionCount > 0 && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleRemoveSelection(option.id)}
+                            >
+                              <Minus className="size-4" />
+                            </Button>
+                          )}
+                          {currentSelectionCount > 0 && (
+                            <span className="min-w-6 text-center font-medium">
+                              {currentSelectionCount}
+                            </span>
+                          )}
+                          <Button
+                            variant={
+                              currentSelectionCount > 0
+                                ? 'secondary'
+                                : 'outline'
+                            }
+                            size="icon"
+                            disabled={cantAdd}
+                            onClick={() => handleSelectOption(option)}
+                          >
+                            <Plus className="size-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            </div>
+          )}
 
           <DialogFooter className="shrink-0 border-t p-4">
-            <Button variant="outline" onClick={handleClose}>
-              Cancel
-            </Button>
-            <Button
-              onClick={handleConfirm}
-              disabled={pointsRemaining !== 0}
-              className="gap-2"
-            >
-              <ChevronUp className="size-4" />
-              Confirm Level Up
-            </Button>
+            {currentStep === 'automatic-benefits' ? (
+              <>
+                <Button variant="outline" onClick={handleClose}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleProceedToOptions}
+                  disabled={!canProceedToOptions}
+                  className="gap-2"
+                >
+                  Continue
+                  <ArrowRight className="size-4" />
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentStep('automatic-benefits')}
+                >
+                  Back
+                </Button>
+                <Button
+                  onClick={handleConfirm}
+                  disabled={pointsRemaining !== 0}
+                  className="gap-2"
+                >
+                  <ChevronUp className="size-4" />
+                  Confirm Level Up
+                </Button>
+              </>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <DomainCardSelectionModal
+        isOpen={showFreeDomainCardModal}
+        onClose={() => setShowFreeDomainCardModal(false)}
+        onConfirm={cardName => {
+          setFreeDomainCard(cardName);
+          setShowFreeDomainCardModal(false);
+        }}
+        targetLevel={targetLevel}
+        ownedCardNames={allOwnedCardNames}
+      />
+
+      <NewExperienceModal
+        isOpen={showNewExperienceModal}
+        onClose={() => setShowNewExperienceModal(false)}
+        onConfirm={name => {
+          setNewExperienceName(name);
+          setShowNewExperienceModal(false);
+        }}
+      />
 
       {pendingOption?.subModalType === 'traits' && (
         <TraitSelectionModal
@@ -402,7 +619,7 @@ export function LevelUpModal({
           onConfirm={selectedExperiences =>
             handleSubModalConfirm({ selectedExperiences })
           }
-          experiences={currentExperiences}
+          experiences={availableExperiencesForSelection}
           requiredCount={2}
         />
       )}
@@ -415,6 +632,7 @@ export function LevelUpModal({
             handleSubModalConfirm({ selectedDomainCard })
           }
           targetLevel={targetLevel}
+          ownedCardNames={allOwnedCardNames}
         />
       )}
 
