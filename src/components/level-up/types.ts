@@ -1,5 +1,7 @@
 import type { CharacterTier } from '@/lib/schemas/core';
 
+export type LevelUpStep = 'automatic-benefits' | 'advancement-options';
+
 export interface LevelUpOptionConfig {
   id: string;
   label: string;

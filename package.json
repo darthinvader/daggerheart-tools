@@ -29,6 +29,7 @@
     "depcruise": "depcruise --config .dependency-cruiser.cjs --progress --include-only ^src --output-type err src",
     "analyze:size": "pnpm build && size-limit",
     "lint:fast": "oxlint --deny warn --ignore-path .gitignore",
+    "lint:complexity": "eslint . --no-warn-ignored --rule \"complexity: [error, 15]\" --rule \"max-lines-per-function: [error, { max: 120, skipBlankLines: true, skipComments: true }]\" --rule \"max-lines: [error, { max: 350, skipBlankLines: true, skipComments: true }]\" --format unix",
     "size:report": "node ./scripts/size-report.mjs --top=40 --by=size"
   },
   "dependencies": {

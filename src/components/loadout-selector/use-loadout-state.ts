@@ -16,6 +16,13 @@ import {
   createDefaultFilters,
 } from './card-filters-utils';
 import { cardToLite, homebrewToLite } from './card-utils';
+import {
+  moveToActive,
+  moveToVault,
+  quickSwapToActive,
+  quickSwapToVault,
+  swapCards,
+} from './loadout-card-operations';
 import { ALL_DOMAIN_NAMES, getAvailableCards } from './loadout-utils';
 
 interface UseLoadoutStateProps {
@@ -196,109 +203,72 @@ export function useLoadoutState({
 
   const handleMoveToVault = useCallback(
     (cardName: string) => {
-      if (
-        rules.maxVaultCards !== undefined &&
-        vaultCards.length >= rules.maxVaultCards
-      )
-        return;
-      const card = activeCards.find(c => c.name === cardName);
-      if (!card) return;
-      const newActive = activeCards.filter(c => c.name !== cardName);
-      const newVault = [...vaultCards, card];
-      setActiveCards(newActive);
-      setVaultCards(newVault);
-      notifyChange({ activeCards: newActive, vaultCards: newVault });
+      const result = moveToVault(cardName, activeCards, vaultCards, rules);
+      if (!result) return;
+      setActiveCards(result.activeCards);
+      setVaultCards(result.vaultCards);
+      notifyChange(result);
     },
-    [activeCards, vaultCards, rules.maxVaultCards, notifyChange]
+    [activeCards, vaultCards, rules, notifyChange]
   );
 
   const handleMoveToActive = useCallback(
     (cardName: string) => {
-      if (activeCards.length >= rules.maxActiveCards) return;
-      const card = vaultCards.find(c => c.name === cardName);
-      if (!card) return;
-      const newVault = vaultCards.filter(c => c.name !== cardName);
-      const newActive = [...activeCards, card];
-      setVaultCards(newVault);
-      setActiveCards(newActive);
-      notifyChange({ activeCards: newActive, vaultCards: newVault });
+      const result = moveToActive(cardName, activeCards, vaultCards, rules);
+      if (!result) return;
+      setVaultCards(result.vaultCards);
+      setActiveCards(result.activeCards);
+      notifyChange(result);
     },
-    [activeCards, vaultCards, rules.maxActiveCards, notifyChange]
+    [activeCards, vaultCards, rules, notifyChange]
   );
 
-  // Swap an active card with a vault card (works even when both are full)
   const handleSwapCards = useCallback(
     (activeCardName: string, vaultCardName: string) => {
-      const activeCard = activeCards.find(c => c.name === activeCardName);
-      const vaultCard = vaultCards.find(c => c.name === vaultCardName);
-      if (!activeCard || !vaultCard) return;
-
-      const newActive = activeCards
-        .filter(c => c.name !== activeCardName)
-        .concat(vaultCard);
-      const newVault = vaultCards
-        .filter(c => c.name !== vaultCardName)
-        .concat(activeCard);
-
-      setActiveCards(newActive);
-      setVaultCards(newVault);
-      notifyChange({ activeCards: newActive, vaultCards: newVault });
+      const result = swapCards(
+        activeCardName,
+        vaultCardName,
+        activeCards,
+        vaultCards
+      );
+      if (!result) return;
+      setActiveCards(result.activeCards);
+      setVaultCards(result.vaultCards);
+      notifyChange(result);
     },
     [activeCards, vaultCards, notifyChange]
   );
 
-  // Quick swap: move card to other slot, replacing the first card there
   const handleQuickSwapToVault = useCallback(
     (activeCardName: string) => {
-      if (
-        rules.maxVaultCards === undefined ||
-        vaultCards.length < rules.maxVaultCards
-      ) {
-        // Not full, just move
-        const card = activeCards.find(c => c.name === activeCardName);
-        if (!card) return;
-        const newActive = activeCards.filter(c => c.name !== activeCardName);
-        const newVault = [...vaultCards, card];
-        setActiveCards(newActive);
-        setVaultCards(newVault);
-        notifyChange({ activeCards: newActive, vaultCards: newVault });
-      } else if (vaultCards.length > 0) {
-        // Full, swap with first vault card
-        handleSwapCards(activeCardName, vaultCards[0].name);
-      }
+      const result = quickSwapToVault(
+        activeCardName,
+        activeCards,
+        vaultCards,
+        rules
+      );
+      if (!result) return;
+      setActiveCards(result.activeCards);
+      setVaultCards(result.vaultCards);
+      notifyChange(result);
     },
-    [
-      activeCards,
-      vaultCards,
-      rules.maxVaultCards,
-      notifyChange,
-      handleSwapCards,
-    ]
+    [activeCards, vaultCards, rules, notifyChange]
   );
 
   const handleQuickSwapToActive = useCallback(
     (vaultCardName: string) => {
-      if (activeCards.length < rules.maxActiveCards) {
-        // Not full, just move
-        const card = vaultCards.find(c => c.name === vaultCardName);
-        if (!card) return;
-        const newVault = vaultCards.filter(c => c.name !== vaultCardName);
-        const newActive = [...activeCards, card];
-        setVaultCards(newVault);
-        setActiveCards(newActive);
-        notifyChange({ activeCards: newActive, vaultCards: newVault });
-      } else if (activeCards.length > 0) {
-        // Full, swap with first active card
-        handleSwapCards(activeCards[0].name, vaultCardName);
-      }
+      const result = quickSwapToActive(
+        vaultCardName,
+        activeCards,
+        vaultCards,
+        rules
+      );
+      if (!result) return;
+      setVaultCards(result.vaultCards);
+      setActiveCards(result.activeCards);
+      notifyChange(result);
     },
-    [
-      activeCards,
-      vaultCards,
-      rules.maxActiveCards,
-      notifyChange,
-      handleSwapCards,
-    ]
+    [activeCards, vaultCards, rules, notifyChange]
   );
 
   const handleAddHomebrew = useCallback(

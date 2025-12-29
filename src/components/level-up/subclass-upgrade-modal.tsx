@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -12,15 +11,13 @@ import {
 } from '@/components/ui/dialog';
 import { getSubclassByName } from '@/lib/data/classes';
 import {
-  CLASS_BG_COLORS,
   CLASS_COLORS,
   CLASS_EMOJIS,
   type ClassSubclassPair,
 } from '@/lib/schemas/class-selection';
-import type { SubclassFeature } from '@/lib/schemas/core';
-import { cn } from '@/lib/utils';
 
 import type { SubclassUpgradeSelection } from './types';
+import { type UpgradeOption, UpgradeOptionCard } from './upgrade-option-card';
 
 export type SubclassUpgradeModalProps = {
   isOpen: boolean;
@@ -29,13 +26,6 @@ export type SubclassUpgradeModalProps = {
   classes: ClassSubclassPair[];
   unlockedFeatures: Record<string, string[]>;
   targetTier: string;
-};
-
-type UpgradeOption = {
-  className: string;
-  subclassName: string;
-  feature: SubclassFeature;
-  upgradeType: 'specialization' | 'mastery';
 };
 
 function getAvailableUpgrades(
@@ -184,41 +174,14 @@ export function SubclassUpgradeModal({
                   </h4>
                   <div className="space-y-2">
                     {options.map(option => (
-                      <div
+                      <UpgradeOptionCard
                         key={option.feature.name}
-                        className={cn(
-                          'cursor-pointer rounded-lg border p-3 transition-colors',
+                        option={option}
+                        isSelected={
                           selectedOption?.feature.name === option.feature.name
-                            ? `border-2 ${CLASS_BG_COLORS[className] ?? 'border-primary bg-primary/10'}`
-                            : 'hover:bg-muted/50'
-                        )}
-                        onClick={() => setSelectedOption(option)}
-                      >
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-medium">
-                            {option.feature.name}
-                          </span>
-                          <Badge
-                            variant={
-                              option.upgradeType === 'mastery'
-                                ? 'default'
-                                : 'secondary'
-                            }
-                          >
-                            {option.upgradeType === 'mastery'
-                              ? '⭐ Mastery'
-                              : '🔷 Specialization'}
-                          </Badge>
-                          {option.feature.level && (
-                            <Badge variant="outline">
-                              Level {option.feature.level}+
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-muted-foreground mt-2 text-sm">
-                          {option.feature.description}
-                        </p>
-                      </div>
+                        }
+                        onSelect={() => setSelectedOption(option)}
+                      />
                     ))}
                   </div>
                 </div>

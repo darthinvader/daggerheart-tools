@@ -1,12 +1,5 @@
-import { useState } from 'react';
-
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import {
   CLASS_BG_COLORS,
@@ -16,6 +9,7 @@ import {
 import { DOMAIN_COLORS, DOMAIN_EMOJIS } from '@/lib/schemas/loadout';
 import { cn } from '@/lib/utils';
 
+import { CollapsibleDescription } from './collapsible-description';
 import type { ClassDetailsData } from './types';
 
 interface CompactClassInfoProps {
@@ -23,9 +17,6 @@ interface CompactClassInfoProps {
 }
 
 export function CompactClassInfo({ data }: CompactClassInfoProps) {
-  const [isDescriptionOpen, setIsDescriptionOpen] = useState(false);
-  const [isSubclassDescOpen, setIsSubclassDescOpen] = useState(false);
-
   const emoji = CLASS_EMOJIS[data.className] ?? '⚔️';
   const colorClass = CLASS_COLORS[data.className] ?? 'text-foreground';
   const bgColorClass = CLASS_BG_COLORS[data.className] ?? '';
@@ -68,29 +59,11 @@ export function CompactClassInfo({ data }: CompactClassInfoProps) {
       </CardHeader>
       <CardContent className="space-y-3 pt-0">
         {data.description && (
-          <Collapsible
-            open={isDescriptionOpen}
-            onOpenChange={setIsDescriptionOpen}
-          >
-            <CollapsibleTrigger className="text-muted-foreground hover:text-foreground flex w-full cursor-pointer items-center gap-2 text-sm transition-colors">
-              <span
-                className="transition-transform duration-200"
-                style={{
-                  transform: isDescriptionOpen
-                    ? 'rotate(90deg)'
-                    : 'rotate(0deg)',
-                }}
-              >
-                ▶
-              </span>
-              <span className="font-medium">Class Description</span>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <p className="text-muted-foreground mt-2 text-sm">
-                {data.description}
-              </p>
-            </CollapsibleContent>
-          </Collapsible>
+          <CollapsibleDescription label="Class Description">
+            <p className="text-muted-foreground mt-2 text-sm">
+              {data.description}
+            </p>
+          </CollapsibleDescription>
         )}
 
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
@@ -124,33 +97,13 @@ export function CompactClassInfo({ data }: CompactClassInfoProps) {
         </div>
 
         {data.subclassDescription && (
-          <Collapsible
-            open={isSubclassDescOpen}
-            onOpenChange={setIsSubclassDescOpen}
-          >
-            <CollapsibleTrigger className="text-muted-foreground hover:text-foreground flex w-full cursor-pointer items-center gap-2 text-sm transition-colors">
-              <span
-                className="transition-transform duration-200"
-                style={{
-                  transform: isSubclassDescOpen
-                    ? 'rotate(90deg)'
-                    : 'rotate(0deg)',
-                }}
-              >
-                ▶
-              </span>
-              <span className="font-medium">
-                🎭 {data.subclassName} Description
-              </span>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <div className="bg-muted/30 mt-2 rounded-md p-2">
-                <p className="text-muted-foreground text-xs">
-                  {data.subclassDescription}
-                </p>
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
+          <CollapsibleDescription label={`🎭 ${data.subclassName} Description`}>
+            <div className="bg-muted/30 mt-2 rounded-md p-2">
+              <p className="text-muted-foreground text-xs">
+                {data.subclassDescription}
+              </p>
+            </div>
+          </CollapsibleDescription>
         )}
       </CardContent>
     </Card>
