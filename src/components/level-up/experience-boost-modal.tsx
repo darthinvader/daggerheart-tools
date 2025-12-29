@@ -60,7 +60,7 @@ export function ExperienceBoostModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={open => !open && handleClose()}>
-      <DialogContent className="sm:max-w-[450px]">
+      <DialogContent className="sm:max-w-112.5">
         <DialogHeader>
           <DialogTitle>Boost Experiences</DialogTitle>
           <DialogDescription>

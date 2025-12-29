@@ -82,6 +82,7 @@ export type DomainCardMiniProps = {
     location: 'active' | 'vault',
     index: number
   ) => void;
+  onDragLeave?: (e: React.DragEvent) => void;
   onDragEnd?: () => void;
   onDrop?: (location: 'active' | 'vault', index: number) => void;
   isDragging?: boolean;
@@ -104,6 +105,7 @@ export function DomainCardMini({
   canSwapToActive,
   onDragStart,
   onDragOver,
+  onDragLeave,
   onDragEnd,
   onDrop,
   isDragging,
@@ -150,6 +152,7 @@ export function DomainCardMini({
       draggable={!!onDragStart && !isCoarse}
       onDragStart={() => onDragStart?.(location, index)}
       onDragOver={e => onDragOver?.(e, location, index)}
+      onDragLeave={onDragLeave}
       onDragEnd={onDragEnd}
       onDrop={() => onDrop?.(location, index)}
       onClick={handleCardClick}

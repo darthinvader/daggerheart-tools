@@ -60,7 +60,7 @@ function DenominationRow({
 
   return (
     <div className="flex items-center justify-between gap-3">
-      <div className="flex min-w-[80px] items-center gap-2">
+      <div className="flex min-w-20 items-center gap-2">
         <span className="text-sm font-medium">{label}</span>
         <span className="text-muted-foreground w-6 text-center text-sm tabular-nums">
           {value}

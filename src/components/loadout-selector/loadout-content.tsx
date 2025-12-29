@@ -86,6 +86,7 @@ export function LoadoutContent({
         isDragging={isDragging}
         handleDragStart={dragDrop.handleDragStart}
         handleDragOver={dragDrop.handleDragOver}
+        handleDragLeave={dragDrop.handleDragLeave}
         handleDragEnd={dragDrop.handleDragEnd}
         handleDrop={dragDrop.handleDrop}
         handleSelectForSwap={dragDrop.handleSelectForSwap}
@@ -105,6 +106,7 @@ export function LoadoutContent({
         isDragging={isDragging}
         handleDragStart={dragDrop.handleDragStart}
         handleDragOver={dragDrop.handleDragOver}
+        handleDragLeave={dragDrop.handleDragLeave}
         handleDragEnd={dragDrop.handleDragEnd}
         handleDrop={dragDrop.handleDrop}
         handleSelectForSwap={dragDrop.handleSelectForSwap}

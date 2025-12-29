@@ -41,7 +41,7 @@ export function NewExperienceModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={open => !open && handleClose()}>
-      <DialogContent className="sm:max-w-[400px]">
+      <DialogContent className="sm:max-w-100">
         <DialogHeader>
           <DialogTitle>New Experience</DialogTitle>
           <DialogDescription>

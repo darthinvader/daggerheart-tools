@@ -11,22 +11,10 @@ import {
 } from './level-up-selection-handlers';
 import {
   canProceedToOptions as checkCanProceed,
-  computeAllOwnedCardNames,
-  computeAvailableExperiencesForSelection,
-  computeAvailableTraitsForSelection,
-  computeCardsSelectedThisSession,
-  computeClassPairs,
-  computePointsSpent,
-  extractBoostedExperiencesThisSession,
-  extractSelectedTraitsThisSession,
-  getAvailableOptionsForTier,
   shouldGetNewExperience,
 } from './level-up-state-utils';
-import {
-  type LevelUpOptionConfig,
-  type LevelUpSelection,
-  type LevelUpStep,
-} from './types';
+import { type LevelUpSelection, type LevelUpStep } from './types';
+import { useLevelUpComputed } from './use-level-up-computed';
 
 const POINTS_PER_LEVEL = 2;
 
@@ -57,8 +45,9 @@ export function useLevelUpState(props: UseLevelUpStateProps) {
   const [currentStep, setCurrentStep] =
     useState<LevelUpStep>('automatic-benefits');
   const [selections, setSelections] = useState<LevelUpSelection[]>([]);
-  const [pendingOption, setPendingOption] =
-    useState<LevelUpOptionConfig | null>(null);
+  const [pendingOption, setPendingOption] = useState<
+    ReturnType<typeof useLevelUpComputed>['availableOptions'][number] | null
+  >(null);
   const [freeDomainCard, setFreeDomainCard] = useState<string | null>(null);
   const [newExperienceName, setNewExperienceName] = useState<string | null>(
     null
@@ -68,57 +57,21 @@ export function useLevelUpState(props: UseLevelUpStateProps) {
 
   const getsNewExperience = shouldGetNewExperience(targetLevel);
   const effectiveTierHistory = tierChanged ? {} : tierHistory;
-  const classPairs = useMemo(
-    () => computeClassPairs(classSelection),
-    [classSelection]
-  );
-  const cardsSelectedThisSession = useMemo(
-    () => computeCardsSelectedThisSession(freeDomainCard, selections),
-    [freeDomainCard, selections]
-  );
-  const allOwnedCardNames = useMemo(
-    () => computeAllOwnedCardNames(ownedCardNames, cardsSelectedThisSession),
-    [ownedCardNames, cardsSelectedThisSession]
-  );
-  const availableOptions = useMemo(
-    () => getAvailableOptionsForTier(targetTier),
-    [targetTier]
-  );
-  const pointsSpent = useMemo(
-    () => computePointsSpent(selections, availableOptions),
-    [selections, availableOptions]
-  );
-  const pointsRemaining = POINTS_PER_LEVEL - pointsSpent;
-  const alreadySelectedTraits = useMemo(
-    () => extractSelectedTraitsThisSession(selections),
-    [selections]
-  );
-  const alreadyBoostedExperiences = useMemo(
-    () => extractBoostedExperiencesThisSession(selections),
-    [selections]
-  );
-  const availableTraitsForSelection = useMemo(
-    () =>
-      computeAvailableTraitsForSelection(currentTraits, alreadySelectedTraits),
-    [currentTraits, alreadySelectedTraits]
-  );
-  const availableExperiencesForSelection = useMemo(
-    () =>
-      computeAvailableExperiencesForSelection(
-        currentExperiences,
-        alreadyBoostedExperiences,
-        getsNewExperience,
-        newExperienceName,
-        targetLevel
-      ),
-    [
-      currentExperiences,
-      alreadyBoostedExperiences,
-      getsNewExperience,
-      newExperienceName,
-      targetLevel,
-    ]
-  );
+
+  const computed = useLevelUpComputed({
+    targetTier,
+    classSelection,
+    ownedCardNames,
+    freeDomainCard,
+    selections,
+    currentTraits,
+    currentExperiences,
+    getsNewExperience,
+    newExperienceName,
+    targetLevel,
+  });
+
+  const pointsRemaining = POINTS_PER_LEVEL - computed.pointsSpent;
   const canProceedToOptions = checkCanProceed(
     freeDomainCard,
     getsNewExperience,
@@ -133,14 +86,23 @@ export function useLevelUpState(props: UseLevelUpStateProps) {
     setPendingOption(null);
     setShowFreeDomainCardModal(false);
     setShowNewExperienceModal(false);
-  }, []);
+  }, [
+    setCurrentStep,
+    setSelections,
+    setFreeDomainCard,
+    setNewExperienceName,
+    setPendingOption,
+    setShowFreeDomainCardModal,
+    setShowNewExperienceModal,
+  ]);
+
   const handleSelectOption = useMemo(
     () => createSelectOptionHandler(setSelections, setPendingOption),
-    []
+    [setSelections, setPendingOption]
   );
   const handleRemoveSelection = useMemo(
     () => createRemoveSelectionHandler(setSelections),
-    []
+    [setSelections]
   );
   const handleSubModalConfirm = useMemo(
     () =>
@@ -149,7 +111,7 @@ export function useLevelUpState(props: UseLevelUpStateProps) {
         setPendingOption,
         pendingOption
       ),
-    [pendingOption]
+    [setSelections, setPendingOption, pendingOption]
   );
 
   return {
@@ -171,14 +133,14 @@ export function useLevelUpState(props: UseLevelUpStateProps) {
     setShowNewExperienceModal,
     getsNewExperience,
     effectiveTierHistory,
-    classPairs,
-    allOwnedCardNames,
-    availableOptions,
-    pointsSpent,
+    pointsSpent: computed.pointsSpent,
     pointsRemaining,
     pointsPerLevel: POINTS_PER_LEVEL,
-    availableTraitsForSelection,
-    availableExperiencesForSelection,
+    classPairs: computed.classPairs,
+    allOwnedCardNames: computed.allOwnedCardNames,
+    availableOptions: computed.availableOptions,
+    availableTraitsForSelection: computed.availableTraitsForSelection,
+    availableExperiencesForSelection: computed.availableExperiencesForSelection,
     canProceedToOptions,
     resetState,
     handleSelectOption,

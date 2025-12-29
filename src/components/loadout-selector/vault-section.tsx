@@ -3,13 +3,9 @@ import { Separator } from '@/components/ui/separator';
 import { useCoarsePointer } from '@/hooks/use-coarse-pointer';
 import type { DomainCardLite } from '@/lib/schemas/loadout';
 
+import { type PreviewCard, buildCardProps } from './card-props-builder';
 import { DomainCardMini, type DragSource } from './domain-card-mini';
 import { EndDropZone } from './end-drop-zone';
-
-export type PreviewCard = DomainCardLite & {
-  isPreview?: boolean;
-  isMovingAway?: boolean;
-};
 
 type VaultSectionProps = {
   vaultCards: PreviewCard[];
@@ -29,6 +25,7 @@ type VaultSectionProps = {
     location: 'active' | 'vault',
     index: number
   ) => void;
+  handleDragLeave: (e: React.DragEvent) => void;
   handleDragEnd: () => void;
   handleDrop: (location: 'active' | 'vault', index: number) => void;
   handleSelectForSwap: (location: 'active' | 'vault', index: number) => void;
@@ -49,6 +46,7 @@ export function VaultSection({
   isDragging,
   handleDragStart,
   handleDragOver,
+  handleDragLeave,
   handleDragEnd,
   handleDrop,
   handleSelectForSwap,
@@ -74,54 +72,37 @@ export function VaultSection({
           )}
         </h5>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {vaultCards.map((card, index) => {
-            const originalIndex = originalCards.findIndex(
-              c => c.name === card.name
-            );
-            const displayIndex = originalIndex >= 0 ? originalIndex : index;
-            return (
-              <DomainCardMini
-                key={card.name}
-                card={card}
-                location="vault"
-                index={displayIndex}
-                onSwap={
-                  onSwapToActive ? () => onSwapToActive(card.name) : undefined
-                }
-                canSwapToActive={canSwapToActive}
-                onDragStart={onMoveCard ? handleDragStart : undefined}
-                onDragOver={
-                  onMoveCard
-                    ? e => handleDragOver(e, 'vault', index)
-                    : undefined
-                }
-                onDragEnd={onMoveCard ? handleDragEnd : undefined}
-                onDrop={
-                  onMoveCard ? () => handleDrop('vault', index) : undefined
-                }
-                isDragging={
-                  dragSource?.location === 'vault' &&
-                  dragSource?.index === displayIndex
-                }
-                isDragOver={
-                  dragOverTarget?.location === 'vault' &&
-                  dragOverTarget?.index === index
-                }
-                isCoarse={isCoarse}
-                isSwapMode={isSwapMode}
-                swapSource={swapSource}
-                onSelectForSwap={onMoveCard ? handleSelectForSwap : undefined}
-                onCancelSwap={handleCancelSwap}
-                isPreview={card.isPreview}
-                isMovingAway={card.isMovingAway}
-                onConvertToHomebrew={
-                  onConvertToHomebrew
-                    ? () => onConvertToHomebrew(card)
-                    : undefined
-                }
-              />
-            );
-          })}
+          {vaultCards.map((card, index) => (
+            <DomainCardMini
+              key={card.name}
+              {...buildCardProps({
+                card,
+                index,
+                originalCards,
+                location: 'vault',
+                onMoveCard,
+                isCoarse,
+                dragSource,
+                dragOverTarget,
+                swapSource,
+                isSwapMode,
+                handleDragStart,
+                handleDragOver,
+                handleDragLeave,
+                handleDragEnd,
+                handleDrop,
+                handleSelectForSwap,
+                handleCancelSwap,
+                onSwap: onSwapToActive
+                  ? () => onSwapToActive(card.name)
+                  : undefined,
+                canSwapToActive,
+                onConvertToHomebrew: onConvertToHomebrew
+                  ? () => onConvertToHomebrew(card)
+                  : undefined,
+              })}
+            />
+          ))}
           {onMoveCard && isDragging && dragSource?.location === 'active' && (
             <EndDropZone
               location="vault"

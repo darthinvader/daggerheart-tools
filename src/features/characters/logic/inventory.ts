@@ -168,6 +168,11 @@ export function useInventorySummary(inventory?: Inventory) {
     [slots]
   );
 
+  const isEquippedDerived = React.useCallback(
+    (s: { isEquipped?: boolean; location?: unknown }) => isSlotEquipped(s),
+    []
+  );
+
   const remaining = React.useMemo(
     () => Math.max(0, (inventory?.maxItems ?? 0) - slots.length),
     [inventory?.maxItems, slots.length]

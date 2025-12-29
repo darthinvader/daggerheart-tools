@@ -32,10 +32,10 @@ export function CardSearchFilters({
         placeholder="Search cards..."
         value={search}
         onChange={e => onSearchChange(e.target.value)}
-        className="min-w-[150px] flex-1"
+        className="min-w-37.5 flex-1"
       />
       <Select value={domainFilter} onValueChange={onDomainFilterChange}>
-        <SelectTrigger className="w-[140px]">
+        <SelectTrigger className="w-35">
           <SelectValue placeholder="Domain" />
         </SelectTrigger>
         <SelectContent>
@@ -48,7 +48,7 @@ export function CardSearchFilters({
         </SelectContent>
       </Select>
       <Select value={typeFilter} onValueChange={onTypeFilterChange}>
-        <SelectTrigger className="w-[130px]">
+        <SelectTrigger className="w-32.5">
           <SelectValue placeholder="Type" />
         </SelectTrigger>
         <SelectContent>

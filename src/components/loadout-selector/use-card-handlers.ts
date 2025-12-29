@@ -8,13 +8,7 @@ import type {
 } from '@/lib/schemas/loadout';
 
 import { homebrewToLite } from './card-utils';
-import {
-  moveToActive,
-  moveToVault,
-  quickSwapToActive,
-  quickSwapToVault,
-  swapCards,
-} from './loadout-card-operations';
+import { useCardMovementHandlers } from './use-card-movement-handlers';
 import { useCardToggleHandlers } from './use-card-toggle-handlers';
 
 interface UseCardHandlersProps {
@@ -42,7 +36,6 @@ export function useCardHandlers({
   setHomebrewCards,
   notifyChange,
 }: UseCardHandlersProps) {
-  // Use extracted toggle handlers
   const toggleHandlers = useCardToggleHandlers({
     activeCards,
     vaultCards,
@@ -54,103 +47,14 @@ export function useCardHandlers({
     notifyChange,
   });
 
-  const handleMoveToVault = useCallback(
-    (cardName: string) => {
-      const result = moveToVault(cardName, activeCards, vaultCards, rules);
-      if (!result) return;
-      setActiveCards(result.activeCards);
-      setVaultCards(result.vaultCards);
-      notifyChange(result);
-    },
-    [
-      activeCards,
-      vaultCards,
-      rules,
-      setActiveCards,
-      setVaultCards,
-      notifyChange,
-    ]
-  );
-
-  const handleMoveToActive = useCallback(
-    (cardName: string) => {
-      const result = moveToActive(cardName, activeCards, vaultCards, rules);
-      if (!result) return;
-      setVaultCards(result.vaultCards);
-      setActiveCards(result.activeCards);
-      notifyChange(result);
-    },
-    [
-      activeCards,
-      vaultCards,
-      rules,
-      setActiveCards,
-      setVaultCards,
-      notifyChange,
-    ]
-  );
-
-  const handleSwapCards = useCallback(
-    (activeCardName: string, vaultCardName: string) => {
-      const result = swapCards(
-        activeCardName,
-        vaultCardName,
-        activeCards,
-        vaultCards
-      );
-      if (!result) return;
-      setActiveCards(result.activeCards);
-      setVaultCards(result.vaultCards);
-      notifyChange(result);
-    },
-    [activeCards, vaultCards, setActiveCards, setVaultCards, notifyChange]
-  );
-
-  const handleQuickSwapToVault = useCallback(
-    (activeCardName: string) => {
-      const result = quickSwapToVault(
-        activeCardName,
-        activeCards,
-        vaultCards,
-        rules
-      );
-      if (!result) return;
-      setActiveCards(result.activeCards);
-      setVaultCards(result.vaultCards);
-      notifyChange(result);
-    },
-    [
-      activeCards,
-      vaultCards,
-      rules,
-      setActiveCards,
-      setVaultCards,
-      notifyChange,
-    ]
-  );
-
-  const handleQuickSwapToActive = useCallback(
-    (vaultCardName: string) => {
-      const result = quickSwapToActive(
-        vaultCardName,
-        activeCards,
-        vaultCards,
-        rules
-      );
-      if (!result) return;
-      setVaultCards(result.vaultCards);
-      setActiveCards(result.activeCards);
-      notifyChange(result);
-    },
-    [
-      activeCards,
-      vaultCards,
-      rules,
-      setActiveCards,
-      setVaultCards,
-      notifyChange,
-    ]
-  );
+  const movementHandlers = useCardMovementHandlers({
+    activeCards,
+    vaultCards,
+    rules,
+    setActiveCards,
+    setVaultCards,
+    notifyChange,
+  });
 
   const handleAddHomebrew = useCallback(
     (card: HomebrewDomainCard) => {
@@ -187,11 +91,7 @@ export function useCardHandlers({
 
   return {
     ...toggleHandlers,
-    handleMoveToVault,
-    handleMoveToActive,
-    handleSwapCards,
-    handleQuickSwapToVault,
-    handleQuickSwapToActive,
+    ...movementHandlers,
     handleAddHomebrew,
     handleAddHomebrewToLoadout,
     handleAddHomebrewToVault,

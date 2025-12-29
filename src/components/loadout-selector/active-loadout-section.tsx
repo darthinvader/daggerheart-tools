@@ -7,13 +7,9 @@ import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import { useCoarsePointer } from '@/hooks/use-coarse-pointer';
 import type { DomainCardLite } from '@/lib/schemas/loadout';
 
+import { type PreviewCard, buildCardProps } from './card-props-builder';
 import { DomainCardMini, type DragSource } from './domain-card-mini';
 import { EndDropZone } from './end-drop-zone';
-
-export type PreviewCard = DomainCardLite & {
-  isPreview?: boolean;
-  isMovingAway?: boolean;
-};
 
 interface LoadoutHeaderProps {
   originalCardsLength: number;
@@ -91,6 +87,7 @@ type ActiveLoadoutSectionProps = {
     location: 'active' | 'vault',
     index: number
   ) => void;
+  handleDragLeave: (e: React.DragEvent) => void;
   handleDragEnd: () => void;
   handleDrop: (location: 'active' | 'vault', index: number) => void;
   handleSelectForSwap: (location: 'active' | 'vault', index: number) => void;
@@ -112,6 +109,7 @@ export function ActiveLoadoutSection({
   isDragging,
   handleDragStart,
   handleDragOver,
+  handleDragLeave,
   handleDragEnd,
   handleDrop,
   handleSelectForSwap,
@@ -132,53 +130,36 @@ export function ActiveLoadoutSection({
           showDragHint={!!onMoveCard && !isCoarse}
         />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {activeCards.map((card, index) => {
-            const originalIndex = originalCards.findIndex(
-              c => c.name === card.name
-            );
-            const displayIndex = originalIndex >= 0 ? originalIndex : index;
-            return (
-              <DomainCardMini
-                key={card.name}
-                card={card}
-                location="active"
-                index={displayIndex}
-                onSwap={
-                  onSwapToVault ? () => onSwapToVault(card.name) : undefined
-                }
-                onDragStart={onMoveCard ? handleDragStart : undefined}
-                onDragOver={
-                  onMoveCard
-                    ? e => handleDragOver(e, 'active', index)
-                    : undefined
-                }
-                onDragEnd={onMoveCard ? handleDragEnd : undefined}
-                onDrop={
-                  onMoveCard ? () => handleDrop('active', index) : undefined
-                }
-                isDragging={
-                  dragSource?.location === 'active' &&
-                  dragSource?.index === displayIndex
-                }
-                isDragOver={
-                  dragOverTarget?.location === 'active' &&
-                  dragOverTarget?.index === index
-                }
-                isCoarse={isCoarse}
-                isSwapMode={isSwapMode}
-                swapSource={swapSource}
-                onSelectForSwap={onMoveCard ? handleSelectForSwap : undefined}
-                onCancelSwap={handleCancelSwap}
-                isPreview={card.isPreview}
-                isMovingAway={card.isMovingAway}
-                onConvertToHomebrew={
-                  onConvertToHomebrew
-                    ? () => onConvertToHomebrew(card)
-                    : undefined
-                }
-              />
-            );
-          })}
+          {activeCards.map((card, index) => (
+            <DomainCardMini
+              key={card.name}
+              {...buildCardProps({
+                card,
+                index,
+                originalCards,
+                location: 'active',
+                onMoveCard,
+                isCoarse,
+                dragSource,
+                dragOverTarget,
+                swapSource,
+                isSwapMode,
+                handleDragStart,
+                handleDragOver,
+                handleDragLeave,
+                handleDragEnd,
+                handleDrop,
+                handleSelectForSwap,
+                handleCancelSwap,
+                onSwap: onSwapToVault
+                  ? () => onSwapToVault(card.name)
+                  : undefined,
+                onConvertToHomebrew: onConvertToHomebrew
+                  ? () => onConvertToHomebrew(card)
+                  : undefined,
+              })}
+            />
+          ))}
           {onMoveCard &&
             isDragging &&
             dragSource?.location === 'vault' &&

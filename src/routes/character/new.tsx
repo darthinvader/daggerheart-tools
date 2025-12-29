@@ -4,12 +4,11 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 
 import { ClassSelector } from '@/components/class-selector';
 import { LoadoutSelector } from '@/components/loadout-selector';
+import { ReviewStep } from '@/components/shared/review-step';
 import { Button } from '@/components/ui/button';
 import type { ClassSelection } from '@/lib/schemas/class-selection';
 import type { LoadoutSelection } from '@/lib/schemas/loadout';
 import { cn, generateId } from '@/lib/utils';
-
-import { ReviewStep } from './review-step';
 
 export const Route = createFileRoute('/character/new')({
   component: NewCharacter,

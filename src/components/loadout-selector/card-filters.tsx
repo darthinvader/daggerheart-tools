@@ -9,6 +9,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { Switch } from '@/components/ui/switch';
 import type { DomainCardType } from '@/lib/schemas/domains';
 import { cn } from '@/lib/utils';
 
@@ -121,9 +122,10 @@ export function CardFilters({
   onFiltersChange,
   maxLevel = 10,
 }: CardFiltersProps) {
+  const effectiveMaxLevel = filters.showHigherLevelCards ? 10 : maxLevel;
   const activeFilterCount =
     (filters.types.length < CARD_TYPES.length ? filters.types.length : 0) +
-    (filters.levels.length < maxLevel ? filters.levels.length : 0);
+    (filters.levels.length < effectiveMaxLevel ? filters.levels.length : 0);
 
   const handleTypeToggle = (type: DomainCardType) => {
     const newTypes = filters.types.includes(type)
@@ -139,22 +141,32 @@ export function CardFilters({
     onFiltersChange({ ...filters, levels: newLevels });
   };
 
+  const handleHigherLevelToggle = (checked: boolean) => {
+    const newMaxLevel = checked ? 10 : maxLevel;
+    onFiltersChange({
+      ...filters,
+      showHigherLevelCards: checked,
+      levels: CARD_LEVELS.filter(l => l <= newMaxLevel),
+    });
+  };
+
   const handleResetTypes = () =>
     onFiltersChange({ ...filters, types: [...CARD_TYPES] });
 
   const handleResetLevels = () =>
     onFiltersChange({
       ...filters,
-      levels: CARD_LEVELS.filter(l => l <= maxLevel),
+      levels: CARD_LEVELS.filter(l => l <= effectiveMaxLevel),
     });
 
   const handleResetAll = () =>
     onFiltersChange({
       types: [...CARD_TYPES],
       levels: CARD_LEVELS.filter(l => l <= maxLevel),
+      showHigherLevelCards: false,
     });
 
-  const availableLevels = CARD_LEVELS.filter(l => l <= maxLevel);
+  const availableLevels = CARD_LEVELS.filter(l => l <= effectiveMaxLevel);
 
   return (
     <Popover>
@@ -195,6 +207,27 @@ export function CardFilters({
             onToggle={handleLevelToggle}
             onReset={handleResetLevels}
           />
+
+          {maxLevel < 10 && (
+            <div className="border-t pt-3">
+              <div className="flex items-center justify-between">
+                <Label
+                  htmlFor="higher-level-toggle"
+                  className="cursor-pointer text-sm"
+                >
+                  🔓 Show higher level cards
+                </Label>
+                <Switch
+                  id="higher-level-toggle"
+                  checked={filters.showHigherLevelCards}
+                  onCheckedChange={handleHigherLevelToggle}
+                />
+              </div>
+              <p className="text-muted-foreground mt-1 text-xs">
+                Include cards above level {maxLevel}
+              </p>
+            </div>
+          )}
         </div>
       </PopoverContent>
     </Popover>

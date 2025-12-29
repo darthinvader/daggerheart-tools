@@ -110,7 +110,7 @@ export function DomainCardSelectionModal({
           availableDomains={availableDomains}
         />
 
-        <div className="max-h-[400px] min-h-[200px] flex-1 space-y-2 overflow-y-auto pr-2">
+        <div className="max-h-100 min-h-50 flex-1 space-y-2 overflow-y-auto pr-2">
           {filteredCards.length === 0 ? (
             <p className="text-muted-foreground py-4 text-center">
               No cards found matching your criteria.

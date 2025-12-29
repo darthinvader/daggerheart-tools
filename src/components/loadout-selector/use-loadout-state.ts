@@ -31,7 +31,6 @@ export function useLoadoutState({
   tier,
 }: UseLoadoutStateProps) {
   const baseRules: LoadoutRules = getLoadoutRulesForTier(tier);
-
   const {
     mode,
     setMode,
@@ -51,7 +50,6 @@ export function useLoadoutState({
     baseMaxCards: baseRules.maxActiveCards,
     currentActiveCount: activeCards.length,
   });
-
   const rules: LoadoutRules = useMemo(
     () => ({ ...baseRules, maxActiveCards }),
     [baseRules, maxActiveCards]
@@ -86,19 +84,21 @@ export function useLoadoutState({
     [classDomains, onChange]
   );
 
+  const effectiveMaxCardLevel = cardFilters.showHigherLevelCards
+    ? 10
+    : rules.maxCardLevel;
   const availableCards = useMemo(
     () =>
       getAvailableCards(
         mode,
         classDomains,
-        rules.maxCardLevel,
+        effectiveMaxCardLevel,
         selectedDomains,
         homebrewCards
       ),
-    [mode, classDomains, rules.maxCardLevel, selectedDomains, homebrewCards]
+    [mode, classDomains, effectiveMaxCardLevel, selectedDomains, homebrewCards]
   );
 
-  // Domain mode handlers
   const domainModeHandlers = useDomainModeHandlers({
     mode,
     classDomains,
@@ -106,8 +106,6 @@ export function useLoadoutState({
     setSelectedDomains,
     notifyChange,
   });
-
-  // Use extracted card handlers hook
   const cardHandlers = useCardHandlers({
     activeCards,
     vaultCards,

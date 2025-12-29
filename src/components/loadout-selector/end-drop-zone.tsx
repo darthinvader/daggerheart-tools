@@ -21,7 +21,7 @@ export function EndDropZone({
   return (
     <div
       className={cn(
-        'flex min-h-[100px] items-center justify-center rounded-lg border-2 border-dashed p-4 transition-all',
+        'flex min-h-25 items-center justify-center rounded-lg border-2 border-dashed p-4 transition-all',
         isDragOver
           ? 'border-primary bg-primary/10 ring-primary ring-2'
           : 'border-muted-foreground/30 bg-muted/30',
