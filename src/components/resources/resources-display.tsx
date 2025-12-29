@@ -11,6 +11,12 @@ import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import { cn } from '@/lib/utils';
 
 import { RESOURCE_CONFIG } from './constants';
+import {
+  computeAutoResources,
+  handleAutoToggleUpdate,
+  isResourceAutoDisabled,
+  updateResourceValue,
+} from './resources-utils';
 
 export interface ResourceValue {
   current: number;
@@ -30,15 +36,6 @@ export interface AutoCalculateContext {
   classHp?: number;
   classTier?: number;
   armorScore?: number;
-}
-
-function computeAutoResources(ctx: AutoCalculateContext) {
-  const baseHp = ctx.classHp ?? 6;
-  const tierBonus = (ctx.classTier ?? 1) - 1;
-  return {
-    maxHp: baseHp + tierBonus,
-    armorScore: ctx.armorScore ?? 0,
-  };
 }
 
 interface ResourcesDisplayProps {
@@ -154,38 +151,20 @@ function ResourcesEditor({
     () => computeAutoResources(autoContext ?? {}),
     [autoContext]
   );
+  const hasAutoContext = Boolean(autoContext);
 
   const updateResource = (
     key: keyof ResourcesState,
     current: number,
     max?: number
   ) => {
-    const existingResource = resources[key];
-    if (!existingResource || typeof existingResource === 'boolean') return;
-    const newMax = max ?? existingResource.max;
-    const clampedCurrent = Math.min(current, newMax);
-    onChange({ ...resources, [key]: { current: clampedCurrent, max: newMax } });
+    onChange(updateResourceValue(resources, key, current, max));
   };
 
   const handleAutoToggle = (
     field: 'autoCalculateHp' | 'autoCalculateArmor'
   ) => {
-    const newValue = !resources[field];
-    const updates: Partial<ResourcesState> = { [field]: newValue };
-    if (newValue) {
-      if (field === 'autoCalculateHp') {
-        updates.hp = {
-          current: Math.min(resources.hp.current, autoValues.maxHp),
-          max: autoValues.maxHp,
-        };
-      } else if (field === 'autoCalculateArmor') {
-        updates.armorScore = {
-          current: autoValues.armorScore,
-          max: autoValues.armorScore,
-        };
-      }
-    }
-    onChange({ ...resources, ...updates });
+    onChange(handleAutoToggleUpdate(resources, field, autoValues));
   };
 
   return (
@@ -227,11 +206,11 @@ function ResourcesEditor({
         {RESOURCE_CONFIG.map(({ key, label }) => {
           const resource = resources[key];
           if (!resource || typeof resource === 'boolean') return null;
-          const isAutoDisabled =
-            (key === 'hp' && resources.autoCalculateHp && autoContext) ||
-            (key === 'armorScore' &&
-              resources.autoCalculateArmor &&
-              autoContext);
+          const isAutoDisabled = isResourceAutoDisabled(
+            key,
+            resources,
+            hasAutoContext
+          );
           return (
             <LabeledCounter
               key={key}

@@ -1,13 +1,9 @@
-/* eslint-disable max-lines-per-function, complexity */
-import { useCallback, useId, useMemo, useState } from 'react';
-
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import { cn } from '@/lib/utils';
 
+import { CustomThresholdsForm } from './custom-thresholds-form';
+import { ThresholdCheckbox } from './threshold-checkbox';
 import { ThresholdsDisplay } from './thresholds-display';
+import { useThresholdsEditorState } from './use-thresholds-editor-state';
 
 interface ThresholdsEditorProps {
   minor: number;
@@ -26,21 +22,6 @@ interface ThresholdsEditorProps {
   className?: string;
 }
 
-function computeAutoThresholds(baseHp: number) {
-  const minor = Math.max(1, Math.floor(baseHp / 6));
-  const severe = Math.max(minor + 1, Math.floor(baseHp / 3));
-  const major = severe * 2;
-  return { minor, severe, major };
-}
-
-function validateThresholdInput(value: string): number | null {
-  const trimmed = value.trim();
-  if (trimmed === '') return null;
-  const num = parseInt(trimmed, 10);
-  if (!Number.isFinite(num) || num < 0) return null;
-  return num;
-}
-
 export function ThresholdsEditor({
   minor,
   severe,
@@ -57,121 +38,42 @@ export function ThresholdsEditor({
   baseHp = 6,
   className,
 }: ThresholdsEditorProps) {
-  const baseId = useId();
-  const autoId = `${baseId}-auto`;
-  const autoMajorId = `${baseId}-auto-major`;
-  const majorId = `${baseId}-major`;
-  const minorInputId = `${baseId}-minor`;
-  const severeInputId = `${baseId}-severe`;
-  const majorInputId = `${baseId}-major-input`;
-
-  const [localMinor, setLocalMinor] = useState(String(minor));
-  const [localSevere, setLocalSevere] = useState(String(severe));
-  const [localMajor, setLocalMajor] = useState(String(major ?? severe * 2));
-
-  const autoThresholds = useMemo(() => computeAutoThresholds(baseHp), [baseHp]);
-
-  const effectiveMinor = autoCalculate ? autoThresholds.minor : minor;
-  const effectiveSevere = autoCalculate ? autoThresholds.severe : severe;
-  const effectiveMajor =
-    autoCalculate || autoCalculateMajor
-      ? effectiveSevere * 2
-      : (major ?? severe * 2);
-
-  const validationError = useMemo(() => {
-    if (autoCalculate) return null;
-    if (effectiveSevere < effectiveMinor) {
-      return 'Severe must be ≥ Minor';
-    }
-    if (showMajor && effectiveMajor < effectiveSevere) {
-      return 'Major must be ≥ Severe';
-    }
-    return null;
-  }, [
-    autoCalculate,
+  const {
+    ids,
+    localMinor,
+    localSevere,
+    localMajor,
     effectiveMinor,
     effectiveSevere,
     effectiveMajor,
-    showMajor,
-  ]);
-
-  const handleMinorChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const raw = e.target.value;
-      setLocalMinor(raw);
-      const parsed = validateThresholdInput(raw);
-      if (parsed !== null) {
-        onMinorChange?.(parsed);
-      }
+    validationError,
+    autoCalculate: isAutoCalculate,
+    autoCalculateMajor: isAutoCalculateMajor,
+    showMajor: isShowMajor,
+    handleMinorChange,
+    handleSevereChange,
+    handleMajorInputChange,
+    handleAutoToggle,
+    handleShowMajorToggle,
+    handleAutoMajorToggle,
+  } = useThresholdsEditorState(
+    {
+      minor,
+      severe,
+      major,
+      autoCalculate,
+      autoCalculateMajor,
+      showMajor,
+      baseHp,
     },
-    [onMinorChange]
-  );
-
-  const handleSevereChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const raw = e.target.value;
-      setLocalSevere(raw);
-      const parsed = validateThresholdInput(raw);
-      if (parsed !== null) {
-        onSevereChange?.(parsed);
-      }
-    },
-    [onSevereChange]
-  );
-
-  const handleMajorInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const raw = e.target.value;
-      setLocalMajor(raw);
-      const parsed = validateThresholdInput(raw);
-      if (parsed !== null) {
-        onMajorChange?.(parsed);
-      }
-    },
-    [onMajorChange]
-  );
-
-  const handleAutoToggle = useCallback(
-    (checked: boolean | 'indeterminate') => {
-      if (checked === 'indeterminate') return;
-      onAutoCalculateChange?.(checked);
-      if (checked) {
-        setLocalMinor(String(autoThresholds.minor));
-        setLocalSevere(String(autoThresholds.severe));
-        setLocalMajor(String(autoThresholds.major));
-        onMinorChange?.(autoThresholds.minor);
-        onSevereChange?.(autoThresholds.severe);
-        onMajorChange?.(autoThresholds.major);
-      }
-    },
-    [
-      onAutoCalculateChange,
+    {
       onMinorChange,
       onSevereChange,
       onMajorChange,
-      autoThresholds,
-    ]
-  );
-
-  const handleShowMajorToggle = useCallback(
-    (checked: boolean | 'indeterminate') => {
-      if (checked === 'indeterminate') return;
-      onShowMajorChange?.(checked);
-    },
-    [onShowMajorChange]
-  );
-
-  const handleAutoMajorToggle = useCallback(
-    (checked: boolean | 'indeterminate') => {
-      if (checked === 'indeterminate') return;
-      onAutoCalculateMajorChange?.(checked);
-      if (checked) {
-        const newMajor = effectiveSevere * 2;
-        setLocalMajor(String(newMajor));
-        onMajorChange?.(newMajor);
-      }
-    },
-    [onAutoCalculateMajorChange, onMajorChange, effectiveSevere]
+      onAutoCalculateChange,
+      onAutoCalculateMajorChange,
+      onShowMajorChange,
+    }
   );
 
   return (
@@ -180,163 +82,51 @@ export function ThresholdsEditor({
         minor={effectiveMinor}
         severe={effectiveSevere}
         major={effectiveMajor}
-        showMajor={showMajor}
+        showMajor={isShowMajor}
       />
 
       <div className="flex flex-wrap items-center gap-4">
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id={autoId}
-            checked={autoCalculate}
-            onCheckedChange={handleAutoToggle}
-          />
-          <SmartTooltip
-            className="max-w-xs"
-            content={
-              <p>
-                Automatically calculate thresholds based on your base HP. Minor
-                = HP ÷ 6, Severe = HP ÷ 3, Major = Severe × 2.
-              </p>
-            }
-          >
-            <Label htmlFor={autoId} className="cursor-pointer">
-              Auto-calculate
-            </Label>
-          </SmartTooltip>
-        </div>
+        <ThresholdCheckbox
+          id={ids.auto}
+          checked={isAutoCalculate}
+          onCheckedChange={handleAutoToggle}
+          label="Auto-calculate"
+          tooltip="Automatically calculate thresholds based on your base HP. Minor = HP ÷ 6, Severe = HP ÷ 3, Major = Severe × 2."
+        />
 
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id={majorId}
-            checked={showMajor}
-            onCheckedChange={handleShowMajorToggle}
-          />
-          <SmartTooltip
-            className="max-w-xs"
-            content={
-              <p>
-                Toggle the Major Damage threshold (optional 4th tier). When
-                enabled, extremely high damage deals even more HP loss.
-              </p>
-            }
-          >
-            <Label htmlFor={majorId} className="cursor-pointer">
-              Enable Major Damage
-            </Label>
-          </SmartTooltip>
-        </div>
+        <ThresholdCheckbox
+          id={ids.major}
+          checked={isShowMajor}
+          onCheckedChange={handleShowMajorToggle}
+          label="Enable Major Damage"
+          tooltip="Toggle the Major Damage threshold (optional 4th tier). When enabled, extremely high damage deals even more HP loss."
+        />
 
-        {showMajor && !autoCalculate && (
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id={autoMajorId}
-              checked={autoCalculateMajor}
-              onCheckedChange={handleAutoMajorToggle}
-            />
-            <SmartTooltip
-              className="max-w-xs"
-              content={
-                <p>
-                  Automatically set Major = Severe × 2. Disable to enter a
-                  custom Major threshold.
-                </p>
-              }
-            >
-              <Label htmlFor={autoMajorId} className="cursor-pointer">
-                Auto-calculate Major
-              </Label>
-            </SmartTooltip>
-          </div>
+        {isShowMajor && !isAutoCalculate && (
+          <ThresholdCheckbox
+            id={ids.autoMajor}
+            checked={isAutoCalculateMajor}
+            onCheckedChange={handleAutoMajorToggle}
+            label="Auto-calculate Major"
+            tooltip="Automatically set Major = Severe × 2. Disable to enter a custom Major threshold."
+          />
         )}
       </div>
 
-      {!autoCalculate && (
-        <div className="bg-muted/50 rounded-lg border p-4">
-          <div className="text-muted-foreground mb-3 text-xs font-medium tracking-wide uppercase">
-            Custom Thresholds
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div className="flex flex-col gap-1.5">
-              <Label
-                htmlFor={minorInputId}
-                className="text-amber-700 dark:text-amber-400"
-              >
-                Minor
-              </Label>
-              <Input
-                id={minorInputId}
-                type="number"
-                min={1}
-                value={localMinor}
-                onChange={handleMinorChange}
-                className="font-mono"
-                aria-describedby={
-                  validationError ? `${baseId}-error` : undefined
-                }
-              />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <Label
-                htmlFor={severeInputId}
-                className="text-orange-700 dark:text-orange-400"
-              >
-                Severe
-              </Label>
-              <Input
-                id={severeInputId}
-                type="number"
-                min={1}
-                value={localSevere}
-                onChange={handleSevereChange}
-                className="font-mono"
-                aria-describedby={
-                  validationError ? `${baseId}-error` : undefined
-                }
-              />
-            </div>
-
-            {showMajor && (
-              <div className="flex flex-col gap-1.5">
-                <Label
-                  htmlFor={majorInputId}
-                  className={cn(
-                    'text-red-700 dark:text-red-400',
-                    autoCalculateMajor && 'opacity-50'
-                  )}
-                >
-                  Major {autoCalculateMajor && '(auto)'}
-                </Label>
-                <Input
-                  id={majorInputId}
-                  type="number"
-                  min={1}
-                  value={autoCalculateMajor ? effectiveMajor : localMajor}
-                  onChange={handleMajorInputChange}
-                  disabled={autoCalculateMajor}
-                  className={cn(
-                    'font-mono',
-                    autoCalculateMajor && 'opacity-50'
-                  )}
-                  aria-describedby={
-                    validationError ? `${baseId}-error` : undefined
-                  }
-                />
-              </div>
-            )}
-          </div>
-
-          {validationError && (
-            <p
-              id={`${baseId}-error`}
-              className="text-destructive mt-2 text-sm"
-              role="alert"
-            >
-              {validationError}
-            </p>
-          )}
-        </div>
+      {!isAutoCalculate && (
+        <CustomThresholdsForm
+          ids={ids}
+          localMinor={localMinor}
+          localSevere={localSevere}
+          localMajor={localMajor}
+          effectiveMajor={effectiveMajor}
+          isShowMajor={isShowMajor}
+          isAutoCalculateMajor={isAutoCalculateMajor}
+          validationError={validationError}
+          handleMinorChange={handleMinorChange}
+          handleSevereChange={handleSevereChange}
+          handleMajorInputChange={handleMajorInputChange}
+        />
       )}
     </div>
   );

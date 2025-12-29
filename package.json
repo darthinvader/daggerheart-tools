@@ -29,8 +29,10 @@
     "depcruise": "depcruise --config .dependency-cruiser.cjs --progress --include-only ^src --output-type err src",
     "analyze:size": "pnpm build && size-limit",
     "lint:fast": "oxlint --deny warn --ignore-path .gitignore",
-    "lint:complexity": "eslint . --no-warn-ignored --rule \"complexity: [error, 15]\" --rule \"max-lines-per-function: [error, { max: 120, skipBlankLines: true, skipComments: true }]\" --rule \"max-lines: [error, { max: 350, skipBlankLines: true, skipComments: true }]\" --format unix",
-    "size:report": "node ./scripts/size-report.mjs --top=40 --by=size"
+    "size:report": "node ./scripts/size-report.mjs --top=40 --by=size",
+    "complexity": "node ./scripts/complexity-report.mjs",
+    "complexity:json": "node ./scripts/complexity-report.mjs --json",
+    "complexity:worst": "node ./scripts/complexity-report.mjs --min-rank=D --top=30"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.12",

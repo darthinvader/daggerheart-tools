@@ -1,24 +1,15 @@
-/* eslint-disable max-lines-per-function, complexity */
-import { useCallback, useEffect, useState } from 'react';
-
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import type { GameClass, GameSubclass } from '@/lib/data/classes';
-import { getDomainsForClass } from '@/lib/data/classes';
-import type {
-  ClassDraft,
-  ClassMode,
-  ClassSelection,
-  HomebrewClass,
-} from '@/lib/schemas/class-selection';
+import type { ClassDraft, ClassSelection } from '@/lib/schemas/class-selection';
 import { CLASS_EMOJIS } from '@/lib/schemas/class-selection';
 
 import { ClassList } from './class-list';
 import { ClassModeTabs } from './class-mode-tabs';
 import { HomebrewClassForm } from './homebrew-class-form';
 import { SubclassList } from './subclass-list';
+import { useClassSelectorState } from './use-class-selector-state';
 
 interface ClassSelectorProps {
   value?: ClassDraft;
@@ -37,192 +28,20 @@ export function ClassSelector({
   hideCompleteButton = false,
   completeRef,
 }: ClassSelectorProps) {
-  const [mode, setMode] = useState<ClassMode>(value?.mode ?? 'standard');
-  const [isMulticlass, setIsMulticlass] = useState(false);
-  const [selectedClasses, setSelectedClasses] = useState<GameClass[]>([]);
-  const [selectedSubclasses, setSelectedSubclasses] = useState<
-    Map<string, GameSubclass>
-  >(new Map());
-  const [homebrewClass, setHomebrewClass] = useState<HomebrewClass | null>(
-    value?.homebrewClass ?? null
-  );
-  // NOTE: Homebrew subclass selection UI not yet implemented
-  const [homebrewSubclassName] = useState<string | null>(null);
-
-  const handleModeChange = useCallback((newMode: ClassMode) => {
-    setMode(newMode);
-  }, []);
-
-  const handleMulticlassToggle = useCallback(
-    (enabled: boolean) => {
-      setIsMulticlass(enabled);
-      if (!enabled && selectedClasses.length > 1) {
-        const firstClass = selectedClasses[0];
-        setSelectedClasses([firstClass]);
-        const firstSubclass = selectedSubclasses.get(firstClass.name);
-        setSelectedSubclasses(
-          new Map(firstSubclass ? [[firstClass.name, firstSubclass]] : [])
-        );
-      }
-    },
-    [selectedClasses, selectedSubclasses]
-  );
-
-  const handleClassSelect = useCallback(
-    (gameClass: GameClass) => {
-      if (isMulticlass) {
-        setSelectedClasses(prev => {
-          const exists = prev.some(c => c.name === gameClass.name);
-          if (exists) {
-            setSelectedSubclasses(prevSubs => {
-              const newSubs = new Map(prevSubs);
-              newSubs.delete(gameClass.name);
-              return newSubs;
-            });
-            return prev.filter(c => c.name !== gameClass.name);
-          }
-          return [...prev, gameClass];
-        });
-      } else {
-        setSelectedClasses([gameClass]);
-        setSelectedSubclasses(new Map());
-      }
-      onChange?.({
-        mode: 'standard',
-        className: gameClass.name,
-        subclassName: undefined,
-      });
-    },
-    [isMulticlass, onChange]
-  );
-
-  const handleSubclassSelect = useCallback(
-    (className: string, subclass: GameSubclass) => {
-      setSelectedSubclasses(prev => {
-        const newMap = new Map(prev);
-        newMap.set(className, subclass);
-        return newMap;
-      });
-      if (selectedClasses.length === 1) {
-        onChange?.({
-          mode: 'standard',
-          className: selectedClasses[0].name,
-          subclassName: subclass.name,
-        });
-      }
-    },
-    [selectedClasses, onChange]
-  );
-
-  const handleHomebrewChange = useCallback(
-    (homebrew: HomebrewClass) => {
-      setHomebrewClass(homebrew);
-      onChange?.({
-        mode: 'homebrew',
-        homebrewClass: homebrew,
-        subclassName: homebrewSubclassName ?? homebrew.subclasses[0]?.name,
-      });
-    },
-    [homebrewSubclassName, onChange]
-  );
-
-  const buildSelection = useCallback((): ClassSelection | null => {
-    if (mode === 'standard' && selectedClasses.length > 0) {
-      const allDomains = selectedClasses.flatMap(c =>
-        getDomainsForClass(c.name)
-      );
-      const uniqueDomains = [...new Set(allDomains)];
-
-      const primaryClass = selectedClasses[0];
-      const primarySubclass = selectedSubclasses.get(primaryClass.name);
-
-      if (!primarySubclass) return null;
-
-      const spellcastTrait =
-        'spellcastTrait' in primarySubclass
-          ? (primarySubclass.spellcastTrait as string)
-          : undefined;
-
-      const classPairs = selectedClasses.map(c => {
-        const sub = selectedSubclasses.get(c.name);
-        return {
-          className: c.name,
-          subclassName: sub?.name ?? '',
-          spellcastTrait:
-            sub && 'spellcastTrait' in sub
-              ? (sub.spellcastTrait as string)
-              : undefined,
-        };
-      });
-
-      return {
-        mode: 'standard',
-        className: selectedClasses.map(c => c.name).join(' / '),
-        subclassName: Array.from(selectedSubclasses.values())
-          .map(s => s.name)
-          .join(' / '),
-        domains: uniqueDomains,
-        isHomebrew: false,
-        spellcastTrait,
-        isMulticlass: selectedClasses.length > 1,
-        classes: classPairs,
-      };
-    } else if (mode === 'homebrew' && homebrewClass) {
-      const subclassName =
-        homebrewSubclassName ?? homebrewClass.subclasses[0]?.name ?? '';
-      const selectedHomebrewSubclass = homebrewClass.subclasses.find(
-        s => s.name === subclassName
-      );
-
-      return {
-        mode: 'homebrew',
-        className: homebrewClass.name,
-        subclassName,
-        domains: homebrewClass.domains,
-        isHomebrew: true,
-        spellcastTrait: selectedHomebrewSubclass?.spellcastTrait,
-        homebrewClass,
-      };
-    }
-    return null;
-  }, [
+  const {
     mode,
+    isMulticlass,
     selectedClasses,
     selectedSubclasses,
     homebrewClass,
-    homebrewSubclassName,
-  ]);
-
-  const handleComplete = useCallback(() => {
-    const selection = buildSelection();
-    if (selection) {
-      onComplete?.(selection);
-    }
-  }, [buildSelection, onComplete]);
-
-  const allSubclassesSelected = selectedClasses.every(c =>
-    selectedSubclasses.has(c.name)
-  );
-  const canComplete =
-    (mode === 'standard' &&
-      selectedClasses.length > 0 &&
-      allSubclassesSelected) ||
-    (mode === 'homebrew' &&
-      homebrewClass?.name &&
-      homebrewClass.subclasses[0]?.name);
-
-  useEffect(() => {
-    if (completeRef) {
-      completeRef.current = {
-        complete: () => {
-          if (canComplete) {
-            return buildSelection();
-          }
-          return null;
-        },
-      };
-    }
-  }, [completeRef, canComplete, buildSelection]);
+    canComplete,
+    handleModeChange,
+    handleMulticlassToggle,
+    handleClassSelect,
+    handleSubclassSelect,
+    handleHomebrewChange,
+    handleComplete,
+  } = useClassSelectorState({ value, onChange, onComplete, completeRef });
 
   return (
     <div className="space-y-6">

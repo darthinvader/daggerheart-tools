@@ -1,12 +1,21 @@
 /* eslint-disable max-lines-per-function */
-import { useState } from 'react';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 
+import { useGoldTrackerState } from './use-gold-tracker-state';
+
 type GoldDenomination = 'coins' | 'handfuls' | 'bags' | 'chests';
+
+interface GoldState {
+  coins: number;
+  handfuls: number;
+  bags: number;
+  chests: number;
+  showCoins: boolean;
+  displayDenomination: GoldDenomination;
+}
 
 interface GoldTrackerProps {
   initialCoins?: number;
@@ -16,15 +25,6 @@ interface GoldTrackerProps {
   showCoinsInitially?: boolean;
   displayDenomination?: GoldDenomination;
   onChange?: (gold: GoldState) => void;
-}
-
-interface GoldState {
-  coins: number;
-  handfuls: number;
-  bags: number;
-  chests: number;
-  showCoins: boolean;
-  displayDenomination: GoldDenomination;
 }
 
 interface DenominationRowProps {
@@ -134,67 +134,29 @@ export function GoldTracker({
   displayDenomination: initialDenomination = 'handfuls',
   onChange,
 }: GoldTrackerProps) {
-  const [coins, setCoins] = useState(initialCoins);
-  const [handfuls, setHandfuls] = useState(initialHandfuls);
-  const [bags, setBags] = useState(initialBags);
-  const [chests, setChests] = useState(initialChests);
-  const [showCoins, setShowCoins] = useState(showCoinsInitially);
-  const [totalDenomination, setTotalDenomination] =
-    useState<GoldDenomination>(initialDenomination);
-
-  const updateGold = (
-    newState: Partial<GoldState & { displayDenomination: GoldDenomination }>
-  ) => {
-    const state: GoldState = {
-      coins: newState.coins ?? coins,
-      handfuls: newState.handfuls ?? handfuls,
-      bags: newState.bags ?? bags,
-      chests: newState.chests ?? chests,
-      showCoins: newState.showCoins ?? showCoins,
-      displayDenomination: newState.displayDenomination ?? totalDenomination,
-    };
-    onChange?.(state);
-  };
-
-  const handleCoinsChange = (value: number) => {
-    setCoins(value);
-    updateGold({ coins: value });
-  };
-
-  const handleHandfulsChange = (value: number) => {
-    setHandfuls(value);
-    updateGold({ handfuls: value });
-  };
-
-  const handleBagsChange = (value: number) => {
-    setBags(value);
-    updateGold({ bags: value });
-  };
-
-  const handleChestsChange = (value: number) => {
-    setChests(value);
-    updateGold({ chests: value });
-  };
-
-  const calculateTotalInCoins = () => {
-    return coins + handfuls * 10 + bags * 100 + chests * 1000;
-  };
-
-  const calculateTotal = (
-    denomination: 'coins' | 'handfuls' | 'bags' | 'chests'
-  ) => {
-    const totalCoins = calculateTotalInCoins();
-    switch (denomination) {
-      case 'coins':
-        return totalCoins;
-      case 'handfuls':
-        return totalCoins / 10;
-      case 'bags':
-        return totalCoins / 100;
-      case 'chests':
-        return totalCoins / 1000;
-    }
-  };
+  const {
+    coins,
+    handfuls,
+    bags,
+    chests,
+    showCoins,
+    totalDenomination,
+    displayTotal,
+    handleCoinsChange,
+    handleHandfulsChange,
+    handleBagsChange,
+    handleChestsChange,
+    handleShowCoinsChange,
+    handleDenominationChange,
+  } = useGoldTrackerState({
+    initialCoins,
+    initialHandfuls,
+    initialBags,
+    initialChests,
+    showCoinsInitially,
+    displayDenomination: initialDenomination,
+    onChange,
+  });
 
   const denominationLabels = {
     coins: 'Coins',
@@ -207,23 +169,25 @@ export function GoldTracker({
     ? (['coins', 'handfuls', 'bags', 'chests'] as const)
     : (['handfuls', 'bags', 'chests'] as const);
 
+  const formatDisplayTotal = () => {
+    const decimals =
+      totalDenomination === 'coins'
+        ? 0
+        : totalDenomination === 'handfuls'
+          ? 1
+          : totalDenomination === 'bags'
+            ? 2
+            : 3;
+    return parseFloat(displayTotal.toFixed(decimals)).toString();
+  };
+
   return (
     <div className="space-y-5">
       <div className="flex items-center gap-2">
         <Checkbox
           id="show-coins"
           checked={showCoins}
-          onCheckedChange={checked => {
-            const enabled = checked === true;
-            setShowCoins(enabled);
-            if (!enabled) {
-              setCoins(0);
-              if (totalDenomination === 'coins') {
-                setTotalDenomination('handfuls');
-              }
-            }
-            updateGold({ showCoins: enabled, coins: enabled ? coins : 0 });
-          }}
+          onCheckedChange={checked => handleShowCoinsChange(checked === true)}
         />
         <Label htmlFor="show-coins" className="text-sm">
           Track individual coins (1/10 of a handful)
@@ -273,29 +237,13 @@ export function GoldTracker({
         </p>
         <div className="flex flex-wrap items-center gap-2">
           <strong>Total:</strong>
-          <span className="font-mono">
-            {(() => {
-              const value = calculateTotal(totalDenomination);
-              const decimals =
-                totalDenomination === 'coins'
-                  ? 0
-                  : totalDenomination === 'handfuls'
-                    ? 1
-                    : totalDenomination === 'bags'
-                      ? 2
-                      : 3;
-              return parseFloat(value.toFixed(decimals)).toString();
-            })()}
-          </span>
+          <span className="font-mono">{formatDisplayTotal()}</span>
           <div className="flex gap-1">
             {availableDenominations.map(denom => (
               <button
                 key={denom}
                 type="button"
-                onClick={() => {
-                  setTotalDenomination(denom);
-                  updateGold({ displayDenomination: denom });
-                }}
+                onClick={() => handleDenominationChange(denom)}
                 className={cn(
                   'rounded px-2 py-0.5 text-xs transition-colors',
                   totalDenomination === denom

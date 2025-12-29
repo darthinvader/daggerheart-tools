@@ -6,6 +6,53 @@ import { cn } from '@/lib/utils';
 import { CATEGORY_CONFIG, type ItemCategory } from './constants';
 import { InventoryItemCard } from './inventory-item-card';
 
+interface ItemGridProps {
+  items: InventoryItemEntry[];
+  onRemove: (id: string) => void;
+  onQuantityChange: (id: string, delta: number) => void;
+  onEquipToggle: (id: string) => void;
+  onEdit: (id: string) => void;
+  unlimitedQuantity?: boolean;
+}
+
+function ItemGrid({
+  items,
+  onRemove,
+  onQuantityChange,
+  onEquipToggle,
+  onEdit,
+  unlimitedQuantity,
+}: ItemGridProps) {
+  return (
+    <div className="grid gap-4 sm:grid-cols-2">
+      {items.map(item => (
+        <InventoryItemCard
+          key={item.id}
+          item={item}
+          onRemove={() => onRemove(item.id)}
+          onQuantityChange={(delta: number) => onQuantityChange(item.id, delta)}
+          onEquipToggle={() => onEquipToggle(item.id)}
+          onEdit={() => onEdit(item.id)}
+          unlimitedQuantity={unlimitedQuantity}
+        />
+      ))}
+    </div>
+  );
+}
+
+function groupItemsByCategory(
+  items: InventoryItemEntry[]
+): Record<string, InventoryItemEntry[]> {
+  const result: Record<string, InventoryItemEntry[]> = {};
+  items.forEach(item => {
+    const cat =
+      ((item.item as { category?: string }).category as string) ?? 'Other';
+    if (!result[cat]) result[cat] = [];
+    result[cat].push(item);
+  });
+  return result;
+}
+
 interface InventoryListProps {
   items: InventoryItemEntry[];
   groupByCategory?: boolean;
@@ -25,23 +72,19 @@ export function InventoryList({
   onEdit,
   unlimitedQuantity = false,
 }: InventoryListProps) {
+  const gridProps = {
+    onRemove,
+    onQuantityChange,
+    onEquipToggle,
+    onEdit,
+    unlimitedQuantity,
+  };
+
   if (!groupByCategory) {
     return (
       <ScrollArea className="h-125">
-        <div className="grid gap-4 pr-4 sm:grid-cols-2">
-          {items.map(item => (
-            <InventoryItemCard
-              key={item.id}
-              item={item}
-              onRemove={() => onRemove(item.id)}
-              onQuantityChange={(delta: number) =>
-                onQuantityChange(item.id, delta)
-              }
-              onEquipToggle={() => onEquipToggle(item.id)}
-              onEdit={() => onEdit(item.id)}
-              unlimitedQuantity={unlimitedQuantity}
-            />
-          ))}
+        <div className="pr-4">
+          <ItemGrid items={items} {...gridProps} />
         </div>
       </ScrollArea>
     );
@@ -49,14 +92,7 @@ export function InventoryList({
 
   const equippedItems = items.filter(i => i.isEquipped);
   const unequippedItems = items.filter(i => !i.isEquipped);
-
-  const itemsByCategory: Record<string, InventoryItemEntry[]> = {};
-  unequippedItems.forEach(item => {
-    const cat =
-      ((item.item as { category?: string }).category as string) ?? 'Other';
-    if (!itemsByCategory[cat]) itemsByCategory[cat] = [];
-    itemsByCategory[cat].push(item);
-  });
+  const itemsByCategory = groupItemsByCategory(unequippedItems);
 
   return (
     <ScrollArea className="h-125">
@@ -68,21 +104,7 @@ export function InventoryList({
               Equipped
               <Badge variant="secondary">{equippedItems.length}</Badge>
             </h3>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {equippedItems.map(item => (
-                <InventoryItemCard
-                  key={item.id}
-                  item={item}
-                  onRemove={() => onRemove(item.id)}
-                  onQuantityChange={(delta: number) =>
-                    onQuantityChange(item.id, delta)
-                  }
-                  onEquipToggle={() => onEquipToggle(item.id)}
-                  onEdit={() => onEdit(item.id)}
-                  unlimitedQuantity={unlimitedQuantity}
-                />
-              ))}
-            </div>
+            <ItemGrid items={equippedItems} {...gridProps} />
           </div>
         )}
         {Object.entries(itemsByCategory).map(([category, catItems]) => {
@@ -99,21 +121,7 @@ export function InventoryList({
                 {category}
                 <Badge variant="secondary">{catItems.length}</Badge>
               </h3>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {catItems.map(item => (
-                  <InventoryItemCard
-                    key={item.id}
-                    item={item}
-                    onRemove={() => onRemove(item.id)}
-                    onQuantityChange={(delta: number) =>
-                      onQuantityChange(item.id, delta)
-                    }
-                    onEquipToggle={() => onEquipToggle(item.id)}
-                    onEdit={() => onEdit(item.id)}
-                    unlimitedQuantity={unlimitedQuantity}
-                  />
-                ))}
-              </div>
+              <ItemGrid items={catItems} {...gridProps} />
             </div>
           );
         })}

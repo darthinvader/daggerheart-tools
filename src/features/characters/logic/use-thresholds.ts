@@ -18,13 +18,75 @@ export type UseThresholdsArgs = {
   refreshKey?: unknown; // pass drawer open state to re-read when opening
 };
 
+// Default settings for thresholds
+const DEFAULT_SETTINGS: ThresholdsSettings = {
+  auto: true,
+  autoMajor: true,
+  values: { major: 2, severe: 3, critical: 0, dsOverride: false, ds: 6 },
+  enableCritical: false,
+};
+
+// Compute display value for major threshold
+function computeDisplayMajor(
+  isAuto: boolean,
+  autoMajor: number,
+  manualInput: string
+): string {
+  if (isAuto) return String(autoMajor);
+  return manualInput === '' ? '—' : manualInput;
+}
+
+// Compute display value for severe threshold
+function computeDisplaySevere(
+  isAuto: boolean,
+  autoSevere: number,
+  manualInput: string
+): string {
+  if (isAuto) return String(autoSevere);
+  return manualInput === '' ? '—' : manualInput;
+}
+
+// Compute display value for DS
+function computeDisplayDs(
+  isAuto: boolean,
+  autoSevere: number,
+  dsOverride: boolean,
+  dsInput: string,
+  severeInput: string
+): string {
+  if (isAuto) return String(autoSevere * 2);
+  if (dsOverride) return dsInput || '—';
+  const severeNum = Number(severeInput);
+  return Number.isFinite(severeNum) ? String(severeNum * 2) : '—';
+}
+
+// Build manual settings object for persistence
+function buildManualSettings(
+  majorInput: string,
+  severeInput: string,
+  dsInput: string,
+  settings: ThresholdsSettings
+): ThresholdsSettings {
+  const mj = Math.max(0, Number.parseInt(majorInput, 10));
+  const sv = Math.max(0, Number.parseInt(severeInput, 10));
+  const ds = computeDsValue(sv, settings.values.dsOverride ?? false, dsInput);
+  return {
+    auto: false,
+    autoMajor: settings.autoMajor ?? false,
+    values: {
+      major: mj,
+      severe: sv,
+      critical: settings.values.critical ?? 0,
+      dsOverride: settings.values.dsOverride ?? false,
+      ds,
+    },
+    enableCritical: settings.enableCritical ?? false,
+  };
+}
+
 export function useThresholdsSettings({ id, refreshKey }: UseThresholdsArgs) {
-  const [settings, setSettings] = React.useState<ThresholdsSettings>({
-    auto: true,
-    autoMajor: true,
-    values: { major: 2, severe: 3, critical: 0, dsOverride: false, ds: 6 },
-    enableCritical: false,
-  });
+  const [settings, setSettings] =
+    React.useState<ThresholdsSettings>(DEFAULT_SETTINGS);
   const [auto, setAuto] = React.useState({ major: 2, severe: 3 });
   const [majorInput, setMajorInput] = React.useState('');
   const [severeInput, setSevereInput] = React.useState('');
@@ -33,7 +95,6 @@ export function useThresholdsSettings({ id, refreshKey }: UseThresholdsArgs) {
   // Load settings and compute auto thresholds
   React.useEffect(() => {
     if (!id) {
-      // No context: stay with defaults
       setAuto({ major: 2, severe: 3 });
       return;
     }
@@ -62,25 +123,23 @@ export function useThresholdsSettings({ id, refreshKey }: UseThresholdsArgs) {
     settings.values.ds,
   ]);
 
-  const displayMajor = settings.auto
-    ? String(auto.major)
-    : majorInput === ''
-      ? '—'
-      : majorInput;
-  const displaySevere = settings.auto
-    ? String(auto.severe)
-    : severeInput === ''
-      ? '—'
-      : severeInput;
-  const displayDs = settings.auto
-    ? String(auto.severe * 2)
-    : String(
-        settings.values.dsOverride
-          ? dsInput || '—'
-          : Number.isFinite(Number(severeInput))
-            ? Number(severeInput) * 2
-            : '—'
-      );
+  const displayMajor = computeDisplayMajor(
+    settings.auto,
+    auto.major,
+    majorInput
+  );
+  const displaySevere = computeDisplaySevere(
+    settings.auto,
+    auto.severe,
+    severeInput
+  );
+  const displayDs = computeDisplayDs(
+    settings.auto,
+    auto.severe,
+    settings.values.dsOverride ?? false,
+    dsInput,
+    severeInput
+  );
 
   const invalidManual = React.useCallback(() => {
     if (settings.auto) return false;
@@ -101,28 +160,13 @@ export function useThresholdsSettings({ id, refreshKey }: UseThresholdsArgs) {
   ]);
 
   const save = React.useCallback(() => {
-    if (!id) return true; // nothing to persist without id
+    if (!id) return true;
     if (!settings.auto) {
       if (invalidManual()) return false;
-      const mj = Math.max(0, Number.parseInt(majorInput, 10));
-      const sv = Math.max(0, Number.parseInt(severeInput, 10));
-      const ds = computeDsValue(
-        sv,
-        settings.values.dsOverride ?? false,
-        dsInput
+      writeThresholdsSettingsToStorage(
+        id,
+        buildManualSettings(majorInput, severeInput, dsInput, settings)
       );
-      writeThresholdsSettingsToStorage(id, {
-        auto: false,
-        autoMajor: settings.autoMajor ?? false,
-        values: {
-          major: mj,
-          severe: sv,
-          critical: settings.values.critical ?? 0,
-          dsOverride: settings.values.dsOverride ?? false,
-          ds,
-        },
-        enableCritical: settings.enableCritical ?? false,
-      });
     } else {
       writeThresholdsSettingsToStorage(id, settings);
     }

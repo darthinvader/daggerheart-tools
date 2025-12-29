@@ -1,4 +1,3 @@
-/* eslint-disable max-lines-per-function, complexity */
 import { memo, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
@@ -24,6 +23,12 @@ import {
 } from '@/lib/schemas/class-selection';
 import { DOMAIN_COLORS, DOMAIN_EMOJIS } from '@/lib/schemas/loadout';
 import { cn } from '@/lib/utils';
+
+import {
+  ClassFeaturesSection,
+  HopeFeatureSection,
+  SubclassesSection,
+} from './class-card-sections';
 
 interface ClassCardProps {
   gameClass: GameClass;
@@ -90,25 +95,6 @@ function StatBadges({ hp, evasion }: { hp: number; evasion: number }) {
   );
 }
 
-function HopeFeatureBadge({ hopeCost }: { hopeCost: number }) {
-  return (
-    <SmartTooltip
-      content={
-        <p className="text-xs">
-          <strong>Hope Cost:</strong> Spend {hopeCost} Hope to activate
-        </p>
-      }
-    >
-      <Badge
-        variant="outline"
-        className="cursor-help border-amber-500/50 text-xs text-amber-600"
-      >
-        💫 {hopeCost} Hope
-      </Badge>
-    </SmartTooltip>
-  );
-}
-
 export function ClassCardComponent({
   gameClass,
   isSelected,
@@ -120,7 +106,6 @@ export function ClassCardComponent({
   const bgClass = CLASS_BG_COLORS[gameClass.name] ?? '';
 
   const featureCount = gameClass.classFeatures?.length ?? 0;
-  const hasHopeFeature = !!gameClass.hopeFeature;
   const subclassCount = gameClass.subclasses?.length ?? 0;
 
   return (
@@ -218,104 +203,13 @@ export function ClassCardComponent({
 
             <CollapsibleContent className="pt-2">
               <div className="max-h-48 space-y-3 overflow-y-auto pr-1">
-                {featureCount > 0 && (
-                  <div className="space-y-1.5">
-                    <div className="bg-card sticky top-0 flex items-center gap-2 py-1">
-                      <span className="text-sm">⭐</span>
-                      <span className="text-xs font-medium">
-                        Class Features
-                      </span>
-                    </div>
-                    {gameClass.classFeatures?.map((feature, idx) => (
-                      <SmartTooltip
-                        key={idx}
-                        side="bottom"
-                        className="max-w-xs"
-                        content={
-                          <>
-                            <p className="font-medium">{feature.name}</p>
-                            <p className="mt-1 text-xs">
-                              {feature.description}
-                            </p>
-                          </>
-                        }
-                      >
-                        <div className="bg-muted/50 cursor-help rounded border p-2 text-xs">
-                          <div className="font-medium">{feature.name}</div>
-                          <p className="text-muted-foreground mt-0.5 line-clamp-2">
-                            {feature.description}
-                          </p>
-                        </div>
-                      </SmartTooltip>
-                    ))}
-                  </div>
+                <ClassFeaturesSection
+                  features={gameClass.classFeatures ?? []}
+                />
+                {gameClass.hopeFeature && (
+                  <HopeFeatureSection hopeFeature={gameClass.hopeFeature} />
                 )}
-
-                {hasHopeFeature && gameClass.hopeFeature && (
-                  <div className="space-y-1.5">
-                    <div className="bg-card sticky top-0 flex items-center gap-2 py-1">
-                      <span className="text-sm">💫</span>
-                      <span className="text-xs font-medium">Hope Feature</span>
-                      <HopeFeatureBadge
-                        hopeCost={gameClass.hopeFeature.hopeCost}
-                      />
-                    </div>
-                    <SmartTooltip
-                      side="bottom"
-                      className="max-w-xs"
-                      content={
-                        <>
-                          <p className="font-medium">
-                            {gameClass.hopeFeature.name}
-                          </p>
-                          <p className="mt-1 text-xs">
-                            {gameClass.hopeFeature.description}
-                          </p>
-                        </>
-                      }
-                    >
-                      <div className="cursor-help rounded border border-yellow-500/30 bg-yellow-500/10 p-2 text-xs">
-                        <div className="font-medium">
-                          {gameClass.hopeFeature.name}
-                        </div>
-                        <p className="text-muted-foreground mt-0.5 line-clamp-2">
-                          {gameClass.hopeFeature.description}
-                        </p>
-                      </div>
-                    </SmartTooltip>
-                  </div>
-                )}
-
-                {subclassCount > 0 && (
-                  <div className="space-y-1.5">
-                    <div className="bg-card sticky top-0 flex items-center gap-2 py-1">
-                      <span className="text-sm">🎭</span>
-                      <span className="text-xs font-medium">Subclasses</span>
-                    </div>
-                    <div className="flex flex-wrap gap-1">
-                      {gameClass.subclasses?.map((sub, idx) => (
-                        <SmartTooltip
-                          key={idx}
-                          side="bottom"
-                          className="max-w-xs"
-                          content={
-                            <>
-                              <p className="font-medium">{sub.name}</p>
-                              <p className="mt-1 text-xs">{sub.description}</p>
-                            </>
-                          }
-                        >
-                          <Badge
-                            variant="outline"
-                            className="cursor-help text-xs"
-                          >
-                            {sub.name}
-                          </Badge>
-                        </SmartTooltip>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                <SubclassesSection subclasses={gameClass.subclasses ?? []} />
               </div>
             </CollapsibleContent>
           </Collapsible>

@@ -40,7 +40,7 @@ export function SubclassList({
                   subclass={subclass}
                   className={gameClass.name}
                   isSelected={selectedSubclass?.name === subclass.name}
-                  onSelect={sub => onSelect(gameClass.name, sub)}
+                  onSelect={() => onSelect(gameClass.name, subclass)}
                 />
               ))}
             </div>

@@ -9,7 +9,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { getSubclassByName } from '@/lib/data/classes';
 import {
   CLASS_COLORS,
   CLASS_EMOJIS,
@@ -18,6 +17,7 @@ import {
 
 import type { SubclassUpgradeSelection } from './types';
 import { type UpgradeOption, UpgradeOptionCard } from './upgrade-option-card';
+import { getAvailableUpgrades, groupUpgradesByClass } from './upgrade-utils';
 
 export type SubclassUpgradeModalProps = {
   isOpen: boolean;
@@ -27,77 +27,6 @@ export type SubclassUpgradeModalProps = {
   unlockedFeatures: Record<string, string[]>;
   targetTier: string;
 };
-
-function getAvailableUpgrades(
-  classes: ClassSubclassPair[],
-  unlockedFeatures: Record<string, string[]>,
-  targetTier: string
-): UpgradeOption[] {
-  const options: UpgradeOption[] = [];
-
-  for (const classPair of classes) {
-    const subclass = getSubclassByName(
-      classPair.className,
-      classPair.subclassName
-    );
-    if (!subclass) continue;
-
-    const key = `${classPair.className}:${classPair.subclassName}`;
-    const unlocked = unlockedFeatures[key] ?? [];
-
-    const foundationFeatures = subclass.features.filter(
-      f => f.type === 'foundation'
-    );
-    const specializationFeatures = subclass.features.filter(
-      f => f.type === 'specialization'
-    );
-    const masteryFeatures = subclass.features.filter(f => f.type === 'mastery');
-
-    const hasFoundation = foundationFeatures.length > 0;
-    const hasUnlockedSpecialization = specializationFeatures.some(f =>
-      unlocked.includes(f.name)
-    );
-    const hasUnlockedMastery = masteryFeatures.some(f =>
-      unlocked.includes(f.name)
-    );
-
-    const canUpgradeToSpecialization =
-      hasFoundation &&
-      !hasUnlockedSpecialization &&
-      (targetTier === '5-7' || targetTier === '8-10');
-
-    if (canUpgradeToSpecialization) {
-      for (const feature of specializationFeatures) {
-        if (!unlocked.includes(feature.name)) {
-          options.push({
-            className: classPair.className,
-            subclassName: classPair.subclassName,
-            feature,
-            upgradeType: 'specialization',
-          });
-        }
-      }
-    }
-
-    const canUpgradeToMastery =
-      hasUnlockedSpecialization && !hasUnlockedMastery && targetTier === '8-10';
-
-    if (canUpgradeToMastery) {
-      for (const feature of masteryFeatures) {
-        if (!unlocked.includes(feature.name)) {
-          options.push({
-            className: classPair.className,
-            subclassName: classPair.subclassName,
-            feature,
-            upgradeType: 'mastery',
-          });
-        }
-      }
-    }
-  }
-
-  return options;
-}
 
 export function SubclassUpgradeModal({
   isOpen,
@@ -116,15 +45,10 @@ export function SubclassUpgradeModal({
     [classes, unlockedFeatures, targetTier]
   );
 
-  const groupedByClass = useMemo(() => {
-    const grouped: Record<string, UpgradeOption[]> = {};
-    for (const option of availableUpgrades) {
-      const key = `${option.className} - ${option.subclassName}`;
-      if (!grouped[key]) grouped[key] = [];
-      grouped[key].push(option);
-    }
-    return grouped;
-  }, [availableUpgrades]);
+  const groupedByClass = useMemo(
+    () => groupUpgradesByClass(availableUpgrades),
+    [availableUpgrades]
+  );
 
   const handleConfirm = () => {
     if (selectedOption) {

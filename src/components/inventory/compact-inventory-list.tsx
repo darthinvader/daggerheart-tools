@@ -1,11 +1,11 @@
-import type {
-  EquipmentTier,
-  InventoryState,
-  Rarity,
-} from '@/lib/schemas/equipment';
+import type { InventoryState } from '@/lib/schemas/equipment';
 
 import { CompactItemCard } from './compact-item-card';
-import type { ItemCategory } from './constants';
+import {
+  filterInventoryItems,
+  groupItemsByLocation,
+  hasActiveFilters,
+} from './inventory-filter-utils';
 import type { InventoryFilters } from './inventory-filters-panel';
 
 interface CompactInventoryListProps {
@@ -34,51 +34,14 @@ export function CompactInventoryList({
   onConvertToHomebrew,
   readOnly,
 }: CompactInventoryListProps) {
-  let filteredItems = inventory.items;
+  const filteredItems = filterInventoryItems(
+    inventory.items,
+    searchQuery,
+    filters
+  );
+  const groupedByLocation = groupItemsByLocation(filteredItems);
 
-  if (searchQuery) {
-    filteredItems = filteredItems.filter(entry =>
-      entry.item.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }
-
-  if (filters) {
-    if (filters.categories.length > 0) {
-      filteredItems = filteredItems.filter(entry => {
-        const category = (entry.item as { category?: string })
-          .category as ItemCategory;
-        return filters.categories.includes(category);
-      });
-    }
-    if (filters.rarities.length > 0) {
-      filteredItems = filteredItems.filter(entry =>
-        filters.rarities.includes(entry.item.rarity as Rarity)
-      );
-    }
-    if (filters.tiers.length > 0) {
-      filteredItems = filteredItems.filter(entry =>
-        filters.tiers.includes(entry.item.tier as EquipmentTier)
-      );
-    }
-  }
-
-  const groupedByLocation = filteredItems.reduce<
-    Record<string, typeof inventory.items>
-  >((acc, item) => {
-    const location = item.location ?? 'backpack';
-    if (!acc[location]) acc[location] = [];
-    acc[location].push(item);
-    return acc;
-  }, {});
-
-  if (
-    filteredItems.length === 0 &&
-    (searchQuery ||
-      (filters &&
-        (filters.categories.length > 0 ||
-          filters.rarities.length > 0 ||
-          filters.tiers.length > 0)))
-  ) {
+  if (filteredItems.length === 0 && hasActiveFilters(searchQuery, filters)) {
     return (
       <div className="flex flex-col items-center py-8 text-center">
         <span className="mb-2 text-4xl">🔍</span>

@@ -51,7 +51,7 @@ function getCardClassNames(
   isDragOver: boolean | undefined,
   isThisSwapSource: boolean,
   canBeSwapTarget: boolean,
-  onDragStart: unknown,
+  hasDragHandler: boolean,
   isCoarse: boolean | undefined,
   isPreview: boolean | undefined,
   isMovingAway: boolean | undefined
@@ -64,7 +64,7 @@ function getCardClassNames(
     isThisSwapSource && 'bg-amber-500/10 ring-2 ring-amber-500',
     canBeSwapTarget &&
       'ring-primary/50 hover:ring-primary animate-pulse cursor-pointer ring-2 hover:ring-2',
-    onDragStart && !isCoarse && 'cursor-grab active:cursor-grabbing',
+    hasDragHandler && !isCoarse && 'cursor-grab active:cursor-grabbing',
     isPreview && 'ring-dashed ring-primary border-dashed opacity-60 ring-2',
     isMovingAway && 'scale-95 opacity-20'
   );
@@ -132,7 +132,7 @@ export function DomainCardMini({
     isDragOver,
     visualState.isThisSwapSource,
     visualState.canBeSwapTarget,
-    onDragStart,
+    !!onDragStart,
     isCoarse,
     isPreview,
     isMovingAway

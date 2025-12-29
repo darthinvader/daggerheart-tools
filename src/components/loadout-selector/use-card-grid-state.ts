@@ -18,6 +18,32 @@ interface UseCardGridStateProps {
   filters?: CardFiltersState;
 }
 
+// Filter cards by type and level filters
+function applyFilters(
+  cards: DomainCard[],
+  filters: CardFiltersState | undefined
+): DomainCard[] {
+  if (!filters) return cards;
+  return cards.filter(
+    card =>
+      filters.types.includes(card.type as CardFiltersState['types'][number]) &&
+      filters.levels.includes(card.level)
+  );
+}
+
+// Filter cards by search term
+function applySearchFilter(cards: DomainCard[], search: string): DomainCard[] {
+  if (!search.trim()) return cards;
+  const term = search.toLowerCase();
+  return cards.filter(
+    card =>
+      card.name.toLowerCase().includes(term) ||
+      card.domain.toLowerCase().includes(term) ||
+      card.type.toLowerCase().includes(term) ||
+      card.description.toLowerCase().includes(term)
+  );
+}
+
 export function useCardGridState({
   cards,
   activeCards,
@@ -46,29 +72,8 @@ export function useCardGridState({
   const isVaultFull = hasVaultLimit && vaultCards.length >= maxVaultCards;
 
   const filteredCards = useMemo(() => {
-    let result = cards;
-
-    if (filters) {
-      result = result.filter(
-        card =>
-          filters.types.includes(
-            card.type as CardFiltersState['types'][number]
-          ) && filters.levels.includes(card.level)
-      );
-    }
-
-    if (search.trim()) {
-      const term = search.toLowerCase();
-      result = result.filter(
-        card =>
-          card.name.toLowerCase().includes(term) ||
-          card.domain.toLowerCase().includes(term) ||
-          card.type.toLowerCase().includes(term) ||
-          card.description.toLowerCase().includes(term)
-      );
-    }
-
-    return result;
+    const filtered = applyFilters(cards, filters);
+    return applySearchFilter(filtered, search);
   }, [cards, search, filters]);
 
   const getSelectionType = useCallback(
