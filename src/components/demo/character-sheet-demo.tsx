@@ -1,7 +1,13 @@
 import { LevelUpModal } from '@/components/level-up';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-import { CombatTab, IdentityTab, ItemsTab, OverviewTab } from './demo-tabs';
+import {
+  CombatTab,
+  IdentityTab,
+  ItemsTab,
+  OverviewTab,
+  SessionTab,
+} from './demo-tabs';
 import { useCharacterSheetState } from './use-character-sheet-state';
 
 export function CharacterSheetDemo() {
@@ -27,11 +33,12 @@ export function CharacterSheetDemo() {
       </div>
 
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">📊 Overview</TabsTrigger>
           <TabsTrigger value="identity">👤 Identity</TabsTrigger>
           <TabsTrigger value="combat">⚔️ Combat</TabsTrigger>
           <TabsTrigger value="items">🎒 Items</TabsTrigger>
+          <TabsTrigger value="session">🎲 Session</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
@@ -45,6 +52,9 @@ export function CharacterSheetDemo() {
         </TabsContent>
         <TabsContent value="items">
           <ItemsTab state={state} handlers={handlers} />
+        </TabsContent>
+        <TabsContent value="session">
+          <SessionTab state={state} handlers={handlers} />
         </TabsContent>
       </Tabs>
 
@@ -60,6 +70,9 @@ export function CharacterSheetDemo() {
         classSelection={state.classSelection}
         unlockedSubclassFeatures={state.unlockedSubclassFeatures}
         ownedCardNames={ownedCardNames}
+        currentCompanionTraining={state.companion?.training}
+        hasCompanion={!!state.companion}
+        companionName={state.companion?.name}
       />
     </div>
   );

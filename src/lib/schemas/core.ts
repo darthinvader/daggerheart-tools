@@ -1,7 +1,6 @@
 import { z } from 'zod';
 
 // Data imports used by core schemas
-import { COMPANION_UPGRADES } from '../data/core/companion-upgrades';
 import {
   LEVEL_PROGRESSION,
   LEVEL_UP_OPTIONS,
@@ -247,8 +246,6 @@ export const SubclassNameSchema = z.union([
 // Companion System (from core/companion-system.ts)
 // =====================================================================================
 
-export { COMPANION_UPGRADES };
-
 export const CompanionUpgradeNameEnum = z.enum([
   'Intelligent',
   'Light in the Dark',
@@ -260,30 +257,61 @@ export const CompanionUpgradeNameEnum = z.enum([
   'Aware',
 ]);
 
+// Schema for the companion upgrade data entries
 export const CompanionUpgradeSchema = z.object({
-  name: z.union([CompanionUpgradeNameEnum, z.string()]),
+  name: CompanionUpgradeNameEnum,
   description: z.string(),
   benefit: z.string(),
+});
+
+export const CompanionDamageDieSchema = z.enum(['d6', 'd8', 'd10', 'd12']);
+export const CompanionRangeSchema = z.enum(['Melee', 'Close', 'Far']);
+
+export const CompanionExperienceSchema = z.object({
+  name: z.string(),
+  bonus: z.number().int().min(0).default(2),
+});
+
+// Training upgrades - each can be taken multiple times where noted (max 3)
+export const CompanionTrainingSchema = z.object({
+  // Intelligent can be taken up to 3 times (each gives +1 to one experience)
+  intelligent: z.number().int().min(0).max(3).default(0),
+  // Light in the Dark - additional Hope slot
+  lightInTheDark: z.boolean().default(false),
+  // Creature Comfort - once per rest hope/stress clear
+  creatureComfort: z.boolean().default(false),
+  // Armored - can mark armor slot instead of stress
+  armored: z.boolean().default(false),
+  // Vicious can be taken up to 3 times (each increases die or range)
+  vicious: z.number().int().min(0).max(3).default(0),
+  // Resilient can be taken up to 3 times (each adds stress slot)
+  resilient: z.number().int().min(0).max(3).default(0),
+  // Bonded - companion helps on last HP
+  bonded: z.boolean().default(false),
+  // Aware can be taken up to 3 times (+2 evasion each)
+  aware: z.number().int().min(0).max(3).default(0),
 });
 
 export const RangerCompanionSchema = z.object({
   name: z.string(),
   type: z.string(),
-  hitPoints: z.number().int().min(1),
-  armor: z.number().int().min(0),
-  evasion: z.number().int().min(0),
-  stress: z.number().int().min(0).max(6),
-  action: z.object({
-    name: z.string(),
-    description: z.string(),
-    damage: z.string().optional(),
-  }),
-  // Remove strict cap to allow homebrew companions with more upgrades
-  upgrades: z.array(CompanionUpgradeSchema),
-  inventory: z.array(z.string()).optional(),
+  evasion: z.number().int().min(0).default(10),
+  // Experiences - start with 2 at +2 each
+  experiences: z.array(CompanionExperienceSchema).default([]),
+  // Attack info
+  standardAttack: z.string().default(''),
+  damageDie: CompanionDamageDieSchema.default('d6'),
+  range: CompanionRangeSchema.default('Melee'),
+  // Stress slots - base 2, can add more with Resilient
+  stressSlots: z.number().int().min(2).default(2),
+  // Training upgrades - each field has its own default
+  training: CompanionTrainingSchema.optional(),
 });
 
-export type CompanionUpgrade = z.infer<typeof CompanionUpgradeSchema>;
+export type CompanionDamageDie = z.infer<typeof CompanionDamageDieSchema>;
+export type CompanionRange = z.infer<typeof CompanionRangeSchema>;
+export type CompanionExperience = z.infer<typeof CompanionExperienceSchema>;
+export type CompanionTraining = z.infer<typeof CompanionTrainingSchema>;
 export type RangerCompanion = z.infer<typeof RangerCompanionSchema>;
 
 // =====================================================================================

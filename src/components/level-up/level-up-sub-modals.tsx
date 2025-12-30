@@ -1,6 +1,7 @@
 import type { ClassSubclassPair } from '@/lib/schemas/class-selection';
-import type { CharacterTier } from '@/lib/schemas/core';
+import type { CharacterTier, CompanionTraining } from '@/lib/schemas/core';
 
+import { CompanionTrainingSelectionModal } from './companion-training-selection-modal';
 import { DomainCardSelectionModal } from './domain-card-selection-modal';
 import { ExperienceBoostModal } from './experience-boost-modal';
 import { MulticlassSelectionModal } from './multiclass-selection-modal';
@@ -26,6 +27,7 @@ interface LevelUpSubModalsProps {
   availableExperiences: { id: string; name: string; value: number }[];
   classPairs: ClassSubclassPair[];
   unlockedSubclassFeatures: Record<string, string[]>;
+  currentCompanionTraining?: CompanionTraining;
 }
 
 export function LevelUpSubModals({
@@ -45,6 +47,7 @@ export function LevelUpSubModals({
   availableExperiences,
   classPairs,
   unlockedSubclassFeatures,
+  currentCompanionTraining,
 }: LevelUpSubModalsProps) {
   return (
     <>
@@ -116,6 +119,17 @@ export function LevelUpSubModals({
           classes={classPairs}
           unlockedFeatures={unlockedSubclassFeatures}
           targetTier={targetTier}
+        />
+      )}
+
+      {pendingOption?.subModalType === 'companion-training' && (
+        <CompanionTrainingSelectionModal
+          isOpen={!!pendingOption}
+          onClose={onPendingClose}
+          onConfirm={selectedCompanionTraining =>
+            onSubModalConfirm({ selectedCompanionTraining })
+          }
+          currentTraining={currentCompanionTraining}
         />
       )}
     </>

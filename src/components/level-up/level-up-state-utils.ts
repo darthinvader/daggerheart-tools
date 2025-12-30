@@ -77,9 +77,10 @@ export function computeAvailableExperiencesForSelection(
 }
 
 export function getAvailableOptionsForTier(
-  targetTier: CharacterTier
+  targetTier: CharacterTier,
+  className?: string
 ): LevelUpOptionConfig[] {
-  return getOptionsForTier(targetTier);
+  return getOptionsForTier(targetTier, className);
 }
 
 export function extractSelectedTraitsThisSession(

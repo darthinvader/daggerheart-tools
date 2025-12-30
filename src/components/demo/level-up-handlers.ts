@@ -1,3 +1,4 @@
+import type { CompanionState } from '@/components/companion';
 import type { CoreScoresState } from '@/components/core-scores';
 import type { ExperiencesState } from '@/components/experiences';
 import type { LevelUpResult, LevelUpSelection } from '@/components/level-up';
@@ -96,6 +97,9 @@ type SelectionHandlers = {
   >;
   setUnlockedSubclassFeatures: React.Dispatch<
     React.SetStateAction<Record<string, string[]>>
+  >;
+  setCompanion?: React.Dispatch<
+    React.SetStateAction<CompanionState | undefined>
   >;
 };
 
@@ -214,6 +218,29 @@ function handleSubclassSelection(
   }));
 }
 
+function handleCompanionTrainingSelection(
+  handlers: SelectionHandlers,
+  details: LevelUpSelection['details']
+): void {
+  if (!details?.selectedCompanionTraining || !handlers.setCompanion) return;
+  const trainingKey = details.selectedCompanionTraining;
+  handlers.setCompanion(prev => {
+    if (!prev) return prev;
+    const training = { ...prev.training };
+    // Handle stackable vs boolean training options
+    const current = training[trainingKey as keyof typeof training];
+    if (typeof current === 'number') {
+      (training as Record<string, number | boolean>)[trainingKey] = Math.min(
+        current + 1,
+        3
+      );
+    } else if (typeof current === 'boolean') {
+      (training as Record<string, number | boolean>)[trainingKey] = true;
+    }
+    return { ...prev, training };
+  });
+}
+
 export function processLevelUpSelection(
   selection: LevelUpSelection,
   newLevel: number,
@@ -231,41 +258,17 @@ export function processLevelUpSelection(
     'domain-card': () => handleDomainCardSelection(handlers, details),
     multiclass: () => handleMulticlassSelection(handlers, details),
     subclass: () => handleSubclassSelection(handlers, details),
+    'companion-training': () =>
+      handleCompanionTrainingSelection(handlers, details),
   };
 
   handlerMap[optionId]?.();
 }
 
-export function processLevelUpResult(
+function applyAutomaticBenefits(
   result: LevelUpResult,
-  handlers: SelectionHandlers & {
-    setProgression: React.Dispatch<
-      React.SetStateAction<{
-        currentLevel: number;
-        currentTier: string;
-        tierHistory: Record<string, number>;
-      }>
-    >;
-    setThresholds: React.Dispatch<React.SetStateAction<ThresholdsSettings>>;
-    setIsLevelUpOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  },
-  currentTier: string,
-  tierHistory: Record<string, number>
+  handlers: SelectionHandlers
 ): void {
-  const tierChanged = result.newTier !== currentTier;
-  const updatedTierHistory = tierChanged ? {} : { ...tierHistory };
-
-  for (const selection of result.selections) {
-    updatedTierHistory[selection.optionId] =
-      (updatedTierHistory[selection.optionId] ?? 0) + selection.count;
-  }
-
-  handlers.setProgression({
-    currentLevel: result.newLevel,
-    currentTier: result.newTier,
-    tierHistory: updatedTierHistory,
-  });
-
   if (result.automaticBenefits.proficiencyGained) {
     handlers.setCoreScores(prev => ({
       ...prev,
@@ -304,10 +307,68 @@ export function processLevelUpResult(
   if (result.automaticBenefits.traitsCleared) {
     handlers.setTraits(clearTraitsMarks);
   }
+}
+
+function applyCompanionTraining(
+  result: LevelUpResult,
+  handlers: SelectionHandlers
+): void {
+  if (!result.companionTrainingSelection || !handlers.setCompanion) return;
+
+  const trainingKey = result.companionTrainingSelection;
+  handlers.setCompanion(prev => {
+    if (!prev) return prev;
+    const training = { ...prev.training };
+    const current = training[trainingKey as keyof typeof training];
+    if (typeof current === 'number') {
+      (training as Record<string, number | boolean>)[trainingKey] = Math.min(
+        current + 1,
+        3
+      );
+    } else if (typeof current === 'boolean') {
+      (training as Record<string, number | boolean>)[trainingKey] = true;
+    }
+    return { ...prev, training };
+  });
+}
+
+export function processLevelUpResult(
+  result: LevelUpResult,
+  handlers: SelectionHandlers & {
+    setProgression: React.Dispatch<
+      React.SetStateAction<{
+        currentLevel: number;
+        currentTier: string;
+        tierHistory: Record<string, number>;
+      }>
+    >;
+    setThresholds: React.Dispatch<React.SetStateAction<ThresholdsSettings>>;
+    setIsLevelUpOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  },
+  currentTier: string,
+  tierHistory: Record<string, number>
+): void {
+  const tierChanged = result.newTier !== currentTier;
+  const updatedTierHistory = tierChanged ? {} : { ...tierHistory };
+
+  for (const selection of result.selections) {
+    updatedTierHistory[selection.optionId] =
+      (updatedTierHistory[selection.optionId] ?? 0) + selection.count;
+  }
+
+  handlers.setProgression({
+    currentLevel: result.newLevel,
+    currentTier: result.newTier,
+    tierHistory: updatedTierHistory,
+  });
+
+  applyAutomaticBenefits(result, handlers);
 
   for (const selection of result.selections) {
     processLevelUpSelection(selection, result.newLevel, handlers);
   }
+
+  applyCompanionTraining(result, handlers);
 
   handlers.setThresholds(prev => ({
     ...prev,

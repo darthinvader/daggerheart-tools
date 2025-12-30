@@ -1,0 +1,16 @@
+export const COMPANION_TYPE_SUGGESTIONS = [
+  'Wolf',
+  'Bear',
+  'Hawk',
+  'Fox',
+  'Panther',
+  'Owl',
+  'Serpent',
+  'Boar',
+  'Stag',
+  'Raven',
+  'Spider',
+  'Eagle',
+  'Horse',
+  'Lynx',
+] as const;

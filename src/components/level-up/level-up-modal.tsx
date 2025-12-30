@@ -1,23 +1,14 @@
-import { ArrowRight, ChevronUp } from 'lucide-react';
+import { useState } from 'react';
 
-import { useCallback } from 'react';
-
-import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import type { ClassSelection } from '@/lib/schemas/class-selection';
-import type { CharacterTier } from '@/lib/schemas/core';
+import type { CharacterTier, CompanionTraining } from '@/lib/schemas/core';
 
-import { AdvancementOptionsStep } from './advancement-options-step';
-import { AutomaticBenefitsStep } from './automatic-benefits-step';
+import { useLevelUpNavigation } from './level-up-navigation';
 import { LevelUpSubModals } from './level-up-sub-modals';
-import type { LevelUpSelection, LevelUpStep } from './types';
+import { ModalFooter, ModalHeader } from './modal-parts';
+import { StepContent } from './step-content';
+import type { LevelUpSelection } from './types';
 import { useLevelUpState } from './use-level-up-state';
 
 export interface LevelUpResult {
@@ -31,94 +22,7 @@ export interface LevelUpResult {
     freeDomainCard?: string;
   };
   selections: LevelUpSelection[];
-}
-
-const TIER_NUMBERS: Record<string, number> = {
-  '1': 1,
-  '2-4': 2,
-  '5-7': 3,
-  '8-10': 4,
-};
-
-interface ModalHeaderProps {
-  targetLevel: number;
-  targetTier: CharacterTier;
-  currentStep: LevelUpStep;
-}
-
-function ModalHeader({
-  targetLevel,
-  targetTier,
-  currentStep,
-}: ModalHeaderProps) {
-  return (
-    <DialogHeader className="shrink-0 border-b p-6 pb-4">
-      <DialogTitle className="flex items-center gap-2">
-        <ChevronUp className="size-5" />
-        Level Up to {targetLevel}
-      </DialogTitle>
-      <DialogDescription>
-        {currentStep === 'automatic-benefits'
-          ? 'Complete your automatic level-up benefits'
-          : `Choose your advancements for Tier ${TIER_NUMBERS[targetTier] ?? targetTier}`}
-      </DialogDescription>
-    </DialogHeader>
-  );
-}
-
-interface ModalFooterProps {
-  currentStep: LevelUpStep;
-  setCurrentStep: (step: LevelUpStep) => void;
-  canProceedToOptions: boolean;
-  pointsRemaining: number;
-  onClose: () => void;
-  onConfirm: () => void;
-}
-
-function ModalFooter({
-  currentStep,
-  setCurrentStep,
-  canProceedToOptions,
-  pointsRemaining,
-  onClose,
-  onConfirm,
-}: ModalFooterProps) {
-  if (currentStep === 'automatic-benefits') {
-    return (
-      <DialogFooter className="shrink-0 border-t p-4">
-        <Button variant="outline" onClick={onClose}>
-          Cancel
-        </Button>
-        <Button
-          onClick={() => setCurrentStep('advancement-options')}
-          disabled={!canProceedToOptions}
-          className="gap-2"
-        >
-          Continue
-          <ArrowRight className="size-4" />
-        </Button>
-      </DialogFooter>
-    );
-  }
-
-  return (
-    <DialogFooter className="shrink-0 border-t p-4">
-      <Button
-        variant="outline"
-        onClick={() => setCurrentStep('automatic-benefits')}
-      >
-        Back
-      </Button>
-      <Button
-        onClick={onConfirm}
-        disabled={pointsRemaining !== 0}
-        className="gap-2"
-      >
-        <ChevronUp className="size-4" />
-        Confirm Level Up
-      </Button>
-    </DialogFooter>
-  );
+  companionTrainingSelection?: string;
 }
 
 interface LevelUpModalProps {
@@ -133,10 +37,14 @@ interface LevelUpModalProps {
   classSelection: ClassSelection | null;
   unlockedSubclassFeatures: Record<string, string[]>;
   ownedCardNames: string[];
+  currentCompanionTraining?: CompanionTraining;
+  hasCompanion?: boolean;
+  companionName?: string;
 }
 
 function buildLevelUpResult(
-  state: ReturnType<typeof useLevelUpState>
+  state: ReturnType<typeof useLevelUpState>,
+  companionTrainingSelection: string | null
 ): LevelUpResult {
   return {
     newLevel: state.targetLevel,
@@ -149,6 +57,7 @@ function buildLevelUpResult(
       freeDomainCard: state.freeDomainCard ?? undefined,
     },
     selections: state.selections,
+    companionTrainingSelection: companionTrainingSelection ?? undefined,
   };
 }
 
@@ -164,7 +73,14 @@ export function LevelUpModal({
   classSelection,
   unlockedSubclassFeatures,
   ownedCardNames,
+  currentCompanionTraining,
+  hasCompanion = false,
+  companionName = '',
 }: LevelUpModalProps) {
+  const [selectedCompanionTraining, setSelectedCompanionTraining] = useState<
+    string | null
+  >(null);
+
   const state = useLevelUpState({
     currentLevel,
     currentTier,
@@ -175,15 +91,15 @@ export function LevelUpModal({
     ownedCardNames,
   });
 
-  const handleConfirm = useCallback(() => {
-    onConfirm(buildLevelUpResult(state));
-    state.resetState();
-  }, [state, onConfirm]);
-
-  const handleClose = useCallback(() => {
-    state.resetState();
-    onClose();
-  }, [onClose, state]);
+  const { handleConfirm, handleClose, handleNext, handleBack } =
+    useLevelUpNavigation({
+      state,
+      hasCompanion,
+      onClose,
+      onConfirmResult: () =>
+        onConfirm(buildLevelUpResult(state, selectedCompanionTraining)),
+      resetCompanionTraining: () => setSelectedCompanionTraining(null),
+    });
 
   const mainDialogOpen =
     isOpen &&
@@ -202,46 +118,26 @@ export function LevelUpModal({
             targetLevel={state.targetLevel}
             targetTier={state.targetTier}
             currentStep={state.currentStep}
+            hasCompanion={hasCompanion}
           />
 
-          {state.currentStep === 'automatic-benefits' && (
-            <AutomaticBenefitsStep
-              targetLevel={state.targetLevel}
-              getsNewExperience={state.getsNewExperience}
-              freeDomainCard={state.freeDomainCard}
-              newExperienceName={state.newExperienceName}
-              onSelectFreeDomainCard={() =>
-                state.setShowFreeDomainCardModal(true)
-              }
-              onSelectNewExperience={() =>
-                state.setShowNewExperienceModal(true)
-              }
-            />
-          )}
-
-          {state.currentStep === 'advancement-options' && (
-            <AdvancementOptionsStep
-              options={state.availableOptions}
-              selections={state.selections}
-              effectiveTierHistory={state.effectiveTierHistory}
-              pointsRemaining={state.pointsRemaining}
-              pointsPerLevel={state.pointsPerLevel}
-              availableTraitsCount={state.availableTraitsForSelection.length}
-              availableExperiencesCount={
-                state.availableExperiencesForSelection.length
-              }
-              onSelect={state.handleSelectOption}
-              onRemove={state.handleRemoveSelection}
-            />
-          )}
+          <StepContent
+            currentStep={state.currentStep}
+            state={state}
+            companionName={companionName}
+            currentCompanionTraining={currentCompanionTraining}
+            selectedCompanionTraining={selectedCompanionTraining}
+            onSelectCompanionTraining={setSelectedCompanionTraining}
+          />
 
           <ModalFooter
             currentStep={state.currentStep}
-            setCurrentStep={state.setCurrentStep}
-            canProceedToOptions={state.canProceedToOptions}
+            canProceedFromAutomatic={state.canProceedToOptions}
             pointsRemaining={state.pointsRemaining}
             onClose={handleClose}
             onConfirm={handleConfirm}
+            onNext={handleNext}
+            onBack={handleBack}
           />
         </DialogContent>
       </Dialog>
@@ -269,6 +165,7 @@ export function LevelUpModal({
         availableExperiences={state.availableExperiencesForSelection}
         classPairs={state.classPairs}
         unlockedSubclassFeatures={unlockedSubclassFeatures}
+        currentCompanionTraining={currentCompanionTraining}
       />
     </>
   );

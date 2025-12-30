@@ -68,19 +68,14 @@ export function useLoadoutState({
   }, [mode, activeCards, vaultCards, homebrewCards]);
 
   const notifyChange = useCallback(
-    (updates: Partial<LoadoutSelection>) => {
-      const current = stateRef.current;
+    (updates: Partial<LoadoutSelection>) =>
       onChange?.({
-        mode: current.mode,
-        activeCards: current.activeCards,
-        vaultCards: current.vaultCards,
-        homebrewCards: current.homebrewCards,
+        ...stateRef.current,
         classDomains,
-        expandedDomainAccess: current.mode === 'all-domains',
+        expandedDomainAccess: stateRef.current.mode === 'all-domains',
         creationComplete: false,
         ...updates,
-      });
-    },
+      }),
     [classDomains, onChange]
   );
 

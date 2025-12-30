@@ -60,9 +60,10 @@ export function useLevelUpComputed(props: UseLevelUpComputedProps) {
   const availableOptions = useMemo(
     () =>
       getAvailableOptionsForTier(
-        targetTier as Parameters<typeof getAvailableOptionsForTier>[0]
+        targetTier as Parameters<typeof getAvailableOptionsForTier>[0],
+        classSelection?.className
       ),
-    [targetTier]
+    [targetTier, classSelection?.className]
   );
 
   const pointsSpent = useMemo(

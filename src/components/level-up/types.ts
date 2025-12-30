@@ -1,6 +1,9 @@
 import type { CharacterTier } from '@/lib/schemas/core';
 
-export type LevelUpStep = 'automatic-benefits' | 'advancement-options';
+export type LevelUpStep =
+  | 'automatic-benefits'
+  | 'companion-benefits'
+  | 'advancement-options';
 
 export interface LevelUpOptionConfig {
   id: string;
@@ -18,9 +21,12 @@ export interface LevelUpOptionConfig {
     | 'evasion'
     | 'proficiency'
     | 'subclass'
-    | 'multiclass';
+    | 'multiclass'
+    | 'companion-training';
   availableInTiers: CharacterTier[];
   exclusiveWith?: string[];
+  /** If set, option is only available for these classes */
+  classRestriction?: string[];
 }
 
 export interface LevelUpSelection {
@@ -46,6 +52,7 @@ export interface LevelUpSelectionDetails {
     domains: string[];
   };
   selectedSubclassUpgrade?: SubclassUpgradeSelection;
+  selectedCompanionTraining?: string;
 }
 
 export interface TierSelectionHistory {
@@ -161,10 +168,20 @@ export const LEVEL_UP_OPTIONS_CONFIG: LevelUpOptionConfig[] = [
   },
 ];
 
-export function getOptionsForTier(tier: CharacterTier): LevelUpOptionConfig[] {
-  return LEVEL_UP_OPTIONS_CONFIG.filter(opt =>
-    opt.availableInTiers.includes(tier)
-  );
+export function getOptionsForTier(
+  tier: CharacterTier,
+  className?: string
+): LevelUpOptionConfig[] {
+  return LEVEL_UP_OPTIONS_CONFIG.filter(opt => {
+    if (!opt.availableInTiers.includes(tier)) return false;
+    if (opt.classRestriction && className) {
+      return opt.classRestriction.includes(className);
+    }
+    if (opt.classRestriction && !className) {
+      return false;
+    }
+    return true;
+  });
 }
 
 export function isOptionDisabled(

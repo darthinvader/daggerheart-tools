@@ -1,161 +1,85 @@
 import { useCallback, useState } from 'react';
 
-import type { AncestrySelection } from '@/components/ancestry-selector';
-import type { ConditionsState } from '@/components/conditions';
-import {
-  type CoreScoresState,
-  DEFAULT_CORE_SCORES,
-} from '@/components/core-scores';
-import {
-  DEFAULT_EQUIPMENT_STATE,
-  type EquipmentState,
-} from '@/components/equipment';
-import type { ExperiencesState } from '@/components/experiences';
-import type { InventoryState } from '@/components/inventory';
 import type { LevelUpResult } from '@/components/level-up';
-import {
-  DEFAULT_RESOURCES_STATE,
-  type ResourcesState,
-} from '@/components/resources';
-import type { ProgressionState } from '@/components/shared/progression-display';
-import { DEFAULT_TRAITS_STATE, type TraitsState } from '@/components/traits';
-import type {
-  Gold,
-  IdentityFormValues,
-  ThresholdsSettings,
-} from '@/lib/schemas/character-state';
-import type { ClassSelection } from '@/lib/schemas/class-selection';
-import type { CommunitySelection } from '@/lib/schemas/identity';
-import type { LoadoutSelection } from '@/lib/schemas/loadout';
+import { DEFAULT_RESOURCES_STATE } from '@/components/resources';
+import type { HopeWithScarsState } from '@/components/scars';
 
+import { useCharacterState, useSessionState } from './character-state-hooks';
 import { processLevelUpResult } from './level-up-handlers';
 import {
-  SAMPLE_ANCESTRY,
-  SAMPLE_COMMUNITY,
-  SAMPLE_CONDITIONS,
-  SAMPLE_EXPERIENCES,
-  SAMPLE_GOLD,
-  SAMPLE_IDENTITY,
-  SAMPLE_INVENTORY,
-  SAMPLE_LOADOUT,
-  SAMPLE_PROGRESSION,
-  SAMPLE_THRESHOLDS,
-  buildClassSelection,
-} from './sample-data';
+  buildCharacterSheetHandlers,
+  buildCharacterSheetState,
+} from './state-builders';
 
 export function useCharacterSheetState() {
-  const [identity, setIdentity] = useState<IdentityFormValues>(SAMPLE_IDENTITY);
-  const [ancestry, setAncestry] = useState<AncestrySelection>(SAMPLE_ANCESTRY);
-  const [community, setCommunity] =
-    useState<CommunitySelection>(SAMPLE_COMMUNITY);
-  const [classSelection, setClassSelection] = useState<ClassSelection | null>(
-    buildClassSelection
-  );
-  const [progression, setProgression] =
-    useState<ProgressionState>(SAMPLE_PROGRESSION);
-  const [gold, setGold] = useState<Gold>(SAMPLE_GOLD);
-  const [thresholds, setThresholds] =
-    useState<ThresholdsSettings>(SAMPLE_THRESHOLDS);
-  const [equipment, setEquipment] = useState<EquipmentState>(
-    DEFAULT_EQUIPMENT_STATE
-  );
-  const [inventory, setInventory] = useState<InventoryState>(SAMPLE_INVENTORY);
-  const [loadout, setLoadout] = useState<LoadoutSelection>(SAMPLE_LOADOUT);
-  const [experiences, setExperiences] =
-    useState<ExperiencesState>(SAMPLE_EXPERIENCES);
-  const [conditions, setConditions] =
-    useState<ConditionsState>(SAMPLE_CONDITIONS);
-  const [traits, setTraits] = useState<TraitsState>(DEFAULT_TRAITS_STATE);
-  const [coreScores, setCoreScores] =
-    useState<CoreScoresState>(DEFAULT_CORE_SCORES);
-  const [resources, setResources] = useState<ResourcesState>(
-    DEFAULT_RESOURCES_STATE
-  );
-  const [unlockedSubclassFeatures, setUnlockedSubclassFeatures] = useState<
-    Record<string, string[]>
-  >({});
+  const charState = useCharacterState(DEFAULT_RESOURCES_STATE);
+  const sessionState = useSessionState();
   const [isLevelUpOpen, setIsLevelUpOpen] = useState(false);
 
-  const handleLevelUp = useCallback(() => {
-    setIsLevelUpOpen(true);
-  }, []);
+  const handleLevelUp = useCallback(() => setIsLevelUpOpen(true), []);
 
   const handleLevelUpConfirm = useCallback(
     (result: LevelUpResult) => {
       processLevelUpResult(
         result,
         {
-          setProgression,
-          setThresholds,
+          setProgression: charState.setProgression,
+          setThresholds: charState.setThresholds,
           setIsLevelUpOpen,
-          setTraits,
-          setExperiences,
-          setResources,
-          setCoreScores,
-          setLoadout,
-          setClassSelection,
-          setUnlockedSubclassFeatures,
+          setTraits: charState.setTraits,
+          setExperiences: charState.setExperiences,
+          setResources: charState.setResources,
+          setCoreScores: charState.setCoreScores,
+          setLoadout: charState.setLoadout,
+          setClassSelection: charState.setClassSelection,
+          setUnlockedSubclassFeatures: charState.setUnlockedSubclassFeatures,
+          setCompanion: sessionState.setCompanion,
         },
-        progression.currentTier,
-        progression.tierHistory
+        charState.progression.currentTier,
+        charState.progression.tierHistory
       );
     },
-    [progression.currentTier, progression.tierHistory]
+    [charState, sessionState.setCompanion]
   );
 
-  const currentTraitsForModal = Object.entries(traits).map(([name, val]) => ({
-    name,
-    marked: val.marked,
-  }));
+  const hopeWithScars: HopeWithScarsState = {
+    current: charState.resources.hope.current,
+    max: charState.resources.hope.max,
+    scars: sessionState.scars,
+  };
 
-  const currentExperiencesForModal = experiences.items.map(exp => ({
+  const handleSetHopeWithScars = (newState: HopeWithScarsState) => {
+    charState.setResources(prev => ({
+      ...prev,
+      hope: { current: newState.current, max: newState.max },
+    }));
+    sessionState.setScars(newState.scars);
+  };
+
+  const state = buildCharacterSheetState(
+    charState,
+    sessionState,
+    hopeWithScars
+  );
+  const handlers = buildCharacterSheetHandlers(
+    charState,
+    sessionState,
+    handleLevelUp,
+    handleSetHopeWithScars
+  );
+
+  const currentTraitsForModal = Object.entries(charState.traits).map(
+    ([name, val]) => ({ name, marked: val.marked })
+  );
+  const currentExperiencesForModal = charState.experiences.items.map(exp => ({
     id: exp.id,
     name: exp.name,
     value: exp.value,
   }));
-
   const ownedCardNames = [
-    ...loadout.activeCards.map(c => c.name),
-    ...loadout.vaultCards.map(c => c.name),
+    ...charState.loadout.activeCards.map(c => c.name),
+    ...charState.loadout.vaultCards.map(c => c.name),
   ];
-
-  const state = {
-    identity,
-    ancestry,
-    community,
-    classSelection,
-    progression,
-    gold,
-    thresholds,
-    equipment,
-    inventory,
-    loadout,
-    experiences,
-    conditions,
-    traits,
-    coreScores,
-    resources,
-    unlockedSubclassFeatures,
-  };
-
-  const handlers = {
-    setIdentity,
-    setAncestry,
-    setCommunity,
-    setClassSelection,
-    setProgression,
-    setGold,
-    setThresholds,
-    setEquipment,
-    setInventory,
-    setLoadout,
-    setExperiences,
-    setConditions,
-    setTraits,
-    setCoreScores,
-    setResources,
-    onLevelUp: handleLevelUp,
-  };
 
   return {
     state,
