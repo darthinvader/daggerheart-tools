@@ -248,7 +248,7 @@ export function GoldDisplay({
       onSave={handleSave}
       onCancel={handleCancel}
       showEditButton={!readOnly}
-      modalSize="lg"
+      modalSize="md"
       className={cn(className)}
       editTitle="Manage Gold"
       editDescription="Track your character's gold in handfuls, bags, and chests."

@@ -106,11 +106,11 @@ function DenominationRow({
         </Button>
 
         <Button
-          variant="ghost"
+          variant="outline"
           size="icon-sm"
           onClick={handleReset}
           disabled={value === 0}
-          className="text-muted-foreground"
+          className="border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive"
           aria-label={`Reset ${label} to zero`}
         >
           ×
