@@ -1,17 +1,10 @@
-import {
-  Minus,
-  PawPrint,
-  Plus,
-  Shield,
-  Swords,
-  Trash2,
-  Wind,
-} from 'lucide-react';
+import { Minus, Plus, Shield, Swords, Trash2, Wind } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 
+import { getCompanionEmoji, TRAINING_EMOJIS } from './constants';
 import type { CompanionState } from './types';
 
 interface CompanionHeaderProps {
@@ -29,11 +22,12 @@ export function CompanionHeader({
   onEdit,
   onDisable,
 }: CompanionHeaderProps) {
+  const emoji = getCompanionEmoji(type);
   return (
     <div className="flex items-center justify-between">
       <div>
         <h3 className="flex items-center gap-2 text-lg font-semibold">
-          <PawPrint className="h-5 w-5" />
+          <span className="text-2xl">{emoji}</span>
           {name}
           {isHomebrew && (
             <span className="text-muted-foreground text-xs font-normal">
@@ -45,7 +39,7 @@ export function CompanionHeader({
       </div>
       <div className="flex gap-1">
         <Button variant="ghost" size="sm" onClick={onEdit}>
-          Edit
+          ✏️ Edit
         </Button>
         {onDisable && (
           <Button
@@ -77,31 +71,38 @@ export function CompanionStatsGrid({
 }: CompanionStatsGridProps) {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-      <div className="flex items-center gap-2 rounded-lg border p-2">
-        <Wind className="text-muted-foreground h-4 w-4" />
+      <div className="flex items-center gap-2 rounded-lg border-2 border-blue-400/30 bg-blue-50/50 p-3 dark:bg-blue-950/20">
+        <Wind className="h-5 w-5 text-blue-500" />
         <div>
           <p className="text-muted-foreground text-xs">Evasion</p>
-          <p className="font-bold">{evasion}</p>
+          <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
+            {evasion}
+          </p>
         </div>
       </div>
-      <div className="flex items-center gap-2 rounded-lg border p-2">
-        <Swords className="text-muted-foreground h-4 w-4" />
+      <div className="flex items-center gap-2 rounded-lg border-2 border-red-400/30 bg-red-50/50 p-3 dark:bg-red-950/20">
+        <Swords className="h-5 w-5 text-red-500" />
         <div>
           <p className="text-muted-foreground text-xs">Damage</p>
-          <p className="font-bold">{damageDie}</p>
+          <p className="text-lg font-bold text-red-600 dark:text-red-400">
+            {damageDie}
+          </p>
         </div>
       </div>
-      <div className="flex items-center gap-2 rounded-lg border p-2">
-        <Shield className="text-muted-foreground h-4 w-4" />
+      <div className="flex items-center gap-2 rounded-lg border-2 border-amber-400/30 bg-amber-50/50 p-3 dark:bg-amber-950/20">
+        <Shield className="h-5 w-5 text-amber-500" />
         <div>
           <p className="text-muted-foreground text-xs">Range</p>
-          <p className="font-bold">{range}</p>
+          <p className="text-lg font-bold text-amber-600 dark:text-amber-400">
+            {range}
+          </p>
         </div>
       </div>
-      <div className="flex items-center gap-2 rounded-lg border p-2">
+      <div className="flex items-center gap-2 rounded-lg border-2 border-purple-400/30 bg-purple-50/50 p-3 dark:bg-purple-950/20">
+        <span className="text-xl">⚔️</span>
         <div>
           <p className="text-muted-foreground text-xs">Attack</p>
-          <p className="truncate text-sm font-medium">
+          <p className="truncate text-sm font-bold text-purple-600 dark:text-purple-400">
             {standardAttack || '—'}
           </p>
         </div>
@@ -124,9 +125,11 @@ export function CompanionStressTracker({
   onSlotClick,
 }: CompanionStressTrackerProps) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 rounded-lg border-2 border-orange-400/30 bg-orange-50/30 p-3 dark:bg-orange-950/10">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium">Stress</span>
+        <span className="flex items-center gap-2 text-sm font-medium">
+          <span className="text-lg">😰</span> Stress
+        </span>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
@@ -137,7 +140,7 @@ export function CompanionStressTracker({
           >
             <Minus className="h-3 w-3" />
           </Button>
-          <span className="w-8 text-center text-sm">
+          <span className="w-10 text-center text-sm font-bold">
             {markedStress}/{totalSlots}
           </span>
           <Button
@@ -151,19 +154,21 @@ export function CompanionStressTracker({
           </Button>
         </div>
       </div>
-      <div className="flex gap-1">
+      <div className="flex gap-2">
         {Array.from({ length: totalSlots }).map((_, i) => (
           <button
             key={i}
             className={cn(
-              'h-6 w-6 rounded border-2 transition-colors',
+              'h-8 w-8 rounded-lg border-2 transition-all',
               i < markedStress
-                ? 'border-amber-500 bg-amber-500'
-                : 'border-muted-foreground/30 bg-transparent'
+                ? 'border-orange-500 bg-gradient-to-br from-orange-400 to-orange-600 shadow-md'
+                : 'border-muted-foreground/30 bg-transparent hover:border-orange-300'
             )}
             onClick={() => onSlotClick(i)}
             aria-label={`Stress slot ${i + 1}`}
-          />
+          >
+            {i < markedStress && <span className="text-xs text-white">💢</span>}
+          </button>
         ))}
       </div>
     </div>
@@ -184,14 +189,16 @@ export function CompanionExperiencesBadges({
     <>
       <Separator />
       <div>
-        <h4 className="mb-2 text-sm font-medium">Companion Experiences</h4>
+        <h4 className="mb-2 flex items-center gap-2 text-sm font-medium">
+          <span>📚</span> Companion Experiences
+        </h4>
         <div className="flex flex-wrap gap-2">
           {validExperiences.map((exp, i) => (
             <span
               key={i}
-              className="bg-primary/10 text-primary rounded-full px-3 py-1 text-sm"
+              className="rounded-full bg-gradient-to-r from-emerald-500/20 to-teal-500/20 px-3 py-1.5 text-sm font-medium text-emerald-700 ring-1 ring-emerald-500/30 dark:text-emerald-300"
             >
-              {exp.name} +{exp.bonus}
+              ✨ {exp.name} +{exp.bonus}
             </span>
           ))}
         </div>
@@ -200,9 +207,20 @@ export function CompanionExperiencesBadges({
   );
 }
 
-function TrainingBadge({ children }: { children: React.ReactNode }) {
+function TrainingBadge({
+  children,
+  emoji,
+  color = 'bg-secondary',
+}: {
+  children: React.ReactNode;
+  emoji?: string;
+  color?: string;
+}) {
   return (
-    <span className="bg-secondary text-secondary-foreground rounded px-2 py-0.5 text-xs">
+    <span
+      className={`${color} text-secondary-foreground flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium`}
+    >
+      {emoji && <span>{emoji}</span>}
       {children}
     </span>
   );
@@ -234,27 +252,73 @@ export function CompanionTrainingBadges({
     <>
       <Separator />
       <div>
-        <h4 className="mb-2 text-sm font-medium">Training</h4>
-        <div className="flex flex-wrap gap-1">
+        <h4 className="mb-2 flex items-center gap-2 text-sm font-medium">
+          <span>🎓</span> Training
+        </h4>
+        <div className="flex flex-wrap gap-2">
           {training.intelligent > 0 && (
-            <TrainingBadge>Intelligent ×{training.intelligent}</TrainingBadge>
+            <TrainingBadge
+              emoji={TRAINING_EMOJIS.intelligent}
+              color="bg-blue-100 dark:bg-blue-900/40"
+            >
+              Intelligent ×{training.intelligent}
+            </TrainingBadge>
           )}
           {training.lightInTheDark && (
-            <TrainingBadge>Light in the Dark</TrainingBadge>
+            <TrainingBadge
+              emoji={TRAINING_EMOJIS.lightInTheDark}
+              color="bg-yellow-100 dark:bg-yellow-900/40"
+            >
+              Light in the Dark
+            </TrainingBadge>
           )}
           {training.creatureComfort && (
-            <TrainingBadge>Creature Comfort</TrainingBadge>
+            <TrainingBadge
+              emoji={TRAINING_EMOJIS.creatureComfort}
+              color="bg-pink-100 dark:bg-pink-900/40"
+            >
+              Creature Comfort
+            </TrainingBadge>
           )}
-          {training.armored && <TrainingBadge>Armored</TrainingBadge>}
+          {training.armored && (
+            <TrainingBadge
+              emoji={TRAINING_EMOJIS.armored}
+              color="bg-slate-200 dark:bg-slate-700/40"
+            >
+              Armored
+            </TrainingBadge>
+          )}
           {training.vicious > 0 && (
-            <TrainingBadge>Vicious ×{training.vicious}</TrainingBadge>
+            <TrainingBadge
+              emoji={TRAINING_EMOJIS.vicious}
+              color="bg-red-100 dark:bg-red-900/40"
+            >
+              Vicious ×{training.vicious}
+            </TrainingBadge>
           )}
           {training.resilient > 0 && (
-            <TrainingBadge>Resilient ×{training.resilient}</TrainingBadge>
+            <TrainingBadge
+              emoji={TRAINING_EMOJIS.resilient}
+              color="bg-amber-100 dark:bg-amber-900/40"
+            >
+              Resilient ×{training.resilient}
+            </TrainingBadge>
           )}
-          {training.bonded && <TrainingBadge>Bonded</TrainingBadge>}
+          {training.bonded && (
+            <TrainingBadge
+              emoji={TRAINING_EMOJIS.bonded}
+              color="bg-green-100 dark:bg-green-900/40"
+            >
+              Bonded
+            </TrainingBadge>
+          )}
           {(training.aware ?? 0) > 0 && (
-            <TrainingBadge>Aware ×{training.aware}</TrainingBadge>
+            <TrainingBadge
+              emoji={TRAINING_EMOJIS.aware}
+              color="bg-purple-100 dark:bg-purple-900/40"
+            >
+              Aware ×{training.aware}
+            </TrainingBadge>
           )}
         </div>
       </div>

@@ -149,6 +149,7 @@ export function useCharacterState(
 export function useSessionState() {
   const [scars, setScars] = useState<Scar[]>([]);
   const [extraHopeSlots, setExtraHopeSlots] = useState(0);
+  const [companionHopeFilled, setCompanionHopeFilled] = useState(false);
   const [deathState, setDeathState] = useState<DeathMoveState>({
     isUnconscious: false,
     deathMovePending: false,
@@ -176,6 +177,8 @@ export function useSessionState() {
     setScars,
     extraHopeSlots,
     setExtraHopeSlots,
+    companionHopeFilled,
+    setCompanionHopeFilled,
     deathState,
     setDeathState,
     companion,

@@ -1,6 +1,7 @@
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 
+import { TRAINING_EMOJIS } from './constants';
 import {
   AttackSection,
   BasicInfoSection,
@@ -84,7 +85,10 @@ export function CompanionEditor({ state, onChange }: CompanionEditorProps) {
       <Separator />
 
       <div className="space-y-3">
-        <Label>Training (choose when you level up)</Label>
+        <Label className="flex items-center gap-2">
+          <span className="text-lg">🎓</span>
+          Training (choose when you level up)
+        </Label>
 
         <div className="space-y-2">
           <CounterTraining
@@ -93,6 +97,8 @@ export function CompanionEditor({ state, onChange }: CompanionEditorProps) {
             value={state.training.intelligent ?? 0}
             max={3}
             onChange={delta => handleTrainingCount('intelligent', delta)}
+            emoji={TRAINING_EMOJIS.intelligent}
+            color="border-blue-400/50"
           />
           <CounterTraining
             label="Vicious"
@@ -100,6 +106,8 @@ export function CompanionEditor({ state, onChange }: CompanionEditorProps) {
             value={state.training.vicious ?? 0}
             max={3}
             onChange={delta => handleTrainingCount('vicious', delta)}
+            emoji={TRAINING_EMOJIS.vicious}
+            color="border-red-400/50"
           />
           <CounterTraining
             label="Resilient"
@@ -107,6 +115,8 @@ export function CompanionEditor({ state, onChange }: CompanionEditorProps) {
             value={state.training.resilient ?? 0}
             max={3}
             onChange={delta => handleTrainingCount('resilient', delta)}
+            emoji={TRAINING_EMOJIS.resilient}
+            color="border-amber-400/50"
           />
           <CounterTraining
             label="Aware"
@@ -114,6 +124,8 @@ export function CompanionEditor({ state, onChange }: CompanionEditorProps) {
             value={state.training.aware ?? 0}
             max={3}
             onChange={delta => handleTrainingCount('aware', delta)}
+            emoji={TRAINING_EMOJIS.aware}
+            color="border-purple-400/50"
           />
         </div>
 
@@ -123,24 +135,32 @@ export function CompanionEditor({ state, onChange }: CompanionEditorProps) {
             description="Additional Hope slot for your character"
             checked={state.training.lightInTheDark ?? false}
             onCheckedChange={() => handleTrainingToggle('lightInTheDark')}
+            emoji={TRAINING_EMOJIS.lightInTheDark}
+            color="border-yellow-400/50"
           />
           <CheckboxTraining
             label="Creature Comfort"
             description="Once per rest: gain Hope or both clear Stress"
             checked={state.training.creatureComfort ?? false}
             onCheckedChange={() => handleTrainingToggle('creatureComfort')}
+            emoji={TRAINING_EMOJIS.creatureComfort}
+            color="border-pink-400/50"
           />
           <CheckboxTraining
             label="Armored"
             description="Mark your Armor Slot instead of companion Stress"
             checked={state.training.armored ?? false}
             onCheckedChange={() => handleTrainingToggle('armored')}
+            emoji={TRAINING_EMOJIS.armored}
+            color="border-slate-400/50"
           />
           <CheckboxTraining
             label="Bonded"
             description="Companion may help you up at last HP"
             checked={state.training.bonded ?? false}
             onCheckedChange={() => handleTrainingToggle('bonded')}
+            emoji={TRAINING_EMOJIS.bonded}
+            color="border-green-400/50"
           />
         </div>
       </div>

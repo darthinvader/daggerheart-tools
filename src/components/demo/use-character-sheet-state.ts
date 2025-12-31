@@ -47,6 +47,7 @@ export function useCharacterSheetState() {
     max: charState.resources.hope.max,
     scars: sessionState.scars,
     extraSlots: sessionState.extraHopeSlots,
+    companionHopeFilled: sessionState.companionHopeFilled,
   };
 
   const handleSetHopeWithScars = (newState: HopeWithScarsState) => {
@@ -56,6 +57,7 @@ export function useCharacterSheetState() {
     }));
     sessionState.setScars(newState.scars);
     sessionState.setExtraHopeSlots(newState.extraSlots ?? 0);
+    sessionState.setCompanionHopeFilled(newState.companionHopeFilled ?? false);
   };
 
   const state = buildCharacterSheetState(

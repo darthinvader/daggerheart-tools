@@ -136,8 +136,10 @@ export function HopeEditor({
   bonusHopeSlots = 0,
 }: HopeEditorProps) {
   const extraSlots = state.extraSlots ?? 0;
-  const totalSlots = 6 + bonusHopeSlots + extraSlots;
-  const effectiveMax = state.max + bonusHopeSlots + extraSlots;
+  // Don't include companion hope in main slots - it's tracked separately
+  const totalSlots = 6 + extraSlots;
+  const effectiveMax = state.max + extraSlots;
+  const companionHopeFilled = state.companionHopeFilled ?? false;
   const availableSlots = Array.from({ length: totalSlots }, (_, i) => i).filter(
     idx => !state.scars.some(s => s.hopeSlotIndex === idx)
   );
@@ -153,7 +155,7 @@ export function HopeEditor({
     };
 
     const newMax = Math.max(0, state.max - 1);
-    const newCurrent = Math.min(state.current, newMax + bonusHopeSlots);
+    const newCurrent = Math.min(state.current, newMax);
 
     onChange({
       ...state,
@@ -187,6 +189,46 @@ export function HopeEditor({
           })
         }
       />
+
+      {/* Companion Hope Toggle */}
+      {bonusHopeSlots > 0 && (
+        <div className="rounded-lg border-2 border-emerald-400/50 bg-emerald-50/50 p-4 dark:bg-emerald-950/20">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">🐾</span>
+              <div>
+                <Label className="font-medium text-emerald-700 dark:text-emerald-300">
+                  Companion Hope
+                </Label>
+                <p className="text-muted-foreground text-xs">
+                  From Light in the Dark training
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() =>
+                onChange({
+                  ...state,
+                  companionHopeFilled: !companionHopeFilled,
+                })
+              }
+              className={`flex size-12 items-center justify-center rounded-xl border-2 transition-all ${
+                companionHopeFilled
+                  ? 'border-emerald-500 bg-gradient-to-br from-emerald-400 to-teal-500 shadow-lg'
+                  : 'border-dashed border-emerald-400 bg-white hover:border-emerald-500 dark:bg-emerald-900/30'
+              }`}
+              aria-label={`Companion hope ${companionHopeFilled ? 'filled' : 'empty'}`}
+            >
+              <span
+                className={`text-xl ${companionHopeFilled ? '' : 'opacity-40'}`}
+              >
+                🐾
+              </span>
+            </button>
+          </div>
+        </div>
+      )}
 
       <div>
         <Label className="mb-2 block font-medium">Extra Hope Slots</Label>
