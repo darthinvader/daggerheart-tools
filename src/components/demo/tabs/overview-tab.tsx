@@ -9,10 +9,10 @@ import { LoadoutDisplay } from '@/components/loadout-selector';
 import { SessionTracker } from '@/components/session-tracker';
 
 import { CompanionSection } from '../companion-section';
-import { createDamageHandler, createRestHandler } from '../demo-handlers';
+import { createRestHandler } from '../demo-handlers';
 import type { TabProps } from '../demo-types';
 import { useDeathMoveHandler } from '../use-death-move-handler';
-import { CombatRestGrid } from './combat-rest-grid';
+import { RestGrid } from './combat-rest-grid';
 import {
   AncestryClassGrid,
   ExperiencesEquipmentGrid,
@@ -34,17 +34,6 @@ export function OverviewTab({ state, handlers }: TabProps) {
         setHopeWithScars: handlers.setHopeWithScars,
         setCompanion: handlers.setCompanion,
         setRestState: handlers.setRestState,
-      }),
-    [state, handlers]
-  );
-
-  const handleDamage = useMemo(
-    () =>
-      createDamageHandler({
-        resources: state.resources,
-        deathState: state.deathState,
-        setResources: handlers.setResources,
-        setDeathState: handlers.setDeathState,
       }),
     [state, handlers]
   );
@@ -111,11 +100,7 @@ export function OverviewTab({ state, handlers }: TabProps) {
         />
       </div>
 
-      <CombatRestGrid
-        state={state}
-        onDamage={handleDamage}
-        onRest={handleRest}
-      />
+      <RestGrid state={state} onRest={handleRest} />
 
       <div className="grid h-112 gap-4 sm:gap-6 md:grid-cols-2">
         <SessionTracker

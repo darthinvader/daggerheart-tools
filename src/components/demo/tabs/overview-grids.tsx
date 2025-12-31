@@ -1,3 +1,5 @@
+import { useMemo } from 'react';
+
 import { AncestryDisplay } from '@/components/ancestry-selector';
 import { ClassDisplay } from '@/components/class-selector';
 import { CommunityDisplay } from '@/components/community-selector';
@@ -13,6 +15,7 @@ import { ProgressionDisplay } from '@/components/shared/progression-display';
 import { ThresholdsEditableSection } from '@/components/thresholds-editor';
 import { TraitsDisplay } from '@/components/traits';
 
+import { createDamageHandler } from '../demo-handlers';
 import type { TabProps } from '../demo-types';
 
 export function IdentityProgressionGrid({ state, handlers }: TabProps) {
@@ -66,6 +69,17 @@ export function TraitsScoresGrid({ state, handlers }: TabProps) {
     });
   };
 
+  const handleDamage = useMemo(
+    () =>
+      createDamageHandler({
+        resources: state.resources,
+        deathState: state.deathState,
+        setResources: handlers.setResources,
+        setDeathState: handlers.setDeathState,
+      }),
+    [state.resources, state.deathState, handlers]
+  );
+
   return (
     <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
       <TraitsDisplay traits={state.traits} onChange={handlers.setTraits} />
@@ -75,6 +89,13 @@ export function TraitsScoresGrid({ state, handlers }: TabProps) {
         deathState={state.deathState}
         onTriggerDeathMove={handleTriggerDeathMove}
         onWakeUp={handleWakeUp}
+        thresholds={{
+          major: state.thresholds.values.major,
+          severe: state.thresholds.values.severe,
+          critical: state.thresholds.values.critical,
+          enableCritical: state.thresholds.enableCritical,
+        }}
+        onApplyDamage={handleDamage}
       />
     </div>
   );

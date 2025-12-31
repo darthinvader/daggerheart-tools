@@ -1,13 +1,12 @@
 import { useMemo } from 'react';
 
 import { CompanionDisplay } from '@/components/companion';
-import { DamageCalculator } from '@/components/damage-calculator';
 import { DeathMoveModal } from '@/components/death-move';
 import { DowntimeMoves } from '@/components/downtime-moves';
 import { RestManagement } from '@/components/rest-management';
 import { SessionTracker } from '@/components/session-tracker';
 
-import { createDamageHandler, createRestHandler } from '../demo-handlers';
+import { createRestHandler } from '../demo-handlers';
 import type { TabProps } from '../demo-types';
 import { useDeathMoveHandler } from '../use-death-move-handler';
 
@@ -23,17 +22,6 @@ export function SessionTab({ state, handlers }: TabProps) {
         setHopeWithScars: handlers.setHopeWithScars,
         setCompanion: handlers.setCompanion,
         setRestState: handlers.setRestState,
-      }),
-    [state, handlers]
-  );
-
-  const handleDamage = useMemo(
-    () =>
-      createDamageHandler({
-        resources: state.resources,
-        deathState: state.deathState,
-        setResources: handlers.setResources,
-        setDeathState: handlers.setDeathState,
       }),
     [state, handlers]
   );
@@ -61,35 +49,19 @@ export function SessionTab({ state, handlers }: TabProps) {
         onExecuteMove={handleExecuteDeathMove}
       />
 
-      <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
-        <DamageCalculator
-          armor={state.resources.armorScore}
-          health={{
-            current: state.resources.hp.current,
-            max: state.resources.hp.max,
-            thresholds: {
-              major: state.thresholds.values.major,
-              severe: state.thresholds.values.severe,
-              critical: state.thresholds.values.critical,
-            },
-            enableCritical: state.thresholds.enableCritical,
-          }}
-          onApplyDamage={handleDamage}
-        />
-        <RestManagement
-          restState={state.restState}
-          resources={{
-            hope: {
-              current: state.hopeWithScars.current,
-              max: state.hopeWithScars.max,
-            },
-            stress: state.resources.stress,
-            hp: state.resources.hp,
-            armor: state.resources.armorScore,
-          }}
-          onRest={handleRest}
-        />
-      </div>
+      <RestManagement
+        restState={state.restState}
+        resources={{
+          hope: {
+            current: state.hopeWithScars.current,
+            max: state.hopeWithScars.max,
+          },
+          stress: state.resources.stress,
+          hp: state.resources.hp,
+          armor: state.resources.armorScore,
+        }}
+        onRest={handleRest}
+      />
 
       <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
         <DowntimeMoves
