@@ -1,4 +1,4 @@
-import { Clock, Coffee } from 'lucide-react';
+import { Clock } from 'lucide-react';
 
 import { useState } from 'react';
 
@@ -48,38 +48,44 @@ export function DowntimeMoves({ activities, onChange }: DowntimeMovesProps) {
   };
 
   return (
-    <>
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="flex items-center gap-2 font-semibold">
-            <Coffee className="h-5 w-5" />
-            Downtime Activities
-          </h3>
-          <div className="text-muted-foreground flex items-center gap-4 text-sm">
-            <span>
-              {stats.completed}/{stats.total} completed
-            </span>
-            <span className="flex items-center gap-1">
-              <Clock className="h-4 w-4" />
-              {stats.totalHours}h total
-            </span>
-          </div>
+    <section className="bg-card hover:border-primary/20 flex h-full max-h-full flex-col overflow-hidden rounded-xl border shadow-sm transition-colors">
+      <div className="flex shrink-0 items-center justify-between border-b px-4 py-3 sm:px-6">
+        <div className="flex items-center gap-2">
+          <span className="text-xl">☕</span>
+          <h3 className="text-lg font-semibold">Downtime Activities</h3>
         </div>
+        <div className="text-muted-foreground flex items-center gap-4 text-sm">
+          <span>
+            {stats.completed}/{stats.total} completed
+          </span>
+          <span className="flex items-center gap-1">
+            <Clock className="h-4 w-4" />
+            {stats.totalHours}h total
+          </span>
+        </div>
+      </div>
 
-        <Tabs defaultValue="activities">
-          <TabsList className="grid w-full grid-cols-2">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-4 sm:p-6">
+        <Tabs
+          defaultValue="activities"
+          className="flex min-h-0 flex-1 flex-col overflow-hidden"
+        >
+          <TabsList className="grid w-full shrink-0 grid-cols-2">
             <TabsTrigger value="activities">My Activities</TabsTrigger>
             <TabsTrigger value="moves">Available Moves</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="activities" className="mt-4">
+          <TabsContent
+            value="activities"
+            className="mt-4 min-h-0 flex-1 overflow-y-auto"
+          >
             {sorted.length === 0 ? (
               <div className="text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm">
                 No downtime activities yet. Start one from the Available Moves
                 tab.
               </div>
             ) : (
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-4">
                 {sorted.map(activity => (
                   <DowntimeActivityCard
                     key={activity.id}
@@ -92,7 +98,10 @@ export function DowntimeMoves({ activities, onChange }: DowntimeMovesProps) {
             )}
           </TabsContent>
 
-          <TabsContent value="moves" className="mt-4 space-y-6">
+          <TabsContent
+            value="moves"
+            className="mt-4 min-h-0 flex-1 space-y-6 overflow-y-auto"
+          >
             {DOWNTIME_CATEGORIES.map(category => {
               const moves = STANDARD_DOWNTIME_MOVES.filter(
                 m => m.category === category.value
@@ -124,6 +133,6 @@ export function DowntimeMoves({ activities, onChange }: DowntimeMovesProps) {
         onClose={() => setSelectedMove(null)}
         onConfirm={handleConfirmActivity}
       />
-    </>
+    </section>
   );
 }

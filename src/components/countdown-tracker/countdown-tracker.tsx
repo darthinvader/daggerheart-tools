@@ -1,4 +1,4 @@
-import { Plus, Timer } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 import { useState } from 'react';
 
@@ -47,25 +47,25 @@ export function CountdownTracker({
   const sorted = sortCountdowns(countdowns);
 
   return (
-    <>
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="flex items-center gap-2 font-semibold">
-            <Timer className="h-5 w-5" />
-            Countdowns
-          </h3>
-          <Button size="sm" onClick={() => setIsAdding(true)}>
-            <Plus className="mr-1 h-4 w-4" />
-            Add
-          </Button>
+    <section className="bg-card hover:border-primary/20 flex h-full max-h-full flex-col overflow-hidden rounded-xl border shadow-sm transition-colors">
+      <div className="flex shrink-0 items-center justify-between border-b px-4 py-3 sm:px-6">
+        <div className="flex items-center gap-2">
+          <span className="text-xl">⏱️</span>
+          <h3 className="text-lg font-semibold">Countdowns</h3>
         </div>
+        <Button size="sm" onClick={() => setIsAdding(true)}>
+          <Plus className="mr-1 h-4 w-4" />
+          Add
+        </Button>
+      </div>
 
+      <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
         {sorted.length === 0 ? (
           <div className="text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm">
             No active countdowns
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-4">
             {sorted.map(countdown => (
               <CountdownCard
                 key={countdown.id}
@@ -86,6 +86,6 @@ export function CountdownTracker({
         onClose={() => setIsAdding(false)}
         onAdd={handleAdd}
       />
-    </>
+    </section>
   );
 }

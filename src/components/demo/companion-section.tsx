@@ -39,16 +39,24 @@ export function CompanionSection({
   }
 
   return (
-    <div className="flex items-center justify-center rounded-lg border border-dashed p-4">
-      <Button
-        variant="ghost"
-        size="sm"
-        className="text-muted-foreground gap-2"
-        onClick={() => setCompanionEnabled(true)}
-      >
-        <Dog className="size-4" />
-        Add Companion (Homebrew)
-      </Button>
-    </div>
+    <section className="bg-card hover:border-primary/20 rounded-xl border shadow-sm transition-colors">
+      <div className="flex items-center justify-between border-b px-4 py-3 sm:px-6">
+        <div className="flex items-center gap-2">
+          <span className="text-xl">🐾</span>
+          <h3 className="text-lg font-semibold">Companion</h3>
+        </div>
+      </div>
+      <div className="flex items-center justify-center p-6">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-muted-foreground gap-2"
+          onClick={() => setCompanionEnabled(true)}
+        >
+          <Dog className="size-4" />
+          Add Companion (Homebrew)
+        </Button>
+      </div>
+    </section>
   );
 }

@@ -22,7 +22,6 @@ export const RESOURCE_CONFIG = [
     emoji: '😰',
     color: 'text-yellow-500',
   },
-  { key: 'hope' as const, label: 'Hope', emoji: '✨', color: 'text-blue-500' },
   {
     key: 'armorScore' as const,
     label: 'Armor Score',

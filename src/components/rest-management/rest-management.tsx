@@ -66,31 +66,40 @@ export function RestManagement({
 
   return (
     <>
-      <div className="space-y-4">
-        {/* Rest History */}
-        <div className="text-muted-foreground flex justify-between text-sm">
-          <span>
-            Last short rest: {getTimeSinceRest(restState.lastShortRest)}
-          </span>
-          <span>
-            Last long rest: {getTimeSinceRest(restState.lastLongRest)}
-          </span>
+      <section className="bg-card hover:border-primary/20 rounded-xl border shadow-sm transition-colors">
+        <div className="flex items-center justify-between border-b px-4 py-3 sm:px-6">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">💤</span>
+            <h3 className="text-lg font-semibold">Rest Management</h3>
+          </div>
         </div>
 
-        {/* Rest Options */}
-        <div className="grid gap-4 sm:grid-cols-2">
-          <RestOptionCard
-            type="short"
-            lastRest={restState.lastShortRest}
-            onSelect={() => handleSelectRest('short')}
-          />
-          <RestOptionCard
-            type="long"
-            lastRest={restState.lastLongRest}
-            onSelect={() => handleSelectRest('long')}
-          />
+        <div className="space-y-4 p-4 sm:p-6">
+          {/* Rest History */}
+          <div className="text-muted-foreground flex justify-between text-sm">
+            <span>
+              Last short rest: {getTimeSinceRest(restState.lastShortRest)}
+            </span>
+            <span>
+              Last long rest: {getTimeSinceRest(restState.lastLongRest)}
+            </span>
+          </div>
+
+          {/* Rest Options */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <RestOptionCard
+              type="short"
+              lastRest={restState.lastShortRest}
+              onSelect={() => handleSelectRest('short')}
+            />
+            <RestOptionCard
+              type="long"
+              lastRest={restState.lastLongRest}
+              onSelect={() => handleSelectRest('long')}
+            />
+          </div>
         </div>
-      </div>
+      </section>
 
       {/* Confirmation Dialog */}
       <Dialog

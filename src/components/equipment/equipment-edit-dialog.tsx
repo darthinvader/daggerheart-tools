@@ -44,7 +44,7 @@ export function EquipmentEditDialog({
           hideDialogHeader
             ? 'grid-rows-[1fr_auto]'
             : 'grid-rows-[auto_1fr_auto]',
-          'sm:max-w-[800px]'
+          'sm:max-w-250'
         )}
       >
         {!hideDialogHeader && (

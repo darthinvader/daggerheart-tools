@@ -202,7 +202,13 @@ export function HopeWithScarsDisplay({
       description="Your Hope fuels special abilities. Scars permanently reduce your maximum Hope."
       isEditing={isEditing}
       onEditToggle={handleEditToggle}
-      editContent={<HopeEditor state={draft} onChange={setDraft} />}
+      editContent={
+        <HopeEditor
+          state={draft}
+          onChange={setDraft}
+          bonusHopeSlots={bonusHopeSlots}
+        />
+      }
       editTitle="Edit Hope & Scars"
       editDescription="Manage your Hope and track permanent scars from near-death experiences."
       onSave={handleSave}

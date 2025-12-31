@@ -84,24 +84,22 @@ export function createDamageHandler(params: DamageHandlerParams) {
   const { resources, deathState, setResources, setDeathState } = params;
 
   return (result: DamageResult) => {
+    // Reduce armor by the number of slots sacrificed
     const newArmorCurrent = Math.max(
       0,
-      resources.armorScore.current - result.armorUsed
+      resources.armorScore.current - result.armorSlotsSacrificed
     );
-    const newHp = Math.max(0, resources.hp.current - result.hpDamage);
-    const newStress = Math.min(
-      resources.stress.max,
-      resources.stress.current + result.stressGained
-    );
+    // Apply HP loss
+    const newHp = Math.max(0, resources.hp.current - result.hpLost);
 
     setResources({
       ...resources,
       hp: { ...resources.hp, current: newHp },
-      stress: { ...resources.stress, current: newStress },
       armorScore: { ...resources.armorScore, current: newArmorCurrent },
     });
 
-    if (result.isDeadly) {
+    // Trigger death move if HP drops to 0
+    if (newHp <= 0) {
       setDeathState({
         ...deathState,
         deathMovePending: true,

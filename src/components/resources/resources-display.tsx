@@ -2,6 +2,10 @@ import { Minus, Plus } from 'lucide-react';
 
 import { useCallback, useMemo, useState } from 'react';
 
+import {
+  type DeathMoveState,
+  DeathStatusIndicator,
+} from '@/components/death-move';
 import { EditableSection } from '@/components/shared/editable-section';
 import { LabeledCounter } from '@/components/shared/labeled-counter';
 import { Button } from '@/components/ui/button';
@@ -44,6 +48,9 @@ interface ResourcesDisplayProps {
   className?: string;
   readOnly?: boolean;
   autoContext?: AutoCalculateContext;
+  deathState?: DeathMoveState;
+  onTriggerDeathMove?: () => void;
+  onWakeUp?: () => void;
 }
 
 interface QuickResourceCardProps {
@@ -119,7 +126,7 @@ function ResourcesDetailedDisplay({
   );
 
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+    <div className="grid grid-cols-3 gap-4">
       {displayableResources.map(({ key, label, emoji, color }) => (
         <QuickResourceCard
           key={key}
@@ -239,6 +246,9 @@ export function ResourcesDisplay({
   className,
   readOnly = false,
   autoContext,
+  deathState,
+  onTriggerDeathMove,
+  onWakeUp,
 }: ResourcesDisplayProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState<ResourcesState>(resources);
@@ -270,6 +280,13 @@ export function ResourcesDisplay({
     [resources, onChange]
   );
 
+  // Determine if death indicator should show (HP at 0 or death state active)
+  const showDeathIndicator =
+    deathState &&
+    (deathState.deathMovePending ||
+      deathState.isUnconscious ||
+      resources.hp.current <= 0);
+
   return (
     <EditableSection
       title="Resources"
@@ -291,11 +308,20 @@ export function ResourcesDisplay({
         />
       }
     >
-      <ResourcesDetailedDisplay
-        resources={resources}
-        onChange={handleQuickChange}
-        readOnly={readOnly}
-      />
+      <div className="space-y-4">
+        <ResourcesDetailedDisplay
+          resources={resources}
+          onChange={handleQuickChange}
+          readOnly={readOnly}
+        />
+        {showDeathIndicator && (
+          <DeathStatusIndicator
+            state={deathState}
+            onTriggerDeathMove={onTriggerDeathMove}
+            onWakeUp={onWakeUp}
+          />
+        )}
+      </div>
     </EditableSection>
   );
 }

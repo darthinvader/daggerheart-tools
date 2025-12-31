@@ -33,11 +33,11 @@ interface EditableSectionProps {
 }
 
 const MODAL_SIZE_CLASSES = {
-  sm: 'sm:max-w-[400px]',
-  md: 'sm:max-w-[550px]',
-  lg: 'sm:max-w-[800px]',
-  xl: 'sm:max-w-[1000px]',
-  full: 'sm:max-w-[95vw]',
+  sm: 'sm:max-w-[450px]',
+  md: 'sm:max-w-[600px]',
+  lg: 'sm:max-w-[900px]',
+  xl: 'sm:max-w-[1100px]',
+  full: 'sm:max-w-[90vw] lg:max-w-[1200px]',
 } as const;
 
 export function EditableSection({

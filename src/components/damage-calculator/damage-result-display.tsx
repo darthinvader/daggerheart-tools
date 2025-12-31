@@ -1,9 +1,8 @@
-import { AlertTriangle, ArrowDown, Heart, Shield, Zap } from 'lucide-react';
+import { AlertTriangle, ArrowDown, Heart, Shield } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
 import { SEVERITY_LEVELS } from './constants';
-import { getDamageSeverity } from './damage-utils';
 import type { DamageResult, HealthState } from './types';
 
 interface DamageResultDisplayProps {
@@ -11,12 +10,10 @@ interface DamageResultDisplayProps {
   thresholds: HealthState['thresholds'];
 }
 
-export function DamageResultDisplay({
-  result,
-  thresholds,
-}: DamageResultDisplayProps) {
-  const severity = getDamageSeverity(result.hpDamage, thresholds);
-  const severityInfo = SEVERITY_LEVELS.find(s => s.threshold === severity);
+export function DamageResultDisplay({ result }: DamageResultDisplayProps) {
+  const severityInfo = SEVERITY_LEVELS.find(
+    s => s.threshold === result.severity
+  );
 
   return (
     <div className="space-y-4">
@@ -28,25 +25,7 @@ export function DamageResultDisplay({
           <span className="text-xl font-bold">{result.incoming}</span>
         </div>
 
-        {/* Armor Absorption */}
-        {result.absorbed > 0 && (
-          <>
-            <div className="flex justify-center">
-              <ArrowDown className="text-muted-foreground h-4 w-4" />
-            </div>
-            <div className="flex items-center justify-between rounded-lg bg-slate-500/10 p-3">
-              <span className="flex items-center gap-2">
-                <Shield className="h-4 w-4" />
-                Absorbed by Armor
-              </span>
-              <span className="text-lg font-semibold text-slate-500">
-                -{result.absorbed}
-              </span>
-            </div>
-          </>
-        )}
-
-        {/* HP Damage */}
+        {/* Severity Classification */}
         <div className="flex justify-center">
           <ArrowDown className="text-muted-foreground h-4 w-4" />
         </div>
@@ -57,34 +36,57 @@ export function DamageResultDisplay({
           )}
         >
           <span className="flex items-center gap-2">
-            <Heart
-              className={cn('h-4 w-4', severityInfo?.color ?? 'text-green-500')}
-            />
-            HP Damage
+            <span className={cn('font-medium capitalize', severityInfo?.color)}>
+              {result.severity} Damage
+            </span>
           </span>
           <span
             className={cn(
-              'text-xl font-bold',
+              'text-sm font-medium',
               severityInfo?.color ?? 'text-green-500'
             )}
           >
-            {result.hpDamage}
+            Base HP loss: {result.hpLost + result.armorSlotsSacrificed}
+          </span>
+        </div>
+
+        {/* Armor Reduction */}
+        {result.armorSlotsSacrificed > 0 && (
+          <>
+            <div className="flex justify-center">
+              <ArrowDown className="text-muted-foreground h-4 w-4" />
+            </div>
+            <div className="flex items-center justify-between rounded-lg bg-slate-500/10 p-3">
+              <span className="flex items-center gap-2">
+                <Shield className="h-4 w-4" />
+                Armor Slots Sacrificed
+              </span>
+              <span className="text-lg font-semibold text-slate-500">
+                -{result.armorSlotsSacrificed} HP
+              </span>
+            </div>
+          </>
+        )}
+
+        {/* Final HP Loss */}
+        <div className="flex justify-center">
+          <ArrowDown className="text-muted-foreground h-4 w-4" />
+        </div>
+        <div
+          className={cn(
+            'flex items-center justify-between rounded-lg p-3',
+            result.isDeadly ? 'bg-red-500/20' : 'bg-red-500/10'
+          )}
+        >
+          <span className="flex items-center gap-2">
+            <Heart className="h-4 w-4 text-red-500" />
+            HP Lost
+          </span>
+          <span className="text-xl font-bold text-red-500">
+            {result.hpLost}
           </span>
         </div>
       </div>
-
-      {/* Stress */}
-      {result.stressGained > 0 && (
-        <div className="flex items-center justify-between rounded-lg bg-amber-500/10 p-3">
-          <span className="flex items-center gap-2">
-            <Zap className="h-4 w-4 text-amber-500" />
-            Stress Gained ({severity} damage)
-          </span>
-          <span className="text-lg font-semibold text-amber-500">
-            +{result.stressGained}
-          </span>
-        </div>
-      )}
 
       {/* Deadly Warning */}
       {result.isDeadly && (

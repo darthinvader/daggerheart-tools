@@ -1,8 +1,15 @@
-import type { LoadoutSelection } from '@/lib/schemas/loadout';
+import { useCallback, useState } from 'react';
+
+import type { DomainCard } from '@/lib/schemas/domains';
+import type {
+  HomebrewDomainCard,
+  LoadoutSelection,
+} from '@/lib/schemas/loadout';
 
 import { CardGrid } from './card-grid';
 import { DomainFilter } from './domain-filter';
 import { HomebrewCardForm } from './homebrew-card-form';
+import { HomebrewFromCardModal } from './homebrew-from-card-modal';
 import { LoadoutModeTabs } from './loadout-mode-tabs';
 import { useLoadoutState } from './use-loadout-state';
 
@@ -30,6 +37,23 @@ export function LoadoutSelector({
     classDomains,
     tier,
   });
+
+  const [homebrewEditCard, setHomebrewEditCard] = useState<DomainCard | null>(
+    null
+  );
+
+  const handleHomebrewSave = useCallback(
+    (card: HomebrewDomainCard, destination: 'loadout' | 'vault') => {
+      state.handleAddHomebrew(card);
+      if (destination === 'loadout' && !state.isActiveFull) {
+        state.handleAddHomebrewToLoadout(card);
+      } else if (destination === 'vault' && !state.isVaultFull) {
+        state.handleAddHomebrewToVault(card);
+      }
+      setHomebrewEditCard(null);
+    },
+    [state]
+  );
 
   return (
     <div className="space-y-6">
@@ -87,9 +111,18 @@ export function LoadoutSelector({
             maxLevel={state.rules.maxCardLevel}
             filters={state.cardFilters}
             onFiltersChange={state.setCardFilters}
+            onHomebrewEdit={setHomebrewEditCard}
           />
         </>
       )}
+
+      <HomebrewFromCardModal
+        card={homebrewEditCard}
+        onClose={() => setHomebrewEditCard(null)}
+        onSave={handleHomebrewSave}
+        isLoadoutFull={state.isActiveFull}
+        isVaultFull={state.isVaultFull}
+      />
     </div>
   );
 }

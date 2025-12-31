@@ -96,7 +96,7 @@ export function LoadoutDisplay({
       onSave={handleSave}
       onCancel={handleCancel}
       showEditButton={!readOnly}
-      modalSize="full"
+      modalSize="xl"
       className={cn(className)}
       editTitle="Build Your Domain Loadout"
       editDescription="Select domain cards for your active loadout and vault."

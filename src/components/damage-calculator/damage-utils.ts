@@ -5,67 +5,98 @@ import type {
   HealthState,
 } from './types';
 
+type Severity = 'minor' | 'major' | 'severe' | 'critical';
+
+/**
+ * Classify incoming damage value against thresholds and return HP to lose.
+ * - damage 1 to (but not including) major threshold = 1 HP (Minor)
+ * - damage from major to (but not including) severe = 2 HP (Major)
+ * - damage >= severe = 3 HP (Severe)
+ * - If critical is enabled: damage >= critical threshold = 4 HP (Critical)
+ */
+function classifyDamageToHp(
+  damage: number,
+  thresholds: HealthState['thresholds'],
+  enableCritical?: boolean
+): { hpLost: number; severity: Severity } {
+  const { major, severe, critical } = thresholds;
+
+  if (damage <= 0) {
+    return { hpLost: 0, severity: 'minor' };
+  }
+
+  // Critical damage (if enabled and threshold exists)
+  if (enableCritical && critical && damage >= critical) {
+    return { hpLost: 4, severity: 'critical' };
+  }
+
+  // Severe damage
+  if (damage >= severe) {
+    return { hpLost: 3, severity: 'severe' };
+  }
+
+  // Major damage
+  if (damage >= major) {
+    return { hpLost: 2, severity: 'major' };
+  }
+
+  // Minor damage (1 to but not including major)
+  return { hpLost: 1, severity: 'minor' };
+}
+
 export function calculateDamage(
   input: DamageInput,
-  armor: ArmorState,
+  _armor: ArmorState,
   health: HealthState
 ): DamageResult {
-  let remaining = input.amount;
-  let armorUsed = 0;
+  const { amount, armorSlotsSacrificed = 0 } = input;
 
-  // Armor only absorbs physical damage and only if not ignored
-  if (input.type === 'physical' && !input.ignoreArmor && armor.current > 0) {
-    armorUsed = Math.min(armor.current, remaining);
-    remaining -= armorUsed;
-  }
+  // Classify the raw damage amount to determine base HP loss
+  const { hpLost: baseHpLost, severity } = classifyDamageToHp(
+    amount,
+    health.thresholds,
+    health.enableCritical
+  );
 
-  const hpDamage = remaining;
-  const newHp = health.current - hpDamage;
-  const isDeadly = newHp <= 0;
+  // Sacrifice armor slots to reduce HP loss (1 armor slot = 1 less HP lost)
+  const effectiveArmorSacrifice = Math.min(armorSlotsSacrificed, baseHpLost);
+  const hpLost = Math.max(0, baseHpLost - effectiveArmorSacrifice);
 
-  // Stress is gained based on severity thresholds
-  let stressGained = 0;
-  if (hpDamage >= health.thresholds.severe) {
-    stressGained = 3;
-  } else if (hpDamage >= health.thresholds.major) {
-    stressGained = 2;
-  } else if (hpDamage >= health.thresholds.minor) {
-    stressGained = 1;
-  }
+  const finalHp = Math.max(0, health.current - hpLost);
+  const isDeadly = finalHp <= 0;
 
   return {
-    incoming: input.amount,
-    absorbed: armorUsed,
-    armorUsed,
-    hpDamage,
-    stressGained,
+    incoming: amount,
+    hpLost,
+    armorSlotsSacrificed: effectiveArmorSacrifice,
+    severity,
     isDeadly,
+    finalHp,
   };
 }
 
 export function getDamageSeverity(
   damage: number,
-  thresholds: HealthState['thresholds']
-): 'none' | 'minor' | 'major' | 'severe' {
+  thresholds: HealthState['thresholds'],
+  enableCritical?: boolean
+): Severity | 'none' {
+  if (damage <= 0) return 'none';
+  if (enableCritical && thresholds.critical && damage >= thresholds.critical)
+    return 'critical';
   if (damage >= thresholds.severe) return 'severe';
   if (damage >= thresholds.major) return 'major';
-  if (damage >= thresholds.minor) return 'minor';
-  return 'none';
+  return 'minor';
 }
 
 export function formatDamageBreakdown(result: DamageResult): string[] {
   const lines: string[] = [];
 
   lines.push(`Incoming damage: ${result.incoming}`);
+  lines.push(`Severity: ${result.severity}`);
+  lines.push(`HP lost: ${result.hpLost}`);
 
-  if (result.absorbed > 0) {
-    lines.push(`Absorbed by armor: ${result.absorbed}`);
-  }
-
-  lines.push(`HP damage: ${result.hpDamage}`);
-
-  if (result.stressGained > 0) {
-    lines.push(`Stress gained: ${result.stressGained}`);
+  if (result.armorSlotsSacrificed > 0) {
+    lines.push(`Armor slots sacrificed: ${result.armorSlotsSacrificed}`);
   }
 
   if (result.isDeadly) {

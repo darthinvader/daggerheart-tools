@@ -36,7 +36,7 @@ export function WeaponCardCompact({
   return (
     <div
       onClick={onClick}
-      className={`hover:border-primary/50 hover:bg-accent/50 relative cursor-pointer rounded-lg border p-3 transition-all ${isSelected ? 'border-primary bg-primary/5 shadow-sm' : 'bg-card'} `}
+      className={`hover:border-primary/50 hover:bg-accent/50 relative cursor-pointer rounded-lg border p-4 transition-all ${isSelected ? 'border-primary bg-primary/5 shadow-sm' : 'bg-card'} `}
     >
       {isSelected && (
         <div className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full">
@@ -44,35 +44,48 @@ export function WeaponCardCompact({
         </div>
       )}
 
-      <div className="mb-2 flex items-start justify-between gap-2">
-        <h4 className="text-sm leading-tight font-semibold">{weapon.name}</h4>
-        <Badge variant="outline" className="shrink-0 text-[10px]">
-          T{weapon.tier}
+      <div className="mb-3 flex items-start justify-between gap-2">
+        <h4 className="text-base leading-tight font-semibold">{weapon.name}</h4>
+        <Badge variant="outline" className="shrink-0 text-xs">
+          Tier {weapon.tier}
         </Badge>
       </div>
 
-      <div className="mb-2 flex flex-wrap gap-1">
-        <Badge variant="secondary" className="text-[10px]">
-          {damageEmoji} {formatDamage(weapon.damage)}
-        </Badge>
-        <Badge variant="secondary" className="text-[10px]">
-          {rangeEmoji} {weapon.range}
-        </Badge>
+      {/* Combat Stats */}
+      <div className="bg-muted/30 mb-3 rounded-lg border p-3">
+        <div className="grid grid-cols-2 gap-2">
+          <div className="bg-background flex items-center gap-2 rounded-md p-2">
+            <span className="text-lg">{damageEmoji}</span>
+            <div>
+              <div className="text-muted-foreground text-[10px]">Damage</div>
+              <div className="text-sm font-bold">
+                {formatDamage(weapon.damage)}
+              </div>
+            </div>
+          </div>
+          <div className="bg-background flex items-center gap-2 rounded-md p-2">
+            <span className="text-lg">{rangeEmoji}</span>
+            <div>
+              <div className="text-muted-foreground text-[10px]">Range</div>
+              <div className="text-sm font-bold">{weapon.range}</div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="text-muted-foreground mb-1 text-xs">
-        <span className="font-medium">{weapon.trait}</span>
-        <span className="mx-1">·</span>
-        <span>{weapon.burden}</span>
+      <div className="text-muted-foreground mb-2 flex gap-2 text-sm">
+        <Badge variant="secondary" className="text-xs">
+          {weapon.trait}
+        </Badge>
+        <Badge variant="secondary" className="text-xs">
+          {weapon.burden}
+        </Badge>
       </div>
 
       {weapon.features.length > 0 && (
-        <div className="mt-2 space-y-1">
-          {weapon.features.slice(0, 2).map((feature, idx) => (
-            <div
-              key={idx}
-              className="bg-muted/50 rounded px-2 py-1 text-[10px]"
-            >
+        <div className="mt-3 space-y-1.5">
+          {weapon.features.slice(0, 3).map((feature, idx) => (
+            <div key={idx} className="bg-muted/50 rounded px-2 py-1.5 text-xs">
               <span className="font-semibold">{feature.name}</span>
               {feature.description && (
                 <span className="text-muted-foreground">
@@ -82,16 +95,16 @@ export function WeaponCardCompact({
               )}
             </div>
           ))}
-          {weapon.features.length > 2 && (
-            <span className="text-muted-foreground text-[10px]">
-              +{weapon.features.length - 2} more
+          {weapon.features.length > 3 && (
+            <span className="text-muted-foreground text-xs">
+              +{weapon.features.length - 3} more features
             </span>
           )}
         </div>
       )}
 
       {isCombatWheelchair(weapon) && (
-        <div className="text-muted-foreground mt-2 text-[10px]">
+        <div className="text-muted-foreground mt-3 text-xs">
           ♿ {weapon.frameType} Frame
         </div>
       )}

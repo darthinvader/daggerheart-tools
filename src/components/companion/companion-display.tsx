@@ -80,34 +80,38 @@ function EmptyCompanionState({
   onDisable?: () => void;
 }) {
   return (
-    <div className="rounded-lg border border-dashed p-6 text-center">
-      <div className="relative">
+    <section className="bg-card hover:border-primary/20 rounded-xl border shadow-sm transition-colors">
+      <div className="flex items-center justify-between border-b px-4 py-3 sm:px-6">
+        <div className="flex items-center gap-2">
+          <span className="text-xl">🐾</span>
+          <h3 className="text-lg font-semibold">Companion</h3>
+          {isHomebrew && (
+            <span className="text-muted-foreground text-xs">(Homebrew)</span>
+          )}
+        </div>
+      </div>
+      <div className="p-6 text-center">
         <PawPrint className="text-muted-foreground mx-auto mb-2 h-8 w-8" />
-        {isHomebrew && (
-          <span className="text-muted-foreground absolute -top-1 left-1/2 ml-8 text-xs">
-            Homebrew
-          </span>
-        )}
-      </div>
-      <p className="text-muted-foreground mb-4 text-sm">
-        No companion configured
-      </p>
-      <div className="flex items-center justify-center gap-2">
-        <Button variant="outline" size="sm" onClick={onAdd}>
-          Add Companion
-        </Button>
-        {onDisable && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-muted-foreground"
-            onClick={onDisable}
-          >
-            <Trash2 className="size-4" />
+        <p className="text-muted-foreground mb-4 text-sm">
+          No companion configured
+        </p>
+        <div className="flex items-center justify-center gap-2">
+          <Button variant="outline" size="sm" onClick={onAdd}>
+            Add Companion
           </Button>
-        )}
+          {onDisable && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground"
+              onClick={onDisable}
+            >
+              <Trash2 className="size-4" />
+            </Button>
+          )}
+        </div>
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -179,39 +183,51 @@ export function CompanionDisplay({
 
   return (
     <>
-      <div className="space-y-4 rounded-lg border p-4">
-        <CompanionHeader
-          name={companion.name}
-          type={companion.type}
-          isHomebrew={isHomebrew}
-          onEdit={handleEdit}
-          onDisable={onDisable}
-        />
-
-        {isOutOfScene && (
-          <div className="bg-destructive/10 text-destructive rounded-md p-3 text-sm">
-            ⚠️ Companion has fled the scene! Returns after long rest with 1
-            Stress cleared.
+      <section className="bg-card hover:border-primary/20 rounded-xl border shadow-sm transition-colors">
+        <div className="flex items-center justify-between border-b px-4 py-3 sm:px-6">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">🐾</span>
+            <h3 className="text-lg font-semibold">Companion</h3>
+            {isHomebrew && (
+              <span className="text-muted-foreground text-xs">(Homebrew)</span>
+            )}
           </div>
-        )}
+        </div>
 
-        <CompanionStatsGrid
-          evasion={effectiveEvasion}
-          damageDie={companion.damageDie}
-          range={companion.range}
-          standardAttack={companion.standardAttack}
-        />
+        <div className="space-y-4 p-4 sm:p-6">
+          <CompanionHeader
+            name={companion.name}
+            type={companion.type}
+            isHomebrew={false}
+            onEdit={handleEdit}
+            onDisable={onDisable}
+          />
 
-        <CompanionStressTracker
-          markedStress={companion.markedStress}
-          totalSlots={totalStressSlots}
-          onStressChange={handleStressChange}
-          onSlotClick={handleSlotClick}
-        />
+          {isOutOfScene && (
+            <div className="bg-destructive/10 text-destructive rounded-md p-3 text-sm">
+              ⚠️ Companion has fled the scene! Returns after long rest with 1
+              Stress cleared.
+            </div>
+          )}
 
-        <CompanionExperiencesBadges experiences={companion.experiences} />
-        <CompanionTrainingBadges training={companion.training} />
-      </div>
+          <CompanionStatsGrid
+            evasion={effectiveEvasion}
+            damageDie={companion.damageDie}
+            range={companion.range}
+            standardAttack={companion.standardAttack}
+          />
+
+          <CompanionStressTracker
+            markedStress={companion.markedStress}
+            totalSlots={totalStressSlots}
+            onStressChange={handleStressChange}
+            onSlotClick={handleSlotClick}
+          />
+
+          <CompanionExperiencesBadges experiences={companion.experiences} />
+          <CompanionTrainingBadges training={companion.training} />
+        </div>
+      </section>
 
       <CompanionEditDialog
         isOpen={isEditing}

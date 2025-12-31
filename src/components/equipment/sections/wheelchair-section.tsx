@@ -6,7 +6,7 @@ import type { CombatWheelchair } from '@/lib/schemas/equipment';
 import { type EquipmentMode, EquipmentModeTabs } from '../equipment-mode-tabs';
 import { EquipmentSection } from '../equipment-section';
 import { HomebrewWeaponForm } from '../homebrew-weapon-form';
-import { WeaponCardCompact } from '../weapon-card-compact';
+import { WheelchairCardCompact } from '../wheelchair-card-compact';
 
 interface WheelchairSectionProps {
   enabled: boolean;
@@ -59,9 +59,9 @@ export function WheelchairSection({
         selectedItem={wheelchair}
         onSelect={onWheelchairChange}
         renderCard={(chair, isSelected, onSelect) => (
-          <WeaponCardCompact
+          <WheelchairCardCompact
             key={chair.name}
-            weapon={chair}
+            wheelchair={chair}
             isSelected={isSelected}
             onClick={onSelect}
           />

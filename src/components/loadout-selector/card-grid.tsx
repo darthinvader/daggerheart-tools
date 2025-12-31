@@ -25,6 +25,7 @@ interface CardGridProps {
   maxLevel?: number;
   filters?: CardFiltersState;
   onFiltersChange?: (filters: CardFiltersState) => void;
+  onHomebrewEdit?: (card: DomainCard) => void;
 }
 
 function CardGridComponent(props: CardGridProps) {
@@ -33,6 +34,7 @@ function CardGridComponent(props: CardGridProps) {
     maxLevel = 10,
     filters = createDefaultFilters(maxLevel),
     onFiltersChange,
+    onHomebrewEdit,
   } = props;
   const state = useCardGridState({ ...props, filters });
 
@@ -75,7 +77,7 @@ function CardGridComponent(props: CardGridProps) {
         <NoMatchMessage search={state.search} />
       ) : (
         <div className="bg-muted/20 max-h-125 overflow-y-auto rounded-lg border p-4">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {state.filteredCards.map(card => (
               <div key={`${card.domain}-${card.name}`} className="min-w-0">
                 <DomainCardDisplay
@@ -84,6 +86,7 @@ function CardGridComponent(props: CardGridProps) {
                   selectionType={state.getSelectionType(card)}
                   onToggle={state.handleToggle}
                   isDisabled={state.isDisabled(card)}
+                  onHomebrewEdit={onHomebrewEdit}
                 />
               </div>
             ))}

@@ -92,7 +92,7 @@ export function HomebrewEditModal({
 
   return (
     <Dialog open={card !== null} onOpenChange={open => !open && onClose()}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="sm:max-w-150">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <span>🛠️</span>

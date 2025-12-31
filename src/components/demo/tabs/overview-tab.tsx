@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 
 import { CharacterNotesDisplay } from '@/components/character-notes';
+import { CountdownTracker } from '@/components/countdown-tracker';
 import { DamageCalculator } from '@/components/damage-calculator';
 import { DeathMoveModal } from '@/components/death-move';
 import { DowntimeMoves } from '@/components/downtime-moves';
@@ -17,7 +18,7 @@ import {
   AncestryClassGrid,
   ExperiencesEquipmentGrid,
   GoldConditionsGrid,
-  HopeThresholdsGrid,
+  HopeScoresThresholdsGrid,
   IdentityProgressionGrid,
   TraitsScoresGrid,
 } from './overview-grids';
@@ -75,49 +76,8 @@ export function OverviewTab({ state, handlers }: TabProps) {
       <IdentityProgressionGrid state={state} handlers={handlers} />
       <AncestryClassGrid state={state} handlers={handlers} />
       <TraitsScoresGrid state={state} handlers={handlers} />
-      <HopeThresholdsGrid state={state} handlers={handlers} />
+      <HopeScoresThresholdsGrid state={state} handlers={handlers} />
       <GoldConditionsGrid state={state} handlers={handlers} />
-
-      <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
-        <DamageCalculator
-          armor={state.resources.armorScore}
-          health={{
-            current: state.resources.hp.current,
-            max: state.resources.hp.max,
-            thresholds: {
-              minor: Math.floor(state.thresholds.values.major / 2),
-              major: state.thresholds.values.major,
-              severe: state.thresholds.values.severe,
-            },
-          }}
-          onApplyDamage={handleDamage}
-        />
-        <RestManagement
-          restState={state.restState}
-          resources={{
-            hope: {
-              current: state.hopeWithScars.current,
-              max: state.hopeWithScars.max,
-            },
-            stress: state.resources.stress,
-            hp: state.resources.hp,
-            armor: state.resources.armorScore,
-          }}
-          onRest={handleRest}
-        />
-      </div>
-
-      <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
-        <DowntimeMoves
-          activities={state.downtimeActivities}
-          onChange={handlers.setDowntimeActivities}
-        />
-        <SessionTracker
-          sessions={state.sessions}
-          currentSessionId={state.currentSessionId}
-          onChange={handlers.setSessions}
-        />
-      </div>
 
       <CompanionSection
         isRanger={state.classSelection?.className === 'Ranger'}
@@ -141,7 +101,58 @@ export function OverviewTab({ state, handlers }: TabProps) {
         onChange={handlers.setInventory}
       />
 
-      <CharacterNotesDisplay notes={state.notes} onChange={handlers.setNotes} />
+      <div className="grid h-112 gap-4 sm:gap-6 md:grid-cols-2">
+        <DowntimeMoves
+          activities={state.downtimeActivities}
+          onChange={handlers.setDowntimeActivities}
+        />
+        <CountdownTracker
+          countdowns={state.countdowns}
+          onChange={handlers.setCountdowns}
+        />
+      </div>
+
+      <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
+        <DamageCalculator
+          armor={state.resources.armorScore}
+          health={{
+            current: state.resources.hp.current,
+            max: state.resources.hp.max,
+            thresholds: {
+              major: state.thresholds.values.major,
+              severe: state.thresholds.values.severe,
+              critical: state.thresholds.values.critical,
+            },
+            enableCritical: state.thresholds.enableCritical,
+          }}
+          onApplyDamage={handleDamage}
+        />
+        <RestManagement
+          restState={state.restState}
+          resources={{
+            hope: {
+              current: state.hopeWithScars.current,
+              max: state.hopeWithScars.max,
+            },
+            stress: state.resources.stress,
+            hp: state.resources.hp,
+            armor: state.resources.armorScore,
+          }}
+          onRest={handleRest}
+        />
+      </div>
+
+      <div className="grid h-112 gap-4 sm:gap-6 md:grid-cols-2">
+        <SessionTracker
+          sessions={state.sessions}
+          currentSessionId={state.currentSessionId}
+          onChange={handlers.setSessions}
+        />
+        <CharacterNotesDisplay
+          notes={state.notes}
+          onChange={handlers.setNotes}
+        />
+      </div>
     </div>
   );
 }

@@ -28,4 +28,10 @@ export const SEVERITY_LEVELS = [
     color: 'text-red-500',
     bg: 'bg-red-500/10',
   },
+  {
+    name: 'Critical',
+    threshold: 'critical',
+    color: 'text-purple-500',
+    bg: 'bg-purple-500/10',
+  },
 ] as const;

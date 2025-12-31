@@ -1,6 +1,7 @@
 import { memo, useCallback, useMemo } from 'react';
 
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -29,6 +30,7 @@ interface DomainCardDisplayProps {
   isDisabled?: boolean;
   onToggle: (card: DomainCard) => void;
   selectionType?: SelectionType;
+  onHomebrewEdit?: (card: DomainCard) => void;
 }
 
 function SelectionIndicator({ type }: { type: SelectionType }) {
@@ -121,6 +123,7 @@ function DomainCardDisplayComponent({
   isDisabled = false,
   onToggle,
   selectionType = null,
+  onHomebrewEdit,
 }: DomainCardDisplayProps) {
   const domainBg = DOMAIN_BG_COLORS[card.domain] ?? '';
   const costs = useMemo(() => getCardCosts(card), [card]);
@@ -128,6 +131,14 @@ function DomainCardDisplayComponent({
   const handleClick = useCallback(() => {
     if (!isDisabled) onToggle(card);
   }, [isDisabled, onToggle, card]);
+
+  const handleHomebrewClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      onHomebrewEdit?.(card);
+    },
+    [card, onHomebrewEdit]
+  );
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -156,10 +167,24 @@ function DomainCardDisplayComponent({
       aria-pressed={isSelected}
       aria-disabled={isDisabled}
     >
-      <CardHeader className="!block space-y-2 pt-3 pb-2">
+      <CardHeader className="block! space-y-2 pt-3 pb-2">
         <CardTitle className="flex items-center justify-between gap-2 text-sm leading-tight font-semibold">
           <span className="min-w-0 truncate">{card.name}</span>
-          <SelectionIndicator type={selectionType} />
+          <div className="flex items-center gap-1">
+            {onHomebrewEdit && (
+              <SmartTooltip content="Edit as Homebrew">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-6"
+                  onClick={handleHomebrewClick}
+                >
+                  🛠️
+                </Button>
+              </SmartTooltip>
+            )}
+            <SelectionIndicator type={selectionType} />
+          </div>
         </CardTitle>
         <div className="flex flex-wrap items-center gap-1.5">
           <CardBadges

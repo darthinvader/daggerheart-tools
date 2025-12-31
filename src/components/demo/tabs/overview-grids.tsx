@@ -3,8 +3,6 @@ import { ClassDisplay } from '@/components/class-selector';
 import { CommunityDisplay } from '@/components/community-selector';
 import { ConditionsDisplay } from '@/components/conditions';
 import { CoreScoresDisplay } from '@/components/core-scores';
-import { CountdownTracker } from '@/components/countdown-tracker';
-import { DeathStatusIndicator } from '@/components/death-move';
 import { EquipmentDisplay } from '@/components/equipment';
 import { ExperiencesDisplay } from '@/components/experiences';
 import { GoldDisplay } from '@/components/gold';
@@ -54,24 +52,35 @@ export function AncestryClassGrid({ state, handlers }: TabProps) {
 }
 
 export function TraitsScoresGrid({ state, handlers }: TabProps) {
+  const handleTriggerDeathMove = () => {
+    handlers.setDeathState({
+      ...state.deathState,
+      deathMovePending: true,
+    });
+  };
+
+  const handleWakeUp = () => {
+    handlers.setDeathState({
+      ...state.deathState,
+      isUnconscious: false,
+    });
+  };
+
   return (
     <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
       <TraitsDisplay traits={state.traits} onChange={handlers.setTraits} />
-      <div className="space-y-4 sm:space-y-6">
-        <CoreScoresDisplay
-          scores={state.coreScores}
-          onChange={handlers.setCoreScores}
-        />
-        <ResourcesDisplay
-          resources={state.resources}
-          onChange={handlers.setResources}
-        />
-      </div>
+      <ResourcesDisplay
+        resources={state.resources}
+        onChange={handlers.setResources}
+        deathState={state.deathState}
+        onTriggerDeathMove={handleTriggerDeathMove}
+        onWakeUp={handleWakeUp}
+      />
     </div>
   );
 }
 
-export function HopeThresholdsGrid({ state, handlers }: TabProps) {
+export function HopeScoresThresholdsGrid({ state, handlers }: TabProps) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
       <HopeWithScarsDisplay
@@ -79,27 +88,26 @@ export function HopeThresholdsGrid({ state, handlers }: TabProps) {
         onChange={handlers.setHopeWithScars}
         bonusHopeSlots={state.companion?.training.lightInTheDark ? 1 : 0}
       />
+      <CoreScoresDisplay
+        scores={state.coreScores}
+        onChange={handlers.setCoreScores}
+      />
       <ThresholdsEditableSection
         settings={state.thresholds}
         onChange={handlers.setThresholds}
         baseHp={6}
       />
-      <DeathStatusIndicator state={state.deathState} />
     </div>
   );
 }
 
 export function GoldConditionsGrid({ state, handlers }: TabProps) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+    <div className="grid gap-4 sm:grid-cols-2 sm:gap-6">
       <GoldDisplay gold={state.gold} onChange={handlers.setGold} />
       <ConditionsDisplay
         conditions={state.conditions}
         onChange={handlers.setConditions}
-      />
-      <CountdownTracker
-        countdowns={state.countdowns}
-        onChange={handlers.setCountdowns}
       />
     </div>
   );
@@ -107,7 +115,7 @@ export function GoldConditionsGrid({ state, handlers }: TabProps) {
 
 export function ExperiencesEquipmentGrid({ state, handlers }: TabProps) {
   return (
-    <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
+    <div className="grid gap-4 sm:gap-6 md:grid-cols-3">
       <ExperiencesDisplay
         experiences={state.experiences}
         onChange={handlers.setExperiences}
@@ -116,6 +124,7 @@ export function ExperiencesEquipmentGrid({ state, handlers }: TabProps) {
         equipment={state.equipment}
         onChange={handlers.setEquipment}
         hideDialogHeader
+        className="md:col-span-2"
       />
     </div>
   );

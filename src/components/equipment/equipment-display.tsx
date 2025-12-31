@@ -1,3 +1,5 @@
+import { useCallback } from 'react';
+
 import { cn } from '@/lib/utils';
 
 import { EquipmentCardsGrid } from './equipment-cards-grid';
@@ -30,6 +32,13 @@ export function EquipmentDisplay({
     handleAddCustomSlot,
   } = useEquipmentEditor(equipment, onChange);
 
+  const handleToggleWheelchair = useCallback(
+    (enabled: boolean) => {
+      onChange?.({ ...equipment, useCombatWheelchair: enabled });
+    },
+    [equipment, onChange]
+  );
+
   return (
     <>
       <section
@@ -49,6 +58,7 @@ export function EquipmentDisplay({
           equipment={equipment}
           readOnly={readOnly}
           openSection={openSection}
+          onToggleWheelchair={readOnly ? undefined : handleToggleWheelchair}
         />
       </section>
 

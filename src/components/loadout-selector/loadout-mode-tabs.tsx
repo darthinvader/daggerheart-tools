@@ -24,7 +24,7 @@ const MODES: ModeOption<LoadoutMode>[] = [
     value: 'homebrew',
     label: 'Homebrew',
     shortLabel: 'Custom',
-    icon: <span>🎨</span>,
+    icon: <span>🛠️</span>,
   },
 ];
 

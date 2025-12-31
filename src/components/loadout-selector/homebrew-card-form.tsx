@@ -67,7 +67,7 @@ export function HomebrewCardForm({
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <span>🎨</span>
+          <span>🛠️</span>
           <span>Create Homebrew Card</span>
         </CardTitle>
         <CardDescription>

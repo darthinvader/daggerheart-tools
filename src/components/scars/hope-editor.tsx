@@ -13,6 +13,8 @@ import type { HopeWithScarsState } from './hope-with-scars-display';
 interface HopeEditorProps {
   state: HopeWithScarsState;
   onChange: (state: HopeWithScarsState) => void;
+  /** Extra Hope slots from companion's Light in the Dark training */
+  bonusHopeSlots?: number;
 }
 
 interface ScarItemProps {
@@ -129,8 +131,14 @@ function AddScarForm({ targetSlot, onAdd }: AddScarFormProps) {
   );
 }
 
-export function HopeEditor({ state, onChange }: HopeEditorProps) {
-  const availableSlots = Array.from({ length: 6 }, (_, i) => i).filter(
+export function HopeEditor({
+  state,
+  onChange,
+  bonusHopeSlots = 0,
+}: HopeEditorProps) {
+  const totalSlots = 6 + bonusHopeSlots;
+  const effectiveMax = state.max + bonusHopeSlots;
+  const availableSlots = Array.from({ length: totalSlots }, (_, i) => i).filter(
     idx => !state.scars.some(s => s.hopeSlotIndex === idx)
   );
 
@@ -145,7 +153,7 @@ export function HopeEditor({ state, onChange }: HopeEditorProps) {
     };
 
     const newMax = Math.max(0, state.max - 1);
-    const newCurrent = Math.min(state.current, newMax);
+    const newCurrent = Math.min(state.current, newMax + bonusHopeSlots);
 
     onChange({
       ...state,
@@ -168,14 +176,14 @@ export function HopeEditor({ state, onChange }: HopeEditorProps) {
     <div className="space-y-6">
       <HopeCounter
         current={state.current}
-        max={state.max}
+        max={effectiveMax}
         onDecrement={() =>
           onChange({ ...state, current: Math.max(0, state.current - 1) })
         }
         onIncrement={() =>
           onChange({
             ...state,
-            current: Math.min(state.max, state.current + 1),
+            current: Math.min(effectiveMax, state.current + 1),
           })
         }
       />

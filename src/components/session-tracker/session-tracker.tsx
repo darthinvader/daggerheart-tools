@@ -1,4 +1,4 @@
-import { BookOpen, Coins, Plus, Star } from 'lucide-react';
+import { Coins, Plus, Star } from 'lucide-react';
 
 import { useState } from 'react';
 
@@ -72,50 +72,52 @@ export function SessionTracker({
 
   return (
     <>
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="flex items-center gap-2 font-semibold">
-            <BookOpen className="h-5 w-5" />
-            Session Log
-          </h3>
+      <section className="bg-card hover:border-primary/20 flex h-full flex-col rounded-xl border shadow-sm transition-colors">
+        <div className="flex items-center justify-between border-b px-4 py-3 sm:px-6">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">📖</span>
+            <h3 className="text-lg font-semibold">Session Log</h3>
+          </div>
           <Button size="sm" onClick={handleNew}>
             <Plus className="mr-1 h-4 w-4" />
             New Session
           </Button>
         </div>
 
-        {/* Stats */}
-        <div className="text-muted-foreground flex flex-wrap gap-x-4 gap-y-1 text-sm">
-          <span>{stats.count} sessions</span>
-          <span className="flex items-center gap-1">
-            <Star className="h-4 w-4 text-amber-500" />
-            {stats.totalXp} total XP
-          </span>
-          <span className="flex items-center gap-1">
-            <Coins className="h-4 w-4 text-yellow-500" />
-            {stats.totalGold} total gold
-          </span>
-        </div>
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4 sm:p-6">
+          {/* Stats */}
+          <div className="text-muted-foreground flex flex-wrap gap-x-4 gap-y-1 text-sm">
+            <span>{stats.count} sessions</span>
+            <span className="flex items-center gap-1">
+              <Star className="h-4 w-4 text-amber-500" />
+              {stats.totalXp} total XP
+            </span>
+            <span className="flex items-center gap-1">
+              <Coins className="h-4 w-4 text-yellow-500" />
+              {stats.totalGold} total gold
+            </span>
+          </div>
 
-        {/* Sessions List */}
-        {sorted.length === 0 ? (
-          <div className="text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm">
-            No sessions recorded yet
-          </div>
-        ) : (
-          <div className="grid gap-3 sm:grid-cols-2">
-            {sorted.map(session => (
-              <SessionCard
-                key={session.id}
-                session={session}
-                isCurrent={session.id === currentSessionId}
-                onSelect={() => handleSelect(session)}
-                onDelete={() => handleDelete(session.id)}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+          {/* Sessions List */}
+          {sorted.length === 0 ? (
+            <div className="text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm">
+              No sessions recorded yet
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {sorted.map(session => (
+                <SessionCard
+                  key={session.id}
+                  session={session}
+                  isCurrent={session.id === currentSessionId}
+                  onSelect={() => handleSelect(session)}
+                  onDelete={() => handleDelete(session.id)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
 
       {/* Edit Dialog */}
       <Dialog

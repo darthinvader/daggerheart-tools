@@ -68,10 +68,11 @@ export function SessionTab({ state, handlers }: TabProps) {
             current: state.resources.hp.current,
             max: state.resources.hp.max,
             thresholds: {
-              minor: Math.floor(state.thresholds.values.major / 2),
               major: state.thresholds.values.major,
               severe: state.thresholds.values.severe,
+              critical: state.thresholds.values.critical,
             },
+            enableCritical: state.thresholds.enableCritical,
           }}
           onApplyDamage={handleDamage}
         />
