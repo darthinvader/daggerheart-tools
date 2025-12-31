@@ -1,6 +1,7 @@
 import js from '@eslint/js';
 import prettier from 'eslint-config-prettier';
 import noOnlyTests from 'eslint-plugin-no-only-tests';
+import perfectionist from 'eslint-plugin-perfectionist';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import regexp from 'eslint-plugin-regexp';
@@ -59,6 +60,7 @@ export default tseslint.config([
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
       'unused-imports': unusedImports,
+      perfectionist,
       sonarjs,
       regexp,
     },
@@ -82,6 +84,24 @@ export default tseslint.config([
       'sonarjs/no-identical-functions': 'warn',
       'sonarjs/no-duplicate-string': 'off',
       'regexp/prefer-result-array-groups': 'warn',
+
+      // Perfectionist - auto-sort for consistency (all auto-fixable)
+      'perfectionist/sort-imports': [
+        'warn',
+        {
+          type: 'natural',
+          order: 'asc',
+          groups: [
+            'builtin',
+            'external',
+            'internal',
+            ['parent', 'sibling', 'index'],
+          ],
+          newlinesBetween: 'ignore',
+        },
+      ],
+      'perfectionist/sort-named-imports': ['warn', { type: 'natural' }],
+      'perfectionist/sort-named-exports': ['warn', { type: 'natural' }],
     },
   },
   {

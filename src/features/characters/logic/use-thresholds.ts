@@ -6,10 +6,10 @@ import {
   validateThresholdsManual,
 } from '@/features/characters/logic/thresholds-util';
 import {
-  type ThresholdsSettings,
   readEquipmentFromStorage,
   readLevelFromStorage,
   readThresholdsSettingsFromStorage,
+  type ThresholdsSettings,
   writeThresholdsSettingsToStorage,
 } from '@/features/characters/storage';
 

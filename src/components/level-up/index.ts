@@ -6,13 +6,10 @@ export { NewExperienceModal } from './new-experience-modal';
 export { SubclassUpgradeModal } from './subclass-upgrade-modal';
 export { TraitSelectionModal } from './trait-selection-modal';
 export {
-  LEVEL_UP_OPTIONS_CONFIG,
-  getAutomaticBenefits,
   getOptionsForTier,
   getSelectionCount,
-  getTotalSelectionCountForTier,
   isOptionDisabled,
-  isOptionMaxed,
+  LEVEL_UP_OPTIONS_CONFIG,
   type LevelUpOptionConfig,
   type LevelUpSelection,
   type LevelUpSelectionDetails,

@@ -7,7 +7,7 @@ import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import { useCoarsePointer } from '@/hooks/use-coarse-pointer';
 import type { DomainCardLite } from '@/lib/schemas/loadout';
 
-import { type PreviewCard, buildCardProps } from './card-props-builder';
+import { buildCardProps, type PreviewCard } from './card-props-builder';
 import { DomainCardMini, type DragSource } from './domain-card-mini';
 import { EndDropZone } from './end-drop-zone';
 

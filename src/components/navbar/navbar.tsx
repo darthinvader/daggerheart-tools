@@ -1,3 +1,4 @@
+import { Link, useLocation } from '@tanstack/react-router';
 import {
   BookOpen,
   ChevronDown,
@@ -7,10 +8,7 @@ import {
   Scroll,
   Users,
 } from 'lucide-react';
-
 import * as React from 'react';
-
-import { Link, useLocation } from '@tanstack/react-router';
 
 import { Button } from '@/components/ui/button';
 import {

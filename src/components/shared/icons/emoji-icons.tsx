@@ -29,10 +29,3 @@ export const HeightIcon = createEmojiIcon('📏');
 export const LifespanIcon = createEmojiIcon('🧬');
 export const MixedIcon = createEmojiIcon('🔀');
 export const CharacteristicsIcon = createEmojiIcon('🎭');
-
-// Class-specific icons
-export const ClassIcon = createEmojiIcon('📚');
-export const CustomIcon = createEmojiIcon('🎨');
-
-// Domain-specific icons
-export const DomainIcon = createEmojiIcon('🌟');

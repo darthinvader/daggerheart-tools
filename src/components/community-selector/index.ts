@@ -1,29 +1,12 @@
 // Types
-export type {
-  CommunityMode,
-  CommunitySelection,
-  HomebrewCommunity,
-} from '@/lib/schemas/identity';
+export type { CommunitySelection } from '@/lib/schemas/identity';
 
 // Display component
 export { CommunityDisplay } from './community-display';
 
 // Main selector
-export { CommunityModeTabs } from './community-mode-tabs';
 export { CommunitySelector } from './community-selector';
 
-// Standard community components
-export { CommunityCard } from './community-card';
+// Used by demo
+export { getCommunityColors, getCommunityEmoji } from './community-config';
 export { CommunityFeatureDisplay } from './community-feature-display';
-export { StandardCommunityList } from './standard-community-list';
-
-// Homebrew components
-export { HomebrewCommunityForm } from './homebrew-community-form';
-
-// Community-specific data
-export {
-  COMMUNITY_COLORS,
-  COMMUNITY_EMOJIS,
-  getCommunityColors,
-  getCommunityEmoji,
-} from './community-config';

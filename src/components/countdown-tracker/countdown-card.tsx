@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
-import { COUNTDOWN_TYPES, COUNTDOWN_TYPE_STYLES } from './constants';
+import { COUNTDOWN_TYPE_STYLES, COUNTDOWN_TYPES } from './constants';
 import { CountdownSegments } from './countdown-segments';
 import { isCountdownComplete } from './countdown-utils';
 import type { Countdown } from './types';

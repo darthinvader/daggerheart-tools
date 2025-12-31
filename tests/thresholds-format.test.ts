@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  formatThresholdChip,
   THRESHOLD_PREFIX,
   type ThresholdKind,
-  formatThresholdChip,
 } from '../src/features/characters/logic/thresholds-format';
 
 describe('thresholds-format', () => {

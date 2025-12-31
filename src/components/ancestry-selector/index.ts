@@ -20,11 +20,7 @@ export { StandardAncestryList } from './standard-ancestry-list';
 // Mixed ancestry components
 export { FeatureCard } from './feature-card';
 export { FeaturePicker } from './feature-picker';
-export { MixedAncestryPreview } from './mixed-ancestry-preview';
 export { MixedAncestrySelector } from './mixed-ancestry-selector';
 
 // Homebrew components
 export { HomebrewAncestryForm } from './homebrew-ancestry-form';
-export { HomebrewBasicFields } from './homebrew-basic-fields';
-export { HomebrewCharacteristicsField } from './homebrew-characteristics-field';
-export { HomebrewFeatureFields } from './homebrew-feature-fields';

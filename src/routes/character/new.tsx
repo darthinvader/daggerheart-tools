@@ -1,6 +1,5 @@
-import { useCallback, useState } from 'react';
-
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useCallback, useState } from 'react';
 
 import { ClassSelector } from '@/components/class-selector';
 import { LoadoutSelector } from '@/components/loadout-selector';

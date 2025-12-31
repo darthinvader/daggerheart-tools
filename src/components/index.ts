@@ -17,7 +17,6 @@ export * from './gold';
 export * from './identity-editor';
 export * from './inventory';
 export * from './loadout-selector';
-export * from './multiclass-ui';
 export * from './navbar';
 export * from './resources';
 export * from './rest-management';

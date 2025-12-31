@@ -1,4 +1,4 @@
-import { LEVEL_UP_OPTIONS, getTierForLevel } from '@/lib/schemas/core';
+import { getTierForLevel, LEVEL_UP_OPTIONS } from '@/lib/schemas/core';
 import type { Armor } from '@/lib/schemas/equipment';
 import { getEffectiveDamageThresholds } from '@/lib/schemas/equipment';
 

@@ -3,7 +3,7 @@ import { Check } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import type { CombatWheelchair } from '@/lib/schemas/equipment';
 
-import { DAMAGE_TYPE_EMOJI, RANGE_EMOJI, formatDamage } from './constants';
+import { DAMAGE_TYPE_EMOJI, formatDamage, RANGE_EMOJI } from './constants';
 
 interface WheelchairCardCompactProps {
   wheelchair: CombatWheelchair;

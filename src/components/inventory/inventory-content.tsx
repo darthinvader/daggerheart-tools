@@ -1,5 +1,4 @@
 import { Package } from 'lucide-react';
-
 import { useState } from 'react';
 
 import { Separator } from '@/components/ui/separator';

@@ -12,12 +12,7 @@ export { DeathStatusIndicator } from './death-status-indicator';
 export { useDeathMove } from './use-death-move';
 
 // Utils
-export {
-  checkForScar,
-  isCriticalSuccess,
-  resolveRiskItAll,
-  rollD12,
-} from './death-move-utils';
+export { checkForScar, resolveRiskItAll, rollD12 } from './death-move-utils';
 
 // Constants
-export { DEATH_MOVE_OPTIONS, RISK_LEVEL_STYLES } from './constants';
+export { DEATH_MOVE_OPTIONS } from './constants';

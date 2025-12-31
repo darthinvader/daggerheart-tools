@@ -1,5 +1,4 @@
 import { Search, X } from 'lucide-react';
-
 import { useMemo, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';

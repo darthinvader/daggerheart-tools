@@ -1,6 +1,5 @@
-import { z } from 'zod';
-
 import { Store } from '@tanstack/react-store';
+import { z } from 'zod';
 
 import {
   ConditionsSchema,

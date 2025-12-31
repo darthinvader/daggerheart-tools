@@ -15,8 +15,8 @@ import { cn } from '@/lib/utils';
 
 import {
   CARD_LEVELS,
-  CARD_TYPES,
   CARD_TYPE_EMOJIS,
+  CARD_TYPES,
   type CardFiltersState,
 } from './card-filters-utils';
 

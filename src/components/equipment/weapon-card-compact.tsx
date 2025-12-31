@@ -9,9 +9,9 @@ import type {
 
 import {
   DAMAGE_TYPE_EMOJI,
-  RANGE_EMOJI,
   formatDamage,
   isCombatWheelchair,
+  RANGE_EMOJI,
 } from './constants';
 
 type WeaponType = PrimaryWeapon | SecondaryWeapon | CombatWheelchair;

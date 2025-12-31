@@ -1,8 +1,6 @@
-import { ChevronDown, Menu, Plus, Users } from 'lucide-react';
-
-import * as React from 'react';
-
 import { Link, useLocation } from '@tanstack/react-router';
+import { ChevronDown, Menu, Plus, Users } from 'lucide-react';
+import * as React from 'react';
 
 import { type NavLink } from '@/components/navbar/navbar';
 import { Button } from '@/components/ui/button';

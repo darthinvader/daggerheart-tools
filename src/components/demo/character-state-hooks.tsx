@@ -36,6 +36,7 @@ import type { LoadoutSelection } from '@/lib/schemas/loadout';
 import type { Scar } from '@/lib/schemas/session-state';
 
 import {
+  buildClassSelection,
   SAMPLE_ANCESTRY,
   SAMPLE_COMMUNITY,
   SAMPLE_CONDITIONS,
@@ -46,7 +47,6 @@ import {
   SAMPLE_LOADOUT,
   SAMPLE_PROGRESSION,
   SAMPLE_THRESHOLDS,
-  buildClassSelection,
 } from './sample-data';
 
 export interface CharacterSheetState {

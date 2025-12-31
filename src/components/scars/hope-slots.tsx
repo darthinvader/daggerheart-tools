@@ -1,5 +1,4 @@
 import { X } from 'lucide-react';
-
 import type { ReactNode } from 'react';
 
 import { SmartTooltip } from '@/components/ui/smart-tooltip';

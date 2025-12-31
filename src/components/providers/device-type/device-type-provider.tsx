@@ -1,6 +1,5 @@
-import { useMediaQuery } from 'react-responsive';
-
 import type { ReactNode } from 'react';
+import { useMediaQuery } from 'react-responsive';
 
 import {
   type DeviceType,

@@ -1,6 +1,5 @@
-import { Plus, Trash2 } from 'lucide-react';
-
 import type { AnyFieldApi } from '@tanstack/react-form';
+import { Plus, Trash2 } from 'lucide-react';
 
 import { FormField } from '@/components/shared/form-fields';
 import { Button } from '@/components/ui/button';

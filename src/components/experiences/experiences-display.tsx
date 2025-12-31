@@ -1,5 +1,4 @@
 import { Plus, Trash2 } from 'lucide-react';
-
 import { useCallback, useState } from 'react';
 
 import { EditableSection } from '@/components/shared/editable-section';

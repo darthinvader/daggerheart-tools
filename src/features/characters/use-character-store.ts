@@ -1,11 +1,10 @@
+import { useStore } from '@tanstack/react-store';
 import * as React from 'react';
 
-import { useStore } from '@tanstack/react-store';
-
 import {
+  characterActions,
   type CharacterState,
   type CharacterStore,
-  characterActions,
   disposeCharacterStore,
   getCharacterStore,
 } from './character-store';

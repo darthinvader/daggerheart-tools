@@ -1,4 +1,4 @@
-import type { ArmorSlot, ArmorSlotState, ArmorSlotsState } from './types';
+import type { ArmorSlot, ArmorSlotsState, ArmorSlotState } from './types';
 
 export function createArmorSlot(source: string): ArmorSlot {
   return {

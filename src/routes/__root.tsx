@@ -1,6 +1,5 @@
-import { Suspense, lazy } from 'react';
-
-import { Outlet, createRootRoute } from '@tanstack/react-router';
+import { createRootRoute, Outlet } from '@tanstack/react-router';
+import { lazy, Suspense } from 'react';
 
 const Navbar = lazy(() =>
   import('@/components/navbar/navbar').then(m => ({ default: m.Navbar }))

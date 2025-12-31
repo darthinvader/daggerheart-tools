@@ -1,5 +1,5 @@
 export {
-  FeaturesEditor,
   type Feature,
+  FeaturesEditor,
   type FeaturesEditorProps,
 } from './features-editor';

@@ -8,10 +8,7 @@ export {
   applyRestEffects,
   calculateLongRestEffects,
   calculateShortRestEffects,
-  formatRestTime,
   getTimeSinceRest,
-  rollD6,
-  tryRepairArmor,
 } from './rest-utils';
 
 // Types

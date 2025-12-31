@@ -3,7 +3,7 @@ export { CompanionDisplay } from './companion-display';
 export { CompanionEditor } from './companion-editor';
 
 // Types
-export { DEFAULT_COMPANION_STATE, EXAMPLE_EXPERIENCES } from './types';
+export { DEFAULT_COMPANION_STATE } from './types';
 export type {
   CompanionDamageDie,
   CompanionExperience,
@@ -11,6 +11,3 @@ export type {
   CompanionState,
   CompanionTraining,
 } from './types';
-
-// Constants
-export { COMPANION_TYPE_SUGGESTIONS } from './constants';

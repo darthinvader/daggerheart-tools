@@ -1,1 +1,1 @@
-export { ModeTabs, type ModeOption, type ModeTabsProps } from './mode-tabs';
+export { type ModeOption, ModeTabs, type ModeTabsProps } from './mode-tabs';

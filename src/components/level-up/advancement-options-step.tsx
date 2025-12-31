@@ -5,10 +5,10 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 import {
-  type LevelUpOptionConfig,
-  type LevelUpSelection,
   getSelectionCount,
   isOptionDisabled,
+  type LevelUpOptionConfig,
+  type LevelUpSelection,
 } from './types';
 
 interface AdvancementOptionsStepProps {

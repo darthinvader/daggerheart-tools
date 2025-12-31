@@ -5,9 +5,9 @@ import {
   CharacterTraitEnum,
   MetadataSchema,
   NameDescriptionSchema,
+  unionWithString,
   WeaponTraitEnum,
   WeaponTraitSchema,
-  unionWithString,
 } from './core';
 
 // =============================
