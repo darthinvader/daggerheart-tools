@@ -80,7 +80,7 @@ export function ResourcesEditor({
         </div>
       )}
 
-      <div className="grid gap-6 sm:grid-cols-2">
+      <div className="grid gap-6 sm:grid-cols-3">
         {RESOURCE_CONFIG.map(({ key, label }) => {
           const resource = resources[key];
           if (!resource || typeof resource === 'boolean') return null;
@@ -103,6 +103,7 @@ export function ResourcesEditor({
                   : val => updateResource(key, resource.current, val)
               }
               maxLabel="Max"
+              orientation="vertical"
             />
           );
         })}
