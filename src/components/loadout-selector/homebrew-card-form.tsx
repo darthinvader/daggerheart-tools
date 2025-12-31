@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -64,12 +65,12 @@ export function HomebrewCardForm({
   const canAdd = draft.name.trim() && draft.description.trim();
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <span>🛠️</span>
-          <span>Create Homebrew Card</span>
-        </CardTitle>
+    <Card className="border-primary/50 border-dashed">
+      <CardHeader className="pb-3">
+        <div className="flex items-center gap-2">
+          <Badge>🛠️ Homebrew</Badge>
+          <CardTitle className="text-base">Create Domain Card</CardTitle>
+        </div>
         <CardDescription>
           Design a custom domain card for your character.
         </CardDescription>

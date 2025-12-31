@@ -23,7 +23,7 @@ export function CustomEquipmentSummaryCard({
           </span>
         </div>
         <Badge variant="outline" className="text-[10px]">
-          🔧 Custom
+          �️ Custom
         </Badge>
       </div>
 

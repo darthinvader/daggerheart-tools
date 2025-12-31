@@ -1,3 +1,4 @@
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -38,13 +39,13 @@ export function SubclassesCard({
   removeFeature,
 }: SubclassesCardProps) {
   return (
-    <Card>
-      <CardHeader>
+    <Card className="border-primary/50 border-dashed">
+      <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <span>🎭</span>
-            <span>Subclasses</span>
-          </CardTitle>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline">🎭</Badge>
+            <CardTitle className="text-base">Subclasses</CardTitle>
+          </div>
           <Button variant="outline" size="sm" onClick={addSubclass}>
             ➕ Add Subclass
           </Button>

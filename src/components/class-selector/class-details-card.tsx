@@ -1,3 +1,4 @@
+import { Badge } from '@/components/ui/badge';
 import {
   Card,
   CardContent,
@@ -33,12 +34,12 @@ export function ClassDetailsCard({
   removeClassFeature,
 }: ClassDetailsCardProps) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <span>🎨</span>
-          <span>Create Homebrew Class</span>
-        </CardTitle>
+    <Card className="border-primary/50 border-dashed">
+      <CardHeader className="pb-3">
+        <div className="flex items-center gap-2">
+          <Badge>🛠️ Homebrew</Badge>
+          <CardTitle className="text-base">Create Class</CardTitle>
+        </div>
         <CardDescription>
           Design your own custom class with unique abilities and features.
         </CardDescription>

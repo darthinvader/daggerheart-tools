@@ -1,7 +1,9 @@
 /* eslint-disable max-lines-per-function */
 import { useCallback, useState } from 'react';
 
-import { HomebrewIcon, TraitsIcon } from '@/components/shared';
+import { TraitsIcon } from '@/components/shared';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -52,13 +54,14 @@ export function HomebrewCommunityForm({
   );
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-2 text-lg font-semibold">
-        <HomebrewIcon />
-        Create Homebrew Community
-      </div>
-
-      <div className="space-y-4">
+    <Card className="border-primary/50 border-dashed">
+      <CardHeader className="pb-3">
+        <div className="flex items-center gap-2">
+          <Badge>🛠️ Homebrew</Badge>
+          <CardTitle className="text-base">Create Community</CardTitle>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="community-name">Community Name</Label>
           <Input
@@ -148,7 +151,7 @@ loyal`}
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

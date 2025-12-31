@@ -87,7 +87,7 @@ function CardHeader({
       <div className="flex items-center gap-1">
         {isHomebrew && (
           <Badge variant="outline" className="text-[10px]">
-            🔧 Homebrew
+            �️ Homebrew
           </Badge>
         )}
         {tier && (

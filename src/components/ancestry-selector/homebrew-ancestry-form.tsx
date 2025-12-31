@@ -1,7 +1,8 @@
 import { useCallback, useState } from 'react';
 
-import { HomebrewIcon } from '@/components/shared';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { HomebrewAncestry } from '@/lib/schemas/identity';
 
 import { HomebrewBasicFields } from './homebrew-basic-fields';
@@ -70,61 +71,67 @@ export function HomebrewAncestryForm({
     formState.secondaryFeature.name.trim();
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-2 text-lg font-semibold">
-        <HomebrewIcon />
-        Create Homebrew Ancestry
-      </div>
-
-      <HomebrewBasicFields
-        name={formState.name}
-        heightRange={formState.heightRange}
-        lifespan={formState.lifespan}
-        description={formState.description}
-        onNameChange={v => updateForm({ name: v })}
-        onHeightChange={v => updateForm({ heightRange: v })}
-        onLifespanChange={v => updateForm({ lifespan: v })}
-        onDescriptionChange={v => updateForm({ description: v })}
-      />
-
-      <HomebrewFeatureFields
-        primaryFeature={formState.primaryFeature}
-        secondaryFeature={formState.secondaryFeature}
-        onPrimaryNameChange={v =>
-          updateForm({
-            primaryFeature: { ...formState.primaryFeature, name: v },
-          })
-        }
-        onPrimaryDescChange={v =>
-          updateForm({
-            primaryFeature: { ...formState.primaryFeature, description: v },
-          })
-        }
-        onSecondaryNameChange={v =>
-          updateForm({
-            secondaryFeature: { ...formState.secondaryFeature, name: v },
-          })
-        }
-        onSecondaryDescChange={v =>
-          updateForm({
-            secondaryFeature: { ...formState.secondaryFeature, description: v },
-          })
-        }
-      />
-
-      <HomebrewCharacteristicsField
-        value={characteristicsText}
-        characteristicsCount={formState.physicalCharacteristics.length}
-        onChange={handleCharacteristicsChange}
-      />
-
-      {!hideSaveButton && (
-        <div className="flex justify-end border-t pt-4">
-          <Button onClick={handleSave} disabled={!isValid} size="lg">
-            ✅ Save Homebrew Ancestry
-          </Button>
+    <Card className="border-primary/50 border-dashed">
+      <CardHeader className="pb-3">
+        <div className="flex items-center gap-2">
+          <Badge>🛠️ Homebrew</Badge>
+          <CardTitle className="text-base">Create Ancestry</CardTitle>
         </div>
-      )}
-    </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <HomebrewBasicFields
+          name={formState.name}
+          heightRange={formState.heightRange}
+          lifespan={formState.lifespan}
+          description={formState.description}
+          onNameChange={v => updateForm({ name: v })}
+          onHeightChange={v => updateForm({ heightRange: v })}
+          onLifespanChange={v => updateForm({ lifespan: v })}
+          onDescriptionChange={v => updateForm({ description: v })}
+        />
+
+        <HomebrewFeatureFields
+          primaryFeature={formState.primaryFeature}
+          secondaryFeature={formState.secondaryFeature}
+          onPrimaryNameChange={v =>
+            updateForm({
+              primaryFeature: { ...formState.primaryFeature, name: v },
+            })
+          }
+          onPrimaryDescChange={v =>
+            updateForm({
+              primaryFeature: { ...formState.primaryFeature, description: v },
+            })
+          }
+          onSecondaryNameChange={v =>
+            updateForm({
+              secondaryFeature: { ...formState.secondaryFeature, name: v },
+            })
+          }
+          onSecondaryDescChange={v =>
+            updateForm({
+              secondaryFeature: {
+                ...formState.secondaryFeature,
+                description: v,
+              },
+            })
+          }
+        />
+
+        <HomebrewCharacteristicsField
+          value={characteristicsText}
+          characteristicsCount={formState.physicalCharacteristics.length}
+          onChange={handleCharacteristicsChange}
+        />
+
+        {!hideSaveButton && (
+          <div className="flex justify-end border-t pt-4">
+            <Button onClick={handleSave} disabled={!isValid} size="lg">
+              🛠️ Save Homebrew Ancestry
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

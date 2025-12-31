@@ -25,8 +25,8 @@ export function HomebrewArmorForm({ value, onChange }: HomebrewArmorFormProps) {
     <Card className="border-primary/50 border-dashed">
       <CardHeader className="pb-3">
         <div className="flex items-center gap-2">
-          <Badge>🔧 Homebrew</Badge>
-          <CardTitle className="text-base">🛡️ Custom Armor</CardTitle>
+          <Badge>�️ Homebrew</Badge>
+          <CardTitle className="text-base">Custom Armor</CardTitle>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
