@@ -135,8 +135,9 @@ export function HopeEditor({
   onChange,
   bonusHopeSlots = 0,
 }: HopeEditorProps) {
-  const totalSlots = 6 + bonusHopeSlots;
-  const effectiveMax = state.max + bonusHopeSlots;
+  const extraSlots = state.extraSlots ?? 0;
+  const totalSlots = 6 + bonusHopeSlots + extraSlots;
+  const effectiveMax = state.max + bonusHopeSlots + extraSlots;
   const availableSlots = Array.from({ length: totalSlots }, (_, i) => i).filter(
     idx => !state.scars.some(s => s.hopeSlotIndex === idx)
   );
@@ -186,6 +187,43 @@ export function HopeEditor({
           })
         }
       />
+
+      <div>
+        <Label className="mb-2 block font-medium">Extra Hope Slots</Label>
+        <p className="text-muted-foreground mb-2 text-sm">
+          Add additional Hope slots beyond the primary 6.
+        </p>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() =>
+              onChange({
+                ...state,
+                extraSlots: Math.max(0, extraSlots - 1),
+              })
+            }
+            disabled={extraSlots <= 0}
+          >
+            -
+          </Button>
+          <span className="min-w-12 text-center text-xl font-bold">
+            {extraSlots}
+          </span>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() =>
+              onChange({
+                ...state,
+                extraSlots: extraSlots + 1,
+              })
+            }
+          >
+            +
+          </Button>
+        </div>
+      </div>
 
       <div className="space-y-3">
         <Label className="font-medium">Scars ({state.scars.length})</Label>

@@ -5,6 +5,7 @@ export interface SlotData {
   isFilled: boolean;
   isScarred: boolean;
   scar?: Scar;
+  /** True only for companion bonus slots (not user-added extra slots) */
   isBonus: boolean;
 }
 
@@ -12,12 +13,16 @@ export interface SlotData {
 export function buildSlots(
   current: number,
   scars: Scar[],
-  totalSlots: number
+  totalSlots: number,
+  bonusHopeSlots = 0
 ): SlotData[] {
+  // Companion bonus slots start after base 6 + extra slots
+  const bonusStartIndex = totalSlots - bonusHopeSlots;
+
   return Array.from({ length: totalSlots }, (_, i) => {
     const scar = scars.find(s => s.hopeSlotIndex === i);
     const isScarred = !!scar;
-    const isBonus = i >= 6;
+    const isBonus = i >= bonusStartIndex;
 
     // Count non-scarred slots up to and including this index
     let nonScarredCount = 0;

@@ -11,6 +11,8 @@ export interface HopeWithScarsState {
   current: number;
   max: number;
   scars: Scar[];
+  /** Extra hope slots beyond the primary 6 (user-added) */
+  extraSlots?: number;
 }
 
 interface HopeWithScarsDisplayProps {
@@ -76,8 +78,9 @@ export function HopeWithScarsDisplay({
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState(state);
 
-  const totalSlots = 6 + bonusHopeSlots;
-  const effectiveMax = state.max + bonusHopeSlots;
+  const extraSlots = state.extraSlots ?? 0;
+  const totalSlots = 6 + bonusHopeSlots + extraSlots;
+  const effectiveMax = state.max + bonusHopeSlots + extraSlots;
 
   const handleEditToggle = useCallback(() => {
     if (!isEditing) setDraft(state);
@@ -103,7 +106,12 @@ export function HopeWithScarsDisplay({
     [readOnly, onChange, state, effectiveMax]
   );
 
-  const slots = buildSlots(state.current, state.scars, totalSlots);
+  const slots = buildSlots(
+    state.current,
+    state.scars,
+    totalSlots,
+    bonusHopeSlots
+  );
 
   return (
     <EditableSection
@@ -126,7 +134,7 @@ export function HopeWithScarsDisplay({
       className={className}
     >
       <div className="space-y-4">
-        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+        <div className="grid grid-cols-6 gap-1.5 sm:flex sm:flex-wrap sm:gap-2">
           {slots.map(slot => (
             <HopeSlot
               key={slot.index}

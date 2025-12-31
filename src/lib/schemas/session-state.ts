@@ -30,7 +30,7 @@ export const SessionStateSchema = z.object({
 export const ScarSchema = z.object({
   id: z.string(),
   description: z.string(),
-  hopeSlotIndex: z.number().int().min(0).max(5),
+  hopeSlotIndex: z.number().int().min(0),
   acquiredAtLevel: z.number().int().min(1).max(10).optional(),
   narrativeImpact: z.string().optional(),
 });
