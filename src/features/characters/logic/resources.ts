@@ -1,4 +1,3 @@
-/* eslint-disable max-lines-per-function */
 import {
   type ResourcesDraft,
   writeResourcesToStorage,
@@ -9,109 +8,91 @@ type Setter<T> = (updater: (prev: T) => T) => void;
 const clamp = (n: number, min: number, max: number) =>
   Math.max(min, Math.min(max, n));
 
+type ResourceKey = 'hp' | 'stress' | 'hope' | 'armorScore';
+
+function createMinMaxUpdater(
+  id: string,
+  key: ResourceKey,
+  setResources: Setter<ResourcesDraft>
+) {
+  const updateCurrent = (delta: number) => {
+    setResources(prev => {
+      const resource = prev[key];
+      const next: ResourcesDraft = {
+        ...prev,
+        [key]: {
+          current: clamp(resource.current + delta, 0, resource.max),
+          max: resource.max,
+        },
+      };
+      writeResourcesToStorage(id, next);
+      return next;
+    });
+  };
+
+  const updateMax = (delta: number, minMax = 0) => {
+    setResources(prev => {
+      const resource = prev[key];
+      const max = Math.max(minMax, resource.max + delta);
+      const current = clamp(resource.current, 0, max);
+      const next: ResourcesDraft = { ...prev, [key]: { current, max } };
+      writeResourcesToStorage(id, next);
+      return next;
+    });
+  };
+
+  return { updateCurrent, updateMax };
+}
+
+function createGoldActions(id: string, setResources: Setter<ResourcesDraft>) {
+  const getDefaultGold = (
+    prev: ResourcesDraft
+  ): NonNullable<ResourcesDraft['gold']> => ({
+    handfuls: prev.gold?.handfuls ?? 0,
+    bags: prev.gold?.bags ?? 0,
+    chests: prev.gold?.chests ?? 0,
+    coins: prev.gold?.coins ?? 0,
+    showCoins: prev.gold?.showCoins ?? false,
+    displayDenomination: prev.gold?.displayDenomination ?? 'handfuls',
+  });
+
+  const updateGold = (kind: 'handfuls' | 'bags' | 'chests', delta: number) => {
+    setResources(prev => {
+      const current = prev.gold?.[kind] ?? 0;
+      const nextGold = {
+        ...getDefaultGold(prev),
+        [kind]: Math.max(0, current + delta),
+      };
+      const next: ResourcesDraft = { ...prev, gold: nextGold };
+      writeResourcesToStorage(id, next);
+      return next;
+    });
+  };
+
+  const setGold = (kind: 'handfuls' | 'bags' | 'chests', value: number) => {
+    setResources(prev => {
+      const nextGold = {
+        ...getDefaultGold(prev),
+        [kind]: Math.max(0, Math.floor(value) || 0),
+      };
+      const next: ResourcesDraft = { ...prev, gold: nextGold };
+      writeResourcesToStorage(id, next);
+      return next;
+    });
+  };
+
+  return { updateGold, setGold };
+}
+
 export function createResourceActions(
   id: string,
   setResources: Setter<ResourcesDraft>
 ) {
-  const updateStress = (delta: number) => {
-    setResources(prev => {
-      const next: ResourcesDraft = {
-        ...prev,
-        stress: {
-          current: clamp(prev.stress.current + delta, 0, prev.stress.max),
-          max: prev.stress.max,
-        },
-      };
-      writeResourcesToStorage(id, next);
-      return next;
-    });
-  };
-
-  const updateArmorScore = (delta: number) => {
-    setResources(prev => {
-      const next: ResourcesDraft = {
-        ...prev,
-        armorScore: {
-          current: clamp(
-            prev.armorScore.current + delta,
-            0,
-            prev.armorScore.max
-          ),
-          max: prev.armorScore.max,
-        },
-      };
-      writeResourcesToStorage(id, next);
-      return next;
-    });
-  };
-
-  const updateArmorScoreMax = (delta: number) => {
-    setResources(prev => {
-      const max = Math.max(0, prev.armorScore.max + delta);
-      const current = clamp(prev.armorScore.current, 0, max);
-      const next: ResourcesDraft = { ...prev, armorScore: { current, max } };
-      writeResourcesToStorage(id, next);
-      return next;
-    });
-  };
-
-  const updateStressMax = (delta: number) => {
-    setResources(prev => {
-      const max = Math.max(1, prev.stress.max + delta);
-      const current = clamp(prev.stress.current, 0, max);
-      const next: ResourcesDraft = { ...prev, stress: { current, max } };
-      writeResourcesToStorage(id, next);
-      return next;
-    });
-  };
-
-  const updateHp = (delta: number) => {
-    setResources(prev => {
-      const next: ResourcesDraft = {
-        ...prev,
-        hp: {
-          current: clamp(prev.hp.current + delta, 0, prev.hp.max),
-          max: prev.hp.max,
-        },
-      };
-      writeResourcesToStorage(id, next);
-      return next;
-    });
-  };
-
-  const updateHpMax = (delta: number) => {
-    setResources(prev => {
-      const max = Math.max(1, prev.hp.max + delta);
-      const current = clamp(prev.hp.current, 0, max);
-      const next: ResourcesDraft = { ...prev, hp: { current, max } };
-      writeResourcesToStorage(id, next);
-      return next;
-    });
-  };
-
-  const updateHope = (delta: number) => {
-    setResources(prev => {
-      const next: ResourcesDraft = {
-        ...prev,
-        hope: {
-          current: clamp(prev.hope.current + delta, 0, prev.hope.max),
-          max: prev.hope.max,
-        },
-      };
-      writeResourcesToStorage(id, next);
-      return next;
-    });
-  };
-
-  const updateHopeMax = (delta: number) => {
-    setResources(prev => {
-      const max = Math.max(1, prev.hope.max + delta);
-      const current = clamp(prev.hope.current, 0, max);
-      const next: ResourcesDraft = { ...prev, hope: { current, max } };
-      writeResourcesToStorage(id, next);
-      return next;
-    });
-  };
+  const stress = createMinMaxUpdater(id, 'stress', setResources);
+  const armorScore = createMinMaxUpdater(id, 'armorScore', setResources);
+  const hp = createMinMaxUpdater(id, 'hp', setResources);
+  const hope = createMinMaxUpdater(id, 'hope', setResources);
+  const gold = createGoldActions(id, setResources);
 
   const updateNumber = <K extends keyof ResourcesDraft>(
     key: K,
@@ -129,52 +110,17 @@ export function createResourceActions(
     });
   };
 
-  const updateGold = (kind: 'handfuls' | 'bags' | 'chests', delta: number) => {
-    setResources(prev => {
-      const current = prev.gold?.[kind] ?? 0;
-      const nextGold: ResourcesDraft['gold'] = {
-        handfuls: prev.gold?.handfuls ?? 0,
-        bags: prev.gold?.bags ?? 0,
-        chests: prev.gold?.chests ?? 0,
-        coins: prev.gold?.coins ?? 0,
-        showCoins: prev.gold?.showCoins ?? false,
-        displayDenomination: prev.gold?.displayDenomination ?? 'handfuls',
-        [kind]: Math.max(0, current + delta),
-      };
-      const next: ResourcesDraft = { ...prev, gold: nextGold };
-      writeResourcesToStorage(id, next);
-      return next;
-    });
-  };
-
-  const setGold = (kind: 'handfuls' | 'bags' | 'chests', value: number) => {
-    setResources(prev => {
-      const nextGold: ResourcesDraft['gold'] = {
-        handfuls: prev.gold?.handfuls ?? 0,
-        bags: prev.gold?.bags ?? 0,
-        chests: prev.gold?.chests ?? 0,
-        coins: prev.gold?.coins ?? 0,
-        showCoins: prev.gold?.showCoins ?? false,
-        displayDenomination: prev.gold?.displayDenomination ?? 'handfuls',
-        [kind]: Math.max(0, Math.floor(value) || 0),
-      };
-      const next: ResourcesDraft = { ...prev, gold: nextGold };
-      writeResourcesToStorage(id, next);
-      return next;
-    });
-  };
-
   return {
-    updateStress,
-    updateStressMax,
-    updateHp,
-    updateHpMax,
-    updateHope,
-    updateHopeMax,
+    updateStress: stress.updateCurrent,
+    updateStressMax: (delta: number) => stress.updateMax(delta, 1),
+    updateHp: hp.updateCurrent,
+    updateHpMax: (delta: number) => hp.updateMax(delta, 1),
+    updateHope: hope.updateCurrent,
+    updateHopeMax: (delta: number) => hope.updateMax(delta, 1),
     updateNumber,
-    updateGold,
-    setGold,
-    updateArmorScore,
-    updateArmorScoreMax,
+    updateGold: gold.updateGold,
+    setGold: gold.setGold,
+    updateArmorScore: armorScore.updateCurrent,
+    updateArmorScoreMax: armorScore.updateMax,
   } as const;
 }

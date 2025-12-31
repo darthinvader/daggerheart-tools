@@ -1,4 +1,3 @@
-/* eslint-disable max-lines-per-function */
 import { useCallback, useState } from 'react';
 
 import { TraitsIcon } from '@/components/shared';
@@ -20,6 +19,86 @@ const EMPTY_HOMEBREW: HomebrewCommunity = {
   commonTraits: [],
   feature: { name: '', description: '' },
 };
+
+interface TraitsFieldProps {
+  traits: string[];
+  traitsText: string;
+  onTraitsChange: (value: string) => void;
+}
+
+function TraitsField({ traits, traitsText, onTraitsChange }: TraitsFieldProps) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor="community-traits" className="flex items-center gap-2">
+        <TraitsIcon /> Common Traits (one per line)
+      </Label>
+      <Textarea
+        id="community-traits"
+        placeholder={`Enter traits, one per line:
+brave
+resourceful
+cunning
+loyal`}
+        value={traitsText}
+        onChange={e => onTraitsChange(e.target.value)}
+        rows={5}
+      />
+      <p className="text-muted-foreground text-sm">
+        {traits.length} trait(s) added
+      </p>
+      {traits.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {traits.map(trait => (
+            <span
+              key={trait}
+              className="text-muted-foreground rounded-full border px-2 py-1 text-xs capitalize"
+            >
+              {trait}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface FeatureFieldsProps {
+  feature: HomebrewCommunity['feature'];
+  onFeatureChange: (feature: HomebrewCommunity['feature']) => void;
+}
+
+function FeatureFields({ feature, onFeatureChange }: FeatureFieldsProps) {
+  return (
+    <div className="rounded-lg border p-4">
+      <h4 className="mb-4 font-semibold">Community Feature</h4>
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="feature-name">Feature Name</Label>
+          <Input
+            id="feature-name"
+            placeholder="Enter feature name..."
+            value={feature.name}
+            onChange={e =>
+              onFeatureChange({ ...feature, name: e.target.value })
+            }
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="feature-description">Feature Description</Label>
+          <Textarea
+            id="feature-description"
+            placeholder="Describe what this feature does..."
+            value={feature.description}
+            onChange={e =>
+              onFeatureChange({ ...feature, description: e.target.value })
+            }
+            rows={3}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function HomebrewCommunityForm({
   homebrew,
@@ -83,74 +162,16 @@ export function HomebrewCommunityForm({
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="community-traits" className="flex items-center gap-2">
-            <TraitsIcon /> Common Traits (one per line)
-          </Label>
-          <Textarea
-            id="community-traits"
-            placeholder={`Enter traits, one per line:
-brave
-resourceful
-cunning
-loyal`}
-            value={traitsText}
-            onChange={e => handleTraitsChange(e.target.value)}
-            rows={5}
-          />
-          <p className="text-muted-foreground text-sm">
-            {formState.commonTraits.length} trait(s) added
-          </p>
-          {formState.commonTraits.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {formState.commonTraits.map(trait => (
-                <span
-                  key={trait}
-                  className="text-muted-foreground rounded-full border px-2 py-1 text-xs capitalize"
-                >
-                  {trait}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
+        <TraitsField
+          traits={formState.commonTraits}
+          traitsText={traitsText}
+          onTraitsChange={handleTraitsChange}
+        />
 
-        <div className="rounded-lg border p-4">
-          <h4 className="mb-4 font-semibold">Community Feature</h4>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="feature-name">Feature Name</Label>
-              <Input
-                id="feature-name"
-                placeholder="Enter feature name..."
-                value={formState.feature.name}
-                onChange={e =>
-                  updateForm({
-                    feature: { ...formState.feature, name: e.target.value },
-                  })
-                }
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="feature-description">Feature Description</Label>
-              <Textarea
-                id="feature-description"
-                placeholder="Describe what this feature does..."
-                value={formState.feature.description}
-                onChange={e =>
-                  updateForm({
-                    feature: {
-                      ...formState.feature,
-                      description: e.target.value,
-                    },
-                  })
-                }
-                rows={3}
-              />
-            </div>
-          </div>
-        </div>
+        <FeatureFields
+          feature={formState.feature}
+          onFeatureChange={feature => updateForm({ feature })}
+        />
       </CardContent>
     </Card>
   );

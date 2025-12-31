@@ -213,16 +213,19 @@ const DEFAULT_HOMEBREW_WHEELCHAIR = {
 
 /**
  * Hydrates equipment from server data.
- * Complexity is high due to many nullish coalescing operators for defaults,
- * not actual branching logic.
+ * Uses helper to build equipment object with defaults.
+ *
+ * Complexity note: This function has high cyclomatic complexity due to
+ * many fallback expressions (||, ??), but each line is a simple independent
+ * property assignment with no branching logic.
  */
-// eslint-disable-next-line complexity -- simple fallbacks, not actual branching
+// eslint-disable-next-line complexity -- Linear property mapping, not actual branching complexity
 export function hydrateEquipment(
   serverData: CharacterRecord,
   setEquipment: CharacterStateHook['setEquipment']
 ): void {
   const eq = serverData.equipment;
-  setEquipment({
+  const equipment = {
     primaryWeapon: eq?.primaryWeapon || null,
     primaryWeaponMode: eq?.primaryWeaponMode || 'standard',
     homebrewPrimaryWeapon:
@@ -239,7 +242,8 @@ export function hydrateEquipment(
     wheelchairMode: eq?.wheelchairMode || 'standard',
     homebrewWheelchair: eq?.homebrewWheelchair || DEFAULT_HOMEBREW_WHEELCHAIR,
     customSlots: eq?.customSlots || [],
-  } as never);
+  };
+  setEquipment(equipment as never);
 }
 
 // Default values for resources hydration
@@ -258,10 +262,13 @@ const DEFAULT_GOLD = {
 
 /**
  * Hydrates resources from server data.
- * Complexity is high due to many nullish coalescing operators for defaults,
- * not actual branching logic.
+ * Uses simple property access with defaults for each field.
+ *
+ * Complexity note: This function has high cyclomatic complexity due to
+ * many fallback expressions (||, ??), but each line is a simple independent
+ * property assignment with no branching logic.
  */
-// eslint-disable-next-line complexity -- simple fallbacks, not actual branching
+// eslint-disable-next-line complexity -- Linear property mapping, not actual branching complexity
 export function hydrateResources(
   serverData: CharacterRecord,
   setResources: CharacterStateHook['setResources'],

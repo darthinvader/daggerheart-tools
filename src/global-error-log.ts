@@ -23,6 +23,7 @@ if (typeof window !== 'undefined') {
     push('unhandledrejection', { reason: (e as PromiseRejectionEvent).reason })
   );
   // Optional console marker
-  // eslint-disable-next-line no-console
-  console.log('[app] error hooks installed');
+  if (import.meta.env.DEV) {
+    console.info('[app] error hooks installed');
+  }
 }

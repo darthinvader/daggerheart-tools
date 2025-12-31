@@ -112,18 +112,12 @@ function DamageCalculatorModal({
   );
 }
 
-export function ResourcesDisplay({
-  resources,
-  onChange,
-  className,
-  readOnly = false,
-  autoContext,
-  deathState,
-  onTriggerDeathMove,
-  onWakeUp,
-  thresholds,
-  onApplyDamage,
-}: ResourcesDisplayProps) {
+function useResourcesDisplayState(
+  resources: ResourcesState,
+  onChange: ((resources: ResourcesState) => void) | undefined,
+  onTriggerDeathMove: (() => void) | undefined,
+  onApplyDamage: ((result: DamageResult) => void) | undefined
+) {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState<ResourcesState>(resources);
   const [isDamageModalOpen, setIsDamageModalOpen] = useState(false);
@@ -154,21 +148,69 @@ export function ResourcesDisplay({
     [onApplyDamage]
   );
 
+  return {
+    isEditing,
+    draft,
+    setDraft,
+    isDamageModalOpen,
+    setIsDamageModalOpen,
+    handleEditToggle,
+    handleSave,
+    handleCancel,
+    handleOpen,
+    handleQuickChange,
+    handleDamageApply,
+  };
+}
+
+export function ResourcesDisplay({
+  resources,
+  onChange,
+  className,
+  readOnly = false,
+  autoContext,
+  deathState,
+  onTriggerDeathMove,
+  onWakeUp,
+  thresholds,
+  onApplyDamage,
+}: ResourcesDisplayProps) {
+  const {
+    isEditing,
+    draft,
+    setDraft,
+    isDamageModalOpen,
+    setIsDamageModalOpen,
+    handleEditToggle,
+    handleSave,
+    handleCancel,
+    handleOpen,
+    handleQuickChange,
+    handleDamageApply,
+  } = useResourcesDisplayState(
+    resources,
+    onChange,
+    onTriggerDeathMove,
+    onApplyDamage
+  );
+
+  // Extract primitive values for stable memo dependencies
+  const armorCurrent = resources.armorScore.current;
+  const armorMax = resources.armorScore.max;
+  const hpCurrent = resources.hp.current;
+  const hpMax = resources.hp.max;
+
   // Build armor and health state for damage calculator
   const armorState: ArmorState = useMemo(
-    () => ({
-      current: resources.armorScore.current,
-      max: resources.armorScore.max,
-    }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- React Compiler requires primitive deps
-    [resources.armorScore.current, resources.armorScore.max]
+    () => ({ current: armorCurrent, max: armorMax }),
+    [armorCurrent, armorMax]
   );
 
   const healthState: HealthState | undefined = useMemo(() => {
     if (!thresholds) return undefined;
     return {
-      current: resources.hp.current,
-      max: resources.hp.max,
+      current: hpCurrent,
+      max: hpMax,
       thresholds: {
         major: thresholds.major,
         severe: thresholds.severe,
@@ -176,8 +218,7 @@ export function ResourcesDisplay({
       },
       enableCritical: thresholds.enableCritical,
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- React Compiler requires primitive deps
-  }, [resources.hp.current, resources.hp.max, thresholds]);
+  }, [hpCurrent, hpMax, thresholds]);
 
   const showDeathIndicator =
     deathState &&

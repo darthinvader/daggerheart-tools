@@ -36,7 +36,7 @@ export default tseslint.config([
       '@typescript-eslint/no-explicit-any': 'warn',
 
       // General code quality
-      'no-console': 'warn',
+      'no-console': ['warn', { allow: ['info', 'warn', 'error'] }],
       'prefer-const': 'error',
       'no-var': 'error',
       'object-shorthand': 'error',

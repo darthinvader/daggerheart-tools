@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 
 import { AncestryDisplay } from '@/components/ancestry-selector';
 import { ClassDisplay } from '@/components/class-selector';
@@ -57,6 +57,138 @@ function getArmorStats(equipment: TabProps['state']['equipment']) {
     major: armor.baseThresholds?.major ?? 5,
     severe: armor.baseThresholds?.severe ?? 11,
   };
+}
+
+interface AutoUpdateConfig {
+  isHydrated: boolean | undefined;
+  autoValues: ReturnType<typeof computeAutoResources>;
+  state: TabProps['state'];
+  handlers: TabProps['handlers'];
+}
+
+/**
+ * Hook to auto-update HP and Armor Score when auto-calculate is enabled.
+ * Uses refs to access latest state while keeping effect deps minimal.
+ */
+function useAutoUpdateResources({
+  isHydrated,
+  autoValues,
+  state,
+  handlers,
+}: AutoUpdateConfig) {
+  const stateRef = useRef(state);
+  const handlersRef = useRef(handlers);
+
+  useEffect(() => {
+    stateRef.current = state;
+    handlersRef.current = handlers;
+  });
+
+  // Extract primitives for stable deps
+  const autoMaxHp = autoValues.maxHp;
+  const hpMax = state.resources.hp.max;
+  const autoArmorScore = autoValues.armorScore;
+  const armorMax = state.resources.armorScore.max;
+
+  useEffect(() => {
+    if (!isHydrated) return;
+    const { resources } = stateRef.current;
+    if (resources.autoCalculateHp === true && resources.hp.max !== autoMaxHp) {
+      handlersRef.current.setResources({
+        ...resources,
+        hp: {
+          current: Math.min(resources.hp.current, autoMaxHp),
+          max: autoMaxHp,
+        },
+      });
+    }
+  }, [isHydrated, autoMaxHp, hpMax]);
+
+  useEffect(() => {
+    if (!isHydrated) return;
+    const { resources } = stateRef.current;
+    const isAutoArmor = resources.autoCalculateArmorScore === true;
+    if (isAutoArmor && resources.armorScore.max !== autoArmorScore) {
+      const newMax = autoArmorScore;
+      const newCurrent = Math.min(resources.armorScore.current, newMax);
+      handlersRef.current.setResources({
+        ...resources,
+        armorScore: { current: newCurrent, max: newMax },
+      });
+    }
+  }, [isHydrated, autoArmorScore, armorMax]);
+}
+
+interface AutoUpdateScoresConfig {
+  isHydrated: boolean | undefined;
+  autoEvasion: number;
+  autoThresholdsMajor: number;
+  autoThresholdsSevere: number;
+  state: TabProps['state'];
+  handlers: TabProps['handlers'];
+}
+
+/**
+ * Hook to auto-update Evasion and Thresholds when auto-calculate is enabled.
+ */
+function useAutoUpdateScores({
+  isHydrated,
+  autoEvasion,
+  autoThresholdsMajor,
+  autoThresholdsSevere,
+  state,
+  handlers,
+}: AutoUpdateScoresConfig) {
+  const stateRef = useRef(state);
+  const handlersRef = useRef(handlers);
+
+  useEffect(() => {
+    stateRef.current = state;
+    handlersRef.current = handlers;
+  });
+
+  // Extract primitives for stable deps
+  const evasion = state.coreScores.evasion;
+  const thresholdMajor = state.thresholds.values.major;
+  const thresholdSevere = state.thresholds.values.severe;
+
+  useEffect(() => {
+    if (!isHydrated) return;
+    const { coreScores } = stateRef.current;
+    if (
+      coreScores.autoCalculateEvasion === true &&
+      coreScores.evasion !== autoEvasion
+    ) {
+      handlersRef.current.setCoreScores({
+        ...coreScores,
+        evasion: autoEvasion,
+      });
+    }
+  }, [isHydrated, autoEvasion, evasion]);
+
+  useEffect(() => {
+    if (!isHydrated) return;
+    const { thresholds } = stateRef.current;
+    const needsUpdate =
+      thresholds.values.major !== autoThresholdsMajor ||
+      thresholds.values.severe !== autoThresholdsSevere;
+    if (thresholds.auto === true && needsUpdate) {
+      handlersRef.current.setThresholds({
+        ...thresholds,
+        values: {
+          ...thresholds.values,
+          major: autoThresholdsMajor,
+          severe: autoThresholdsSevere,
+        },
+      });
+    }
+  }, [
+    isHydrated,
+    autoThresholdsMajor,
+    autoThresholdsSevere,
+    thresholdMajor,
+    thresholdSevere,
+  ]);
 }
 
 export function IdentityProgressionGrid({ state, handlers }: TabProps) {
@@ -124,48 +256,8 @@ export function TraitsScoresGrid({ state, handlers, isHydrated }: TabProps) {
     [resourcesAutoContext]
   );
 
-  // Auto-update HP when class or tier changes (if autoCalculateHp is enabled)
-  // Only run after hydration is complete to prevent overwriting saved values
-  useEffect(() => {
-    if (!isHydrated) return;
-    if (
-      state.resources.autoCalculateHp === true &&
-      state.resources.hp.max !== autoValues.maxHp
-    ) {
-      handlers.setResources({
-        ...state.resources,
-        hp: {
-          current: Math.min(state.resources.hp.current, autoValues.maxHp),
-          max: autoValues.maxHp,
-        },
-      });
-    }
-    // Run when auto values change (after hydration)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isHydrated, autoValues.maxHp, state.resources.hp.max]);
-
-  // Auto-update Armor Score when armor changes (if autoCalculateArmorScore is enabled)
-  useEffect(() => {
-    if (!isHydrated) return;
-    const isAutoArmor = state.resources.autoCalculateArmorScore === true;
-    if (
-      isAutoArmor &&
-      state.resources.armorScore.max !== autoValues.armorScore
-    ) {
-      // Only update max, preserve current (clamped to new max)
-      const newMax = autoValues.armorScore;
-      const newCurrent = Math.min(state.resources.armorScore.current, newMax);
-      handlers.setResources({
-        ...state.resources,
-        armorScore: {
-          current: newCurrent,
-          max: newMax,
-        },
-      });
-    }
-    // Run when auto values change (after hydration)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isHydrated, autoValues.armorScore, state.resources.armorScore.max]);
+  // Auto-update HP and Armor Score when auto-calculate is enabled
+  useAutoUpdateResources({ isHydrated, autoValues, state, handlers });
 
   const handleTriggerDeathMove = () => {
     handlers.setDeathState({
@@ -259,47 +351,15 @@ export function HopeScoresThresholdsGrid({
     [armorStats.severe, state.progression.currentLevel]
   );
 
-  // Auto-update Evasion when class or armor changes (if autoCalculateEvasion is enabled)
-  // Only run after hydration is complete to prevent overwriting saved values
-  useEffect(() => {
-    if (!isHydrated) return;
-    if (
-      state.coreScores.autoCalculateEvasion === true &&
-      state.coreScores.evasion !== autoEvasion
-    ) {
-      handlers.setCoreScores({
-        ...state.coreScores,
-        evasion: autoEvasion,
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isHydrated, autoEvasion, state.coreScores.evasion]);
-
-  // Auto-update Thresholds when armor or level changes (if auto is enabled)
-  // Only run after hydration is complete
-  useEffect(() => {
-    if (!isHydrated) return;
-    const needsUpdate =
-      state.thresholds.values.major !== autoThresholdsMajor ||
-      state.thresholds.values.severe !== autoThresholdsSevere;
-    if (state.thresholds.auto === true && needsUpdate) {
-      handlers.setThresholds({
-        ...state.thresholds,
-        values: {
-          ...state.thresholds.values,
-          major: autoThresholdsMajor,
-          severe: autoThresholdsSevere,
-        },
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
+  // Auto-update Evasion and Thresholds when auto-calculate is enabled
+  useAutoUpdateScores({
     isHydrated,
+    autoEvasion,
     autoThresholdsMajor,
     autoThresholdsSevere,
-    state.thresholds.values.major,
-    state.thresholds.values.severe,
-  ]);
+    state,
+    handlers,
+  });
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">

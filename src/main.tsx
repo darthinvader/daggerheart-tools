@@ -12,16 +12,27 @@ import { routeTree } from './routeTree.gen';
 
 const router = createRouter({ routeTree });
 
+interface AppBootInfo {
+  ts: number;
+  routes: string[];
+}
+
+declare global {
+  interface Window {
+    __APP_BOOT__?: AppBootInfo;
+  }
+}
+
 // Boot diagnostics: expose a marker to confirm script executed in production
 if (typeof window !== 'undefined') {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (window as any).__APP_BOOT__ = {
+  window.__APP_BOOT__ = {
     ts: Date.now(),
     routes: Object.keys(router.routesById),
   };
   // Keep log concise; helps verify hydration
-  // eslint-disable-next-line no-console, @typescript-eslint/no-explicit-any
-  console.log('[app] boot', (window as any).__APP_BOOT__);
+  if (import.meta.env.DEV) {
+    console.info('[app] boot', window.__APP_BOOT__);
+  }
 }
 
 declare module '@tanstack/react-router' {

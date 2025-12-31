@@ -1,4 +1,3 @@
-/* eslint-disable max-lines, max-lines-per-function */
 import { useState } from 'react';
 
 import { LoadoutSelector } from '@/components/loadout-selector';
@@ -23,34 +22,7 @@ import {
 } from '@/lib/schemas/loadout';
 import { cn } from '@/lib/utils';
 
-const DEMO_CONFIGS = {
-  '1': {
-    label: 'Tier 1 (Lv 1)',
-    emoji: '🌱',
-    domains: ['Blade', 'Bone'],
-    description: 'New adventurer with basic domain cards (Level 1)',
-  },
-  '2-4': {
-    label: 'Tier 2 (Lv 2-4)',
-    emoji: '⚔️',
-    domains: ['Arcana', 'Codex'],
-    description: 'Seasoned adventurer with intermediate cards (Levels 1-4)',
-  },
-  '5-7': {
-    label: 'Tier 3 (Lv 5-7)',
-    emoji: '🔥',
-    domains: ['Midnight', 'Sage'],
-    description: 'Veteran hero with advanced cards (Levels 1-7)',
-  },
-  '8-10': {
-    label: 'Tier 4 (Lv 8-10)',
-    emoji: '👑',
-    domains: ['Splendor', 'Valor'],
-    description: 'Legendary champion with all cards (Levels 1-10)',
-  },
-} as const;
-
-type DemoTier = keyof typeof DEMO_CONFIGS;
+import { DEMO_CONFIGS, type DemoTier } from './loadout-demo-config';
 
 function ExpandableCardItem({
   card,
@@ -148,106 +120,12 @@ function LoadoutDetails({
 
       <Separator />
 
-      {/* Active Cards */}
-      <Card className="border-green-500/30 bg-green-500/5">
-        <CardHeader className="pb-2">
-          <CardTitle className="flex items-center justify-between text-sm">
-            <SmartTooltip
-              className="max-w-xs"
-              content={
-                <p>Cards in your loadout that you can use during play.</p>
-              }
-            >
-              <span className="flex cursor-help items-center gap-2">
-                <span>⚡</span>
-                <span>Active Cards</span>
-              </span>
-            </SmartTooltip>
-            <Badge variant="outline" className="font-mono">
-              {selection.activeCards.length}/{rules.maxActiveCards}
-            </Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {selection.activeCards.length > 0 ? (
-            <div className="space-y-2">
-              {selection.activeCards.map(card => (
-                <ExpandableCardItem
-                  key={card.name}
-                  card={card}
-                  variant="active"
-                />
-              ))}
-            </div>
-          ) : (
-            <p className="text-muted-foreground text-sm">No active cards</p>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Vault Cards */}
-      <Card className="border-blue-500/30 bg-blue-500/5">
-        <CardHeader className="pb-2">
-          <CardTitle className="flex items-center justify-between text-sm">
-            <SmartTooltip
-              className="max-w-xs"
-              content={
-                <p>
-                  Inactive cards stored in your vault. Swap during rest or pay
-                  Recall Cost to swap immediately.
-                </p>
-              }
-            >
-              <span className="flex cursor-help items-center gap-2">
-                <span>📦</span>
-                <span>Vault Cards</span>
-              </span>
-            </SmartTooltip>
-            <Badge variant="outline" className="font-mono">
-              {selection.vaultCards.length} cards
-            </Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {selection.vaultCards.length > 0 ? (
-            <div className="space-y-2">
-              {selection.vaultCards.map(card => (
-                <ExpandableCardItem
-                  key={card.name}
-                  card={card}
-                  variant="vault"
-                />
-              ))}
-            </div>
-          ) : (
-            <p className="text-muted-foreground text-sm">No vault cards</p>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Homebrew Cards */}
-      {selection.homebrewCards.length > 0 && (
-        <Card className="border-purple-500/30 bg-purple-500/5">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm">
-              <span>🏠</span>
-              <span>Homebrew Cards</span>
-              <Badge variant="secondary" className="text-xs">
-                {selection.homebrewCards.length}
-              </Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {selection.homebrewCards.map(card => (
-                <Badge key={card.name} variant="outline">
-                  🏠 {card.name}
-                </Badge>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <ActiveCardsSection
+        cards={selection.activeCards}
+        maxCards={rules.maxActiveCards}
+      />
+      <VaultCardsSection cards={selection.vaultCards} />
+      <HomebrewCardsSection cards={selection.homebrewCards} />
 
       {/* Summary Stats */}
       <div className="bg-muted/50 rounded-lg p-3 text-sm">
@@ -270,6 +148,116 @@ function LoadoutDetails({
         </div>
       </div>
     </div>
+  );
+}
+
+function ActiveCardsSection({
+  cards,
+  maxCards,
+}: {
+  cards: DomainCardLite[];
+  maxCards: number;
+}) {
+  return (
+    <Card className="border-green-500/30 bg-green-500/5">
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center justify-between text-sm">
+          <SmartTooltip
+            className="max-w-xs"
+            content={<p>Cards in your loadout that you can use during play.</p>}
+          >
+            <span className="flex cursor-help items-center gap-2">
+              <span>⚡</span>
+              <span>Active Cards</span>
+            </span>
+          </SmartTooltip>
+          <Badge variant="outline" className="font-mono">
+            {cards.length}/{maxCards}
+          </Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {cards.length > 0 ? (
+          <div className="space-y-2">
+            {cards.map(card => (
+              <ExpandableCardItem
+                key={card.name}
+                card={card}
+                variant="active"
+              />
+            ))}
+          </div>
+        ) : (
+          <p className="text-muted-foreground text-sm">No active cards</p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function VaultCardsSection({ cards }: { cards: DomainCardLite[] }) {
+  return (
+    <Card className="border-blue-500/30 bg-blue-500/5">
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center justify-between text-sm">
+          <SmartTooltip
+            className="max-w-xs"
+            content={
+              <p>
+                Inactive cards stored in your vault. Swap during rest or pay
+                Recall Cost to swap immediately.
+              </p>
+            }
+          >
+            <span className="flex cursor-help items-center gap-2">
+              <span>📦</span>
+              <span>Vault Cards</span>
+            </span>
+          </SmartTooltip>
+          <Badge variant="outline" className="font-mono">
+            {cards.length} cards
+          </Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {cards.length > 0 ? (
+          <div className="space-y-2">
+            {cards.map(card => (
+              <ExpandableCardItem key={card.name} card={card} variant="vault" />
+            ))}
+          </div>
+        ) : (
+          <p className="text-muted-foreground text-sm">No vault cards</p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function HomebrewCardsSection({ cards }: { cards: DomainCardLite[] }) {
+  if (cards.length === 0) return null;
+
+  return (
+    <Card className="border-purple-500/30 bg-purple-500/5">
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center gap-2 text-sm">
+          <span>🏠</span>
+          <span>Homebrew Cards</span>
+          <Badge variant="secondary" className="text-xs">
+            {cards.length}
+          </Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-wrap gap-2">
+          {cards.map(card => (
+            <Badge key={card.name} variant="outline">
+              🏠 {card.name}
+            </Badge>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 

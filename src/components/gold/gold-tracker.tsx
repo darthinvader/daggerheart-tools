@@ -1,4 +1,3 @@
-/* eslint-disable max-lines-per-function */
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -125,6 +124,132 @@ const EMOJI_FIST = String.fromCodePoint(0x1f91b);
 const EMOJI_MONEYBAG = String.fromCodePoint(0x1f4b0);
 const EMOJI_TROPHY = String.fromCodePoint(0x1f3c6);
 
+const DENOMINATION_LABELS: Record<GoldDenomination, string> = {
+  coins: 'Coins',
+  handfuls: 'Handfuls',
+  bags: 'Bags',
+  chests: 'Chests',
+};
+
+interface DenominationGridProps {
+  showCoins: boolean;
+  coins: number;
+  handfuls: number;
+  bags: number;
+  chests: number;
+  onCoinsChange: (value: number) => void;
+  onHandfulsChange: (value: number) => void;
+  onBagsChange: (value: number) => void;
+  onChestsChange: (value: number) => void;
+}
+
+function DenominationGrid({
+  showCoins,
+  coins,
+  handfuls,
+  bags,
+  chests,
+  onCoinsChange,
+  onHandfulsChange,
+  onBagsChange,
+  onChestsChange,
+}: DenominationGridProps) {
+  return (
+    <div className="bg-muted/30 space-y-3 rounded-lg border p-4">
+      {showCoins && (
+        <DenominationRow
+          label="Coins"
+          emoji={EMOJI_COIN}
+          value={coins}
+          maxValue={10}
+          onChange={onCoinsChange}
+        />
+      )}
+      <DenominationRow
+        label="Handfuls"
+        emoji={EMOJI_FIST}
+        value={handfuls}
+        maxValue={10}
+        onChange={onHandfulsChange}
+      />
+      <DenominationRow
+        label="Bags"
+        emoji={EMOJI_MONEYBAG}
+        value={bags}
+        maxValue={10}
+        onChange={onBagsChange}
+      />
+      <DenominationRow
+        label="Chests"
+        emoji={EMOJI_TROPHY}
+        value={chests}
+        maxValue={10}
+        onChange={onChestsChange}
+      />
+    </div>
+  );
+}
+
+interface TotalDisplayProps {
+  showCoins: boolean;
+  totalDenomination: GoldDenomination;
+  displayTotal: number;
+  onDenominationChange: (denom: GoldDenomination) => void;
+}
+
+function TotalDisplay({
+  showCoins,
+  totalDenomination,
+  displayTotal,
+  onDenominationChange,
+}: TotalDisplayProps) {
+  const availableDenominations = showCoins
+    ? (['coins', 'handfuls', 'bags', 'chests'] as const)
+    : (['handfuls', 'bags', 'chests'] as const);
+
+  const formatDisplayTotal = () => {
+    const decimals =
+      totalDenomination === 'coins'
+        ? 0
+        : totalDenomination === 'handfuls'
+          ? 1
+          : totalDenomination === 'bags'
+            ? 2
+            : 3;
+    return parseFloat(displayTotal.toFixed(decimals)).toString();
+  };
+
+  return (
+    <div className="text-muted-foreground space-y-2 text-xs">
+      <p>
+        <strong>Conversion:</strong> 1 Chest = 10 Bags, 1 Bag = 10 Handfuls
+        {showCoins && ', 1 Handful = 10 Coins'}
+      </p>
+      <div className="flex flex-wrap items-center gap-2">
+        <strong>Total:</strong>
+        <span className="font-mono">{formatDisplayTotal()}</span>
+        <div className="flex gap-1">
+          {availableDenominations.map(denom => (
+            <button
+              key={denom}
+              type="button"
+              onClick={() => onDenominationChange(denom)}
+              className={cn(
+                'rounded px-2 py-0.5 text-xs transition-colors',
+                totalDenomination === denom
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted hover:bg-muted/80'
+              )}
+            >
+              {DENOMINATION_LABELS[denom]}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function GoldTracker({
   initialCoins = 0,
   initialHandfuls = 0,
@@ -158,29 +283,6 @@ export function GoldTracker({
     onChange,
   });
 
-  const denominationLabels = {
-    coins: 'Coins',
-    handfuls: 'Handfuls',
-    bags: 'Bags',
-    chests: 'Chests',
-  };
-
-  const availableDenominations = showCoins
-    ? (['coins', 'handfuls', 'bags', 'chests'] as const)
-    : (['handfuls', 'bags', 'chests'] as const);
-
-  const formatDisplayTotal = () => {
-    const decimals =
-      totalDenomination === 'coins'
-        ? 0
-        : totalDenomination === 'handfuls'
-          ? 1
-          : totalDenomination === 'bags'
-            ? 2
-            : 3;
-    return parseFloat(displayTotal.toFixed(decimals)).toString();
-  };
-
   return (
     <div className="space-y-5">
       <div className="flex items-center gap-2">
@@ -194,69 +296,24 @@ export function GoldTracker({
         </Label>
       </div>
 
-      <div className="bg-muted/30 space-y-3 rounded-lg border p-4">
-        {showCoins && (
-          <DenominationRow
-            label="Coins"
-            emoji={EMOJI_COIN}
-            value={coins}
-            maxValue={10}
-            onChange={handleCoinsChange}
-          />
-        )}
+      <DenominationGrid
+        showCoins={showCoins}
+        coins={coins}
+        handfuls={handfuls}
+        bags={bags}
+        chests={chests}
+        onCoinsChange={handleCoinsChange}
+        onHandfulsChange={handleHandfulsChange}
+        onBagsChange={handleBagsChange}
+        onChestsChange={handleChestsChange}
+      />
 
-        <DenominationRow
-          label="Handfuls"
-          emoji={EMOJI_FIST}
-          value={handfuls}
-          maxValue={10}
-          onChange={handleHandfulsChange}
-        />
-
-        <DenominationRow
-          label="Bags"
-          emoji={EMOJI_MONEYBAG}
-          value={bags}
-          maxValue={10}
-          onChange={handleBagsChange}
-        />
-
-        <DenominationRow
-          label="Chests"
-          emoji={EMOJI_TROPHY}
-          value={chests}
-          maxValue={10}
-          onChange={handleChestsChange}
-        />
-      </div>
-
-      <div className="text-muted-foreground space-y-2 text-xs">
-        <p>
-          <strong>Conversion:</strong> 1 Chest = 10 Bags, 1 Bag = 10 Handfuls
-          {showCoins && ', 1 Handful = 10 Coins'}
-        </p>
-        <div className="flex flex-wrap items-center gap-2">
-          <strong>Total:</strong>
-          <span className="font-mono">{formatDisplayTotal()}</span>
-          <div className="flex gap-1">
-            {availableDenominations.map(denom => (
-              <button
-                key={denom}
-                type="button"
-                onClick={() => handleDenominationChange(denom)}
-                className={cn(
-                  'rounded px-2 py-0.5 text-xs transition-colors',
-                  totalDenomination === denom
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted hover:bg-muted/80'
-                )}
-              >
-                {denominationLabels[denom]}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+      <TotalDisplay
+        showCoins={showCoins}
+        totalDenomination={totalDenomination}
+        displayTotal={displayTotal}
+        onDenominationChange={handleDenominationChange}
+      />
     </div>
   );
 }

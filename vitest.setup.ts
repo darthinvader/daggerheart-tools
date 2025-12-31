@@ -45,7 +45,6 @@ if (typeof Element !== 'undefined') {
 // Filter known noisy a11y warning emitted by Radix/Vaul under jsdom.
 // We provide proper descriptions or aria-describedby in components, but
 // the library still logs a false-positive in tests due to internal layering.
-/* eslint-disable no-console */
 const originalConsoleError: typeof console.error = console.error.bind(console);
 const originalConsoleWarn: typeof console.warn = console.warn.bind(console);
 console.error = (
@@ -72,4 +71,3 @@ console.warn = (
   }
   return originalConsoleWarn(...args);
 };
-/* eslint-enable no-console */
