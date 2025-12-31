@@ -260,7 +260,9 @@ useEffect(() => {
 @Injectable({ providedIn: 'root' })
 export class Announcer {
   private el = document.getElementById('route-announcer');
-  say(text: string) { if (this.el) this.el.textContent = text; }
+  say(text: string) {
+    if (this.el) this.el.textContent = text;
+  }
 }
 ```
 

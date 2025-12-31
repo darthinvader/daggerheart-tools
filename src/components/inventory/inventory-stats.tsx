@@ -52,10 +52,11 @@ export function EmptyInventoryDisplay({
 }
 
 export function InventoryStats({ inventory }: { inventory: InventoryState }) {
-  const totalItems = inventory.items.length;
-  const equippedItems = inventory.items.filter(i => i.isEquipped).length;
-  const customItems = inventory.items.filter(i => i.isCustom).length;
-  const totalQuantity = inventory.items.reduce((sum, i) => sum + i.quantity, 0);
+  const items = inventory?.items ?? [];
+  const totalItems = items.length;
+  const equippedItems = items.filter(i => i.isEquipped).length;
+  const customItems = items.filter(i => i.isCustom).length;
+  const totalQuantity = items.reduce((sum, i) => sum + i.quantity, 0);
   const unlimitedSlots = inventory.unlimitedSlots;
 
   return (

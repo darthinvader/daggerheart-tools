@@ -7,6 +7,10 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import type { Scar } from '@/lib/schemas/session-state';
 
+import {
+  CompanionHopeToggle,
+  ExtraSlotsEditor,
+} from './hope-editor-components';
 import type { HopeWithScarsState } from './hope-with-scars-display';
 
 interface HopeEditorProps {
@@ -192,80 +196,32 @@ export function HopeEditor({
 
       {/* Companion Hope Toggle */}
       {bonusHopeSlots > 0 && (
-        <div className="rounded-lg border-2 border-emerald-400/50 bg-emerald-50/50 p-4 dark:bg-emerald-950/20">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-xl">🐾</span>
-              <div>
-                <Label className="font-medium text-emerald-700 dark:text-emerald-300">
-                  Companion Hope
-                </Label>
-                <p className="text-muted-foreground text-xs">
-                  From Light in the Dark training
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() =>
-                onChange({
-                  ...state,
-                  companionHopeFilled: !companionHopeFilled,
-                })
-              }
-              className={`flex size-12 items-center justify-center rounded-xl border-2 transition-all ${
-                companionHopeFilled
-                  ? 'border-emerald-500 bg-gradient-to-br from-emerald-400 to-teal-500 shadow-lg'
-                  : 'border-dashed border-emerald-400 bg-white hover:border-emerald-500 dark:bg-emerald-900/30'
-              }`}
-              aria-label={`Companion hope ${companionHopeFilled ? 'filled' : 'empty'}`}
-            >
-              <span
-                className={`text-xl ${companionHopeFilled ? '' : 'opacity-40'}`}
-              >
-                🐾
-              </span>
-            </button>
-          </div>
-        </div>
+        <CompanionHopeToggle
+          filled={companionHopeFilled}
+          onToggle={() =>
+            onChange({
+              ...state,
+              companionHopeFilled: !companionHopeFilled,
+            })
+          }
+        />
       )}
 
-      <div>
-        <Label className="mb-2 block font-medium">Extra Hope Slots</Label>
-        <p className="text-muted-foreground mb-2 text-sm">
-          Add additional Hope slots beyond the primary 6.
-        </p>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() =>
-              onChange({
-                ...state,
-                extraSlots: Math.max(0, extraSlots - 1),
-              })
-            }
-            disabled={extraSlots <= 0}
-          >
-            -
-          </Button>
-          <span className="min-w-12 text-center text-xl font-bold">
-            {extraSlots}
-          </span>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() =>
-              onChange({
-                ...state,
-                extraSlots: extraSlots + 1,
-              })
-            }
-          >
-            +
-          </Button>
-        </div>
-      </div>
+      <ExtraSlotsEditor
+        extraSlots={extraSlots}
+        onDecrement={() =>
+          onChange({
+            ...state,
+            extraSlots: Math.max(0, extraSlots - 1),
+          })
+        }
+        onIncrement={() =>
+          onChange({
+            ...state,
+            extraSlots: extraSlots + 1,
+          })
+        }
+      />
 
       <div className="space-y-3">
         <Label className="font-medium">Scars ({state.scars.length})</Label>

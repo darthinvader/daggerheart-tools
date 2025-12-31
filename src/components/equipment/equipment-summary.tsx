@@ -64,7 +64,7 @@ export function EquipmentSummary(props: EquipmentSummaryProps) {
     !secondaryData.isEmpty ||
     !armorData.isEmpty ||
     !wheelchairData.isEmpty ||
-    props.customSlots.length > 0;
+    (props.customSlots?.length ?? 0) > 0;
 
   return (
     <div className="space-y-4">
@@ -81,7 +81,7 @@ export function EquipmentSummary(props: EquipmentSummaryProps) {
         useCombatWheelchair={props.useCombatWheelchair}
         wheelchairMode={props.wheelchairMode}
       />
-      <CustomSlotsSection slots={props.customSlots} />
+      <CustomSlotsSection slots={props.customSlots ?? []} />
       {!hasEquipment && <EmptyMessage />}
     </div>
   );

@@ -2,6 +2,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { EditableSection } from '@/components/shared/editable-section';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { getClassByName, getSubclassByName } from '@/lib/data/classes';
 import type {
@@ -24,14 +25,19 @@ interface ClassDisplayProps {
   unlockedSubclassFeatures?: Record<string, string[]>;
 }
 
-function EmptyClass() {
+function EmptyClass({ onEdit }: { onEdit?: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center py-8 text-center">
       <span className="text-4xl opacity-50">⚔️</span>
       <p className="text-muted-foreground mt-2">No class selected</p>
-      <p className="text-muted-foreground text-sm">
-        Click edit to choose your character&apos;s class
+      <p className="text-muted-foreground mb-4 text-sm">
+        Choose your character's combat style
       </p>
+      {onEdit && (
+        <Button variant="outline" onClick={onEdit}>
+          ⚔️ Select Class
+        </Button>
+      )}
     </div>
   );
 }
@@ -104,13 +110,15 @@ function ClassContent({
   selection,
   unlockState,
   onToggleUnlock,
+  onEdit,
 }: {
   selection: ClassSelection | null;
   unlockState: FeatureUnlockState;
   onToggleUnlock: (featureName: string) => void;
+  onEdit?: () => void;
 }) {
-  if (!selection) {
-    return <EmptyClass />;
+  if (!selection || !selection.className) {
+    return <EmptyClass onEdit={onEdit} />;
   }
 
   const classPairs: ClassSubclassPair[] = selection.classes ?? [
@@ -247,6 +255,7 @@ export function ClassDisplay({
         selection={selection}
         unlockState={unlockState}
         onToggleUnlock={handleToggleUnlock}
+        onEdit={!readOnly ? handleEditToggle : undefined}
       />
     </EditableSection>
   );

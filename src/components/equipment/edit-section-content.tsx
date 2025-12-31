@@ -74,18 +74,20 @@ export function EditSectionContent({
     case 'custom':
       return (
         <CustomEquipmentSection
-          slots={draftEquipment.customSlots}
+          slots={draftEquipment.customSlots ?? []}
           onAdd={handleAddCustomSlot}
           onUpdate={(id, eq) =>
             updateDraft({
-              customSlots: draftEquipment.customSlots.map(s =>
+              customSlots: (draftEquipment.customSlots ?? []).map(s =>
                 s.id === id ? eq : s
               ),
             })
           }
           onDelete={id =>
             updateDraft({
-              customSlots: draftEquipment.customSlots.filter(s => s.id !== id),
+              customSlots: (draftEquipment.customSlots ?? []).filter(
+                s => s.id !== id
+              ),
             })
           }
           hideTitle={hideDialogHeader}

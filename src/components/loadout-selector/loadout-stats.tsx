@@ -3,10 +3,13 @@ import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import type { LoadoutSelection } from '@/lib/schemas/loadout';
 
 export function LoadoutStats({ selection }: { selection: LoadoutSelection }) {
+  const activeCards = selection?.activeCards ?? [];
+  const vaultCards = selection?.vaultCards ?? [];
+
   const uniqueDomains = [
     ...new Set([
-      ...selection.activeCards.map(c => c.domain),
-      ...selection.vaultCards.map(c => c.domain),
+      ...activeCards.map(c => c.domain),
+      ...vaultCards.map(c => c.domain),
     ]),
   ];
 
@@ -17,7 +20,7 @@ export function LoadoutStats({ selection }: { selection: LoadoutSelection }) {
           variant="outline"
           className="gap-1 border-green-300 bg-green-50 dark:border-green-700 dark:bg-green-900/30"
         >
-          ⚡ {selection.activeCards.length} Active
+          ⚡ {activeCards.length} Active
         </Badge>
       </SmartTooltip>
       <SmartTooltip content="Cards stored in vault">
@@ -25,7 +28,7 @@ export function LoadoutStats({ selection }: { selection: LoadoutSelection }) {
           variant="outline"
           className="gap-1 border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-900/30"
         >
-          📦 {selection.vaultCards.length} Vault
+          📦 {vaultCards.length} Vault
         </Badge>
       </SmartTooltip>
       {uniqueDomains.length > 0 && (

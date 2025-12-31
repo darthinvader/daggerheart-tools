@@ -23,7 +23,7 @@ export const GoldDenominationEnum = z.enum([
   'chests',
 ]);
 export const GoldSchema = z.object({
-  handfuls: z.number().int().min(0).default(1),
+  handfuls: z.number().int().min(0).default(0),
   bags: z.number().int().min(0).default(0),
   chests: z.number().int().min(0).default(0),
   coins: z.number().int().min(0).default(0),
@@ -40,7 +40,7 @@ export const ResourcesSchema = z.object({
   proficiency: z.number().int().min(1).default(1),
   armorScore: ArmorScoreSchema.default({ current: 0, max: 0 }),
   gold: GoldSchema.default({
-    handfuls: 1,
+    handfuls: 0,
     bags: 0,
     chests: 0,
     coins: 0,

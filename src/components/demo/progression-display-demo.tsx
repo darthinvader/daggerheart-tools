@@ -91,7 +91,7 @@ export function ProgressionDisplayDemo() {
           <CardTitle className="flex items-center gap-2 text-sm">
             <Badge
               variant="default"
-              className="animate-pulse bg-gradient-to-r from-amber-500 to-orange-500"
+              className="animate-pulse bg-linear-to-r from-amber-500 to-orange-500"
             >
               ⬆️ Ready to Level Up!
             </Badge>

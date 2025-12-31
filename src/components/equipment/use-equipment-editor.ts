@@ -53,7 +53,7 @@ export function useEquipmentEditor(
     };
     setDraftEquipment(prev => ({
       ...prev,
-      customSlots: [...prev.customSlots, newSlot],
+      customSlots: [...(prev.customSlots ?? []), newSlot],
     }));
   }, []);
 

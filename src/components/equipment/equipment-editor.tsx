@@ -103,7 +103,7 @@ function SummaryCard({ state }: { state: EquipmentState }) {
           combatWheelchair={state.combatWheelchair}
           wheelchairMode={state.wheelchairMode}
           homebrewWheelchair={state.homebrewWheelchair}
-          customSlots={state.customSlots}
+          customSlots={state.customSlots ?? []}
         />
       </CardContent>
     </Card>

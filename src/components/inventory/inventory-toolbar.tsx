@@ -43,8 +43,9 @@ export function InventoryToolbar({
   onClearFilters,
   readOnly,
 }: InventoryToolbarProps) {
-  const totalQuantity = inventory.items.reduce((sum, i) => sum + i.quantity, 0);
-  const totalItems = inventory.items.length;
+  const items = inventory?.items ?? [];
+  const totalQuantity = items.reduce((sum, i) => sum + i.quantity, 0);
+  const totalItems = items.length;
 
   return (
     <div className="space-y-3">
@@ -196,6 +197,37 @@ interface ToolbarStatsRowProps {
   readOnly?: boolean;
 }
 
+interface StatBadgeProps {
+  count: number;
+  emoji: string;
+  label: string;
+  tooltip: string;
+  variant?: 'green' | 'purple';
+}
+
+function StatBadge({ count, emoji, label, tooltip, variant }: StatBadgeProps) {
+  if (count === 0) return null;
+
+  const colorClasses =
+    variant === 'green'
+      ? 'border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950/50 dark:text-green-300'
+      : variant === 'purple'
+        ? 'border-purple-200 bg-purple-50 text-purple-700 dark:border-purple-800 dark:bg-purple-950/50 dark:text-purple-300'
+        : '';
+
+  return (
+    <SmartTooltip content={tooltip}>
+      <Badge
+        variant={variant ? 'outline' : 'secondary'}
+        className={cn('gap-1 text-xs', colorClasses)}
+      >
+        {emoji} {count}
+        {label && ` ${label}`}
+      </Badge>
+    </SmartTooltip>
+  );
+}
+
 function ToolbarStatsRow({
   inventory,
   totalQuantity,
@@ -205,10 +237,11 @@ function ToolbarStatsRow({
   onMaxSlotsChange,
   readOnly,
 }: ToolbarStatsRowProps) {
+  const items = inventory?.items ?? [];
   const slotsFull =
     !inventory.unlimitedSlots && totalQuantity >= inventory.maxSlots;
-  const equippedItems = inventory.items.filter(i => i.isEquipped).length;
-  const customItems = inventory.items.filter(i => i.isCustom).length;
+  const equippedItems = items.filter(i => i.isEquipped).length;
+  const customItems = items.filter(i => i.isCustom).length;
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
@@ -263,37 +296,32 @@ function ToolbarStatsRow({
         )}
 
         {totalItems > 0 && (
-          <SmartTooltip content="📦 Unique item types">
-            <Badge variant="secondary" className="gap-1 text-xs">
-              📦 {totalItems} type{totalItems !== 1 ? 's' : ''}
-            </Badge>
-          </SmartTooltip>
+          <StatBadge
+            count={totalItems}
+            emoji="📦"
+            label={totalItems !== 1 ? 'types' : 'type'}
+            tooltip="📦 Unique item types"
+          />
         )}
 
-        {equippedItems > 0 && (
-          <SmartTooltip content="⚔️ Currently equipped">
-            <Badge
-              variant="outline"
-              className="gap-1 border-green-200 bg-green-50 text-xs text-green-700 dark:border-green-800 dark:bg-green-950/50 dark:text-green-300"
-            >
-              ⚔️ {equippedItems}
-            </Badge>
-          </SmartTooltip>
-        )}
+        <StatBadge
+          count={equippedItems}
+          emoji="⚔️"
+          label=""
+          tooltip="⚔️ Currently equipped"
+          variant="green"
+        />
 
-        {customItems > 0 && (
-          <SmartTooltip content="✨ Custom/homebrew items">
-            <Badge
-              variant="outline"
-              className="gap-1 border-purple-200 bg-purple-50 text-xs text-purple-700 dark:border-purple-800 dark:bg-purple-950/50 dark:text-purple-300"
-            >
-              ✨ {customItems}
-            </Badge>
-          </SmartTooltip>
-        )}
+        <StatBadge
+          count={customItems}
+          emoji="✨"
+          label=""
+          tooltip="✨ Custom/homebrew items"
+          variant="purple"
+        />
       </div>
 
-      {onSearchChange && inventory.items.length > 5 && (
+      {onSearchChange && items.length > 5 && (
         <div className="relative w-full sm:w-auto">
           <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
           <Input

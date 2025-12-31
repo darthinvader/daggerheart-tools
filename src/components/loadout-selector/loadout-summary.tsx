@@ -1,14 +1,8 @@
-import { useCallback, useState } from 'react';
-
 import { Button } from '@/components/ui/button';
 import type { DomainCardLite, LoadoutRules } from '@/lib/schemas/loadout';
 
 import { LoadoutSection } from './loadout-section';
-
-type SwapMode = {
-  source: 'active' | 'vault';
-  cardName: string;
-} | null;
+import { type SwapMode, useSwapMode } from './use-swap-mode';
 
 interface LoadoutSummaryProps {
   activeCards: DomainCardLite[];
@@ -59,67 +53,35 @@ export function LoadoutSummary({
   onSwapCards,
   onChangeMaxActiveCards,
 }: LoadoutSummaryProps) {
-  const [swapMode, setSwapMode] = useState<SwapMode>(null);
+  const safeActiveCards = activeCards ?? [];
+  const safeVaultCards = vaultCards ?? [];
 
   const hasVaultLimit = rules.maxVaultCards !== undefined;
   const isVaultFull =
-    hasVaultLimit && vaultCards.length >= (rules.maxVaultCards ?? Infinity);
-  const isActiveFull = activeCards.length >= rules.maxActiveCards;
+    hasVaultLimit && safeVaultCards.length >= (rules.maxVaultCards ?? Infinity);
+  const isActiveFull = safeActiveCards.length >= rules.maxActiveCards;
 
-  const handleDecreaseMax = useCallback(() => {
-    onChangeMaxActiveCards?.(-1);
-  }, [onChangeMaxActiveCards]);
+  const {
+    swapMode,
+    handleCancelSwap,
+    handleSelectSwapTarget,
+    handleMoveFromActive,
+    handleMoveFromVault,
+  } = useSwapMode({
+    isVaultFull,
+    isActiveFull,
+    onMoveToVault,
+    onMoveToActive,
+    onSwapCards,
+  });
 
-  const handleIncreaseMax = useCallback(() => {
-    onChangeMaxActiveCards?.(1);
-  }, [onChangeMaxActiveCards]);
-
-  const handleInitiateSwap = useCallback(
-    (source: 'active' | 'vault', cardName: string) => {
-      setSwapMode({ source, cardName });
-    },
-    []
-  );
-
-  const handleCancelSwap = useCallback(() => {
-    setSwapMode(null);
-  }, []);
-
-  const handleSelectSwapTarget = useCallback(
-    (targetCardName: string) => {
-      if (!swapMode) return;
-
-      if (swapMode.source === 'active') {
-        onSwapCards(swapMode.cardName, targetCardName);
-      } else {
-        onSwapCards(targetCardName, swapMode.cardName);
-      }
-      setSwapMode(null);
-    },
-    [swapMode, onSwapCards]
-  );
-
-  const handleMoveFromActive = useCallback(
-    (cardName: string) => {
-      if (isVaultFull) {
-        handleInitiateSwap('active', cardName);
-      } else {
-        onMoveToVault(cardName);
-      }
-    },
-    [isVaultFull, handleInitiateSwap, onMoveToVault]
-  );
-
-  const handleMoveFromVault = useCallback(
-    (cardName: string) => {
-      if (isActiveFull) {
-        handleInitiateSwap('vault', cardName);
-      } else {
-        onMoveToActive(cardName);
-      }
-    },
-    [isActiveFull, handleInitiateSwap, onMoveToActive]
-  );
+  // Pre-compute swap mode derived values
+  const swapSourceCard = swapMode?.cardName ?? null;
+  const swapSourceLocation = swapMode?.source ?? null;
+  const isActiveSwapTarget = swapSourceLocation === 'vault';
+  const isVaultSwapTarget = swapSourceLocation === 'active';
+  const canAdjustMax = !!onChangeMaxActiveCards;
+  const vaultMaxCards = rules.maxVaultCards ?? 0;
 
   return (
     <div className="space-y-4">
@@ -130,14 +92,14 @@ export function LoadoutSummary({
           <LoadoutSection
             title="Active Loadout"
             emoji="⚡"
-            cards={activeCards}
+            cards={safeActiveCards}
             location="active"
             maxCards={rules.maxActiveCards}
             hasLimit={true}
             isFull={isActiveFull}
-            isSwapTarget={swapMode?.source === 'vault'}
-            swapSourceCard={swapMode?.cardName ?? null}
-            swapSourceLocation={swapMode?.source ?? null}
+            isSwapTarget={isActiveSwapTarget}
+            swapSourceCard={swapSourceCard}
+            swapSourceLocation={swapSourceLocation}
             targetIsFull={isVaultFull}
             borderClass="border-green-500/30"
             bgClass="bg-green-500/5"
@@ -146,9 +108,9 @@ export function LoadoutSummary({
             onRemove={onRemoveActive}
             onSelectSwapTarget={handleSelectSwapTarget}
             tooltipContent={`Cards in your loadout are active and can be used during play. You can have up to ${rules.maxActiveCards} active cards.`}
-            canAdjustMax={!!onChangeMaxActiveCards}
-            onDecreaseMax={handleDecreaseMax}
-            onIncreaseMax={handleIncreaseMax}
+            canAdjustMax={canAdjustMax}
+            onDecreaseMax={() => onChangeMaxActiveCards?.(-1)}
+            onIncreaseMax={() => onChangeMaxActiveCards?.(1)}
           />
         </div>
 
@@ -156,14 +118,14 @@ export function LoadoutSummary({
           <LoadoutSection
             title="Vault"
             emoji="📦"
-            cards={vaultCards}
+            cards={safeVaultCards}
             location="vault"
-            maxCards={rules.maxVaultCards ?? 0}
+            maxCards={vaultMaxCards}
             hasLimit={hasVaultLimit}
             isFull={isVaultFull}
-            isSwapTarget={swapMode?.source === 'active'}
-            swapSourceCard={swapMode?.cardName ?? null}
-            swapSourceLocation={swapMode?.source ?? null}
+            isSwapTarget={isVaultSwapTarget}
+            swapSourceCard={swapSourceCard}
+            swapSourceLocation={swapSourceLocation}
             targetIsFull={isActiveFull}
             borderClass="border-blue-500/30"
             bgClass="bg-blue-500/5"

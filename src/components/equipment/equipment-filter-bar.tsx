@@ -62,9 +62,9 @@ export function EquipmentFilterBar({
         </ToggleGroupItem>
         <ToggleGroupItem value="custom" size="sm" className="gap-1">
           ✨ Custom
-          {state.customSlots.length > 0 && (
+          {(state.customSlots?.length ?? 0) > 0 && (
             <Badge variant="secondary" className="px-1 text-xs">
-              {state.customSlots.length}
+              {state.customSlots?.length ?? 0}
             </Badge>
           )}
         </ToggleGroupItem>

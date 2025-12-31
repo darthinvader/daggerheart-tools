@@ -1,11 +1,10 @@
-import { useCallback, useMemo, useState } from 'react';
-
 import { EditableSection } from '@/components/shared/editable-section';
 import type { ThresholdsSettings } from '@/lib/schemas/character-state';
 import { cn } from '@/lib/utils';
 
 import { ThresholdsDisplay } from './thresholds-display';
 import { ThresholdsEditor } from './thresholds-editor';
+import { useThresholdsEditor } from './use-thresholds-editor';
 
 export interface ThresholdsAutoContext {
   armorThresholdsMajor?: number;
@@ -20,15 +19,6 @@ interface ThresholdsEditableSectionProps {
   baseHp?: number;
   className?: string;
   readOnly?: boolean;
-}
-
-function computeAutoThresholds(ctx: ThresholdsAutoContext) {
-  const level = ctx.level ?? 1;
-  const levelBonus = Math.max(0, level - 1);
-  return {
-    major: (ctx.armorThresholdsMajor ?? 5) + levelBonus,
-    severe: (ctx.armorThresholdsSevere ?? 11) + levelBonus,
-  };
 }
 
 function EmptyThresholds() {
@@ -51,115 +41,29 @@ export function ThresholdsEditableSection({
   className,
   readOnly = false,
 }: ThresholdsEditableSectionProps) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [draftSettings, setDraftSettings] =
-    useState<ThresholdsSettings>(settings);
-
-  const hasAutoContext = Boolean(autoContext);
-  const autoThresholds = useMemo(
-    () => computeAutoThresholds(autoContext ?? {}),
-    [autoContext]
-  );
-
-  // Determine if auto from armor is enabled
-  const isAutoFromArmor = hasAutoContext && (settings.auto ?? true);
-
-  const handleEditToggle = useCallback(() => {
-    if (!isEditing) {
-      setDraftSettings(settings);
-    }
-    setIsEditing(prev => !prev);
-  }, [isEditing, settings]);
-
-  const handleSave = useCallback(() => {
-    onChange?.(draftSettings);
-  }, [draftSettings, onChange]);
-
-  const handleCancel = useCallback(() => {
-    setDraftSettings(settings);
-  }, [settings]);
-
-  const handleMinorChange = useCallback((value: number) => {
-    setDraftSettings(prev => ({
-      ...prev,
-      values: { ...prev.values, major: value },
-    }));
-  }, []);
-
-  const handleSevereChange = useCallback((value: number) => {
-    setDraftSettings(prev => ({
-      ...prev,
-      values: { ...prev.values, severe: value },
-    }));
-  }, []);
-
-  const handleMajorChange = useCallback((value: number) => {
-    setDraftSettings(prev => ({
-      ...prev,
-      values: { ...prev.values, critical: value },
-    }));
-  }, []);
-
-  const handleAutoChange = useCallback(
-    (value: boolean) => {
-      setDraftSettings(prev => ({
-        ...prev,
-        auto: value,
-        // When enabling auto, set values from armor
-        ...(value && hasAutoContext
-          ? {
-              values: {
-                ...prev.values,
-                major: autoThresholds.major,
-                severe: autoThresholds.severe,
-              },
-            }
-          : {}),
-      }));
-    },
-    [hasAutoContext, autoThresholds]
-  );
-
-  const handleAutoMajorChange = useCallback((value: boolean) => {
-    setDraftSettings(prev => ({
-      ...prev,
-      autoMajor: value,
-    }));
-  }, []);
-
-  const handleShowMajorChange = useCallback((value: boolean) => {
-    setDraftSettings(prev => ({
-      ...prev,
-      enableCritical: value,
-    }));
-  }, []);
-
-  // Use auto values when enabled
-  const effectiveSevere = isAutoFromArmor
-    ? autoThresholds.severe
-    : draftSettings.values.severe;
-
-  const effectiveCritical =
-    (draftSettings.autoMajor ?? true)
-      ? effectiveSevere * 2
-      : (draftSettings.values.critical ?? effectiveSevere * 2);
-
-  const displayMajor = isAutoFromArmor
-    ? autoThresholds.major
-    : settings.values.major;
-  const displaySevere = isAutoFromArmor
-    ? autoThresholds.severe
-    : settings.values.severe;
-
-  const displayCritical =
-    (settings.autoMajor ?? true)
-      ? displaySevere * 2
-      : (settings.values.critical ?? displaySevere * 2);
+  const {
+    isEditing,
+    draftSettings,
+    autoThresholds,
+    hasAutoContext,
+    isAutoFromArmor,
+    isDraftAutoFromArmor,
+    effectiveCritical,
+    displayMajor,
+    displaySevere,
+    displayCritical,
+    handleEditToggle,
+    handleSave,
+    handleCancel,
+    handleMinorChange,
+    handleSevereChange,
+    handleMajorChange,
+    handleAutoChange,
+    handleAutoMajorChange,
+    handleShowMajorChange,
+  } = useThresholdsEditor({ settings, onChange, autoContext });
 
   const hasSettings = settings !== null;
-
-  // Determine if we're in draft auto mode
-  const isDraftAutoFromArmor = hasAutoContext && (draftSettings.auto ?? true);
 
   return (
     <EditableSection

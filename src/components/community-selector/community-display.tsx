@@ -3,6 +3,7 @@ import { useCallback, useState } from 'react';
 import { EditableSection } from '@/components/shared/editable-section';
 import { TraitsIcon } from '@/components/shared/icons';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import type { Community, CommunitySelection } from '@/lib/schemas/identity';
 import { cn } from '@/lib/utils';
@@ -18,14 +19,19 @@ interface CommunityDisplayProps {
   readOnly?: boolean;
 }
 
-function EmptyCommunity() {
+function EmptyCommunity({ onEdit }: { onEdit?: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center py-8 text-center">
       <span className="text-4xl opacity-50">🏘️</span>
       <p className="text-muted-foreground mt-2">No community selected</p>
-      <p className="text-muted-foreground text-sm">
-        Click edit to choose your character&apos;s community
+      <p className="text-muted-foreground mb-4 text-sm">
+        Choose where your character comes from
       </p>
+      {onEdit && (
+        <Button variant="outline" onClick={onEdit}>
+          🏘️ Select Community
+        </Button>
+      )}
     </div>
   );
 }
@@ -150,16 +156,26 @@ function HomebrewCommunityContent({ community }: { community: Community }) {
   );
 }
 
-function CommunityContent({ selection }: { selection: CommunitySelection }) {
+function CommunityContent({
+  selection,
+  onEdit,
+}: {
+  selection: CommunitySelection;
+  onEdit?: () => void;
+}) {
   if (!selection) {
-    return <EmptyCommunity />;
+    return <EmptyCommunity onEdit={onEdit} />;
   }
 
   switch (selection.mode) {
     case 'standard':
+      if (!selection.community) return <EmptyCommunity onEdit={onEdit} />;
       return <StandardCommunityContent community={selection.community} />;
     case 'homebrew':
+      if (!selection.homebrew) return <EmptyCommunity onEdit={onEdit} />;
       return <HomebrewCommunityContent community={selection.homebrew} />;
+    default:
+      return <EmptyCommunity onEdit={onEdit} />;
   }
 }
 
@@ -174,13 +190,19 @@ export function CommunityDisplay({
     useState<CommunitySelection>(selection);
 
   const handleEditToggle = useCallback(() => {
-    if (isEditing) {
-      onChange?.(draftSelection);
-    } else {
+    if (!isEditing) {
       setDraftSelection(selection);
     }
     setIsEditing(prev => !prev);
-  }, [isEditing, draftSelection, selection, onChange]);
+  }, [isEditing, selection]);
+
+  const handleSave = useCallback(() => {
+    onChange?.(draftSelection);
+  }, [draftSelection, onChange]);
+
+  const handleCancel = useCallback(() => {
+    setDraftSelection(selection);
+  }, [selection]);
 
   const handleChange = useCallback((newSelection: CommunitySelection) => {
     setDraftSelection(newSelection);
@@ -192,6 +214,8 @@ export function CommunityDisplay({
       emoji="🏘️"
       isEditing={isEditing}
       onEditToggle={handleEditToggle}
+      onSave={handleSave}
+      onCancel={handleCancel}
       showEditButton={!readOnly}
       modalSize="lg"
       className={cn(className)}
@@ -201,7 +225,10 @@ export function CommunityDisplay({
         <CommunitySelector value={draftSelection} onChange={handleChange} />
       }
     >
-      <CommunityContent selection={selection} />
+      <CommunityContent
+        selection={selection}
+        onEdit={!readOnly ? handleEditToggle : undefined}
+      />
     </EditableSection>
   );
 }

@@ -5,6 +5,10 @@ import type {
   StandardArmor,
 } from '@/lib/schemas/equipment';
 
+export type WeaponDisplayData = ReturnType<typeof getWeaponData>;
+export type ArmorDisplayData = ReturnType<typeof getArmorData>;
+export type WheelchairDisplayData = ReturnType<typeof getWheelchairData>;
+
 export function formatDamage(damage?: {
   count: number;
   diceType: number;

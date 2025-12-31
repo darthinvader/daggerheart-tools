@@ -21,49 +21,37 @@ const EMOJI_TROPHY = '🏆';
 const EMOJI_COIN = '🪙';
 
 function GoldCompactDisplay({ gold }: { gold: Gold }) {
-  const totalHandfuls =
-    gold.handfuls + gold.bags * 10 + gold.chests * 100 + (gold.coins ?? 0) / 10;
-
   return (
     <div className="flex items-center gap-3">
       <span className="text-2xl">💰</span>
       <div className="flex flex-wrap items-center gap-2">
-        {gold.chests > 0 && (
-          <Badge
-            variant="outline"
-            className="gap-1 border-amber-500/30 bg-amber-500/10"
-          >
-            {EMOJI_TROPHY} {gold.chests}{' '}
-            {gold.chests === 1 ? 'Chest' : 'Chests'}
-          </Badge>
-        )}
-        {gold.bags > 0 && (
-          <Badge
-            variant="outline"
-            className="gap-1 border-yellow-500/30 bg-yellow-500/10"
-          >
-            {EMOJI_MONEYBAG} {gold.bags} {gold.bags === 1 ? 'Bag' : 'Bags'}
-          </Badge>
-        )}
-        {gold.handfuls > 0 && (
-          <Badge
-            variant="outline"
-            className="gap-1 border-orange-500/30 bg-orange-500/10"
-          >
-            {EMOJI_FIST} {gold.handfuls}{' '}
-            {gold.handfuls === 1 ? 'Handful' : 'Handfuls'}
-          </Badge>
-        )}
-        {gold.showCoins && (gold.coins ?? 0) > 0 && (
+        <Badge
+          variant="outline"
+          className="gap-1 border-amber-500/30 bg-amber-500/10"
+        >
+          {EMOJI_TROPHY} {gold.chests} {gold.chests === 1 ? 'Chest' : 'Chests'}
+        </Badge>
+        <Badge
+          variant="outline"
+          className="gap-1 border-yellow-500/30 bg-yellow-500/10"
+        >
+          {EMOJI_MONEYBAG} {gold.bags} {gold.bags === 1 ? 'Bag' : 'Bags'}
+        </Badge>
+        <Badge
+          variant="outline"
+          className="gap-1 border-orange-500/30 bg-orange-500/10"
+        >
+          {EMOJI_FIST} {gold.handfuls}{' '}
+          {gold.handfuls === 1 ? 'Handful' : 'Handfuls'}
+        </Badge>
+        {gold.showCoins && (
           <Badge
             variant="outline"
             className="gap-1 border-stone-500/30 bg-stone-500/10"
           >
-            {EMOJI_COIN} {gold.coins} {gold.coins === 1 ? 'Coin' : 'Coins'}
+            {EMOJI_COIN} {gold.coins ?? 0}{' '}
+            {(gold.coins ?? 0) === 1 ? 'Coin' : 'Coins'}
           </Badge>
-        )}
-        {totalHandfuls === 0 && (
-          <span className="text-muted-foreground text-sm italic">No gold</span>
         )}
       </div>
     </div>
@@ -179,18 +167,6 @@ function GoldDetailedDisplay({ gold }: { gold: Gold }) {
   );
 }
 
-function EmptyGold() {
-  return (
-    <div className="flex flex-col items-center justify-center py-8 text-center">
-      <span className="text-4xl opacity-50">💰</span>
-      <p className="text-muted-foreground mt-2">No gold tracked</p>
-      <p className="text-muted-foreground text-sm">
-        Click edit to manage your character&apos;s wealth
-      </p>
-    </div>
-  );
-}
-
 export function GoldDisplay({
   gold,
   onChange,
@@ -237,8 +213,6 @@ export function GoldDisplay({
     []
   );
 
-  const hasGold = gold.handfuls > 0 || gold.bags > 0 || gold.chests > 0;
-
   return (
     <EditableSection
       title="Gold"
@@ -264,14 +238,10 @@ export function GoldDisplay({
         />
       }
     >
-      {hasGold ? (
-        compactMode ? (
-          <GoldCompactDisplay gold={gold} />
-        ) : (
-          <GoldDetailedDisplay gold={gold} />
-        )
+      {compactMode ? (
+        <GoldCompactDisplay gold={gold} />
       ) : (
-        <EmptyGold />
+        <GoldDetailedDisplay gold={gold} />
       )}
     </EditableSection>
   );

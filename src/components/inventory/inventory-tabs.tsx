@@ -22,18 +22,20 @@ export function InventoryTabs({
   onEdit,
   unlimitedQuantity = false,
 }: InventoryTabsProps) {
+  const safeItems = items ?? [];
+  const safeEquipped = equippedItems ?? [];
   return (
     <Tabs defaultValue="all" className="w-full">
       <TabsList className="mb-4 w-full justify-start">
-        <TabsTrigger value="all">📦 All ({items.length})</TabsTrigger>
+        <TabsTrigger value="all">📦 All ({safeItems.length})</TabsTrigger>
         <TabsTrigger value="equipped">
-          ⭐ Equipped ({equippedItems.length})
+          ⭐ Equipped ({safeEquipped.length})
         </TabsTrigger>
         <TabsTrigger value="category">📁 By Category</TabsTrigger>
       </TabsList>
       <TabsContent value="all">
         <InventoryList
-          items={items}
+          items={safeItems}
           onRemove={onRemove}
           onQuantityChange={onQuantityChange}
           onEquipToggle={onEquipToggle}
@@ -42,14 +44,14 @@ export function InventoryTabs({
         />
       </TabsContent>
       <TabsContent value="equipped">
-        {equippedItems.length === 0 ? (
+        {safeEquipped.length === 0 ? (
           <p className="text-muted-foreground py-8 text-center">
             No items equipped. Equip relics and modifications for passive
             bonuses!
           </p>
         ) : (
           <InventoryList
-            items={equippedItems}
+            items={safeEquipped}
             onRemove={onRemove}
             onQuantityChange={onQuantityChange}
             onEquipToggle={onEquipToggle}
@@ -60,7 +62,7 @@ export function InventoryTabs({
       </TabsContent>
       <TabsContent value="category">
         <InventoryList
-          items={items}
+          items={safeItems}
           groupByCategory
           onRemove={onRemove}
           onQuantityChange={onQuantityChange}

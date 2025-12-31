@@ -9,18 +9,6 @@
   "bracketSameLine": false,
   "arrowParens": "avoid",
   "endOfLine": "lf",
-  "plugins": [
-    "@trivago/prettier-plugin-sort-imports",
-    "prettier-plugin-tailwindcss"
-  ],
-  "importOrder": [
-    "^react$",
-    "^react-dom$",
-    "^@tanstack/(.*)$",
-    "^@/(.*)$",
-    "^[./]"
-  ],
-  "importOrderSeparation": true,
-  "importOrderSortSpecifiers": true,
+  "plugins": ["prettier-plugin-tailwindcss"],
   "tailwindFunctions": ["clsx", "cn", "cva"]
 }

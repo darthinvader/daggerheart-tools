@@ -20,17 +20,25 @@ interface ConditionsDisplayProps {
 
 function ConditionsDetailedDisplay({
   conditions,
+  onEdit,
 }: {
   conditions: ConditionsState;
+  onEdit?: () => void;
 }) {
   if (conditions.items.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-center">
         <span className="text-4xl opacity-50">✨</span>
         <p className="text-muted-foreground mt-2">No conditions</p>
-        <p className="text-muted-foreground text-sm">
+        <p className="text-muted-foreground mb-4 text-sm">
           Your character is in good shape!
         </p>
+        {onEdit && (
+          <Button variant="outline" onClick={onEdit}>
+            <Plus className="mr-1 size-4" />
+            Add Condition
+          </Button>
+        )}
       </div>
     );
   }
@@ -149,7 +157,10 @@ export function ConditionsDisplay({
       onCancel={handleCancel}
       editContent={<ConditionsEditor conditions={draft} onChange={setDraft} />}
     >
-      <ConditionsDetailedDisplay conditions={conditions} />
+      <ConditionsDetailedDisplay
+        conditions={conditions}
+        onEdit={!readOnly ? handleOpen : undefined}
+      />
     </EditableSection>
   );
 }

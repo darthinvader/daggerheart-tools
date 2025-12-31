@@ -31,40 +31,43 @@ export function SessionTracker({
   currentSessionId,
   onChange,
 }: SessionTrackerProps) {
+  const safeSessions = sessions ?? [];
   const [editingSession, setEditingSession] = useState<SessionEntry | null>(
     null
   );
 
-  const stats = getSessionStats(sessions);
-  const sorted = sortSessions(sessions);
+  const stats = getSessionStats(safeSessions);
+  const sorted = sortSessions(safeSessions);
 
   const handleNew = () => {
-    const session = createSession(getNextSessionNumber(sessions));
-    onChange([...sessions, session], session.id);
+    const session = createSession(getNextSessionNumber(safeSessions));
+    onChange([...safeSessions, session], session.id);
     setEditingSession(session);
   };
 
   const handleSelect = (session: SessionEntry) => {
-    onChange(sessions, session.id);
+    onChange(safeSessions, session.id);
     setEditingSession(session);
   };
 
   const handleDelete = (id: string) => {
-    const newSessions = sessions.filter(s => s.id !== id);
+    const newSessions = safeSessions.filter(s => s.id !== id);
     const newCurrentId = currentSessionId === id ? null : currentSessionId;
     onChange(newSessions, newCurrentId);
   };
 
   const handleSave = () => {
     if (!editingSession) return;
-    const exists = sessions.some(s => s.id === editingSession.id);
+    const exists = safeSessions.some(s => s.id === editingSession.id);
     if (exists) {
       onChange(
-        sessions.map(s => (s.id === editingSession.id ? editingSession : s)),
+        safeSessions.map(s =>
+          s.id === editingSession.id ? editingSession : s
+        ),
         currentSessionId
       );
     } else {
-      onChange([...sessions, editingSession], editingSession.id);
+      onChange([...safeSessions, editingSession], editingSession.id);
     }
     setEditingSession(null);
   };

@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import type { DomainCardLite, LoadoutSelection } from '@/lib/schemas/loadout';
 
 import { ActiveLoadoutSection } from './active-loadout-section';
@@ -7,14 +8,19 @@ import { SwapModeIndicator } from './swap-mode-indicator';
 import { useLoadoutDragDrop } from './use-loadout-drag-drop';
 import { VaultSection } from './vault-section';
 
-function EmptyLoadout() {
+function EmptyLoadout({ onEdit }: { onEdit?: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center py-8 text-center">
       <span className="text-4xl opacity-50">📜</span>
       <p className="text-muted-foreground mt-2">No domain cards selected</p>
-      <p className="text-muted-foreground text-sm">
-        Click edit to build your domain loadout
+      <p className="text-muted-foreground mb-4 text-sm">
+        Build your domain card loadout
       </p>
+      {onEdit && (
+        <Button variant="outline" onClick={onEdit}>
+          📜 Select Domain Cards
+        </Button>
+      )}
     </div>
   );
 }
@@ -30,6 +36,7 @@ export type LoadoutContentProps = {
   maxActiveCards?: number;
   onChangeMaxActiveCards?: (delta: number) => void;
   onConvertToHomebrew?: (card: DomainCardLite) => void;
+  onEdit?: () => void;
 };
 
 export function LoadoutContent({
@@ -40,17 +47,19 @@ export function LoadoutContent({
   maxActiveCards = 5,
   onChangeMaxActiveCards,
   onConvertToHomebrew,
+  onEdit,
 }: LoadoutContentProps) {
-  const hasCards =
-    selection.activeCards.length > 0 || selection.vaultCards.length > 0;
-  const canSwapToActive = selection.activeCards.length < maxActiveCards;
+  const activeCards = selection?.activeCards ?? [];
+  const vaultCards = selection?.vaultCards ?? [];
+  const hasCards = activeCards.length > 0 || vaultCards.length > 0;
+  const canSwapToActive = activeCards.length < maxActiveCards;
 
   const dragDrop = useLoadoutDragDrop(onMoveCard);
   const { isSwapMode, isDragging, swapSource, dragSource, dragOverTarget } =
     dragDrop;
 
   if (!hasCards) {
-    return <EmptyLoadout />;
+    return <EmptyLoadout onEdit={onEdit} />;
   }
 
   const previewLists =

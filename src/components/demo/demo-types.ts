@@ -84,4 +84,5 @@ export interface DemoHandlers {
 export interface TabProps {
   state: DemoState;
   handlers: DemoHandlers;
+  isHydrated?: boolean;
 }

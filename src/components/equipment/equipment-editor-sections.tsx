@@ -73,7 +73,9 @@ export function EquipmentEditorSections({
         />
       )}
 
-      {showCustom && <CustomEquipmentSection customSlots={state.customSlots} />}
+      {showCustom && (
+        <CustomEquipmentSection customSlots={state.customSlots ?? []} />
+      )}
     </>
   );
 }

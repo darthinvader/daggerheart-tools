@@ -52,7 +52,7 @@ export function computeAvailableTraitsForSelection(
   currentTraits: { name: string; marked: boolean }[],
   alreadySelectedTraitsThisSession: string[]
 ): { name: string; marked: boolean }[] {
-  return currentTraits.filter(
+  return (currentTraits ?? []).filter(
     t => !t.marked && !alreadySelectedTraitsThisSession.includes(t.name)
   );
 }
@@ -64,13 +64,14 @@ export function computeAvailableExperiencesForSelection(
   newExperienceName: string | null,
   targetLevel: number
 ): { id: string; name: string; value: number }[] {
+  const safeExperiences = currentExperiences ?? [];
   const baseExperiences =
     getsNewExperience && newExperienceName
       ? [
-          ...currentExperiences,
+          ...safeExperiences,
           { id: `new-exp-${targetLevel}`, name: newExperienceName, value: 2 },
         ]
-      : currentExperiences;
+      : safeExperiences;
   return baseExperiences.filter(
     e => !alreadyBoostedExperiencesThisSession.includes(e.id)
   );

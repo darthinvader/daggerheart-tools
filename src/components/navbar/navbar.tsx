@@ -1,4 +1,4 @@
-import { Link, useLocation } from '@tanstack/react-router';
+import { Link, useLocation, useNavigate } from '@tanstack/react-router';
 import {
   BookOpen,
   ChevronDown,
@@ -27,6 +27,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import { useCreateCharacterMutation } from '@/features/characters/use-characters-query';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 
@@ -35,6 +36,8 @@ export interface NavLink {
   label: string;
   icon?: React.ReactNode;
   children?: NavLink[];
+  /** If true, this link triggers character creation instead of navigation */
+  isCreateCharacter?: boolean;
 }
 
 interface NavbarProps {
@@ -63,10 +66,10 @@ const defaultLinks: NavLink[] = [
   },
   {
     to: '/character',
-    label: 'Character',
+    label: 'Characters',
     children: [
       {
-        to: '/character',
+        to: '/character/',
         label: 'View All',
         icon: <Users className="size-4" />,
       },
@@ -74,6 +77,7 @@ const defaultLinks: NavLink[] = [
         to: '/character/new',
         label: 'New Character',
         icon: <Plus className="size-4" />,
+        isCreateCharacter: true,
       },
     ],
   },
@@ -113,9 +117,23 @@ interface NavbarInternalProps {
 
 function DesktopNavbar({ links, brandName }: NavbarInternalProps) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const createMutation = useCreateCharacterMutation();
+
+  const handleCreateCharacter = async () => {
+    try {
+      const data = await createMutation.mutateAsync(undefined);
+      await navigate({
+        to: '/character/$characterId',
+        params: { characterId: data.id },
+      });
+    } catch {
+      // Error handled by mutation
+    }
+  };
 
   return (
-    <header className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full border-b backdrop-blur">
+    <header className="bg-background/95 supports-backdrop-filter:bg-background/60 sticky top-0 z-50 w-full border-b backdrop-blur">
       <nav className="container mx-auto flex h-14 items-center px-4">
         <Link
           to="/"
@@ -133,22 +151,40 @@ function DesktopNavbar({ links, brandName }: NavbarInternalProps) {
                   <NavigationMenuTrigger>{link.label}</NavigationMenuTrigger>
                   <NavigationMenuContent>
                     <ul className="grid w-48 gap-1 p-2">
-                      {link.children.map(child => (
-                        <li key={child.to}>
-                          <NavigationMenuLink asChild>
-                            <Link
-                              to={child.to}
+                      {link.children.map(child =>
+                        child.isCreateCharacter ? (
+                          <li key={child.to}>
+                            <button
+                              onClick={handleCreateCharacter}
+                              disabled={createMutation.isPending}
                               className={cn(
-                                'hover:bg-accent hover:text-accent-foreground flex items-center gap-2 rounded-md p-2 text-sm transition-colors',
-                                location.pathname === child.to && 'bg-accent'
+                                'hover:bg-accent hover:text-accent-foreground flex w-full items-center gap-2 rounded-md p-2 text-left text-sm transition-colors',
+                                createMutation.isPending && 'opacity-50'
                               )}
                             >
                               {child.icon}
-                              {child.label}
-                            </Link>
-                          </NavigationMenuLink>
-                        </li>
-                      ))}
+                              {createMutation.isPending
+                                ? 'Creating...'
+                                : child.label}
+                            </button>
+                          </li>
+                        ) : (
+                          <li key={child.to}>
+                            <NavigationMenuLink asChild>
+                              <Link
+                                to={child.to}
+                                className={cn(
+                                  'hover:bg-accent hover:text-accent-foreground flex items-center gap-2 rounded-md p-2 text-sm transition-colors',
+                                  location.pathname === child.to && 'bg-accent'
+                                )}
+                              >
+                                {child.icon}
+                                {child.label}
+                              </Link>
+                            </NavigationMenuLink>
+                          </li>
+                        )
+                      )}
                     </ul>
                   </NavigationMenuContent>
                 </NavigationMenuItem>
@@ -180,7 +216,7 @@ function MobileNavbar({ links, brandShortName }: NavbarInternalProps) {
   const [open, setOpen] = React.useState(false);
 
   return (
-    <header className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full border-b backdrop-blur">
+    <header className="bg-background/95 supports-backdrop-filter:bg-background/60 sticky top-0 z-50 w-full border-b backdrop-blur">
       <nav className="flex h-14 items-center justify-between px-4">
         <Link
           to="/"
@@ -218,7 +254,22 @@ function MobileNavContent({
   onLinkClick: () => void;
 }) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const createMutation = useCreateCharacterMutation();
   const [openItems, setOpenItems] = React.useState<Set<string>>(new Set());
+
+  const handleCreateCharacter = async () => {
+    try {
+      const data = await createMutation.mutateAsync(undefined);
+      onLinkClick();
+      await navigate({
+        to: '/character/$characterId',
+        params: { characterId: data.id },
+      });
+    } catch {
+      // Error handled by mutation
+    }
+  };
 
   const toggleItem = (to: string) => {
     setOpenItems(prev => {
@@ -252,6 +303,26 @@ function MobileNavContent({
             {openItems.has(link.to) && (
               <div className="ml-3 flex flex-col gap-1 border-l pl-3">
                 {link.children.map(child => {
+                  if (child.isCreateCharacter) {
+                    return (
+                      <button
+                        key={child.to}
+                        onClick={handleCreateCharacter}
+                        disabled={createMutation.isPending}
+                        className={cn(
+                          'text-foreground hover:bg-accent hover:text-accent-foreground flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors',
+                          createMutation.isPending && 'opacity-50'
+                        )}
+                      >
+                        {child.icon}
+                        <span>
+                          {createMutation.isPending
+                            ? 'Creating...'
+                            : child.label}
+                        </span>
+                      </button>
+                    );
+                  }
                   const isActive = location.pathname === child.to;
                   return (
                     <Link

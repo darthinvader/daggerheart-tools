@@ -108,7 +108,7 @@ export const PlayerCharacterSchema = z.object({
   weapons: z.array(WeaponSchema),
   armor: z.array(ArmorSchema),
   gold: GoldSchema.default({
-    handfuls: 1,
+    handfuls: 0,
     bags: 0,
     chests: 0,
     coins: 0,

@@ -27,24 +27,33 @@ interface ExperiencesDisplayProps {
 
 function ExperiencesDetailedDisplay({
   experiences,
+  onEdit,
 }: {
   experiences: ExperiencesState;
+  onEdit?: () => void;
 }) {
-  if (experiences.items.length === 0) {
+  const items = experiences?.items ?? [];
+  if (items.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-center">
         <span className="text-4xl opacity-50">📚</span>
         <p className="text-muted-foreground mt-2">No experiences</p>
-        <p className="text-muted-foreground text-sm">
-          Click edit to add experiences
+        <p className="text-muted-foreground mb-4 text-sm">
+          Track your character's knowledge and skills
         </p>
+        {onEdit && (
+          <Button variant="outline" onClick={onEdit}>
+            <Plus className="mr-1 size-4" />
+            Add Experience
+          </Button>
+        )}
       </div>
     );
   }
 
   return (
     <div className="space-y-2">
-      {experiences.items.map(exp => (
+      {items.map(exp => (
         <div
           key={exp.id}
           className="flex items-center justify-between rounded-lg border p-3"
@@ -66,12 +75,13 @@ interface ExperiencesEditorProps {
 
 function ExperiencesEditor({ experiences, onChange }: ExperiencesEditorProps) {
   const [newName, setNewName] = useState('');
+  const items = experiences?.items ?? [];
 
   const addExperience = () => {
     if (!newName.trim()) return;
     onChange({
       items: [
-        ...experiences.items,
+        ...items,
         { id: crypto.randomUUID(), name: newName.trim(), value: 2 },
       ],
     });
@@ -80,15 +90,13 @@ function ExperiencesEditor({ experiences, onChange }: ExperiencesEditorProps) {
 
   const updateExperience = (id: string, updates: Partial<ExperienceItem>) => {
     onChange({
-      items: experiences.items.map(exp =>
-        exp.id === id ? { ...exp, ...updates } : exp
-      ),
+      items: items.map(exp => (exp.id === id ? { ...exp, ...updates } : exp)),
     });
   };
 
   const removeExperience = (id: string) => {
     onChange({
-      items: experiences.items.filter(exp => exp.id !== id),
+      items: items.filter(exp => exp.id !== id),
     });
   };
 
@@ -107,13 +115,13 @@ function ExperiencesEditor({ experiences, onChange }: ExperiencesEditorProps) {
         </Button>
       </div>
 
-      {experiences.items.length === 0 ? (
+      {items.length === 0 ? (
         <p className="text-muted-foreground py-4 text-center text-sm">
           No experiences yet. Add one above.
         </p>
       ) : (
         <div className="space-y-2">
-          {experiences.items.map(exp => (
+          {items.map(exp => (
             <div
               key={exp.id}
               className="flex items-center gap-3 rounded-lg border p-3"
@@ -188,7 +196,10 @@ export function ExperiencesDisplay({
         <ExperiencesEditor experiences={draft} onChange={setDraft} />
       }
     >
-      <ExperiencesDetailedDisplay experiences={experiences} />
+      <ExperiencesDetailedDisplay
+        experiences={experiences}
+        onEdit={!readOnly ? handleOpen : undefined}
+      />
     </EditableSection>
   );
 }

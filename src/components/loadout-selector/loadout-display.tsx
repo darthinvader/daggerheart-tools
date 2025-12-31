@@ -62,13 +62,10 @@ export function LoadoutDisplay({
     []
   );
 
+  const activeCardsLength = selection?.activeCards?.length ?? 0;
   const handleChangeMaxActiveCards = useMemo(
-    () =>
-      createMaxActiveCardsHandler(
-        setMaxActiveCards,
-        selection.activeCards.length
-      ),
-    [selection.activeCards.length]
+    () => createMaxActiveCardsHandler(setMaxActiveCards, activeCardsLength),
+    [activeCardsLength]
   );
   const handleSwapToVault = useMemo(
     () => createSwapToVaultHandler(selection, onChange),
@@ -121,6 +118,7 @@ export function LoadoutDisplay({
           readOnly ? undefined : handleChangeMaxActiveCards
         }
         onConvertToHomebrew={readOnly ? undefined : setHomebrewEditCard}
+        onEdit={!readOnly ? handleEditToggle : undefined}
       />
       <HomebrewEditModal
         card={homebrewEditCard}

@@ -72,6 +72,7 @@ export function InventoryList({
   onEdit,
   unlimitedQuantity = false,
 }: InventoryListProps) {
+  const safeItems = items ?? [];
   const gridProps = {
     onRemove,
     onQuantityChange,
@@ -84,14 +85,14 @@ export function InventoryList({
     return (
       <ScrollArea className="h-125">
         <div className="pr-4">
-          <ItemGrid items={items} {...gridProps} />
+          <ItemGrid items={safeItems} {...gridProps} />
         </div>
       </ScrollArea>
     );
   }
 
-  const equippedItems = items.filter(i => i.isEquipped);
-  const unequippedItems = items.filter(i => !i.isEquipped);
+  const equippedItems = safeItems.filter(i => i.isEquipped);
+  const unequippedItems = safeItems.filter(i => !i.isEquipped);
   const itemsByCategory = groupItemsByCategory(unequippedItems);
 
   return (

@@ -161,7 +161,7 @@ export function CompanionStressTracker({
             className={cn(
               'h-8 w-8 rounded-lg border-2 transition-all',
               i < markedStress
-                ? 'border-orange-500 bg-gradient-to-br from-orange-400 to-orange-600 shadow-md'
+                ? 'border-orange-500 bg-linear-to-br from-orange-400 to-orange-600 shadow-md'
                 : 'border-muted-foreground/30 bg-transparent hover:border-orange-300'
             )}
             onClick={() => onSlotClick(i)}
@@ -182,7 +182,7 @@ interface CompanionExperiencesBadgesProps {
 export function CompanionExperiencesBadges({
   experiences,
 }: CompanionExperiencesBadgesProps) {
-  const validExperiences = experiences.filter(e => e.name);
+  const validExperiences = (experiences ?? []).filter(e => e.name);
   if (validExperiences.length === 0) return null;
 
   return (
@@ -196,7 +196,7 @@ export function CompanionExperiencesBadges({
           {validExperiences.map((exp, i) => (
             <span
               key={i}
-              className="rounded-full bg-gradient-to-r from-emerald-500/20 to-teal-500/20 px-3 py-1.5 text-sm font-medium text-emerald-700 ring-1 ring-emerald-500/30 dark:text-emerald-300"
+              className="rounded-full bg-linear-to-r from-emerald-500/20 to-teal-500/20 px-3 py-1.5 text-sm font-medium text-emerald-700 ring-1 ring-emerald-500/30 dark:text-emerald-300"
             >
               ✨ {exp.name} +{exp.bonus}
             </span>

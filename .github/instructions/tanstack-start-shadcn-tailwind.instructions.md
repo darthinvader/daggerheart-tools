@@ -86,15 +86,15 @@ export const userSchema = z.object({
   name: z.string().min(1).max(100),
   email: z.string().email().optional(),
   role: z.enum(['admin', 'user']).default('user'),
-})
+});
 
-export type User = z.infer<typeof userSchema>
+export type User = z.infer<typeof userSchema>;
 
 // Safe parsing
-const result = userSchema.safeParse(data)
+const result = userSchema.safeParse(data);
 if (!result.success) {
-  console.error('Validation failed:', result.error.format())
-  return null
+  console.error('Validation failed:', result.error.format());
+  return null;
 }
 ```
 
@@ -190,11 +190,11 @@ Use `@/` alias for all internal imports:
 
 ```typescript
 // ✅ Good
-import { Button } from '@/components/ui/button'
-import { userSchema } from '@/lib/schemas'
+import { Button } from '@/components/ui/button';
+import { userSchema } from '@/lib/schemas';
 
 // ❌ Bad
-import { Button } from '../components/ui/button'
+import { Button } from '../components/ui/button';
 ```
 
 ## Adding Components

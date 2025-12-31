@@ -95,7 +95,7 @@ export function AncestryClassGrid({ state, handlers }: TabProps) {
   );
 }
 
-export function TraitsScoresGrid({ state, handlers }: TabProps) {
+export function TraitsScoresGrid({ state, handlers, isHydrated }: TabProps) {
   const classStats = useMemo(
     () => getClassStats(state.classSelection),
     [state.classSelection]
@@ -125,10 +125,11 @@ export function TraitsScoresGrid({ state, handlers }: TabProps) {
   );
 
   // Auto-update HP when class or tier changes (if autoCalculateHp is enabled)
-  // Also runs on mount to sync initial values
+  // Only run after hydration is complete to prevent overwriting saved values
   useEffect(() => {
+    if (!isHydrated) return;
     if (
-      state.resources.autoCalculateHp !== false &&
+      state.resources.autoCalculateHp === true &&
       state.resources.hp.max !== autoValues.maxHp
     ) {
       handlers.setResources({
@@ -139,30 +140,32 @@ export function TraitsScoresGrid({ state, handlers }: TabProps) {
         },
       });
     }
-    // Run on mount and when auto values change
+    // Run when auto values change (after hydration)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoValues.maxHp, state.resources.hp.max]);
+  }, [isHydrated, autoValues.maxHp, state.resources.hp.max]);
 
   // Auto-update Armor Score when armor changes (if autoCalculateArmorScore is enabled)
   useEffect(() => {
-    const isAutoArmor =
-      state.resources.autoCalculateArmorScore !== false ||
-      state.resources.autoCalculateArmor === true;
+    if (!isHydrated) return;
+    const isAutoArmor = state.resources.autoCalculateArmorScore === true;
     if (
       isAutoArmor &&
       state.resources.armorScore.max !== autoValues.armorScore
     ) {
+      // Only update max, preserve current (clamped to new max)
+      const newMax = autoValues.armorScore;
+      const newCurrent = Math.min(state.resources.armorScore.current, newMax);
       handlers.setResources({
         ...state.resources,
         armorScore: {
-          current: autoValues.armorScore,
-          max: autoValues.armorScore,
+          current: newCurrent,
+          max: newMax,
         },
       });
     }
-    // Run on mount and when auto values change
+    // Run when auto values change (after hydration)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoValues.armorScore, state.resources.armorScore.max]);
+  }, [isHydrated, autoValues.armorScore, state.resources.armorScore.max]);
 
   const handleTriggerDeathMove = () => {
     handlers.setDeathState({
@@ -211,7 +214,11 @@ export function TraitsScoresGrid({ state, handlers }: TabProps) {
   );
 }
 
-export function HopeScoresThresholdsGrid({ state, handlers }: TabProps) {
+export function HopeScoresThresholdsGrid({
+  state,
+  handlers,
+  isHydrated,
+}: TabProps) {
   const classStats = useMemo(
     () => getClassStats(state.classSelection),
     [state.classSelection]
@@ -253,9 +260,11 @@ export function HopeScoresThresholdsGrid({ state, handlers }: TabProps) {
   );
 
   // Auto-update Evasion when class or armor changes (if autoCalculateEvasion is enabled)
+  // Only run after hydration is complete to prevent overwriting saved values
   useEffect(() => {
+    if (!isHydrated) return;
     if (
-      state.coreScores.autoCalculateEvasion !== false &&
+      state.coreScores.autoCalculateEvasion === true &&
       state.coreScores.evasion !== autoEvasion
     ) {
       handlers.setCoreScores({
@@ -264,14 +273,16 @@ export function HopeScoresThresholdsGrid({ state, handlers }: TabProps) {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoEvasion, state.coreScores.evasion]);
+  }, [isHydrated, autoEvasion, state.coreScores.evasion]);
 
   // Auto-update Thresholds when armor or level changes (if auto is enabled)
+  // Only run after hydration is complete
   useEffect(() => {
+    if (!isHydrated) return;
     const needsUpdate =
       state.thresholds.values.major !== autoThresholdsMajor ||
       state.thresholds.values.severe !== autoThresholdsSevere;
-    if (state.thresholds.auto !== false && needsUpdate) {
+    if (state.thresholds.auto === true && needsUpdate) {
       handlers.setThresholds({
         ...state.thresholds,
         values: {
@@ -283,6 +294,7 @@ export function HopeScoresThresholdsGrid({ state, handlers }: TabProps) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
+    isHydrated,
     autoThresholdsMajor,
     autoThresholdsSevere,
     state.thresholds.values.major,

@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 
 import { EditableSection } from '@/components/shared/editable-section';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import type {
@@ -23,14 +24,19 @@ interface AncestryDisplayProps {
   readOnly?: boolean;
 }
 
-function EmptyAncestry() {
+function EmptyAncestry({ onEdit }: { onEdit?: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center py-8 text-center">
       <span className="text-4xl opacity-50">🧬</span>
       <p className="text-muted-foreground mt-2">No ancestry selected</p>
-      <p className="text-muted-foreground text-sm">
-        Click edit to choose your character&apos;s ancestry
+      <p className="text-muted-foreground mb-4 text-sm">
+        Choose your character's heritage
       </p>
+      {onEdit && (
+        <Button variant="outline" onClick={onEdit}>
+          🧬 Select Ancestry
+        </Button>
+      )}
     </div>
   );
 }
@@ -196,18 +202,29 @@ function MixedAncestryContent({
   );
 }
 
-function AncestryContent({ selection }: { selection: AncestrySelection }) {
+function AncestryContent({
+  selection,
+  onEdit,
+}: {
+  selection: AncestrySelection;
+  onEdit?: () => void;
+}) {
   if (!selection) {
-    return <EmptyAncestry />;
+    return <EmptyAncestry onEdit={onEdit} />;
   }
 
   switch (selection.mode) {
     case 'standard':
+      if (!selection.ancestry) return <EmptyAncestry onEdit={onEdit} />;
       return <StandardAncestryContent ancestry={selection.ancestry} />;
     case 'mixed':
+      if (!selection.mixedAncestry) return <EmptyAncestry onEdit={onEdit} />;
       return <MixedAncestryContent mixedAncestry={selection.mixedAncestry} />;
     case 'homebrew':
+      if (!selection.homebrew) return <EmptyAncestry onEdit={onEdit} />;
       return <HomebrewAncestryContent ancestry={selection.homebrew} />;
+    default:
+      return <EmptyAncestry onEdit={onEdit} />;
   }
 }
 
@@ -222,13 +239,19 @@ export function AncestryDisplay({
     useState<AncestrySelection>(selection);
 
   const handleEditToggle = useCallback(() => {
-    if (isEditing) {
-      onChange?.(draftSelection);
-    } else {
+    if (!isEditing) {
       setDraftSelection(selection);
     }
     setIsEditing(prev => !prev);
-  }, [isEditing, draftSelection, selection, onChange]);
+  }, [isEditing, selection]);
+
+  const handleSave = useCallback(() => {
+    onChange?.(draftSelection);
+  }, [draftSelection, onChange]);
+
+  const handleCancel = useCallback(() => {
+    setDraftSelection(selection);
+  }, [selection]);
 
   const handleChange = useCallback((newSelection: AncestrySelection) => {
     setDraftSelection(newSelection);
@@ -240,6 +263,8 @@ export function AncestryDisplay({
       emoji="🧬"
       isEditing={isEditing}
       onEditToggle={handleEditToggle}
+      onSave={handleSave}
+      onCancel={handleCancel}
       showEditButton={!readOnly}
       modalSize="xl"
       className={cn(className)}
@@ -249,7 +274,10 @@ export function AncestryDisplay({
         <AncestrySelector value={draftSelection} onChange={handleChange} />
       }
     >
-      <AncestryContent selection={selection} />
+      <AncestryContent
+        selection={selection}
+        onEdit={!readOnly ? handleEditToggle : undefined}
+      />
     </EditableSection>
   );
 }

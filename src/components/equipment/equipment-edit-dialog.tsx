@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { VisuallyHidden } from '@/components/ui/visually-hidden';
 import { cn } from '@/lib/utils';
 
 import { EditSectionContent } from './edit-section-content';
@@ -46,7 +47,16 @@ export function EquipmentEditDialog({
             : 'grid-rows-[auto_1fr_auto]',
           'w-[98vw] max-w-5xl sm:w-[95vw] sm:max-w-5xl'
         )}
+        aria-describedby={hideDialogHeader ? undefined : undefined}
       >
+        {hideDialogHeader && (
+          <VisuallyHidden>
+            <DialogTitle>
+              {getSectionEmoji(editingSection)}{' '}
+              {getSectionTitle(editingSection)}
+            </DialogTitle>
+          </VisuallyHidden>
+        )}
         {!hideDialogHeader && (
           <DialogHeader className="shrink-0 border-b p-6 pb-4">
             <DialogTitle className="flex items-center gap-2">

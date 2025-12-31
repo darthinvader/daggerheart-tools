@@ -22,7 +22,7 @@ import {
   TraitsScoresGrid,
 } from './overview-grids';
 
-export function OverviewTab({ state, handlers }: TabProps) {
+export function OverviewTab({ state, handlers, isHydrated }: TabProps) {
   const handleRest = useMemo(
     () =>
       createRestHandler({
@@ -63,8 +63,16 @@ export function OverviewTab({ state, handlers }: TabProps) {
 
       <IdentityProgressionGrid state={state} handlers={handlers} />
       <AncestryClassGrid state={state} handlers={handlers} />
-      <TraitsScoresGrid state={state} handlers={handlers} />
-      <HopeScoresThresholdsGrid state={state} handlers={handlers} />
+      <TraitsScoresGrid
+        state={state}
+        handlers={handlers}
+        isHydrated={isHydrated}
+      />
+      <HopeScoresThresholdsGrid
+        state={state}
+        handlers={handlers}
+        isHydrated={isHydrated}
+      />
       <GoldConditionsGrid state={state} handlers={handlers} />
 
       <CompanionSection

@@ -4,7 +4,10 @@ import { Switch } from '@/components/ui/switch';
 import { ClickableCard } from './clickable-card';
 import { CustomEquipmentSection } from './custom-equipment-section';
 import type { EquipmentState } from './equipment-editor';
-import { ArmorSummaryCard, WeaponSummaryCard } from './summary';
+import {
+  EquipmentGrid2x2,
+  EquipmentGrid3Col,
+} from './equipment-grid-components';
 import {
   getArmorData,
   getWeaponData,
@@ -70,148 +73,24 @@ export function EquipmentCardsGrid({
 
       {/* Equipment Grid: 2x2 when wheelchair is active, 3-col row otherwise */}
       {usesWheelchair ? (
-        // 2x2 Grid: Primary + Secondary on row 1, Armor + Wheelchair on row 2
-        <div className="grid gap-3 sm:grid-cols-2">
-          <ClickableCard
-            onClick={() => openSection('primary')}
-            disabled={readOnly}
-          >
-            <WeaponSummaryCard
-              icon="⚔️"
-              label="Primary Weapon"
-              name={primaryData.name}
-              isHomebrew={equipment.primaryWeaponMode === 'homebrew'}
-              isEmpty={primaryData.isEmpty}
-              damage={primaryData.damage}
-              range={primaryData.range}
-              trait={primaryData.trait}
-              burden={primaryData.burden}
-              features={primaryData.features}
-              tier={primaryData.tier}
-              description={primaryData.description}
-            />
-          </ClickableCard>
-          <ClickableCard
-            onClick={() => openSection('secondary')}
-            disabled={readOnly}
-          >
-            <WeaponSummaryCard
-              icon="🗡️"
-              label="Secondary Weapon"
-              name={secondaryData.name}
-              isHomebrew={equipment.secondaryWeaponMode === 'homebrew'}
-              isEmpty={secondaryData.isEmpty}
-              damage={secondaryData.damage}
-              range={secondaryData.range}
-              trait={secondaryData.trait}
-              burden={secondaryData.burden}
-              features={secondaryData.features}
-              tier={secondaryData.tier}
-              description={secondaryData.description}
-            />
-          </ClickableCard>
-          <ClickableCard
-            onClick={() => openSection('armor')}
-            disabled={readOnly}
-          >
-            <ArmorSummaryCard
-              name={armorData.name}
-              isHomebrew={equipment.armorMode === 'homebrew'}
-              isEmpty={armorData.isEmpty}
-              baseScore={armorData.baseScore}
-              major={armorData.major}
-              severe={armorData.severe}
-              evasionMod={armorData.evasionMod}
-              agilityMod={armorData.agilityMod}
-              armorType={armorData.armorType}
-              features={armorData.features}
-              tier={armorData.tier}
-              description={armorData.description}
-            />
-          </ClickableCard>
-          <ClickableCard
-            onClick={() => openSection('wheelchair')}
-            disabled={readOnly}
-          >
-            <WeaponSummaryCard
-              icon="♿"
-              label="Combat Wheelchair"
-              name={wheelchairData.name}
-              isHomebrew={equipment.wheelchairMode === 'homebrew'}
-              isEmpty={wheelchairData.isEmpty}
-              damage={wheelchairData.damage}
-              range={wheelchairData.range}
-              trait={wheelchairData.trait}
-              burden={wheelchairData.burden}
-              features={wheelchairData.features}
-              tier={wheelchairData.tier}
-              frameType={wheelchairData.frameType}
-              wheelchairFeatures={wheelchairData.wheelchairFeatures}
-              description={wheelchairData.description}
-            />
-          </ClickableCard>
-        </div>
+        <EquipmentGrid2x2
+          equipment={equipment}
+          primaryData={primaryData}
+          secondaryData={secondaryData}
+          armorData={armorData}
+          wheelchairData={wheelchairData}
+          readOnly={readOnly}
+          openSection={openSection}
+        />
       ) : (
-        // 3-column row: Primary, Secondary, Armor (only on larger screens)
-        <div className="grid gap-3 lg:grid-cols-3">
-          <ClickableCard
-            onClick={() => openSection('primary')}
-            disabled={readOnly}
-          >
-            <WeaponSummaryCard
-              icon="⚔️"
-              label="Primary Weapon"
-              name={primaryData.name}
-              isHomebrew={equipment.primaryWeaponMode === 'homebrew'}
-              isEmpty={primaryData.isEmpty}
-              damage={primaryData.damage}
-              range={primaryData.range}
-              trait={primaryData.trait}
-              burden={primaryData.burden}
-              features={primaryData.features}
-              tier={primaryData.tier}
-              description={primaryData.description}
-            />
-          </ClickableCard>
-          <ClickableCard
-            onClick={() => openSection('secondary')}
-            disabled={readOnly}
-          >
-            <WeaponSummaryCard
-              icon="🗡️"
-              label="Secondary Weapon"
-              name={secondaryData.name}
-              isHomebrew={equipment.secondaryWeaponMode === 'homebrew'}
-              isEmpty={secondaryData.isEmpty}
-              damage={secondaryData.damage}
-              range={secondaryData.range}
-              trait={secondaryData.trait}
-              burden={secondaryData.burden}
-              features={secondaryData.features}
-              tier={secondaryData.tier}
-              description={secondaryData.description}
-            />
-          </ClickableCard>
-          <ClickableCard
-            onClick={() => openSection('armor')}
-            disabled={readOnly}
-          >
-            <ArmorSummaryCard
-              name={armorData.name}
-              isHomebrew={equipment.armorMode === 'homebrew'}
-              isEmpty={armorData.isEmpty}
-              baseScore={armorData.baseScore}
-              major={armorData.major}
-              severe={armorData.severe}
-              evasionMod={armorData.evasionMod}
-              agilityMod={armorData.agilityMod}
-              armorType={armorData.armorType}
-              features={armorData.features}
-              tier={armorData.tier}
-              description={armorData.description}
-            />
-          </ClickableCard>
-        </div>
+        <EquipmentGrid3Col
+          equipment={equipment}
+          primaryData={primaryData}
+          secondaryData={secondaryData}
+          armorData={armorData}
+          readOnly={readOnly}
+          openSection={openSection}
+        />
       )}
 
       {/* Custom Equipment */}
@@ -220,7 +99,7 @@ export function EquipmentCardsGrid({
           onClick={() => openSection('custom')}
           disabled={readOnly}
         >
-          <CustomEquipmentSection customSlots={equipment.customSlots} />
+          <CustomEquipmentSection customSlots={equipment.customSlots ?? []} />
         </ClickableCard>
       </div>
     </div>

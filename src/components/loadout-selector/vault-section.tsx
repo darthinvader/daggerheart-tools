@@ -53,8 +53,9 @@ export function VaultSection({
   handleCancelSwap,
 }: VaultSectionProps) {
   const isCoarse = useCoarsePointer();
+  const safeOriginalCards = originalCards ?? [];
 
-  if (originalCards.length === 0) return null;
+  if (safeOriginalCards.length === 0) return null;
 
   return (
     <>
@@ -63,7 +64,7 @@ export function VaultSection({
         <h5 className="text-muted-foreground mb-3 flex items-center gap-2 text-xs font-medium tracking-wide uppercase">
           📦 Vault
           <Badge variant="secondary" className="text-xs">
-            {originalCards.length}
+            {safeOriginalCards.length}
           </Badge>
           {onMoveCard && !isCoarse && (
             <span className="text-muted-foreground/60 text-[10px] font-normal normal-case">
@@ -106,12 +107,14 @@ export function VaultSection({
           {onMoveCard && isDragging && dragSource?.location === 'active' && (
             <EndDropZone
               location="vault"
-              index={originalCards.length}
-              onDragOver={e => handleDragOver(e, 'vault', originalCards.length)}
-              onDrop={() => handleDrop('vault', originalCards.length)}
+              index={safeOriginalCards.length}
+              onDragOver={e =>
+                handleDragOver(e, 'vault', safeOriginalCards.length)
+              }
+              onDrop={() => handleDrop('vault', safeOriginalCards.length)}
               isDragOver={
                 dragOverTarget?.location === 'vault' &&
-                dragOverTarget?.index === originalCards.length
+                dragOverTarget?.index === safeOriginalCards.length
               }
               isVisible={true}
             />
