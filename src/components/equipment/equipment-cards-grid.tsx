@@ -11,6 +11,7 @@ import {
   getWheelchairData,
 } from './summary/data-helpers';
 import type { EditingSection } from './use-equipment-editor';
+import { WeaponsGridRow } from './weapons-grid-row';
 
 interface EquipmentCardsGridProps {
   equipment: EquipmentState;
@@ -49,47 +50,15 @@ export function EquipmentCardsGrid({
 
   return (
     <div className="space-y-4 p-4 sm:p-6">
-      {/* Row 1: Primary & Secondary Weapons */}
-      <div className="grid gap-3 sm:grid-cols-2">
-        <ClickableCard
-          onClick={() => openSection('primary')}
-          disabled={readOnly}
-        >
-          <WeaponSummaryCard
-            icon="⚔️"
-            label="Primary Weapon"
-            name={primaryData.name}
-            isHomebrew={equipment.primaryWeaponMode === 'homebrew'}
-            isEmpty={primaryData.isEmpty}
-            damage={primaryData.damage}
-            range={primaryData.range}
-            trait={primaryData.trait}
-            burden={primaryData.burden}
-            features={primaryData.features}
-            tier={primaryData.tier}
-            description={primaryData.description}
-          />
-        </ClickableCard>
-        <ClickableCard
-          onClick={() => openSection('secondary')}
-          disabled={readOnly}
-        >
-          <WeaponSummaryCard
-            icon="🗡️"
-            label="Secondary Weapon"
-            name={secondaryData.name}
-            isHomebrew={equipment.secondaryWeaponMode === 'homebrew'}
-            isEmpty={secondaryData.isEmpty}
-            damage={secondaryData.damage}
-            range={secondaryData.range}
-            trait={secondaryData.trait}
-            burden={secondaryData.burden}
-            features={secondaryData.features}
-            tier={secondaryData.tier}
-            description={secondaryData.description}
-          />
-        </ClickableCard>
-      </div>
+      <WeaponsGridRow
+        primaryData={primaryData}
+        secondaryData={secondaryData}
+        primaryIsHomebrew={equipment.primaryWeaponMode === 'homebrew'}
+        secondaryIsHomebrew={equipment.secondaryWeaponMode === 'homebrew'}
+        readOnly={readOnly}
+        onPrimaryClick={() => openSection('primary')}
+        onSecondaryClick={() => openSection('secondary')}
+      />
 
       {/* Row 2: Armor & Combat Wheelchair (if enabled) */}
       <div

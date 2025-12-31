@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import {
+  ArmorScoreSchema,
   BackgroundSchema,
   CharacterTraitsSchema,
   ConnectionSchema,
@@ -42,8 +43,6 @@ const HitPointsSchema = ScoreSchema.extend({
 });
 
 const StressSchema = ScoreSchema;
-
-const ArmorScoreSchema = ScoreSchema;
 
 const PlayerDomainSchema = z.object({
   name: DomainNameSchema,

@@ -1,13 +1,13 @@
-import { Minus, Plus, Shield } from 'lucide-react';
-
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
+import { ArmorSacrificeInput } from './armor-sacrifice-input';
 import { DamageResultDisplay } from './damage-result-display';
 import { calculateDamage } from './damage-utils';
+import { ThresholdsPreview } from './thresholds-preview';
 import type { ArmorState, DamageResult, HealthState } from './types';
 
 interface DamageCalculatorProps {
@@ -43,9 +43,6 @@ export function DamageCalculator({
     }
   };
 
-  // Max armor that can be sacrificed is the lower of current armor and what would reduce HP to 0
-  const maxArmorSacrifice = armor.current;
-
   return (
     <section className="bg-card hover:border-primary/20 rounded-xl border shadow-sm transition-colors">
       <div className="flex items-center justify-between border-b px-4 py-3 sm:px-6">
@@ -56,7 +53,6 @@ export function DamageCalculator({
       </div>
 
       <div className="space-y-4 p-4 sm:p-6">
-        {/* Current Status */}
         <div className="text-muted-foreground grid grid-cols-2 gap-2 text-sm">
           <div>
             HP: {health.current}/{health.max}
@@ -66,25 +62,13 @@ export function DamageCalculator({
           </div>
         </div>
 
-        {/* Thresholds Display */}
-        <div className="bg-muted/50 flex flex-wrap gap-3 rounded-lg p-3 text-sm">
-          <div>
-            <span className="text-muted-foreground">Major:</span>{' '}
-            <span className="font-medium">{health.thresholds.major}+</span>
-          </div>
-          <div>
-            <span className="text-muted-foreground">Severe:</span>{' '}
-            <span className="font-medium">{health.thresholds.severe}+</span>
-          </div>
-          {health.enableCritical && health.thresholds.critical && (
-            <div>
-              <span className="text-muted-foreground">Critical:</span>{' '}
-              <span className="font-medium">{health.thresholds.critical}+</span>
-            </div>
-          )}
-        </div>
+        <ThresholdsPreview
+          major={health.thresholds.major}
+          severe={health.thresholds.severe}
+          critical={health.thresholds.critical}
+          enableCritical={health.enableCritical}
+        />
 
-        {/* Input Form */}
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="damage-amount">Damage Taken</Label>
@@ -98,46 +82,11 @@ export function DamageCalculator({
               }
             />
           </div>
-
-          {/* Armor Sacrifice */}
-          <div className="space-y-2">
-            <Label className="flex items-center gap-1">
-              <Shield className="size-4" />
-              Sacrifice Armor Slots
-            </Label>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="icon"
-                className="size-8"
-                onClick={() =>
-                  setArmorSlotsSacrificed(Math.max(0, armorSlotsSacrificed - 1))
-                }
-                disabled={armorSlotsSacrificed <= 0}
-              >
-                <Minus className="size-4" />
-              </Button>
-              <span className="w-8 text-center font-medium">
-                {armorSlotsSacrificed}
-              </span>
-              <Button
-                variant="outline"
-                size="icon"
-                className="size-8"
-                onClick={() =>
-                  setArmorSlotsSacrificed(
-                    Math.min(maxArmorSacrifice, armorSlotsSacrificed + 1)
-                  )
-                }
-                disabled={armorSlotsSacrificed >= maxArmorSacrifice}
-              >
-                <Plus className="size-4" />
-              </Button>
-              <span className="text-muted-foreground text-xs">
-                (-1 HP per slot)
-              </span>
-            </div>
-          </div>
+          <ArmorSacrificeInput
+            value={armorSlotsSacrificed}
+            max={armor.current}
+            onChange={setArmorSlotsSacrificed}
+          />
         </div>
 
         <Button

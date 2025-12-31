@@ -5,12 +5,17 @@ import {
   ConnectionSchema,
   DescriptionDetailsSchema,
 } from '@/lib/schemas/character-state';
-import { AncestryNameSchema, CommunityNameSchema } from '@/lib/schemas/core';
+import {
+  AncestryNameSchema,
+  CommunityNameSchema,
+  NameDescriptionSchema,
+} from '@/lib/schemas/core';
 import { characterKeys as keys, storage } from '@/lib/storage';
 
 // Identity
 // Details to support richer ancestry/community editing: mixed and homebrew options
-const AncestryFeatureLiteSchema = z.object({
+// Use NameDescriptionSchema with min(1) validation for features
+const AncestryFeatureLiteSchema = NameDescriptionSchema.extend({
   name: z.string().min(1),
   description: z.string().min(1),
 });
@@ -46,7 +51,9 @@ const CommunityDetailsSchema = z
         name: z.string().min(1),
         description: z.string().optional().default(''),
         commonTraits: z.array(z.string()).default([]),
-        feature: z.object({ name: z.string().min(1), description: z.string() }),
+        feature: NameDescriptionSchema.extend({
+          name: z.string().min(1),
+        }),
       })
       .optional(),
   })

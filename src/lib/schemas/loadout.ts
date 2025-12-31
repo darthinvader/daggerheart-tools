@@ -117,18 +117,9 @@ export const DomainCardLiteSchema = z.object({
 
 export type DomainCardLite = z.infer<typeof DomainCardLiteSchema>;
 
-// Homebrew domain card schema (standalone to avoid extending refined schema)
-export const HomebrewDomainCardSchema = z.object({
-  name: z.string(),
-  level: z.number().int().min(1).max(10),
-  domain: z.string(),
-  type: z.string(),
-  description: z.string(),
-  hopeCost: z.number().int().min(0).optional(),
-  recallCost: z.number().int().min(0).optional(),
-  tags: z.array(z.string()).optional(),
+// Homebrew domain card schema - extends lite schema with required isHomebrew flag
+export const HomebrewDomainCardSchema = DomainCardLiteSchema.extend({
   isHomebrew: z.literal(true).default(true),
-  metadata: MetadataSchema.optional(),
 });
 
 export type HomebrewDomainCard = z.infer<typeof HomebrewDomainCardSchema>;

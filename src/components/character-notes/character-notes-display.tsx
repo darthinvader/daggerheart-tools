@@ -1,21 +1,12 @@
-import { ChevronLeft, FileText, Plus, Search } from 'lucide-react';
+import { ChevronLeft, FileText } from 'lucide-react';
 
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 
-import { NOTE_CATEGORIES } from './constants';
 import { NoteEditor } from './note-editor';
-import { NoteListItem } from './note-list-item';
+import { NotesListPanel } from './notes-list-panel';
 import {
   createNote,
   filterNotesByCategory,
@@ -40,7 +31,6 @@ export function CharacterNotesDisplay({
   );
 
   const selectedNote = notes.find(n => n.id === selectedId);
-
   const filteredNotes = sortNotes(
     searchNotes(filterNotesByCategory(notes, categoryFilter), searchQuery)
   );
@@ -76,67 +66,20 @@ export function CharacterNotesDisplay({
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col gap-4 p-4 sm:flex-row sm:p-6">
-        {/* List Panel */}
-        <div
-          className={cn(
-            'flex flex-col gap-3',
-            selectedNote ? 'hidden md:flex' : 'flex',
-            'md:w-1/3 md:min-w-50 md:border-r md:pr-4'
-          )}
-        >
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Search className="text-muted-foreground absolute top-1/2 left-2 h-4 w-4 -translate-y-1/2" />
-              <Input
-                placeholder="Search..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="pl-8"
-              />
-            </div>
-            <Button size="icon" onClick={handleAddNote}>
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
+        <NotesListPanel
+          notes={filteredNotes}
+          selectedId={selectedId}
+          searchQuery={searchQuery}
+          categoryFilter={categoryFilter}
+          hasSelection={!!selectedNote}
+          onSearchChange={setSearchQuery}
+          onCategoryChange={setCategoryFilter}
+          onSelect={setSelectedId}
+          onAdd={handleAddNote}
+          onDelete={handleDeleteNote}
+          onTogglePin={handleTogglePin}
+        />
 
-          <Select
-            value={categoryFilter}
-            onValueChange={v => setCategoryFilter(v as NoteCategory | 'all')}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="All Categories" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {NOTE_CATEGORIES.map(cat => (
-                <SelectItem key={cat.value} value={cat.value}>
-                  {cat.icon} {cat.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <div className="flex-1 space-y-2 overflow-y-auto">
-            {filteredNotes.length === 0 ? (
-              <div className="text-muted-foreground py-8 text-center text-sm">
-                {notes.length === 0 ? 'No notes yet' : 'No matching notes'}
-              </div>
-            ) : (
-              filteredNotes.map(note => (
-                <NoteListItem
-                  key={note.id}
-                  note={note}
-                  isSelected={selectedId === note.id}
-                  onSelect={() => setSelectedId(note.id)}
-                  onDelete={() => handleDeleteNote(note.id)}
-                  onTogglePin={() => handleTogglePin(note.id)}
-                />
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* Editor Panel */}
         <div
           className={cn(
             'flex-1',
@@ -145,7 +88,6 @@ export function CharacterNotesDisplay({
         >
           {selectedNote ? (
             <div className="flex h-full flex-col">
-              {/* Mobile back button */}
               <Button
                 variant="ghost"
                 size="sm"
