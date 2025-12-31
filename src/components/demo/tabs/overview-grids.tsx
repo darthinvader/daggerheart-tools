@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import { AncestryDisplay } from '@/components/ancestry-selector';
 import { ClassDisplay } from '@/components/class-selector';
@@ -10,13 +10,54 @@ import { ExperiencesDisplay } from '@/components/experiences';
 import { GoldDisplay } from '@/components/gold';
 import { IdentityDisplay } from '@/components/identity-editor';
 import { ResourcesDisplay } from '@/components/resources';
+import { computeAutoResources } from '@/components/resources/resources-utils';
 import { HopeWithScarsDisplay } from '@/components/scars';
 import { ProgressionDisplay } from '@/components/shared/progression-display';
 import { ThresholdsEditableSection } from '@/components/thresholds-editor';
 import { TraitsDisplay } from '@/components/traits';
+import { getClassByName } from '@/lib/data/classes';
 
 import { createDamageHandler } from '../demo-handlers';
 import type { TabProps } from '../demo-types';
+
+/**
+ * Extract class HP and Evasion from class selection
+ */
+function getClassStats(classSelection: TabProps['state']['classSelection']) {
+  if (!classSelection) return { hp: 6, evasion: 10 };
+
+  if (classSelection.isHomebrew && classSelection.homebrewClass) {
+    return {
+      hp: classSelection.homebrewClass.startingHitPoints,
+      evasion: classSelection.homebrewClass.startingEvasion,
+    };
+  }
+
+  const gameClass = getClassByName(classSelection.className);
+  return {
+    hp: gameClass?.startingHitPoints ?? 6,
+    evasion: gameClass?.startingEvasion ?? 10,
+  };
+}
+
+/**
+ * Extract armor stats from equipment
+ */
+function getArmorStats(equipment: TabProps['state']['equipment']) {
+  const armor =
+    equipment.armorMode === 'homebrew'
+      ? equipment.homebrewArmor
+      : equipment.armor;
+
+  if (!armor) return { score: 0, evasionMod: 0, major: 5, severe: 11 };
+
+  return {
+    score: armor.baseScore ?? 0,
+    evasionMod: armor.evasionModifier ?? 0,
+    major: armor.baseThresholds?.major ?? 5,
+    severe: armor.baseThresholds?.severe ?? 11,
+  };
+}
 
 export function IdentityProgressionGrid({ state, handlers }: TabProps) {
   return (
@@ -55,6 +96,74 @@ export function AncestryClassGrid({ state, handlers }: TabProps) {
 }
 
 export function TraitsScoresGrid({ state, handlers }: TabProps) {
+  const classStats = useMemo(
+    () => getClassStats(state.classSelection),
+    [state.classSelection]
+  );
+  const armorStats = useMemo(
+    () => getArmorStats(state.equipment),
+    [state.equipment]
+  );
+
+  const resourcesAutoContext = useMemo(
+    () => ({
+      classHp: classStats.hp,
+      classEvasion: classStats.evasion,
+      classTier: Math.ceil(state.progression.currentLevel / 3),
+      armorScore: armorStats.score,
+      armorEvasionModifier: armorStats.evasionMod,
+      armorThresholdsMajor: armorStats.major,
+      armorThresholdsSevere: armorStats.severe,
+      level: state.progression.currentLevel,
+    }),
+    [classStats, armorStats, state.progression.currentLevel]
+  );
+
+  const autoValues = useMemo(
+    () => computeAutoResources(resourcesAutoContext),
+    [resourcesAutoContext]
+  );
+
+  // Auto-update HP when class or tier changes (if autoCalculateHp is enabled)
+  // Also runs on mount to sync initial values
+  useEffect(() => {
+    if (
+      state.resources.autoCalculateHp !== false &&
+      state.resources.hp.max !== autoValues.maxHp
+    ) {
+      handlers.setResources({
+        ...state.resources,
+        hp: {
+          current: Math.min(state.resources.hp.current, autoValues.maxHp),
+          max: autoValues.maxHp,
+        },
+      });
+    }
+    // Run on mount and when auto values change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoValues.maxHp, state.resources.hp.max]);
+
+  // Auto-update Armor Score when armor changes (if autoCalculateArmorScore is enabled)
+  useEffect(() => {
+    const isAutoArmor =
+      state.resources.autoCalculateArmorScore !== false ||
+      state.resources.autoCalculateArmor === true;
+    if (
+      isAutoArmor &&
+      state.resources.armorScore.max !== autoValues.armorScore
+    ) {
+      handlers.setResources({
+        ...state.resources,
+        armorScore: {
+          current: autoValues.armorScore,
+          max: autoValues.armorScore,
+        },
+      });
+    }
+    // Run on mount and when auto values change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoValues.armorScore, state.resources.armorScore.max]);
+
   const handleTriggerDeathMove = () => {
     handlers.setDeathState({
       ...state.deathState,
@@ -86,6 +195,7 @@ export function TraitsScoresGrid({ state, handlers }: TabProps) {
       <ResourcesDisplay
         resources={state.resources}
         onChange={handlers.setResources}
+        autoContext={resourcesAutoContext}
         deathState={state.deathState}
         onTriggerDeathMove={handleTriggerDeathMove}
         onWakeUp={handleWakeUp}
@@ -102,6 +212,83 @@ export function TraitsScoresGrid({ state, handlers }: TabProps) {
 }
 
 export function HopeScoresThresholdsGrid({ state, handlers }: TabProps) {
+  const classStats = useMemo(
+    () => getClassStats(state.classSelection),
+    [state.classSelection]
+  );
+  const armorStats = useMemo(
+    () => getArmorStats(state.equipment),
+    [state.equipment]
+  );
+
+  const coreScoresAutoContext = useMemo(
+    () => ({
+      classEvasion: classStats.evasion,
+      armorEvasionModifier: armorStats.evasionMod,
+    }),
+    [classStats.evasion, armorStats.evasionMod]
+  );
+
+  const thresholdsAutoContext = useMemo(
+    () => ({
+      armorThresholdsMajor: armorStats.major,
+      armorThresholdsSevere: armorStats.severe,
+      level: state.progression.currentLevel,
+    }),
+    [armorStats.major, armorStats.severe, state.progression.currentLevel]
+  );
+
+  const autoEvasion = useMemo(
+    () => classStats.evasion + armorStats.evasionMod,
+    [classStats.evasion, armorStats.evasionMod]
+  );
+
+  const autoThresholdsMajor = useMemo(
+    () => armorStats.major + Math.max(0, state.progression.currentLevel - 1),
+    [armorStats.major, state.progression.currentLevel]
+  );
+  const autoThresholdsSevere = useMemo(
+    () => armorStats.severe + Math.max(0, state.progression.currentLevel - 1),
+    [armorStats.severe, state.progression.currentLevel]
+  );
+
+  // Auto-update Evasion when class or armor changes (if autoCalculateEvasion is enabled)
+  useEffect(() => {
+    if (
+      state.coreScores.autoCalculateEvasion !== false &&
+      state.coreScores.evasion !== autoEvasion
+    ) {
+      handlers.setCoreScores({
+        ...state.coreScores,
+        evasion: autoEvasion,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoEvasion, state.coreScores.evasion]);
+
+  // Auto-update Thresholds when armor or level changes (if auto is enabled)
+  useEffect(() => {
+    const needsUpdate =
+      state.thresholds.values.major !== autoThresholdsMajor ||
+      state.thresholds.values.severe !== autoThresholdsSevere;
+    if (state.thresholds.auto !== false && needsUpdate) {
+      handlers.setThresholds({
+        ...state.thresholds,
+        values: {
+          ...state.thresholds.values,
+          major: autoThresholdsMajor,
+          severe: autoThresholdsSevere,
+        },
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    autoThresholdsMajor,
+    autoThresholdsSevere,
+    state.thresholds.values.major,
+    state.thresholds.values.severe,
+  ]);
+
   return (
     <div className="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
       <HopeWithScarsDisplay
@@ -112,11 +299,13 @@ export function HopeScoresThresholdsGrid({ state, handlers }: TabProps) {
       <CoreScoresDisplay
         scores={state.coreScores}
         onChange={handlers.setCoreScores}
+        autoContext={coreScoresAutoContext}
       />
       <ThresholdsEditableSection
         settings={state.thresholds}
         onChange={handlers.setThresholds}
-        baseHp={6}
+        autoContext={thresholdsAutoContext}
+        baseHp={classStats.hp}
       />
     </div>
   );

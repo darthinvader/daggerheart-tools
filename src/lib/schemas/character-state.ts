@@ -47,6 +47,11 @@ export const ResourcesSchema = z.object({
     showCoins: false,
     displayDenomination: 'handfuls',
   }),
+  // Auto-calculation flags for class/equipment derived values
+  autoCalculateHp: z.boolean().default(true),
+  autoCalculateEvasion: z.boolean().default(true),
+  autoCalculateArmorScore: z.boolean().default(true),
+  autoCalculateThresholds: z.boolean().default(true),
 });
 
 // Trait state (used by both store and PlayerCharacter)
@@ -213,6 +218,10 @@ export const DEFAULT_RESOURCES: ResourcesDraft = {
     showCoins: false,
     displayDenomination: 'handfuls',
   },
+  autoCalculateHp: true,
+  autoCalculateEvasion: true,
+  autoCalculateArmorScore: true,
+  autoCalculateThresholds: true,
 };
 
 export const DEFAULT_TRAITS: TraitsDraft = {

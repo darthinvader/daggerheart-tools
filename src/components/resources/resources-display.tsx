@@ -35,13 +35,25 @@ export interface ResourcesState {
   hope: ResourceValue;
   armorScore: ResourceValue;
   autoCalculateHp?: boolean;
+  autoCalculateEvasion?: boolean;
+  autoCalculateArmorScore?: boolean;
+  autoCalculateThresholds?: boolean;
+  // Legacy field kept for backward compatibility
   autoCalculateArmor?: boolean;
 }
 
 export interface AutoCalculateContext {
+  // Class-derived values
   classHp?: number;
+  classEvasion?: number;
   classTier?: number;
+  // Armor-derived values
   armorScore?: number;
+  armorEvasionModifier?: number;
+  armorThresholdsMajor?: number;
+  armorThresholdsSevere?: number;
+  // Level for threshold calculations
+  level?: number;
 }
 
 export interface ThresholdsConfig {

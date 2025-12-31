@@ -6,7 +6,9 @@ export const DEFAULT_RESOURCES_STATE: ResourcesState = {
   hope: { current: 2, max: 6 },
   armorScore: { current: 0, max: 0 },
   autoCalculateHp: true,
-  autoCalculateArmor: true,
+  autoCalculateEvasion: true,
+  autoCalculateArmorScore: true,
+  autoCalculateThresholds: true,
 };
 
 export const RESOURCE_CONFIG = [

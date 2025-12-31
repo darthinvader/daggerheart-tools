@@ -95,9 +95,9 @@ export const SAMPLE_GOLD: Gold = {
 };
 
 export const SAMPLE_THRESHOLDS: ThresholdsSettings = {
-  auto: false,
+  auto: true,
   autoMajor: true,
-  values: { major: 4, severe: 8, critical: 16, dsOverride: false, ds: 0 },
+  values: { major: 5, severe: 11, critical: 22, dsOverride: false, ds: 0 },
   enableCritical: false,
 };
 

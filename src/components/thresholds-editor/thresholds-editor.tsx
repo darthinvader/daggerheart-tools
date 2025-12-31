@@ -20,6 +20,10 @@ interface ThresholdsEditorProps {
   onShowMajorChange?: (value: boolean) => void;
   baseHp?: number;
   className?: string;
+  /** Custom label for the auto-calculate checkbox */
+  autoLabel?: string;
+  /** Custom tooltip for the auto-calculate checkbox */
+  autoTooltip?: string;
 }
 
 export function ThresholdsEditor({
@@ -37,6 +41,8 @@ export function ThresholdsEditor({
   onShowMajorChange,
   baseHp = 6,
   className,
+  autoLabel = 'Auto-calculate',
+  autoTooltip = 'Automatically calculate thresholds based on your base HP. Minor = HP ÷ 6, Severe = HP ÷ 3, Major = Severe × 2.',
 }: ThresholdsEditorProps) {
   const {
     ids,
@@ -90,8 +96,8 @@ export function ThresholdsEditor({
           id={ids.auto}
           checked={isAutoCalculate}
           onCheckedChange={handleAutoToggle}
-          label="Auto-calculate"
-          tooltip="Automatically calculate thresholds based on your base HP. Minor = HP ÷ 6, Severe = HP ÷ 3, Major = Severe × 2."
+          label={autoLabel}
+          tooltip={autoTooltip}
         />
 
         <ThresholdCheckbox

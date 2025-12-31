@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { EditableSection } from '@/components/shared/editable-section';
 import type { ThresholdsSettings } from '@/lib/schemas/character-state';
@@ -7,12 +7,28 @@ import { cn } from '@/lib/utils';
 import { ThresholdsDisplay } from './thresholds-display';
 import { ThresholdsEditor } from './thresholds-editor';
 
+export interface ThresholdsAutoContext {
+  armorThresholdsMajor?: number;
+  armorThresholdsSevere?: number;
+  level?: number;
+}
+
 interface ThresholdsEditableSectionProps {
   settings: ThresholdsSettings;
   onChange?: (settings: ThresholdsSettings) => void;
+  autoContext?: ThresholdsAutoContext;
   baseHp?: number;
   className?: string;
   readOnly?: boolean;
+}
+
+function computeAutoThresholds(ctx: ThresholdsAutoContext) {
+  const level = ctx.level ?? 1;
+  const levelBonus = Math.max(0, level - 1);
+  return {
+    major: (ctx.armorThresholdsMajor ?? 5) + levelBonus,
+    severe: (ctx.armorThresholdsSevere ?? 11) + levelBonus,
+  };
 }
 
 function EmptyThresholds() {
@@ -30,6 +46,7 @@ function EmptyThresholds() {
 export function ThresholdsEditableSection({
   settings,
   onChange,
+  autoContext,
   baseHp = 6,
   className,
   readOnly = false,
@@ -37,6 +54,15 @@ export function ThresholdsEditableSection({
   const [isEditing, setIsEditing] = useState(false);
   const [draftSettings, setDraftSettings] =
     useState<ThresholdsSettings>(settings);
+
+  const hasAutoContext = Boolean(autoContext);
+  const autoThresholds = useMemo(
+    () => computeAutoThresholds(autoContext ?? {}),
+    [autoContext]
+  );
+
+  // Determine if auto from armor is enabled
+  const isAutoFromArmor = hasAutoContext && (settings.auto ?? true);
 
   const handleEditToggle = useCallback(() => {
     if (!isEditing) {
@@ -74,12 +100,25 @@ export function ThresholdsEditableSection({
     }));
   }, []);
 
-  const handleAutoChange = useCallback((value: boolean) => {
-    setDraftSettings(prev => ({
-      ...prev,
-      auto: value,
-    }));
-  }, []);
+  const handleAutoChange = useCallback(
+    (value: boolean) => {
+      setDraftSettings(prev => ({
+        ...prev,
+        auto: value,
+        // When enabling auto, set values from armor
+        ...(value && hasAutoContext
+          ? {
+              values: {
+                ...prev.values,
+                major: autoThresholds.major,
+                severe: autoThresholds.severe,
+              },
+            }
+          : {}),
+      }));
+    },
+    [hasAutoContext, autoThresholds]
+  );
 
   const handleAutoMajorChange = useCallback((value: boolean) => {
     setDraftSettings(prev => ({
@@ -95,17 +134,32 @@ export function ThresholdsEditableSection({
     }));
   }, []);
 
+  // Use auto values when enabled
+  const effectiveSevere = isAutoFromArmor
+    ? autoThresholds.severe
+    : draftSettings.values.severe;
+
   const effectiveCritical =
     (draftSettings.autoMajor ?? true)
-      ? draftSettings.values.severe * 2
-      : (draftSettings.values.critical ?? draftSettings.values.severe * 2);
+      ? effectiveSevere * 2
+      : (draftSettings.values.critical ?? effectiveSevere * 2);
+
+  const displayMajor = isAutoFromArmor
+    ? autoThresholds.major
+    : settings.values.major;
+  const displaySevere = isAutoFromArmor
+    ? autoThresholds.severe
+    : settings.values.severe;
 
   const displayCritical =
     (settings.autoMajor ?? true)
-      ? settings.values.severe * 2
-      : (settings.values.critical ?? settings.values.severe * 2);
+      ? displaySevere * 2
+      : (settings.values.critical ?? displaySevere * 2);
 
   const hasSettings = settings !== null;
+
+  // Determine if we're in draft auto mode
+  const isDraftAutoFromArmor = hasAutoContext && (draftSettings.auto ?? true);
 
   return (
     <EditableSection
@@ -122,10 +176,18 @@ export function ThresholdsEditableSection({
       editDescription="Set damage thresholds to determine how much damage marks HP."
       editContent={
         <ThresholdsEditor
-          minor={draftSettings.values.major}
-          severe={draftSettings.values.severe}
+          minor={
+            isDraftAutoFromArmor
+              ? autoThresholds.major
+              : draftSettings.values.major
+          }
+          severe={
+            isDraftAutoFromArmor
+              ? autoThresholds.severe
+              : draftSettings.values.severe
+          }
           major={effectiveCritical}
-          autoCalculate={draftSettings.auto}
+          autoCalculate={draftSettings.auto ?? true}
           autoCalculateMajor={draftSettings.autoMajor ?? true}
           showMajor={draftSettings.enableCritical}
           onMinorChange={handleMinorChange}
@@ -135,16 +197,29 @@ export function ThresholdsEditableSection({
           onAutoCalculateMajorChange={handleAutoMajorChange}
           onShowMajorChange={handleShowMajorChange}
           baseHp={baseHp}
+          autoLabel={hasAutoContext ? 'Auto from Armor' : undefined}
+          autoTooltip={
+            hasAutoContext
+              ? `Auto Thresholds: Major ${autoThresholds.major}+, Severe ${autoThresholds.severe}+ (from armor + level)`
+              : undefined
+          }
         />
       }
     >
       {hasSettings ? (
-        <ThresholdsDisplay
-          minor={settings.values.major}
-          severe={settings.values.severe}
-          major={displayCritical}
-          showMajor={settings.enableCritical}
-        />
+        <div>
+          {isAutoFromArmor && (
+            <p className="text-muted-foreground mb-2 text-xs">
+              Auto from armor
+            </p>
+          )}
+          <ThresholdsDisplay
+            minor={displayMajor}
+            severe={displaySevere}
+            major={displayCritical}
+            showMajor={settings.enableCritical}
+          />
+        </div>
       ) : (
         <EmptyThresholds />
       )}
