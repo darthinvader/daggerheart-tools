@@ -86,7 +86,7 @@ function HomebrewFromCardModalContent({
 
   return (
     <Dialog open onOpenChange={open => !open && onClose()}>
-      <DialogContent className="sm:max-w-162.5">
+      <DialogContent className="w-[95vw] max-w-2xl sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <span>🛠️</span>

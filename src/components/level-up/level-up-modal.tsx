@@ -113,7 +113,7 @@ export function LevelUpModal({
         open={mainDialogOpen}
         onOpenChange={open => !open && handleClose()}
       >
-        <DialogContent className="grid max-h-[90vh] grid-rows-[auto_1fr_auto] gap-0 overflow-hidden p-0 sm:max-w-150">
+        <DialogContent className="grid max-h-[90vh] w-[98vw] max-w-4xl grid-rows-[auto_1fr_auto] gap-0 overflow-hidden p-0 sm:max-w-4xl">
           <ModalHeader
             targetLevel={state.targetLevel}
             targetTier={state.targetTier}

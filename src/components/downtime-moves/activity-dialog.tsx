@@ -45,7 +45,7 @@ export function ActivityDialog({
 
   return (
     <Dialog open={selectedMove !== null} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="w-[95vw] max-w-lg sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Start: {selectedMove?.name}</DialogTitle>
           <DialogDescription>{selectedMove?.description}</DialogDescription>

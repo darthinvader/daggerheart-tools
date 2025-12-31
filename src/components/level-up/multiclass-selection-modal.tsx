@@ -91,7 +91,7 @@ export function MulticlassSelectionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={open => !open && resetAndClose()}>
-      <DialogContent className="flex max-h-[85vh] max-w-2xl flex-col overflow-hidden">
+      <DialogContent className="flex max-h-[90vh] w-[98vw] max-w-4xl flex-col overflow-hidden sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle>Select Multiclass</DialogTitle>
           <DialogDescription>

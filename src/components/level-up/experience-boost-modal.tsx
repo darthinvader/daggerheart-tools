@@ -59,7 +59,7 @@ export function ExperienceBoostModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={open => !open && handleClose()}>
-      <DialogContent className="sm:max-w-112.5">
+      <DialogContent className="w-[98vw] max-w-xl sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>Boost Experiences</DialogTitle>
           <DialogDescription>

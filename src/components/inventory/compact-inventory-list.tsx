@@ -99,7 +99,7 @@ function LocationGroup({
         <span className="capitalize">{location}</span>
         <span className="text-muted-foreground">({items.length})</span>
       </h5>
-      <div className="grid gap-3 sm:grid-cols-1 lg:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
         {items.map(entry => (
           <CompactItemCard
             key={entry.id}

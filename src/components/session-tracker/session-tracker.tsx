@@ -123,19 +123,21 @@ export function SessionTracker({
         open={editingSession !== null}
         onOpenChange={() => setEditingSession(null)}
       >
-        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
+        <DialogContent className="flex max-h-[90vh] w-[98vw] max-w-4xl flex-col overflow-hidden sm:max-w-4xl">
           <DialogHeader>
             <DialogTitle>
               {editingSession && `Session ${editingSession.number}`}
             </DialogTitle>
           </DialogHeader>
-          {editingSession && (
-            <SessionEditor
-              session={editingSession}
-              onChange={setEditingSession}
-            />
-          )}
-          <DialogFooter>
+          <div className="min-h-0 flex-1 overflow-y-auto px-1">
+            {editingSession && (
+              <SessionEditor
+                session={editingSession}
+                onChange={setEditingSession}
+              />
+            )}
+          </div>
+          <DialogFooter className="shrink-0 border-t pt-4">
             <Button variant="outline" onClick={() => setEditingSession(null)}>
               Cancel
             </Button>

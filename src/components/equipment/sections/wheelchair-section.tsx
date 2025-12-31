@@ -71,7 +71,7 @@ export function WheelchairSection({
 
   if (hideTitle) {
     return (
-      <div className="space-y-4">
+      <div className="flex min-h-0 flex-1 flex-col space-y-4">
         <EquipmentModeTabs activeMode={mode} onModeChange={onModeChange} />
         <div className="flex items-center justify-end">{enableSwitch}</div>
         {!enabled ? (
@@ -86,7 +86,7 @@ export function WheelchairSection({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="flex min-h-0 flex-1 flex-col space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="text-lg font-semibold">Combat Wheelchair</span>
         {enableSwitch}

@@ -92,7 +92,7 @@ export function DomainCardSelectionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={open => !open && handleClose()}>
-      <DialogContent className="flex max-h-[85vh] max-w-2xl flex-col overflow-hidden">
+      <DialogContent className="flex max-h-[90vh] w-[98vw] max-w-5xl flex-col overflow-hidden sm:max-w-5xl">
         <DialogHeader>
           <DialogTitle>Select a Domain Card</DialogTitle>
           <DialogDescription>
@@ -110,20 +110,22 @@ export function DomainCardSelectionModal({
           availableDomains={availableDomains}
         />
 
-        <div className="max-h-100 min-h-50 flex-1 space-y-2 overflow-y-auto pr-2">
+        <div className="min-h-60 flex-1 overflow-y-auto pr-2">
           {filteredCards.length === 0 ? (
             <p className="text-muted-foreground py-4 text-center">
               No cards found matching your criteria.
             </p>
           ) : (
-            filteredCards.map(card => (
-              <DomainCardListItem
-                key={card.name}
-                card={card}
-                isSelected={selectedCard?.name === card.name}
-                onClick={() => setSelectedCard(card)}
-              />
-            ))
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredCards.map(card => (
+                <DomainCardListItem
+                  key={card.name}
+                  card={card}
+                  isSelected={selectedCard?.name === card.name}
+                  onClick={() => setSelectedCard(card)}
+                />
+              ))}
+            </div>
           )}
         </div>
 

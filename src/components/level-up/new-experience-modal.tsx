@@ -41,7 +41,7 @@ export function NewExperienceModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={open => !open && handleClose()}>
-      <DialogContent className="sm:max-w-100">
+      <DialogContent className="w-[95vw] max-w-md sm:max-w-md">
         <DialogHeader>
           <DialogTitle>New Experience</DialogTitle>
           <DialogDescription>

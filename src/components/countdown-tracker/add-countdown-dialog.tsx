@@ -61,7 +61,7 @@ export function AddCountdownDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="w-[95vw] max-w-lg sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>New Countdown</DialogTitle>
         </DialogHeader>

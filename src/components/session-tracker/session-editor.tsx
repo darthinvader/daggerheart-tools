@@ -100,7 +100,8 @@ export function SessionEditor({ session, onChange }: SessionEditorProps) {
           value={session.summary ?? ''}
           onChange={e => handleChange('summary', e.target.value || undefined)}
           placeholder="What happened this session?"
-          rows={3}
+          className="min-h-24 resize-y sm:min-h-32"
+          rows={5}
         />
       </div>
 

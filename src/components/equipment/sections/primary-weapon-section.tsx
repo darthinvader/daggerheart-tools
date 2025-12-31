@@ -24,7 +24,7 @@ export function PrimaryWeaponSection({
   onHomebrewChange,
 }: PrimaryWeaponSectionProps) {
   return (
-    <div className="space-y-4">
+    <div className="flex min-h-0 flex-1 flex-col space-y-4">
       <EquipmentModeTabs activeMode={mode} onModeChange={onModeChange} />
       {mode === 'homebrew' ? (
         <HomebrewWeaponForm

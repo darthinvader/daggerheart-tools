@@ -125,7 +125,7 @@ export function CompanionTrainingSelectionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={open => !open && handleClose()}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="w-[98vw] max-w-2xl sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Dog className="size-5" />

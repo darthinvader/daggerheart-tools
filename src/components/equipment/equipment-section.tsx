@@ -56,7 +56,7 @@ export function EquipmentSection<T extends { name: string; tier: string }>({
   };
 
   return (
-    <div className="space-y-3">
+    <div className="flex min-h-0 flex-1 flex-col space-y-3">
       {/* Selected Item Display */}
       {selectedItem && (
         <div className="relative">
@@ -120,8 +120,8 @@ export function EquipmentSection<T extends { name: string; tier: string }>({
       </div>
 
       {/* Items Grid */}
-      <ScrollArea className="h-[320px] rounded-md border">
-        <div className="grid gap-3 p-3 md:grid-cols-2">
+      <ScrollArea className="min-h-60 flex-1 rounded-md border">
+        <div className="grid gap-2 p-2 sm:grid-cols-2 sm:gap-3 sm:p-3 lg:grid-cols-3">
           {filteredItems.length === 0 ? (
             <div className="text-muted-foreground col-span-full py-8 text-center text-sm">
               {search || tierFilter !== 'all'

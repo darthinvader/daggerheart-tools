@@ -52,7 +52,7 @@ export function CustomEquipmentSection({
 
   if (hideTitle) {
     return (
-      <div className="space-y-4">
+      <div className="flex min-h-0 flex-1 flex-col space-y-4">
         {slots.length === 0 ? (
           emptyState
         ) : (
@@ -66,7 +66,7 @@ export function CustomEquipmentSection({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="flex min-h-0 flex-1 flex-col space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <span className="text-lg font-semibold">💎 Custom Equipment</span>

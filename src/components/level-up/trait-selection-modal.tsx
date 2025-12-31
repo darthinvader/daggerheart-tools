@@ -59,7 +59,7 @@ export function TraitSelectionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={open => !open && handleClose()}>
-      <DialogContent className="sm:max-w-112.5">
+      <DialogContent className="w-[98vw] max-w-2xl sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Select Traits to Boost</DialogTitle>
           <DialogDescription>
@@ -89,7 +89,7 @@ export function TraitSelectionModal({
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {unmarkedTraits.map(trait => {
                 const isSelected = selected.includes(trait.name);
                 const isDisabled =

@@ -76,8 +76,8 @@ function CardGridComponent(props: CardGridProps) {
       {state.filteredCards.length === 0 ? (
         <NoMatchMessage search={state.search} />
       ) : (
-        <div className="bg-muted/20 max-h-125 overflow-y-auto rounded-lg border p-4">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="bg-muted/20 max-h-[50vh] min-h-60 overflow-y-auto rounded-lg border p-2 sm:max-h-[60vh] sm:p-4">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-3 xl:grid-cols-4">
             {state.filteredCards.map(card => (
               <div key={`${card.domain}-${card.name}`} className="min-w-0">
                 <DomainCardDisplay

@@ -32,11 +32,11 @@ interface EditableSectionProps {
 }
 
 const MODAL_SIZE_CLASSES = {
-  sm: 'sm:max-w-[450px]',
-  md: 'sm:max-w-[600px]',
-  lg: 'sm:max-w-[900px]',
-  xl: 'sm:max-w-[1100px]',
-  full: 'sm:max-w-[90vw] lg:max-w-[1200px]',
+  sm: 'w-[95vw] sm:max-w-md',
+  md: 'w-[95vw] sm:max-w-xl',
+  lg: 'w-[98vw] sm:max-w-4xl',
+  xl: 'w-[98vw] sm:max-w-5xl lg:max-w-6xl',
+  full: 'w-[98vw] sm:max-w-[95vw] lg:max-w-7xl',
 } as const;
 
 export function EditableSection({
@@ -119,7 +119,9 @@ export function EditableSection({
             )}
           </DialogHeader>
 
-          <div className="overflow-y-auto p-6">{editContent}</div>
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4 sm:p-6">
+            {editContent}
+          </div>
 
           <DialogFooter className="shrink-0 border-t p-4">
             <Button variant="outline" onClick={handleCancel}>

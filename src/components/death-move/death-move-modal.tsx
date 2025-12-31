@@ -63,7 +63,7 @@ export function DeathMoveModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={open => !open && handleClose()}>
-      <DialogContent className="sm:max-w-150">
+      <DialogContent className="w-[98vw] max-w-2xl sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="text-destructive flex items-center gap-2">
             <Skull className="size-5" />

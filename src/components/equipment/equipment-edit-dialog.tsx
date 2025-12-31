@@ -44,7 +44,7 @@ export function EquipmentEditDialog({
           hideDialogHeader
             ? 'grid-rows-[1fr_auto]'
             : 'grid-rows-[auto_1fr_auto]',
-          'sm:max-w-250'
+          'w-[98vw] max-w-5xl sm:w-[95vw] sm:max-w-5xl'
         )}
       >
         {!hideDialogHeader && (
@@ -60,7 +60,7 @@ export function EquipmentEditDialog({
           </DialogHeader>
         )}
 
-        <div className="overflow-y-auto p-6">
+        <div className="flex h-full min-h-0 flex-col overflow-y-auto p-6">
           <EditSectionContent
             editingSection={editingSection}
             draftEquipment={draftEquipment}
