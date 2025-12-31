@@ -35,11 +35,19 @@ export function StatBadges({ damage, range, burden }: StatBadgesProps) {
   if (!damage && !range && !burden) return null;
 
   return (
-    <div className="flex flex-wrap gap-2">
-      {damage && <Badge variant="secondary">{damage}</Badge>}
-      {range && <Badge variant="secondary">📍 {range}</Badge>}
+    <div className="flex min-w-0 flex-wrap gap-1.5">
+      {damage && (
+        <Badge variant="secondary" className="shrink-0">
+          {damage}
+        </Badge>
+      )}
+      {range && (
+        <Badge variant="secondary" className="shrink-0">
+          📍 {range}
+        </Badge>
+      )}
       {burden && (
-        <Badge variant="secondary">
+        <Badge variant="secondary" className="shrink-0">
           {burden === 'One-Handed' ? '🖐️' : '🙌'} {burden}
         </Badge>
       )}

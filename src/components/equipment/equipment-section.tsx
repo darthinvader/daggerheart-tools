@@ -121,7 +121,7 @@ export function EquipmentSection<T extends { name: string; tier: string }>({
 
       {/* Items Grid */}
       <ScrollArea className="h-[320px] rounded-md border">
-        <div className="grid gap-2 p-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-3 p-3 md:grid-cols-2">
           {filteredItems.length === 0 ? (
             <div className="text-muted-foreground col-span-full py-8 text-center text-sm">
               {search || tierFilter !== 'all'
