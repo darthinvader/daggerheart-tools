@@ -36,6 +36,32 @@ export function createSwapToActiveHandler(
   };
 }
 
+export function createRemoveActiveCardHandler(
+  selection: LoadoutSelection,
+  onChange?: (selection: LoadoutSelection) => void
+) {
+  return (cardName: string) => {
+    const updated: LoadoutSelection = {
+      ...selection,
+      activeCards: selection.activeCards.filter(c => c.name !== cardName),
+    };
+    onChange?.(updated);
+  };
+}
+
+export function createRemoveVaultCardHandler(
+  selection: LoadoutSelection,
+  onChange?: (selection: LoadoutSelection) => void
+) {
+  return (cardName: string) => {
+    const updated: LoadoutSelection = {
+      ...selection,
+      vaultCards: selection.vaultCards.filter(c => c.name !== cardName),
+    };
+    onChange?.(updated);
+  };
+}
+
 export function createMoveCardHandler(
   selection: LoadoutSelection,
   maxActiveCards: number,

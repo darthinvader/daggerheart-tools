@@ -1,4 +1,10 @@
-import { ArrowDown, ArrowUp, ArrowUpDown, GripVertical } from 'lucide-react';
+import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  GripVertical,
+  Trash2,
+} from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -95,6 +101,7 @@ export type DomainCardMiniProps = {
   isPreview?: boolean;
   isMovingAway?: boolean;
   onConvertToHomebrew?: () => void;
+  onRemove?: () => void;
 };
 
 export function DomainCardMini({
@@ -118,6 +125,7 @@ export function DomainCardMini({
   isPreview,
   isMovingAway,
   onConvertToHomebrew,
+  onRemove,
 }: DomainCardMiniProps) {
   const visualState = getCardVisualState(
     card,
@@ -172,6 +180,7 @@ export function DomainCardMini({
         onCancelSwap={onCancelSwap}
         onSwap={onSwap}
         onConvertToHomebrew={onConvertToHomebrew}
+        onRemove={onRemove}
       />
       <p className="text-muted-foreground text-xs">{card.description}</p>
       <CardBadges card={card} />
@@ -194,6 +203,7 @@ type CardHeaderProps = {
   onCancelSwap?: () => void;
   onSwap?: () => void;
   onConvertToHomebrew?: () => void;
+  onRemove?: () => void;
 };
 
 function CardHeader({
@@ -211,6 +221,7 @@ function CardHeader({
   onCancelSwap,
   onSwap,
   onConvertToHomebrew,
+  onRemove,
 }: CardHeaderProps) {
   return (
     <div className="mb-1 flex items-center justify-between">
@@ -293,6 +304,21 @@ function CardHeader({
               }}
             >
               🛠️
+            </Button>
+          </SmartTooltip>
+        )}
+        {!isSwapMode && onRemove && (
+          <SmartTooltip content="Remove card from loadout">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-destructive hover:text-destructive size-6"
+              onClick={e => {
+                e.stopPropagation();
+                onRemove();
+              }}
+            >
+              <Trash2 className="size-3" />
             </Button>
           </SmartTooltip>
         )}

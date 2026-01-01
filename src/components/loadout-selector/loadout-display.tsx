@@ -10,6 +10,8 @@ import {
   createHomebrewSaveHandler,
   createMaxActiveCardsHandler,
   createMoveCardHandler,
+  createRemoveActiveCardHandler,
+  createRemoveVaultCardHandler,
   createSwapToActiveHandler,
   createSwapToVaultHandler,
 } from './loadout-handlers';
@@ -79,6 +81,14 @@ export function LoadoutDisplay({
     () => createMoveCardHandler(selection, maxActiveCards, onChange),
     [selection, maxActiveCards, onChange]
   );
+  const handleRemoveActiveCard = useMemo(
+    () => createRemoveActiveCardHandler(selection, onChange),
+    [selection, onChange]
+  );
+  const handleRemoveVaultCard = useMemo(
+    () => createRemoveVaultCardHandler(selection, onChange),
+    [selection, onChange]
+  );
   const handleHomebrewSave = useMemo(
     () => createHomebrewSaveHandler(onChange),
     [onChange]
@@ -118,6 +128,8 @@ export function LoadoutDisplay({
           readOnly ? undefined : handleChangeMaxActiveCards
         }
         onConvertToHomebrew={readOnly ? undefined : setHomebrewEditCard}
+        onRemoveActiveCard={readOnly ? undefined : handleRemoveActiveCard}
+        onRemoveVaultCard={readOnly ? undefined : handleRemoveVaultCard}
         onEdit={!readOnly ? handleEditToggle : undefined}
       />
       <HomebrewEditModal

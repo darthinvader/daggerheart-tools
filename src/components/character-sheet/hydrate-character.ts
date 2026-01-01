@@ -2,6 +2,7 @@
  * Hydration logic for mapping server CharacterRecord to local state
  */
 import type { CharacterRecord } from '@/lib/api/characters';
+import { getDomainsForClass } from '@/lib/data/classes';
 import type { InventoryItemEntry } from '@/lib/schemas/equipment';
 import { getAncestryByName, getCommunityByName } from '@/lib/schemas/identity';
 
@@ -127,13 +128,28 @@ export function hydrateClassSelection(
   setClassSelection: CharacterStateHook['setClassSelection']
 ): void {
   if (serverData.classDraft.className) {
+    const isHomebrew = serverData.classDraft.mode === 'homebrew';
+    const homebrewClass = serverData.classDraft.homebrewClass;
+
+    // Derive domains from class data or homebrew class
+    let domains: string[] = [];
+    if (isHomebrew && homebrewClass?.domains) {
+      domains = homebrewClass.domains;
+    } else if (!isHomebrew) {
+      // For standard classes, get domains from the class definition
+      // Handle multiclass by splitting class names and getting unique domains
+      const classNames = serverData.classDraft.className.split(' / ');
+      const allDomains = classNames.flatMap(name => getDomainsForClass(name));
+      domains = [...new Set(allDomains)];
+    }
+
     setClassSelection({
       mode: serverData.classDraft.mode || 'standard',
       className: serverData.classDraft.className,
       subclassName: serverData.classDraft.subclassName || '',
-      domains: [],
-      isHomebrew: serverData.classDraft.mode === 'homebrew',
-      homebrewClass: serverData.classDraft.homebrewClass,
+      domains,
+      isHomebrew,
+      homebrewClass,
     } as never);
   } else {
     setClassSelection(null);
@@ -179,6 +195,7 @@ export function hydrateInventory(
         name: slot.name || 'Unknown Item',
         tier: '1',
         description: slot.description || '',
+        category: 'Utility',
         features: [],
         tags: [],
         metadata: {},

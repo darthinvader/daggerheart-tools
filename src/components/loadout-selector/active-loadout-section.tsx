@@ -76,6 +76,7 @@ type ActiveLoadoutSectionProps = {
   onSwapToVault?: (cardName: string) => void;
   onMoveCard?: boolean;
   onConvertToHomebrew?: (card: DomainCardLite) => void;
+  onRemoveCard?: (cardName: string) => void;
   dragSource: DragSource;
   dragOverTarget: DragSource;
   swapSource: DragSource;
@@ -102,6 +103,7 @@ export function ActiveLoadoutSection({
   onSwapToVault,
   onMoveCard,
   onConvertToHomebrew,
+  onRemoveCard,
   dragSource,
   dragOverTarget,
   swapSource,
@@ -156,6 +158,9 @@ export function ActiveLoadoutSection({
                   : undefined,
                 onConvertToHomebrew: onConvertToHomebrew
                   ? () => onConvertToHomebrew(card)
+                  : undefined,
+                onRemove: onRemoveCard
+                  ? () => onRemoveCard(card.name)
                   : undefined,
               })}
             />

@@ -211,6 +211,7 @@ export const ApiInventorySlotSchema = z.object({
       name: z.string(),
       tier: z.string().optional(),
       description: z.string().optional(),
+      category: z.string().optional(),
       features: z
         .array(z.object({ name: z.string(), description: z.string() }))
         .optional(),

@@ -14,6 +14,7 @@ type VaultSectionProps = {
   onSwapToActive?: (cardName: string) => void;
   onMoveCard?: boolean;
   onConvertToHomebrew?: (card: DomainCardLite) => void;
+  onRemoveCard?: (cardName: string) => void;
   dragSource: DragSource;
   dragOverTarget: DragSource;
   swapSource: DragSource;
@@ -39,6 +40,7 @@ export function VaultSection({
   onSwapToActive,
   onMoveCard,
   onConvertToHomebrew,
+  onRemoveCard,
   dragSource,
   dragOverTarget,
   swapSource,
@@ -100,6 +102,9 @@ export function VaultSection({
                 canSwapToActive,
                 onConvertToHomebrew: onConvertToHomebrew
                   ? () => onConvertToHomebrew(card)
+                  : undefined,
+                onRemove: onRemoveCard
+                  ? () => onRemoveCard(card.name)
                   : undefined,
               })}
             />
