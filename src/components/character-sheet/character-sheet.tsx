@@ -6,6 +6,7 @@ import {
   IdentityTab,
   ItemsTab,
   OverviewTab,
+  QuickViewTab,
   SessionTab,
 } from '@/components/demo/demo-tabs';
 import { LevelUpModal } from '@/components/level-up';
@@ -155,8 +156,9 @@ export function CharacterSheet({ characterId }: CharacterSheetProps) {
           <SaveIndicator isSaving={isSaving} lastSaved={lastSaved} />
         </div>
 
-        <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+        <Tabs defaultValue="quick" className="w-full">
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="quick">⚡ Quick</TabsTrigger>
             <TabsTrigger value="overview">📊 Overview</TabsTrigger>
             <TabsTrigger value="identity">👤 Identity</TabsTrigger>
             <TabsTrigger value="combat">⚔️ Combat</TabsTrigger>
@@ -164,6 +166,9 @@ export function CharacterSheet({ characterId }: CharacterSheetProps) {
             <TabsTrigger value="session">🎲 Session</TabsTrigger>
           </TabsList>
 
+          <TabsContent value="quick">
+            <QuickViewTab state={state} handlers={handlers} />
+          </TabsContent>
           <TabsContent value="overview">
             <OverviewTab
               state={state}

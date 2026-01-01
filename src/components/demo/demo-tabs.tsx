@@ -12,5 +12,6 @@ export {
   IdentityTab,
   ItemsTab,
   OverviewTab,
+  QuickViewTab,
   SessionTab,
 } from './tabs';

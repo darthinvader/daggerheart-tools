@@ -18,6 +18,7 @@ export * from './identity-editor';
 export * from './inventory';
 export * from './loadout-selector';
 export * from './navbar';
+export * from './quick-view';
 export * from './resources';
 export * from './rest-management';
 export * from './scars';
