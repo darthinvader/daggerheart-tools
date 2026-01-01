@@ -1,8 +1,10 @@
+import { generateId } from '@/lib/utils';
+
 import type { SessionEntry } from './types';
 
 export function createSession(number: number): SessionEntry {
   return {
-    id: crypto.randomUUID(),
+    id: generateId(),
     number,
     date: new Date().toISOString(),
     xpGained: 0,

@@ -1,3 +1,5 @@
+import { generateId } from '@/lib/utils';
+
 import type { CharacterNote, NoteCategory } from './types';
 
 export function createNote(
@@ -7,7 +9,7 @@ export function createNote(
 ): CharacterNote {
   const now = new Date().toISOString();
   return {
-    id: crypto.randomUUID(),
+    id: generateId(),
     title,
     content,
     category,

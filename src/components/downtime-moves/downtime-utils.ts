@@ -1,3 +1,5 @@
+import { generateId } from '@/lib/utils';
+
 import type { DowntimeActivity, DowntimeMove } from './types';
 
 export function createDowntimeActivity(
@@ -5,7 +7,7 @@ export function createDowntimeActivity(
   notes: string = ''
 ): DowntimeActivity {
   return {
-    id: crypto.randomUUID(),
+    id: generateId(),
     moveId: move.id,
     moveName: move.name,
     notes,

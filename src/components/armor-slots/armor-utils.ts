@@ -1,8 +1,10 @@
+import { generateId } from '@/lib/utils';
+
 import type { ArmorSlot, ArmorSlotsState, ArmorSlotState } from './types';
 
 export function createArmorSlot(source: string): ArmorSlot {
   return {
-    id: crypto.randomUUID(),
+    id: generateId(),
     state: 'available',
     source,
   };

@@ -8,6 +8,7 @@ import { getCardByName } from '@/lib/data/domains';
 import type { ThresholdsSettings } from '@/lib/schemas/character-state';
 import type { ClassSelection } from '@/lib/schemas/class-selection';
 import type { DomainCardLite, LoadoutSelection } from '@/lib/schemas/loadout';
+import { generateId } from '@/lib/utils';
 
 const MAX_ACTIVE_CARDS = 5;
 
@@ -81,7 +82,7 @@ export function addNewExperience(
   return {
     items: [
       ...prev.items,
-      { id: crypto.randomUUID(), name, value: isBoosted ? 3 : 2 },
+      { id: generateId(), name, value: isBoosted ? 3 : 2 },
     ],
   };
 }

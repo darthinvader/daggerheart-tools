@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import type { Scar } from '@/lib/schemas/session-state';
+import { generateId } from '@/lib/utils';
 
 import {
   CompanionHopeToggle,
@@ -152,7 +153,7 @@ export function HopeEditor({
     if (availableSlots.length === 0) return;
 
     const newScar: Scar = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       description: description || 'Unmarked Scar',
       hopeSlotIndex: availableSlots[availableSlots.length - 1],
       narrativeImpact: narrative || undefined,

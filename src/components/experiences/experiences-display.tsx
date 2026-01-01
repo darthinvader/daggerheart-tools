@@ -4,7 +4,7 @@ import { useCallback, useState } from 'react';
 import { EditableSection } from '@/components/shared/editable-section';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
+import { cn, generateId } from '@/lib/utils';
 
 import { NumberControl } from '../shared/labeled-counter/number-control';
 
@@ -80,10 +80,7 @@ function ExperiencesEditor({ experiences, onChange }: ExperiencesEditorProps) {
   const addExperience = () => {
     if (!newName.trim()) return;
     onChange({
-      items: [
-        ...items,
-        { id: crypto.randomUUID(), name: newName.trim(), value: 2 },
-      ],
+      items: [...items, { id: generateId(), name: newName.trim(), value: 2 }],
     });
     setNewName('');
   };

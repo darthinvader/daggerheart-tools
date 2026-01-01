@@ -1,3 +1,5 @@
+import { generateId } from '@/lib/utils';
+
 import type { Countdown, CountdownType } from './types';
 
 export function createCountdown(
@@ -6,7 +8,7 @@ export function createCountdown(
   type: CountdownType = 'neutral'
 ): Countdown {
   return {
-    id: crypto.randomUUID(),
+    id: generateId(),
     name,
     segments,
     filled: 0,
