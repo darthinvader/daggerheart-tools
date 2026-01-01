@@ -1,3 +1,6 @@
+import { ChevronDown, ChevronRight } from 'lucide-react';
+import { useState } from 'react';
+
 import type { EquipmentState } from '@/components/equipment';
 import type { CustomEquipment } from '@/components/equipment/custom-slot-editor';
 import { Badge } from '@/components/ui/badge';
@@ -7,8 +10,6 @@ import type {
   SecondaryWeapon,
 } from '@/lib/schemas/equipment';
 import { cn } from '@/lib/utils';
-
-import { ExpandableFeaturesList } from './expandable-feature';
 
 interface QuickEquipmentInfoProps {
   equipment: EquipmentState;
@@ -117,31 +118,60 @@ function getArmorSummary(equipment: EquipmentState): ArmorSummary | null {
 }
 
 function WeaponCard({ weapon }: { weapon: WeaponSummary }) {
+  const [expanded, setExpanded] = useState(false);
   const typeIcon =
     weapon.type === 'Wheelchair'
       ? '♿'
       : weapon.type === 'Primary'
         ? '⚔️'
         : '🗡️';
+  const hasFeatures = weapon.features.length > 0;
+
   return (
     <div className="rounded border p-2">
-      <div className="mb-1 flex items-center justify-between">
-        <span className="font-medium">
-          {typeIcon} {weapon.name}
-        </span>
-        <Badge variant="outline" className="text-xs">
+      <button
+        type="button"
+        onClick={() => hasFeatures && setExpanded(!expanded)}
+        className={cn(
+          'flex w-full items-center justify-between gap-2 text-left',
+          hasFeatures && 'cursor-pointer hover:opacity-80'
+        )}
+        disabled={!hasFeatures}
+      >
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
+          <span className="shrink-0 font-medium">
+            {hasFeatures && (
+              <span className="text-muted-foreground mr-1">
+                {expanded ? (
+                  <ChevronDown className="inline h-3 w-3" />
+                ) : (
+                  <ChevronRight className="inline h-3 w-3" />
+                )}
+              </span>
+            )}
+            {typeIcon} {weapon.name}
+          </span>
+          <span className="text-muted-foreground shrink-0 text-xs">
+            🎯 {weapon.damage} · 📏 {weapon.range} · 🤚 {weapon.burden}
+          </span>
+        </div>
+        <Badge variant="outline" className="shrink-0 text-xs">
           {weapon.type}
           {weapon.frameType && ` (${weapon.frameType})`}
         </Badge>
-      </div>
-      <div className="text-muted-foreground flex flex-wrap gap-2 text-xs">
-        <span>🎯 {weapon.damage}</span>
-        <span>📏 {weapon.range}</span>
-        <span>🤚 {weapon.burden}</span>
-      </div>
-      {weapon.features.length > 0 && (
-        <div className="mt-2">
-          <ExpandableFeaturesList features={weapon.features} />
+      </button>
+      {expanded && hasFeatures && (
+        <div className="mt-2 ml-4 space-y-2 border-l pl-2">
+          {weapon.features.map((f, i) => (
+            <div key={i} className="text-sm">
+              <span className="font-medium">{f.name}</span>
+              {f.description && (
+                <p className="text-muted-foreground text-xs leading-relaxed">
+                  {f.description}
+                </p>
+              )}
+            </div>
+          ))}
         </div>
       )}
     </div>
@@ -149,29 +179,58 @@ function WeaponCard({ weapon }: { weapon: WeaponSummary }) {
 }
 
 function ArmorCard({ armor }: { armor: ArmorSummary }) {
+  const [expanded, setExpanded] = useState(false);
+  const hasFeatures = armor.features.length > 0;
+  const evasionStr =
+    armor.evasionMod !== 0
+      ? ` · 🏃 ${armor.evasionMod >= 0 ? '+' : ''}${armor.evasionMod}`
+      : '';
+
   return (
     <div className="rounded border p-2">
-      <div className="mb-1 flex items-center justify-between">
-        <span className="font-medium">{armor.name}</span>
-        <Badge variant="outline" className="text-xs">
+      <button
+        type="button"
+        onClick={() => hasFeatures && setExpanded(!expanded)}
+        className={cn(
+          'flex w-full items-center justify-between gap-2 text-left',
+          hasFeatures && 'cursor-pointer hover:opacity-80'
+        )}
+        disabled={!hasFeatures}
+      >
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
+          <span className="shrink-0 font-medium">
+            {hasFeatures && (
+              <span className="text-muted-foreground mr-1">
+                {expanded ? (
+                  <ChevronDown className="inline h-3 w-3" />
+                ) : (
+                  <ChevronRight className="inline h-3 w-3" />
+                )}
+              </span>
+            )}
+            🛡️ {armor.name}
+          </span>
+          <span className="text-muted-foreground shrink-0 text-xs">
+            Score: {armor.score} · Major: {armor.major}+ · Severe:{' '}
+            {armor.severe}+{evasionStr}
+          </span>
+        </div>
+        <Badge variant="outline" className="shrink-0 text-xs">
           Armor
         </Badge>
-      </div>
-      <div className="text-muted-foreground flex flex-wrap gap-2 text-xs">
-        <span>🛡️ Score: {armor.score}</span>
-        <span>
-          ⚡ Major: {armor.major}+ / Severe: {armor.severe}+
-        </span>
-        {armor.evasionMod !== 0 && (
-          <span>
-            🏃 Evasion: {armor.evasionMod >= 0 ? '+' : ''}
-            {armor.evasionMod}
-          </span>
-        )}
-      </div>
-      {armor.features.length > 0 && (
-        <div className="mt-2">
-          <ExpandableFeaturesList features={armor.features} />
+      </button>
+      {expanded && hasFeatures && (
+        <div className="mt-2 ml-4 space-y-2 border-l pl-2">
+          {armor.features.map((f, i) => (
+            <div key={i} className="text-sm">
+              <span className="font-medium">{f.name}</span>
+              {f.description && (
+                <p className="text-muted-foreground text-xs leading-relaxed">
+                  {f.description}
+                </p>
+              )}
+            </div>
+          ))}
         </div>
       )}
     </div>
@@ -179,22 +238,51 @@ function ArmorCard({ armor }: { armor: ArmorSummary }) {
 }
 
 function CustomSlotCard({ slot }: { slot: CustomEquipment }) {
+  const [expanded, setExpanded] = useState(false);
+  const hasContent = slot.features.length > 0 || Boolean(slot.description);
+
   return (
     <div className="rounded border p-2">
-      <div className="mb-1 flex items-center justify-between">
+      <button
+        type="button"
+        onClick={() => hasContent && setExpanded(!expanded)}
+        className={cn(
+          'flex w-full items-center justify-between gap-2 text-left',
+          hasContent && 'cursor-pointer hover:opacity-80'
+        )}
+        disabled={!hasContent}
+      >
         <span className="font-medium">
+          {hasContent && (
+            <span className="text-muted-foreground mr-1">
+              {expanded ? (
+                <ChevronDown className="inline h-3 w-3" />
+              ) : (
+                <ChevronRight className="inline h-3 w-3" />
+              )}
+            </span>
+          )}
           {slot.slotIcon} {slot.name}
         </span>
-        <Badge variant="outline" className="text-xs">
+        <Badge variant="outline" className="shrink-0 text-xs">
           {slot.slotName}
         </Badge>
-      </div>
-      {slot.description && (
-        <p className="text-muted-foreground mb-1 text-xs">{slot.description}</p>
-      )}
-      {slot.features.length > 0 && (
-        <div className="mt-2">
-          <ExpandableFeaturesList features={slot.features} />
+      </button>
+      {expanded && hasContent && (
+        <div className="mt-2 ml-4 space-y-2 border-l pl-2">
+          {slot.description && (
+            <p className="text-muted-foreground text-xs">{slot.description}</p>
+          )}
+          {slot.features.map((f, i) => (
+            <div key={i} className="text-sm">
+              <span className="font-medium">{f.name}</span>
+              {f.description && (
+                <p className="text-muted-foreground text-xs leading-relaxed">
+                  {f.description}
+                </p>
+              )}
+            </div>
+          ))}
         </div>
       )}
     </div>
