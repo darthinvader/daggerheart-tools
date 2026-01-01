@@ -6,6 +6,7 @@ import {
   IdentityTab,
   ItemsTab,
   OverviewTab,
+  QuickViewTab,
   SessionTab,
 } from './demo-tabs';
 import { useCharacterSheetState } from './use-character-sheet-state';
@@ -33,7 +34,8 @@ export function CharacterSheetDemo() {
       </div>
 
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="quick">⚡ Quick</TabsTrigger>
           <TabsTrigger value="overview">📊 Overview</TabsTrigger>
           <TabsTrigger value="identity">👤 Identity</TabsTrigger>
           <TabsTrigger value="combat">⚔️ Combat</TabsTrigger>
@@ -41,6 +43,9 @@ export function CharacterSheetDemo() {
           <TabsTrigger value="session">🎲 Session</TabsTrigger>
         </TabsList>
 
+        <TabsContent value="quick">
+          <QuickViewTab state={state} handlers={handlers} />
+        </TabsContent>
         <TabsContent value="overview">
           <OverviewTab state={state} handlers={handlers} />
         </TabsContent>
