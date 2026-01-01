@@ -113,8 +113,13 @@ function MixedAncestryContent({
 }: {
   mixedAncestry: MixedAncestry;
 }) {
-  const primaryParent = getAncestryByName(mixedAncestry.parentAncestries[0]);
-  const secondaryParent = getAncestryByName(mixedAncestry.parentAncestries[1]);
+  const parentAncestries = mixedAncestry.parentAncestries ?? [];
+  const primaryParent = parentAncestries[0]
+    ? getAncestryByName(parentAncestries[0])
+    : undefined;
+  const secondaryParent = parentAncestries[1]
+    ? getAncestryByName(parentAncestries[1])
+    : undefined;
 
   return (
     <div className="space-y-4">
@@ -130,25 +135,27 @@ function MixedAncestryContent({
         </Badge>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        <SmartTooltip content="Parent ancestry providing the primary feature">
-          <Badge
-            variant="outline"
-            className="border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-900/30"
-          >
-            ⭐ {mixedAncestry.parentAncestries[0]}
-          </Badge>
-        </SmartTooltip>
-        <span className="text-muted-foreground">+</span>
-        <SmartTooltip content="Parent ancestry providing the secondary feature">
-          <Badge
-            variant="outline"
-            className="border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-900/30"
-          >
-            ✨ {mixedAncestry.parentAncestries[1]}
-          </Badge>
-        </SmartTooltip>
-      </div>
+      {parentAncestries.length >= 2 && (
+        <div className="flex flex-wrap gap-2">
+          <SmartTooltip content="Parent ancestry providing the primary feature">
+            <Badge
+              variant="outline"
+              className="border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-900/30"
+            >
+              ⭐ {parentAncestries[0]}
+            </Badge>
+          </SmartTooltip>
+          <span className="text-muted-foreground">+</span>
+          <SmartTooltip content="Parent ancestry providing the secondary feature">
+            <Badge
+              variant="outline"
+              className="border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-900/30"
+            >
+              ✨ {parentAncestries[1]}
+            </Badge>
+          </SmartTooltip>
+        </div>
+      )}
 
       <Separator />
 

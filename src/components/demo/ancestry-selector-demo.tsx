@@ -77,15 +77,22 @@ function MixedSelectionDetails({
   selection: Extract<AncestrySelection, { mode: 'mixed' }>;
 }) {
   const { mixedAncestry } = selection;
-  const primaryParent = getAncestryByName(mixedAncestry.parentAncestries[0]);
-  const secondaryParent = getAncestryByName(mixedAncestry.parentAncestries[1]);
+  const parentAncestries = mixedAncestry.parentAncestries ?? [];
+  const primaryParent = parentAncestries[0]
+    ? getAncestryByName(parentAncestries[0])
+    : undefined;
+  const secondaryParent = parentAncestries[1]
+    ? getAncestryByName(parentAncestries[1])
+    : undefined;
 
   return (
     <div className="space-y-4">
       <h4 className="text-xl font-semibold">{mixedAncestry.name}</h4>
-      <p className="text-muted-foreground text-sm">
-        🔀 Parent Ancestries: {mixedAncestry.parentAncestries.join(' & ')}
-      </p>
+      {parentAncestries.length > 0 && (
+        <p className="text-muted-foreground text-sm">
+          🔀 Parent Ancestries: {parentAncestries.join(' & ')}
+        </p>
+      )}
 
       <Separator />
 

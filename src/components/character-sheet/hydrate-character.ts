@@ -58,14 +58,30 @@ export function hydrateAncestry(
     ancestryDetails?.type === 'mixed' &&
     ancestryDetails.mixed
   ) {
+    const primaryFrom = ancestryDetails.mixed.primaryFrom || '';
+    const secondaryFrom = ancestryDetails.mixed.secondaryFrom || '';
+    const primaryAncestry = primaryFrom
+      ? getAncestryByName(primaryFrom)
+      : undefined;
+    const secondaryAncestry = secondaryFrom
+      ? getAncestryByName(secondaryFrom)
+      : undefined;
+
     setAncestry({
       mode: 'mixed',
       mixedAncestry: {
         name: ancestryDetails.mixed.name || ancestryName,
-        primaryFrom: ancestryDetails.mixed.primaryFrom,
-        secondaryFrom: ancestryDetails.mixed.secondaryFrom,
-        primaryFeature: { name: '', description: '' },
-        secondaryFeature: { name: '', description: '' },
+        parentAncestries: [primaryFrom, secondaryFrom].filter(Boolean),
+        primaryFeature: primaryAncestry?.primaryFeature ?? {
+          name: '',
+          description: '',
+          type: 'primary' as const,
+        },
+        secondaryFeature: secondaryAncestry?.secondaryFeature ?? {
+          name: '',
+          description: '',
+          type: 'secondary' as const,
+        },
       },
     } as never);
   } else if (
