@@ -1,4 +1,4 @@
-import { ChevronLeft, FileText } from 'lucide-react';
+import { ChevronLeft, FileText, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -87,15 +87,25 @@ export function CharacterNotesDisplay({
         >
           {selectedNote ? (
             <div className="flex h-full flex-col">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSelectedId(null)}
-                className="mb-2 self-start md:hidden"
-              >
-                <ChevronLeft className="mr-1 h-4 w-4" />
-                Back to notes
-              </Button>
+              <div className="mb-2 flex items-center justify-between md:hidden">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedId(null)}
+                >
+                  <ChevronLeft className="mr-1 h-4 w-4" />
+                  Back to notes
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-destructive hover:text-destructive"
+                  onClick={() => handleDeleteNote(selectedNote.id)}
+                >
+                  <Trash2 className="mr-1 h-4 w-4" />
+                  Delete
+                </Button>
+              </div>
               <NoteEditor note={selectedNote} onChange={handleUpdateNote} />
             </div>
           ) : (

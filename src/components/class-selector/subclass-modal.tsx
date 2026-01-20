@@ -9,7 +9,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import type { GameClass, GameSubclass } from '@/lib/data/classes';
 import { CLASS_COLORS, CLASS_EMOJIS } from '@/lib/schemas/class-selection';
 import { cn } from '@/lib/utils';
@@ -44,8 +43,8 @@ function SubclassModalContent({
   }, [gameClass.name, tempSelection, onConfirm]);
 
   return (
-    <DialogContent className="flex max-h-[90vh] w-[95vw] flex-col sm:max-w-4xl lg:max-w-5xl">
-      <DialogHeader>
+    <DialogContent className="flex max-h-[80vh] w-[95vw] flex-col gap-4 overflow-hidden p-4 sm:max-h-[85vh] sm:max-w-4xl sm:p-6 lg:max-w-5xl">
+      <DialogHeader className="shrink-0">
         <DialogTitle className={cn('flex items-center gap-2', colorClass)}>
           <span>{emoji}</span>
           <span>Choose Your {gameClass.name} Subclass</span>
@@ -56,7 +55,7 @@ function SubclassModalContent({
         </DialogDescription>
       </DialogHeader>
 
-      <ScrollArea className="flex-1 pr-4">
+      <div className="min-h-0 flex-1 overflow-y-auto pr-2">
         <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-2">
           {gameClass.subclasses.map(subclass => (
             <SubclassCard
@@ -68,9 +67,9 @@ function SubclassModalContent({
             />
           ))}
         </div>
-      </ScrollArea>
+      </div>
 
-      <DialogFooter>
+      <DialogFooter className="shrink-0">
         <Button variant="outline" onClick={onCancel}>
           Cancel
         </Button>

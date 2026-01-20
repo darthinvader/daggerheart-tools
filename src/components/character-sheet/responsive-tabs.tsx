@@ -29,8 +29,8 @@ interface ResponsiveTabsListProps {
 }
 
 /**
- * A responsive tabs list that shows primary tabs as buttons and
- * secondary tabs in a dropdown on mobile, but all as buttons on desktop.
+ * A responsive tabs list that shows all tabs in a dropdown on mobile,
+ * but as buttons on desktop.
  */
 export function ResponsiveTabsList({
   primaryTabs,
@@ -42,36 +42,20 @@ export function ResponsiveTabsList({
   const isMobile = useIsMobile();
 
   const allTabs = [...primaryTabs, ...secondaryTabs];
-  const activeSecondaryTab = secondaryTabs.find(t => t.value === value);
+  const activeTab = allTabs.find(t => t.value === value);
 
-  // On mobile, show primary tabs + dropdown for secondary
+  // On mobile, show all tabs in a single dropdown
   if (isMobile) {
     return (
-      <div className={cn('flex w-full items-center gap-2', className)}>
-        <TabsList className="flex-1">
-          {primaryTabs.map(tab => (
-            <TabsTrigger key={tab.value} value={tab.value} className="flex-1">
-              {tab.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-        <Select
-          value={activeSecondaryTab ? value : ''}
-          onValueChange={onValueChange}
-        >
-          <SelectTrigger
-            className={cn(
-              'h-9 w-auto min-w-[100px] gap-1 text-sm font-medium',
-              activeSecondaryTab &&
-                'bg-background dark:bg-input/30 border-input shadow-sm'
-            )}
-          >
-            <SelectValue placeholder="More...">
-              {activeSecondaryTab ? activeSecondaryTab.label : 'More...'}
+      <div className={cn('w-full', className)}>
+        <Select value={value} onValueChange={onValueChange}>
+          <SelectTrigger className="h-10 w-full text-sm font-medium">
+            <SelectValue placeholder="Select tab...">
+              {activeTab ? activeTab.label : 'Select tab...'}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            {secondaryTabs.map(tab => (
+            {allTabs.map(tab => (
               <SelectItem key={tab.value} value={tab.value}>
                 {tab.label}
               </SelectItem>

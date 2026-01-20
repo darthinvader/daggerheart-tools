@@ -97,7 +97,7 @@ export function OverviewTab({ state, handlers, isHydrated }: TabProps) {
         onChange={handlers.setInventory}
       />
 
-      <div className="grid h-112 gap-4 sm:gap-6 md:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 md:h-112 md:grid-cols-2">
         <DowntimeMoves
           activities={state.downtimeActivities}
           onChange={handlers.setDowntimeActivities}
@@ -110,7 +110,7 @@ export function OverviewTab({ state, handlers, isHydrated }: TabProps) {
 
       <RestGrid state={state} onRest={handleRest} />
 
-      <div className="grid h-112 gap-4 sm:gap-6 md:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 md:h-112 md:grid-cols-2">
         <SessionTracker
           sessions={state.sessions}
           currentSessionId={state.currentSessionId}

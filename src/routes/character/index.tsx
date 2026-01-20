@@ -152,10 +152,14 @@ function CharactersPage() {
 
   return (
     <div className="container mx-auto p-4">
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold">Characters</h1>
         {characters && characters.length > 0 && (
-          <Button onClick={handleCreateNew} disabled={createMutation.isPending}>
+          <Button
+            onClick={handleCreateNew}
+            disabled={createMutation.isPending}
+            className="w-full sm:w-auto"
+          >
             <Plus className="mr-2 h-4 w-4" />
             {createMutation.isPending ? 'Creating...' : 'New Character'}
           </Button>

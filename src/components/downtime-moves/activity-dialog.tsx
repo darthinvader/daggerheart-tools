@@ -45,12 +45,12 @@ export function ActivityDialog({
 
   return (
     <Dialog open={selectedMove !== null} onOpenChange={handleOpenChange}>
-      <DialogContent className="w-[95vw] max-w-lg sm:max-w-lg">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[85vh] w-[95vw] flex-col overflow-hidden sm:max-h-[90vh] sm:max-w-lg">
+        <DialogHeader className="shrink-0">
           <DialogTitle>Start: {selectedMove?.name}</DialogTitle>
           <DialogDescription>{selectedMove?.description}</DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 py-4">
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto py-4">
           <div className="space-y-2">
             <Label htmlFor="activity-hours">Hours to Spend</Label>
             <Input

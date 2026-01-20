@@ -47,8 +47,8 @@ export function DowntimeMoves({ activities, onChange }: DowntimeMovesProps) {
   };
 
   return (
-    <section className="bg-card hover:border-primary/20 flex h-full max-h-full flex-col overflow-hidden rounded-xl border shadow-sm transition-colors">
-      <div className="flex shrink-0 items-center justify-between border-b px-4 py-3 sm:px-6">
+    <section className="bg-card hover:border-primary/20 flex h-[400px] flex-col overflow-hidden rounded-xl border shadow-sm transition-colors md:h-112">
+      <div className="flex shrink-0 flex-col gap-2 border-b px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <div className="flex items-center gap-2">
           <span className="text-xl">☕</span>
           <h3 className="text-lg font-semibold">Downtime Activities</h3>

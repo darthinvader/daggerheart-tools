@@ -46,7 +46,7 @@ export function CountdownTracker({
   const sorted = sortCountdowns(countdowns);
 
   return (
-    <section className="bg-card hover:border-primary/20 flex h-full max-h-full flex-col overflow-hidden rounded-xl border shadow-sm transition-colors">
+    <section className="bg-card hover:border-primary/20 flex h-[400px] flex-col overflow-hidden rounded-xl border shadow-sm transition-colors md:h-112">
       <div className="flex shrink-0 items-center justify-between border-b px-4 py-3 sm:px-6">
         <div className="flex items-center gap-2">
           <span className="text-xl">⏱️</span>

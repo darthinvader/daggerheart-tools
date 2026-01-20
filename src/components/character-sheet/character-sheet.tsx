@@ -149,18 +149,18 @@ export function CharacterSheet({ characterId }: CharacterSheetProps) {
   const characterName = state.identity.name || 'New Character';
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="container mx-auto px-4 py-4 sm:py-8">
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" asChild>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+            <Button variant="ghost" size="sm" asChild className="w-fit">
               <Link to="/character">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back
               </Link>
             </Button>
             <div>
-              <h1 className="text-3xl font-bold">
+              <h1 className="text-2xl font-bold sm:text-3xl">
                 {characterName || 'Untitled Character'}
               </h1>
               <p className="text-muted-foreground text-sm">
