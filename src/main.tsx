@@ -3,7 +3,11 @@ import { createRouter, RouterProvider } from '@tanstack/react-router';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
-import { DeviceTypeProvider, ThemeProvider } from '@/components/providers';
+import {
+  AuthProvider,
+  DeviceTypeProvider,
+  ThemeProvider,
+} from '@/components/providers';
 import { queryClient } from '@/lib/api/query-client';
 
 import './global-error-log';
@@ -44,11 +48,13 @@ declare module '@tanstack/react-router' {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-        <DeviceTypeProvider>
-          <RouterProvider router={router} />
-        </DeviceTypeProvider>
-      </ThemeProvider>
+      <AuthProvider>
+        <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+          <DeviceTypeProvider>
+            <RouterProvider router={router} />
+          </DeviceTypeProvider>
+        </ThemeProvider>
+      </AuthProvider>
     </QueryClientProvider>
   </StrictMode>
 );

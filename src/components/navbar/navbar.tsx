@@ -3,6 +3,7 @@ import {
   BookOpen,
   ChevronDown,
   Dices,
+  LogIn,
   Menu,
   Plus,
   Scroll,
@@ -10,6 +11,8 @@ import {
 } from 'lucide-react';
 import * as React from 'react';
 
+import { UserMenu } from '@/components/auth';
+import { useAuth } from '@/components/providers';
 import { Button } from '@/components/ui/button';
 import {
   NavigationMenu,
@@ -207,8 +210,33 @@ function DesktopNavbar({ links, brandName }: NavbarInternalProps) {
             )}
           </NavigationMenuList>
         </NavigationMenu>
+
+        <div className="ml-auto flex items-center gap-2">
+          <AuthNavItems />
+        </div>
       </nav>
     </header>
+  );
+}
+
+function AuthNavItems() {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <div className="bg-muted size-8 animate-pulse rounded-full" />;
+  }
+
+  if (isAuthenticated) {
+    return <UserMenu />;
+  }
+
+  return (
+    <Button asChild variant="outline" size="sm">
+      <Link to="/login">
+        <LogIn className="mr-2 size-4" />
+        Sign In
+      </Link>
+    </Button>
   );
 }
 
@@ -225,6 +253,11 @@ function MobileNavbar({ links, brandShortName }: NavbarInternalProps) {
         >
           {brandShortName}
         </Link>
+
+        <div className="mr-2 ml-auto flex items-center">
+          <AuthNavItems />
+        </div>
+
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon" aria-label="Open menu">

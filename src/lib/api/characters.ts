@@ -41,6 +41,7 @@ export { createDefaultCharacter } from './defaults';
 // Character record schema for API (relaxed validation for empty characters)
 export const CharacterRecordSchema = z.object({
   id: z.string(),
+  userId: z.string().nullable().optional(),
   identity: ApiIdentitySchema,
   classDraft: ClassDraftSchema,
   domains: DomainsDraftSchema,
@@ -119,6 +120,7 @@ export function toCharacterSummary(char: CharacterRecord): CharacterSummary {
 function mapDbRowToCharacter(row: Record<string, unknown>): CharacterRecord {
   return {
     id: row.id as string,
+    userId: row.user_id as string | null | undefined,
     identity: row.identity as CharacterRecord['identity'],
     classDraft: row.class_draft as CharacterRecord['classDraft'],
     domains: row.domains as CharacterRecord['domains'],
@@ -158,6 +160,7 @@ function mapCharacterToDbRow(
   const row: Record<string, unknown> = {};
 
   if (char.id !== undefined) row.id = char.id;
+  if (char.userId !== undefined) row.user_id = char.userId;
   if (char.identity !== undefined) row.identity = char.identity;
   if (char.classDraft !== undefined) row.class_draft = char.classDraft;
   if (char.domains !== undefined) row.domains = char.domains;
@@ -197,9 +200,19 @@ function mapCharacterToDbRow(
 // API Functions
 
 export async function fetchAllCharacters(): Promise<CharacterRecord[]> {
+  // Get current user to filter characters
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return [];
+  }
+
   const { data, error } = await supabase
     .from('characters')
     .select('*')
+    .eq('user_id', user.id)
     .order('updated_at', { ascending: false });
 
   if (error) {
@@ -228,7 +241,15 @@ export async function fetchCharacter(id: string): Promise<CharacterRecord> {
 export async function createCharacter(
   character: CharacterRecord
 ): Promise<CharacterRecord> {
-  const dbRow = mapCharacterToDbRow(character);
+  // Get current user to assign character ownership
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const dbRow = mapCharacterToDbRow({
+    ...character,
+    userId: user?.id ?? null,
+  });
 
   const { data, error } = await supabase
     .from('characters')
