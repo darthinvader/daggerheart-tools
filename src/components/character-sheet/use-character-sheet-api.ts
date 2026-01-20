@@ -302,6 +302,7 @@ export function useCharacterSheetWithApi(characterId: string) {
       );
 
       // Save all fields that were modified during level-up
+      // Use type assertions for state types that differ from API schema types
       scheduleSave({
         progression: {
           currentLevel: result.newLevel,
@@ -309,9 +310,9 @@ export function useCharacterSheetWithApi(characterId: string) {
           availablePoints: 0,
           spentOptions: {},
         },
-        traits: updatedTraits,
+        traits: updatedTraits as unknown as CharacterRecord['traits'],
         experiences: updatedExperiences,
-        resources: updatedResources,
+        resources: updatedResources as unknown as CharacterRecord['resources'],
         coreScores: updatedCoreScores,
         thresholds: updatedThresholds,
       });

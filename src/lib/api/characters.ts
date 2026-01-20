@@ -111,8 +111,8 @@ export function toCharacterSummary(char: CharacterRecord): CharacterSummary {
     className: char.classDraft.className || '',
     subclass: char.classDraft.subclassName || '',
     level: char.progression.currentLevel,
-    createdAt: char.createdAt,
-    updatedAt: char.updatedAt,
+    createdAt: char.createdAt ?? undefined,
+    updatedAt: char.updatedAt ?? undefined,
   };
 }
 

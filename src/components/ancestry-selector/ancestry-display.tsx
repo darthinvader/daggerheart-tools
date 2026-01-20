@@ -19,6 +19,7 @@ import { HomebrewAncestryContent } from './homebrew-ancestry-content';
 
 // Validate if an ancestry selection is complete and saveable
 function isStandardAncestryValid(selection: AncestrySelection): boolean {
+  if (!selection || selection.mode !== 'standard') return false;
   return Boolean(selection.ancestry?.name);
 }
 
@@ -33,6 +34,7 @@ function isMixedAncestryValid(mixed: MixedAncestry | undefined): boolean {
 }
 
 function isHomebrewAncestryValid(selection: AncestrySelection): boolean {
+  if (!selection || selection.mode !== 'homebrew') return false;
   const homebrew = selection.homebrew;
   if (!homebrew) return false;
   const hasName = Boolean(homebrew.name?.trim());

@@ -2,7 +2,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import type { GameClass, GameSubclass } from '@/lib/schemas/class';
+import type { GameClass, GameSubclass } from '@/lib/data/classes';
 import type { ClassDraft, ClassSelection } from '@/lib/schemas/class-selection';
 import { CLASS_EMOJIS } from '@/lib/schemas/class-selection';
 
@@ -18,7 +18,7 @@ interface StandardModeContentProps {
   selectedSubclasses: Map<string, GameSubclass>;
   onMulticlassToggle: (checked: boolean) => void;
   onOpenModal: (gameClass: GameClass) => void;
-  onSubclassSelect: (gameClass: GameClass, subclass: GameSubclass) => void;
+  onSubclassSelect: (className: string, subclass: GameSubclass) => void;
   modalClass: GameClass | null;
   isModalOpen: boolean;
   onCloseModal: () => void;
