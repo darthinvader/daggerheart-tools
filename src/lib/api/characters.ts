@@ -4,13 +4,24 @@ import { DomainsDraftSchema } from '@/features/characters/domains-storage';
 import {
   ConditionsSchema,
   CustomFeaturesSchema,
-  ExperiencesSchema,
   LevelUpEntrySchema,
   ResourcesSchema,
   ThresholdsSettingsSchema,
   TraitStateSchema,
 } from '@/lib/schemas/character-state';
 import { ClassDraftSchema } from '@/lib/schemas/class-selection';
+import { supabase } from '@/lib/supabase';
+
+// Schema for ExperiencesState (matches component state format)
+const ExperienceItemSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  value: z.number(),
+});
+
+const ExperiencesStateSchema = z.object({
+  items: z.array(ExperienceItemSchema),
+});
 
 import {
   ApiEquipmentSchema,
@@ -26,8 +37,6 @@ import {
 
 // Re-export for convenience
 export { createDefaultCharacter } from './defaults';
-
-const API_BASE = 'http://localhost:3001';
 
 // Character record schema for API (relaxed validation for empty characters)
 export const CharacterRecordSchema = z.object({
@@ -50,7 +59,7 @@ export const CharacterRecordSchema = z.object({
       proficiency: z.number(),
       autoCalculateEvasion: z.boolean().optional(),
     })
-    .optional(),
+    .nullish(),
   traits: z.record(z.string(), TraitStateSchema),
   conditions: ConditionsSchema,
   features: z.record(
@@ -61,20 +70,20 @@ export const CharacterRecordSchema = z.object({
   thresholds: ThresholdsSettingsSchema.nullable(),
   leveling: z.array(LevelUpEntrySchema),
   experience: z.number(),
-  experiences: ExperiencesSchema,
+  experiences: ExperiencesStateSchema,
   // Session state fields
-  companion: CompanionStateSchema.optional(),
-  companionEnabled: z.boolean().optional(),
-  scars: z.array(ScarSchema).optional(),
-  extraHopeSlots: z.number().optional(),
-  companionHopeFilled: z.boolean().optional(),
-  countdowns: z.array(CountdownSchema).optional(),
-  sessions: z.array(SessionEntrySchema).optional(),
+  companion: CompanionStateSchema.nullish(),
+  companionEnabled: z.boolean().nullish(),
+  scars: z.array(ScarSchema).nullish(),
+  extraHopeSlots: z.number().nullish(),
+  companionHopeFilled: z.boolean().nullish(),
+  countdowns: z.array(CountdownSchema).nullish(),
+  sessions: z.array(SessionEntrySchema).nullish(),
   currentSessionId: z.string().nullable().optional(),
-  notes: z.array(CharacterNoteSchema).optional(),
-  downtimeActivities: z.array(DowntimeActivitySchema).optional(),
-  createdAt: z.string().optional(),
-  updatedAt: z.string().optional(),
+  notes: z.array(CharacterNoteSchema).nullish(),
+  downtimeActivities: z.array(DowntimeActivitySchema).nullish(),
+  createdAt: z.string().nullish(),
+  updatedAt: z.string().nullish(),
 });
 
 export type CharacterRecord = z.infer<typeof CharacterRecordSchema>;
@@ -106,59 +115,158 @@ export function toCharacterSummary(char: CharacterRecord): CharacterSummary {
   };
 }
 
+// Helper to convert snake_case DB row to camelCase CharacterRecord
+function mapDbRowToCharacter(row: Record<string, unknown>): CharacterRecord {
+  return {
+    id: row.id as string,
+    identity: row.identity as CharacterRecord['identity'],
+    classDraft: row.class_draft as CharacterRecord['classDraft'],
+    domains: row.domains as CharacterRecord['domains'],
+    equipment: row.equipment as CharacterRecord['equipment'],
+    inventory: row.inventory as CharacterRecord['inventory'],
+    progression: row.progression as CharacterRecord['progression'],
+    resources: row.resources as CharacterRecord['resources'],
+    coreScores: row.core_scores as CharacterRecord['coreScores'],
+    traits: row.traits as CharacterRecord['traits'],
+    conditions: row.conditions as CharacterRecord['conditions'],
+    features: row.features as CharacterRecord['features'],
+    customFeatures: row.custom_features as CharacterRecord['customFeatures'],
+    thresholds: row.thresholds as CharacterRecord['thresholds'],
+    leveling: row.leveling as CharacterRecord['leveling'],
+    experience: row.experience as number,
+    experiences: row.experiences as CharacterRecord['experiences'],
+    companion: row.companion as CharacterRecord['companion'],
+    companionEnabled: row.companion_enabled as boolean,
+    scars: row.scars as CharacterRecord['scars'],
+    extraHopeSlots: row.extra_hope_slots as number,
+    companionHopeFilled: row.companion_hope_filled as boolean,
+    countdowns: row.countdowns as CharacterRecord['countdowns'],
+    sessions: row.sessions as CharacterRecord['sessions'],
+    currentSessionId: row.current_session_id as string | null,
+    notes: row.notes as CharacterRecord['notes'],
+    downtimeActivities:
+      row.downtime_activities as CharacterRecord['downtimeActivities'],
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  };
+}
+
+// Helper to convert camelCase CharacterRecord to snake_case for DB
+function mapCharacterToDbRow(
+  char: Partial<CharacterRecord>
+): Record<string, unknown> {
+  const row: Record<string, unknown> = {};
+
+  if (char.id !== undefined) row.id = char.id;
+  if (char.identity !== undefined) row.identity = char.identity;
+  if (char.classDraft !== undefined) row.class_draft = char.classDraft;
+  if (char.domains !== undefined) row.domains = char.domains;
+  if (char.equipment !== undefined) row.equipment = char.equipment;
+  if (char.inventory !== undefined) row.inventory = char.inventory;
+  if (char.progression !== undefined) row.progression = char.progression;
+  if (char.resources !== undefined) row.resources = char.resources;
+  if (char.coreScores !== undefined) row.core_scores = char.coreScores;
+  if (char.traits !== undefined) row.traits = char.traits;
+  if (char.conditions !== undefined) row.conditions = char.conditions;
+  if (char.features !== undefined) row.features = char.features;
+  if (char.customFeatures !== undefined)
+    row.custom_features = char.customFeatures;
+  if (char.thresholds !== undefined) row.thresholds = char.thresholds;
+  if (char.leveling !== undefined) row.leveling = char.leveling;
+  if (char.experience !== undefined) row.experience = char.experience;
+  if (char.experiences !== undefined) row.experiences = char.experiences;
+  if (char.companion !== undefined) row.companion = char.companion;
+  if (char.companionEnabled !== undefined)
+    row.companion_enabled = char.companionEnabled;
+  if (char.scars !== undefined) row.scars = char.scars;
+  if (char.extraHopeSlots !== undefined)
+    row.extra_hope_slots = char.extraHopeSlots;
+  if (char.companionHopeFilled !== undefined)
+    row.companion_hope_filled = char.companionHopeFilled;
+  if (char.countdowns !== undefined) row.countdowns = char.countdowns;
+  if (char.sessions !== undefined) row.sessions = char.sessions;
+  if (char.currentSessionId !== undefined)
+    row.current_session_id = char.currentSessionId;
+  if (char.notes !== undefined) row.notes = char.notes;
+  if (char.downtimeActivities !== undefined)
+    row.downtime_activities = char.downtimeActivities;
+
+  return row;
+}
+
 // API Functions
 
 export async function fetchAllCharacters(): Promise<CharacterRecord[]> {
-  const res = await fetch(`${API_BASE}/characters`);
-  if (!res.ok) throw new Error('Failed to fetch characters');
-  const data = await res.json();
-  return z.array(CharacterRecordSchema).parse(data);
+  const { data, error } = await supabase
+    .from('characters')
+    .select('*')
+    .order('updated_at', { ascending: false });
+
+  if (error) {
+    throw new Error(`Failed to fetch characters: ${error.message}`);
+  }
+
+  return (data ?? []).map(row =>
+    CharacterRecordSchema.parse(mapDbRowToCharacter(row))
+  );
 }
 
 export async function fetchCharacter(id: string): Promise<CharacterRecord> {
-  const res = await fetch(`${API_BASE}/characters/${id}`);
-  if (!res.ok) throw new Error(`Failed to fetch character ${id}`);
-  const data = await res.json();
-  return CharacterRecordSchema.parse(data);
+  const { data, error } = await supabase
+    .from('characters')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to fetch character ${id}: ${error.message}`);
+  }
+
+  return CharacterRecordSchema.parse(mapDbRowToCharacter(data));
 }
 
 export async function createCharacter(
   character: CharacterRecord
 ): Promise<CharacterRecord> {
-  const res = await fetch(`${API_BASE}/characters`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(character),
-  });
-  if (!res.ok) throw new Error('Failed to create character');
-  const data = await res.json();
-  return CharacterRecordSchema.parse(data);
+  const dbRow = mapCharacterToDbRow(character);
+
+  const { data, error } = await supabase
+    .from('characters')
+    .insert(dbRow)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to create character: ${error.message}`);
+  }
+
+  return CharacterRecordSchema.parse(mapDbRowToCharacter(data));
 }
 
 export async function updateCharacter(
   id: string,
   updates: Partial<CharacterRecord>
 ): Promise<CharacterRecord> {
-  const payload = { ...updates, updatedAt: new Date().toISOString() };
+  const dbRow = mapCharacterToDbRow(updates);
 
-  const res = await fetch(`${API_BASE}/characters/${id}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
+  const { data, error } = await supabase
+    .from('characters')
+    .update(dbRow)
+    .eq('id', id)
+    .select()
+    .single();
 
-  if (!res.ok) {
-    throw new Error(`Failed to update character ${id}`);
+  if (error) {
+    throw new Error(`Failed to update character ${id}: ${error.message}`);
   }
 
-  const data = await res.json();
-
-  return CharacterRecordSchema.parse(data);
+  return CharacterRecordSchema.parse(mapDbRowToCharacter(data));
 }
 
 export async function deleteCharacter(id: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/characters/${id}`, {
-    method: 'DELETE',
-  });
-  if (!res.ok) throw new Error(`Failed to delete character ${id}`);
+  const { error } = await supabase.from('characters').delete().eq('id', id);
+
+  if (error) {
+    throw new Error(`Failed to delete character ${id}: ${error.message}`);
+  }
 }

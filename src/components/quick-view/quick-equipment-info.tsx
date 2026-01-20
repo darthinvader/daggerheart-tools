@@ -35,6 +35,19 @@ interface ArmorSummary {
   features: { name: string; description: string }[];
 }
 
+function formatDamage(
+  damage: { count?: number; diceType?: number; modifier?: number } | undefined
+): string {
+  if (!damage?.diceType) return '-';
+  const base = `${damage.count ?? 1}d${damage.diceType}`;
+  if (damage.modifier && damage.modifier !== 0) {
+    return damage.modifier > 0
+      ? `${base}+${damage.modifier}`
+      : `${base}${damage.modifier}`;
+  }
+  return base;
+}
+
 function buildWeaponSummary(
   weapon: Partial<PrimaryWeapon> | Partial<SecondaryWeapon> | null,
   type: 'Primary' | 'Secondary'
@@ -45,9 +58,7 @@ function buildWeaponSummary(
     type,
     range: String(weapon.range ?? 'Melee'),
     burden: String(weapon.burden ?? 'One-Handed'),
-    damage: weapon.damage
-      ? `${weapon.damage.count ?? 1}d${weapon.damage.diceType}`
-      : '-',
+    damage: formatDamage(weapon.damage),
     features: weapon.features ?? [],
   };
 }
@@ -61,9 +72,7 @@ function buildWheelchairSummary(
     type: 'Wheelchair',
     range: String(wheelchair.range ?? 'Melee'),
     burden: String(wheelchair.burden ?? 'Two-Handed'),
-    damage: wheelchair.damage
-      ? `${wheelchair.damage.count ?? 1}d${wheelchair.damage.diceType}`
-      : '-',
+    damage: formatDamage(wheelchair.damage),
     features: wheelchair.features ?? [],
     frameType: wheelchair.frameType,
   };

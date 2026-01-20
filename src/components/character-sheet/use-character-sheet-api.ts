@@ -1,22 +1,33 @@
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import type { CoreScoresState } from '@/components/core-scores';
 import {
   useCharacterState,
   useSessionState,
 } from '@/components/demo/character-state-hooks';
-import { processLevelUpResult } from '@/components/demo/level-up-handlers';
+import {
+  addNewExperience,
+  applyTraitSelection,
+  boostExperiences,
+  clearTraitsMarks,
+  processLevelUpResult,
+} from '@/components/demo/level-up-handlers';
 import {
   buildCharacterSheetHandlers,
   buildCharacterSheetState,
 } from '@/components/demo/state-builders';
+import type { ExperiencesState } from '@/components/experiences';
 import type { LevelUpResult } from '@/components/level-up';
+import type { ResourcesState } from '@/components/resources';
 import { DEFAULT_RESOURCES_STATE } from '@/components/resources';
 import type { HopeWithScarsState } from '@/components/scars';
 import type { SessionEntry } from '@/components/session-tracker';
+import type { TraitsState } from '@/components/traits';
 import type { CharacterRecord } from '@/lib/api/characters';
 import { fetchCharacter } from '@/lib/api/characters';
 import { characterQueryKeys } from '@/lib/api/query-client';
+import type { ThresholdsSettings } from '@/lib/schemas/character-state';
 
 import {
   mapAncestryToApi,
@@ -44,6 +55,151 @@ import {
 } from './character-api-mappers';
 import { hydrateCharacterState } from './hydrate-character';
 import { useAutoSave } from './use-auto-save';
+
+/**
+ * Compute updated traits after level-up
+ */
+function computeUpdatedTraits(
+  currentTraits: TraitsState,
+  result: LevelUpResult
+): TraitsState {
+  let traits = { ...currentTraits };
+
+  // Apply trait clearing if applicable
+  if (result.automaticBenefits.traitsCleared) {
+    traits = clearTraitsMarks(traits);
+  }
+
+  // Apply trait selections from level-up choices
+  for (const selection of result.selections) {
+    if (
+      selection.optionId === 'traits' &&
+      selection.details?.selectedTraits?.length
+    ) {
+      traits = applyTraitSelection(traits, selection.details.selectedTraits);
+    }
+  }
+
+  return traits;
+}
+
+/**
+ * Compute updated experiences after level-up
+ */
+function computeUpdatedExperiences(
+  currentExperiences: ExperiencesState,
+  result: LevelUpResult
+): ExperiencesState {
+  let experiences = {
+    ...currentExperiences,
+    items: [...currentExperiences.items],
+  };
+
+  // Add new experience if gained
+  if (
+    result.automaticBenefits.experienceGained &&
+    result.automaticBenefits.experienceName
+  ) {
+    const expSelection = result.selections.find(
+      s => s.optionId === 'experiences'
+    );
+    const boostedNewExp = expSelection?.details?.selectedExperiences?.some(
+      id => id === `new-exp-${result.newLevel}`
+    );
+    experiences = addNewExperience(
+      experiences,
+      result.automaticBenefits.experienceName,
+      !!boostedNewExp
+    );
+  }
+
+  // Apply experience boosts from level-up choices
+  for (const selection of result.selections) {
+    if (
+      selection.optionId === 'experiences' &&
+      selection.details?.selectedExperiences?.length
+    ) {
+      const idsToBoost = selection.details.selectedExperiences.filter(
+        id => !id.startsWith('new-exp-')
+      );
+      if (idsToBoost.length > 0) {
+        experiences = boostExperiences(experiences, idsToBoost);
+      }
+    }
+  }
+
+  return experiences;
+}
+
+/**
+ * Compute updated resources after level-up
+ */
+function computeUpdatedResources(
+  currentResources: ResourcesState,
+  result: LevelUpResult
+): ResourcesState {
+  const resources = { ...currentResources };
+
+  for (const selection of result.selections) {
+    if (selection.optionId === 'hp') {
+      resources.hp = {
+        ...resources.hp,
+        max: resources.hp.max + selection.count,
+      };
+    }
+    if (selection.optionId === 'stress') {
+      resources.stress = {
+        ...resources.stress,
+        max: resources.stress.max + selection.count,
+      };
+    }
+  }
+
+  return resources;
+}
+
+/**
+ * Compute updated core scores after level-up
+ */
+function computeUpdatedCoreScores(
+  currentCoreScores: CoreScoresState,
+  result: LevelUpResult
+): CoreScoresState {
+  const coreScores = { ...currentCoreScores };
+
+  // Apply automatic proficiency gain
+  if (result.automaticBenefits.proficiencyGained) {
+    coreScores.proficiency = coreScores.proficiency + 1;
+  }
+
+  for (const selection of result.selections) {
+    if (selection.optionId === 'evasion') {
+      coreScores.evasion = coreScores.evasion + selection.count;
+    }
+    if (selection.optionId === 'proficiency') {
+      coreScores.proficiency = coreScores.proficiency + selection.count;
+    }
+  }
+
+  return coreScores;
+}
+
+/**
+ * Compute updated thresholds after level-up
+ */
+function computeUpdatedThresholds(
+  currentThresholds: ThresholdsSettings,
+  _result: LevelUpResult
+): ThresholdsSettings {
+  return {
+    ...currentThresholds,
+    values: {
+      ...currentThresholds.values,
+      major: currentThresholds.values.major + 1,
+      severe: currentThresholds.values.severe + 1,
+    },
+  };
+}
 
 /**
  * Creates a handler that wraps a setter with auto-save functionality.
@@ -106,6 +262,26 @@ export function useCharacterSheetWithApi(characterId: string) {
 
   const handleLevelUpConfirm = useCallback(
     (result: LevelUpResult) => {
+      // Compute the expected final state values before processing
+      // so we can save them (React state updates are async)
+      const updatedTraits = computeUpdatedTraits(charState.traits, result);
+      const updatedExperiences = computeUpdatedExperiences(
+        charState.experiences,
+        result
+      );
+      const updatedResources = computeUpdatedResources(
+        charState.resources,
+        result
+      );
+      const updatedCoreScores = computeUpdatedCoreScores(
+        charState.coreScores,
+        result
+      );
+      const updatedThresholds = computeUpdatedThresholds(
+        charState.thresholds,
+        result
+      );
+
       processLevelUpResult(
         result,
         {
@@ -124,6 +300,8 @@ export function useCharacterSheetWithApi(characterId: string) {
         charState.progression.currentTier,
         charState.progression.tierHistory
       );
+
+      // Save all fields that were modified during level-up
       scheduleSave({
         progression: {
           currentLevel: result.newLevel,
@@ -131,6 +309,11 @@ export function useCharacterSheetWithApi(characterId: string) {
           availablePoints: 0,
           spentOptions: {},
         },
+        traits: updatedTraits,
+        experiences: updatedExperiences,
+        resources: updatedResources,
+        coreScores: updatedCoreScores,
+        thresholds: updatedThresholds,
       });
     },
     [charState, sessionState.setCompanion, scheduleSave]

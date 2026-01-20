@@ -225,6 +225,8 @@ export function mapInventoryToApi(v: InventoryState): Partial<CharacterRecord> {
       })),
       maxItems: v.maxSlots ?? 50,
       currentWeight: 0,
+      unlimitedSlots: v.unlimitedSlots ?? false,
+      unlimitedQuantity: v.unlimitedQuantity ?? false,
       metadata: {},
     },
   };
@@ -298,11 +300,16 @@ export function mapConditionsToApi(
 
 /**
  * Maps experiences to API format
+ * Preserves the { items: [...] } structure with id, name, value
  */
 export function mapExperiencesToApi(
   v: ExperiencesState
 ): Partial<CharacterRecord> {
-  return { experiences: v.items.map(e => ({ name: e.name, bonus: e.value })) };
+  return {
+    experiences: {
+      items: v.items.map(e => ({ id: e.id, name: e.name, value: e.value })),
+    },
+  };
 }
 
 /**

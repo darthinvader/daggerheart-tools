@@ -65,6 +65,18 @@ export function useAutoSave(characterId: string): UseAutoSaveReturn {
         domains: updates.domains
           ? { ...currentPending.domains, ...updates.domains }
           : currentPending.domains,
+        traits: updates.traits
+          ? { ...currentPending.traits, ...updates.traits }
+          : currentPending.traits,
+        coreScores: updates.coreScores
+          ? { ...currentPending.coreScores, ...updates.coreScores }
+          : currentPending.coreScores,
+        thresholds: updates.thresholds
+          ? { ...currentPending.thresholds, ...updates.thresholds }
+          : currentPending.thresholds,
+        progression: updates.progression
+          ? { ...currentPending.progression, ...updates.progression }
+          : currentPending.progression,
       };
 
       if (saveTimeoutRef.current) {

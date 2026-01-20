@@ -230,6 +230,8 @@ export function hydrateInventory(
   setInventory({
     items: inventoryItems as unknown as InventoryItemEntry[],
     maxSlots: serverData.inventory?.maxItems ?? 50,
+    unlimitedSlots: serverData.inventory?.unlimitedSlots ?? false,
+    unlimitedQuantity: serverData.inventory?.unlimitedQuantity ?? false,
   });
 }
 
@@ -419,11 +421,13 @@ export function hydrateCharacterState(
     ),
   });
 
+  // experiences is stored as { items: [...] } with { id, name, value }
+  const experienceItems = serverData.experiences?.items ?? [];
   charState.setExperiences({
-    items: (serverData.experiences || []).map((e, i) => ({
-      id: String(i),
+    items: experienceItems.map((e, i) => ({
+      id: e.id ?? String(i),
       name: e.name,
-      value: e.bonus,
+      value: e.value,
     })),
   });
 

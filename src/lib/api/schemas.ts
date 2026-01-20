@@ -230,6 +230,8 @@ export const ApiInventorySchema = z.object({
   maxItems: z.number().min(1).default(50),
   weightCapacity: z.number().min(0).optional(),
   currentWeight: z.number().min(0).default(0),
+  unlimitedSlots: z.boolean().optional(),
+  unlimitedQuantity: z.boolean().optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
 });
 

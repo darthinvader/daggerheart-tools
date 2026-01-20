@@ -87,7 +87,7 @@ export function createDefaultCharacter(id: string): CharacterRecord {
     thresholds: null,
     leveling: [],
     experience: 0,
-    experiences: [],
+    experiences: { items: [] },
     companion: null,
     companionEnabled: false,
     scars: [],
