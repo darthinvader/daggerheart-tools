@@ -34,6 +34,7 @@ export function InventoryDisplay({
     handleUnlimitedQuantityChange,
     handleRemove,
     handleConvertToHomebrew,
+    handleEdit,
     handlePickerConvertToHomebrew,
     handleAddItems,
     handleAddCustomItem,
@@ -62,6 +63,7 @@ export function InventoryDisplay({
           onQuantityChange={readOnly ? undefined : handleQuantityChange}
           onRemove={readOnly ? undefined : handleRemove}
           onConvertToHomebrew={readOnly ? undefined : handleConvertToHomebrew}
+          onEdit={readOnly ? undefined : handleEdit}
           onMaxSlotsChange={readOnly ? undefined : handleMaxSlotsChange}
           onUnlimitedSlotsChange={
             readOnly ? undefined : handleUnlimitedSlotsChange

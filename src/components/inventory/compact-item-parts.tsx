@@ -1,4 +1,4 @@
-import { Minus, Plus, Sparkles, Trash2 } from 'lucide-react';
+import { Minus, Pencil, Plus, Sparkles, Trash2 } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -218,6 +218,7 @@ export interface ItemActionsProps {
   onQuantityChange?: (id: string, delta: number) => void;
   onRemove?: (id: string) => void;
   onConvertToHomebrew?: (id: string) => void;
+  onEdit?: (id: string) => void;
 }
 
 export function ItemActions({
@@ -229,6 +230,7 @@ export function ItemActions({
   onQuantityChange,
   onRemove,
   onConvertToHomebrew,
+  onEdit,
 }: ItemActionsProps) {
   return (
     <div className="mt-4 flex items-center justify-between border-t pt-3">
@@ -283,6 +285,18 @@ export function ItemActions({
       </div>
 
       <div className="flex items-center gap-2">
+        {isCustom && onEdit && (
+          <SmartTooltip content="✏️ Edit homebrew item">
+            <Button
+              variant="outline"
+              size="icon"
+              className="size-8 border-purple-300 text-purple-600 hover:bg-purple-50 hover:text-purple-700 dark:border-purple-700 dark:text-purple-400 dark:hover:bg-purple-950/50"
+              onClick={() => onEdit(entryId)}
+            >
+              <Pencil className="size-4" />
+            </Button>
+          </SmartTooltip>
+        )}
         {onConvertToHomebrew && !isCustom && (
           <SmartTooltip content="✨ Convert to homebrew - edit and customize this item">
             <Button

@@ -209,6 +209,14 @@ export function useInventoryHandlers({
     [itemHandlers]
   );
 
+  const handleEdit = useCallback(
+    (id: string) => {
+      itemHandlers.setEditingItemId(id);
+      setCustomFormOpen(true);
+    },
+    [itemHandlers]
+  );
+
   const handlePickerConvertToHomebrew = useCallback(
     (item: AnyItem) => {
       itemHandlers.handlePickerConvertToHomebrew(item);
@@ -241,6 +249,7 @@ export function useInventoryHandlers({
     handleUnlimitedQuantityChange: slotHandlers.handleUnlimitedQuantityChange,
     handleRemove: itemHandlers.handleRemove,
     handleConvertToHomebrew,
+    handleEdit,
     handlePickerConvertToHomebrew,
     handleAddItems: itemHandlers.handleAddItems,
     handleAddCustomItem: itemHandlers.handleAddCustomItem,

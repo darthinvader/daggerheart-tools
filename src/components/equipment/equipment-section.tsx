@@ -57,26 +57,25 @@ export function EquipmentSection<T extends { name: string; tier: string }>({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col space-y-3">
-      {/* Selected Item Display */}
+      {/* Selected Item Display - Compact inline preview */}
       {selectedItem && (
-        <div className="relative">
-          <div className="bg-primary/5 border-primary/20 rounded-lg border-2 p-1">
-            <div className="mb-1 flex items-center justify-between px-2 pt-1">
-              <span className="text-primary text-xs font-medium">
-                ✓ Selected
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleClearSelection}
-                className="text-muted-foreground hover:text-destructive h-6 px-2 text-xs"
-              >
-                <X className="mr-1 h-3 w-3" />
-                Clear
-              </Button>
-            </div>
-            {renderCard(selectedItem, true, () => {})}
+        <div className="bg-primary/5 border-primary/20 flex items-center justify-between gap-3 rounded-lg border-2 px-3 py-2">
+          <div className="flex items-center gap-2">
+            <span className="text-primary text-xs font-medium">✓</span>
+            <span className="font-medium">{selectedItem.name}</span>
+            <Badge variant="outline" className="text-xs">
+              Tier {selectedItem.tier}
+            </Badge>
           </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleClearSelection}
+            className="text-muted-foreground hover:text-destructive h-6 px-2 text-xs"
+          >
+            <X className="mr-1 h-3 w-3" />
+            Clear
+          </Button>
         </div>
       )}
 

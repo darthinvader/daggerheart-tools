@@ -17,6 +17,7 @@ export interface CompactItemCardProps {
   onQuantityChange?: (id: string, delta: number) => void;
   onRemove?: (id: string) => void;
   onConvertToHomebrew?: (id: string) => void;
+  onEdit?: (id: string) => void;
   readOnly?: boolean;
 }
 
@@ -26,6 +27,7 @@ export function CompactItemCard({
   onQuantityChange,
   onRemove,
   onConvertToHomebrew,
+  onEdit,
   readOnly,
 }: CompactItemCardProps) {
   const { item } = entry;
@@ -92,6 +94,7 @@ export function CompactItemCard({
           onQuantityChange={onQuantityChange}
           onRemove={onRemove}
           onConvertToHomebrew={onConvertToHomebrew}
+          onEdit={onEdit}
         />
       )}
     </div>

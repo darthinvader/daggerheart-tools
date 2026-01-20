@@ -15,6 +15,7 @@ interface CompactInventoryListProps {
   onQuantityChange?: (id: string, delta: number) => void;
   onRemove?: (id: string) => void;
   onConvertToHomebrew?: (id: string) => void;
+  onEdit?: (id: string) => void;
   readOnly?: boolean;
 }
 
@@ -32,6 +33,7 @@ export function CompactInventoryList({
   onQuantityChange,
   onRemove,
   onConvertToHomebrew,
+  onEdit,
   readOnly,
 }: CompactInventoryListProps) {
   const filteredItems = filterInventoryItems(
@@ -66,6 +68,7 @@ export function CompactInventoryList({
           onQuantityChange={onQuantityChange}
           onRemove={onRemove}
           onConvertToHomebrew={onConvertToHomebrew}
+          onEdit={onEdit}
           readOnly={readOnly}
         />
       ))}
@@ -80,6 +83,7 @@ interface LocationGroupProps {
   onQuantityChange?: (id: string, delta: number) => void;
   onRemove?: (id: string) => void;
   onConvertToHomebrew?: (id: string) => void;
+  onEdit?: (id: string) => void;
   readOnly?: boolean;
 }
 
@@ -90,6 +94,7 @@ function LocationGroup({
   onQuantityChange,
   onRemove,
   onConvertToHomebrew,
+  onEdit,
   readOnly,
 }: LocationGroupProps) {
   return (
@@ -108,6 +113,7 @@ function LocationGroup({
             onQuantityChange={onQuantityChange}
             onRemove={onRemove}
             onConvertToHomebrew={onConvertToHomebrew}
+            onEdit={onEdit}
             readOnly={readOnly}
           />
         ))}
