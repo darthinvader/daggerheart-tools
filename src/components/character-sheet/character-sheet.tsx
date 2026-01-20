@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { ArrowLeft, Cloud, CloudOff, Loader2 } from 'lucide-react';
+import { useState } from 'react';
 
 import {
   CombatTab,
@@ -12,8 +13,9 @@ import {
 import { LevelUpModal } from '@/components/level-up';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
 
+import { ResponsiveTabsList } from './responsive-tabs';
 import { useCharacterSheetWithApi } from './use-character-sheet-api';
 
 interface CharacterSheetProps {
@@ -99,6 +101,7 @@ function ErrorDisplay({
 }
 
 export function CharacterSheet({ characterId }: CharacterSheetProps) {
+  const [activeTab, setActiveTab] = useState('quick');
   const {
     state,
     handlers,
@@ -114,6 +117,18 @@ export function CharacterSheet({ characterId }: CharacterSheetProps) {
     lastSaved,
     isHydrated,
   } = useCharacterSheetWithApi(characterId);
+
+  const primaryTabs = [
+    { value: 'quick', label: '⚡ Quick' },
+    { value: 'overview', label: '📊 Overview' },
+  ];
+
+  const secondaryTabs = [
+    { value: 'identity', label: '👤 Identity' },
+    { value: 'combat', label: '⚔️ Combat' },
+    { value: 'items', label: '🎒 Items' },
+    { value: 'session', label: '🎲 Session' },
+  ];
 
   if (isLoading) {
     return (
@@ -156,15 +171,13 @@ export function CharacterSheet({ characterId }: CharacterSheetProps) {
           <SaveIndicator isSaving={isSaving} lastSaved={lastSaved} />
         </div>
 
-        <Tabs defaultValue="quick" className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="quick">⚡ Quick</TabsTrigger>
-            <TabsTrigger value="overview">📊 Overview</TabsTrigger>
-            <TabsTrigger value="identity">👤 Identity</TabsTrigger>
-            <TabsTrigger value="combat">⚔️ Combat</TabsTrigger>
-            <TabsTrigger value="items">🎒 Items</TabsTrigger>
-            <TabsTrigger value="session">🎲 Session</TabsTrigger>
-          </TabsList>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <ResponsiveTabsList
+            primaryTabs={primaryTabs}
+            secondaryTabs={secondaryTabs}
+            value={activeTab}
+            onValueChange={setActiveTab}
+          />
 
           <TabsContent value="quick">
             <QuickViewTab state={state} handlers={handlers} />
