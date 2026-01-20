@@ -29,6 +29,7 @@ interface EditableSectionProps {
   onCancel?: () => void;
   saveLabel?: string;
   cancelLabel?: string;
+  canSave?: boolean;
 }
 
 const MODAL_SIZE_CLASSES = {
@@ -56,6 +57,7 @@ export function EditableSection({
   onCancel,
   saveLabel = 'Save',
   cancelLabel = 'Cancel',
+  canSave = true,
 }: EditableSectionProps) {
   const handleCancel = () => {
     onCancel?.();
@@ -127,7 +129,9 @@ export function EditableSection({
             <Button variant="outline" onClick={handleCancel}>
               {cancelLabel}
             </Button>
-            <Button onClick={handleSave}>{saveLabel}</Button>
+            <Button onClick={handleSave} disabled={!canSave}>
+              {saveLabel}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { EditableSection } from '@/components/shared/editable-section';
 import { TraitsIcon } from '@/components/shared/icons';
@@ -11,6 +11,26 @@ import { cn } from '@/lib/utils';
 import { getCommunityColors, getCommunityEmoji } from './community-config';
 import { CommunityFeatureDisplay } from './community-feature-display';
 import { CommunitySelector } from './community-selector';
+
+// Validate if a community selection is complete and saveable
+function isCommunitySelectionValid(selection: CommunitySelection): boolean {
+  if (!selection) return false;
+
+  if (selection.mode === 'standard') {
+    return Boolean(selection.community?.name);
+  }
+
+  if (selection.mode === 'homebrew') {
+    const homebrew = selection.homebrew;
+    return Boolean(
+      homebrew?.name?.trim() &&
+      homebrew?.feature?.name?.trim() &&
+      homebrew?.feature?.description?.trim()
+    );
+  }
+
+  return false;
+}
 
 interface CommunityDisplayProps {
   selection: CommunitySelection;
@@ -189,6 +209,11 @@ export function CommunityDisplay({
   const [draftSelection, setDraftSelection] =
     useState<CommunitySelection>(selection);
 
+  const canSave = useMemo(
+    () => isCommunitySelectionValid(draftSelection),
+    [draftSelection]
+  );
+
   const handleEditToggle = useCallback(() => {
     if (!isEditing) {
       setDraftSelection(selection);
@@ -221,6 +246,7 @@ export function CommunityDisplay({
       className={cn(className)}
       editTitle="Choose Your Community"
       editDescription="Select a standard community or create your own homebrew community."
+      canSave={canSave}
       editContent={
         <CommunitySelector value={draftSelection} onChange={handleChange} />
       }

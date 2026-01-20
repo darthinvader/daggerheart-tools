@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { EditableSection } from '@/components/shared/editable-section';
 import { Badge } from '@/components/ui/badge';
@@ -16,6 +16,44 @@ import { cn } from '@/lib/utils';
 import { AncestrySelector } from './ancestry-selector';
 import { FeatureCard } from './feature-card';
 import { HomebrewAncestryContent } from './homebrew-ancestry-content';
+
+// Validate if an ancestry selection is complete and saveable
+function isStandardAncestryValid(selection: AncestrySelection): boolean {
+  return Boolean(selection.ancestry?.name);
+}
+
+function isMixedAncestryValid(mixed: MixedAncestry | undefined): boolean {
+  if (!mixed) return false;
+  const hasName = Boolean(mixed.name?.trim());
+  const hasParents = (mixed.parentAncestries?.length ?? 0) >= 2;
+  const hasFeatures = Boolean(
+    mixed.primaryFeature?.name && mixed.secondaryFeature?.name
+  );
+  return hasName && hasParents && hasFeatures;
+}
+
+function isHomebrewAncestryValid(selection: AncestrySelection): boolean {
+  const homebrew = selection.homebrew;
+  if (!homebrew) return false;
+  const hasName = Boolean(homebrew.name?.trim());
+  const hasPrimary = Boolean(homebrew.primaryFeature?.name?.trim());
+  const hasSecondary = Boolean(homebrew.secondaryFeature?.name?.trim());
+  return hasName && hasPrimary && hasSecondary;
+}
+
+function isAncestrySelectionValid(selection: AncestrySelection): boolean {
+  if (!selection) return false;
+  switch (selection.mode) {
+    case 'standard':
+      return isStandardAncestryValid(selection);
+    case 'mixed':
+      return isMixedAncestryValid(selection.mixedAncestry);
+    case 'homebrew':
+      return isHomebrewAncestryValid(selection);
+    default:
+      return false;
+  }
+}
 
 interface AncestryDisplayProps {
   selection: AncestrySelection;
@@ -245,6 +283,11 @@ export function AncestryDisplay({
   const [draftSelection, setDraftSelection] =
     useState<AncestrySelection>(selection);
 
+  const canSave = useMemo(
+    () => isAncestrySelectionValid(draftSelection),
+    [draftSelection]
+  );
+
   const handleEditToggle = useCallback(() => {
     if (!isEditing) {
       setDraftSelection(selection);
@@ -277,6 +320,7 @@ export function AncestryDisplay({
       className={cn(className)}
       editTitle="Choose Your Ancestry"
       editDescription="Select a standard ancestry, create a mixed heritage, or design your own homebrew ancestry."
+      canSave={canSave}
       editContent={
         <AncestrySelector value={draftSelection} onChange={handleChange} />
       }

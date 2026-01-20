@@ -1,6 +1,9 @@
 import { Badge } from '@/components/ui/badge';
 import { getClassByName, getSubclassByName } from '@/lib/data/classes';
-import type { ClassSelection } from '@/lib/schemas/class-selection';
+import type {
+  ClassSelection,
+  ClassSubclassPair,
+} from '@/lib/schemas/class-selection';
 import { CLASS_COLORS, CLASS_EMOJIS } from '@/lib/schemas/class-selection';
 import { DOMAIN_EMOJIS } from '@/lib/schemas/loadout';
 import { cn } from '@/lib/utils';
@@ -17,9 +20,11 @@ interface FeatureInfo {
   name: string;
   description: string;
   type: 'class' | 'subclass' | 'hope';
+  sourceClass?: string;
 }
 
-function getClassFeatures(
+function getFeaturesForClassPair(
+  pair: ClassSubclassPair,
   selection: ClassSelection,
   unlockedSubclassFeatures?: Record<string, string[]>
 ): FeatureInfo[] {
@@ -32,6 +37,7 @@ function getClassFeatures(
         name: f.name,
         description: f.description,
         type: 'class',
+        sourceClass: pair.className,
       });
     });
     if (selection.homebrewClass.hopeFeature) {
@@ -39,32 +45,32 @@ function getClassFeatures(
         name: selection.homebrewClass.hopeFeature.name,
         description: selection.homebrewClass.hopeFeature.description,
         type: 'hope',
+        sourceClass: pair.className,
       });
     }
     // Homebrew subclass features
     const subclass = selection.homebrewClass.subclasses.find(
-      s => s.name === selection.subclassName
+      s => s.name === pair.subclassName
     );
     subclass?.features?.forEach(f => {
       features.push({
         name: f.name,
         description: f.description,
         type: 'subclass',
+        sourceClass: pair.className,
       });
     });
   } else {
     // Standard class
-    const gameClass = getClassByName(selection.className);
-    const subclass = getSubclassByName(
-      selection.className,
-      selection.subclassName
-    );
+    const gameClass = getClassByName(pair.className);
+    const subclass = getSubclassByName(pair.className, pair.subclassName);
 
     gameClass?.classFeatures?.forEach(f => {
       features.push({
         name: f.name,
         description: f.description,
         type: 'class',
+        sourceClass: pair.className,
       });
     });
     if (gameClass?.hopeFeature) {
@@ -72,23 +78,59 @@ function getClassFeatures(
         name: gameClass.hopeFeature.name,
         description: gameClass.hopeFeature.description,
         type: 'hope',
+        sourceClass: pair.className,
       });
     }
 
     // Subclass features (only unlocked ones)
-    const unlocked = unlockedSubclassFeatures?.[selection.subclassName] ?? [];
+    const unlocked = unlockedSubclassFeatures?.[pair.subclassName] ?? [];
     subclass?.features?.forEach(f => {
       if (unlocked.includes(f.name)) {
         features.push({
           name: f.name,
           description: f.description,
           type: 'subclass',
+          sourceClass: pair.className,
         });
       }
     });
   }
 
   return features;
+}
+
+function getClassFeatures(
+  selection: ClassSelection,
+  unlockedSubclassFeatures?: Record<string, string[]>
+): FeatureInfo[] {
+  // Handle multiclass: use the classes array if available
+  const classPairs: ClassSubclassPair[] = selection.classes ?? [
+    {
+      className: selection.className,
+      subclassName: selection.subclassName,
+      spellcastTrait: selection.spellcastTrait,
+    },
+  ];
+
+  const allFeatures: FeatureInfo[] = [];
+
+  for (const pair of classPairs) {
+    const features = getFeaturesForClassPair(
+      pair,
+      // For standard classes, we need to check each class individually
+      selection.isHomebrew
+        ? selection
+        : {
+            ...selection,
+            className: pair.className,
+            subclassName: pair.subclassName,
+          },
+      unlockedSubclassFeatures
+    );
+    allFeatures.push(...features);
+  }
+
+  return allFeatures;
 }
 
 export function QuickClassInfo({
@@ -108,21 +150,40 @@ export function QuickClassInfo({
   }
 
   const features = getClassFeatures(selection, unlockedSubclassFeatures);
-  const colorClass = CLASS_COLORS[selection.className] ?? 'text-foreground';
-  const emoji = CLASS_EMOJIS[selection.className] ?? '⚔️';
+  const isMulticlass =
+    selection.isMulticlass && selection.classes && selection.classes.length > 1;
+
+  // Get all class pairs for display
+  const classPairs = selection.classes ?? [
+    { className: selection.className, subclassName: selection.subclassName },
+  ];
 
   return (
     <div className={cn('bg-card rounded-lg border p-3', className)}>
-      <div className="mb-2 flex items-center gap-2">
-        <span className="text-lg">{emoji}</span>
-        <span className={cn('font-semibold', colorClass)}>
-          {selection.className}
-        </span>
-        {selection.subclassName && (
-          <span className="text-muted-foreground text-sm">
-            ({selection.subclassName})
-          </span>
+      {/* Class header - show all classes for multiclass */}
+      <div className="mb-2 flex flex-wrap items-center gap-2">
+        {isMulticlass && (
+          <Badge variant="secondary" className="text-xs">
+            🔀 Multiclass
+          </Badge>
         )}
+        {classPairs.map(pair => {
+          const colorClass = CLASS_COLORS[pair.className] ?? 'text-foreground';
+          const emoji = CLASS_EMOJIS[pair.className] ?? '⚔️';
+          return (
+            <div key={pair.className} className="flex items-center gap-1">
+              <span className="text-lg">{emoji}</span>
+              <span className={cn('font-semibold', colorClass)}>
+                {pair.className}
+              </span>
+              {pair.subclassName && (
+                <span className="text-muted-foreground text-sm">
+                  ({pair.subclassName})
+                </span>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* Domains */}
@@ -145,11 +206,12 @@ export function QuickClassInfo({
         <div className="space-y-1 text-sm">
           {features.map((f, i) => (
             <ExpandableFeature
-              key={i}
+              key={`${f.sourceClass}-${f.name}-${i}`}
               feature={f}
               icon={
                 f.type === 'hope' ? '✨' : f.type === 'subclass' ? '🔹' : '▸'
               }
+              label={isMulticlass ? f.sourceClass : undefined}
             />
           ))}
         </div>

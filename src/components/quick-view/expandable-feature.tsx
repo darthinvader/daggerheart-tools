@@ -9,6 +9,7 @@ interface ExpandableFeatureProps {
   description?: string;
   icon?: React.ReactNode;
   className?: string;
+  label?: string;
 }
 
 export function ExpandableFeature({
@@ -17,6 +18,7 @@ export function ExpandableFeature({
   description: propDescription,
   icon,
   className,
+  label,
 }: ExpandableFeatureProps) {
   const name = feature?.name ?? propName ?? '';
   const description = feature?.description ?? propDescription;
@@ -46,6 +48,9 @@ export function ExpandableFeature({
           </span>
         )}
         <span className="font-medium">{name}</span>
+        {label && (
+          <span className="text-muted-foreground ml-1 text-xs">({label})</span>
+        )}
       </button>
       {isExpanded && hasDescription && (
         <p className="text-muted-foreground mt-1 ml-4 text-xs leading-relaxed">

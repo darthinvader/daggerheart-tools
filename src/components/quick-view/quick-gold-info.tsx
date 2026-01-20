@@ -61,24 +61,6 @@ export function QuickGoldInfo({
       )}
     >
       <span className="text-lg">💰</span>
-      <GoldDenomination
-        label="Chests"
-        emoji={EMOJI_TROPHY}
-        value={gold.chests}
-        onChange={onChange ? v => handleChange('chests', v) : undefined}
-      />
-      <GoldDenomination
-        label="Bags"
-        emoji={EMOJI_MONEYBAG}
-        value={gold.bags}
-        onChange={onChange ? v => handleChange('bags', v) : undefined}
-      />
-      <GoldDenomination
-        label="Handfuls"
-        emoji={EMOJI_FIST}
-        value={gold.handfuls}
-        onChange={onChange ? v => handleChange('handfuls', v) : undefined}
-      />
       {gold.showCoins && (
         <GoldDenomination
           label="Coins"
@@ -87,6 +69,24 @@ export function QuickGoldInfo({
           onChange={onChange ? v => handleChange('coins', v) : undefined}
         />
       )}
+      <GoldDenomination
+        label="Handfuls"
+        emoji={EMOJI_FIST}
+        value={gold.handfuls}
+        onChange={onChange ? v => handleChange('handfuls', v) : undefined}
+      />
+      <GoldDenomination
+        label="Bags"
+        emoji={EMOJI_MONEYBAG}
+        value={gold.bags}
+        onChange={onChange ? v => handleChange('bags', v) : undefined}
+      />
+      <GoldDenomination
+        label="Chests"
+        emoji={EMOJI_TROPHY}
+        value={gold.chests}
+        onChange={onChange ? v => handleChange('chests', v) : undefined}
+      />
     </div>
   );
 }

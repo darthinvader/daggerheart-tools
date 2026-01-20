@@ -163,6 +163,7 @@ export function ClassDisplay({
   });
   const [pendingSelection, setPendingSelection] =
     useState<ClassSelection | null>(null);
+  const [canSave, setCanSave] = useState(false);
   const [localUnlockState, setLocalUnlockState] = useState<FeatureUnlockState>(
     {}
   );
@@ -205,6 +206,7 @@ export function ClassDisplay({
 
   const handleCancel = useCallback(() => {
     setPendingSelection(null);
+    setCanSave(false);
     setDraftSelection({
       mode: selection?.mode ?? 'standard',
       className: selection?.className,
@@ -215,11 +217,22 @@ export function ClassDisplay({
 
   const handleComplete = useCallback((newSelection: ClassSelection) => {
     setPendingSelection(newSelection);
+    setCanSave(true);
   }, []);
 
-  const handleDraftChange = useCallback((draft: ClassDraft) => {
-    setDraftSelection(draft);
-  }, []);
+  const handleDraftChange = useCallback(
+    (draft: ClassDraft) => {
+      setDraftSelection(draft);
+      // Update canSave based on whether draft has complete class+subclass selection
+      // Schedule a check for after the ref is updated
+      setTimeout(() => {
+        setCanSave(
+          Boolean(completeRef.current?.complete()) || Boolean(pendingSelection)
+        );
+      }, 0);
+    },
+    [pendingSelection]
+  );
 
   const handleToggleUnlock = useCallback((featureName: string) => {
     setLocalUnlockState(prev => ({
@@ -241,6 +254,7 @@ export function ClassDisplay({
       className={cn(className)}
       editTitle="Choose Your Class"
       editDescription="Select your class and subclass, then click Save."
+      canSave={canSave}
       editContent={
         <ClassSelector
           value={draftSelection}

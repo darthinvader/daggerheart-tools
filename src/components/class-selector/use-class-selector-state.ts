@@ -121,6 +121,10 @@ export function useClassSelectorState({
   );
   const [homebrewSubclassName] = useState<string | null>(null);
 
+  // Modal state for subclass selection
+  const [modalClass, setModalClass] = useState<GameClass | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const handleModeChange = useCallback((newMode: ClassMode) => {
     setMode(newMode);
   }, []);
@@ -135,6 +139,33 @@ export function useClassSelectorState({
       setIsMulticlass,
       onChange,
     });
+
+  const handleOpenModal = useCallback(
+    (gameClass: GameClass) => {
+      // First, add the class to selection if not already selected
+      const isAlreadySelected = selectedClasses.some(
+        c => c.name === gameClass.name
+      );
+
+      if (!isAlreadySelected) {
+        if (isMulticlass) {
+          setSelectedClasses(prev => [...prev, gameClass]);
+        } else {
+          setSelectedClasses([gameClass]);
+          setSelectedSubclasses(new Map());
+        }
+      }
+
+      setModalClass(gameClass);
+      setIsModalOpen(true);
+    },
+    [selectedClasses, isMulticlass, setSelectedClasses, setSelectedSubclasses]
+  );
+
+  const handleCloseModal = useCallback(() => {
+    setIsModalOpen(false);
+    setModalClass(null);
+  }, []);
 
   const handleHomebrewChange = useCallback(
     (homebrew: HomebrewClass) => {
@@ -191,11 +222,15 @@ export function useClassSelectorState({
     selectedSubclasses,
     homebrewClass,
     canComplete,
+    modalClass,
+    isModalOpen,
     handleModeChange,
     handleMulticlassToggle,
     handleClassSelect,
     handleSubclassSelect,
     handleHomebrewChange,
     handleComplete,
+    handleOpenModal,
+    handleCloseModal,
   };
 }

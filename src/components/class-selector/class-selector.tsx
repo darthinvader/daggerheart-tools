@@ -2,14 +2,118 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import type { GameClass, GameSubclass } from '@/lib/schemas/class';
 import type { ClassDraft, ClassSelection } from '@/lib/schemas/class-selection';
 import { CLASS_EMOJIS } from '@/lib/schemas/class-selection';
 
 import { ClassList } from './class-list';
 import { ClassModeTabs } from './class-mode-tabs';
 import { HomebrewClassForm } from './homebrew-class-form';
-import { SubclassList } from './subclass-list';
+import { SubclassModal } from './subclass-modal';
 import { useClassSelectorState } from './use-class-selector-state';
+
+interface StandardModeContentProps {
+  isMulticlass: boolean;
+  selectedClasses: GameClass[];
+  selectedSubclasses: Map<string, GameSubclass>;
+  onMulticlassToggle: (checked: boolean) => void;
+  onOpenModal: (gameClass: GameClass) => void;
+  onSubclassSelect: (gameClass: GameClass, subclass: GameSubclass) => void;
+  modalClass: GameClass | null;
+  isModalOpen: boolean;
+  onCloseModal: () => void;
+}
+
+function StandardModeContent({
+  isMulticlass,
+  selectedClasses,
+  selectedSubclasses,
+  onMulticlassToggle,
+  onOpenModal,
+  onSubclassSelect,
+  modalClass,
+  isModalOpen,
+  onCloseModal,
+}: StandardModeContentProps) {
+  return (
+    <div className="space-y-6">
+      <div className="bg-muted/30 flex flex-col gap-3 rounded-lg border p-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Switch
+              id="multiclass-toggle"
+              checked={isMulticlass}
+              onCheckedChange={onMulticlassToggle}
+            />
+            <Label
+              htmlFor="multiclass-toggle"
+              className="flex cursor-pointer items-center gap-2"
+            >
+              <span>🔀 Multiclass</span>
+              {isMulticlass && (
+                <Badge variant="secondary" className="text-xs">
+                  Select multiple
+                </Badge>
+              )}
+            </Label>
+          </div>
+        </div>
+        {selectedClasses.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 border-t pt-2">
+            <span className="text-muted-foreground shrink-0 text-sm">
+              Selected:
+            </span>
+            {selectedClasses.map(c => (
+              <Badge key={c.name} variant="outline" className="text-xs">
+                {CLASS_EMOJIS[c.name]} {c.name}
+              </Badge>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <ClassList
+        selectedClasses={selectedClasses}
+        onSelect={onOpenModal}
+        isMulticlass={isMulticlass}
+      />
+
+      {selectedClasses.length > 0 && (
+        <div className="bg-muted/30 rounded-lg border p-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-muted-foreground shrink-0 text-sm font-medium">
+              Subclasses:
+            </span>
+            {selectedClasses.map(c => {
+              const subclass = selectedSubclasses.get(c.name);
+              return (
+                <Badge
+                  key={c.name}
+                  variant={subclass ? 'default' : 'outline'}
+                  className="cursor-pointer text-xs"
+                  onClick={() => onOpenModal(c)}
+                >
+                  {CLASS_EMOJIS[c.name]}{' '}
+                  {subclass?.name ?? `Choose ${c.name} subclass`}
+                </Badge>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <SubclassModal
+        open={isModalOpen}
+        onOpenChange={open => !open && onCloseModal()}
+        gameClass={modalClass}
+        selectedSubclass={
+          modalClass ? selectedSubclasses.get(modalClass.name) : undefined
+        }
+        onConfirm={onSubclassSelect}
+      />
+    </div>
+  );
+}
 
 interface ClassSelectorProps {
   value?: ClassDraft;
@@ -35,12 +139,15 @@ export function ClassSelector({
     selectedSubclasses,
     homebrewClass,
     canComplete,
+    modalClass,
+    isModalOpen,
     handleModeChange,
     handleMulticlassToggle,
-    handleClassSelect,
     handleSubclassSelect,
     handleHomebrewChange,
     handleComplete,
+    handleOpenModal,
+    handleCloseModal,
   } = useClassSelectorState({ value, onChange, onComplete, completeRef });
 
   return (
@@ -48,56 +155,17 @@ export function ClassSelector({
       <ClassModeTabs activeMode={mode} onModeChange={handleModeChange} />
 
       {mode === 'standard' && (
-        <div className="space-y-6">
-          <div className="bg-muted/30 flex flex-col gap-3 rounded-lg border p-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Switch
-                  id="multiclass-toggle"
-                  checked={isMulticlass}
-                  onCheckedChange={handleMulticlassToggle}
-                />
-                <Label
-                  htmlFor="multiclass-toggle"
-                  className="flex cursor-pointer items-center gap-2"
-                >
-                  <span>🔀 Multiclass</span>
-                  {isMulticlass && (
-                    <Badge variant="secondary" className="text-xs">
-                      Select multiple
-                    </Badge>
-                  )}
-                </Label>
-              </div>
-            </div>
-            {selectedClasses.length > 0 && (
-              <div className="flex flex-wrap items-center gap-2 border-t pt-2">
-                <span className="text-muted-foreground shrink-0 text-sm">
-                  Selected:
-                </span>
-                {selectedClasses.map(c => (
-                  <Badge key={c.name} variant="outline" className="text-xs">
-                    {CLASS_EMOJIS[c.name]} {c.name}
-                  </Badge>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <ClassList
-            selectedClasses={selectedClasses}
-            onSelect={handleClassSelect}
-            isMulticlass={isMulticlass}
-          />
-
-          {selectedClasses.length > 0 && (
-            <SubclassList
-              gameClasses={selectedClasses}
-              selectedSubclasses={selectedSubclasses}
-              onSelect={handleSubclassSelect}
-            />
-          )}
-        </div>
+        <StandardModeContent
+          isMulticlass={isMulticlass}
+          selectedClasses={selectedClasses}
+          selectedSubclasses={selectedSubclasses}
+          onMulticlassToggle={handleMulticlassToggle}
+          onOpenModal={handleOpenModal}
+          onSubclassSelect={handleSubclassSelect}
+          modalClass={modalClass}
+          isModalOpen={isModalOpen}
+          onCloseModal={handleCloseModal}
+        />
       )}
 
       {mode === 'homebrew' && (
