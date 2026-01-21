@@ -95,6 +95,10 @@ function CharactersPage() {
   const { data: characters, isLoading, error, refetch } = useCharactersQuery();
   const createMutation = useCreateCharacterMutation();
   const deleteMutation = useDeleteCharacterMutation();
+  const createErrorMessage =
+    createMutation.error instanceof Error
+      ? createMutation.error.message
+      : 'Unknown error';
 
   const handleCreateNew = () => {
     createMutation.mutate(undefined, {
@@ -165,6 +169,12 @@ function CharactersPage() {
           </Button>
         )}
       </div>
+
+      {createMutation.isError && (
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+          Failed to create character. {createErrorMessage}
+        </div>
+      )}
 
       {!characters || characters.length === 0 ? (
         <EmptyState onCreateNew={handleCreateNew} />
