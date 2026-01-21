@@ -1,6 +1,7 @@
 /**
  * Hydration logic for mapping server CharacterRecord to local state
  */
+/* eslint-disable max-lines */
 import type { CharacterRecord } from '@/lib/api/characters';
 import { getDomainsForClass } from '@/lib/data/classes';
 import type { InventoryItemEntry } from '@/lib/schemas/equipment';
@@ -46,6 +47,7 @@ export function hydrateIdentity(
 /**
  * Hydrates ancestry state from server data
  */
+// eslint-disable-next-line complexity
 export function hydrateAncestry(
   serverData: CharacterRecord,
   setAncestry: CharacterStateHook['setAncestry']

@@ -1,15 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-
+  TraitAllocationActions,
+  TraitAllocationGrid,
+  TraitAllocationHeader,
+} from './trait-allocation-parts';
 import { applyTraitPreset, getTraitPreset } from './trait-presets';
 import type { TraitsState } from './traits-display';
 
@@ -56,6 +51,59 @@ function buildAssignedCounts(traits: TraitsState) {
   return assigned;
 }
 
+function getTraitValue(traits: TraitsState, name: keyof TraitsState) {
+  const value = traits[name].value as AllowedValue;
+  return ALLOWED_VALUES.includes(value) ? value : 0;
+}
+
+function resolveTraitUpdate({
+  traits,
+  name,
+  value,
+  remaining,
+}: {
+  traits: TraitsState;
+  name: keyof TraitsState;
+  value: AllowedValue;
+  remaining: Record<AllowedValue, number>;
+}): { nextTraits: TraitsState; error: string | null } {
+  const current = getTraitValue(traits, name);
+  if (value === current) {
+    return { nextTraits: traits, error: null };
+  }
+
+  if (remaining[value] > 0) {
+    return {
+      nextTraits: {
+        ...traits,
+        [name]: { ...traits[name], value },
+      },
+      error: null,
+    };
+  }
+
+  const swapWith = TRAIT_NAMES.find(
+    traitName =>
+      traitName !== name && getTraitValue(traits, traitName) === value
+  );
+
+  if (!swapWith) {
+    return {
+      nextTraits: traits,
+      error: 'That value is already fully assigned.',
+    };
+  }
+
+  return {
+    nextTraits: {
+      ...traits,
+      [name]: { ...traits[name], value },
+      [swapWith]: { ...traits[swapWith], value: current },
+    },
+    error: null,
+  };
+}
+
 export function TraitAllocationEditor({
   traits,
   onChange,
@@ -94,76 +142,31 @@ export function TraitAllocationEditor({
   }, [preset, traits, onChange]);
 
   const updateTrait = (name: keyof TraitsState, value: AllowedValue) => {
-    const current = traits[name].value as AllowedValue;
-    if (value === current) return;
-
-    if (remaining[value] > 0) {
-      setError(null);
-      onChange({
-        ...traits,
-        [name]: { ...traits[name], value },
-      });
-      return;
-    }
-
-    const swapWith = TRAIT_NAMES.find(
-      traitName => traitName !== name && traits[traitName].value === value
-    );
-
-    if (!swapWith) {
-      setError('That value is already fully assigned.');
-      return;
-    }
-
-    setError(null);
-    onChange({
-      ...traits,
-      [name]: { ...traits[name], value },
-      [swapWith]: { ...traits[swapWith], value: current },
+    const { nextTraits, error: updateError } = resolveTraitUpdate({
+      traits,
+      name,
+      value,
+      remaining,
     });
+    setError(updateError);
+    if (updateError) return;
+    if (nextTraits !== traits) {
+      onChange(nextTraits);
+    }
   };
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge variant={isComplete ? 'default' : 'secondary'}>
-          {isComplete ? 'Completed' : 'In Progress'}
-        </Badge>
-        <span className="text-muted-foreground text-sm">
-          Remaining: +2({remaining[2]}), +1({remaining[1]}), +0({remaining[0]}),
-          -1({remaining[-1]})
-        </span>
-      </div>
-
-      <div className="flex flex-wrap gap-2">
-        {preset && (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => onChange(applyTraitPreset(traits, preset))}
-          >
-            Apply {className?.split('/')[0]?.trim() ?? 'Class'} Preset
-          </Button>
-        )}
-        <Button
-          type="button"
-          variant="ghost"
-          onClick={() =>
-            onChange(
-              applyTraitPreset(traits, {
-                Agility: 0,
-                Strength: 0,
-                Finesse: 0,
-                Instinct: 0,
-                Presence: 0,
-                Knowledge: 0,
-              })
-            )
-          }
-        >
-          Reset All
-        </Button>
-      </div>
+      <TraitAllocationHeader
+        isComplete={isComplete}
+        remaining={remaining as Record<number, number>}
+      />
+      <TraitAllocationActions
+        traits={traits}
+        preset={preset}
+        className={className}
+        onChange={onChange}
+      />
 
       {error && <p className="text-destructive text-sm">{error}</p>}
       <p className="text-muted-foreground text-sm">
@@ -171,45 +174,14 @@ export function TraitAllocationEditor({
         trait.
       </p>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        {TRAIT_NAMES.map(name => {
-          const currentValue = ALLOWED_VALUES.includes(
-            traits[name].value as AllowedValue
-          )
-            ? (traits[name].value as AllowedValue)
-            : 0;
-          return (
-            <div key={name} className="space-y-2">
-              <label className="text-sm font-medium">{name}</label>
-              <Select
-                value={String(currentValue)}
-                onValueChange={value =>
-                  updateTrait(name, Number(value) as AllowedValue)
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select modifier" />
-                </SelectTrigger>
-                <SelectContent>
-                  {ALLOWED_VALUES.map(value => {
-                    const isAvailable =
-                      value === currentValue || remaining[value] > 0;
-                    return (
-                      <SelectItem
-                        key={value}
-                        value={String(value)}
-                        disabled={!isAvailable}
-                      >
-                        {value > 0 ? `+${value}` : value}
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-            </div>
-          );
-        })}
-      </div>
+      <TraitAllocationGrid
+        traits={traits}
+        traitNames={TRAIT_NAMES}
+        allowedValues={ALLOWED_VALUES}
+        remaining={remaining}
+        getTraitValue={getTraitValue}
+        onUpdate={(name, value) => updateTrait(name, value as AllowedValue)}
+      />
     </div>
   );
 }

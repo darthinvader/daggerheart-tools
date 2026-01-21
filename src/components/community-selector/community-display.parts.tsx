@@ -1,0 +1,260 @@
+import { useCallback, useMemo, useState } from 'react';
+
+import { EditableSection } from '@/components/shared/editable-section';
+import { TraitsIcon } from '@/components/shared/icons';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import type { Community, CommunitySelection } from '@/lib/schemas/identity';
+import { cn } from '@/lib/utils';
+
+import { getCommunityColors, getCommunityEmoji } from './community-config';
+import { CommunityFeatureDisplay } from './community-feature-display';
+import { CommunitySelector } from './community-selector';
+
+// Validate if a community selection is complete and saveable
+function isCommunitySelectionValid(selection: CommunitySelection): boolean {
+  if (!selection) return false;
+
+  if (selection.mode === 'standard') {
+    return Boolean(selection.community?.name);
+  }
+
+  if (selection.mode === 'homebrew') {
+    const homebrew = selection.homebrew;
+    return Boolean(
+      homebrew?.name?.trim() &&
+      homebrew?.feature?.name?.trim() &&
+      homebrew?.feature?.description?.trim()
+    );
+  }
+
+  return false;
+}
+
+interface CommunityDisplayProps {
+  selection: CommunitySelection;
+  onChange?: (selection: CommunitySelection) => void;
+  className?: string;
+  readOnly?: boolean;
+}
+
+function EmptyCommunity({ onEdit }: { onEdit?: () => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-8 text-center">
+      <span className="text-4xl opacity-50">🏘️</span>
+      <p className="text-muted-foreground mt-2">No community selected</p>
+      <p className="text-muted-foreground mb-4 text-sm">
+        Choose where your character comes from
+      </p>
+      {onEdit && (
+        <Button variant="outline" onClick={onEdit}>
+          🏘️ Select Community
+        </Button>
+      )}
+    </div>
+  );
+}
+
+function StandardCommunityContent({ community }: { community: Community }) {
+  const colors = getCommunityColors(community.name);
+  const emoji = getCommunityEmoji(community.name);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-3xl">{emoji}</span>
+        <h4 className={cn('text-xl font-bold', colors.text)}>
+          {community.name}
+        </h4>
+        <Badge variant="secondary" className="gap-1">
+          📖 Standard
+        </Badge>
+      </div>
+
+      <Separator />
+
+      <div>
+        <p className="text-muted-foreground text-sm leading-relaxed">
+          {community.description}
+        </p>
+      </div>
+
+      <Separator />
+
+      <div>
+        <h5 className="text-muted-foreground mb-3 flex items-center gap-2 text-xs font-medium tracking-wide uppercase">
+          ⚔️ Community Feature
+        </h5>
+        <CommunityFeatureDisplay
+          feature={community.feature}
+          communityName={community.name}
+        />
+      </div>
+
+      <Separator />
+
+      <div>
+        <h5 className="text-muted-foreground mb-3 flex items-center gap-2 text-xs font-medium tracking-wide uppercase">
+          <TraitsIcon /> Common Traits
+        </h5>
+        <div className="flex flex-wrap gap-2">
+          {community.commonTraits.map(trait => (
+            <Badge
+              key={trait}
+              variant="outline"
+              className={cn('text-xs capitalize', colors.border, colors.bg)}
+            >
+              {trait}
+            </Badge>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HomebrewCommunityContent({ community }: { community: Community }) {
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-3xl">✨</span>
+        <h4 className="text-xl font-bold">
+          {community.name || '(Unnamed Homebrew)'}
+        </h4>
+        <Badge
+          variant="secondary"
+          className="gap-1 border-green-300 bg-green-100 text-green-700 dark:border-green-700 dark:bg-green-900/30 dark:text-green-300"
+        >
+          🛠️ Homebrew
+        </Badge>
+      </div>
+
+      {community.description && (
+        <>
+          <Separator />
+          <p className="text-muted-foreground text-sm leading-relaxed">
+            {community.description}
+          </p>
+        </>
+      )}
+
+      {community.feature?.name && (
+        <>
+          <Separator />
+          <div>
+            <h5 className="text-muted-foreground mb-3 flex items-center gap-2 text-xs font-medium tracking-wide uppercase">
+              ⚔️ Community Feature
+            </h5>
+            <CommunityFeatureDisplay feature={community.feature} />
+          </div>
+        </>
+      )}
+
+      {community.commonTraits?.length > 0 && (
+        <>
+          <Separator />
+          <div>
+            <h5 className="text-muted-foreground mb-3 flex items-center gap-2 text-xs font-medium tracking-wide uppercase">
+              <TraitsIcon /> Common Traits
+            </h5>
+            <div className="flex flex-wrap gap-2">
+              {community.commonTraits.map(trait => (
+                <Badge
+                  key={trait}
+                  variant="outline"
+                  className="text-xs capitalize"
+                >
+                  {trait}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function CommunityContent({
+  selection,
+  onEdit,
+}: {
+  selection: CommunitySelection;
+  onEdit?: () => void;
+}) {
+  if (!selection) {
+    return <EmptyCommunity onEdit={onEdit} />;
+  }
+
+  switch (selection.mode) {
+    case 'standard':
+      if (!selection.community) return <EmptyCommunity onEdit={onEdit} />;
+      return <StandardCommunityContent community={selection.community} />;
+    case 'homebrew':
+      if (!selection.homebrew) return <EmptyCommunity onEdit={onEdit} />;
+      return <HomebrewCommunityContent community={selection.homebrew} />;
+    default:
+      return <EmptyCommunity onEdit={onEdit} />;
+  }
+}
+
+export function CommunityDisplay({
+  selection,
+  onChange,
+  className,
+  readOnly = false,
+}: CommunityDisplayProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [draftSelection, setDraftSelection] =
+    useState<CommunitySelection>(selection);
+
+  const canSave = useMemo(
+    () => isCommunitySelectionValid(draftSelection),
+    [draftSelection]
+  );
+
+  const handleEditToggle = useCallback(() => {
+    if (!isEditing) {
+      setDraftSelection(selection);
+    }
+    setIsEditing(prev => !prev);
+  }, [isEditing, selection]);
+
+  const handleSave = useCallback(() => {
+    onChange?.(draftSelection);
+  }, [draftSelection, onChange]);
+
+  const handleCancel = useCallback(() => {
+    setDraftSelection(selection);
+  }, [selection]);
+
+  const handleChange = useCallback((newSelection: CommunitySelection) => {
+    setDraftSelection(newSelection);
+  }, []);
+
+  return (
+    <EditableSection
+      title="Community"
+      emoji="🏘️"
+      isEditing={isEditing}
+      onEditToggle={handleEditToggle}
+      onSave={handleSave}
+      onCancel={handleCancel}
+      showEditButton={!readOnly}
+      modalSize="lg"
+      className={cn(className)}
+      editTitle="Choose Your Community"
+      editDescription="Select a standard community or create your own homebrew community."
+      canSave={canSave}
+      editContent={
+        <CommunitySelector value={draftSelection} onChange={handleChange} />
+      }
+    >
+      <CommunityContent
+        selection={selection}
+        onEdit={!readOnly ? handleEditToggle : undefined}
+      />
+    </EditableSection>
+  );
+}

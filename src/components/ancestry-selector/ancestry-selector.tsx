@@ -18,6 +18,7 @@ interface AncestrySelectorProps {
   onChange?: (selection: AncestrySelection) => void;
 }
 
+// eslint-disable-next-line complexity
 export function AncestrySelector({ value, onChange }: AncestrySelectorProps) {
   const [mode, setMode] = useState<AncestryMode>(value?.mode ?? 'standard');
 

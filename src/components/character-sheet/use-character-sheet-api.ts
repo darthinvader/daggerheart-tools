@@ -1,5 +1,14 @@
+/* eslint-disable max-lines */
 import { useQuery } from '@tanstack/react-query';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  type Dispatch,
+  type SetStateAction,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import type { CoreScoresState } from '@/components/core-scores';
 import {
@@ -220,7 +229,398 @@ function createAutoSaveHandler<T>(
   };
 }
 
-// eslint-disable-next-line max-lines-per-function -- complex hook with many handler wrappers
+function buildHopeWithScarsState(
+  charState: ReturnType<typeof useCharacterState>,
+  sessionState: ReturnType<typeof useSessionState>
+): HopeWithScarsState {
+  return {
+    current: charState.resources.hope.current,
+    max: charState.resources.hope.max,
+    scars: sessionState.scars,
+    extraSlots: sessionState.extraHopeSlots,
+    companionHopeFilled: sessionState.companionHopeFilled,
+  };
+}
+
+function createLevelUpConfirmHandler({
+  charState,
+  sessionState,
+  setIsLevelUpOpen,
+  scheduleSave,
+}: {
+  charState: ReturnType<typeof useCharacterState>;
+  sessionState: ReturnType<typeof useSessionState>;
+  setIsLevelUpOpen: Dispatch<SetStateAction<boolean>>;
+  scheduleSave: (updates: Partial<CharacterRecord>) => void;
+}) {
+  return (result: LevelUpResult) => {
+    const updatedTraits = computeUpdatedTraits(charState.traits, result);
+    const updatedExperiences = computeUpdatedExperiences(
+      charState.experiences,
+      result
+    );
+    const updatedResources = computeUpdatedResources(
+      charState.resources,
+      result
+    );
+    const updatedCoreScores = computeUpdatedCoreScores(
+      charState.coreScores,
+      result
+    );
+    const updatedThresholds = computeUpdatedThresholds(
+      charState.thresholds,
+      result
+    );
+
+    processLevelUpResult(
+      result,
+      {
+        setProgression: charState.setProgression,
+        setThresholds: charState.setThresholds,
+        setIsLevelUpOpen,
+        setTraits: charState.setTraits,
+        setExperiences: charState.setExperiences,
+        setResources: charState.setResources,
+        setCoreScores: charState.setCoreScores,
+        setLoadout: charState.setLoadout,
+        setClassSelection: charState.setClassSelection,
+        setUnlockedSubclassFeatures: charState.setUnlockedSubclassFeatures,
+        setCompanion: sessionState.setCompanion,
+      },
+      charState.progression.currentTier,
+      charState.progression.tierHistory
+    );
+
+    scheduleSave({
+      progression: {
+        currentLevel: result.newLevel,
+        currentTier: result.newTier,
+        availablePoints: 0,
+        spentOptions: {},
+      },
+      traits: updatedTraits as unknown as CharacterRecord['traits'],
+      experiences: updatedExperiences,
+      resources: updatedResources as unknown as CharacterRecord['resources'],
+      coreScores: updatedCoreScores,
+      thresholds: updatedThresholds,
+    });
+  };
+}
+
+function createHopeWithScarsHandler({
+  charState,
+  sessionState,
+  scheduleSave,
+  isHydratedRef,
+  serverData,
+}: {
+  charState: ReturnType<typeof useCharacterState>;
+  sessionState: ReturnType<typeof useSessionState>;
+  scheduleSave: (updates: Partial<CharacterRecord>) => void;
+  isHydratedRef: React.RefObject<boolean | null>;
+  serverData: CharacterRecord | undefined;
+}) {
+  return (newState: HopeWithScarsState) => {
+    charState.setResources(prev => ({
+      ...prev,
+      hope: { current: newState.current, max: newState.max },
+    }));
+    sessionState.setScars(newState.scars);
+    sessionState.setExtraHopeSlots(newState.extraSlots ?? 0);
+    sessionState.setCompanionHopeFilled(newState.companionHopeFilled ?? false);
+    if (isHydratedRef.current) {
+      scheduleSave(
+        mapHopeWithScarsToApi(
+          { current: newState.current, max: newState.max },
+          newState.scars,
+          newState.extraSlots ?? 0,
+          newState.companionHopeFilled ?? false,
+          serverData?.resources
+        )
+      );
+    }
+  };
+}
+
+function createSessionsHandler({
+  sessionState,
+  scheduleSave,
+  isHydratedRef,
+}: {
+  sessionState: ReturnType<typeof useSessionState>;
+  scheduleSave: (updates: Partial<CharacterRecord>) => void;
+  isHydratedRef: React.RefObject<boolean | null>;
+}) {
+  return (sessions: SessionEntry[], id: string | null) => {
+    sessionState.setSessions(sessions);
+    sessionState.setCurrentSessionId(id);
+    if (isHydratedRef.current) {
+      scheduleSave(mapSessionsToApi(sessions, id));
+    }
+  };
+}
+
+// eslint-disable-next-line max-lines-per-function -- centralizes auto-save handler wiring
+function buildAutoSaveHandlers({
+  baseHandlers,
+  charState,
+  sessionState,
+  serverData,
+  scheduleSave,
+  isHydratedRef,
+}: {
+  baseHandlers: ReturnType<typeof buildCharacterSheetHandlers>;
+  charState: ReturnType<typeof useCharacterState>;
+  sessionState: ReturnType<typeof useSessionState>;
+  serverData: CharacterRecord | undefined;
+  scheduleSave: (updates: Partial<CharacterRecord>) => void;
+  isHydratedRef: React.RefObject<boolean | null>;
+}) {
+  return {
+    ...baseHandlers,
+    setIdentity: createAutoSaveHandler(
+      charState.setIdentity,
+      v => mapIdentityToApi(v, serverData?.identity),
+      scheduleSave,
+      isHydratedRef
+    ),
+    setAncestry: createAutoSaveHandler(
+      charState.setAncestry,
+      v => mapAncestryToApi(v, serverData?.identity),
+      scheduleSave,
+      isHydratedRef
+    ),
+    setCommunity: createAutoSaveHandler(
+      charState.setCommunity,
+      v => mapCommunityToApi(v, serverData?.identity),
+      scheduleSave,
+      isHydratedRef
+    ),
+    setClassSelection: createAutoSaveHandler(
+      charState.setClassSelection,
+      mapClassSelectionToApi,
+      scheduleSave,
+      isHydratedRef
+    ),
+    setTraits: createAutoSaveHandler(
+      charState.setTraits,
+      mapTraitsToApi,
+      scheduleSave,
+      isHydratedRef
+    ),
+    setEquipment: createAutoSaveHandler(
+      charState.setEquipment,
+      mapEquipmentToApi,
+      scheduleSave,
+      isHydratedRef
+    ),
+    setInventory: createAutoSaveHandler(
+      charState.setInventory,
+      mapInventoryToApi,
+      scheduleSave,
+      isHydratedRef
+    ),
+    setLoadout: createAutoSaveHandler(
+      charState.setLoadout,
+      v => mapLoadoutToApi(v, serverData?.domains),
+      scheduleSave,
+      isHydratedRef
+    ),
+    setProgression: createAutoSaveHandler(
+      charState.setProgression,
+      mapProgressionToApi,
+      scheduleSave,
+      isHydratedRef
+    ),
+    setGold: createAutoSaveHandler(
+      charState.setGold,
+      v => mapGoldToApi(v, serverData?.resources),
+      scheduleSave,
+      isHydratedRef
+    ),
+    setThresholds: createAutoSaveHandler(
+      charState.setThresholds,
+      mapThresholdsToApi,
+      scheduleSave,
+      isHydratedRef
+    ),
+    setConditions: createAutoSaveHandler(
+      charState.setConditions,
+      mapConditionsToApi,
+      scheduleSave,
+      isHydratedRef
+    ),
+    setExperiences: createAutoSaveHandler(
+      charState.setExperiences,
+      mapExperiencesToApi,
+      scheduleSave,
+      isHydratedRef
+    ),
+    setResources: createAutoSaveHandler(
+      charState.setResources,
+      v => mapResourcesToApi(v, charState.gold),
+      scheduleSave,
+      isHydratedRef
+    ),
+    setCoreScores: createAutoSaveHandler(
+      charState.setCoreScores,
+      mapCoreScoresToApi,
+      scheduleSave,
+      isHydratedRef
+    ),
+    setCompanion: createAutoSaveHandler(
+      sessionState.setCompanion,
+      mapCompanionToApi,
+      scheduleSave,
+      isHydratedRef
+    ),
+    setCompanionEnabled: createAutoSaveHandler(
+      sessionState.setCompanionEnabled,
+      mapCompanionEnabledToApi,
+      scheduleSave,
+      isHydratedRef
+    ),
+    setHopeWithScars: createHopeWithScarsHandler({
+      charState,
+      sessionState,
+      scheduleSave,
+      isHydratedRef,
+      serverData,
+    }),
+    setCountdowns: createAutoSaveHandler(
+      sessionState.setCountdowns,
+      mapCountdownsToApi,
+      scheduleSave,
+      isHydratedRef
+    ),
+    setSessions: createSessionsHandler({
+      sessionState,
+      scheduleSave,
+      isHydratedRef,
+    }),
+    setNotes: createAutoSaveHandler(
+      sessionState.setNotes,
+      mapNotesToApi,
+      scheduleSave,
+      isHydratedRef
+    ),
+    setDowntimeActivities: createAutoSaveHandler(
+      sessionState.setDowntimeActivities,
+      mapDowntimeActivitiesToApi,
+      scheduleSave,
+      isHydratedRef
+    ),
+  };
+}
+
+function useHasCompanionFeature(
+  state: ReturnType<typeof buildCharacterSheetState>
+) {
+  return useMemo(() => {
+    const hasCompanionFlag = (
+      value: unknown
+    ): value is { companion?: boolean } =>
+      Boolean(value && typeof value === 'object' && 'companion' in value);
+    const selection = state.classSelection;
+    if (!selection?.className || !selection?.subclassName) return false;
+    if (selection.isHomebrew && selection.homebrewClass) {
+      const homebrewSubclass = selection.homebrewClass.subclasses.find(
+        s => s.name === selection.subclassName
+      );
+      return Boolean(homebrewSubclass?.companion);
+    }
+    const subclass = getSubclassByName(
+      selection.className,
+      selection.subclassName
+    );
+    return hasCompanionFlag(subclass) && Boolean(subclass.companion);
+  }, [state.classSelection]);
+}
+
+function useAutoEnableCompanion({
+  isHydrated,
+  state,
+  hasCompanionFeature,
+  handlers,
+}: {
+  isHydrated: boolean;
+  state: ReturnType<typeof buildCharacterSheetState>;
+  hasCompanionFeature: boolean;
+  handlers: ReturnType<typeof buildAutoSaveHandlers>;
+}) {
+  useEffect(() => {
+    if (!isHydrated) return;
+    if (!state.companionEnabled && (hasCompanionFeature || state.companion)) {
+      handlers.setCompanionEnabled(true);
+    }
+  }, [
+    hasCompanionFeature,
+    handlers,
+    handlers.setCompanionEnabled,
+    isHydrated,
+    state.companion,
+    state.companionEnabled,
+  ]);
+}
+
+function useHydrateCharacterState({
+  serverData,
+  charState,
+  sessionState,
+  isHydratedRef,
+  setIsHydrated,
+  setIsNewCharacterState,
+}: {
+  serverData: CharacterRecord | undefined;
+  charState: ReturnType<typeof useCharacterState>;
+  sessionState: ReturnType<typeof useSessionState>;
+  isHydratedRef: React.RefObject<boolean | null>;
+  setIsHydrated: (value: boolean) => void;
+  setIsNewCharacterState: (value: boolean) => void;
+}) {
+  useEffect(() => {
+    if (serverData && !isHydratedRef.current) {
+      isHydratedRef.current = true;
+      hydrateCharacterState(serverData, charState, sessionState);
+      setIsNewCharacterState(Boolean(serverData.isNewCharacter));
+      requestAnimationFrame(() => {
+        setIsHydrated(true);
+      });
+    }
+  }, [
+    charState,
+    isHydratedRef,
+    serverData,
+    sessionState,
+    setIsHydrated,
+    setIsNewCharacterState,
+  ]);
+}
+
+function buildTraitModalItems(traits: TraitsState) {
+  return Object.entries(traits).map(([name, val]) => ({
+    name,
+    marked: val.marked,
+  }));
+}
+
+function buildExperienceModalItems(experiences: ExperiencesState) {
+  return experiences.items.map(exp => ({
+    id: exp.id,
+    name: exp.name,
+    value: exp.value,
+  }));
+}
+
+function buildOwnedCardNames(
+  loadout: ReturnType<typeof useCharacterState>['loadout']
+) {
+  return [
+    ...loadout.activeCards.map(c => c.name),
+    ...loadout.vaultCards.map(c => c.name),
+  ];
+}
+
 export function useCharacterSheetWithApi(characterId: string) {
   // Fetch character data from API
   const {
@@ -245,13 +645,7 @@ export function useCharacterSheetWithApi(characterId: string) {
   const { isSaving, lastSaved, scheduleSave } = useAutoSave(characterId);
 
   // Build state object to pass to components
-  const hopeWithScars: HopeWithScarsState = {
-    current: charState.resources.hope.current,
-    max: charState.resources.hope.max,
-    scars: sessionState.scars,
-    extraSlots: sessionState.extraHopeSlots,
-    companionHopeFilled: sessionState.companionHopeFilled,
-  };
+  const hopeWithScars = buildHopeWithScarsState(charState, sessionState);
 
   const state = buildCharacterSheetState(
     charState,
@@ -264,62 +658,14 @@ export function useCharacterSheetWithApi(characterId: string) {
 
   const handleLevelUpConfirm = useCallback(
     (result: LevelUpResult) => {
-      // Compute the expected final state values before processing
-      // so we can save them (React state updates are async)
-      const updatedTraits = computeUpdatedTraits(charState.traits, result);
-      const updatedExperiences = computeUpdatedExperiences(
-        charState.experiences,
-        result
-      );
-      const updatedResources = computeUpdatedResources(
-        charState.resources,
-        result
-      );
-      const updatedCoreScores = computeUpdatedCoreScores(
-        charState.coreScores,
-        result
-      );
-      const updatedThresholds = computeUpdatedThresholds(
-        charState.thresholds,
-        result
-      );
-
-      processLevelUpResult(
-        result,
-        {
-          setProgression: charState.setProgression,
-          setThresholds: charState.setThresholds,
-          setIsLevelUpOpen,
-          setTraits: charState.setTraits,
-          setExperiences: charState.setExperiences,
-          setResources: charState.setResources,
-          setCoreScores: charState.setCoreScores,
-          setLoadout: charState.setLoadout,
-          setClassSelection: charState.setClassSelection,
-          setUnlockedSubclassFeatures: charState.setUnlockedSubclassFeatures,
-          setCompanion: sessionState.setCompanion,
-        },
-        charState.progression.currentTier,
-        charState.progression.tierHistory
-      );
-
-      // Save all fields that were modified during level-up
-      // Use type assertions for state types that differ from API schema types
-      scheduleSave({
-        progression: {
-          currentLevel: result.newLevel,
-          currentTier: result.newTier,
-          availablePoints: 0,
-          spentOptions: {},
-        },
-        traits: updatedTraits as unknown as CharacterRecord['traits'],
-        experiences: updatedExperiences,
-        resources: updatedResources as unknown as CharacterRecord['resources'],
-        coreScores: updatedCoreScores,
-        thresholds: updatedThresholds,
-      });
+      createLevelUpConfirmHandler({
+        charState,
+        sessionState,
+        setIsLevelUpOpen,
+        scheduleSave,
+      })(result);
     },
-    [charState, sessionState.setCompanion, scheduleSave]
+    [charState, sessionState, scheduleSave, setIsLevelUpOpen]
   );
 
   const handleSetHopeWithScars = useCallback(
@@ -346,210 +692,37 @@ export function useCharacterSheetWithApi(characterId: string) {
   );
 
   // Wrap setters with auto-save functionality using useMemo
-  // The ref is only accessed inside returned handler functions (event handlers),
-  // not during the useMemo render phase, so this is a false positive.
-  /* eslint-disable react-hooks/refs, max-lines-per-function */
   const handlers = useMemo(
-    () => ({
-      ...baseHandlers,
-      setIdentity: createAutoSaveHandler(
-        charState.setIdentity,
-        v => mapIdentityToApi(v, serverData?.identity),
+    () =>
+      // eslint-disable-next-line react-hooks/refs -- ref only read inside handlers (event-time)
+      buildAutoSaveHandlers({
+        baseHandlers,
+        charState,
+        sessionState,
+        serverData,
         scheduleSave,
-        isHydratedRef
-      ),
-      setAncestry: createAutoSaveHandler(
-        charState.setAncestry,
-        v => mapAncestryToApi(v, serverData?.identity),
-        scheduleSave,
-        isHydratedRef
-      ),
-      setCommunity: createAutoSaveHandler(
-        charState.setCommunity,
-        v => mapCommunityToApi(v, serverData?.identity),
-        scheduleSave,
-        isHydratedRef
-      ),
-      setClassSelection: createAutoSaveHandler(
-        charState.setClassSelection,
-        mapClassSelectionToApi,
-        scheduleSave,
-        isHydratedRef
-      ),
-      setTraits: createAutoSaveHandler(
-        charState.setTraits,
-        mapTraitsToApi,
-        scheduleSave,
-        isHydratedRef
-      ),
-      setEquipment: createAutoSaveHandler(
-        charState.setEquipment,
-        mapEquipmentToApi,
-        scheduleSave,
-        isHydratedRef
-      ),
-      setInventory: createAutoSaveHandler(
-        charState.setInventory,
-        mapInventoryToApi,
-        scheduleSave,
-        isHydratedRef
-      ),
-      setLoadout: createAutoSaveHandler(
-        charState.setLoadout,
-        v => mapLoadoutToApi(v, serverData?.domains),
-        scheduleSave,
-        isHydratedRef
-      ),
-      setProgression: createAutoSaveHandler(
-        charState.setProgression,
-        mapProgressionToApi,
-        scheduleSave,
-        isHydratedRef
-      ),
-      setGold: createAutoSaveHandler(
-        charState.setGold,
-        v => mapGoldToApi(v, serverData?.resources),
-        scheduleSave,
-        isHydratedRef
-      ),
-      setThresholds: createAutoSaveHandler(
-        charState.setThresholds,
-        mapThresholdsToApi,
-        scheduleSave,
-        isHydratedRef
-      ),
-      setConditions: createAutoSaveHandler(
-        charState.setConditions,
-        mapConditionsToApi,
-        scheduleSave,
-        isHydratedRef
-      ),
-      setExperiences: createAutoSaveHandler(
-        charState.setExperiences,
-        mapExperiencesToApi,
-        scheduleSave,
-        isHydratedRef
-      ),
-      setResources: createAutoSaveHandler(
-        charState.setResources,
-        v => mapResourcesToApi(v, charState.gold),
-        scheduleSave,
-        isHydratedRef
-      ),
-      setCoreScores: createAutoSaveHandler(
-        charState.setCoreScores,
-        mapCoreScoresToApi,
-        scheduleSave,
-        isHydratedRef
-      ),
-      setCompanion: createAutoSaveHandler(
-        sessionState.setCompanion,
-        mapCompanionToApi,
-        scheduleSave,
-        isHydratedRef
-      ),
-      setCompanionEnabled: createAutoSaveHandler(
-        sessionState.setCompanionEnabled,
-        mapCompanionEnabledToApi,
-        scheduleSave,
-        isHydratedRef
-      ),
-      setHopeWithScars: (newState: HopeWithScarsState) => {
-        charState.setResources(prev => ({
-          ...prev,
-          hope: { current: newState.current, max: newState.max },
-        }));
-        sessionState.setScars(newState.scars);
-        sessionState.setExtraHopeSlots(newState.extraSlots ?? 0);
-        sessionState.setCompanionHopeFilled(
-          newState.companionHopeFilled ?? false
-        );
-        if (isHydratedRef.current) {
-          scheduleSave(
-            mapHopeWithScarsToApi(
-              { current: newState.current, max: newState.max },
-              newState.scars,
-              newState.extraSlots ?? 0,
-              newState.companionHopeFilled ?? false,
-              serverData?.resources
-            )
-          );
-        }
-      },
-      setCountdowns: createAutoSaveHandler(
-        sessionState.setCountdowns,
-        mapCountdownsToApi,
-        scheduleSave,
-        isHydratedRef
-      ),
-      setSessions: (s: SessionEntry[], id: string | null) => {
-        sessionState.setSessions(s);
-        sessionState.setCurrentSessionId(id);
-        if (isHydratedRef.current) {
-          scheduleSave(mapSessionsToApi(s, id));
-        }
-      },
-      setNotes: createAutoSaveHandler(
-        sessionState.setNotes,
-        mapNotesToApi,
-        scheduleSave,
-        isHydratedRef
-      ),
-      setDowntimeActivities: createAutoSaveHandler(
-        sessionState.setDowntimeActivities,
-        mapDowntimeActivitiesToApi,
-        scheduleSave,
-        isHydratedRef
-      ),
-    }),
+        isHydratedRef,
+      }),
     [baseHandlers, charState, sessionState, serverData, scheduleSave]
   );
-  /* eslint-enable react-hooks/refs, max-lines-per-function */
 
-  const hasCompanionFeature = useMemo(() => {
-    const hasCompanionFlag = (
-      value: unknown
-    ): value is { companion?: boolean } =>
-      Boolean(value && typeof value === 'object' && 'companion' in value);
-    const selection = state.classSelection;
-    if (!selection?.className || !selection?.subclassName) return false;
-    if (selection.isHomebrew && selection.homebrewClass) {
-      const homebrewSubclass = selection.homebrewClass.subclasses.find(
-        s => s.name === selection.subclassName
-      );
-      return Boolean(homebrewSubclass?.companion);
-    }
-    const subclass = getSubclassByName(
-      selection.className,
-      selection.subclassName
-    );
-    return hasCompanionFlag(subclass) && Boolean(subclass.companion);
-  }, [state.classSelection]);
+  const hasCompanionFeature = useHasCompanionFeature(state);
 
-  useEffect(() => {
-    if (!isHydrated) return;
-    if (!state.companionEnabled && (hasCompanionFeature || state.companion)) {
-      handlers.setCompanionEnabled(true);
-    }
-  }, [
-    hasCompanionFeature,
-    handlers.setCompanionEnabled,
+  useAutoEnableCompanion({
     isHydrated,
-    state.companion,
-    state.companionEnabled,
-  ]);
+    state,
+    hasCompanionFeature,
+    handlers,
+  });
 
-  // Hydrate local state from server data when it arrives
-  useEffect(() => {
-    if (serverData && !isHydratedRef.current) {
-      isHydratedRef.current = true;
-      hydrateCharacterState(serverData, charState, sessionState);
-      setIsNewCharacterState(Boolean(serverData.isNewCharacter));
-      requestAnimationFrame(() => {
-        setIsHydrated(true);
-      });
-    }
-  }, [serverData, charState, sessionState]);
+  useHydrateCharacterState({
+    serverData,
+    charState,
+    sessionState,
+    isHydratedRef,
+    setIsHydrated,
+    setIsNewCharacterState,
+  });
 
   const setIsNewCharacter = useCallback(
     (value: boolean) => {
@@ -561,18 +734,11 @@ export function useCharacterSheetWithApi(characterId: string) {
     [scheduleSave]
   );
 
-  const currentTraitsForModal = Object.entries(charState.traits).map(
-    ([name, val]) => ({ name, marked: val.marked })
+  const currentTraitsForModal = buildTraitModalItems(charState.traits);
+  const currentExperiencesForModal = buildExperienceModalItems(
+    charState.experiences
   );
-  const currentExperiencesForModal = charState.experiences.items.map(exp => ({
-    id: exp.id,
-    name: exp.name,
-    value: exp.value,
-  }));
-  const ownedCardNames = [
-    ...charState.loadout.activeCards.map(c => c.name),
-    ...charState.loadout.vaultCards.map(c => c.name),
-  ];
+  const ownedCardNames = buildOwnedCardNames(charState.loadout);
 
   return {
     state,

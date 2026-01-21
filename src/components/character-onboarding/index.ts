@@ -4,5 +4,5 @@ export {
   getOnboardingCompletion,
   isOnboardingComplete,
   ONBOARDING_STEP_ORDER,
-  type OnboardingStepId,
 } from './onboarding-utils';
+export type { OnboardingStepId } from './onboarding-utils';

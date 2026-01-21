@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { GameClass, GameSubclass } from '@/lib/data/classes';
 import { getDomainsForClass } from '@/lib/data/classes';
@@ -104,6 +104,165 @@ function buildHomebrewSelection(
   };
 }
 
+function getCanComplete(
+  mode: ClassMode,
+  selectedClasses: GameClass[],
+  selectedSubclasses: Map<string, GameSubclass>,
+  homebrewClass: HomebrewClass | null
+) {
+  if (mode === 'standard') {
+    return isStandardSelectionComplete(selectedClasses, selectedSubclasses);
+  }
+  if (mode === 'homebrew') {
+    return isHomebrewSelectionComplete(homebrewClass);
+  }
+  return false;
+}
+
+function ensureClassSelected({
+  gameClass,
+  isMulticlass,
+  selectedClasses,
+  selectedSubclasses,
+}: {
+  gameClass: GameClass;
+  isMulticlass: boolean;
+  selectedClasses: GameClass[];
+  selectedSubclasses: Map<string, GameSubclass>;
+}) {
+  const isAlreadySelected = selectedClasses.some(
+    c => c.name === gameClass.name
+  );
+
+  if (isAlreadySelected) {
+    return { nextClasses: selectedClasses, nextSubclasses: selectedSubclasses };
+  }
+
+  if (isMulticlass) {
+    return {
+      nextClasses: [...selectedClasses, gameClass],
+      nextSubclasses: selectedSubclasses,
+    };
+  }
+
+  return {
+    nextClasses: [gameClass],
+    nextSubclasses: new Map<string, GameSubclass>(),
+  };
+}
+
+function useModalHandlers({
+  isMulticlass,
+  selectedClasses,
+  selectedSubclasses,
+  setSelectedClasses,
+  setSelectedSubclasses,
+}: {
+  isMulticlass: boolean;
+  selectedClasses: GameClass[];
+  selectedSubclasses: Map<string, GameSubclass>;
+  setSelectedClasses: React.Dispatch<React.SetStateAction<GameClass[]>>;
+  setSelectedSubclasses: React.Dispatch<
+    React.SetStateAction<Map<string, GameSubclass>>
+  >;
+}) {
+  const [modalClass, setModalClass] = useState<GameClass | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleOpenModal = useCallback(
+    (gameClass: GameClass) => {
+      const { nextClasses, nextSubclasses } = ensureClassSelected({
+        gameClass,
+        isMulticlass,
+        selectedClasses,
+        selectedSubclasses,
+      });
+      if (nextClasses !== selectedClasses) {
+        setSelectedClasses(nextClasses);
+      }
+      if (nextSubclasses !== selectedSubclasses) {
+        setSelectedSubclasses(nextSubclasses);
+      }
+      setModalClass(gameClass);
+      setIsModalOpen(true);
+    },
+    [
+      isMulticlass,
+      selectedClasses,
+      selectedSubclasses,
+      setSelectedClasses,
+      setSelectedSubclasses,
+    ]
+  );
+
+  const handleCloseModal = useCallback(() => {
+    setIsModalOpen(false);
+    setModalClass(null);
+  }, []);
+
+  return { modalClass, isModalOpen, handleOpenModal, handleCloseModal };
+}
+
+function useHomebrewHandlers({
+  homebrewClass,
+  homebrewSubclassName,
+  setHomebrewClass,
+  onChange,
+}: {
+  homebrewClass: HomebrewClass | null;
+  homebrewSubclassName: string | null;
+  setHomebrewClass: React.Dispatch<React.SetStateAction<HomebrewClass | null>>;
+  onChange?: (draft: ClassDraft) => void;
+}) {
+  const handleHomebrewChange = useCallback(
+    (homebrew: HomebrewClass) => {
+      setHomebrewClass(homebrew);
+      onChange?.({
+        mode: 'homebrew',
+        homebrewClass: homebrew,
+        subclassName: homebrewSubclassName ?? homebrew.subclasses[0]?.name,
+      });
+    },
+    [homebrewSubclassName, onChange, setHomebrewClass]
+  );
+
+  const selection = useMemo(() => {
+    if (!homebrewClass) return null;
+    return buildHomebrewSelection(homebrewClass, homebrewSubclassName);
+  }, [homebrewClass, homebrewSubclassName]);
+
+  return { handleHomebrewChange, homebrewSelection: selection };
+}
+
+function useClassCompletion({
+  mode,
+  selectedClasses,
+  selectedSubclasses,
+  homebrewSelection,
+  homebrewClass,
+}: {
+  mode: ClassMode;
+  selectedClasses: GameClass[];
+  selectedSubclasses: Map<string, GameSubclass>;
+  homebrewSelection: ClassSelection | null;
+  homebrewClass: HomebrewClass | null;
+}) {
+  const canComplete = useMemo(
+    () =>
+      getCanComplete(mode, selectedClasses, selectedSubclasses, homebrewClass),
+    [mode, selectedClasses, selectedSubclasses, homebrewClass]
+  );
+
+  const buildSelection = useCallback((): ClassSelection | null => {
+    if (mode === 'standard') {
+      return buildStandardSelection(selectedClasses, selectedSubclasses);
+    }
+    return homebrewSelection;
+  }, [mode, selectedClasses, selectedSubclasses, homebrewSelection]);
+
+  return { canComplete, buildSelection };
+}
+
 export function useClassSelectorState({
   value,
   onChange,
@@ -121,10 +280,6 @@ export function useClassSelectorState({
   );
   const [homebrewSubclassName] = useState<string | null>(null);
 
-  // Modal state for subclass selection
-  const [modalClass, setModalClass] = useState<GameClass | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
   const handleModeChange = useCallback((newMode: ClassMode) => {
     setMode(newMode);
   }, []);
@@ -140,60 +295,29 @@ export function useClassSelectorState({
       onChange,
     });
 
-  const handleOpenModal = useCallback(
-    (gameClass: GameClass) => {
-      // First, add the class to selection if not already selected
-      const isAlreadySelected = selectedClasses.some(
-        c => c.name === gameClass.name
-      );
+  const { modalClass, isModalOpen, handleOpenModal, handleCloseModal } =
+    useModalHandlers({
+      isMulticlass,
+      selectedClasses,
+      selectedSubclasses,
+      setSelectedClasses,
+      setSelectedSubclasses,
+    });
 
-      if (!isAlreadySelected) {
-        if (isMulticlass) {
-          setSelectedClasses(prev => [...prev, gameClass]);
-        } else {
-          setSelectedClasses([gameClass]);
-          setSelectedSubclasses(new Map());
-        }
-      }
+  const { handleHomebrewChange, homebrewSelection } = useHomebrewHandlers({
+    homebrewClass,
+    homebrewSubclassName,
+    setHomebrewClass,
+    onChange,
+  });
 
-      setModalClass(gameClass);
-      setIsModalOpen(true);
-    },
-    [selectedClasses, isMulticlass, setSelectedClasses, setSelectedSubclasses]
-  );
-
-  const handleCloseModal = useCallback(() => {
-    setIsModalOpen(false);
-    setModalClass(null);
-  }, []);
-
-  const handleHomebrewChange = useCallback(
-    (homebrew: HomebrewClass) => {
-      setHomebrewClass(homebrew);
-      onChange?.({
-        mode: 'homebrew',
-        homebrewClass: homebrew,
-        subclassName: homebrewSubclassName ?? homebrew.subclasses[0]?.name,
-      });
-    },
-    [homebrewSubclassName, onChange]
-  );
-
-  const buildSelection = useCallback((): ClassSelection | null => {
-    if (mode === 'standard') {
-      return buildStandardSelection(selectedClasses, selectedSubclasses);
-    }
-    if (mode === 'homebrew' && homebrewClass) {
-      return buildHomebrewSelection(homebrewClass, homebrewSubclassName);
-    }
-    return null;
-  }, [
+  const { canComplete, buildSelection } = useClassCompletion({
     mode,
     selectedClasses,
     selectedSubclasses,
+    homebrewSelection,
     homebrewClass,
-    homebrewSubclassName,
-  ]);
+  });
 
   const handleComplete = useCallback(() => {
     const selection = buildSelection();
@@ -201,11 +325,6 @@ export function useClassSelectorState({
       onComplete?.(selection);
     }
   }, [buildSelection, onComplete]);
-
-  const canComplete =
-    (mode === 'standard' &&
-      isStandardSelectionComplete(selectedClasses, selectedSubclasses)) ||
-    (mode === 'homebrew' && isHomebrewSelectionComplete(homebrewClass));
 
   useEffect(() => {
     if (completeRef) {

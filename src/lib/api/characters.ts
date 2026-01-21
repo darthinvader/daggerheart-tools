@@ -156,6 +156,7 @@ function mapDbRowToCharacter(row: Record<string, unknown>): CharacterRecord {
 }
 
 // Helper to convert camelCase CharacterRecord to snake_case for DB
+// eslint-disable-next-line complexity
 function mapCharacterToDbRow(
   char: Partial<CharacterRecord>
 ): Record<string, unknown> {

@@ -28,6 +28,7 @@ export const ONBOARDING_STEP_ORDER: OnboardingStepId[] = [
   'domains',
 ];
 
+// eslint-disable-next-line complexity
 function isAncestryComplete(selection: AncestrySelection): boolean {
   if (!selection) return false;
   if (selection.mode === 'standard') {
@@ -104,6 +105,7 @@ function hasValidLoadout(state: DemoState): boolean {
   return totalCards >= 2;
 }
 
+// eslint-disable-next-line complexity
 export function getOnboardingCompletion(
   state: DemoState
 ): Record<OnboardingStepId, boolean> {

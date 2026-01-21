@@ -206,6 +206,7 @@ type CardHeaderProps = {
   onRemove?: () => void;
 };
 
+// eslint-disable-next-line complexity
 function CardHeader({
   card,
   emoji,

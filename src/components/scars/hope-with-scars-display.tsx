@@ -66,6 +66,14 @@ function HopeStatus({
   );
 }
 
+function getHopeDerivedValues(state: HopeWithScarsState) {
+  const extraSlots = state.extraSlots ?? 0;
+  const totalSlots = 6 + extraSlots;
+  const effectiveMax = state.max + extraSlots;
+  const companionHopeFilled = state.companionHopeFilled ?? false;
+  return { extraSlots, totalSlots, effectiveMax, companionHopeFilled };
+}
+
 function ScarsList({ scars }: { scars: Scar[] }) {
   if (scars.length === 0) return null;
   return (
@@ -78,22 +86,22 @@ function ScarsList({ scars }: { scars: Scar[] }) {
     </div>
   );
 }
-
-export function HopeWithScarsDisplay({
+function useHopeWithScarsController({
   state,
   onChange,
-  className,
   readOnly,
-  bonusHopeSlots = 0,
-}: HopeWithScarsDisplayProps) {
+  bonusHopeSlots,
+}: {
+  state: HopeWithScarsState;
+  onChange?: (state: HopeWithScarsState) => void;
+  readOnly?: boolean;
+  bonusHopeSlots: number;
+}) {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState(state);
-
-  const extraSlots = state.extraSlots ?? 0;
-  // Don't include companion hope in main slots - it's tracked separately
-  const totalSlots = 6 + extraSlots;
-  const effectiveMax = state.max + extraSlots;
-  const companionHopeFilled = state.companionHopeFilled ?? false;
+  const scars = useMemo(() => state?.scars ?? [], [state.scars]);
+  const { totalSlots, effectiveMax, companionHopeFilled } =
+    getHopeDerivedValues(state);
 
   const handleEditToggle = useCallback(() => {
     if (!isEditing) setDraft(state);
@@ -104,27 +112,25 @@ export function HopeWithScarsDisplay({
     onChange?.(draft);
   }, [draft, onChange]);
 
-  const scars = useMemo(() => state?.scars ?? [], [state.scars]);
-  const handleSlotClick = useCallback(
-    (index: number) => {
-      if (readOnly || !onChange) return;
-      if (scars.some(s => s.hopeSlotIndex === index)) return;
+  const handleSlotClick = (index: number) => {
+    if (readOnly || !onChange) return;
+    if (scars.some(s => s.hopeSlotIndex === index)) return;
 
-      const isCurrentlyFilled = index < state.current;
-      const newCurrent = isCurrentlyFilled
-        ? Math.max(0, state.current - 1)
-        : Math.min(effectiveMax, state.current + 1);
+    const isCurrentlyFilled = index < state.current;
+    const newCurrent = isCurrentlyFilled
+      ? Math.max(0, state.current - 1)
+      : Math.min(effectiveMax, state.current + 1);
 
-      onChange({ ...state, current: newCurrent });
-    },
-    [readOnly, onChange, state, effectiveMax, scars]
-  );
+    onChange({ ...state, current: newCurrent });
+  };
 
-  const handleCompanionHopeToggle = useCallback(() => {
+  const handleCompanionHopeToggle = () => {
     if (readOnly || !onChange || bonusHopeSlots === 0) return;
-    const currentlyFilled = state.companionHopeFilled ?? false;
-    onChange({ ...state, companionHopeFilled: !currentlyFilled });
-  }, [readOnly, onChange, state, bonusHopeSlots]);
+    onChange({
+      ...state,
+      companionHopeFilled: !companionHopeFilled,
+    });
+  };
 
   const slots = buildSlots(
     state?.current ?? 0,
@@ -132,6 +138,47 @@ export function HopeWithScarsDisplay({
     totalSlots,
     0 // No bonus slots in main array - companion is separate
   );
+
+  return {
+    isEditing,
+    draft,
+    setDraft,
+    scars,
+    effectiveMax,
+    companionHopeFilled,
+    slots,
+    handleEditToggle,
+    handleSave,
+    handleSlotClick,
+    handleCompanionHopeToggle,
+  };
+}
+
+export function HopeWithScarsDisplay({
+  state,
+  onChange,
+  className,
+  readOnly,
+  bonusHopeSlots = 0,
+}: HopeWithScarsDisplayProps) {
+  const {
+    isEditing,
+    draft,
+    setDraft,
+    scars,
+    effectiveMax,
+    companionHopeFilled,
+    slots,
+    handleEditToggle,
+    handleSave,
+    handleSlotClick,
+    handleCompanionHopeToggle,
+  } = useHopeWithScarsController({
+    state,
+    onChange,
+    readOnly,
+    bonusHopeSlots,
+  });
 
   return (
     <EditableSection
