@@ -1,4 +1,5 @@
 import type { DomainCard } from '@/lib/schemas/domains';
+import type { DomainCardLite } from '@/lib/schemas/loadout';
 
 export interface CardCosts {
   recallCost: number;
@@ -10,6 +11,11 @@ export interface ActivationCost {
   type: 'Hope' | 'Stress';
   context?: string;
 }
+
+type CardCostSource = Pick<
+  DomainCard | DomainCardLite,
+  'description' | 'hopeCost' | 'recallCost' | 'stressCost'
+>;
 
 const HOPE_PATTERN =
   /(?:spend|mark|pay|costs?)\s+(?:(\d+)|(?:a|an|any\s+number\s+of))\s+hope/gi;
@@ -42,9 +48,23 @@ function extractCostsFromText(text: string): ActivationCost[] {
   return costs;
 }
 
-export function getCardCosts(card: DomainCard): CardCosts {
-  const recallCost = card.hopeCost ?? card.recallCost ?? 0;
+export function getCardCosts(card: CardCostSource): CardCosts {
+  const recallCost = card.recallCost ?? card.hopeCost ?? 0;
   const activationCosts = extractCostsFromText(card.description);
+
+  const hasHopeCost = activationCosts.some(cost => cost.type === 'Hope');
+  if (typeof card.hopeCost === 'number' && card.hopeCost > 0 && !hasHopeCost) {
+    activationCosts.push({ amount: card.hopeCost, type: 'Hope' });
+  }
+
+  const hasStressCost = activationCosts.some(cost => cost.type === 'Stress');
+  if (
+    typeof card.stressCost === 'number' &&
+    card.stressCost > 0 &&
+    !hasStressCost
+  ) {
+    activationCosts.push({ amount: card.stressCost, type: 'Stress' });
+  }
 
   return { recallCost, activationCosts };
 }

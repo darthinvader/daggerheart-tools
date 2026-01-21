@@ -12,7 +12,10 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 
-import { COMPANION_TYPE_SUGGESTIONS } from './constants';
+import {
+  COMPANION_ATTACK_SUGGESTIONS,
+  COMPANION_TYPE_SUGGESTIONS,
+} from './constants';
 import {
   type CompanionDamageDie,
   type CompanionRange,
@@ -45,18 +48,21 @@ export function BasicInfoSection({ state, onChange }: BasicInfoSectionProps) {
       </div>
       <div className="space-y-2">
         <Label htmlFor="companion-type">Creature Type</Label>
-        <Input
-          id="companion-type"
+        <Select
           value={state.type}
-          onChange={e => onChange('type', e.target.value)}
-          placeholder="e.g., Wolf, Hawk, Bear"
-          list="companion-types"
-        />
-        <datalist id="companion-types">
-          {COMPANION_TYPE_SUGGESTIONS.map(type => (
-            <option key={type} value={type} />
-          ))}
-        </datalist>
+          onValueChange={value => onChange('type', value)}
+        >
+          <SelectTrigger id="companion-type">
+            <SelectValue placeholder="Select a creature type" />
+          </SelectTrigger>
+          <SelectContent>
+            {COMPANION_TYPE_SUGGESTIONS.map(type => (
+              <SelectItem key={type} value={type}>
+                {type}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );
@@ -86,13 +92,21 @@ export function ExperiencesSection({
       </p>
       {experiences.map((exp, i) => (
         <div key={i} className="flex gap-2">
-          <Input
+          <Select
             value={exp.name}
-            onChange={e => onChange(i, 'name', e.target.value)}
-            placeholder="Experience name..."
-            list="experience-suggestions"
-            className="flex-1"
-          />
+            onValueChange={value => onChange(i, 'name', value)}
+          >
+            <SelectTrigger className="flex-1">
+              <SelectValue placeholder="Select an experience" />
+            </SelectTrigger>
+            <SelectContent>
+              {EXAMPLE_EXPERIENCES.map(example => (
+                <SelectItem key={example} value={example}>
+                  {example}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <div className="flex items-center gap-1">
             <span className="text-sm">+</span>
             <Input
@@ -107,11 +121,6 @@ export function ExperiencesSection({
           </div>
         </div>
       ))}
-      <datalist id="experience-suggestions">
-        {EXAMPLE_EXPERIENCES.map(exp => (
-          <option key={exp} value={exp} />
-        ))}
-      </datalist>
       <Button variant="outline" size="sm" onClick={onAdd}>
         <Plus className="mr-1 h-3 w-3" />
         Add Experience
@@ -137,11 +146,21 @@ export function AttackSection({ state, onChange }: AttackSectionProps) {
           <Label className="text-muted-foreground text-xs">
             Standard Attack
           </Label>
-          <Input
+          <Select
             value={state.standardAttack}
-            onChange={e => onChange('standardAttack', e.target.value)}
-            placeholder="e.g., Bite, Claw"
-          />
+            onValueChange={value => onChange('standardAttack', value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select an attack" />
+            </SelectTrigger>
+            <SelectContent>
+              {COMPANION_ATTACK_SUGGESTIONS.map(attack => (
+                <SelectItem key={attack} value={attack}>
+                  {attack}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="space-y-1">
           <Label className="text-muted-foreground text-xs">Damage Die</Label>

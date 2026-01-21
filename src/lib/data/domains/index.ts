@@ -110,7 +110,7 @@ export function getGrimoireCards(): DomainCard[] {
 }
 
 export function getCardRecallCost(card: DomainCard): number {
-  return card.hopeCost ?? card.recallCost ?? 0;
+  return card.recallCost ?? card.hopeCost ?? 0;
 }
 
 export function sortCardsByLevel(cards: DomainCard[]): DomainCard[] {

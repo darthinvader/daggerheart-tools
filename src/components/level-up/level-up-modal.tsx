@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import type { ClassSelection } from '@/lib/schemas/class-selection';
@@ -23,6 +23,7 @@ export interface LevelUpResult {
   };
   selections: LevelUpSelection[];
   companionTrainingSelection?: string;
+  companionTrainingExperienceIndex?: number;
 }
 
 interface LevelUpModalProps {
@@ -40,11 +41,13 @@ interface LevelUpModalProps {
   currentCompanionTraining?: CompanionTraining;
   hasCompanion?: boolean;
   companionName?: string;
+  companionExperiences?: { name: string; bonus: number }[];
 }
 
 function buildLevelUpResult(
   state: ReturnType<typeof useLevelUpState>,
-  companionTrainingSelection: string | null
+  companionTrainingSelection: string | null,
+  companionTrainingExperienceIndex: number | null
 ): LevelUpResult {
   return {
     newLevel: state.targetLevel,
@@ -58,6 +61,8 @@ function buildLevelUpResult(
     },
     selections: state.selections,
     companionTrainingSelection: companionTrainingSelection ?? undefined,
+    companionTrainingExperienceIndex:
+      companionTrainingExperienceIndex ?? undefined,
   };
 }
 
@@ -76,10 +81,29 @@ export function LevelUpModal({
   currentCompanionTraining,
   hasCompanion = false,
   companionName = '',
+  companionExperiences = [],
 }: LevelUpModalProps) {
   const [selectedCompanionTraining, setSelectedCompanionTraining] = useState<
     string | null
   >(null);
+  const [
+    selectedCompanionExperienceIndex,
+    setSelectedCompanionExperienceIndex,
+  ] = useState<number | null>(null);
+  const resetCompanionTrainingSelection = useCallback(() => {
+    setSelectedCompanionTraining(null);
+    setSelectedCompanionExperienceIndex(null);
+  }, []);
+
+  const handleSelectCompanionTraining = useCallback(
+    (training: string | null) => {
+      setSelectedCompanionTraining(training);
+      if (training !== 'intelligent') {
+        setSelectedCompanionExperienceIndex(null);
+      }
+    },
+    []
+  );
 
   const state = useLevelUpState({
     currentLevel,
@@ -97,9 +121,21 @@ export function LevelUpModal({
       hasCompanion,
       onClose,
       onConfirmResult: () =>
-        onConfirm(buildLevelUpResult(state, selectedCompanionTraining)),
-      resetCompanionTraining: () => setSelectedCompanionTraining(null),
+        onConfirm(
+          buildLevelUpResult(
+            state,
+            selectedCompanionTraining,
+            selectedCompanionExperienceIndex
+          )
+        ),
+      resetCompanionTraining: resetCompanionTrainingSelection,
     });
+
+  const requiresCompanionExperience =
+    selectedCompanionTraining === 'intelligent' &&
+    companionExperiences.length > 0;
+  const canProceedFromCompanion =
+    !requiresCompanionExperience || selectedCompanionExperienceIndex !== null;
 
   const mainDialogOpen =
     isOpen &&
@@ -127,12 +163,18 @@ export function LevelUpModal({
             companionName={companionName}
             currentCompanionTraining={currentCompanionTraining}
             selectedCompanionTraining={selectedCompanionTraining}
-            onSelectCompanionTraining={setSelectedCompanionTraining}
+            onSelectCompanionTraining={handleSelectCompanionTraining}
+            companionExperiences={companionExperiences}
+            selectedCompanionExperienceIndex={selectedCompanionExperienceIndex}
+            onSelectCompanionExperienceIndex={
+              setSelectedCompanionExperienceIndex
+            }
           />
 
           <ModalFooter
             currentStep={state.currentStep}
             canProceedFromAutomatic={state.canProceedToOptions}
+            canProceedFromCompanion={canProceedFromCompanion}
             pointsRemaining={state.pointsRemaining}
             onClose={handleClose}
             onConfirm={handleConfirm}
@@ -166,6 +208,7 @@ export function LevelUpModal({
         classPairs={state.classPairs}
         unlockedSubclassFeatures={unlockedSubclassFeatures}
         currentCompanionTraining={currentCompanionTraining}
+        companionExperiences={companionExperiences}
       />
     </>
   );

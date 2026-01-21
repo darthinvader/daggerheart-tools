@@ -24,6 +24,7 @@ import type {
 import type { ClassSelection } from '@/lib/schemas/class-selection';
 import type { CommunitySelection } from '@/lib/schemas/identity';
 import type { LoadoutSelection } from '@/lib/schemas/loadout';
+import type { QuickViewPreferences } from '@/lib/schemas/quick-view';
 import type { Scar } from '@/lib/schemas/session-state';
 
 /**
@@ -386,6 +387,15 @@ export function mapDowntimeActivitiesToApi(
   v: DowntimeActivity[]
 ): Partial<CharacterRecord> {
   return { downtimeActivities: v };
+}
+
+/**
+ * Maps quick view preferences to API format
+ */
+export function mapQuickViewToApi(
+  v: QuickViewPreferences
+): Partial<CharacterRecord> {
+  return { quickView: v };
 }
 
 /**

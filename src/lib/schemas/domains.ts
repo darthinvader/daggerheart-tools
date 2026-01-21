@@ -16,6 +16,7 @@ export const DomainCardSchema = z
     // Rulebook phrasing uses Hope as the spend; allow hopeCost while staying backward-compatible with recallCost
     hopeCost: z.number().int().min(0).optional(),
     recallCost: z.number().int().min(0).optional(),
+    stressCost: z.number().int().min(0).optional(),
     description: z.string(),
     tags: z.array(z.string()).optional(),
     metadata: MetadataSchema,

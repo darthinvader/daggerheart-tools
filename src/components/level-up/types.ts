@@ -53,6 +53,7 @@ export interface LevelUpSelectionDetails {
   };
   selectedSubclassUpgrade?: SubclassUpgradeSelection;
   selectedCompanionTraining?: string;
+  selectedCompanionExperienceIndex?: number;
 }
 
 export interface TierSelectionHistory {

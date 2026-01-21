@@ -23,6 +23,7 @@ import type {
 import type { ClassSelection } from '@/lib/schemas/class-selection';
 import type { CommunitySelection } from '@/lib/schemas/identity';
 import type { LoadoutSelection } from '@/lib/schemas/loadout';
+import type { QuickViewPreferences } from '@/lib/schemas/quick-view';
 
 export interface DemoState {
   identity: IdentityFormValues;
@@ -51,6 +52,7 @@ export interface DemoState {
   downtimeActivities: DowntimeActivity[];
   sessions: SessionEntry[];
   currentSessionId: string | null;
+  quickView: QuickViewPreferences;
 }
 
 export interface DemoHandlers {
@@ -79,6 +81,7 @@ export interface DemoHandlers {
   setCountdowns: (v: Countdown[]) => void;
   setDowntimeActivities: (v: DowntimeActivity[]) => void;
   setSessions: (s: SessionEntry[], id: string | null) => void;
+  setQuickView: (v: QuickViewPreferences) => void;
 }
 
 export interface TabProps {

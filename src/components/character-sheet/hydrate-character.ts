@@ -6,6 +6,7 @@ import type { CharacterRecord } from '@/lib/api/characters';
 import { getDomainsForClass } from '@/lib/data/classes';
 import type { InventoryItemEntry } from '@/lib/schemas/equipment';
 import { getAncestryByName, getCommunityByName } from '@/lib/schemas/identity';
+import { DEFAULT_QUICK_VIEW_PREFERENCES } from '@/lib/schemas/quick-view';
 
 /**
  * Type for the return value of useCharacterState hook
@@ -386,6 +387,9 @@ export function hydrateSessionStateHook(
   SessionStateHook.setCurrentSessionId(serverData.currentSessionId ?? null);
   SessionStateHook.setNotes(serverData.notes || []);
   SessionStateHook.setDowntimeActivities(serverData.downtimeActivities || []);
+  SessionStateHook.setQuickView(
+    serverData.quickView ?? DEFAULT_QUICK_VIEW_PREFERENCES
+  );
 }
 
 /**

@@ -42,26 +42,18 @@ export const DEFAULT_COMPANION_STATE: CompanionState = {
 };
 
 export const EXAMPLE_EXPERIENCES = [
-  'Bold Distraction',
-  'Expert Climber',
-  'Fetch',
-  'Friendly',
-  'Guardian of the Forest',
-  'Horrifying',
-  'Intimidating',
-  'Loyal Until the End',
-  'Navigation',
+  'Ambusher',
+  'Climber',
+  'Fetcher',
+  'Guardian',
+  'Keen Senses',
+  'Loyal Companion',
+  'Mount',
   'Nimble',
-  'Nobody Left Behind',
-  'On High Alert',
-  'Protective',
-  'Royal Companion',
   'Scout',
-  'Service Animal',
-  'Trusted Mount',
-  'Vigilant',
-  'We Always Find Them',
-  "You Can't Hit What You Can't Find",
+  'Stealthy',
+  'Tracker',
+  'Waterborne',
 ];
 
 export type {

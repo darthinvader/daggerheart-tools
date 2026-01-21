@@ -10,6 +10,7 @@ import {
   TraitStateSchema,
 } from '@/lib/schemas/character-state';
 import { ClassDraftSchema } from '@/lib/schemas/class-selection';
+import { QuickViewPreferencesSchema } from '@/lib/schemas/quick-view';
 import { supabase } from '@/lib/supabase';
 
 // Schema for ExperiencesState (matches component state format)
@@ -84,6 +85,7 @@ export const CharacterRecordSchema = z.object({
   currentSessionId: z.string().nullable().optional(),
   notes: z.array(CharacterNoteSchema).nullish(),
   downtimeActivities: z.array(DowntimeActivitySchema).nullish(),
+  quickView: QuickViewPreferencesSchema.nullish(),
   createdAt: z.string().nullish(),
   updatedAt: z.string().nullish(),
 });
@@ -150,6 +152,7 @@ function mapDbRowToCharacter(row: Record<string, unknown>): CharacterRecord {
     notes: row.notes as CharacterRecord['notes'],
     downtimeActivities:
       row.downtime_activities as CharacterRecord['downtimeActivities'],
+    quickView: row.quick_view as CharacterRecord['quickView'],
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
   };
@@ -198,6 +201,7 @@ function mapCharacterToDbRow(
   if (char.notes !== undefined) row.notes = char.notes;
   if (char.downtimeActivities !== undefined)
     row.downtime_activities = char.downtimeActivities;
+  if (char.quickView !== undefined) row.quick_view = char.quickView;
 
   return row;
 }

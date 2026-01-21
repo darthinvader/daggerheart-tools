@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import type { DomainCard } from '@/lib/schemas/domains';
 import type { HomebrewDomainCard } from '@/lib/schemas/loadout';
+import { getCardCosts, getTotalHopeCost } from '@/lib/utils/card-costs';
 
 import { CardFormFields } from './card-form-fields';
 
@@ -21,6 +22,8 @@ type HomebrewDraft = {
   type: string;
   description: string;
   hopeCost: number;
+  recallCost: number;
+  stressCost: number;
 };
 
 function createDraftFromCard(card: DomainCard | null): HomebrewDraft {
@@ -32,15 +35,25 @@ function createDraftFromCard(card: DomainCard | null): HomebrewDraft {
       type: 'Spell',
       description: '',
       hopeCost: 1,
+      recallCost: 0,
+      stressCost: 0,
     };
   }
+  const costs = getCardCosts(card);
+  const totalHope = getTotalHopeCost(costs.activationCosts);
+  const stressCost = costs.activationCosts
+    .filter(cost => cost.type === 'Stress')
+    .reduce((sum, cost) => sum + (cost.amount === 'any' ? 0 : cost.amount), 0);
+
   return {
     name: card.name,
     level: card.level,
     domain: card.domain,
     type: card.type,
     description: card.description,
-    hopeCost: card.hopeCost ?? 1,
+    hopeCost: totalHope === 'variable' ? 0 : totalHope,
+    recallCost: card.recallCost ?? card.hopeCost ?? 0,
+    stressCost,
   };
 }
 

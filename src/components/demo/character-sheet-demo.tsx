@@ -92,6 +92,7 @@ export function CharacterSheetDemo() {
         currentCompanionTraining={state.companion?.training}
         hasCompanion={!!state.companion}
         companionName={state.companion?.name}
+        companionExperiences={state.companion?.experiences ?? []}
       />
     </div>
   );

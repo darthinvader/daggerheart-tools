@@ -5,7 +5,9 @@ import {
   GripVertical,
   Trash2,
 } from 'lucide-react';
+import { useMemo } from 'react';
 
+import { CardCostBadges } from '@/components/loadout-selector/card-cost-badges';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
@@ -16,6 +18,7 @@ import {
   DOMAIN_EMOJIS,
 } from '@/lib/schemas/loadout';
 import { cn } from '@/lib/utils';
+import { getCardCosts } from '@/lib/utils/card-costs';
 
 export type DragSource = {
   location: 'active' | 'vault';
@@ -147,6 +150,7 @@ export function DomainCardMini({
     isPreview,
     isMovingAway
   );
+  const costs = useMemo(() => getCardCosts(card), [card]);
 
   const handleCardClick = () => {
     if (isSwapMode && visualState.canBeSwapTarget) {
@@ -183,7 +187,7 @@ export function DomainCardMini({
         onRemove={onRemove}
       />
       <p className="text-muted-foreground text-xs">{card.description}</p>
-      <CardBadges card={card} />
+      <CardBadges card={card} costs={costs} />
     </div>
   );
 }
@@ -328,26 +332,19 @@ function CardHeader({
   );
 }
 
-function CardBadges({ card }: { card: DomainCardLite }) {
+function CardBadges({
+  card,
+  costs,
+}: {
+  card: DomainCardLite;
+  costs: ReturnType<typeof getCardCosts>;
+}) {
   return (
     <div className="mt-2 flex flex-wrap gap-1">
       <Badge variant="secondary" className="text-xs">
         {card.type}
       </Badge>
-      {card.hopeCost !== undefined && card.hopeCost > 0 && (
-        <SmartTooltip content={`Costs ${card.hopeCost} Hope to use`}>
-          <Badge variant="outline" className="gap-1 text-xs">
-            ✨ {card.hopeCost}
-          </Badge>
-        </SmartTooltip>
-      )}
-      {card.recallCost !== undefined && card.recallCost > 0 && (
-        <SmartTooltip content={`Costs ${card.recallCost} to recall`}>
-          <Badge variant="outline" className="gap-1 text-xs">
-            🔄 {card.recallCost}
-          </Badge>
-        </SmartTooltip>
-      )}
+      <CardCostBadges costs={costs} compact />
       {card.isHomebrew && (
         <Badge variant="secondary" className="gap-1 text-xs">
           🛠️ Homebrew

@@ -1,10 +1,11 @@
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
-import { Badge } from '@/components/ui/badge';
+import { CardCostBadges } from '@/components/loadout-selector/card-cost-badges';
 import type { DomainCardLite, LoadoutSelection } from '@/lib/schemas/loadout';
 import { DOMAIN_BG_COLORS, DOMAIN_EMOJIS } from '@/lib/schemas/loadout';
 import { cn } from '@/lib/utils';
+import { getCardCosts } from '@/lib/utils/card-costs';
 
 interface QuickLoadoutInfoProps {
   selection: LoadoutSelection;
@@ -15,14 +16,40 @@ function CardMiniDisplay({ card }: { card: DomainCardLite }) {
   const [expanded, setExpanded] = useState(false);
   const domainEmoji = DOMAIN_EMOJIS[card.domain] ?? '📖';
   const domainBg = DOMAIN_BG_COLORS[card.domain] ?? '';
-  const hopeCost = card.hopeCost ?? card.recallCost ?? 0;
+  const costs = useMemo(() => getCardCosts(card), [card]);
+  const hasDescription = Boolean(card.description?.trim());
+
+  const toggleExpanded = () => {
+    if (hasDescription) {
+      setExpanded(prev => !prev);
+    }
+  };
 
   return (
-    <div className={cn('rounded border p-2', domainBg)}>
+    <div
+      className={cn(
+        'rounded border p-2',
+        domainBg,
+        hasDescription && 'cursor-pointer hover:opacity-90'
+      )}
+      onClick={toggleExpanded}
+      role={hasDescription ? 'button' : undefined}
+      tabIndex={hasDescription ? 0 : undefined}
+      onKeyDown={event => {
+        if (!hasDescription) return;
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          toggleExpanded();
+        }
+      }}
+    >
       <div className="mb-1 flex items-center justify-between gap-2">
         <button
           type="button"
-          onClick={() => setExpanded(prev => !prev)}
+          onClick={event => {
+            event.stopPropagation();
+            toggleExpanded();
+          }}
           className="flex items-center gap-1 text-left text-sm font-medium hover:opacity-80"
         >
           {card.description && (
@@ -37,12 +64,11 @@ function CardMiniDisplay({ card }: { card: DomainCardLite }) {
           <span>{domainEmoji}</span>
           <span className="truncate">{card.name}</span>
         </button>
-        <div className="flex shrink-0 items-center gap-1 text-xs">
-          {hopeCost > 0 && (
-            <Badge variant="secondary" className="px-1.5 py-0 text-xs">
-              ✨ {hopeCost}
-            </Badge>
-          )}
+        <div
+          className="flex shrink-0 items-center gap-1 text-xs"
+          onClick={event => event.stopPropagation()}
+        >
+          <CardCostBadges costs={costs} compact />
         </div>
       </div>
       {card.description && expanded && (

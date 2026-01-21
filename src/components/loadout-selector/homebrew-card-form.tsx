@@ -28,6 +28,8 @@ const EMPTY_CARD = {
   type: 'Spell',
   description: '',
   hopeCost: 1,
+  recallCost: 0,
+  stressCost: 0,
 };
 
 export function HomebrewCardForm({

@@ -2,6 +2,14 @@ import { Check } from 'lucide-react';
 import { useCallback } from 'react';
 
 import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import type { CompanionTraining } from '@/lib/schemas/core';
 import { cn } from '@/lib/utils';
 
@@ -17,50 +25,49 @@ const TRAINING_OPTIONS: Omit<TrainingOption, 'currentValue'>[] = [
   {
     id: 'intelligent',
     label: 'Intelligent',
-    description: '+1 Companion Experience bonus (max +3 total)',
+    description: '+1 to a Companion Experience',
     maxSelections: 3,
   },
   {
     id: 'vicious',
     label: 'Vicious',
-    description: 'Upgrade damage die by one step (max 3 upgrades)',
+    description: 'Increase damage die or range by one step',
     maxSelections: 3,
   },
   {
     id: 'resilient',
     label: 'Resilient',
-    description: '+1 Stress Slot (max 3 extra slots)',
+    description: 'Gain an additional Stress slot',
     maxSelections: 3,
   },
   {
     id: 'aware',
     label: 'Aware',
-    description: '+2 Evasion (max +6 total)',
+    description: '+2 permanent Evasion bonus (stacks)',
     maxSelections: 3,
   },
   {
     id: 'lightInTheDark',
     label: 'Light in the Dark',
-    description:
-      'Gain an additional Hope slot while your companion is with you',
+    description: 'Additional Hope slot for your character',
     maxSelections: 1,
   },
   {
     id: 'creatureComfort',
     label: 'Creature Comfort',
-    description: 'Clear +1 Stress when taking a short rest with your companion',
+    description: 'Once per rest: gain Hope or both clear Stress',
     maxSelections: 1,
   },
   {
     id: 'armored',
     label: 'Armored',
-    description: 'Companion gains +2 Armor',
+    description: 'Mark your Armor Slot instead of companion Stress',
     maxSelections: 1,
   },
   {
     id: 'bonded',
     label: 'Bonded',
-    description: 'Telepathic communication with your companion',
+    description: 'Companion may help you up at last HP',
     maxSelections: 1,
   },
 ];
@@ -70,6 +77,9 @@ interface CompanionBenefitsStepProps {
   currentTraining: CompanionTraining | undefined;
   selectedTraining: string | null;
   onSelectTraining: (trainingId: string | null) => void;
+  experiences: { name: string; bonus: number }[];
+  selectedExperienceIndex: number | null;
+  onSelectExperienceIndex: (index: number | null) => void;
 }
 
 export function CompanionBenefitsStep({
@@ -77,6 +87,9 @@ export function CompanionBenefitsStep({
   currentTraining,
   selectedTraining,
   onSelectTraining,
+  experiences,
+  selectedExperienceIndex,
+  onSelectExperienceIndex,
 }: CompanionBenefitsStepProps) {
   const getTrainingOptions = useCallback((): TrainingOption[] => {
     return TRAINING_OPTIONS.map(opt => ({
@@ -159,6 +172,38 @@ export function CompanionBenefitsStep({
           })
         )}
       </div>
+
+      {selectedTraining === 'intelligent' && experiences.length > 0 && (
+        <div className="mt-4 space-y-2">
+          <Label>Choose a companion experience to boost</Label>
+          <Select
+            value={
+              selectedExperienceIndex !== null
+                ? String(selectedExperienceIndex)
+                : ''
+            }
+            onValueChange={value =>
+              onSelectExperienceIndex(value ? Number(value) : null)
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select an experience" />
+            </SelectTrigger>
+            <SelectContent>
+              {experiences.map((exp, index) => (
+                <SelectItem key={index} value={String(index)}>
+                  {exp.name || `Experience ${index + 1}`} (+{exp.bonus})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {selectedExperienceIndex === null && (
+            <p className="text-muted-foreground text-xs">
+              Select an experience to apply the +1 bonus.
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }

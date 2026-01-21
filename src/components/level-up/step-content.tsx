@@ -15,6 +15,9 @@ interface StepContentProps {
   currentCompanionTraining?: CompanionTraining;
   selectedCompanionTraining: string | null;
   onSelectCompanionTraining: (training: string | null) => void;
+  companionExperiences: { name: string; bonus: number }[];
+  selectedCompanionExperienceIndex: number | null;
+  onSelectCompanionExperienceIndex: (index: number | null) => void;
 }
 
 export function StepContent({
@@ -24,6 +27,9 @@ export function StepContent({
   currentCompanionTraining,
   selectedCompanionTraining,
   onSelectCompanionTraining,
+  companionExperiences,
+  selectedCompanionExperienceIndex,
+  onSelectCompanionExperienceIndex,
 }: StepContentProps) {
   switch (currentStep) {
     case 'automatic-benefits':
@@ -44,6 +50,9 @@ export function StepContent({
           currentTraining={currentCompanionTraining}
           selectedTraining={selectedCompanionTraining}
           onSelectTraining={onSelectCompanionTraining}
+          experiences={companionExperiences}
+          selectedExperienceIndex={selectedCompanionExperienceIndex}
+          onSelectExperienceIndex={onSelectCompanionExperienceIndex}
         />
       );
     case 'advancement-options':

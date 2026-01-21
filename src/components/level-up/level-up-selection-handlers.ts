@@ -82,6 +82,12 @@ export function createSubModalConfirmHandler(
           selectedSubclassUpgrade:
             details.selectedSubclassUpgrade ??
             existing.details?.selectedSubclassUpgrade,
+          selectedCompanionTraining:
+            details.selectedCompanionTraining ??
+            existing.details?.selectedCompanionTraining,
+          selectedCompanionExperienceIndex:
+            details.selectedCompanionExperienceIndex ??
+            existing.details?.selectedCompanionExperienceIndex,
         };
         return prev.map(s =>
           s.optionId === pendingOption.id

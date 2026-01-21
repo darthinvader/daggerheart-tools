@@ -20,6 +20,7 @@ import {
   applyTraitSelection,
   boostExperiences,
   clearTraitsMarks,
+  computeUpdatedCompanionFromLevelUpResult,
   processLevelUpResult,
 } from '@/components/demo/level-up-handlers';
 import {
@@ -58,6 +59,7 @@ import {
   mapLoadoutToApi,
   mapNotesToApi,
   mapProgressionToApi,
+  mapQuickViewToApi,
   mapResourcesToApi,
   mapSessionsToApi,
   mapThresholdsToApi,
@@ -291,6 +293,13 @@ function createLevelUpConfirmHandler({
       charState.progression.tierHistory
     );
 
+    const shouldUpdateCompanion =
+      Boolean(result.companionTrainingSelection) ||
+      result.selections.some(sel => sel.optionId === 'companion-training');
+    const updatedCompanion = shouldUpdateCompanion
+      ? computeUpdatedCompanionFromLevelUpResult(sessionState.companion, result)
+      : undefined;
+
     scheduleSave({
       progression: {
         currentLevel: result.newLevel,
@@ -303,6 +312,7 @@ function createLevelUpConfirmHandler({
       resources: updatedResources as unknown as CharacterRecord['resources'],
       coreScores: updatedCoreScores,
       thresholds: updatedThresholds,
+      ...(shouldUpdateCompanion ? { companion: updatedCompanion ?? null } : {}),
     });
   };
 }
@@ -507,6 +517,12 @@ function buildAutoSaveHandlers({
     setDowntimeActivities: createAutoSaveHandler(
       sessionState.setDowntimeActivities,
       mapDowntimeActivitiesToApi,
+      scheduleSave,
+      isHydratedRef
+    ),
+    setQuickView: createAutoSaveHandler(
+      sessionState.setQuickView,
+      mapQuickViewToApi,
       scheduleSave,
       isHydratedRef
     ),

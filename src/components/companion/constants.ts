@@ -15,6 +15,19 @@ export const COMPANION_TYPE_SUGGESTIONS = [
   'Lynx',
 ] as const;
 
+export const COMPANION_ATTACK_SUGGESTIONS = [
+  'Bite',
+  'Claw',
+  'Talons',
+  'Gore',
+  'Stomp',
+  'Pounce',
+  'Charge',
+  'Tail Swipe',
+  'Peck',
+  'Web',
+] as const;
+
 // Emoji mappings for companion types
 export const COMPANION_TYPE_EMOJIS: Record<string, string> = {
   Wolf: '🐺',

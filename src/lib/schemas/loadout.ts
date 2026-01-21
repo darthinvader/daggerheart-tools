@@ -110,6 +110,7 @@ export const DomainCardLiteSchema = z.object({
   description: z.string(),
   hopeCost: z.number().int().min(0).optional(),
   recallCost: z.number().int().min(0).optional(),
+  stressCost: z.number().int().min(0).optional(),
   tags: z.array(z.string()).optional(),
   isHomebrew: z.boolean().optional(),
   metadata: MetadataSchema.optional(),
@@ -174,7 +175,7 @@ export function isCardAllowedInLoadout(
   if (card.level > rules.maxCardLevel) return false;
 
   if (rules.maxRecallCost !== undefined) {
-    const cost = card.hopeCost ?? card.recallCost ?? 0;
+    const cost = card.recallCost ?? card.hopeCost ?? 0;
     if (cost > rules.maxRecallCost) return false;
   }
 
@@ -191,7 +192,7 @@ export function isCardAllowedInLoadout(
 
 export function countTotalRecallCost(cards: DomainCardLite[]): number {
   return cards.reduce(
-    (sum, card) => sum + (card.hopeCost ?? card.recallCost ?? 0),
+    (sum, card) => sum + (card.recallCost ?? card.hopeCost ?? 0),
     0
   );
 }

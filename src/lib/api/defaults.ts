@@ -7,6 +7,7 @@ import {
   DEFAULT_TRAITS,
 } from '@/lib/schemas/character-state';
 import { DEFAULT_CLASS_DRAFT } from '@/lib/schemas/class-selection';
+import { DEFAULT_QUICK_VIEW_PREFERENCES } from '@/lib/schemas/quick-view';
 
 import type { CharacterRecord } from './characters';
 
@@ -97,6 +98,7 @@ export function createDefaultCharacter(id: string): CharacterRecord {
     currentSessionId: null,
     notes: [],
     downtimeActivities: [],
+    quickView: DEFAULT_QUICK_VIEW_PREFERENCES,
     createdAt: now,
     updatedAt: now,
   };

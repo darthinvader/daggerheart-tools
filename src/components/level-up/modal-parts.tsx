@@ -76,6 +76,7 @@ export function ModalHeader({
 interface ModalFooterProps {
   currentStep: LevelUpStep;
   canProceedFromAutomatic: boolean;
+  canProceedFromCompanion: boolean;
   pointsRemaining: number;
   onClose: () => void;
   onConfirm: () => void;
@@ -86,6 +87,7 @@ interface ModalFooterProps {
 export function ModalFooter({
   currentStep,
   canProceedFromAutomatic,
+  canProceedFromCompanion,
   pointsRemaining,
   onClose,
   onConfirm,
@@ -116,7 +118,11 @@ export function ModalFooter({
         <Button variant="outline" onClick={onBack}>
           Back
         </Button>
-        <Button onClick={onNext} className="gap-2">
+        <Button
+          onClick={onNext}
+          className="gap-2"
+          disabled={!canProceedFromCompanion}
+        >
           Continue
           <ArrowRight className="size-4" />
         </Button>

@@ -41,6 +41,7 @@ export function buildCharacterSheetState(
     downtimeActivities: sessionState.downtimeActivities,
     sessions: sessionState.sessions,
     currentSessionId: sessionState.currentSessionId,
+    quickView: sessionState.quickView,
   };
 }
 
@@ -79,5 +80,6 @@ export function buildCharacterSheetHandlers(
       sessionState.setSessions(s);
       sessionState.setCurrentSessionId(id);
     },
+    setQuickView: sessionState.setQuickView,
   };
 }

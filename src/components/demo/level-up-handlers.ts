@@ -7,10 +7,99 @@ import type { TraitsState } from '@/components/traits';
 import { getCardByName } from '@/lib/data/domains';
 import type { ThresholdsSettings } from '@/lib/schemas/character-state';
 import type { ClassSelection } from '@/lib/schemas/class-selection';
+import type {
+  CompanionDamageDie,
+  CompanionRange,
+  CompanionTraining,
+} from '@/lib/schemas/core';
 import type { DomainCardLite, LoadoutSelection } from '@/lib/schemas/loadout';
 import { generateId } from '@/lib/utils';
 
 const MAX_ACTIVE_CARDS = 5;
+const DAMAGE_DICE_ORDER: CompanionDamageDie[] = ['d6', 'd8', 'd10', 'd12'];
+const RANGE_ORDER: CompanionRange[] = ['Melee', 'Close', 'Far'];
+
+function incrementDamageDie(die: CompanionDamageDie): CompanionDamageDie {
+  const index = DAMAGE_DICE_ORDER.indexOf(die);
+  if (index < 0) return 'd6';
+  return DAMAGE_DICE_ORDER[Math.min(DAMAGE_DICE_ORDER.length - 1, index + 1)];
+}
+
+function incrementRange(range: CompanionRange): CompanionRange {
+  const index = RANGE_ORDER.indexOf(range);
+  if (index < 0) return 'Melee';
+  return RANGE_ORDER[Math.min(RANGE_ORDER.length - 1, index + 1)];
+}
+
+function applyCompanionTrainingSelection(
+  companion: CompanionState,
+  trainingKey: keyof CompanionTraining,
+  experienceIndex?: number
+): CompanionState {
+  const training = { ...companion.training };
+  const current = training[trainingKey];
+  if (typeof current === 'number') {
+    (training as Record<string, number | boolean>)[trainingKey] = Math.min(
+      current + 1,
+      3
+    );
+  } else if (typeof current === 'boolean') {
+    (training as Record<string, number | boolean>)[trainingKey] = true;
+  }
+
+  let updated: CompanionState = { ...companion, training };
+
+  if (trainingKey === 'vicious') {
+    const nextDie = incrementDamageDie(companion.damageDie);
+    if (nextDie !== companion.damageDie) {
+      updated = { ...updated, damageDie: nextDie };
+    } else {
+      const nextRange = incrementRange(companion.range);
+      updated = { ...updated, range: nextRange };
+    }
+  }
+
+  if (trainingKey === 'intelligent' && experienceIndex !== undefined) {
+    const experiences = companion.experiences.map((exp, index) =>
+      index === experienceIndex ? { ...exp, bonus: exp.bonus + 1 } : exp
+    );
+    updated = { ...updated, experiences };
+  }
+
+  return updated;
+}
+
+export function computeUpdatedCompanionFromLevelUpResult(
+  companion: CompanionState | undefined,
+  result: LevelUpResult
+): CompanionState | undefined {
+  if (!companion) return companion;
+
+  let updated = companion;
+
+  for (const selection of result.selections) {
+    if (selection.optionId === 'companion-training') {
+      const trainingKey = selection.details?.selectedCompanionTraining;
+      if (trainingKey) {
+        updated = applyCompanionTrainingSelection(
+          updated,
+          trainingKey as keyof CompanionTraining,
+          selection.details?.selectedCompanionExperienceIndex
+        );
+      }
+    }
+  }
+
+  if (result.companionTrainingSelection) {
+    updated = applyCompanionTrainingSelection(
+      updated,
+      result.companionTrainingSelection as keyof CompanionTraining,
+      result.companionTrainingExperienceIndex
+    );
+  }
+
+  return updated;
+}
 
 export function createDomainCardLite(cardName: string): DomainCardLite | null {
   const card = getCardByName(cardName);
@@ -227,18 +316,11 @@ function handleCompanionTrainingSelection(
   const trainingKey = details.selectedCompanionTraining;
   handlers.setCompanion(prev => {
     if (!prev) return prev;
-    const training = { ...prev.training };
-    // Handle stackable vs boolean training options
-    const current = training[trainingKey as keyof typeof training];
-    if (typeof current === 'number') {
-      (training as Record<string, number | boolean>)[trainingKey] = Math.min(
-        current + 1,
-        3
-      );
-    } else if (typeof current === 'boolean') {
-      (training as Record<string, number | boolean>)[trainingKey] = true;
-    }
-    return { ...prev, training };
+    return applyCompanionTrainingSelection(
+      prev,
+      trainingKey as keyof CompanionTraining,
+      details.selectedCompanionExperienceIndex
+    );
   });
 }
 
@@ -319,17 +401,11 @@ function applyCompanionTraining(
   const trainingKey = result.companionTrainingSelection;
   handlers.setCompanion(prev => {
     if (!prev) return prev;
-    const training = { ...prev.training };
-    const current = training[trainingKey as keyof typeof training];
-    if (typeof current === 'number') {
-      (training as Record<string, number | boolean>)[trainingKey] = Math.min(
-        current + 1,
-        3
-      );
-    } else if (typeof current === 'boolean') {
-      (training as Record<string, number | boolean>)[trainingKey] = true;
-    }
-    return { ...prev, training };
+    return applyCompanionTrainingSelection(
+      prev,
+      trainingKey as keyof CompanionTraining,
+      result.companionTrainingExperienceIndex
+    );
   });
 }
 

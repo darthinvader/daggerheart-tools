@@ -6,6 +6,11 @@ import { AncestrySelector } from '@/components/ancestry-selector';
 import { ClassSelector } from '@/components/class-selector';
 import { CommunitySelector } from '@/components/community-selector';
 import { DEFAULT_COMPANION_STATE } from '@/components/companion';
+import {
+  COMPANION_ATTACK_SUGGESTIONS,
+  COMPANION_TYPE_SUGGESTIONS,
+} from '@/components/companion/constants';
+import { EXAMPLE_EXPERIENCES } from '@/components/companion/types';
 import type { DemoHandlers, DemoState } from '@/components/demo/demo-types';
 import { EquipmentDisplay } from '@/components/equipment';
 import { ExperiencesCreationEditor } from '@/components/experiences';
@@ -22,6 +27,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import type { ClassDraft, ClassSelection } from '@/lib/schemas/class-selection';
 
@@ -86,8 +98,8 @@ function CompanionStep({
   return (
     <div className="space-y-3">
       <p className="text-muted-foreground text-sm">
-        Beastbound Rangers start with an animal companion. For now, just name
-        them.
+        Beastbound Rangers start with an animal companion. Set their name, type,
+        and key details.
       </p>
       <Input
         placeholder="Companion name"
@@ -101,58 +113,94 @@ function CompanionStep({
           handlers.setCompanionEnabled(true);
         }}
       />
-      <Input
-        placeholder="Creature type (e.g., Wolf, Hawk)"
+      <Select
         value={state.companion?.type ?? ''}
-        onChange={event => {
-          const type = event.target.value;
+        onValueChange={value => {
           handlers.setCompanion({
             ...(state.companion ?? DEFAULT_COMPANION_STATE),
-            type,
+            type: value,
           });
           handlers.setCompanionEnabled(true);
         }}
-      />
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="Select a creature type" />
+        </SelectTrigger>
+        <SelectContent>
+          {COMPANION_TYPE_SUGGESTIONS.map(type => (
+            <SelectItem key={type} value={type}>
+              {type}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
       <div className="grid gap-3 sm:grid-cols-2">
-        <Input
-          placeholder="Companion experience #1"
+        <Select
           value={state.companion?.experiences?.[0]?.name ?? ''}
-          onChange={event => {
-            const exp1 = event.target.value;
+          onValueChange={value => {
             const companion = state.companion ?? DEFAULT_COMPANION_STATE;
             const experiences = companion.experiences.map((exp, index) =>
-              index === 0 ? { ...exp, name: exp1 } : exp
+              index === 0 ? { ...exp, name: value } : exp
             );
             handlers.setCompanion({ ...companion, experiences });
             handlers.setCompanionEnabled(true);
           }}
-        />
-        <Input
-          placeholder="Companion experience #2"
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Companion experience #1" />
+          </SelectTrigger>
+          <SelectContent>
+            {EXAMPLE_EXPERIENCES.map(exp => (
+              <SelectItem key={exp} value={exp}>
+                {exp}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
           value={state.companion?.experiences?.[1]?.name ?? ''}
-          onChange={event => {
-            const exp2 = event.target.value;
+          onValueChange={value => {
             const companion = state.companion ?? DEFAULT_COMPANION_STATE;
             const experiences = companion.experiences.map((exp, index) =>
-              index === 1 ? { ...exp, name: exp2 } : exp
+              index === 1 ? { ...exp, name: value } : exp
             );
             handlers.setCompanion({ ...companion, experiences });
             handlers.setCompanionEnabled(true);
           }}
-        />
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Companion experience #2" />
+          </SelectTrigger>
+          <SelectContent>
+            {EXAMPLE_EXPERIENCES.map(exp => (
+              <SelectItem key={exp} value={exp}>
+                {exp}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
-      <Input
-        placeholder="Attack name (e.g., Bite)"
+      <Select
         value={state.companion?.standardAttack ?? ''}
-        onChange={event => {
-          const standardAttack = event.target.value;
+        onValueChange={value => {
           handlers.setCompanion({
             ...(state.companion ?? DEFAULT_COMPANION_STATE),
-            standardAttack,
+            standardAttack: value,
           });
           handlers.setCompanionEnabled(true);
         }}
-      />
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="Select an attack" />
+        </SelectTrigger>
+        <SelectContent>
+          {COMPANION_ATTACK_SUGGESTIONS.map(attack => (
+            <SelectItem key={attack} value={attack}>
+              {attack}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }

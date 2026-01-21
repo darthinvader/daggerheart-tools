@@ -132,7 +132,7 @@ export function CharacterSheet({ characterId }: CharacterSheetProps) {
   );
 
   const shouldAutoOpenOnboarding =
-    isHydrated && isNewCharacter && !onboardingComplete;
+    isHydrated && isNewCharacter && !onboardingComplete && !isLevelUpOpen;
   const isOnboardingOpen = shouldAutoOpenOnboarding && !hasDismissedOnboarding;
 
   const primaryTabs = [
@@ -265,6 +265,7 @@ export function CharacterSheet({ characterId }: CharacterSheetProps) {
           currentCompanionTraining={state.companion?.training}
           hasCompanion={!!state.companion}
           companionName={state.companion?.name}
+          companionExperiences={state.companion?.experiences ?? []}
         />
       </div>
     </div>

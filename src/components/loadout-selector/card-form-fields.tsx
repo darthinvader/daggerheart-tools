@@ -18,6 +18,8 @@ interface HomebrewCardDraft {
   type: string;
   description: string;
   hopeCost: number;
+  recallCost: number;
+  stressCost: number;
 }
 
 interface CardFormFieldsProps {
@@ -58,7 +60,7 @@ export function CardFormFields({ draft, onUpdate }: CardFormFieldsProps) {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label>Type</Label>
           <Select value={draft.type} onValueChange={v => onUpdate({ type: v })}>
@@ -82,15 +84,40 @@ export function CardFormFields({ draft, onUpdate }: CardFormFieldsProps) {
             onChange={e => onUpdate({ level: Number(e.target.value) })}
           />
         </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-3">
         <div className="space-y-2">
-          <Label htmlFor="card-cost">Hope Cost</Label>
+          <Label htmlFor="card-hope-cost">Hope Cost</Label>
           <Input
-            id="card-cost"
+            id="card-hope-cost"
             type="number"
             min={0}
             max={6}
             value={draft.hopeCost}
             onChange={e => onUpdate({ hopeCost: Number(e.target.value) })}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="card-recall-cost">Recall Cost</Label>
+          <Input
+            id="card-recall-cost"
+            type="number"
+            min={0}
+            max={6}
+            value={draft.recallCost}
+            onChange={e => onUpdate({ recallCost: Number(e.target.value) })}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="card-stress-cost">Stress Cost</Label>
+          <Input
+            id="card-stress-cost"
+            type="number"
+            min={0}
+            max={6}
+            value={draft.stressCost}
+            onChange={e => onUpdate({ stressCost: Number(e.target.value) })}
           />
         </div>
       </div>

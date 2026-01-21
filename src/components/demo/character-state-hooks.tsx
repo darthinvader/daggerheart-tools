@@ -33,6 +33,10 @@ import type {
 import type { ClassSelection } from '@/lib/schemas/class-selection';
 import type { CommunitySelection } from '@/lib/schemas/identity';
 import type { LoadoutSelection } from '@/lib/schemas/loadout';
+import {
+  DEFAULT_QUICK_VIEW_PREFERENCES,
+  type QuickViewPreferences,
+} from '@/lib/schemas/quick-view';
 import type { Scar } from '@/lib/schemas/session-state';
 
 import {
@@ -76,6 +80,7 @@ export interface CharacterSheetState {
   downtimeActivities: DowntimeActivity[];
   sessions: SessionEntry[];
   currentSessionId: string | null;
+  quickView: QuickViewPreferences;
 }
 
 export function useCharacterState(
@@ -171,6 +176,9 @@ export function useSessionState() {
   >([]);
   const [sessions, setSessions] = useState<SessionEntry[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [quickView, setQuickView] = useState<QuickViewPreferences>(
+    DEFAULT_QUICK_VIEW_PREFERENCES
+  );
 
   return {
     scars,
@@ -197,5 +205,7 @@ export function useSessionState() {
     setSessions,
     currentSessionId,
     setCurrentSessionId,
+    quickView,
+    setQuickView,
   };
 }

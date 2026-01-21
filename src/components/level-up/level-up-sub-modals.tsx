@@ -28,6 +28,7 @@ interface LevelUpSubModalsProps {
   classPairs: ClassSubclassPair[];
   unlockedSubclassFeatures: Record<string, string[]>;
   currentCompanionTraining?: CompanionTraining;
+  companionExperiences?: { name: string; bonus: number }[];
 }
 
 export function LevelUpSubModals({
@@ -48,6 +49,7 @@ export function LevelUpSubModals({
   classPairs,
   unlockedSubclassFeatures,
   currentCompanionTraining,
+  companionExperiences,
 }: LevelUpSubModalsProps) {
   return (
     <>
@@ -126,10 +128,14 @@ export function LevelUpSubModals({
         <CompanionTrainingSelectionModal
           isOpen={!!pendingOption}
           onClose={onPendingClose}
-          onConfirm={selectedCompanionTraining =>
-            onSubModalConfirm({ selectedCompanionTraining })
+          onConfirm={({ trainingId, experienceIndex }) =>
+            onSubModalConfirm({
+              selectedCompanionTraining: trainingId,
+              selectedCompanionExperienceIndex: experienceIndex,
+            })
           }
           currentTraining={currentCompanionTraining}
+          companionExperiences={companionExperiences}
         />
       )}
     </>

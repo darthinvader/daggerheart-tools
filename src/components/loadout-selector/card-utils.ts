@@ -10,6 +10,7 @@ export function cardToLite(card: DomainCard): DomainCardLite {
     description: card.description,
     hopeCost: card.hopeCost,
     recallCost: card.recallCost,
+    stressCost: card.stressCost,
     tags: card.tags,
     isHomebrew: false,
   };
@@ -24,6 +25,7 @@ export function homebrewToLite(card: HomebrewDomainCard): DomainCardLite {
     description: card.description,
     hopeCost: card.hopeCost,
     recallCost: card.recallCost,
+    stressCost: card.stressCost,
     tags: card.tags,
     isHomebrew: true,
   };

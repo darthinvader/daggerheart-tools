@@ -11,6 +11,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import type { CompanionTraining } from '@/lib/schemas/core';
 import { cn } from '@/lib/utils';
 
@@ -25,58 +33,61 @@ interface TrainingOption {
 interface CompanionTrainingSelectionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (trainingId: string) => void;
+  onConfirm: (selection: {
+    trainingId: string;
+    experienceIndex?: number;
+  }) => void;
   currentTraining: CompanionTraining | undefined;
+  companionExperiences?: { name: string; bonus: number }[];
 }
 
 const TRAINING_OPTIONS: Omit<TrainingOption, 'currentValue'>[] = [
   {
     id: 'intelligent',
     label: 'Intelligent',
-    description: '+1 Companion Experience bonus (max +3 total)',
+    description: '+1 to a Companion Experience',
     maxSelections: 3,
   },
   {
     id: 'vicious',
     label: 'Vicious',
-    description: 'Upgrade damage die by one step (max 3 upgrades)',
+    description: 'Increase damage die or range by one step',
     maxSelections: 3,
   },
   {
     id: 'resilient',
     label: 'Resilient',
-    description: '+1 Stress Slot (max 3 extra slots)',
+    description: 'Gain an additional Stress slot',
     maxSelections: 3,
   },
   {
     id: 'aware',
     label: 'Aware',
-    description: '+2 Evasion (max +6 total)',
+    description: '+2 permanent Evasion bonus (stacks)',
     maxSelections: 3,
   },
   {
     id: 'lightInTheDark',
     label: 'Light in the Dark',
-    description:
-      'Gain an additional Hope slot while your companion is with you',
+    description: 'Additional Hope slot for your character',
     maxSelections: 1,
   },
   {
     id: 'creatureComfort',
     label: 'Creature Comfort',
-    description: 'Clear +1 Stress when taking a short rest with your companion',
+    description: 'Once per rest: gain Hope or both clear Stress',
     maxSelections: 1,
   },
   {
     id: 'armored',
     label: 'Armored',
-    description: 'Companion gains +2 Armor',
+    description: 'Mark your Armor Slot instead of companion Stress',
     maxSelections: 1,
   },
   {
     id: 'bonded',
     label: 'Bonded',
-    description: 'Telepathic communication with your companion',
+    description: 'Companion may help you up at last HP',
     maxSelections: 1,
   },
 ];
@@ -86,8 +97,12 @@ export function CompanionTrainingSelectionModal({
   onClose,
   onConfirm,
   currentTraining,
+  companionExperiences = [],
 }: CompanionTrainingSelectionModalProps) {
   const [selected, setSelected] = useState<string | null>(null);
+  const [selectedExperienceIndex, setSelectedExperienceIndex] = useState<
+    number | null
+  >(null);
 
   const getTrainingOptions = useCallback((): TrainingOption[] => {
     return TRAINING_OPTIONS.map(opt => ({
@@ -106,22 +121,38 @@ export function CompanionTrainingSelectionModal({
 
   const handleSelect = useCallback((optionId: string) => {
     setSelected(prev => (prev === optionId ? null : optionId));
+    if (optionId !== 'intelligent') {
+      setSelectedExperienceIndex(null);
+    }
   }, []);
 
   const handleConfirm = useCallback(() => {
     if (selected) {
-      onConfirm(selected);
+      onConfirm({
+        trainingId: selected,
+        experienceIndex:
+          selected === 'intelligent'
+            ? (selectedExperienceIndex ?? undefined)
+            : undefined,
+      });
       setSelected(null);
+      setSelectedExperienceIndex(null);
     }
-  }, [selected, onConfirm]);
+  }, [selected, onConfirm, selectedExperienceIndex]);
 
   const handleClose = useCallback(() => {
     setSelected(null);
+    setSelectedExperienceIndex(null);
     onClose();
   }, [onClose]);
 
   const options = getTrainingOptions();
   const availableOptions = options.filter(isOptionAvailable);
+  const requiresCompanionExperience =
+    selected === 'intelligent' && companionExperiences.length > 0;
+  const canConfirm =
+    !!selected &&
+    (!requiresCompanionExperience || selectedExperienceIndex !== null);
 
   return (
     <Dialog open={isOpen} onOpenChange={open => !open && handleClose()}>
@@ -187,11 +218,43 @@ export function CompanionTrainingSelectionModal({
           )}
         </div>
 
+        {selected === 'intelligent' && companionExperiences.length > 0 && (
+          <div className="space-y-2">
+            <Label>Choose a companion experience to boost</Label>
+            <Select
+              value={
+                selectedExperienceIndex !== null
+                  ? String(selectedExperienceIndex)
+                  : ''
+              }
+              onValueChange={value =>
+                setSelectedExperienceIndex(value ? Number(value) : null)
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select an experience" />
+              </SelectTrigger>
+              <SelectContent>
+                {companionExperiences.map((exp, index) => (
+                  <SelectItem key={index} value={String(index)}>
+                    {exp.name || `Experience ${index + 1}`} (+{exp.bonus})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {selectedExperienceIndex === null && (
+              <p className="text-muted-foreground text-xs">
+                Select an experience to apply the +1 bonus.
+              </p>
+            )}
+          </div>
+        )}
+
         <DialogFooter>
           <Button variant="outline" onClick={handleClose}>
             Cancel
           </Button>
-          <Button onClick={handleConfirm} disabled={!selected}>
+          <Button onClick={handleConfirm} disabled={!canConfirm}>
             Confirm Training
           </Button>
         </DialogFooter>
