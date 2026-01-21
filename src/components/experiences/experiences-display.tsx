@@ -73,7 +73,10 @@ interface ExperiencesEditorProps {
   onChange: (experiences: ExperiencesState) => void;
 }
 
-function ExperiencesEditor({ experiences, onChange }: ExperiencesEditorProps) {
+export function ExperiencesEditor({
+  experiences,
+  onChange,
+}: ExperiencesEditorProps) {
   const [newName, setNewName] = useState('');
   const items = experiences?.items ?? [];
 

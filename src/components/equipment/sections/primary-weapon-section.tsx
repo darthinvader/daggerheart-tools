@@ -13,6 +13,7 @@ interface PrimaryWeaponSectionProps {
   onWeaponChange: (weapon: PrimaryWeapon | null) => void;
   homebrewWeapon: Partial<PrimaryWeapon>;
   onHomebrewChange: (value: Partial<PrimaryWeapon>) => void;
+  allowedTiers?: string[];
 }
 
 export function PrimaryWeaponSection({
@@ -22,6 +23,7 @@ export function PrimaryWeaponSection({
   onWeaponChange,
   homebrewWeapon,
   onHomebrewChange,
+  allowedTiers,
 }: PrimaryWeaponSectionProps) {
   return (
     <div className="flex min-h-0 flex-1 flex-col space-y-4">
@@ -39,6 +41,7 @@ export function PrimaryWeaponSection({
           items={ALL_PRIMARY_WEAPONS}
           selectedItem={weapon}
           onSelect={onWeaponChange}
+          allowedTiers={allowedTiers}
           renderCard={(w, isSelected, onSelect) => (
             <WeaponCardCompact
               key={w.name}

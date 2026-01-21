@@ -28,6 +28,7 @@ interface ItemPickerModalProps {
   unlimitedSlots?: boolean;
   maxSlots?: number;
   onConvertToHomebrew?: (item: AnyItem) => void;
+  allowedTiers?: string[];
 }
 
 function PickerHeader({
@@ -137,6 +138,7 @@ export function ItemPickerModal({
   unlimitedSlots = false,
   maxSlots = 50,
   onConvertToHomebrew,
+  allowedTiers,
 }: ItemPickerModalProps) {
   const currentInventoryQuantity = inventoryItems.reduce(
     (sum, i) => sum + i.quantity,
@@ -155,7 +157,10 @@ export function ItemPickerModal({
     reset,
   } = useItemSelection(availableSlots);
 
-  const filters = usePickerFiltersState();
+  const filters = usePickerFiltersState({
+    initialTiers: allowedTiers,
+    lockTiers: Boolean(allowedTiers && allowedTiers.length > 0),
+  });
 
   usePickerReset(open, reset);
 
@@ -163,7 +168,8 @@ export function ItemPickerModal({
     filters.selectedCategories,
     filters.selectedRarities,
     filters.selectedTiers,
-    filters.search
+    filters.search,
+    allowedTiers
   );
 
   const slotsRemaining = unlimitedSlots
@@ -205,6 +211,8 @@ export function ItemPickerModal({
               onToggleCategory={filters.toggleCategory}
               onToggleRarity={filters.toggleRarity}
               onToggleTier={filters.toggleTier}
+              allowedTiers={allowedTiers}
+              lockTiers={filters.lockTiers}
             />
           )}
         </div>

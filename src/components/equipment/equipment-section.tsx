@@ -27,6 +27,7 @@ interface EquipmentSectionProps<T extends { name: string; tier: string }> {
     onSelect: () => void
   ) => React.ReactNode;
   emptyMessage?: string;
+  allowedTiers?: string[];
 }
 
 export function EquipmentSection<T extends { name: string; tier: string }>({
@@ -37,19 +38,26 @@ export function EquipmentSection<T extends { name: string; tier: string }>({
   onSelect,
   renderCard,
   emptyMessage = 'No items available',
+  allowedTiers,
 }: EquipmentSectionProps<T>) {
   void _icon;
   const [search, setSearch] = useState('');
-  const [tierFilter, setTierFilter] = useState<string>('all');
+  const initialTier =
+    allowedTiers && allowedTiers.length === 1 ? allowedTiers[0] : 'all';
+  const [tierFilter, setTierFilter] = useState<string>(initialTier);
 
   const filteredItems = useMemo(() => {
     return items.filter(item => {
+      const inAllowedTier =
+        !allowedTiers || allowedTiers.length === 0
+          ? true
+          : allowedTiers.includes(item.tier);
       const matchesTier = tierFilter === 'all' || item.tier === tierFilter;
       const matchesSearch =
         search === '' || item.name.toLowerCase().includes(search.toLowerCase());
-      return matchesTier && matchesSearch;
+      return inAllowedTier && matchesTier && matchesSearch;
     });
-  }, [items, tierFilter, search]);
+  }, [items, tierFilter, search, allowedTiers]);
 
   const handleClearSelection = () => {
     onSelect(null);
@@ -100,19 +108,21 @@ export function EquipmentSection<T extends { name: string; tier: string }>({
             </Button>
           )}
         </div>
-        <Select value={tierFilter} onValueChange={setTierFilter}>
-          <SelectTrigger className="h-9 w-30">
-            <SelectValue placeholder="Tier" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Tiers</SelectItem>
-            {TIER_OPTIONS.map(t => (
-              <SelectItem key={t} value={t}>
-                Tier {t}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {(!allowedTiers || allowedTiers.length > 1) && (
+          <Select value={tierFilter} onValueChange={setTierFilter}>
+            <SelectTrigger className="h-9 w-30">
+              <SelectValue placeholder="Tier" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Tiers</SelectItem>
+              {TIER_OPTIONS.map(t => (
+                <SelectItem key={t} value={t}>
+                  Tier {t}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
         <Badge variant="secondary" className="text-xs">
           {filteredItems.length} items
         </Badge>

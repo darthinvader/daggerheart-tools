@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 
-import { CompanionDisplay } from '@/components/companion';
 import { DeathMoveModal } from '@/components/death-move';
 import { DowntimeMoves } from '@/components/downtime-moves';
 import { RestManagement } from '@/components/rest-management';
@@ -74,13 +73,6 @@ export function SessionTab({ state, handlers }: TabProps) {
           onChange={handlers.setSessions}
         />
       </div>
-
-      {state.classSelection?.className === 'Ranger' && (
-        <CompanionDisplay
-          companion={state.companion}
-          onChange={handlers.setCompanion}
-        />
-      )}
     </div>
   );
 }

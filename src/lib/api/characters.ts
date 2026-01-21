@@ -42,6 +42,7 @@ export { createDefaultCharacter } from './defaults';
 export const CharacterRecordSchema = z.object({
   id: z.string(),
   userId: z.string().nullable().optional(),
+  isNewCharacter: z.boolean().nullish(),
   identity: ApiIdentitySchema,
   classDraft: ClassDraftSchema,
   domains: DomainsDraftSchema,
@@ -121,6 +122,7 @@ function mapDbRowToCharacter(row: Record<string, unknown>): CharacterRecord {
   return {
     id: row.id as string,
     userId: row.user_id as string | null | undefined,
+    isNewCharacter: row.is_new_character as boolean,
     identity: row.identity as CharacterRecord['identity'],
     classDraft: row.class_draft as CharacterRecord['classDraft'],
     domains: row.domains as CharacterRecord['domains'],
@@ -161,6 +163,8 @@ function mapCharacterToDbRow(
 
   if (char.id !== undefined) row.id = char.id;
   if (char.userId !== undefined) row.user_id = char.userId;
+  if (char.isNewCharacter !== undefined)
+    row.is_new_character = char.isNewCharacter;
   if (char.identity !== undefined) row.identity = char.identity;
   if (char.classDraft !== undefined) row.class_draft = char.classDraft;
   if (char.domains !== undefined) row.domains = char.domains;

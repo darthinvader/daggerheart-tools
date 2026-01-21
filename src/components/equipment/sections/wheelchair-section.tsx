@@ -18,6 +18,7 @@ interface WheelchairSectionProps {
   homebrewWheelchair: Partial<CombatWheelchair>;
   onHomebrewChange: (value: Partial<CombatWheelchair>) => void;
   hideTitle?: boolean;
+  allowedTiers?: string[];
 }
 
 export function WheelchairSection({
@@ -30,6 +31,7 @@ export function WheelchairSection({
   homebrewWheelchair,
   onHomebrewChange,
   hideTitle = false,
+  allowedTiers,
 }: WheelchairSectionProps) {
   const enableSwitch = (
     <div className="flex items-center gap-2">
@@ -58,6 +60,7 @@ export function WheelchairSection({
         items={ALL_COMBAT_WHEELCHAIRS}
         selectedItem={wheelchair}
         onSelect={onWheelchairChange}
+        allowedTiers={allowedTiers}
         renderCard={(chair, isSelected, onSelect) => (
           <WheelchairCardCompact
             key={chair.name}

@@ -26,6 +26,7 @@ interface EquipmentEditDialogProps {
   closeSection: () => void;
   handleSave: () => void;
   hideDialogHeader?: boolean;
+  allowedTiers?: string[];
 }
 
 export function EquipmentEditDialog({
@@ -36,6 +37,7 @@ export function EquipmentEditDialog({
   closeSection,
   handleSave,
   hideDialogHeader = false,
+  allowedTiers,
 }: EquipmentEditDialogProps) {
   return (
     <Dialog open={editingSection !== null} onOpenChange={() => closeSection()}>
@@ -77,6 +79,7 @@ export function EquipmentEditDialog({
             updateDraft={updateDraft}
             handleAddCustomSlot={handleAddCustomSlot}
             hideDialogHeader={hideDialogHeader}
+            allowedTiers={allowedTiers}
           />
         </div>
 

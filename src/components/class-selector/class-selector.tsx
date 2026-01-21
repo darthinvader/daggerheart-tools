@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -123,6 +125,7 @@ interface ClassSelectorProps {
   completeRef?: React.MutableRefObject<{
     complete: () => ClassSelection | null;
   } | null>;
+  onValidityChange?: (canComplete: boolean) => void;
 }
 
 export function ClassSelector({
@@ -131,6 +134,7 @@ export function ClassSelector({
   onComplete,
   hideCompleteButton = false,
   completeRef,
+  onValidityChange,
 }: ClassSelectorProps) {
   const {
     mode,
@@ -149,6 +153,10 @@ export function ClassSelector({
     handleOpenModal,
     handleCloseModal,
   } = useClassSelectorState({ value, onChange, onComplete, completeRef });
+
+  useEffect(() => {
+    onValidityChange?.(canComplete);
+  }, [canComplete, onValidityChange]);
 
   return (
     <div className="space-y-6">

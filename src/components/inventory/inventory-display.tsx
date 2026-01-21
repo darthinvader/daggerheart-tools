@@ -13,6 +13,7 @@ interface InventoryDisplayProps {
   onChange?: (inventory: InventoryState) => void;
   className?: string;
   readOnly?: boolean;
+  allowedTiers?: string[];
 }
 
 export function InventoryDisplay({
@@ -20,6 +21,7 @@ export function InventoryDisplay({
   onChange,
   className,
   readOnly = false,
+  allowedTiers,
 }: InventoryDisplayProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -88,6 +90,7 @@ export function InventoryDisplay({
         unlimitedSlots={inventory.unlimitedSlots}
         maxSlots={inventory.maxSlots}
         onConvertToHomebrew={handlePickerConvertToHomebrew}
+        allowedTiers={allowedTiers}
       />
       <CustomItemForm
         open={customFormOpen}

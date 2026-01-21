@@ -13,6 +13,7 @@ interface EquipmentDisplayProps {
   className?: string;
   readOnly?: boolean;
   hideDialogHeader?: boolean;
+  allowedTiers?: string[];
 }
 
 export function EquipmentDisplay({
@@ -21,6 +22,7 @@ export function EquipmentDisplay({
   className,
   readOnly = false,
   hideDialogHeader = false,
+  allowedTiers,
 }: EquipmentDisplayProps) {
   const {
     editingSection,
@@ -70,6 +72,7 @@ export function EquipmentDisplay({
         closeSection={closeSection}
         handleSave={handleSave}
         hideDialogHeader={hideDialogHeader}
+        allowedTiers={allowedTiers}
       />
     </>
   );

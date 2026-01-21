@@ -4,7 +4,7 @@ import { CompanionDisplay, type CompanionState } from '@/components/companion';
 import { Button } from '@/components/ui/button';
 
 interface CompanionSectionProps {
-  isRanger: boolean;
+  hasCompanionFeature: boolean;
   companionEnabled: boolean;
   companion: CompanionState | undefined;
   setCompanion: (v: CompanionState | undefined) => void;
@@ -12,22 +12,22 @@ interface CompanionSectionProps {
 }
 
 export function CompanionSection({
-  isRanger,
+  hasCompanionFeature,
   companionEnabled,
   companion,
   setCompanion,
   setCompanionEnabled,
 }: CompanionSectionProps) {
-  const showCompanion = isRanger || companionEnabled || !!companion;
+  const showCompanion = hasCompanionFeature || companionEnabled || !!companion;
 
   if (showCompanion) {
     return (
       <CompanionDisplay
         companion={companion}
         onChange={setCompanion}
-        isHomebrew={!isRanger}
+        isHomebrew={!hasCompanionFeature}
         onDisable={
-          isRanger
+          hasCompanionFeature
             ? undefined
             : () => {
                 setCompanion(undefined);

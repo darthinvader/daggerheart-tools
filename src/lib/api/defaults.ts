@@ -73,6 +73,7 @@ export function createDefaultCharacter(id: string): CharacterRecord {
   const now = new Date().toISOString();
   return {
     id,
+    isNewCharacter: true,
     identity: EMPTY_IDENTITY,
     classDraft: DEFAULT_CLASS_DRAFT,
     domains: DEFAULT_DOMAINS as DomainsDraft,

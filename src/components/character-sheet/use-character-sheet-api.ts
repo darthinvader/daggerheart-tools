@@ -27,6 +27,7 @@ import type { TraitsState } from '@/components/traits';
 import type { CharacterRecord } from '@/lib/api/characters';
 import { fetchCharacter } from '@/lib/api/characters';
 import { characterQueryKeys } from '@/lib/api/query-client';
+import { getSubclassByName } from '@/lib/data/classes';
 import type { ThresholdsSettings } from '@/lib/schemas/character-state';
 
 import {
@@ -238,6 +239,7 @@ export function useCharacterSheetWithApi(characterId: string) {
   const [isLevelUpOpen, setIsLevelUpOpen] = useState(false);
   const isHydratedRef = useRef(false);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [isNewCharacter, setIsNewCharacterState] = useState(false);
 
   // Auto-save hook
   const { isSaving, lastSaved, scheduleSave } = useAutoSave(characterId);
@@ -504,16 +506,60 @@ export function useCharacterSheetWithApi(characterId: string) {
   );
   /* eslint-enable react-hooks/refs, max-lines-per-function */
 
+  const hasCompanionFeature = useMemo(() => {
+    const hasCompanionFlag = (
+      value: unknown
+    ): value is { companion?: boolean } =>
+      Boolean(value && typeof value === 'object' && 'companion' in value);
+    const selection = state.classSelection;
+    if (!selection?.className || !selection?.subclassName) return false;
+    if (selection.isHomebrew && selection.homebrewClass) {
+      const homebrewSubclass = selection.homebrewClass.subclasses.find(
+        s => s.name === selection.subclassName
+      );
+      return Boolean(homebrewSubclass?.companion);
+    }
+    const subclass = getSubclassByName(
+      selection.className,
+      selection.subclassName
+    );
+    return hasCompanionFlag(subclass) && Boolean(subclass.companion);
+  }, [state.classSelection]);
+
+  useEffect(() => {
+    if (!isHydrated) return;
+    if (!state.companionEnabled && (hasCompanionFeature || state.companion)) {
+      handlers.setCompanionEnabled(true);
+    }
+  }, [
+    hasCompanionFeature,
+    handlers.setCompanionEnabled,
+    isHydrated,
+    state.companion,
+    state.companionEnabled,
+  ]);
+
   // Hydrate local state from server data when it arrives
   useEffect(() => {
     if (serverData && !isHydratedRef.current) {
       isHydratedRef.current = true;
       hydrateCharacterState(serverData, charState, sessionState);
+      setIsNewCharacterState(Boolean(serverData.isNewCharacter));
       requestAnimationFrame(() => {
         setIsHydrated(true);
       });
     }
   }, [serverData, charState, sessionState]);
+
+  const setIsNewCharacter = useCallback(
+    (value: boolean) => {
+      setIsNewCharacterState(value);
+      if (isHydratedRef.current) {
+        scheduleSave({ isNewCharacter: value });
+      }
+    },
+    [scheduleSave]
+  );
 
   const currentTraitsForModal = Object.entries(charState.traits).map(
     ([name, val]) => ({ name, marked: val.marked })
@@ -533,6 +579,8 @@ export function useCharacterSheetWithApi(characterId: string) {
     handlers,
     isLoading,
     isHydrated,
+    isNewCharacter,
+    setIsNewCharacter,
     error,
     isLevelUpOpen,
     setIsLevelUpOpen,

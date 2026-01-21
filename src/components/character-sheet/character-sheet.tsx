@@ -1,7 +1,11 @@
 import { Link } from '@tanstack/react-router';
 import { ArrowLeft, Cloud, CloudOff, Loader2 } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
+import {
+  CharacterOnboardingWizard,
+  isOnboardingComplete,
+} from '@/components/character-onboarding';
 import {
   CombatTab,
   IdentityTab,
@@ -102,11 +106,14 @@ function ErrorDisplay({
 
 export function CharacterSheet({ characterId }: CharacterSheetProps) {
   const [activeTab, setActiveTab] = useState('quick');
+  const [hasDismissedOnboarding, setHasDismissedOnboarding] = useState(false);
   const {
     state,
     handlers,
     isLoading,
     error,
+    isNewCharacter,
+    setIsNewCharacter,
     isLevelUpOpen,
     setIsLevelUpOpen,
     handleLevelUpConfirm,
@@ -117,6 +124,15 @@ export function CharacterSheet({ characterId }: CharacterSheetProps) {
     lastSaved,
     isHydrated,
   } = useCharacterSheetWithApi(characterId);
+
+  const onboardingComplete = useMemo(
+    () => isOnboardingComplete(state),
+    [state]
+  );
+
+  const shouldAutoOpenOnboarding =
+    isHydrated && isNewCharacter && !onboardingComplete;
+  const isOnboardingOpen = shouldAutoOpenOnboarding && !hasDismissedOnboarding;
 
   const primaryTabs = [
     { value: 'quick', label: '⚡ Quick' },
@@ -151,6 +167,20 @@ export function CharacterSheet({ characterId }: CharacterSheetProps) {
   return (
     <div className="container mx-auto px-4 py-4 sm:py-8">
       <div className="space-y-6">
+        <CharacterOnboardingWizard
+          isOpen={isOnboardingOpen}
+          onClose={() => setHasDismissedOnboarding(true)}
+          onSkipWizard={() => {
+            setHasDismissedOnboarding(true);
+            setIsNewCharacter(false);
+          }}
+          onFinish={() => {
+            setHasDismissedOnboarding(true);
+            setIsNewCharacter(false);
+          }}
+          state={state}
+          handlers={handlers}
+        />
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
             <Button variant="ghost" size="sm" asChild className="w-fit">

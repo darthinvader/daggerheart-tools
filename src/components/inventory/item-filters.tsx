@@ -19,6 +19,8 @@ interface ItemFiltersProps {
   onToggleCategory: (cat: ItemCategory) => void;
   onToggleRarity: (rarity: Rarity) => void;
   onToggleTier: (tier: EquipmentTier) => void;
+  allowedTiers?: string[];
+  lockTiers?: boolean;
 }
 
 export function ItemFilters({
@@ -28,7 +30,14 @@ export function ItemFilters({
   onToggleCategory,
   onToggleRarity,
   onToggleTier,
+  allowedTiers,
+  lockTiers = false,
 }: ItemFiltersProps) {
+  const tiersToShow =
+    allowedTiers && allowedTiers.length > 0
+      ? ALL_TIERS.filter(tier => allowedTiers.includes(tier))
+      : ALL_TIERS;
+
   return (
     <div className="bg-muted/50 space-y-3 rounded-lg border p-4">
       <div>
@@ -84,7 +93,7 @@ export function ItemFilters({
       <div>
         <h4 className="mb-2 text-sm font-medium">🏆 Tier</h4>
         <div className="flex flex-wrap gap-1.5">
-          {ALL_TIERS.map(tier => {
+          {tiersToShow.map(tier => {
             const config = TIER_CONFIG[tier];
             return (
               <Badge
@@ -94,7 +103,8 @@ export function ItemFilters({
                   'cursor-pointer transition-all',
                   selectedTiers.includes(tier) && config.color
                 )}
-                onClick={() => onToggleTier(tier)}
+                onClick={() => !lockTiers && onToggleTier(tier)}
+                aria-disabled={lockTiers}
               >
                 {config.emoji} {config.label}
               </Badge>

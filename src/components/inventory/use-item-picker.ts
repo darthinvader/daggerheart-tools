@@ -26,10 +26,17 @@ export function useItemFilters(
   selectedCategories: ItemCategory[],
   selectedRarities: Rarity[],
   selectedTiers: EquipmentTier[],
-  search: string
+  search: string,
+  allowedTiers?: string[]
 ) {
   return useMemo(() => {
     let result = ALL_ITEMS;
+
+    if (allowedTiers && allowedTiers.length > 0) {
+      result = result.filter(item =>
+        allowedTiers.includes(item.tier as EquipmentTier)
+      );
+    }
 
     if (selectedCategories.length > 0) {
       result = result.filter(item =>
@@ -60,7 +67,13 @@ export function useItemFilters(
     }
 
     return result;
-  }, [search, selectedCategories, selectedRarities, selectedTiers]);
+  }, [
+    search,
+    selectedCategories,
+    selectedRarities,
+    selectedTiers,
+    allowedTiers,
+  ]);
 }
 
 export function useItemSelection(maxTotalSlots: number = Infinity) {
@@ -138,13 +151,21 @@ export function useItemSelection(maxTotalSlots: number = Infinity) {
   };
 }
 
-export function usePickerFiltersState() {
+export function usePickerFiltersState({
+  initialTiers,
+  lockTiers = false,
+}: {
+  initialTiers?: string[];
+  lockTiers?: boolean;
+} = {}) {
   const [search, setSearch] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<ItemCategory[]>(
     []
   );
   const [selectedRarities, setSelectedRarities] = useState<Rarity[]>([]);
-  const [selectedTiers, setSelectedTiers] = useState<EquipmentTier[]>([]);
+  const [selectedTiers, setSelectedTiers] = useState<EquipmentTier[]>(
+    (initialTiers ?? []) as EquipmentTier[]
+  );
   const [showFilters, setShowFilters] = useState(false);
 
   const toggleArray = <T>(arr: T[], item: T): T[] =>
@@ -154,13 +175,17 @@ export function usePickerFiltersState() {
     setSelectedCategories(prev => toggleArray(prev, c));
   const toggleRarity = (r: Rarity) =>
     setSelectedRarities(prev => toggleArray(prev, r));
-  const toggleTier = (t: EquipmentTier) =>
+  const toggleTier = (t: EquipmentTier) => {
+    if (lockTiers) return;
     setSelectedTiers(prev => toggleArray(prev, t));
+  };
 
   const clearFilters = () => {
     setSelectedCategories([]);
     setSelectedRarities([]);
-    setSelectedTiers([]);
+    setSelectedTiers(
+      lockTiers ? ((initialTiers ?? []) as EquipmentTier[]) : []
+    );
     setSearch('');
   };
 
@@ -180,6 +205,7 @@ export function usePickerFiltersState() {
     toggleTier,
     clearFilters,
     activeFilterCount,
+    lockTiers,
   };
 }
 

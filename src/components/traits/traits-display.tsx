@@ -73,7 +73,7 @@ interface TraitsEditorProps {
   onChange: (traits: TraitsState) => void;
 }
 
-function TraitsEditor({ traits, onChange }: TraitsEditorProps) {
+export function TraitsEditor({ traits, onChange }: TraitsEditorProps) {
   const updateTrait = (
     name: keyof TraitsState,
     updates: Partial<TraitValue>

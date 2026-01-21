@@ -32,6 +32,14 @@ export function AncestrySelector({ value, onChange }: AncestrySelectorProps) {
       value?.mode === 'homebrew' ? value.homebrew : null
     );
 
+  const activeMode = value?.mode ?? mode;
+  const activeStandardSelection =
+    value?.mode === 'standard' ? value.ancestry : standardSelection;
+  const activeMixedSelection =
+    value?.mode === 'mixed' ? value.mixedAncestry : mixedSelection;
+  const activeHomebrewSelection =
+    value?.mode === 'homebrew' ? value.homebrew : homebrewSelection;
+
   const handleModeChange = useCallback((newMode: AncestryMode) => {
     setMode(newMode);
   }, []);
@@ -62,25 +70,28 @@ export function AncestrySelector({ value, onChange }: AncestrySelectorProps) {
 
   return (
     <div className="space-y-6">
-      <AncestryModeTabs activeMode={mode} onModeChange={handleModeChange} />
+      <AncestryModeTabs
+        activeMode={activeMode}
+        onModeChange={handleModeChange}
+      />
 
-      {mode === 'standard' && (
+      {activeMode === 'standard' && (
         <StandardAncestryList
-          selectedAncestry={standardSelection}
+          selectedAncestry={activeStandardSelection}
           onSelect={handleStandardSelect}
         />
       )}
 
-      {mode === 'mixed' && (
+      {activeMode === 'mixed' && (
         <MixedAncestrySelector
-          mixedAncestry={mixedSelection}
+          mixedAncestry={activeMixedSelection}
           onChange={handleMixedChange}
         />
       )}
 
-      {mode === 'homebrew' && (
+      {activeMode === 'homebrew' && (
         <HomebrewAncestryForm
-          homebrew={homebrewSelection}
+          homebrew={activeHomebrewSelection}
           onChange={handleHomebrewChange}
           hideSaveButton
         />

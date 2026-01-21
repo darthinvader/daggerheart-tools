@@ -13,6 +13,7 @@ interface ArmorSectionProps {
   onArmorChange: (armor: StandardArmor | null) => void;
   homebrewArmor: Partial<StandardArmor>;
   onHomebrewChange: (value: Partial<StandardArmor>) => void;
+  allowedTiers?: string[];
 }
 
 export function ArmorSection({
@@ -22,6 +23,7 @@ export function ArmorSection({
   onArmorChange,
   homebrewArmor,
   onHomebrewChange,
+  allowedTiers,
 }: ArmorSectionProps) {
   return (
     <div className="flex min-h-0 flex-1 flex-col space-y-4">
@@ -35,6 +37,7 @@ export function ArmorSection({
           items={ALL_STANDARD_ARMOR}
           selectedItem={armor}
           onSelect={onArmorChange}
+          allowedTiers={allowedTiers}
           renderCard={(a, isSelected, onSelect) => (
             <ArmorCardCompact
               key={a.name}

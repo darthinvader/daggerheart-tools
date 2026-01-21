@@ -14,6 +14,7 @@ interface EditSectionContentProps {
   updateDraft: (updates: Partial<EquipmentState>) => void;
   handleAddCustomSlot: () => void;
   hideDialogHeader?: boolean;
+  allowedTiers?: string[];
 }
 
 export function EditSectionContent({
@@ -22,6 +23,7 @@ export function EditSectionContent({
   updateDraft,
   handleAddCustomSlot,
   hideDialogHeader,
+  allowedTiers,
 }: EditSectionContentProps) {
   switch (editingSection) {
     case 'primary':
@@ -33,6 +35,7 @@ export function EditSectionContent({
           onWeaponChange={weapon => updateDraft({ primaryWeapon: weapon })}
           homebrewWeapon={draftEquipment.homebrewPrimaryWeapon}
           onHomebrewChange={v => updateDraft({ homebrewPrimaryWeapon: v })}
+          allowedTiers={allowedTiers}
         />
       );
     case 'secondary':
@@ -44,6 +47,7 @@ export function EditSectionContent({
           onWeaponChange={weapon => updateDraft({ secondaryWeapon: weapon })}
           homebrewWeapon={draftEquipment.homebrewSecondaryWeapon}
           onHomebrewChange={v => updateDraft({ homebrewSecondaryWeapon: v })}
+          allowedTiers={allowedTiers}
         />
       );
     case 'armor':
@@ -55,6 +59,7 @@ export function EditSectionContent({
           onArmorChange={armor => updateDraft({ armor })}
           homebrewArmor={draftEquipment.homebrewArmor}
           onHomebrewChange={v => updateDraft({ homebrewArmor: v })}
+          allowedTiers={allowedTiers}
         />
       );
     case 'wheelchair':
@@ -69,6 +74,7 @@ export function EditSectionContent({
           homebrewWheelchair={draftEquipment.homebrewWheelchair}
           onHomebrewChange={v => updateDraft({ homebrewWheelchair: v })}
           hideTitle={hideDialogHeader}
+          allowedTiers={allowedTiers}
         />
       );
     case 'custom':

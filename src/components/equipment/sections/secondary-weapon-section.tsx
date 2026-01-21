@@ -13,6 +13,7 @@ interface SecondaryWeaponSectionProps {
   onWeaponChange: (weapon: SecondaryWeapon | null) => void;
   homebrewWeapon: Partial<SecondaryWeapon>;
   onHomebrewChange: (value: Partial<SecondaryWeapon>) => void;
+  allowedTiers?: string[];
 }
 
 export function SecondaryWeaponSection({
@@ -22,6 +23,7 @@ export function SecondaryWeaponSection({
   onWeaponChange,
   homebrewWeapon,
   onHomebrewChange,
+  allowedTiers,
 }: SecondaryWeaponSectionProps) {
   return (
     <div className="flex min-h-0 flex-1 flex-col space-y-4">
@@ -39,6 +41,7 @@ export function SecondaryWeaponSection({
           items={ALL_SECONDARY_WEAPONS}
           selectedItem={weapon}
           onSelect={onWeaponChange}
+          allowedTiers={allowedTiers}
           renderCard={(w, isSelected, onSelect) => (
             <WeaponCardCompact
               key={w.name}

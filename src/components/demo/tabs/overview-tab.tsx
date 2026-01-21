@@ -7,6 +7,7 @@ import { DowntimeMoves } from '@/components/downtime-moves';
 import { InventoryDisplay } from '@/components/inventory';
 import { LoadoutDisplay } from '@/components/loadout-selector';
 import { SessionTracker } from '@/components/session-tracker';
+import { getSubclassByName } from '@/lib/data/classes';
 
 import { CompanionSection } from '../companion-section';
 import { createRestHandler } from '../demo-handlers';
@@ -17,12 +18,31 @@ import {
   AncestryClassGrid,
   ExperiencesEquipmentGrid,
   GoldConditionsGrid,
-  HopeScoresThresholdsGrid,
   IdentityProgressionGrid,
   TraitsScoresGrid,
 } from './overview-grids';
 
 export function OverviewTab({ state, handlers, isHydrated }: TabProps) {
+  const hasCompanionFeature = useMemo(() => {
+    const hasCompanionFlag = (
+      value: unknown
+    ): value is { companion?: boolean } =>
+      Boolean(value && typeof value === 'object' && 'companion' in value);
+    const selection = state.classSelection;
+    if (!selection?.className || !selection?.subclassName) return false;
+    if (selection.isHomebrew && selection.homebrewClass) {
+      const homebrewSubclass = selection.homebrewClass.subclasses.find(
+        s => s.name === selection.subclassName
+      );
+      return Boolean(homebrewSubclass?.companion);
+    }
+    const subclass = getSubclassByName(
+      selection.className,
+      selection.subclassName
+    );
+    return hasCompanionFlag(subclass) && Boolean(subclass.companion);
+  }, [state.classSelection]);
+
   const handleRest = useMemo(
     () =>
       createRestHandler({
@@ -68,15 +88,10 @@ export function OverviewTab({ state, handlers, isHydrated }: TabProps) {
         handlers={handlers}
         isHydrated={isHydrated}
       />
-      <HopeScoresThresholdsGrid
-        state={state}
-        handlers={handlers}
-        isHydrated={isHydrated}
-      />
       <GoldConditionsGrid state={state} handlers={handlers} />
 
       <CompanionSection
-        isRanger={state.classSelection?.className === 'Ranger'}
+        hasCompanionFeature={hasCompanionFeature}
         companionEnabled={state.companionEnabled}
         companion={state.companion}
         setCompanion={handlers.setCompanion}

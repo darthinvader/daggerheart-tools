@@ -27,6 +27,12 @@ export function CommunitySelector({ value, onChange }: CommunitySelectorProps) {
       value?.mode === 'homebrew' ? value.homebrew : null
     );
 
+  const activeMode = value?.mode ?? mode;
+  const activeStandardSelection =
+    value?.mode === 'standard' ? value.community : standardSelection;
+  const activeHomebrewSelection =
+    value?.mode === 'homebrew' ? value.homebrew : homebrewSelection;
+
   const handleModeChange = useCallback((newMode: CommunityMode) => {
     setMode(newMode);
   }, []);
@@ -49,18 +55,21 @@ export function CommunitySelector({ value, onChange }: CommunitySelectorProps) {
 
   return (
     <div className="space-y-6">
-      <CommunityModeTabs activeMode={mode} onModeChange={handleModeChange} />
+      <CommunityModeTabs
+        activeMode={activeMode}
+        onModeChange={handleModeChange}
+      />
 
-      {mode === 'standard' && (
+      {activeMode === 'standard' && (
         <StandardCommunityList
-          selectedCommunity={standardSelection}
+          selectedCommunity={activeStandardSelection}
           onSelect={handleStandardSelect}
         />
       )}
 
-      {mode === 'homebrew' && (
+      {activeMode === 'homebrew' && (
         <HomebrewCommunityForm
-          homebrew={homebrewSelection}
+          homebrew={activeHomebrewSelection}
           onChange={handleHomebrewChange}
         />
       )}
