@@ -16,13 +16,15 @@ import {
   useSessionState,
 } from '@/components/demo/character-state-hooks';
 import {
+  computeUpdatedCompanionFromLevelUpResult,
+  processLevelUpResult,
+} from '@/components/demo/level-up-handlers';
+import {
   addNewExperience,
   applyTraitSelection,
   boostExperiences,
   clearTraitsMarks,
-  computeUpdatedCompanionFromLevelUpResult,
-  processLevelUpResult,
-} from '@/components/demo/level-up-handlers';
+} from '@/components/demo/level-up-helpers';
 import {
   buildCharacterSheetHandlers,
   buildCharacterSheetState,

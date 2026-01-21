@@ -135,6 +135,139 @@ function EmptyState({ onCreateNew }: { onCreateNew: () => void }) {
   );
 }
 
+function CharactersLoading() {
+  return (
+    <div className="container mx-auto p-4">
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Characters</h1>
+      </div>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="bg-muted h-32 animate-pulse rounded-lg" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CharactersError({
+  error,
+  onRetry,
+}: {
+  error: unknown;
+  onRetry: () => void;
+}) {
+  return (
+    <div className="container mx-auto p-4">
+      <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950">
+        <h2 className="mb-2 font-semibold text-red-800 dark:text-red-200">
+          Failed to load characters
+        </h2>
+        <p className="mb-4 text-sm text-red-600 dark:text-red-300">
+          {error instanceof Error ? error.message : 'Unknown error'}
+        </p>
+        <p className="mb-4 text-sm text-red-600 dark:text-red-300">
+          Make sure the JSON server is running on port 3001.
+        </p>
+        <Button variant="outline" onClick={onRetry}>
+          Retry
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function CharactersContent({
+  characters,
+  createErrorMessage,
+  isCreating,
+  isCreateError,
+  isDeleting,
+  isRestoring,
+  onCreateNew,
+  onDelete,
+  onRestore,
+}: {
+  characters: CharacterSummary[] | undefined;
+  createErrorMessage: string;
+  isCreating: boolean;
+  isCreateError: boolean;
+  isDeleting: boolean;
+  isRestoring: boolean;
+  onCreateNew: () => void;
+  onDelete: (id: string) => void;
+  onRestore: (id: string) => void;
+}) {
+  const activeCharacters = (characters ?? []).filter(
+    character => !character.deletedAt
+  );
+  const deletedCharacters = (characters ?? []).filter(
+    character => character.deletedAt
+  );
+
+  return (
+    <div className="container mx-auto p-4">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-2xl font-bold">Characters</h1>
+        {characters && characters.length > 0 && (
+          <Button
+            onClick={onCreateNew}
+            disabled={isCreating}
+            className="w-full sm:w-auto"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            {isCreating ? 'Creating...' : 'New Character'}
+          </Button>
+        )}
+      </div>
+
+      {isCreateError && (
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+          Failed to create character. {createErrorMessage}
+        </div>
+      )}
+
+      {activeCharacters.length === 0 ? (
+        <EmptyState onCreateNew={onCreateNew} />
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {activeCharacters.map(character => (
+            <CharacterCard
+              key={character.id}
+              character={character}
+              onDelete={onDelete}
+              isDeleting={isDeleting}
+            />
+          ))}
+        </div>
+      )}
+
+      {deletedCharacters.length > 0 && (
+        <div className="mt-10 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-muted-foreground text-lg font-semibold">
+              Recycling Bin
+            </h2>
+            <span className="text-muted-foreground text-xs">
+              {deletedCharacters.length} deleted
+            </span>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {deletedCharacters.map(character => (
+              <RecycleBinCard
+                key={character.id}
+                character={character}
+                onRestore={onRestore}
+                isRestoring={isRestoring}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function CharactersPage() {
   const navigate = useNavigate();
   const { data: characters, isLoading, error, refetch } = useCharactersQuery();
@@ -168,108 +301,25 @@ function CharactersPage() {
     restoreMutation.mutate(id);
   };
 
-  const activeCharacters = (characters ?? []).filter(
-    character => !character.deletedAt
-  );
-  const deletedCharacters = (characters ?? []).filter(
-    character => character.deletedAt
-  );
-
   if (isLoading) {
-    return (
-      <div className="container mx-auto p-4">
-        <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Characters</h1>
-        </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="bg-muted h-32 animate-pulse rounded-lg" />
-          ))}
-        </div>
-      </div>
-    );
+    return <CharactersLoading />;
   }
 
   if (error) {
-    return (
-      <div className="container mx-auto p-4">
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950">
-          <h2 className="mb-2 font-semibold text-red-800 dark:text-red-200">
-            Failed to load characters
-          </h2>
-          <p className="mb-4 text-sm text-red-600 dark:text-red-300">
-            {error instanceof Error ? error.message : 'Unknown error'}
-          </p>
-          <p className="mb-4 text-sm text-red-600 dark:text-red-300">
-            Make sure the JSON server is running on port 3001.
-          </p>
-          <Button variant="outline" onClick={() => refetch()}>
-            Retry
-          </Button>
-        </div>
-      </div>
-    );
+    return <CharactersError error={error} onRetry={refetch} />;
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold">Characters</h1>
-        {characters && characters.length > 0 && (
-          <Button
-            onClick={handleCreateNew}
-            disabled={createMutation.isPending}
-            className="w-full sm:w-auto"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            {createMutation.isPending ? 'Creating...' : 'New Character'}
-          </Button>
-        )}
-      </div>
-
-      {createMutation.isError && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
-          Failed to create character. {createErrorMessage}
-        </div>
-      )}
-
-      {activeCharacters.length === 0 ? (
-        <EmptyState onCreateNew={handleCreateNew} />
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {activeCharacters.map(character => (
-            <CharacterCard
-              key={character.id}
-              character={character}
-              onDelete={handleDelete}
-              isDeleting={deleteMutation.isPending}
-            />
-          ))}
-        </div>
-      )}
-
-      {deletedCharacters.length > 0 && (
-        <div className="mt-10 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-muted-foreground text-lg font-semibold">
-              Recycling Bin
-            </h2>
-            <span className="text-muted-foreground text-xs">
-              {deletedCharacters.length} deleted
-            </span>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {deletedCharacters.map(character => (
-              <RecycleBinCard
-                key={character.id}
-                character={character}
-                onRestore={handleRestore}
-                isRestoring={restoreMutation.isPending}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
+    <CharactersContent
+      characters={characters}
+      createErrorMessage={createErrorMessage}
+      isCreating={createMutation.isPending}
+      isCreateError={createMutation.isError}
+      isDeleting={deleteMutation.isPending}
+      isRestoring={restoreMutation.isPending}
+      onCreateNew={handleCreateNew}
+      onDelete={handleDelete}
+      onRestore={handleRestore}
+    />
   );
 }

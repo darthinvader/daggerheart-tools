@@ -20,6 +20,8 @@ type HomebrewDraft = {
   type: string;
   description: string;
   hopeCost: number;
+  recallCost: number;
+  stressCost: number;
 };
 
 export type HomebrewEditModalProps = {
@@ -44,6 +46,8 @@ export function HomebrewEditModal({
           type: card.type,
           description: card.description ?? '',
           hopeCost: card.hopeCost ?? 0,
+          recallCost: card.recallCost ?? card.hopeCost ?? 0,
+          stressCost: card.stressCost ?? 0,
         }
       : {
           name: '',
@@ -52,6 +56,8 @@ export function HomebrewEditModal({
           type: 'Spell',
           description: '',
           hopeCost: 1,
+          recallCost: 0,
+          stressCost: 0,
         }
   );
 
@@ -65,7 +71,8 @@ export function HomebrewEditModal({
       type: draft.type,
       description: draft.description,
       hopeCost: draft.hopeCost,
-      recallCost: card.recallCost,
+      recallCost: draft.recallCost,
+      stressCost: draft.stressCost,
       isHomebrew: true,
     };
 

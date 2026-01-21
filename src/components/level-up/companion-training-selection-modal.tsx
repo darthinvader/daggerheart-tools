@@ -92,6 +92,104 @@ const TRAINING_OPTIONS: Omit<TrainingOption, 'currentValue'>[] = [
   },
 ];
 
+function TrainingOptionsList({
+  options,
+  selectedId,
+  onSelect,
+}: {
+  options: TrainingOption[];
+  selectedId: string | null;
+  onSelect: (optionId: string) => void;
+}) {
+  return (
+    <div className="max-h-80 space-y-2 overflow-y-auto py-2">
+      {options.length === 0 ? (
+        <p className="text-muted-foreground py-4 text-center text-sm">
+          All training options have been maxed out.
+        </p>
+      ) : (
+        options.map(option => {
+          const isSelected = selectedId === option.id;
+          const currentCount =
+            typeof option.currentValue === 'number'
+              ? option.currentValue
+              : option.currentValue
+                ? 1
+                : 0;
+
+          return (
+            <button
+              key={option.id}
+              type="button"
+              onClick={() => onSelect(option.id)}
+              className={cn(
+                'w-full rounded-lg border p-3 text-left transition-all',
+                'hover:border-primary/50 hover:bg-accent/50',
+                isSelected && 'border-primary bg-primary/10 ring-primary ring-1'
+              )}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{option.label}</span>
+                    {option.maxSelections > 1 && (
+                      <Badge variant="outline" className="text-xs">
+                        {currentCount}/{option.maxSelections}
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-muted-foreground mt-1 text-sm">
+                    {option.description}
+                  </p>
+                </div>
+                {isSelected && (
+                  <Check className="text-primary size-5 shrink-0" />
+                )}
+              </div>
+            </button>
+          );
+        })
+      )}
+    </div>
+  );
+}
+
+function IntelligentExperienceSelect({
+  experiences,
+  selectedIndex,
+  onSelect,
+}: {
+  experiences: { name: string; bonus: number }[];
+  selectedIndex: number | null;
+  onSelect: (index: number | null) => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <Label>Choose a companion experience to boost</Label>
+      <Select
+        value={selectedIndex !== null ? String(selectedIndex) : ''}
+        onValueChange={value => onSelect(value ? Number(value) : null)}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="Select an experience" />
+        </SelectTrigger>
+        <SelectContent>
+          {experiences.map((exp, index) => (
+            <SelectItem key={index} value={String(index)}>
+              {exp.name || `Experience ${index + 1}`} (+{exp.bonus})
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      {selectedIndex === null && (
+        <p className="text-muted-foreground text-xs">
+          Select an experience to apply the +1 bonus.
+        </p>
+      )}
+    </div>
+  );
+}
+
 export function CompanionTrainingSelectionModal({
   isOpen,
   onClose,
@@ -167,87 +265,18 @@ export function CompanionTrainingSelectionModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="max-h-80 space-y-2 overflow-y-auto py-2">
-          {availableOptions.length === 0 ? (
-            <p className="text-muted-foreground py-4 text-center text-sm">
-              All training options have been maxed out.
-            </p>
-          ) : (
-            availableOptions.map(option => {
-              const isSelected = selected === option.id;
-              const currentCount =
-                typeof option.currentValue === 'number'
-                  ? option.currentValue
-                  : option.currentValue
-                    ? 1
-                    : 0;
-
-              return (
-                <button
-                  key={option.id}
-                  type="button"
-                  onClick={() => handleSelect(option.id)}
-                  className={cn(
-                    'w-full rounded-lg border p-3 text-left transition-all',
-                    'hover:border-primary/50 hover:bg-accent/50',
-                    isSelected &&
-                      'border-primary bg-primary/10 ring-primary ring-1'
-                  )}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{option.label}</span>
-                        {option.maxSelections > 1 && (
-                          <Badge variant="outline" className="text-xs">
-                            {currentCount}/{option.maxSelections}
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-muted-foreground mt-1 text-sm">
-                        {option.description}
-                      </p>
-                    </div>
-                    {isSelected && (
-                      <Check className="text-primary size-5 shrink-0" />
-                    )}
-                  </div>
-                </button>
-              );
-            })
-          )}
-        </div>
+        <TrainingOptionsList
+          options={availableOptions}
+          selectedId={selected}
+          onSelect={handleSelect}
+        />
 
         {selected === 'intelligent' && companionExperiences.length > 0 && (
-          <div className="space-y-2">
-            <Label>Choose a companion experience to boost</Label>
-            <Select
-              value={
-                selectedExperienceIndex !== null
-                  ? String(selectedExperienceIndex)
-                  : ''
-              }
-              onValueChange={value =>
-                setSelectedExperienceIndex(value ? Number(value) : null)
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select an experience" />
-              </SelectTrigger>
-              <SelectContent>
-                {companionExperiences.map((exp, index) => (
-                  <SelectItem key={index} value={String(index)}>
-                    {exp.name || `Experience ${index + 1}`} (+{exp.bonus})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {selectedExperienceIndex === null && (
-              <p className="text-muted-foreground text-xs">
-                Select an experience to apply the +1 bonus.
-              </p>
-            )}
-          </div>
+          <IntelligentExperienceSelect
+            experiences={companionExperiences}
+            selectedIndex={selectedExperienceIndex}
+            onSelect={setSelectedExperienceIndex}
+          />
         )}
 
         <DialogFooter>

@@ -70,8 +70,244 @@ function QuickSection({
   );
 }
 
+function QuickViewPrimarySections({
+  state,
+  handlers,
+  isMobile,
+  isSectionOpen,
+  onToggle,
+  bonusHopeSlots,
+}: {
+  state: DemoState;
+  handlers: DemoHandlers;
+  isMobile: boolean;
+  isSectionOpen: (id: QuickSectionKey) => boolean;
+  onToggle: (id: QuickSectionKey) => void;
+  bonusHopeSlots: number;
+}) {
+  return (
+    <>
+      <QuickSection
+        id="traits"
+        label="Traits"
+        isOpen={isSectionOpen('traits')}
+        isMobile={isMobile}
+        onToggle={onToggle}
+      >
+        <QuickTraitsInfo traits={state.traits} />
+      </QuickSection>
+
+      <QuickSection
+        id="vitals"
+        label="Vitals"
+        isOpen={isSectionOpen('vitals')}
+        isMobile={isMobile}
+        onToggle={onToggle}
+      >
+        <QuickVitalsInfo
+          resources={state.resources}
+          hopeState={state.hopeWithScars}
+          onResourcesChange={handlers.setResources}
+          onHopeChange={handlers.setHopeWithScars}
+          bonusHopeSlots={bonusHopeSlots}
+        />
+      </QuickSection>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <QuickSection
+          id="coreScores"
+          label="Core Scores"
+          isOpen={isSectionOpen('coreScores')}
+          isMobile={isMobile}
+          onToggle={onToggle}
+        >
+          <QuickCoreScoresInfo scores={state.coreScores} />
+        </QuickSection>
+        <QuickSection
+          id="thresholds"
+          label="Thresholds"
+          isOpen={isSectionOpen('thresholds')}
+          isMobile={isMobile}
+          onToggle={onToggle}
+        >
+          <QuickThresholdsInfo thresholds={state.thresholds} />
+        </QuickSection>
+      </div>
+    </>
+  );
+}
+
+function QuickViewIdentitySections({
+  state,
+  isMobile,
+  isSectionOpen,
+  onToggle,
+}: {
+  state: DemoState;
+  isMobile: boolean;
+  isSectionOpen: (id: QuickSectionKey) => boolean;
+  onToggle: (id: QuickSectionKey) => void;
+}) {
+  return (
+    <div className="grid gap-3 sm:grid-cols-3">
+      <QuickSection
+        id="ancestry"
+        label="Ancestry"
+        isOpen={isSectionOpen('ancestry')}
+        isMobile={isMobile}
+        onToggle={onToggle}
+      >
+        <QuickAncestryInfo selection={state.ancestry} />
+      </QuickSection>
+      <QuickSection
+        id="community"
+        label="Community"
+        isOpen={isSectionOpen('community')}
+        isMobile={isMobile}
+        onToggle={onToggle}
+      >
+        <QuickCommunityInfo selection={state.community} />
+      </QuickSection>
+      <QuickSection
+        id="class"
+        label="Class"
+        isOpen={isSectionOpen('class')}
+        isMobile={isMobile}
+        onToggle={onToggle}
+      >
+        <QuickClassInfo
+          selection={state.classSelection}
+          unlockedSubclassFeatures={state.unlockedSubclassFeatures}
+        />
+      </QuickSection>
+    </div>
+  );
+}
+
+function QuickViewStatusSections({
+  state,
+  handlers,
+  isMobile,
+  isSectionOpen,
+  onToggle,
+  hasCompanion,
+}: {
+  state: DemoState;
+  handlers: DemoHandlers;
+  isMobile: boolean;
+  isSectionOpen: (id: QuickSectionKey) => boolean;
+  onToggle: (id: QuickSectionKey) => void;
+  hasCompanion: boolean;
+}) {
+  return (
+    <>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <QuickSection
+          id="gold"
+          label="Gold"
+          isOpen={isSectionOpen('gold')}
+          isMobile={isMobile}
+          onToggle={onToggle}
+        >
+          <QuickGoldInfo gold={state.gold} onChange={handlers.setGold} />
+        </QuickSection>
+        <QuickSection
+          id="conditions"
+          label="Conditions"
+          isOpen={isSectionOpen('conditions')}
+          isMobile={isMobile}
+          onToggle={onToggle}
+        >
+          <QuickConditionsInfo
+            conditions={state.conditions}
+            onChange={handlers.setConditions}
+          />
+        </QuickSection>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        {hasCompanion && (
+          <QuickSection
+            id="companion"
+            label="Companion"
+            isOpen={isSectionOpen('companion')}
+            isMobile={isMobile}
+            onToggle={onToggle}
+          >
+            <QuickCompanionInfo
+              companion={state.companion}
+              onChange={handlers.setCompanion}
+            />
+          </QuickSection>
+        )}
+        <QuickSection
+          id="experiences"
+          label="Experiences"
+          isOpen={isSectionOpen('experiences')}
+          isMobile={isMobile}
+          onToggle={onToggle}
+          className={hasCompanion ? '' : 'sm:col-span-2'}
+        >
+          <QuickExperiencesInfo experiences={state.experiences} />
+        </QuickSection>
+      </div>
+    </>
+  );
+}
+
+function QuickViewInventorySections({
+  state,
+  handlers,
+  isMobile,
+  isSectionOpen,
+  onToggle,
+}: {
+  state: DemoState;
+  handlers: DemoHandlers;
+  isMobile: boolean;
+  isSectionOpen: (id: QuickSectionKey) => boolean;
+  onToggle: (id: QuickSectionKey) => void;
+}) {
+  return (
+    <>
+      <QuickSection
+        id="equipment"
+        label="Equipment"
+        isOpen={isSectionOpen('equipment')}
+        isMobile={isMobile}
+        onToggle={onToggle}
+      >
+        <QuickEquipmentInfo equipment={state.equipment} />
+      </QuickSection>
+
+      <QuickSection
+        id="loadout"
+        label="Domain Loadout"
+        isOpen={isSectionOpen('loadout')}
+        isMobile={isMobile}
+        onToggle={onToggle}
+      >
+        <QuickLoadoutInfo selection={state.loadout} />
+      </QuickSection>
+
+      <QuickSection
+        id="inventory"
+        label="Inventory"
+        isOpen={isSectionOpen('inventory')}
+        isMobile={isMobile}
+        onToggle={onToggle}
+      >
+        <QuickInventoryInfo
+          inventory={state.inventory}
+          onChange={handlers.setInventory}
+        />
+      </QuickSection>
+    </>
+  );
+}
+
 export function QuickViewTab({ state, handlers }: QuickViewTabProps) {
-  const hasCompanion = state.companionEnabled && state.companion;
+  const hasCompanion = !!(state.companionEnabled && state.companion);
   const bonusHopeSlots = state.companion?.training.lightInTheDark ? 1 : 0;
   const isMobile = useIsMobile();
   const quickView = state.quickView ?? DEFAULT_QUICK_VIEW_PREFERENCES;
@@ -92,178 +328,38 @@ export function QuickViewTab({ state, handlers }: QuickViewTabProps) {
 
   return (
     <div className="space-y-3 pt-4">
-      {/* Row 1: Traits */}
-      <QuickSection
-        id="traits"
-        label="Traits"
-        isOpen={isSectionOpen('traits')}
+      <QuickViewPrimarySections
+        state={state}
+        handlers={handlers}
         isMobile={isMobile}
+        isSectionOpen={isSectionOpen}
         onToggle={handleToggleSection}
-      >
-        <QuickTraitsInfo traits={state.traits} />
-      </QuickSection>
+        bonusHopeSlots={bonusHopeSlots}
+      />
 
-      {/* Row 2: Vitals (HP, Armor, Stress, Hope) */}
-      <QuickSection
-        id="vitals"
-        label="Vitals"
-        isOpen={isSectionOpen('vitals')}
+      <QuickViewIdentitySections
+        state={state}
         isMobile={isMobile}
+        isSectionOpen={isSectionOpen}
         onToggle={handleToggleSection}
-      >
-        <QuickVitalsInfo
-          resources={state.resources}
-          hopeState={state.hopeWithScars}
-          onResourcesChange={handlers.setResources}
-          onHopeChange={handlers.setHopeWithScars}
-          bonusHopeSlots={bonusHopeSlots}
-        />
-      </QuickSection>
+      />
 
-      {/* Row 3: Core Scores + Thresholds */}
-      <div className="grid gap-3 sm:grid-cols-2">
-        <QuickSection
-          id="coreScores"
-          label="Core Scores"
-          isOpen={isSectionOpen('coreScores')}
-          isMobile={isMobile}
-          onToggle={handleToggleSection}
-        >
-          <QuickCoreScoresInfo scores={state.coreScores} />
-        </QuickSection>
-        <QuickSection
-          id="thresholds"
-          label="Thresholds"
-          isOpen={isSectionOpen('thresholds')}
-          isMobile={isMobile}
-          onToggle={handleToggleSection}
-        >
-          <QuickThresholdsInfo thresholds={state.thresholds} />
-        </QuickSection>
-      </div>
-
-      {/* Row 4: Ancestry + Community + Class */}
-      <div className="grid gap-3 sm:grid-cols-3">
-        <QuickSection
-          id="ancestry"
-          label="Ancestry"
-          isOpen={isSectionOpen('ancestry')}
-          isMobile={isMobile}
-          onToggle={handleToggleSection}
-        >
-          <QuickAncestryInfo selection={state.ancestry} />
-        </QuickSection>
-        <QuickSection
-          id="community"
-          label="Community"
-          isOpen={isSectionOpen('community')}
-          isMobile={isMobile}
-          onToggle={handleToggleSection}
-        >
-          <QuickCommunityInfo selection={state.community} />
-        </QuickSection>
-        <QuickSection
-          id="class"
-          label="Class"
-          isOpen={isSectionOpen('class')}
-          isMobile={isMobile}
-          onToggle={handleToggleSection}
-        >
-          <QuickClassInfo
-            selection={state.classSelection}
-            unlockedSubclassFeatures={state.unlockedSubclassFeatures}
-          />
-        </QuickSection>
-      </div>
-
-      {/* Row 4: Gold + Conditions */}
-      <div className="grid gap-3 sm:grid-cols-2">
-        <QuickSection
-          id="gold"
-          label="Gold"
-          isOpen={isSectionOpen('gold')}
-          isMobile={isMobile}
-          onToggle={handleToggleSection}
-        >
-          <QuickGoldInfo gold={state.gold} onChange={handlers.setGold} />
-        </QuickSection>
-        <QuickSection
-          id="conditions"
-          label="Conditions"
-          isOpen={isSectionOpen('conditions')}
-          isMobile={isMobile}
-          onToggle={handleToggleSection}
-        >
-          <QuickConditionsInfo
-            conditions={state.conditions}
-            onChange={handlers.setConditions}
-          />
-        </QuickSection>
-      </div>
-
-      {/* Row 5: Companion + Experiences */}
-      <div className="grid gap-3 sm:grid-cols-2">
-        {hasCompanion && (
-          <QuickSection
-            id="companion"
-            label="Companion"
-            isOpen={isSectionOpen('companion')}
-            isMobile={isMobile}
-            onToggle={handleToggleSection}
-          >
-            <QuickCompanionInfo
-              companion={state.companion}
-              onChange={handlers.setCompanion}
-            />
-          </QuickSection>
-        )}
-        <QuickSection
-          id="experiences"
-          label="Experiences"
-          isOpen={isSectionOpen('experiences')}
-          isMobile={isMobile}
-          onToggle={handleToggleSection}
-          className={hasCompanion ? '' : 'sm:col-span-2'}
-        >
-          <QuickExperiencesInfo experiences={state.experiences} />
-        </QuickSection>
-      </div>
-
-      {/* Equipment */}
-      <QuickSection
-        id="equipment"
-        label="Equipment"
-        isOpen={isSectionOpen('equipment')}
+      <QuickViewStatusSections
+        state={state}
+        handlers={handlers}
         isMobile={isMobile}
+        isSectionOpen={isSectionOpen}
         onToggle={handleToggleSection}
-      >
-        <QuickEquipmentInfo equipment={state.equipment} />
-      </QuickSection>
+        hasCompanion={hasCompanion}
+      />
 
-      {/* Domain Loadout */}
-      <QuickSection
-        id="loadout"
-        label="Domain Loadout"
-        isOpen={isSectionOpen('loadout')}
+      <QuickViewInventorySections
+        state={state}
+        handlers={handlers}
         isMobile={isMobile}
+        isSectionOpen={isSectionOpen}
         onToggle={handleToggleSection}
-      >
-        <QuickLoadoutInfo selection={state.loadout} />
-      </QuickSection>
-
-      {/* Inventory */}
-      <QuickSection
-        id="inventory"
-        label="Inventory"
-        isOpen={isSectionOpen('inventory')}
-        isMobile={isMobile}
-        onToggle={handleToggleSection}
-      >
-        <QuickInventoryInfo
-          inventory={state.inventory}
-          onChange={handlers.setInventory}
-        />
-      </QuickSection>
+      />
     </div>
   );
 }

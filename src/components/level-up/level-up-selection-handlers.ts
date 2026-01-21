@@ -54,6 +54,69 @@ export function createRemoveSelectionHandler(
   };
 }
 
+function mergeSelectionDetails(
+  existing: LevelUpSelectionDetails | undefined,
+  incoming: LevelUpSelectionDetails
+): LevelUpSelectionDetails {
+  return {
+    selectedTraits: mergeArray(
+      existing?.selectedTraits,
+      incoming.selectedTraits
+    ),
+    selectedExperiences: mergeArray(
+      existing?.selectedExperiences,
+      incoming.selectedExperiences
+    ),
+    selectedDomainCard: mergeValue(
+      existing?.selectedDomainCard,
+      incoming.selectedDomainCard
+    ),
+    selectedMulticlass: mergeValue(
+      existing?.selectedMulticlass,
+      incoming.selectedMulticlass
+    ),
+    selectedSubclassUpgrade: mergeValue(
+      existing?.selectedSubclassUpgrade,
+      incoming.selectedSubclassUpgrade
+    ),
+    selectedCompanionTraining: mergeValue(
+      existing?.selectedCompanionTraining,
+      incoming.selectedCompanionTraining
+    ),
+    selectedCompanionExperienceIndex: mergeValue(
+      existing?.selectedCompanionExperienceIndex,
+      incoming.selectedCompanionExperienceIndex
+    ),
+  };
+}
+
+function mergeArray<T>(existing: T[] | undefined, incoming: T[] | undefined) {
+  if (!existing) return incoming ?? [];
+  if (!incoming) return existing;
+  return [...existing, ...incoming];
+}
+
+function mergeValue<T>(existing: T | undefined, incoming: T | undefined) {
+  return incoming ?? existing;
+}
+
+function upsertSelection(
+  selections: LevelUpSelection[],
+  option: LevelUpOptionConfig,
+  details: LevelUpSelectionDetails
+): LevelUpSelection[] {
+  const existing = selections.find(s => s.optionId === option.id);
+  if (!existing) {
+    return [...selections, { optionId: option.id, count: 1, details }];
+  }
+  const mergedDetails = mergeSelectionDetails(existing.details, details);
+  return selections.map(s =>
+    s.optionId === option.id
+      ? { ...s, count: s.count + 1, details: mergedDetails }
+      : s
+  );
+}
+
 export function createSubModalConfirmHandler(
   setSelections: React.Dispatch<React.SetStateAction<LevelUpSelection[]>>,
   setPendingOption: React.Dispatch<
@@ -63,40 +126,7 @@ export function createSubModalConfirmHandler(
 ) {
   return (details: LevelUpSelectionDetails) => {
     if (!pendingOption) return;
-    setSelections(prev => {
-      const existing = prev.find(s => s.optionId === pendingOption.id);
-      if (existing) {
-        const mergedDetails: LevelUpSelectionDetails = {
-          selectedTraits: [
-            ...(existing.details?.selectedTraits ?? []),
-            ...(details.selectedTraits ?? []),
-          ],
-          selectedExperiences: [
-            ...(existing.details?.selectedExperiences ?? []),
-            ...(details.selectedExperiences ?? []),
-          ],
-          selectedDomainCard:
-            details.selectedDomainCard ?? existing.details?.selectedDomainCard,
-          selectedMulticlass:
-            details.selectedMulticlass ?? existing.details?.selectedMulticlass,
-          selectedSubclassUpgrade:
-            details.selectedSubclassUpgrade ??
-            existing.details?.selectedSubclassUpgrade,
-          selectedCompanionTraining:
-            details.selectedCompanionTraining ??
-            existing.details?.selectedCompanionTraining,
-          selectedCompanionExperienceIndex:
-            details.selectedCompanionExperienceIndex ??
-            existing.details?.selectedCompanionExperienceIndex,
-        };
-        return prev.map(s =>
-          s.optionId === pendingOption.id
-            ? { ...s, count: s.count + 1, details: mergedDetails }
-            : s
-        );
-      }
-      return [...prev, { optionId: pendingOption.id, count: 1, details }];
-    });
+    setSelections(prev => upsertSelection(prev, pendingOption, details));
     setPendingOption(null);
   };
 }

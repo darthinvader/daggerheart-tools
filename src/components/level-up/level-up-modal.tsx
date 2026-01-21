@@ -66,6 +66,47 @@ function buildLevelUpResult(
   };
 }
 
+function LevelUpModalSubModals({
+  state,
+  unlockedSubclassFeatures,
+  currentCompanionTraining,
+  companionExperiences,
+}: {
+  state: ReturnType<typeof useLevelUpState>;
+  unlockedSubclassFeatures: Record<string, string[]>;
+  currentCompanionTraining?: CompanionTraining;
+  companionExperiences: { name: string; bonus: number }[];
+}) {
+  return (
+    <LevelUpSubModals
+      pendingOption={state.pendingOption}
+      onPendingClose={() => state.setPendingOption(null)}
+      onSubModalConfirm={state.handleSubModalConfirm}
+      showFreeDomainCardModal={state.showFreeDomainCardModal}
+      onFreeDomainCardClose={() => state.setShowFreeDomainCardModal(false)}
+      onFreeDomainCardConfirm={cardName => {
+        state.setFreeDomainCard(cardName);
+        state.setShowFreeDomainCardModal(false);
+      }}
+      showNewExperienceModal={state.showNewExperienceModal}
+      onNewExperienceClose={() => state.setShowNewExperienceModal(false)}
+      onNewExperienceConfirm={name => {
+        state.setNewExperienceName(name);
+        state.setShowNewExperienceModal(false);
+      }}
+      targetLevel={state.targetLevel}
+      targetTier={state.targetTier}
+      allOwnedCardNames={state.allOwnedCardNames}
+      availableTraits={state.availableTraitsForSelection}
+      availableExperiences={state.availableExperiencesForSelection}
+      classPairs={state.classPairs}
+      unlockedSubclassFeatures={unlockedSubclassFeatures}
+      currentCompanionTraining={currentCompanionTraining}
+      companionExperiences={companionExperiences}
+    />
+  );
+}
+
 export function LevelUpModal({
   isOpen,
   onClose,
@@ -184,28 +225,8 @@ export function LevelUpModal({
         </DialogContent>
       </Dialog>
 
-      <LevelUpSubModals
-        pendingOption={state.pendingOption}
-        onPendingClose={() => state.setPendingOption(null)}
-        onSubModalConfirm={state.handleSubModalConfirm}
-        showFreeDomainCardModal={state.showFreeDomainCardModal}
-        onFreeDomainCardClose={() => state.setShowFreeDomainCardModal(false)}
-        onFreeDomainCardConfirm={cardName => {
-          state.setFreeDomainCard(cardName);
-          state.setShowFreeDomainCardModal(false);
-        }}
-        showNewExperienceModal={state.showNewExperienceModal}
-        onNewExperienceClose={() => state.setShowNewExperienceModal(false)}
-        onNewExperienceConfirm={name => {
-          state.setNewExperienceName(name);
-          state.setShowNewExperienceModal(false);
-        }}
-        targetLevel={state.targetLevel}
-        targetTier={state.targetTier}
-        allOwnedCardNames={state.allOwnedCardNames}
-        availableTraits={state.availableTraitsForSelection}
-        availableExperiences={state.availableExperiencesForSelection}
-        classPairs={state.classPairs}
+      <LevelUpModalSubModals
+        state={state}
         unlockedSubclassFeatures={unlockedSubclassFeatures}
         currentCompanionTraining={currentCompanionTraining}
         companionExperiences={companionExperiences}

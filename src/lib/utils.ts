@@ -9,10 +9,17 @@ export function cn(...inputs: ClassValue[]) {
 // with a safe fallback for older environments.
 export function generateId(): string {
   try {
-    if (typeof globalThis !== 'undefined' && 'crypto' in globalThis) {
-      const c = (globalThis as unknown as { crypto?: Crypto }).crypto;
-      if (c && 'randomUUID' in c) return c.randomUUID();
-      if (c && 'getRandomValues' in c) {
+    if (typeof globalThis !== 'undefined') {
+      const c = (
+        globalThis as {
+          crypto?: {
+            randomUUID?: () => string;
+            getRandomValues?: (array: Uint8Array) => Uint8Array;
+          };
+        }
+      ).crypto;
+      if (c?.randomUUID) return c.randomUUID();
+      if (c?.getRandomValues) {
         const bytes = new Uint8Array(16);
         c.getRandomValues(bytes);
 
