@@ -99,6 +99,7 @@ export function createDefaultCharacter(id: string): CharacterRecord {
     notes: [],
     downtimeActivities: [],
     quickView: DEFAULT_QUICK_VIEW_PREFERENCES,
+    deletedAt: null,
     createdAt: now,
     updatedAt: now,
   };

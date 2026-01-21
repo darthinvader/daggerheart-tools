@@ -8,6 +8,7 @@ import {
   deleteCharacter,
   fetchAllCharacters,
   fetchCharacter,
+  restoreCharacter,
   toCharacterSummary,
   updateCharacter,
 } from '@/lib/api/characters';
@@ -80,7 +81,62 @@ export function useDeleteCharacterMutation() {
 
   return useMutation({
     mutationFn: deleteCharacter,
-    onSuccess: () => {
+    onMutate: async id => {
+      await queryClient.cancelQueries({ queryKey: characterQueryKeys.list() });
+      const previous = queryClient.getQueryData<CharacterSummary[]>(
+        characterQueryKeys.list()
+      );
+
+      queryClient.setQueryData<CharacterSummary[]>(
+        characterQueryKeys.list(),
+        current =>
+          (current ?? []).map(character =>
+            character.id === id
+              ? { ...character, deletedAt: new Date().toISOString() }
+              : character
+          )
+      );
+
+      return { previous };
+    },
+    onError: (_error, _id, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(characterQueryKeys.list(), context.previous);
+      }
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: characterQueryKeys.all });
+    },
+  });
+}
+
+export function useRestoreCharacterMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: restoreCharacter,
+    onMutate: async id => {
+      await queryClient.cancelQueries({ queryKey: characterQueryKeys.list() });
+      const previous = queryClient.getQueryData<CharacterSummary[]>(
+        characterQueryKeys.list()
+      );
+
+      queryClient.setQueryData<CharacterSummary[]>(
+        characterQueryKeys.list(),
+        current =>
+          (current ?? []).map(character =>
+            character.id === id ? { ...character, deletedAt: null } : character
+          )
+      );
+
+      return { previous };
+    },
+    onError: (_error, _id, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(characterQueryKeys.list(), context.previous);
+      }
+    },
+    onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: characterQueryKeys.all });
     },
   });

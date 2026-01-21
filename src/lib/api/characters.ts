@@ -86,6 +86,7 @@ export const CharacterRecordSchema = z.object({
   notes: z.array(CharacterNoteSchema).nullish(),
   downtimeActivities: z.array(DowntimeActivitySchema).nullish(),
   quickView: QuickViewPreferencesSchema.nullish(),
+  deletedAt: z.string().nullable().optional(),
   createdAt: z.string().nullish(),
   updatedAt: z.string().nullish(),
 });
@@ -101,6 +102,7 @@ export interface CharacterSummary {
   className: string;
   subclass: string;
   level: number;
+  deletedAt?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -114,6 +116,7 @@ export function toCharacterSummary(char: CharacterRecord): CharacterSummary {
     className: char.classDraft.className || '',
     subclass: char.classDraft.subclassName || '',
     level: char.progression.currentLevel,
+    deletedAt: char.deletedAt ?? null,
     createdAt: char.createdAt ?? undefined,
     updatedAt: char.updatedAt ?? undefined,
   };
@@ -153,6 +156,7 @@ function mapDbRowToCharacter(row: Record<string, unknown>): CharacterRecord {
     downtimeActivities:
       row.downtime_activities as CharacterRecord['downtimeActivities'],
     quickView: row.quick_view as CharacterRecord['quickView'],
+    deletedAt: row.deleted_at as string | null,
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
   };
@@ -202,6 +206,7 @@ function mapCharacterToDbRow(
   if (char.downtimeActivities !== undefined)
     row.downtime_activities = char.downtimeActivities;
   if (char.quickView !== undefined) row.quick_view = char.quickView;
+  if (char.deletedAt !== undefined) row.deleted_at = char.deletedAt;
 
   return row;
 }
@@ -294,9 +299,23 @@ export async function updateCharacter(
 }
 
 export async function deleteCharacter(id: string): Promise<void> {
-  const { error } = await supabase.from('characters').delete().eq('id', id);
+  const { error } = await supabase
+    .from('characters')
+    .update({ deleted_at: new Date().toISOString() })
+    .eq('id', id);
 
   if (error) {
     throw new Error(`Failed to delete character ${id}: ${error.message}`);
+  }
+}
+
+export async function restoreCharacter(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('characters')
+    .update({ deleted_at: null })
+    .eq('id', id);
+
+  if (error) {
+    throw new Error(`Failed to restore character ${id}: ${error.message}`);
   }
 }

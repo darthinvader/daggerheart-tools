@@ -1,11 +1,12 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { Plus, Trash2, User } from 'lucide-react';
+import { Plus, Trash2, Undo2, User } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
   useCharactersQuery,
   useCreateCharacterMutation,
   useDeleteCharacterMutation,
+  useRestoreCharacterMutation,
 } from '@/features/characters/use-characters-query';
 import type { CharacterSummary } from '@/lib/api/characters';
 import { cn } from '@/lib/utils';
@@ -72,6 +73,50 @@ function CharacterCard({
   );
 }
 
+function RecycleBinCard({
+  character,
+  onRestore,
+  isRestoring,
+}: {
+  character: CharacterSummary;
+  onRestore: (id: string) => void;
+  isRestoring: boolean;
+}) {
+  return (
+    <div className="bg-muted/40 border-border relative rounded-lg border p-4">
+      <div className="mb-2 flex items-start justify-between">
+        <div className="flex items-center gap-3">
+          <div className="bg-muted text-muted-foreground flex h-10 w-10 items-center justify-center rounded-full">
+            <User className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="text-muted-foreground font-semibold">
+              {character.name}
+            </h3>
+            <p className="text-muted-foreground text-sm">
+              Level {character.level} {character.ancestry} {character.className}
+              {character.subclass && ` (${character.subclass})`}
+            </p>
+          </div>
+        </div>
+      </div>
+      <div className="text-muted-foreground text-xs">
+        {character.community && <span>Community: {character.community}</span>}
+      </div>
+      <Button
+        variant="outline"
+        size="sm"
+        className="absolute top-2 right-2"
+        onClick={() => onRestore(character.id)}
+        disabled={isRestoring}
+      >
+        <Undo2 className="mr-1 h-4 w-4" />
+        Restore
+      </Button>
+    </div>
+  );
+}
+
 function EmptyState({ onCreateNew }: { onCreateNew: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -95,6 +140,7 @@ function CharactersPage() {
   const { data: characters, isLoading, error, refetch } = useCharactersQuery();
   const createMutation = useCreateCharacterMutation();
   const deleteMutation = useDeleteCharacterMutation();
+  const restoreMutation = useRestoreCharacterMutation();
   const createErrorMessage =
     createMutation.error instanceof Error
       ? createMutation.error.message
@@ -117,6 +163,17 @@ function CharactersPage() {
       deleteMutation.mutate(id);
     }
   };
+
+  const handleRestore = (id: string) => {
+    restoreMutation.mutate(id);
+  };
+
+  const activeCharacters = (characters ?? []).filter(
+    character => !character.deletedAt
+  );
+  const deletedCharacters = (characters ?? []).filter(
+    character => character.deletedAt
+  );
 
   if (isLoading) {
     return (
@@ -176,11 +233,11 @@ function CharactersPage() {
         </div>
       )}
 
-      {!characters || characters.length === 0 ? (
+      {activeCharacters.length === 0 ? (
         <EmptyState onCreateNew={handleCreateNew} />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {characters.map(character => (
+          {activeCharacters.map(character => (
             <CharacterCard
               key={character.id}
               character={character}
@@ -188,6 +245,29 @@ function CharactersPage() {
               isDeleting={deleteMutation.isPending}
             />
           ))}
+        </div>
+      )}
+
+      {deletedCharacters.length > 0 && (
+        <div className="mt-10 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-muted-foreground text-lg font-semibold">
+              Recycling Bin
+            </h2>
+            <span className="text-muted-foreground text-xs">
+              {deletedCharacters.length} deleted
+            </span>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {deletedCharacters.map(character => (
+              <RecycleBinCard
+                key={character.id}
+                character={character}
+                onRestore={handleRestore}
+                isRestoring={restoreMutation.isPending}
+              />
+            ))}
+          </div>
         </div>
       )}
     </div>

@@ -1,4 +1,3 @@
-export { characterQueryKeys, queryClient } from './query-client';
 export {
   type CharacterRecord,
   CharacterRecordSchema,
@@ -8,6 +7,8 @@ export {
   deleteCharacter,
   fetchAllCharacters,
   fetchCharacter,
+  restoreCharacter,
   toCharacterSummary,
   updateCharacter,
 } from './characters';
+export { characterQueryKeys, queryClient } from './query-client';
