@@ -24,6 +24,8 @@ import { useCharacterSheetWithApi } from './use-character-sheet-api';
 
 interface CharacterSheetProps {
   characterId: string;
+  activeTab: string;
+  onTabChange: (tab: string) => void;
 }
 
 function SaveIndicator({
@@ -105,8 +107,11 @@ function ErrorDisplay({
 }
 
 // eslint-disable-next-line max-lines-per-function
-export function CharacterSheet({ characterId }: CharacterSheetProps) {
-  const [activeTab, setActiveTab] = useState('quick');
+export function CharacterSheet({
+  characterId,
+  activeTab,
+  onTabChange,
+}: CharacterSheetProps) {
   const [hasDismissedOnboarding, setHasDismissedOnboarding] = useState(false);
   const {
     state,
@@ -202,12 +207,12 @@ export function CharacterSheet({ characterId }: CharacterSheetProps) {
           <SaveIndicator isSaving={isSaving} lastSaved={lastSaved} />
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
           <ResponsiveTabsList
             primaryTabs={primaryTabs}
             secondaryTabs={secondaryTabs}
             value={activeTab}
-            onValueChange={setActiveTab}
+            onValueChange={onTabChange}
           />
 
           <TabsContent value="quick">

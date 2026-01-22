@@ -51,7 +51,7 @@ function QuickSection({
   children: ReactNode;
 }) {
   return (
-    <div className={cn('space-y-2', className)}>
+    <div className={cn('flex flex-col space-y-2', className)}>
       {isMobile && (
         <button
           type="button"
@@ -67,7 +67,7 @@ function QuickSection({
           )}
         </button>
       )}
-      {isOpen && children}
+      {isOpen && <div className="flex-1 [&>*]:h-full">{children}</div>}
     </div>
   );
 }
@@ -120,7 +120,7 @@ function QuickViewPrimarySections({
         />
       </QuickSection>
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid items-stretch gap-3 sm:grid-cols-2">
         <QuickSection
           id="coreScores"
           label="Core Scores"
@@ -156,7 +156,7 @@ function QuickViewIdentitySections({
   onToggle: (id: QuickSectionKey) => void;
 }) {
   return (
-    <div className="grid gap-3 sm:grid-cols-3">
+    <div className="grid items-stretch gap-3 sm:grid-cols-3">
       <QuickSection
         id="ancestry"
         label="Ancestry"
@@ -208,7 +208,7 @@ function QuickViewStatusSections({
 }) {
   return (
     <>
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid items-stretch gap-3 sm:grid-cols-2">
         <QuickSection
           id="gold"
           label="Gold"
@@ -232,7 +232,7 @@ function QuickViewStatusSections({
         </QuickSection>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid items-stretch gap-3 sm:grid-cols-2">
         {hasCompanion && (
           <QuickSection
             id="companion"

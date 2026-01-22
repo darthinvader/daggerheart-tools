@@ -1,5 +1,6 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { lazy, Suspense } from 'react';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { lazy, Suspense, useCallback } from 'react';
+import { z } from 'zod';
 
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -8,6 +9,21 @@ const CharacterSheet = lazy(() =>
     default: m.CharacterSheet,
   }))
 );
+
+const characterTabValues = [
+  'quick',
+  'overview',
+  'identity',
+  'combat',
+  'items',
+  'session',
+] as const;
+
+export type CharacterTab = (typeof characterTabValues)[number];
+
+const searchSchema = z.object({
+  tab: z.enum(characterTabValues).catch('quick'),
+});
 
 function CharacterSheetSkeleton() {
   return (
@@ -27,14 +43,32 @@ function CharacterSheetSkeleton() {
 
 export const Route = createFileRoute('/character/$characterId')({
   component: CharacterPage,
+  validateSearch: searchSchema,
 });
 
 function CharacterPage() {
   const { characterId } = Route.useParams();
+  const { tab } = Route.useSearch();
+  const navigate = useNavigate();
+
+  const handleTabChange = useCallback(
+    (newTab: string) => {
+      void navigate({
+        to: '.',
+        search: { tab: newTab as CharacterTab },
+        replace: true,
+      });
+    },
+    [navigate]
+  );
 
   return (
     <Suspense fallback={<CharacterSheetSkeleton />}>
-      <CharacterSheet characterId={characterId} />
+      <CharacterSheet
+        characterId={characterId}
+        activeTab={tab}
+        onTabChange={handleTabChange}
+      />
     </Suspense>
   );
 }
