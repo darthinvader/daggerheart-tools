@@ -61,18 +61,22 @@ function resolveTraitUpdate({
   name,
   value,
   remaining,
+  forceSet = false,
 }: {
   traits: TraitsState;
   name: keyof TraitsState;
   value: AllowedValue;
   remaining: Record<AllowedValue, number>;
+  forceSet?: boolean;
 }): { nextTraits: TraitsState; error: string | null } {
   const current = getTraitValue(traits, name);
   if (value === current) {
     return { nextTraits: traits, error: null };
   }
 
-  if (remaining[value] > 0) {
+  // When forceSet is true (e.g., reset button), just set the value directly
+  // The remaining count will be recalculated from the new state
+  if (forceSet || remaining[value] > 0) {
     return {
       nextTraits: {
         ...traits,
@@ -141,12 +145,17 @@ export function TraitAllocationEditor({
     autoPresetAppliedRef.current = true;
   }, [preset, traits, onChange]);
 
-  const updateTrait = (name: keyof TraitsState, value: AllowedValue) => {
+  const updateTrait = (
+    name: keyof TraitsState,
+    value: AllowedValue,
+    forceSet = false
+  ) => {
     const { nextTraits, error: updateError } = resolveTraitUpdate({
       traits,
       name,
       value,
       remaining,
+      forceSet,
     });
     setError(updateError);
     if (updateError) return;
@@ -180,7 +189,9 @@ export function TraitAllocationEditor({
         allowedValues={ALLOWED_VALUES}
         remaining={remaining}
         getTraitValue={getTraitValue}
-        onUpdate={(name, value) => updateTrait(name, value as AllowedValue)}
+        onUpdate={(name, value, forceSet) =>
+          updateTrait(name, value as AllowedValue, forceSet)
+        }
       />
     </div>
   );

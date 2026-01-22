@@ -6,8 +6,10 @@ import {
   createCharacter,
   createDefaultCharacter,
   deleteCharacter,
+  emptyRecyclingBin,
   fetchAllCharacters,
   fetchCharacter,
+  permanentlyDeleteCharacter,
   restoreCharacter,
   toCharacterSummary,
   updateCharacter,
@@ -132,6 +134,64 @@ export function useRestoreCharacterMutation() {
       return { previous };
     },
     onError: (_error, _id, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(characterQueryKeys.list(), context.previous);
+      }
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: characterQueryKeys.all });
+    },
+  });
+}
+
+export function usePermanentlyDeleteCharacterMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: permanentlyDeleteCharacter,
+    onMutate: async id => {
+      await queryClient.cancelQueries({ queryKey: characterQueryKeys.list() });
+      const previous = queryClient.getQueryData<CharacterSummary[]>(
+        characterQueryKeys.list()
+      );
+
+      queryClient.setQueryData<CharacterSummary[]>(
+        characterQueryKeys.list(),
+        current => (current ?? []).filter(character => character.id !== id)
+      );
+
+      return { previous };
+    },
+    onError: (_error, _id, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(characterQueryKeys.list(), context.previous);
+      }
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: characterQueryKeys.all });
+    },
+  });
+}
+
+export function useEmptyRecyclingBinMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: emptyRecyclingBin,
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: characterQueryKeys.list() });
+      const previous = queryClient.getQueryData<CharacterSummary[]>(
+        characterQueryKeys.list()
+      );
+
+      queryClient.setQueryData<CharacterSummary[]>(
+        characterQueryKeys.list(),
+        current => (current ?? []).filter(character => !character.deletedAt)
+      );
+
+      return { previous };
+    },
+    onError: (_error, _vars, context) => {
       if (context?.previous) {
         queryClient.setQueryData(characterQueryKeys.list(), context.previous);
       }

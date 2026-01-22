@@ -319,3 +319,33 @@ export async function restoreCharacter(id: string): Promise<void> {
     throw new Error(`Failed to restore character ${id}: ${error.message}`);
   }
 }
+
+export async function permanentlyDeleteCharacter(id: string): Promise<void> {
+  const { error } = await supabase.from('characters').delete().eq('id', id);
+
+  if (error) {
+    throw new Error(
+      `Failed to permanently delete character ${id}: ${error.message}`
+    );
+  }
+}
+
+export async function emptyRecyclingBin(): Promise<void> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error('Must be logged in to empty recycling bin');
+  }
+
+  const { error } = await supabase
+    .from('characters')
+    .delete()
+    .eq('user_id', user.id)
+    .not('deleted_at', 'is', null);
+
+  if (error) {
+    throw new Error(`Failed to empty recycling bin: ${error.message}`);
+  }
+}
