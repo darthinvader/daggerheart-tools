@@ -1,8 +1,10 @@
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { type ReactNode, useMemo } from 'react';
 
 import type { DemoHandlers, DemoState } from '@/components/demo/demo-types';
 import { useIsMobile } from '@/hooks/use-mobile';
+import type { AggregatedEquipmentStats } from '@/lib/equipment-feature-parser';
+import { getEquipmentFeatureModifiers } from '@/lib/equipment-feature-parser';
 import {
   DEFAULT_QUICK_VIEW_PREFERENCES,
   type QuickViewSections,
@@ -77,6 +79,7 @@ function QuickViewPrimarySections({
   isSectionOpen,
   onToggle,
   bonusHopeSlots,
+  equipmentModifiers,
 }: {
   state: DemoState;
   handlers: DemoHandlers;
@@ -84,6 +87,7 @@ function QuickViewPrimarySections({
   isSectionOpen: (id: QuickSectionKey) => boolean;
   onToggle: (id: QuickSectionKey) => void;
   bonusHopeSlots: number;
+  equipmentModifiers: AggregatedEquipmentStats;
 }) {
   return (
     <>
@@ -94,7 +98,10 @@ function QuickViewPrimarySections({
         isMobile={isMobile}
         onToggle={onToggle}
       >
-        <QuickTraitsInfo traits={state.traits} />
+        <QuickTraitsInfo
+          traits={state.traits}
+          equipmentModifiers={equipmentModifiers.traits}
+        />
       </QuickSection>
 
       <QuickSection
@@ -312,6 +319,12 @@ export function QuickViewTab({ state, handlers }: QuickViewTabProps) {
   const isMobile = useIsMobile();
   const quickView = state.quickView ?? DEFAULT_QUICK_VIEW_PREFERENCES;
 
+  // Compute equipment modifiers
+  const equipmentModifiers = useMemo(
+    () => getEquipmentFeatureModifiers(state.equipment),
+    [state.equipment]
+  );
+
   const handleToggleSection = (id: QuickSectionKey) => {
     if (!isMobile) return;
     handlers.setQuickView({
@@ -335,6 +348,7 @@ export function QuickViewTab({ state, handlers }: QuickViewTabProps) {
         isSectionOpen={isSectionOpen}
         onToggle={handleToggleSection}
         bonusHopeSlots={bonusHopeSlots}
+        equipmentModifiers={equipmentModifiers}
       />
 
       <QuickViewIdentitySections

@@ -17,6 +17,7 @@ import { ProgressionDisplay } from '@/components/shared/progression-display';
 import { ThresholdsEditableSection } from '@/components/thresholds-editor';
 import { TraitsDisplay } from '@/components/traits';
 import { getClassByName } from '@/lib/data/classes';
+import { getEquipmentFeatureModifiers } from '@/lib/equipment-feature-parser';
 
 import { createDamageHandler } from '../demo-handlers';
 import type { TabProps } from '../demo-types';
@@ -238,6 +239,12 @@ export function TraitsScoresGrid({ state, handlers, isHydrated }: TabProps) {
     [state.equipment]
   );
 
+  // Parse equipment features for stat modifiers (e.g., "Heavy: -1 to Evasion")
+  const equipmentFeatureModifiers = useMemo(
+    () => getEquipmentFeatureModifiers(state.equipment),
+    [state.equipment]
+  );
+
   const resourcesAutoContext = useMemo(
     () => ({
       classHp: classStats.hp,
@@ -248,8 +255,20 @@ export function TraitsScoresGrid({ state, handlers, isHydrated }: TabProps) {
       armorThresholdsMajor: armorStats.major,
       armorThresholdsSevere: armorStats.severe,
       level: state.progression.currentLevel,
+      equipmentFeatureModifiers: {
+        evasion: equipmentFeatureModifiers.evasion,
+        proficiency: equipmentFeatureModifiers.proficiency,
+        armorScore: equipmentFeatureModifiers.armorScore,
+        majorThreshold: equipmentFeatureModifiers.majorThreshold,
+        severeThreshold: equipmentFeatureModifiers.severeThreshold,
+      },
     }),
-    [classStats, armorStats, state.progression.currentLevel]
+    [
+      classStats,
+      armorStats,
+      state.progression.currentLevel,
+      equipmentFeatureModifiers,
+    ]
   );
 
   const autoValues = useMemo(
@@ -287,7 +306,11 @@ export function TraitsScoresGrid({ state, handlers, isHydrated }: TabProps) {
 
   return (
     <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
-      <TraitsDisplay traits={state.traits} onChange={handlers.setTraits} />
+      <TraitsDisplay
+        traits={state.traits}
+        onChange={handlers.setTraits}
+        equipmentModifiers={equipmentFeatureModifiers.traits}
+      />
       <ResourcesDisplay
         resources={state.resources}
         onChange={handlers.setResources}
@@ -321,12 +344,23 @@ export function HopeScoresThresholdsGrid({
     [state.equipment]
   );
 
+  // Parse equipment features for stat modifiers
+  const equipmentFeatureModifiers = useMemo(
+    () => getEquipmentFeatureModifiers(state.equipment),
+    [state.equipment]
+  );
+
   const coreScoresAutoContext = useMemo(
     () => ({
       classEvasion: classStats.evasion,
       armorEvasionModifier: armorStats.evasionMod,
+      equipmentEvasionModifier: equipmentFeatureModifiers.evasion,
     }),
-    [classStats.evasion, armorStats.evasionMod]
+    [
+      classStats.evasion,
+      armorStats.evasionMod,
+      equipmentFeatureModifiers.evasion,
+    ]
   );
 
   const thresholdsAutoContext = useMemo(
@@ -334,22 +368,51 @@ export function HopeScoresThresholdsGrid({
       armorThresholdsMajor: armorStats.major,
       armorThresholdsSevere: armorStats.severe,
       level: state.progression.currentLevel,
+      equipmentMajorModifier: equipmentFeatureModifiers.majorThreshold,
+      equipmentSevereModifier: equipmentFeatureModifiers.severeThreshold,
     }),
-    [armorStats.major, armorStats.severe, state.progression.currentLevel]
+    [
+      armorStats.major,
+      armorStats.severe,
+      state.progression.currentLevel,
+      equipmentFeatureModifiers.majorThreshold,
+      equipmentFeatureModifiers.severeThreshold,
+    ]
   );
 
   const autoEvasion = useMemo(
-    () => classStats.evasion + armorStats.evasionMod,
-    [classStats.evasion, armorStats.evasionMod]
+    () =>
+      classStats.evasion +
+      armorStats.evasionMod +
+      equipmentFeatureModifiers.evasion,
+    [
+      classStats.evasion,
+      armorStats.evasionMod,
+      equipmentFeatureModifiers.evasion,
+    ]
   );
 
   const autoThresholdsMajor = useMemo(
-    () => armorStats.major + Math.max(0, state.progression.currentLevel - 1),
-    [armorStats.major, state.progression.currentLevel]
+    () =>
+      armorStats.major +
+      Math.max(0, state.progression.currentLevel - 1) +
+      equipmentFeatureModifiers.majorThreshold,
+    [
+      armorStats.major,
+      state.progression.currentLevel,
+      equipmentFeatureModifiers.majorThreshold,
+    ]
   );
   const autoThresholdsSevere = useMemo(
-    () => armorStats.severe + Math.max(0, state.progression.currentLevel - 1),
-    [armorStats.severe, state.progression.currentLevel]
+    () =>
+      armorStats.severe +
+      Math.max(0, state.progression.currentLevel - 1) +
+      equipmentFeatureModifiers.severeThreshold,
+    [
+      armorStats.severe,
+      state.progression.currentLevel,
+      equipmentFeatureModifiers.severeThreshold,
+    ]
   );
 
   // Auto-update Evasion and Thresholds when auto-calculate is enabled

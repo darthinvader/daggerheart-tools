@@ -6,6 +6,32 @@ interface QuickThresholdsInfoProps {
   className?: string;
 }
 
+function ThresholdValue({
+  label,
+  value,
+  colorClass,
+}: {
+  label: string;
+  value: number;
+  colorClass: string;
+}) {
+  return (
+    <div className="flex flex-col items-center">
+      <div className="flex items-center gap-1">
+        <span className={cn('text-xs', colorClass)}>{label}</span>
+        <span className={cn('font-bold', colorClass)}>{value}+</span>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Display damage thresholds in QuickView.
+ *
+ * NOTE: thresholds.values are already the final calculated values when auto
+ * is enabled. They include armor base + level bonus + equipment modifiers.
+ * We simply display them as-is without adding extra modifiers.
+ */
 export function QuickThresholdsInfo({
   thresholds,
   className,
@@ -19,18 +45,16 @@ export function QuickThresholdsInfo({
     >
       <span className="text-muted-foreground text-sm">Damage Thresholds:</span>
       <div className="flex items-center gap-3">
-        <div className="flex items-center gap-1">
-          <span className="text-xs text-yellow-500">Major</span>
-          <span className="font-bold text-yellow-500">
-            {thresholds.values.major}+
-          </span>
-        </div>
-        <div className="flex items-center gap-1">
-          <span className="text-xs text-orange-500">Severe</span>
-          <span className="font-bold text-orange-500">
-            {thresholds.values.severe}+
-          </span>
-        </div>
+        <ThresholdValue
+          label="Major"
+          value={thresholds.values.major}
+          colorClass="text-yellow-500"
+        />
+        <ThresholdValue
+          label="Severe"
+          value={thresholds.values.severe}
+          colorClass="text-orange-500"
+        />
         {thresholds.enableCritical && thresholds.values.critical && (
           <div className="flex items-center gap-1">
             <span className="text-xs text-red-500">Critical</span>

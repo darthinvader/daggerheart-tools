@@ -19,28 +19,42 @@ export interface TraitsState {
   Knowledge: TraitValue;
 }
 
-const TRAIT_NAMES = [
+export type TraitName = keyof TraitsState;
+
+/** Equipment modifiers for traits */
+export type TraitEquipmentModifiers = Partial<Record<TraitName, number>>;
+
+const TRAIT_NAMES: TraitName[] = [
   'Agility',
   'Strength',
   'Finesse',
   'Instinct',
   'Presence',
   'Knowledge',
-] as const;
+];
 
 interface TraitsDisplayProps {
   traits: TraitsState;
   onChange?: (traits: TraitsState) => void;
   className?: string;
   readOnly?: boolean;
+  /** Equipment modifiers from parsed weapon features (e.g., "Cumbersome: −1 to Finesse") */
+  equipmentModifiers?: TraitEquipmentModifiers;
 }
 
-function TraitsDetailedDisplay({ traits }: { traits: TraitsState }) {
+function TraitsDetailedDisplay({
+  traits,
+  equipmentModifiers,
+}: {
+  traits: TraitsState;
+  equipmentModifiers?: TraitEquipmentModifiers;
+}) {
   return (
     <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
       {TRAIT_NAMES.map(name => {
         const trait = traits[name];
-        const total = trait.value + trait.bonus;
+        const equipMod = equipmentModifiers?.[name] ?? 0;
+        const total = trait.value + trait.bonus + equipMod;
         const sign = total >= 0 ? '+' : '';
 
         return (
@@ -56,6 +70,17 @@ function TraitsDetailedDisplay({ traits }: { traits: TraitsState }) {
               {sign}
               {total}
             </span>
+            {equipMod !== 0 && (
+              <span
+                className={cn(
+                  'mt-1 text-xs font-medium',
+                  equipMod > 0 ? 'text-green-600' : 'text-red-600'
+                )}
+              >
+                ({equipMod > 0 ? '+' : ''}
+                {equipMod} equip)
+              </span>
+            )}
             {trait.marked && (
               <span className="text-primary mt-1 text-xs font-medium">
                 Marked
@@ -104,6 +129,7 @@ export function TraitsDisplay({
   onChange,
   className,
   readOnly = false,
+  equipmentModifiers,
 }: TraitsDisplayProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState<TraitsState>(traits);
@@ -140,7 +166,10 @@ export function TraitsDisplay({
       onCancel={handleCancel}
       editContent={<TraitsEditor traits={draft} onChange={setDraft} />}
     >
-      <TraitsDetailedDisplay traits={traits} />
+      <TraitsDetailedDisplay
+        traits={traits}
+        equipmentModifiers={equipmentModifiers}
+      />
     </EditableSection>
   );
 }

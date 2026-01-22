@@ -1,8 +1,20 @@
 import type { TraitsState } from '@/components/traits';
+import type { CharacterTrait } from '@/lib/equipment-feature-parser';
 import { cn } from '@/lib/utils';
+
+/** Equipment modifiers for each trait */
+export interface QuickTraitEquipmentModifiers {
+  Agility?: number;
+  Strength?: number;
+  Finesse?: number;
+  Instinct?: number;
+  Presence?: number;
+  Knowledge?: number;
+}
 
 interface QuickTraitsInfoProps {
   traits: TraitsState;
+  equipmentModifiers?: QuickTraitEquipmentModifiers;
   className?: string;
 }
 
@@ -15,7 +27,11 @@ const TRAIT_CONFIG = [
   { name: 'Knowledge', emoji: '📚' },
 ] as const;
 
-export function QuickTraitsInfo({ traits, className }: QuickTraitsInfoProps) {
+export function QuickTraitsInfo({
+  traits,
+  equipmentModifiers,
+  className,
+}: QuickTraitsInfoProps) {
   return (
     <div className={cn('bg-card rounded-lg border p-3', className)}>
       <div className="mb-2 flex items-center gap-2">
@@ -25,8 +41,11 @@ export function QuickTraitsInfo({ traits, className }: QuickTraitsInfoProps) {
       <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
         {TRAIT_CONFIG.map(({ name, emoji }) => {
           const trait = traits[name as keyof TraitsState];
-          const total = trait.value + trait.bonus;
+          const equipMod = equipmentModifiers?.[name as CharacterTrait] ?? 0;
+          const total = trait.value + trait.bonus + equipMod;
           const modifier = total >= 0 ? `+${total}` : `${total}`;
+          const hasEquipMod = equipMod !== 0;
+          const hasBonus = trait.bonus !== 0 || hasEquipMod;
 
           return (
             <div
@@ -39,11 +58,22 @@ export function QuickTraitsInfo({ traits, className }: QuickTraitsInfoProps) {
               <span className="text-sm">{emoji}</span>
               <span className="text-muted-foreground text-xs">{name}</span>
               <span className="text-primary text-lg font-bold">{modifier}</span>
-              {trait.bonus !== 0 && (
+              {hasBonus && (
                 <span className="text-muted-foreground text-xs">
                   ({trait.value}
                   {trait.bonus >= 0 ? '+' : ''}
-                  {trait.bonus})
+                  {trait.bonus}
+                  {hasEquipMod && (
+                    <span
+                      className={
+                        equipMod < 0 ? 'text-destructive' : 'text-green-600'
+                      }
+                    >
+                      {equipMod >= 0 ? '+' : ''}
+                      {equipMod}
+                    </span>
+                  )}
+                  )
                 </span>
               )}
             </div>

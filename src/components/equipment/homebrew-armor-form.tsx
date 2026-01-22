@@ -7,6 +7,7 @@ import type { StandardArmor } from '@/lib/schemas/equipment';
 
 import { ARMOR_TYPES, TIERS } from './constants';
 import { NumberField, SelectField, TextField } from './form';
+import { StatModifiersEditor } from './stat-modifiers-editor';
 
 type ArmorFormData = Omit<StandardArmor, 'metadata' | 'isStandard'>;
 
@@ -109,6 +110,13 @@ export function HomebrewArmorForm({ value, onChange }: HomebrewArmorFormProps) {
             description: f.description ?? '',
           }))}
           onChange={features => onChange({ ...value, features })}
+        />
+
+        <StatModifiersEditor
+          value={value.statModifiers}
+          onChange={mods => onChange({ ...value, statModifiers: mods })}
+          showRolls={false}
+          showThresholds={true}
         />
       </CardContent>
     </Card>

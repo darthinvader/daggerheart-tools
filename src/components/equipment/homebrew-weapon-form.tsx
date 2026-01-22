@@ -7,6 +7,7 @@ import type { PrimaryWeapon, SecondaryWeapon } from '@/lib/schemas/equipment';
 
 import { BURDENS, DEFAULT_DAMAGE, RANGES, TIERS, TRAITS } from './constants';
 import { DamageEditor, SelectField, TextField } from './form';
+import { StatModifiersEditor } from './stat-modifiers-editor';
 
 type WeaponFormData = Omit<PrimaryWeapon | SecondaryWeapon, 'metadata'>;
 
@@ -89,6 +90,13 @@ export function HomebrewWeaponForm({
             description: f.description ?? '',
           }))}
           onChange={features => onChange({ ...value, features })}
+        />
+
+        <StatModifiersEditor
+          value={value.statModifiers}
+          onChange={mods => onChange({ ...value, statModifiers: mods })}
+          showRolls={true}
+          showThresholds={false}
         />
       </CardContent>
     </Card>

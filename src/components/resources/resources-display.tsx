@@ -54,6 +54,14 @@ export interface AutoCalculateContext {
   armorThresholdsSevere?: number;
   // Level for threshold calculations
   level?: number;
+  // Equipment feature modifiers (parsed from all equipment features)
+  equipmentFeatureModifiers?: {
+    evasion: number;
+    proficiency: number;
+    armorScore: number;
+    majorThreshold: number;
+    severeThreshold: number;
+  };
 }
 
 export interface ThresholdsConfig {

@@ -11,6 +11,74 @@ import {
 } from './core';
 
 // =============================
+// Stat Modifiers (shared across all equipment)
+// =============================
+
+/** Trait modifiers schema for equipment bonuses/penalties */
+export const TraitModifiersSchema = z.object({
+  Agility: z.number().default(0),
+  Strength: z.number().default(0),
+  Finesse: z.number().default(0),
+  Instinct: z.number().default(0),
+  Presence: z.number().default(0),
+  Knowledge: z.number().default(0),
+});
+
+/**
+ * Unified stat modifiers that any equipment can apply.
+ * These are explicit numeric fields that override/supplement feature parsing.
+ */
+export const EquipmentStatModifiersSchema = z.object({
+  /** Evasion modifier */
+  evasion: z.number().default(0),
+  /** Proficiency modifier */
+  proficiency: z.number().default(0),
+  /** Armor Score modifier (from shields, etc.) */
+  armorScore: z.number().default(0),
+  /** Major damage threshold modifier */
+  majorThreshold: z.number().default(0),
+  /** Severe damage threshold modifier */
+  severeThreshold: z.number().default(0),
+  /** Attack roll modifier */
+  attackRolls: z.number().default(0),
+  /** Spellcast roll modifier */
+  spellcastRolls: z.number().default(0),
+  /** Trait modifiers */
+  traits: TraitModifiersSchema.default({
+    Agility: 0,
+    Strength: 0,
+    Finesse: 0,
+    Instinct: 0,
+    Presence: 0,
+    Knowledge: 0,
+  }),
+});
+
+export type TraitModifiers = z.infer<typeof TraitModifiersSchema>;
+export type EquipmentStatModifiers = z.infer<
+  typeof EquipmentStatModifiersSchema
+>;
+
+/** Default empty stat modifiers */
+export const DEFAULT_STAT_MODIFIERS: EquipmentStatModifiers = {
+  evasion: 0,
+  proficiency: 0,
+  armorScore: 0,
+  majorThreshold: 0,
+  severeThreshold: 0,
+  attackRolls: 0,
+  spellcastRolls: 0,
+  traits: {
+    Agility: 0,
+    Strength: 0,
+    Finesse: 0,
+    Instinct: 0,
+    Presence: 0,
+    Knowledge: 0,
+  },
+};
+
+// =============================
 // Base Equipment
 // =============================
 
@@ -53,6 +121,11 @@ export const BaseEquipmentSchema = z.object({
   // Keep equipment tags general to allow broader categorization
   tags: z.array(z.string()).optional(),
   metadata: MetadataSchema,
+  /**
+   * Explicit stat modifiers for homebrew equipment.
+   * When present, these override parsed feature modifiers.
+   */
+  statModifiers: EquipmentStatModifiersSchema.optional(),
 });
 
 export const WeaponSchema = BaseEquipmentSchema.extend({

@@ -6,6 +6,13 @@ interface QuickCoreScoresInfoProps {
   className?: string;
 }
 
+/**
+ * Display core scores (evasion/proficiency) in QuickView.
+ *
+ * NOTE: scores.evasion and scores.proficiency are already the final calculated
+ * values when auto-calculate is enabled. They include class base + armor + equipment
+ * modifiers. We simply display them as-is without adding extra modifiers.
+ */
 export function QuickCoreScoresInfo({
   scores,
   className,

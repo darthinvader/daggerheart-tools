@@ -18,6 +18,7 @@ import {
   AncestryClassGrid,
   ExperiencesEquipmentGrid,
   GoldConditionsGrid,
+  HopeScoresThresholdsGrid,
   IdentityProgressionGrid,
   TraitsScoresGrid,
 } from './overview-grids';
@@ -84,6 +85,11 @@ export function OverviewTab({ state, handlers, isHydrated }: TabProps) {
       <IdentityProgressionGrid state={state} handlers={handlers} />
       <AncestryClassGrid state={state} handlers={handlers} />
       <TraitsScoresGrid
+        state={state}
+        handlers={handlers}
+        isHydrated={isHydrated}
+      />
+      <HopeScoresThresholdsGrid
         state={state}
         handlers={handlers}
         isHydrated={isHydrated}
