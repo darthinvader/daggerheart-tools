@@ -1,12 +1,15 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { ArrowUpDown, Search, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, Search, X } from 'lucide-react';
 import * as React from 'react';
 
 import {
   BackToTop,
   DetailCloseButton,
   KeyboardHint,
+  ReferencePageSkeleton,
   ResultsCounter,
+  useDeferredItems,
+  useDeferredLoad,
   useKeyboardNavigation,
 } from '@/components/references';
 import { Badge } from '@/components/ui/badge';
@@ -268,6 +271,9 @@ function CommunityDetail({ community }: { community: Community }) {
   );
 }
 
+// Stable loader function for useDeferredLoad
+const loadAllCommunities = () => [...COMMUNITIES];
+
 function CommunitiesReferencePage() {
   const isMobile = useIsMobile();
   const scrollRef = React.useRef<HTMLDivElement>(null);
@@ -277,8 +283,15 @@ function CommunitiesReferencePage() {
   const [selectedCommunity, setSelectedCommunity] =
     React.useState<Community | null>(null);
 
+  // Defer data loading until after initial paint
+  const { data: allCommunities, isLoading: isInitialLoading } =
+    useDeferredLoad(loadAllCommunities);
+
+  const totalCount = allCommunities?.length ?? 0;
+
   const filteredCommunities = React.useMemo(() => {
-    let result = [...COMMUNITIES];
+    if (!allCommunities) return [];
+    let result = [...allCommunities];
 
     // Filter
     if (search) {
@@ -307,15 +320,24 @@ function CommunitiesReferencePage() {
     });
 
     return result;
-  }, [search, sortBy, sortDir]);
+  }, [allCommunities, search, sortBy, sortDir]);
+
+  // Use deferred rendering for smooth filtering on mobile
+  const { deferredItems: deferredCommunities, isPending: isFiltering } =
+    useDeferredItems(filteredCommunities);
 
   // Keyboard navigation
   useKeyboardNavigation({
-    items: filteredCommunities,
+    items: deferredCommunities,
     selectedItem: selectedCommunity,
     onSelect: setSelectedCommunity,
     onClose: () => setSelectedCommunity(null),
   });
+
+  // Show skeleton while loading initial data
+  if (isInitialLoading) {
+    return <ReferencePageSkeleton showFilters={!isMobile} />;
+  }
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -328,7 +350,7 @@ function CommunitiesReferencePage() {
             </h1>
             <ResultsCounter
               filtered={filteredCommunities.length}
-              total={COMMUNITIES.length}
+              total={totalCount}
               label="communities"
             />
           </div>
@@ -348,8 +370,15 @@ function CommunitiesReferencePage() {
                 size="icon"
                 className="size-9"
                 onClick={() => setSortDir(sortDir === 'asc' ? 'desc' : 'asc')}
+                aria-label={
+                  sortDir === 'asc' ? 'Sort descending' : 'Sort ascending'
+                }
               >
-                <ArrowUpDown className="size-4" />
+                {sortDir === 'asc' ? (
+                  <ArrowUp className="size-4" />
+                ) : (
+                  <ArrowDown className="size-4" />
+                )}
               </Button>
             </div>
             {/* Search */}
@@ -375,12 +404,20 @@ function CommunitiesReferencePage() {
       </div>
 
       {/* Content - scrollable */}
-      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto">
+      <div ref={scrollRef} className="relative min-h-0 flex-1 overflow-y-auto">
+        {/* Loading overlay during filtering */}
+        {isFiltering && (
+          <div className="bg-background/60 absolute inset-0 z-10 flex items-start justify-center pt-20 backdrop-blur-[1px]">
+            <div className="bg-background rounded-lg border p-4 shadow-lg">
+              <div className="border-primary h-6 w-6 animate-spin rounded-full border-2 border-t-transparent" />
+            </div>
+          </div>
+        )}
         <div className="p-4">
           {isMobile ? (
             /* Mobile: Compact cards */
             <div className="grid grid-cols-1 gap-3">
-              {filteredCommunities.map(community => (
+              {deferredCommunities.map(community => (
                 <CommunityCard
                   key={community.name}
                   community={community}
@@ -392,7 +429,7 @@ function CommunitiesReferencePage() {
           ) : (
             /* Desktop: Full cards */
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {filteredCommunities.map(community => (
+              {deferredCommunities.map(community => (
                 <CommunityCard
                   key={community.name}
                   community={community}
@@ -402,7 +439,7 @@ function CommunitiesReferencePage() {
             </div>
           )}
 
-          {filteredCommunities.length === 0 && (
+          {deferredCommunities.length === 0 && !isFiltering && (
             <div className="text-muted-foreground py-12 text-center">
               <p>No communities match your search.</p>
               <Button

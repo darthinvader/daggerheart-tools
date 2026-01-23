@@ -6,7 +6,10 @@ import {
   BackToTop,
   DetailCloseButton,
   KeyboardHint,
+  ReferencePageSkeleton,
   ResultsCounter,
+  useDeferredItems,
+  useDeferredLoad,
 } from '@/components/references';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -384,29 +387,43 @@ function ClassDetail({ gameClass }: { gameClass: GameClass }) {
   );
 }
 
+// Stable loader function for useDeferredLoad
+const loadAllClasses = () => [...ALL_CLASSES];
+
 function ClassesReferencePage() {
   const isMobile = useIsMobile();
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const [search, setSearch] = React.useState('');
   const [selectedClass, setSelectedClass] = React.useState<string | null>(null);
 
+  // Defer data loading until after initial paint
+  const { data: allClasses, isLoading: isInitialLoading } =
+    useDeferredLoad(loadAllClasses);
+
   // Filter classes by search
-  const filteredClasses = React.useMemo((): readonly GameClass[] => {
-    if (!search) return ALL_CLASSES;
+  const filteredClasses = React.useMemo((): GameClass[] => {
+    if (!allClasses) return [];
+    if (!search) return allClasses;
     const searchLower = search.toLowerCase();
-    return ALL_CLASSES.filter(
+    return allClasses.filter(
       c =>
         c.name.toLowerCase().includes(searchLower) ||
         c.description.toLowerCase().includes(searchLower) ||
         c.domains.some(d => d.toLowerCase().includes(searchLower)) ||
         c.subclasses.some(s => s.name.toLowerCase().includes(searchLower))
     );
-  }, [search]);
+  }, [allClasses, search]);
+
+  // Use deferred rendering for smooth filtering on mobile
+  const { deferredItems: deferredClasses, isPending: isFiltering } =
+    useDeferredItems(filteredClasses);
 
   const selectedClassData = React.useMemo(
-    () => ALL_CLASSES.find(c => c.name === selectedClass) ?? null,
-    [selectedClass]
+    () => allClasses?.find(c => c.name === selectedClass) ?? null,
+    [allClasses, selectedClass]
   );
+
+  const totalCount = allClasses?.length ?? 0;
 
   // Keyboard navigation for classes
   React.useEffect(() => {
@@ -419,26 +436,31 @@ function ClassesReferencePage() {
 
       if (!selectedClass && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
         e.preventDefault();
-        const currentIndex = filteredClasses.findIndex(
+        const currentIndex = deferredClasses.findIndex(
           c => c.name === selectedClass
         );
         let newIndex: number;
         if (e.key === 'ArrowDown') {
           newIndex =
-            currentIndex < filteredClasses.length - 1 ? currentIndex + 1 : 0;
+            currentIndex < deferredClasses.length - 1 ? currentIndex + 1 : 0;
         } else {
           newIndex =
-            currentIndex > 0 ? currentIndex - 1 : filteredClasses.length - 1;
+            currentIndex > 0 ? currentIndex - 1 : deferredClasses.length - 1;
         }
-        if (filteredClasses[newIndex]) {
-          setSelectedClass(filteredClasses[newIndex].name);
+        if (deferredClasses[newIndex]) {
+          setSelectedClass(deferredClasses[newIndex].name);
         }
       }
     }
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedClass, filteredClasses]);
+  }, [selectedClass, deferredClasses]);
+
+  // Show skeleton while loading initial data
+  if (isInitialLoading) {
+    return <ReferencePageSkeleton showFilters={!isMobile} />;
+  }
 
   return (
     <div className="flex min-h-0 flex-1">
@@ -446,7 +468,7 @@ function ClassesReferencePage() {
       {!isMobile && (
         <aside className="bg-muted/30 flex w-64 shrink-0 flex-col border-r">
           <ClassOutline
-            classes={filteredClasses}
+            classes={deferredClasses}
             selectedClass={selectedClass}
             onSelectClass={setSelectedClass}
             search={search}
@@ -466,7 +488,7 @@ function ClassesReferencePage() {
               </h1>
               <ResultsCounter
                 filtered={filteredClasses.length}
-                total={ALL_CLASSES.length}
+                total={totalCount}
                 label="classes"
                 suffix={` with ${filteredClasses.reduce((sum: number, c) => sum + c.subclasses.length, 0)} subclasses`}
               />
@@ -481,7 +503,7 @@ function ClassesReferencePage() {
                 </SheetTrigger>
                 <SheetContent side="left" className="w-72 p-0">
                   <ClassOutline
-                    classes={filteredClasses}
+                    classes={deferredClasses}
                     selectedClass={selectedClass}
                     onSelectClass={name => {
                       setSelectedClass(name);
@@ -496,7 +518,18 @@ function ClassesReferencePage() {
         </div>
 
         {/* Content - scrollable */}
-        <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto">
+        <div
+          ref={scrollRef}
+          className="relative min-h-0 flex-1 overflow-y-auto"
+        >
+          {/* Loading overlay during filtering */}
+          {isFiltering && (
+            <div className="bg-background/60 absolute inset-0 z-10 flex items-start justify-center pt-20 backdrop-blur-[1px]">
+              <div className="bg-background rounded-lg border p-4 shadow-lg">
+                <div className="border-primary h-6 w-6 animate-spin rounded-full border-2 border-t-transparent" />
+              </div>
+            </div>
+          )}
           <div className="p-4">
             {selectedClassData ? (
               <div>
@@ -515,7 +548,7 @@ function ClassesReferencePage() {
             ) : (
               /* No selection - show all classes in grid */
               <div className="space-y-6">
-                {filteredClasses.map(gameClass => {
+                {deferredClasses.map(gameClass => {
                   const gradient =
                     classGradients[gameClass.name] ??
                     'from-gray-500 to-slate-600';
@@ -577,7 +610,7 @@ function ClassesReferencePage() {
               </div>
             )}
 
-            {filteredClasses.length === 0 && (
+            {deferredClasses.length === 0 && !isFiltering && (
               <div className="text-muted-foreground py-12 text-center">
                 <p>No classes match your search.</p>
                 <Button

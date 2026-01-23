@@ -14,7 +14,11 @@ import './global-error-log';
 import './index.css';
 import { routeTree } from './routeTree.gen';
 
-const router = createRouter({ routeTree });
+const router = createRouter({
+  routeTree,
+  defaultPendingMs: 100, // Show pending UI after 100ms
+  defaultPendingMinMs: 200, // Keep pending visible for at least 200ms to avoid flicker
+});
 
 interface AppBootInfo {
   ts: number;

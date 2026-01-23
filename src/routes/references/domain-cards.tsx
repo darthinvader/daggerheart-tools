@@ -14,10 +14,13 @@ import {
   type FilterGroup,
   KeyboardHint,
   ReferenceFilter,
+  ReferencePageSkeleton,
   ResultsCounter,
   SortableTableHead,
   SortControl,
   useCompare,
+  useDeferredItems,
+  useDeferredLoad,
   useFilterState,
   useKeyboardNavigation,
 } from '@/components/references';
@@ -412,6 +415,9 @@ function CardDetail({ card }: { card: DomainCard }) {
 
 type DomainCardSortKey = 'name' | 'domain' | 'level' | 'type';
 
+// Stable loader function for useDeferredLoad
+const loadAllCards = () => getAllDomainCards();
+
 function DomainCardsReferencePage() {
   const isMobile = useIsMobile();
   const scrollRef = React.useRef<HTMLDivElement>(null);
@@ -421,6 +427,17 @@ function DomainCardsReferencePage() {
   const [selectedCard, setSelectedCard] = React.useState<DomainCard | null>(
     null
   );
+
+  // Force grid view on mobile - tables are too wide for small screens
+  React.useEffect(() => {
+    if (isMobile && viewMode === 'table') {
+      setViewMode('grid');
+    }
+  }, [isMobile, viewMode]);
+
+  // Defer data loading until after initial paint
+  const { data: allCards, isLoading: isInitialLoading } =
+    useDeferredLoad(loadAllCards);
 
   // Handle column header click for sorting
   const handleSortClick = React.useCallback(
@@ -435,9 +452,8 @@ function DomainCardsReferencePage() {
     [sortBy]
   );
 
-  const allCards = React.useMemo(() => getAllDomainCards(), []);
   const filterGroups = React.useMemo(
-    () => buildFilterGroups(allCards),
+    () => (allCards ? buildFilterGroups(allCards) : []),
     [allCards]
   );
 
@@ -445,6 +461,7 @@ function DomainCardsReferencePage() {
     useFilterState(filterGroups);
 
   const filteredCards = React.useMemo(() => {
+    if (!allCards) return [];
     const cards = filterCards(
       allCards,
       filterState.search,
@@ -472,10 +489,14 @@ function DomainCardsReferencePage() {
     });
   }, [allCards, filterState, sortBy, sortDir]);
 
+  // Use deferred rendering for smooth filtering on mobile
+  const { deferredItems: deferredCards, isPending: isFiltering } =
+    useDeferredItems(filteredCards);
+
   // Group by domain for sectioned display
   const groupedCards = React.useMemo(() => {
     const groups: Record<string, DomainCard[]> = {};
-    for (const card of filteredCards) {
+    for (const card of deferredCards) {
       if (!groups[card.domain]) groups[card.domain] = [];
       groups[card.domain].push(card);
     }
@@ -484,15 +505,22 @@ function DomainCardsReferencePage() {
       groups[domain].sort((a, b) => a.level - b.level);
     }
     return groups;
-  }, [filteredCards]);
+  }, [deferredCards]);
 
   // Keyboard navigation
   useKeyboardNavigation({
-    items: filteredCards,
+    items: deferredCards,
     selectedItem: selectedCard,
     onSelect: setSelectedCard,
     onClose: () => setSelectedCard(null),
   });
+
+  // Show skeleton while data is loading
+  if (isInitialLoading) {
+    return <ReferencePageSkeleton showFilters={!isMobile} />;
+  }
+
+  const totalCount = allCards?.length ?? 0;
 
   return (
     <div className="flex min-h-0 flex-1">
@@ -505,7 +533,7 @@ function DomainCardsReferencePage() {
           onFilterChange={onFilterChange}
           onClearFilters={onClearFilters}
           resultCount={filteredCards.length}
-          totalCount={allCards.length}
+          totalCount={totalCount}
           searchPlaceholder="Search domain cards..."
         />
       )}
@@ -521,7 +549,7 @@ function DomainCardsReferencePage() {
               </h1>
               <ResultsCounter
                 filtered={filteredCards.length}
-                total={allCards.length}
+                total={totalCount}
                 label="cards"
               />
             </div>
@@ -534,7 +562,7 @@ function DomainCardsReferencePage() {
                   onFilterChange={onFilterChange}
                   onClearFilters={onClearFilters}
                   resultCount={filteredCards.length}
-                  totalCount={allCards.length}
+                  totalCount={totalCount}
                   searchPlaceholder="Search domain cards..."
                 />
               )}
@@ -553,24 +581,38 @@ function DomainCardsReferencePage() {
                 onDirectionChange={setSortDir}
               />
 
-              <ToggleGroup
-                type="single"
-                value={viewMode}
-                onValueChange={v => v && setViewMode(v as 'grid' | 'table')}
-              >
-                <ToggleGroupItem value="grid" aria-label="Grid view">
-                  <Grid3X3 className="size-4" />
-                </ToggleGroupItem>
-                <ToggleGroupItem value="table" aria-label="Table view">
-                  <List className="size-4" />
-                </ToggleGroupItem>
-              </ToggleGroup>
+              {/* Hide view toggle on mobile - table view is too wide for small screens */}
+              {!isMobile && (
+                <ToggleGroup
+                  type="single"
+                  value={viewMode}
+                  onValueChange={v => v && setViewMode(v as 'grid' | 'table')}
+                >
+                  <ToggleGroupItem value="grid" aria-label="Grid view">
+                    <Grid3X3 className="size-4" />
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="table" aria-label="Table view">
+                    <List className="size-4" />
+                  </ToggleGroupItem>
+                </ToggleGroup>
+              )}
             </div>
           </div>
         </div>
 
         {/* Content - scrollable */}
-        <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto">
+        <div
+          ref={scrollRef}
+          className="relative min-h-0 flex-1 overflow-y-auto"
+        >
+          {/* Loading overlay during filtering */}
+          {isFiltering && (
+            <div className="bg-background/60 absolute inset-0 z-10 flex items-start justify-center pt-20 backdrop-blur-[1px]">
+              <div className="bg-background rounded-lg border p-4 shadow-lg">
+                <div className="border-primary h-6 w-6 animate-spin rounded-full border-2 border-t-transparent" />
+              </div>
+            </div>
+          )}
           <div className="p-4">
             {viewMode === 'grid' ? (
               <div className="space-y-8">

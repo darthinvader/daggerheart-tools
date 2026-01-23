@@ -1,12 +1,15 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { ArrowUpDown, Search, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, Search, X } from 'lucide-react';
 import * as React from 'react';
 
 import {
   BackToTop,
   DetailCloseButton,
   KeyboardHint,
+  ReferencePageSkeleton,
   ResultsCounter,
+  useDeferredItems,
+  useDeferredLoad,
   useKeyboardNavigation,
 } from '@/components/references';
 import { Badge } from '@/components/ui/badge';
@@ -245,6 +248,9 @@ function AncestryDetail({ ancestry }: { ancestry: Ancestry }) {
   );
 }
 
+// Stable loader function for useDeferredLoad
+const loadAllAncestries = () => [...ANCESTRIES];
+
 function AncestriesReferencePage() {
   const isMobile = useIsMobile();
   const scrollRef = React.useRef<HTMLDivElement>(null);
@@ -256,8 +262,15 @@ function AncestriesReferencePage() {
   const [selectedAncestry, setSelectedAncestry] =
     React.useState<Ancestry | null>(null);
 
+  // Defer data loading until after initial paint
+  const { data: allAncestries, isLoading: isInitialLoading } =
+    useDeferredLoad(loadAllAncestries);
+
+  const totalCount = allAncestries?.length ?? 0;
+
   const filteredAncestries = React.useMemo(() => {
-    let result = [...ANCESTRIES];
+    if (!allAncestries) return [];
+    let result = [...allAncestries];
 
     // Filter by search
     if (search) {
@@ -289,15 +302,24 @@ function AncestriesReferencePage() {
     });
 
     return result;
-  }, [search, sortBy, sortDir]);
+  }, [allAncestries, search, sortBy, sortDir]);
+
+  // Use deferred rendering for smooth filtering on mobile
+  const { deferredItems: deferredAncestries, isPending: isFiltering } =
+    useDeferredItems(filteredAncestries);
 
   // Keyboard navigation
   useKeyboardNavigation({
-    items: filteredAncestries,
+    items: deferredAncestries,
     selectedItem: selectedAncestry,
     onSelect: setSelectedAncestry,
     onClose: () => setSelectedAncestry(null),
   });
+
+  // Show skeleton while loading initial data
+  if (isInitialLoading) {
+    return <ReferencePageSkeleton showFilters={!isMobile} />;
+  }
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -310,7 +332,7 @@ function AncestriesReferencePage() {
             </h1>
             <ResultsCounter
               filtered={filteredAncestries.length}
-              total={ANCESTRIES.length}
+              total={totalCount}
               label="ancestries"
             />
           </div>
@@ -333,8 +355,15 @@ function AncestriesReferencePage() {
                 size="icon"
                 className="size-9"
                 onClick={() => setSortDir(sortDir === 'asc' ? 'desc' : 'asc')}
+                aria-label={
+                  sortDir === 'asc' ? 'Sort descending' : 'Sort ascending'
+                }
               >
-                <ArrowUpDown className="size-4" />
+                {sortDir === 'asc' ? (
+                  <ArrowUp className="size-4" />
+                ) : (
+                  <ArrowDown className="size-4" />
+                )}
               </Button>
             </div>
             {/* Search */}
@@ -360,12 +389,20 @@ function AncestriesReferencePage() {
       </div>
 
       {/* Content - scrollable */}
-      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto">
+      <div ref={scrollRef} className="relative min-h-0 flex-1 overflow-y-auto">
+        {/* Loading overlay during filtering */}
+        {isFiltering && (
+          <div className="bg-background/60 absolute inset-0 z-10 flex items-start justify-center pt-20 backdrop-blur-[1px]">
+            <div className="bg-background rounded-lg border p-4 shadow-lg">
+              <div className="border-primary h-6 w-6 animate-spin rounded-full border-2 border-t-transparent" />
+            </div>
+          </div>
+        )}
         <div className="p-4">
           {isMobile ? (
             /* Mobile: Compact cards */
             <div className="grid grid-cols-1 gap-3">
-              {filteredAncestries.map(ancestry => (
+              {deferredAncestries.map(ancestry => (
                 <AncestryCard
                   key={ancestry.name}
                   ancestry={ancestry}
@@ -377,7 +414,7 @@ function AncestriesReferencePage() {
           ) : (
             /* Desktop: Full cards */
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-              {filteredAncestries.map(ancestry => (
+              {deferredAncestries.map(ancestry => (
                 <AncestryCard
                   key={ancestry.name}
                   ancestry={ancestry}
@@ -387,7 +424,7 @@ function AncestriesReferencePage() {
             </div>
           )}
 
-          {filteredAncestries.length === 0 && (
+          {deferredAncestries.length === 0 && !isFiltering && (
             <div className="text-muted-foreground py-12 text-center">
               <p>No ancestries match your search.</p>
               <Button

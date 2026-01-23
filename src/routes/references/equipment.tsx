@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import {
-  ArrowUpDown,
+  ArrowDown,
+  ArrowUp,
   ChevronDown,
   ChevronRight,
   Grid3X3,
@@ -18,9 +19,12 @@ import {
   type FilterGroup,
   KeyboardHint,
   ReferenceFilter,
+  ReferencePageSkeleton,
   ResultsCounter,
   SortableTableHead,
   useCompare,
+  useDeferredItems,
+  useDeferredLoad,
   useFilterState,
   useKeyboardNavigation,
 } from '@/components/references';
@@ -747,6 +751,9 @@ function ItemDetail({ item }: { item: EquipmentItem }) {
 
 type EquipmentSortKey = 'name' | 'tier' | 'type' | 'trait';
 
+// Stable loader function for useDeferredLoad
+const loadAllItems = () => getAllItems();
+
 function EquipmentReferencePage() {
   const isMobile = useIsMobile();
   const scrollRef = React.useRef<HTMLDivElement>(null);
@@ -756,6 +763,17 @@ function EquipmentReferencePage() {
   const [selectedItem, setSelectedItem] = React.useState<EquipmentItem | null>(
     null
   );
+
+  // Force grid view on mobile - tables are too wide for small screens
+  React.useEffect(() => {
+    if (isMobile && viewMode === 'table') {
+      setViewMode('grid');
+    }
+  }, [isMobile, viewMode]);
+
+  // Defer data loading until after initial paint
+  const { data: allItems, isLoading: isInitialLoading } =
+    useDeferredLoad(loadAllItems);
 
   // Handle column header click for sorting
   const handleSortClick = React.useCallback(
@@ -770,12 +788,11 @@ function EquipmentReferencePage() {
     [sortBy]
   );
 
-  const allItems = React.useMemo(() => getAllItems(), []);
-
   const { filterState, onSearchChange, onFilterChange, onClearFilters } =
     useFilterState(filterGroups);
 
   const filteredItems = React.useMemo(() => {
+    if (!allItems) return [];
     const items = filterItems(
       allItems,
       filterState.search,
@@ -806,6 +823,10 @@ function EquipmentReferencePage() {
     });
   }, [allItems, filterState, sortBy, sortDir]);
 
+  // Use deferred rendering for smooth filtering on mobile
+  const { deferredItems, isPending: isFiltering } =
+    useDeferredItems(filteredItems);
+
   // Group by category for sectioned display
   const groupedItems = React.useMemo(() => {
     const groups: Record<string, EquipmentItem[]> = {
@@ -814,19 +835,26 @@ function EquipmentReferencePage() {
       armor: [],
       wheelchair: [],
     };
-    for (const item of filteredItems) {
+    for (const item of deferredItems) {
       groups[item.type].push(item);
     }
     return groups;
-  }, [filteredItems]);
+  }, [deferredItems]);
 
   // Keyboard navigation
   useKeyboardNavigation({
-    items: filteredItems,
+    items: deferredItems,
     selectedItem,
     onSelect: setSelectedItem,
     onClose: () => setSelectedItem(null),
   });
+
+  // Show skeleton while data is loading
+  if (isInitialLoading) {
+    return <ReferencePageSkeleton showFilters={!isMobile} />;
+  }
+
+  const totalCount = allItems?.length ?? 0;
 
   return (
     <div className="flex min-h-0 flex-1">
@@ -839,7 +867,7 @@ function EquipmentReferencePage() {
           onFilterChange={onFilterChange}
           onClearFilters={onClearFilters}
           resultCount={filteredItems.length}
-          totalCount={allItems.length}
+          totalCount={totalCount}
           searchPlaceholder="Search equipment..."
         />
       )}
@@ -855,7 +883,7 @@ function EquipmentReferencePage() {
               </h1>
               <ResultsCounter
                 filtered={filteredItems.length}
-                total={allItems.length}
+                total={totalCount}
                 label="items"
               />
             </div>
@@ -868,7 +896,7 @@ function EquipmentReferencePage() {
                   onFilterChange={onFilterChange}
                   onClearFilters={onClearFilters}
                   resultCount={filteredItems.length}
-                  totalCount={allItems.length}
+                  totalCount={totalCount}
                   searchPlaceholder="Search equipment..."
                 />
               )}
@@ -889,28 +917,49 @@ function EquipmentReferencePage() {
                   size="icon"
                   className="size-9"
                   onClick={() => setSortDir(sortDir === 'asc' ? 'desc' : 'asc')}
+                  aria-label={
+                    sortDir === 'asc' ? 'Sort descending' : 'Sort ascending'
+                  }
                 >
-                  <ArrowUpDown className="size-4" />
+                  {sortDir === 'asc' ? (
+                    <ArrowUp className="size-4" />
+                  ) : (
+                    <ArrowDown className="size-4" />
+                  )}
                 </Button>
               </div>
-              <ToggleGroup
-                type="single"
-                value={viewMode}
-                onValueChange={v => v && setViewMode(v as 'grid' | 'table')}
-              >
-                <ToggleGroupItem value="grid" aria-label="Grid view">
-                  <Grid3X3 className="size-4" />
-                </ToggleGroupItem>
-                <ToggleGroupItem value="table" aria-label="Table view">
-                  <List className="size-4" />
-                </ToggleGroupItem>
-              </ToggleGroup>
+              {/* Hide view toggle on mobile - table view is too wide for small screens */}
+              {!isMobile && (
+                <ToggleGroup
+                  type="single"
+                  value={viewMode}
+                  onValueChange={v => v && setViewMode(v as 'grid' | 'table')}
+                >
+                  <ToggleGroupItem value="grid" aria-label="Grid view">
+                    <Grid3X3 className="size-4" />
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="table" aria-label="Table view">
+                    <List className="size-4" />
+                  </ToggleGroupItem>
+                </ToggleGroup>
+              )}
             </div>
           </div>
         </div>
 
         {/* Content - scrollable */}
-        <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto">
+        <div
+          ref={scrollRef}
+          className="relative min-h-0 flex-1 overflow-y-auto"
+        >
+          {/* Loading overlay during filtering */}
+          {isFiltering && (
+            <div className="bg-background/60 absolute inset-0 z-10 flex items-start justify-center pt-20 backdrop-blur-[1px]">
+              <div className="bg-background rounded-lg border p-4 shadow-lg">
+                <div className="border-primary h-6 w-6 animate-spin rounded-full border-2 border-t-transparent" />
+              </div>
+            </div>
+          )}
           <div className="p-4">
             {viewMode === 'grid' ? (
               <div className="space-y-8">
