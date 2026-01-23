@@ -3,13 +3,11 @@ import type { Armor } from '@/lib/schemas/equipment';
 import { getEffectiveDamageThresholds } from '@/lib/schemas/equipment';
 
 /**
- * Compute damage thresholds (Major/Severe) from max HP.
- * Major ≤ floor(max/4), Severe ≤ floor(max/2). Minimum 0.
+ * Compute damage thresholds (Major/Severe) from armor base thresholds and level.
+ * SRD rule: add level to each armor threshold.
  */
-export function getThresholds(maxHp: number) {
-  const major = Math.max(0, Math.floor(maxHp / 4));
-  const severe = Math.max(0, Math.floor(maxHp / 2));
-  return { major, severe } as const;
+export function getThresholds(baseThresholds: DamageThresholds, level: number) {
+  return getEffectiveDamageThresholds(level, baseThresholds);
 }
 
 /**

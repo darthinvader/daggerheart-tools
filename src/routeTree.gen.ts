@@ -17,10 +17,12 @@ import { Route as ReferencesIndexRouteImport } from './routes/references/index'
 import { Route as CharacterIndexRouteImport } from './routes/character/index'
 import { Route as ReferencesInventoryRouteImport } from './routes/references/inventory'
 import { Route as ReferencesEquipmentRouteImport } from './routes/references/equipment'
+import { Route as ReferencesEnvironmentsRouteImport } from './routes/references/environments'
 import { Route as ReferencesDomainCardsRouteImport } from './routes/references/domain-cards'
 import { Route as ReferencesCommunitiesRouteImport } from './routes/references/communities'
 import { Route as ReferencesClassesRouteImport } from './routes/references/classes'
 import { Route as ReferencesAncestriesRouteImport } from './routes/references/ancestries'
+import { Route as ReferencesAdversariesRouteImport } from './routes/references/adversaries'
 import { Route as CharacterNewRouteImport } from './routes/character/new'
 import { Route as CharacterCharacterIdRouteImport } from './routes/character/$characterId'
 
@@ -64,6 +66,11 @@ const ReferencesEquipmentRoute = ReferencesEquipmentRouteImport.update({
   path: '/equipment',
   getParentRoute: () => ReferencesRoute,
 } as any)
+const ReferencesEnvironmentsRoute = ReferencesEnvironmentsRouteImport.update({
+  id: '/environments',
+  path: '/environments',
+  getParentRoute: () => ReferencesRoute,
+} as any)
 const ReferencesDomainCardsRoute = ReferencesDomainCardsRouteImport.update({
   id: '/domain-cards',
   path: '/domain-cards',
@@ -84,6 +91,11 @@ const ReferencesAncestriesRoute = ReferencesAncestriesRouteImport.update({
   path: '/ancestries',
   getParentRoute: () => ReferencesRoute,
 } as any)
+const ReferencesAdversariesRoute = ReferencesAdversariesRouteImport.update({
+  id: '/adversaries',
+  path: '/adversaries',
+  getParentRoute: () => ReferencesRoute,
+} as any)
 const CharacterNewRoute = CharacterNewRouteImport.update({
   id: '/new',
   path: '/new',
@@ -102,10 +114,12 @@ export interface FileRoutesByFullPath {
   '/references': typeof ReferencesRouteWithChildren
   '/character/$characterId': typeof CharacterCharacterIdRoute
   '/character/new': typeof CharacterNewRoute
+  '/references/adversaries': typeof ReferencesAdversariesRoute
   '/references/ancestries': typeof ReferencesAncestriesRoute
   '/references/classes': typeof ReferencesClassesRoute
   '/references/communities': typeof ReferencesCommunitiesRoute
   '/references/domain-cards': typeof ReferencesDomainCardsRoute
+  '/references/environments': typeof ReferencesEnvironmentsRoute
   '/references/equipment': typeof ReferencesEquipmentRoute
   '/references/inventory': typeof ReferencesInventoryRoute
   '/character/': typeof CharacterIndexRoute
@@ -116,10 +130,12 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/character/$characterId': typeof CharacterCharacterIdRoute
   '/character/new': typeof CharacterNewRoute
+  '/references/adversaries': typeof ReferencesAdversariesRoute
   '/references/ancestries': typeof ReferencesAncestriesRoute
   '/references/classes': typeof ReferencesClassesRoute
   '/references/communities': typeof ReferencesCommunitiesRoute
   '/references/domain-cards': typeof ReferencesDomainCardsRoute
+  '/references/environments': typeof ReferencesEnvironmentsRoute
   '/references/equipment': typeof ReferencesEquipmentRoute
   '/references/inventory': typeof ReferencesInventoryRoute
   '/character': typeof CharacterIndexRoute
@@ -133,10 +149,12 @@ export interface FileRoutesById {
   '/references': typeof ReferencesRouteWithChildren
   '/character/$characterId': typeof CharacterCharacterIdRoute
   '/character/new': typeof CharacterNewRoute
+  '/references/adversaries': typeof ReferencesAdversariesRoute
   '/references/ancestries': typeof ReferencesAncestriesRoute
   '/references/classes': typeof ReferencesClassesRoute
   '/references/communities': typeof ReferencesCommunitiesRoute
   '/references/domain-cards': typeof ReferencesDomainCardsRoute
+  '/references/environments': typeof ReferencesEnvironmentsRoute
   '/references/equipment': typeof ReferencesEquipmentRoute
   '/references/inventory': typeof ReferencesInventoryRoute
   '/character/': typeof CharacterIndexRoute
@@ -151,10 +169,12 @@ export interface FileRouteTypes {
     | '/references'
     | '/character/$characterId'
     | '/character/new'
+    | '/references/adversaries'
     | '/references/ancestries'
     | '/references/classes'
     | '/references/communities'
     | '/references/domain-cards'
+    | '/references/environments'
     | '/references/equipment'
     | '/references/inventory'
     | '/character/'
@@ -165,10 +185,12 @@ export interface FileRouteTypes {
     | '/login'
     | '/character/$characterId'
     | '/character/new'
+    | '/references/adversaries'
     | '/references/ancestries'
     | '/references/classes'
     | '/references/communities'
     | '/references/domain-cards'
+    | '/references/environments'
     | '/references/equipment'
     | '/references/inventory'
     | '/character'
@@ -181,10 +203,12 @@ export interface FileRouteTypes {
     | '/references'
     | '/character/$characterId'
     | '/character/new'
+    | '/references/adversaries'
     | '/references/ancestries'
     | '/references/classes'
     | '/references/communities'
     | '/references/domain-cards'
+    | '/references/environments'
     | '/references/equipment'
     | '/references/inventory'
     | '/character/'
@@ -256,6 +280,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReferencesEquipmentRouteImport
       parentRoute: typeof ReferencesRoute
     }
+    '/references/environments': {
+      id: '/references/environments'
+      path: '/environments'
+      fullPath: '/references/environments'
+      preLoaderRoute: typeof ReferencesEnvironmentsRouteImport
+      parentRoute: typeof ReferencesRoute
+    }
     '/references/domain-cards': {
       id: '/references/domain-cards'
       path: '/domain-cards'
@@ -282,6 +313,13 @@ declare module '@tanstack/react-router' {
       path: '/ancestries'
       fullPath: '/references/ancestries'
       preLoaderRoute: typeof ReferencesAncestriesRouteImport
+      parentRoute: typeof ReferencesRoute
+    }
+    '/references/adversaries': {
+      id: '/references/adversaries'
+      path: '/adversaries'
+      fullPath: '/references/adversaries'
+      preLoaderRoute: typeof ReferencesAdversariesRouteImport
       parentRoute: typeof ReferencesRoute
     }
     '/character/new': {
@@ -318,20 +356,24 @@ const CharacterRouteWithChildren = CharacterRoute._addFileChildren(
 )
 
 interface ReferencesRouteChildren {
+  ReferencesAdversariesRoute: typeof ReferencesAdversariesRoute
   ReferencesAncestriesRoute: typeof ReferencesAncestriesRoute
   ReferencesClassesRoute: typeof ReferencesClassesRoute
   ReferencesCommunitiesRoute: typeof ReferencesCommunitiesRoute
   ReferencesDomainCardsRoute: typeof ReferencesDomainCardsRoute
+  ReferencesEnvironmentsRoute: typeof ReferencesEnvironmentsRoute
   ReferencesEquipmentRoute: typeof ReferencesEquipmentRoute
   ReferencesInventoryRoute: typeof ReferencesInventoryRoute
   ReferencesIndexRoute: typeof ReferencesIndexRoute
 }
 
 const ReferencesRouteChildren: ReferencesRouteChildren = {
+  ReferencesAdversariesRoute: ReferencesAdversariesRoute,
   ReferencesAncestriesRoute: ReferencesAncestriesRoute,
   ReferencesClassesRoute: ReferencesClassesRoute,
   ReferencesCommunitiesRoute: ReferencesCommunitiesRoute,
   ReferencesDomainCardsRoute: ReferencesDomainCardsRoute,
+  ReferencesEnvironmentsRoute: ReferencesEnvironmentsRoute,
   ReferencesEquipmentRoute: ReferencesEquipmentRoute,
   ReferencesInventoryRoute: ReferencesInventoryRoute,
   ReferencesIndexRoute: ReferencesIndexRoute,

@@ -395,7 +395,7 @@ export function HopeScoresThresholdsGrid({
   const autoThresholdsMajor = useMemo(
     () =>
       armorStats.major +
-      Math.max(0, state.progression.currentLevel - 1) +
+      Math.max(0, state.progression.currentLevel) +
       equipmentFeatureModifiers.majorThreshold,
     [
       armorStats.major,
@@ -406,7 +406,7 @@ export function HopeScoresThresholdsGrid({
   const autoThresholdsSevere = useMemo(
     () =>
       armorStats.severe +
-      Math.max(0, state.progression.currentLevel - 1) +
+      Math.max(0, state.progression.currentLevel) +
       equipmentFeatureModifiers.severeThreshold,
     [
       armorStats.severe,

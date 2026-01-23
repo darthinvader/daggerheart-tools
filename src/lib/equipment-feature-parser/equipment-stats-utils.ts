@@ -142,7 +142,7 @@ export function buildAutoCalculateContext(
  */
 export function computeExtendedAutoValues(ctx: ExtendedAutoCalculateContext) {
   const tierBonus = ctx.classTier - 1;
-  const levelBonus = Math.max(0, ctx.level - 1);
+  const levelBonus = Math.max(0, ctx.level);
   const featureMods = ctx.equipmentFeatureModifiers;
 
   return {
@@ -158,7 +158,7 @@ export function computeExtendedAutoValues(ctx: ExtendedAutoCalculateContext) {
     // Proficiency modifier from equipment
     proficiencyModifier: featureMods.proficiency,
 
-    // Thresholds: armor base + level bonus + equipment feature modifiers
+    // Thresholds: armor base + level + equipment feature modifiers
     thresholdsMajor:
       ctx.armorThresholdsMajor + levelBonus + featureMods.majorThreshold,
     thresholdsSevere:

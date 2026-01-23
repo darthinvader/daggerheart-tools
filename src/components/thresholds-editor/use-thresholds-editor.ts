@@ -6,7 +6,7 @@ import type { ThresholdsAutoContext } from './thresholds-editable-section';
 
 export function computeAutoThresholds(ctx: ThresholdsAutoContext) {
   const level = ctx.level ?? 1;
-  const levelBonus = Math.max(0, level - 1);
+  const levelBonus = Math.max(0, level);
   return {
     major: (ctx.armorThresholdsMajor ?? 5) + levelBonus,
     severe: (ctx.armorThresholdsSevere ?? 11) + levelBonus,

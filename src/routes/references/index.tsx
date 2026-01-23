@@ -1,7 +1,9 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import {
   Backpack,
+  Leaf,
   Shield,
+  ShieldAlert,
   Sparkles,
   Sword,
   Users,
@@ -79,6 +81,25 @@ const referenceCategories = [
     gradient: 'from-cyan-500 to-blue-600',
     iconColor: 'text-cyan-600 dark:text-cyan-400',
     bgColor: 'bg-cyan-500/10',
+  },
+  {
+    to: '/references/adversaries',
+    title: 'Adversaries',
+    description:
+      'Review adversary roles, tiers, and traits for encounter planning.',
+    icon: ShieldAlert,
+    gradient: 'from-red-500 to-rose-600',
+    iconColor: 'text-red-600 dark:text-red-400',
+    bgColor: 'bg-red-500/10',
+  },
+  {
+    to: '/references/environments',
+    title: 'Environments',
+    description: 'Reference scene environments, hazards, and encounter tags.',
+    icon: Leaf,
+    gradient: 'from-emerald-500 to-green-600',
+    iconColor: 'text-emerald-600 dark:text-emerald-400',
+    bgColor: 'bg-emerald-500/10',
   },
 ];
 

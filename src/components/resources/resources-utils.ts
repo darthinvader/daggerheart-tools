@@ -13,7 +13,7 @@ export interface ComputedAutoValues {
  * HP = class base HP + (tier - 1) bonus
  * Evasion = class base evasion + armor evasion modifier + equipment feature modifiers
  * Armor Score = armor base score + equipment feature modifiers
- * Thresholds = armor base thresholds + (level - 1) per threshold + equipment feature modifiers
+ * Thresholds = armor base thresholds + level per threshold + equipment feature modifiers
  */
 export function computeAutoResources(
   ctx: AutoCalculateContext
@@ -23,7 +23,7 @@ export function computeAutoResources(
   const baseEvasion = ctx.classEvasion ?? 10;
   const armorEvasionMod = ctx.armorEvasionModifier ?? 0;
   const level = ctx.level ?? 1;
-  const levelBonus = Math.max(0, level - 1);
+  const levelBonus = Math.max(0, level);
 
   // Get equipment feature modifiers (from weapon/armor features like "Heavy: -1 to Evasion")
   const featureMods = ctx.equipmentFeatureModifiers ?? {

@@ -8,7 +8,7 @@
  * - HP: Class base HP + (Tier - 1)
  * - Evasion: Class base + Armor modifier + Equipment feature modifiers
  * - Armor Score: Armor base + Equipment feature modifiers
- * - Thresholds: Armor base + (Level - 1) + Equipment feature modifiers
+ * - Thresholds: Armor base + Level + Equipment feature modifiers
  * - Traits: Base value + Bonus + Armor agility modifier + Equipment trait modifiers
  * - Proficiency: Base (from level/class) + Equipment feature modifiers
  */
@@ -37,7 +37,6 @@ import {
   type ProgressionInput,
   type TraitsInput,
 } from './types';
-
 // ============================================
 // Individual Stat Calculators
 // ============================================
@@ -92,11 +91,11 @@ export function calculateArmorScore(
 
 /**
  * Calculate Proficiency with breakdown.
- * Formula: Base (typically 2 for all characters) + Equipment feature modifiers
+ * Formula: Base (typically 1 at level 1) + Equipment feature modifiers
  */
 export function calculateProficiency(
   equipmentModifiers: EquipmentModifiersInput,
-  baseProficiency: number = 2
+  baseProficiency: number = 1
 ): CalculatedProficiency {
   return {
     base: baseProficiency,
@@ -107,14 +106,14 @@ export function calculateProficiency(
 
 /**
  * Calculate a single threshold with breakdown.
- * Formula: Armor base + (Level - 1) + Equipment feature modifiers
+ * Formula: Armor base + Level + Equipment feature modifiers
  */
 function calculateThreshold(
   baseValue: number,
   level: number,
   equipmentModifier: number
 ): CalculatedThreshold {
-  const levelBonus = Math.max(0, level - 1);
+  const levelBonus = Math.max(0, level);
   return {
     base: baseValue,
     levelBonus,
