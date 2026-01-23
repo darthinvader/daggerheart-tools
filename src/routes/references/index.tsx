@@ -10,7 +10,6 @@ import {
 
 import {
   Card,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
@@ -106,22 +105,20 @@ function ReferencesIndexPage() {
                 <CardHeader>
                   <div className="flex items-start gap-4">
                     <div
-                      className={`rounded-xl p-3 ${category.bgColor} transition-transform group-hover:scale-110`}
+                      className={`shrink-0 rounded-xl p-3 ${category.bgColor} transition-transform group-hover:scale-110`}
                     >
                       <Icon className={`size-7 ${category.iconColor}`} />
                     </div>
-                    <div className="flex-1">
+                    <div className="min-w-0 flex-1">
                       <CardTitle className="group-hover:text-primary text-xl transition-colors">
                         {category.title}
                       </CardTitle>
+                      <CardDescription className="mt-1 text-sm leading-relaxed">
+                        {category.description}
+                      </CardDescription>
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-sm leading-relaxed">
-                    {category.description}
-                  </CardDescription>
-                </CardContent>
               </Card>
             </Link>
           );
