@@ -1,5 +1,14 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { ArrowRight, BookOpen, Sword, Users } from 'lucide-react';
+import {
+  ArrowRight,
+  Backpack,
+  BookOpen,
+  Shield,
+  Sparkles,
+  Sword,
+  Users,
+  UsersRound,
+} from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -13,6 +22,57 @@ import {
 export const Route = createFileRoute('/' as const)({
   component: Index,
 });
+
+const referenceCategories = [
+  {
+    to: '/references/equipment',
+    title: 'Equipment',
+    description: 'Weapons, armor, and combat wheelchairs',
+    icon: Sword,
+    iconColor: 'text-amber-600 dark:text-amber-400',
+    bgColor: 'bg-amber-500/10',
+  },
+  {
+    to: '/references/classes',
+    title: 'Classes',
+    description: 'Classes, subclasses, and features',
+    icon: Shield,
+    iconColor: 'text-purple-600 dark:text-purple-400',
+    bgColor: 'bg-purple-500/10',
+  },
+  {
+    to: '/references/ancestries',
+    title: 'Ancestries',
+    description: 'Unique traits and characteristics',
+    icon: UsersRound,
+    iconColor: 'text-teal-600 dark:text-teal-400',
+    bgColor: 'bg-teal-500/10',
+  },
+  {
+    to: '/references/communities',
+    title: 'Communities',
+    description: 'Backgrounds and community features',
+    icon: Users,
+    iconColor: 'text-green-600 dark:text-green-400',
+    bgColor: 'bg-green-500/10',
+  },
+  {
+    to: '/references/domain-cards',
+    title: 'Domain Cards',
+    description: 'Spells, abilities, and grimoires',
+    icon: Sparkles,
+    iconColor: 'text-violet-600 dark:text-violet-400',
+    bgColor: 'bg-violet-500/10',
+  },
+  {
+    to: '/references/inventory',
+    title: 'Inventory',
+    description: 'Items, consumables, and relics',
+    icon: Backpack,
+    iconColor: 'text-cyan-600 dark:text-cyan-400',
+    bgColor: 'bg-cyan-500/10',
+  },
+];
 
 function Index() {
   return (
@@ -103,20 +163,75 @@ function Index() {
             <Card>
               <CardHeader>
                 <BookOpen className="text-primary mb-2 h-10 w-10" />
-                <CardTitle>Session Tools</CardTitle>
+                <CardTitle>Reference Guide</CardTitle>
                 <CardDescription>
-                  Keep your game flowing with helpful tracking and reference
-                  tools.
+                  Browse complete game data: equipment, classes, ancestries,
+                  communities, and domain cards.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <ul className="text-muted-foreground space-y-2 text-sm">
-                  <li>• Track conditions and status</li>
-                  <li>• Manage rest and recovery</li>
-                  <li>• Quick reference for rules</li>
+                  <li>• Searchable & filterable databases</li>
+                  <li>• Side-by-side comparisons</li>
+                  <li>• Complete SRD coverage</li>
                 </ul>
               </CardContent>
             </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Reference Guide Section */}
+      <section className="px-4 py-16">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-10 text-center">
+            <h2 className="mb-3 text-2xl font-bold md:text-3xl">
+              Comprehensive Reference Guide
+            </h2>
+            <p className="text-muted-foreground mx-auto max-w-2xl">
+              Browse complete game data with powerful search, filtering, and
+              comparison features.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+            {referenceCategories.map(category => {
+              const Icon = category.icon;
+              return (
+                <Link
+                  key={category.to}
+                  to={category.to}
+                  className="group block"
+                >
+                  <Card className="group-hover:border-primary/50 h-full text-center transition-all hover:scale-105 hover:shadow-lg">
+                    <CardHeader className="pb-2">
+                      <div
+                        className={`mx-auto rounded-xl p-3 ${category.bgColor} transition-transform group-hover:scale-110`}
+                      >
+                        <Icon className={`size-6 ${category.iconColor}`} />
+                      </div>
+                      <CardTitle className="group-hover:text-primary text-base transition-colors">
+                        {category.title}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <CardDescription className="text-xs">
+                        {category.description}
+                      </CardDescription>
+                    </CardContent>
+                  </Card>
+                </Link>
+              );
+            })}
+          </div>
+
+          <div className="mt-8 text-center">
+            <Button asChild variant="outline" className="gap-2">
+              <Link to="/references">
+                Browse All References
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
           </div>
         </div>
       </section>
