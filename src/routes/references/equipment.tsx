@@ -808,14 +808,26 @@ function EquipmentReferencePage() {
           break;
         case 'tier':
           cmp = a.data.tier.localeCompare(b.data.tier);
+          // Secondary sort by name for stability
+          if (cmp === 0) {
+            cmp = a.data.name.localeCompare(b.data.name);
+          }
           break;
         case 'type':
           cmp = a.type.localeCompare(b.type);
+          // Secondary sort by name for stability
+          if (cmp === 0) {
+            cmp = a.data.name.localeCompare(b.data.name);
+          }
           break;
         case 'trait': {
           const traitA = 'trait' in a.data ? (a.data.trait ?? '') : '';
           const traitB = 'trait' in b.data ? (b.data.trait ?? '') : '';
           cmp = traitA.localeCompare(traitB);
+          // Secondary sort by name for stability
+          if (cmp === 0) {
+            cmp = a.data.name.localeCompare(b.data.name);
+          }
           break;
         }
       }
@@ -916,7 +928,9 @@ function EquipmentReferencePage() {
                   variant="ghost"
                   size="icon"
                   className="size-9"
-                  onClick={() => setSortDir(sortDir === 'asc' ? 'desc' : 'asc')}
+                  onClick={() =>
+                    setSortDir(d => (d === 'asc' ? 'desc' : 'asc'))
+                  }
                   aria-label={
                     sortDir === 'asc' ? 'Sort descending' : 'Sort ascending'
                   }

@@ -659,9 +659,17 @@ function InventoryReferencePage() {
           break;
         case 'type':
           cmp = a.type.localeCompare(b.type);
+          // Secondary sort by name for stability
+          if (cmp === 0) {
+            cmp = a.data.name.localeCompare(b.data.name);
+          }
           break;
         case 'rarity':
           cmp = (a.data.rarity || '').localeCompare(b.data.rarity || '');
+          // Secondary sort by name for stability
+          if (cmp === 0) {
+            cmp = a.data.name.localeCompare(b.data.name);
+          }
           break;
       }
       return sortDir === 'asc' ? cmp : -cmp;
@@ -766,7 +774,9 @@ function InventoryReferencePage() {
                   variant="ghost"
                   size="icon"
                   className="size-9"
-                  onClick={() => setSortDir(sortDir === 'asc' ? 'desc' : 'asc')}
+                  onClick={() =>
+                    setSortDir(d => (d === 'asc' ? 'desc' : 'asc'))
+                  }
                   aria-label={
                     sortDir === 'asc' ? 'Sort descending' : 'Sort ascending'
                   }

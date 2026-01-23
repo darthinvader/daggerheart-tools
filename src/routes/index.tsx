@@ -225,7 +225,7 @@ function Index() {
             })}
           </div>
 
-          <div className="mt-8 text-center">
+          <div className="mt-10 text-center md:mt-8">
             <Button asChild variant="outline" className="gap-2">
               <Link to="/references">
                 Browse All References

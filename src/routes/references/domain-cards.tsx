@@ -477,12 +477,24 @@ function DomainCardsReferencePage() {
           break;
         case 'domain':
           cmp = a.domain.localeCompare(b.domain);
+          // Secondary sort by name for stability
+          if (cmp === 0) {
+            cmp = a.name.localeCompare(b.name);
+          }
           break;
         case 'level':
           cmp = a.level - b.level;
+          // Secondary sort by name for stability
+          if (cmp === 0) {
+            cmp = a.name.localeCompare(b.name);
+          }
           break;
         case 'type':
           cmp = a.type.localeCompare(b.type);
+          // Secondary sort by name for stability
+          if (cmp === 0) {
+            cmp = a.name.localeCompare(b.name);
+          }
           break;
       }
       return sortDir === 'asc' ? cmp : -cmp;
@@ -578,7 +590,7 @@ function DomainCardsReferencePage() {
                 value={sortBy}
                 onChange={v => setSortBy(v as DomainCardSortKey)}
                 direction={sortDir}
-                onDirectionChange={setSortDir}
+                onDirectionChange={d => setSortDir(d)}
               />
 
               {/* Hide view toggle on mobile - table view is too wide for small screens */}
