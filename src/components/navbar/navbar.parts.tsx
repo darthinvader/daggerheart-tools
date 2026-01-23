@@ -76,32 +76,38 @@ const defaultLinks: NavLink[] = [
       {
         to: '/references/equipment',
         label: 'Equipment',
-        icon: <Sword className="size-4" />,
+        icon: <Sword className="size-4 text-amber-600 dark:text-amber-400" />,
       },
       {
         to: '/references/classes',
         label: 'Classes & Subclasses',
-        icon: <Shield className="size-4" />,
+        icon: (
+          <Shield className="size-4 text-purple-600 dark:text-purple-400" />
+        ),
       },
       {
         to: '/references/ancestries',
         label: 'Ancestries',
-        icon: <UsersRound className="size-4" />,
+        icon: (
+          <UsersRound className="size-4 text-teal-600 dark:text-teal-400" />
+        ),
       },
       {
         to: '/references/communities',
         label: 'Communities',
-        icon: <Users className="size-4" />,
+        icon: <Users className="size-4 text-green-600 dark:text-green-400" />,
       },
       {
         to: '/references/domain-cards',
         label: 'Domain Cards',
-        icon: <Sparkles className="size-4" />,
+        icon: (
+          <Sparkles className="size-4 text-violet-600 dark:text-violet-400" />
+        ),
       },
       {
         to: '/references/inventory',
         label: 'Inventory Items',
-        icon: <Backpack className="size-4" />,
+        icon: <Backpack className="size-4 text-cyan-600 dark:text-cyan-400" />,
       },
     ],
   },
