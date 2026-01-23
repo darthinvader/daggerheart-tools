@@ -24,6 +24,7 @@ export function CharacterCard({
       <Link
         to="/character/$characterId"
         params={{ characterId: character.id }}
+        search={{ tab: 'quick' }}
         className="block"
       >
         <div className="mb-2 flex items-start justify-between">

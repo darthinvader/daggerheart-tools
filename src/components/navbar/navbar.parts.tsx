@@ -1,15 +1,5 @@
-/* eslint-disable max-lines */
 import { Link, useLocation, useNavigate } from '@tanstack/react-router';
-import {
-  BookOpen,
-  ChevronDown,
-  Dices,
-  LogIn,
-  Menu,
-  Plus,
-  Scroll,
-  Users,
-} from 'lucide-react';
+import { ChevronDown, LogIn, Menu, Plus, Users } from 'lucide-react';
 import * as React from 'react';
 
 import { UserMenu } from '@/components/auth';
@@ -51,23 +41,6 @@ interface NavbarProps {
 }
 
 const defaultLinks: NavLink[] = [
-  {
-    to: '/demonstration',
-    label: 'Demos',
-    icon: <Dices className="size-4" />,
-    children: [
-      {
-        to: '/demonstration',
-        label: '📋 All Demos',
-        icon: <BookOpen className="size-4" />,
-      },
-      {
-        to: '/character-demo',
-        label: '📜 Character Sheet',
-        icon: <Scroll className="size-4" />,
-      },
-    ],
-  },
   {
     to: '/character',
     label: 'Characters',
@@ -130,6 +103,7 @@ function DesktopNavbar({ links, brandName }: NavbarInternalProps) {
       await navigate({
         to: '/character/$characterId',
         params: { characterId: data.id },
+        search: { tab: 'quick' },
       });
     } catch {
       // Error handled by mutation
@@ -299,6 +273,7 @@ function MobileNavContent({
       await navigate({
         to: '/character/$characterId',
         params: { characterId: data.id },
+        search: { tab: 'quick' },
       });
     } catch {
       // Error handled by mutation

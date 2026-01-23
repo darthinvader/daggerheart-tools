@@ -67,7 +67,7 @@ function QuickSection({
           )}
         </button>
       )}
-      {isOpen && <div className="flex-1 [&>*]:h-full">{children}</div>}
+      {isOpen && <div className="flex-1 *:h-full">{children}</div>}
     </div>
   );
 }

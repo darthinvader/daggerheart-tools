@@ -59,27 +59,26 @@ describe('lib utils', () => {
       vi.unstubAllGlobals();
     });
 
-    it('falls back when crypto is unavailable', () => {
+    it('falls back to UUID format when crypto is unavailable', () => {
       const originalCrypto = globalThis.crypto;
       vi.stubGlobal('crypto', undefined);
 
       const id = generateId();
       expect(id).toBeTruthy();
-      expect(id).toMatch(/^[a-z0-9]+-[a-z0-9]+$/);
+      // UUID format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
+      expect(id).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+      );
 
       vi.stubGlobal('crypto', originalCrypto);
     });
 
-    it('contains timestamp component in fallback', () => {
+    it('generates unique IDs in fallback mode', () => {
       vi.stubGlobal('crypto', undefined);
 
-      const before = Date.now();
-      const id = generateId();
-      const after = Date.now();
-
-      const timestamp = parseInt(id.split('-')[0] ?? '0', 36);
-      expect(timestamp).toBeGreaterThanOrEqual(before);
-      expect(timestamp).toBeLessThanOrEqual(after);
+      const id1 = generateId();
+      const id2 = generateId();
+      expect(id1).not.toBe(id2);
 
       vi.unstubAllGlobals();
     });

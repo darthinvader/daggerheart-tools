@@ -10,7 +10,6 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as CharacterDemoRouteImport } from './routes/character-demo'
 import { Route as CharacterRouteImport } from './routes/character'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CharacterIndexRouteImport } from './routes/character/index'
@@ -20,11 +19,6 @@ import { Route as CharacterCharacterIdRouteImport } from './routes/character/$ch
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CharacterDemoRoute = CharacterDemoRouteImport.update({
-  id: '/character-demo',
-  path: '/character-demo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CharacterRoute = CharacterRouteImport.update({
@@ -56,7 +50,6 @@ const CharacterCharacterIdRoute = CharacterCharacterIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/character': typeof CharacterRouteWithChildren
-  '/character-demo': typeof CharacterDemoRoute
   '/login': typeof LoginRoute
   '/character/$characterId': typeof CharacterCharacterIdRoute
   '/character/new': typeof CharacterNewRoute
@@ -64,7 +57,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/character-demo': typeof CharacterDemoRoute
   '/login': typeof LoginRoute
   '/character/$characterId': typeof CharacterCharacterIdRoute
   '/character/new': typeof CharacterNewRoute
@@ -74,7 +66,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/character': typeof CharacterRouteWithChildren
-  '/character-demo': typeof CharacterDemoRoute
   '/login': typeof LoginRoute
   '/character/$characterId': typeof CharacterCharacterIdRoute
   '/character/new': typeof CharacterNewRoute
@@ -85,7 +76,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/character'
-    | '/character-demo'
     | '/login'
     | '/character/$characterId'
     | '/character/new'
@@ -93,7 +83,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/character-demo'
     | '/login'
     | '/character/$characterId'
     | '/character/new'
@@ -102,7 +91,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/character'
-    | '/character-demo'
     | '/login'
     | '/character/$characterId'
     | '/character/new'
@@ -112,7 +100,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CharacterRoute: typeof CharacterRouteWithChildren
-  CharacterDemoRoute: typeof CharacterDemoRoute
   LoginRoute: typeof LoginRoute
 }
 
@@ -123,13 +110,6 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/character-demo': {
-      id: '/character-demo'
-      path: '/character-demo'
-      fullPath: '/character-demo'
-      preLoaderRoute: typeof CharacterDemoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/character': {
@@ -189,7 +169,6 @@ const CharacterRouteWithChildren = CharacterRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CharacterRoute: CharacterRouteWithChildren,
-  CharacterDemoRoute: CharacterDemoRoute,
   LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport

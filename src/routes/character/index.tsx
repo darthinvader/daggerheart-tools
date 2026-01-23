@@ -246,6 +246,7 @@ function CharactersPage() {
         navigate({
           to: '/character/$characterId',
           params: { characterId: data.id },
+          search: { tab: 'quick' },
         });
       },
     });
