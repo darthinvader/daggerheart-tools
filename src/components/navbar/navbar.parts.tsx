@@ -1,5 +1,16 @@
 import { Link, useLocation, useNavigate } from '@tanstack/react-router';
-import { ChevronDown, LogIn, Menu, Plus, Users } from 'lucide-react';
+import {
+  Backpack,
+  ChevronDown,
+  LogIn,
+  Menu,
+  Plus,
+  Shield,
+  Sparkles,
+  Sword,
+  Users,
+  UsersRound,
+} from 'lucide-react';
 import * as React from 'react';
 
 import { UserMenu } from '@/components/auth';
@@ -55,6 +66,42 @@ const defaultLinks: NavLink[] = [
         label: 'New Character',
         icon: <Plus className="size-4" />,
         isCreateCharacter: true,
+      },
+    ],
+  },
+  {
+    to: '/references',
+    label: 'References',
+    children: [
+      {
+        to: '/references/equipment',
+        label: 'Equipment',
+        icon: <Sword className="size-4" />,
+      },
+      {
+        to: '/references/classes',
+        label: 'Classes & Subclasses',
+        icon: <Shield className="size-4" />,
+      },
+      {
+        to: '/references/ancestries',
+        label: 'Ancestries',
+        icon: <UsersRound className="size-4" />,
+      },
+      {
+        to: '/references/communities',
+        label: 'Communities',
+        icon: <Users className="size-4" />,
+      },
+      {
+        to: '/references/domain-cards',
+        label: 'Domain Cards',
+        icon: <Sparkles className="size-4" />,
+      },
+      {
+        to: '/references/inventory',
+        label: 'Inventory Items',
+        icon: <Backpack className="size-4" />,
       },
     ],
   },

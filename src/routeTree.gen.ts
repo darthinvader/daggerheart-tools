@@ -9,13 +9,26 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ReferencesRouteImport } from './routes/references'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as CharacterRouteImport } from './routes/character'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ReferencesIndexRouteImport } from './routes/references/index'
 import { Route as CharacterIndexRouteImport } from './routes/character/index'
+import { Route as ReferencesInventoryRouteImport } from './routes/references/inventory'
+import { Route as ReferencesEquipmentRouteImport } from './routes/references/equipment'
+import { Route as ReferencesDomainCardsRouteImport } from './routes/references/domain-cards'
+import { Route as ReferencesCommunitiesRouteImport } from './routes/references/communities'
+import { Route as ReferencesClassesRouteImport } from './routes/references/classes'
+import { Route as ReferencesAncestriesRouteImport } from './routes/references/ancestries'
 import { Route as CharacterNewRouteImport } from './routes/character/new'
 import { Route as CharacterCharacterIdRouteImport } from './routes/character/$characterId'
 
+const ReferencesRoute = ReferencesRouteImport.update({
+  id: '/references',
+  path: '/references',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -31,10 +44,45 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReferencesIndexRoute = ReferencesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ReferencesRoute,
+} as any)
 const CharacterIndexRoute = CharacterIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => CharacterRoute,
+} as any)
+const ReferencesInventoryRoute = ReferencesInventoryRouteImport.update({
+  id: '/inventory',
+  path: '/inventory',
+  getParentRoute: () => ReferencesRoute,
+} as any)
+const ReferencesEquipmentRoute = ReferencesEquipmentRouteImport.update({
+  id: '/equipment',
+  path: '/equipment',
+  getParentRoute: () => ReferencesRoute,
+} as any)
+const ReferencesDomainCardsRoute = ReferencesDomainCardsRouteImport.update({
+  id: '/domain-cards',
+  path: '/domain-cards',
+  getParentRoute: () => ReferencesRoute,
+} as any)
+const ReferencesCommunitiesRoute = ReferencesCommunitiesRouteImport.update({
+  id: '/communities',
+  path: '/communities',
+  getParentRoute: () => ReferencesRoute,
+} as any)
+const ReferencesClassesRoute = ReferencesClassesRouteImport.update({
+  id: '/classes',
+  path: '/classes',
+  getParentRoute: () => ReferencesRoute,
+} as any)
+const ReferencesAncestriesRoute = ReferencesAncestriesRouteImport.update({
+  id: '/ancestries',
+  path: '/ancestries',
+  getParentRoute: () => ReferencesRoute,
 } as any)
 const CharacterNewRoute = CharacterNewRouteImport.update({
   id: '/new',
@@ -51,25 +99,48 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/character': typeof CharacterRouteWithChildren
   '/login': typeof LoginRoute
+  '/references': typeof ReferencesRouteWithChildren
   '/character/$characterId': typeof CharacterCharacterIdRoute
   '/character/new': typeof CharacterNewRoute
+  '/references/ancestries': typeof ReferencesAncestriesRoute
+  '/references/classes': typeof ReferencesClassesRoute
+  '/references/communities': typeof ReferencesCommunitiesRoute
+  '/references/domain-cards': typeof ReferencesDomainCardsRoute
+  '/references/equipment': typeof ReferencesEquipmentRoute
+  '/references/inventory': typeof ReferencesInventoryRoute
   '/character/': typeof CharacterIndexRoute
+  '/references/': typeof ReferencesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/character/$characterId': typeof CharacterCharacterIdRoute
   '/character/new': typeof CharacterNewRoute
+  '/references/ancestries': typeof ReferencesAncestriesRoute
+  '/references/classes': typeof ReferencesClassesRoute
+  '/references/communities': typeof ReferencesCommunitiesRoute
+  '/references/domain-cards': typeof ReferencesDomainCardsRoute
+  '/references/equipment': typeof ReferencesEquipmentRoute
+  '/references/inventory': typeof ReferencesInventoryRoute
   '/character': typeof CharacterIndexRoute
+  '/references': typeof ReferencesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/character': typeof CharacterRouteWithChildren
   '/login': typeof LoginRoute
+  '/references': typeof ReferencesRouteWithChildren
   '/character/$characterId': typeof CharacterCharacterIdRoute
   '/character/new': typeof CharacterNewRoute
+  '/references/ancestries': typeof ReferencesAncestriesRoute
+  '/references/classes': typeof ReferencesClassesRoute
+  '/references/communities': typeof ReferencesCommunitiesRoute
+  '/references/domain-cards': typeof ReferencesDomainCardsRoute
+  '/references/equipment': typeof ReferencesEquipmentRoute
+  '/references/inventory': typeof ReferencesInventoryRoute
   '/character/': typeof CharacterIndexRoute
+  '/references/': typeof ReferencesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -77,34 +148,65 @@ export interface FileRouteTypes {
     | '/'
     | '/character'
     | '/login'
+    | '/references'
     | '/character/$characterId'
     | '/character/new'
+    | '/references/ancestries'
+    | '/references/classes'
+    | '/references/communities'
+    | '/references/domain-cards'
+    | '/references/equipment'
+    | '/references/inventory'
     | '/character/'
+    | '/references/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/login'
     | '/character/$characterId'
     | '/character/new'
+    | '/references/ancestries'
+    | '/references/classes'
+    | '/references/communities'
+    | '/references/domain-cards'
+    | '/references/equipment'
+    | '/references/inventory'
     | '/character'
+    | '/references'
   id:
     | '__root__'
     | '/'
     | '/character'
     | '/login'
+    | '/references'
     | '/character/$characterId'
     | '/character/new'
+    | '/references/ancestries'
+    | '/references/classes'
+    | '/references/communities'
+    | '/references/domain-cards'
+    | '/references/equipment'
+    | '/references/inventory'
     | '/character/'
+    | '/references/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CharacterRoute: typeof CharacterRouteWithChildren
   LoginRoute: typeof LoginRoute
+  ReferencesRoute: typeof ReferencesRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/references': {
+      id: '/references'
+      path: '/references'
+      fullPath: '/references'
+      preLoaderRoute: typeof ReferencesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -126,12 +228,61 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/references/': {
+      id: '/references/'
+      path: '/'
+      fullPath: '/references/'
+      preLoaderRoute: typeof ReferencesIndexRouteImport
+      parentRoute: typeof ReferencesRoute
+    }
     '/character/': {
       id: '/character/'
       path: '/'
       fullPath: '/character/'
       preLoaderRoute: typeof CharacterIndexRouteImport
       parentRoute: typeof CharacterRoute
+    }
+    '/references/inventory': {
+      id: '/references/inventory'
+      path: '/inventory'
+      fullPath: '/references/inventory'
+      preLoaderRoute: typeof ReferencesInventoryRouteImport
+      parentRoute: typeof ReferencesRoute
+    }
+    '/references/equipment': {
+      id: '/references/equipment'
+      path: '/equipment'
+      fullPath: '/references/equipment'
+      preLoaderRoute: typeof ReferencesEquipmentRouteImport
+      parentRoute: typeof ReferencesRoute
+    }
+    '/references/domain-cards': {
+      id: '/references/domain-cards'
+      path: '/domain-cards'
+      fullPath: '/references/domain-cards'
+      preLoaderRoute: typeof ReferencesDomainCardsRouteImport
+      parentRoute: typeof ReferencesRoute
+    }
+    '/references/communities': {
+      id: '/references/communities'
+      path: '/communities'
+      fullPath: '/references/communities'
+      preLoaderRoute: typeof ReferencesCommunitiesRouteImport
+      parentRoute: typeof ReferencesRoute
+    }
+    '/references/classes': {
+      id: '/references/classes'
+      path: '/classes'
+      fullPath: '/references/classes'
+      preLoaderRoute: typeof ReferencesClassesRouteImport
+      parentRoute: typeof ReferencesRoute
+    }
+    '/references/ancestries': {
+      id: '/references/ancestries'
+      path: '/ancestries'
+      fullPath: '/references/ancestries'
+      preLoaderRoute: typeof ReferencesAncestriesRouteImport
+      parentRoute: typeof ReferencesRoute
     }
     '/character/new': {
       id: '/character/new'
@@ -166,10 +317,35 @@ const CharacterRouteWithChildren = CharacterRoute._addFileChildren(
   CharacterRouteChildren,
 )
 
+interface ReferencesRouteChildren {
+  ReferencesAncestriesRoute: typeof ReferencesAncestriesRoute
+  ReferencesClassesRoute: typeof ReferencesClassesRoute
+  ReferencesCommunitiesRoute: typeof ReferencesCommunitiesRoute
+  ReferencesDomainCardsRoute: typeof ReferencesDomainCardsRoute
+  ReferencesEquipmentRoute: typeof ReferencesEquipmentRoute
+  ReferencesInventoryRoute: typeof ReferencesInventoryRoute
+  ReferencesIndexRoute: typeof ReferencesIndexRoute
+}
+
+const ReferencesRouteChildren: ReferencesRouteChildren = {
+  ReferencesAncestriesRoute: ReferencesAncestriesRoute,
+  ReferencesClassesRoute: ReferencesClassesRoute,
+  ReferencesCommunitiesRoute: ReferencesCommunitiesRoute,
+  ReferencesDomainCardsRoute: ReferencesDomainCardsRoute,
+  ReferencesEquipmentRoute: ReferencesEquipmentRoute,
+  ReferencesInventoryRoute: ReferencesInventoryRoute,
+  ReferencesIndexRoute: ReferencesIndexRoute,
+}
+
+const ReferencesRouteWithChildren = ReferencesRoute._addFileChildren(
+  ReferencesRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CharacterRoute: CharacterRouteWithChildren,
   LoginRoute: LoginRoute,
+  ReferencesRoute: ReferencesRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

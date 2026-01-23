@@ -1,0 +1,627 @@
+import { createFileRoute } from '@tanstack/react-router';
+import { ArrowLeft, ChevronDown, ChevronRight, Search, X } from 'lucide-react';
+import * as React from 'react';
+
+import {
+  BackToTop,
+  DetailCloseButton,
+  KeyboardHint,
+  ResultsCounter,
+} from '@/components/references';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { Input } from '@/components/ui/input';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import { useIsMobile } from '@/hooks/use-mobile';
+import {
+  ALL_CLASSES,
+  type GameClass,
+  type GameSubclass,
+} from '@/lib/data/classes';
+import { cn } from '@/lib/utils';
+
+export const Route = createFileRoute('/references/classes')({
+  component: ClassesReferencePage,
+});
+
+// Domain color mappings
+const domainColors: Record<string, string> = {
+  Arcana:
+    'bg-violet-500/10 text-violet-700 dark:text-violet-400 border-violet-500/30',
+  Blade: 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/30',
+  Bone: 'bg-stone-500/10 text-stone-700 dark:text-stone-400 border-stone-500/30',
+  Codex:
+    'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30',
+  Grace: 'bg-pink-500/10 text-pink-700 dark:text-pink-400 border-pink-500/30',
+  Midnight:
+    'bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border-indigo-500/30',
+  Sage: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30',
+  Splendor:
+    'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/30',
+  Valor:
+    'bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-500/30',
+};
+
+// Class-specific gradient colors
+const classGradients: Record<string, string> = {
+  Bard: 'from-pink-500 to-rose-600',
+  Druid: 'from-green-500 to-emerald-600',
+  Guardian: 'from-slate-500 to-zinc-600',
+  Ranger: 'from-lime-500 to-green-600',
+  Rogue: 'from-purple-500 to-violet-600',
+  Seraph: 'from-yellow-400 to-amber-500',
+  Sorcerer: 'from-red-500 to-orange-600',
+  Warrior: 'from-red-600 to-rose-700',
+  Wizard: 'from-blue-500 to-indigo-600',
+};
+
+const featureTypeColors: Record<string, string> = {
+  foundation:
+    'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30',
+  specialization:
+    'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30',
+  mastery:
+    'bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/30',
+  active:
+    'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30',
+};
+
+const featureBorderColors: Record<string, string> = {
+  foundation: '#10b981',
+  specialization: '#3b82f6',
+  mastery: '#8b5cf6',
+  active: '#f59e0b',
+};
+
+interface ClassOutlineProps {
+  classes: readonly GameClass[];
+  selectedClass: string | null;
+  onSelectClass: (name: string) => void;
+  search: string;
+  onSearchChange: (search: string) => void;
+}
+
+function ClassOutline({
+  classes,
+  selectedClass,
+  onSelectClass,
+  search,
+  onSearchChange,
+}: ClassOutlineProps) {
+  return (
+    <div className="flex h-full flex-col">
+      {/* Search */}
+      <div className="shrink-0 border-b p-4">
+        <div className="relative">
+          <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+          <Input
+            placeholder="Search classes..."
+            value={search}
+            onChange={e => onSearchChange(e.target.value)}
+            className="pr-9 pl-9"
+          />
+          {search && (
+            <button
+              onClick={() => onSearchChange('')}
+              className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
+            >
+              <X className="size-4" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Results count */}
+      <div className="text-muted-foreground shrink-0 border-b px-4 py-2 text-sm">
+        {classes.length} of {ALL_CLASSES.length} classes
+      </div>
+
+      {/* Class list - scrollable */}
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <div className="space-y-1 p-2">
+          {classes.map(gameClass => {
+            const isSelected = selectedClass === gameClass.name;
+            return (
+              <button
+                key={gameClass.name}
+                onClick={() => onSelectClass(gameClass.name)}
+                className={cn(
+                  'w-full rounded-md px-3 py-2 text-left text-sm transition-colors',
+                  isSelected
+                    ? 'bg-primary text-primary-foreground'
+                    : 'hover:bg-muted'
+                )}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">{gameClass.name}</span>
+                  <ChevronRight className="size-4 opacity-50" />
+                </div>
+                <div className="mt-1 flex flex-wrap gap-1">
+                  {gameClass.domains.slice(0, 2).map(domain => (
+                    <span
+                      key={domain}
+                      className={cn(
+                        'rounded px-1.5 py-0.5 text-xs',
+                        isSelected
+                          ? 'bg-primary-foreground/20 text-primary-foreground'
+                          : domainColors[domain]
+                      )}
+                    >
+                      {domain}
+                    </span>
+                  ))}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SubclassCard({ subclass }: { subclass: GameSubclass }) {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const spellcastTrait =
+    'spellcastTrait' in subclass ? subclass.spellcastTrait : null;
+
+  return (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <Card
+        className={cn(
+          'transition-all hover:shadow-md',
+          isOpen && 'ring-primary/20 ring-2'
+        )}
+      >
+        <CollapsibleTrigger className="w-full text-left">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  {subclass.name}
+                  <ChevronDown
+                    className={cn(
+                      'size-4 transition-transform',
+                      isOpen && 'rotate-180'
+                    )}
+                  />
+                </CardTitle>
+                <CardDescription className="mt-1">
+                  {subclass.description}
+                </CardDescription>
+              </div>
+              {spellcastTrait && (
+                <Badge variant="outline" className="shrink-0">
+                  {spellcastTrait}
+                </Badge>
+              )}
+            </div>
+          </CardHeader>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <CardContent className="pt-2">
+            <div className="space-y-3">
+              {subclass.features.map((feature, idx) => (
+                <div
+                  key={idx}
+                  className="bg-muted/50 rounded-lg border-l-4 p-3"
+                  style={{
+                    borderLeftColor:
+                      featureBorderColors[feature.type] ??
+                      featureBorderColors.active,
+                  }}
+                >
+                  <div className="mb-1 flex items-start justify-between gap-2">
+                    <span className="font-semibold">{feature.name}</span>
+                    <div className="flex shrink-0 gap-1.5">
+                      <Badge
+                        variant="outline"
+                        className={
+                          featureTypeColors[feature.type] ??
+                          featureTypeColors.active
+                        }
+                      >
+                        {feature.type}
+                      </Badge>
+                      <Badge variant="outline">Lvl {feature.level}</Badge>
+                    </div>
+                  </div>
+                  <p className="text-muted-foreground text-sm">
+                    {feature.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </CollapsibleContent>
+      </Card>
+    </Collapsible>
+  );
+}
+
+function ClassDetail({ gameClass }: { gameClass: GameClass }) {
+  const gradient =
+    classGradients[gameClass.name] ?? 'from-gray-500 to-slate-600';
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className={`-mx-4 -mt-4 bg-linear-to-r p-6 ${gradient}`}>
+        <h2 className="text-3xl font-bold text-white">{gameClass.name}</h2>
+        <p className="mt-2 text-white/80">{gameClass.description}</p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {gameClass.domains.map(domain => (
+            <Badge
+              key={domain}
+              className="border-white/30 bg-white/20 text-white"
+            >
+              {domain}
+            </Badge>
+          ))}
+        </div>
+      </div>
+
+      {/* Base Stats */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4">
+          <div className="text-muted-foreground text-sm">Hit Points</div>
+          <div className="text-2xl font-bold text-red-600 dark:text-red-400">
+            {gameClass.startingHitPoints}
+          </div>
+        </div>
+        <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-4">
+          <div className="text-muted-foreground text-sm">Evasion</div>
+          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+            {gameClass.startingEvasion}
+          </div>
+        </div>
+      </div>
+
+      {/* Hope Feature */}
+      <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-4">
+        <div className="mb-2 flex items-center justify-between">
+          <h4 className="font-semibold text-yellow-700 dark:text-yellow-400">
+            {gameClass.hopeFeature.name}
+          </h4>
+          <Badge className="bg-yellow-500/20 text-yellow-700 dark:text-yellow-400">
+            {gameClass.hopeFeature.hopeCost} Hope
+          </Badge>
+        </div>
+        <p className="text-muted-foreground text-sm">
+          {gameClass.hopeFeature.description}
+        </p>
+      </div>
+
+      {/* Class Features */}
+      {gameClass.classFeatures.length > 0 && (
+        <div>
+          <h4 className="mb-3 font-semibold">Class Features</h4>
+          <div className="space-y-2">
+            {gameClass.classFeatures.map((feature, idx) => (
+              <div key={idx} className="bg-muted/50 rounded-lg p-3">
+                <div className="mb-1 flex items-center gap-2">
+                  <span className="font-medium">{feature.name}</span>
+                  <Badge variant="outline" className="text-xs">
+                    {feature.type}
+                  </Badge>
+                </div>
+                <p className="text-muted-foreground text-sm">
+                  {feature.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Class Items */}
+      {gameClass.classItems.length > 0 && (
+        <div>
+          <h4 className="mb-2 font-semibold">Class Items</h4>
+          <ul className="text-muted-foreground list-inside list-disc text-sm">
+            {gameClass.classItems.map((item, idx) => (
+              <li key={idx}>{item}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Subclasses */}
+      <div>
+        <h4 className="mb-4 flex items-center gap-2 text-xl font-semibold">
+          Subclasses
+          <Badge variant="outline">{gameClass.subclasses.length}</Badge>
+        </h4>
+        <div className="space-y-4">
+          {gameClass.subclasses.map(subclass => (
+            <SubclassCard key={subclass.name} subclass={subclass} />
+          ))}
+        </div>
+      </div>
+
+      {/* Background Questions */}
+      {gameClass.backgroundQuestions.length > 0 && (
+        <div>
+          <h4 className="mb-2 font-semibold">Background Questions</h4>
+          <ul className="text-muted-foreground list-inside list-decimal space-y-1 text-sm">
+            {gameClass.backgroundQuestions.map((q, idx) => (
+              <li key={idx}>{q}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Connections */}
+      {gameClass.connections.length > 0 && (
+        <div>
+          <h4 className="mb-2 font-semibold">Connections</h4>
+          <ul className="text-muted-foreground list-inside list-disc space-y-1 text-sm">
+            {gameClass.connections.map((c, idx) => (
+              <li key={idx}>{c}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ClassesReferencePage() {
+  const isMobile = useIsMobile();
+  const scrollRef = React.useRef<HTMLDivElement>(null);
+  const [search, setSearch] = React.useState('');
+  const [selectedClass, setSelectedClass] = React.useState<string | null>(null);
+
+  // Filter classes by search
+  const filteredClasses = React.useMemo((): readonly GameClass[] => {
+    if (!search) return ALL_CLASSES;
+    const searchLower = search.toLowerCase();
+    return ALL_CLASSES.filter(
+      c =>
+        c.name.toLowerCase().includes(searchLower) ||
+        c.description.toLowerCase().includes(searchLower) ||
+        c.domains.some(d => d.toLowerCase().includes(searchLower)) ||
+        c.subclasses.some(s => s.name.toLowerCase().includes(searchLower))
+    );
+  }, [search]);
+
+  const selectedClassData = React.useMemo(
+    () => ALL_CLASSES.find(c => c.name === selectedClass) ?? null,
+    [selectedClass]
+  );
+
+  // Keyboard navigation for classes
+  React.useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape' && selectedClass) {
+        e.preventDefault();
+        setSelectedClass(null);
+        return;
+      }
+
+      if (!selectedClass && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+        e.preventDefault();
+        const currentIndex = filteredClasses.findIndex(
+          c => c.name === selectedClass
+        );
+        let newIndex: number;
+        if (e.key === 'ArrowDown') {
+          newIndex =
+            currentIndex < filteredClasses.length - 1 ? currentIndex + 1 : 0;
+        } else {
+          newIndex =
+            currentIndex > 0 ? currentIndex - 1 : filteredClasses.length - 1;
+        }
+        if (filteredClasses[newIndex]) {
+          setSelectedClass(filteredClasses[newIndex].name);
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedClass, filteredClasses]);
+
+  return (
+    <div className="flex min-h-0 flex-1">
+      {/* Sidebar - Class outline */}
+      {!isMobile && (
+        <aside className="bg-muted/30 flex w-64 shrink-0 flex-col border-r">
+          <ClassOutline
+            classes={filteredClasses}
+            selectedClass={selectedClass}
+            onSelectClass={setSelectedClass}
+            search={search}
+            onSearchChange={setSearch}
+          />
+        </aside>
+      )}
+
+      {/* Main content */}
+      <div className="flex min-h-0 flex-1 flex-col">
+        {/* Header */}
+        <div className="bg-background shrink-0 border-b p-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className="bg-linear-to-r from-purple-500 to-indigo-600 bg-clip-text text-2xl font-bold text-transparent">
+                Classes & Subclasses
+              </h1>
+              <ResultsCounter
+                filtered={filteredClasses.length}
+                total={ALL_CLASSES.length}
+                label="classes"
+                suffix={` with ${filteredClasses.reduce((sum: number, c) => sum + c.subclasses.length, 0)} subclasses`}
+              />
+            </div>
+            {isMobile && (
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Search className="mr-2 size-4" />
+                    Browse Classes
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-72 p-0">
+                  <ClassOutline
+                    classes={filteredClasses}
+                    selectedClass={selectedClass}
+                    onSelectClass={name => {
+                      setSelectedClass(name);
+                    }}
+                    search={search}
+                    onSearchChange={setSearch}
+                  />
+                </SheetContent>
+              </Sheet>
+            )}
+          </div>
+        </div>
+
+        {/* Content - scrollable */}
+        <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto">
+          <div className="p-4">
+            {selectedClassData ? (
+              <div>
+                {/* Back button inside content for better UX */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedClass(null)}
+                  className="mb-4 -ml-2"
+                >
+                  <ArrowLeft className="mr-2 size-4" />
+                  Back to all classes
+                </Button>
+                <ClassDetail gameClass={selectedClassData} />
+              </div>
+            ) : (
+              /* No selection - show all classes in grid */
+              <div className="space-y-6">
+                {filteredClasses.map(gameClass => {
+                  const gradient =
+                    classGradients[gameClass.name] ??
+                    'from-gray-500 to-slate-600';
+                  return (
+                    <Card
+                      key={gameClass.name}
+                      className="cursor-pointer transition-all hover:scale-[1.01] hover:shadow-lg"
+                      onClick={() => setSelectedClass(gameClass.name)}
+                    >
+                      <div className={`h-2 bg-linear-to-r ${gradient}`} />
+                      <CardHeader>
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 space-y-2">
+                            <CardTitle className="flex items-center gap-2 text-2xl">
+                              {gameClass.name}
+                              <ChevronRight className="size-5 opacity-50" />
+                            </CardTitle>
+                            <CardDescription>
+                              {gameClass.description}
+                            </CardDescription>
+                          </div>
+                        </div>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {gameClass.domains.map(domain => (
+                            <Badge
+                              key={domain}
+                              className={domainColors[domain] ?? 'bg-muted'}
+                            >
+                              {domain}
+                            </Badge>
+                          ))}
+                        </div>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <div className="text-muted-foreground flex gap-4 text-sm">
+                          <span>
+                            <span className="text-foreground font-medium">
+                              {gameClass.startingHitPoints}
+                            </span>{' '}
+                            HP
+                          </span>
+                          <span>
+                            <span className="text-foreground font-medium">
+                              {gameClass.startingEvasion}
+                            </span>{' '}
+                            Evasion
+                          </span>
+                          <span>
+                            <span className="text-foreground font-medium">
+                              {gameClass.subclasses.length}
+                            </span>{' '}
+                            Subclasses
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+
+            {filteredClasses.length === 0 && (
+              <div className="text-muted-foreground py-12 text-center">
+                <p>No classes match your search.</p>
+                <Button
+                  variant="link"
+                  onClick={() => setSearch('')}
+                  className="mt-2"
+                >
+                  Clear search
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Back to top */}
+        <BackToTop scrollRef={scrollRef} />
+      </div>
+
+      {/* Mobile sheet for class detail */}
+      {isMobile && selectedClassData && (
+        <Sheet
+          open={!!selectedClassData}
+          onOpenChange={open => !open && setSelectedClass(null)}
+        >
+          <SheetContent
+            side="right"
+            className="flex w-full flex-col p-0 sm:max-w-lg"
+            hideCloseButton
+          >
+            <SheetHeader className="shrink-0 border-b p-4">
+              <SheetTitle className="flex items-center justify-between gap-2">
+                <span className="truncate">{selectedClassData.name}</span>
+                <div className="flex shrink-0 items-center gap-2">
+                  <KeyboardHint showNavigation={false} />
+                  <DetailCloseButton onClose={() => setSelectedClass(null)} />
+                </div>
+              </SheetTitle>
+            </SheetHeader>
+            <div className="min-h-0 flex-1 overflow-y-auto p-4">
+              <ClassDetail gameClass={selectedClassData} />
+            </div>
+          </SheetContent>
+        </Sheet>
+      )}
+    </div>
+  );
+}
