@@ -1,7 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { Grid3X3, List } from 'lucide-react';
 import * as React from 'react';
+import { useMemo } from 'react';
 
+import { CardCostBadges } from '@/components/loadout-selector/card-cost-badges';
 import {
   BackToTop,
   CompareDrawer,
@@ -40,6 +42,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ALL_DOMAIN_NAMES, getAllDomainCards } from '@/lib/data/domains';
 import type { DomainCard } from '@/lib/schemas/domains';
+import { getCardCosts } from '@/lib/utils/card-costs';
 
 export const Route = createFileRoute('/references/domain-cards')({
   component: DomainCardsPageWrapper,
@@ -230,8 +233,7 @@ function DomainCardCard({
 }) {
   const { isInCompare } = useCompare();
   const domainColor = domainColors[card.domain] ?? defaultDomainColor;
-  const hopeCost = card.hopeCost ?? card.recallCost ?? 0;
-  const stressCost = card.stressCost ?? 0;
+  const costs = useMemo(() => getCardCosts(card), [card]);
   const cardId = getCardId(card);
   const inCompare = isInCompare(cardId);
 
@@ -266,21 +268,10 @@ function DomainCardCard({
             {card.domain}
           </Badge>
         </div>
-        {/* Costs row */}
-        {(hopeCost > 0 || stressCost > 0) && (
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {hopeCost > 0 && (
-              <Badge className="border border-yellow-500/30 bg-yellow-500/20 text-yellow-700 dark:text-yellow-400">
-                ✦ {hopeCost} Hope
-              </Badge>
-            )}
-            {stressCost > 0 && (
-              <Badge className="border border-red-500/30 bg-red-500/20 text-red-700 dark:text-red-400">
-                ⚡ {stressCost} Stress
-              </Badge>
-            )}
-          </div>
-        )}
+        {/* Costs row - always visible */}
+        <div className="mt-2">
+          <CardCostBadges costs={costs} compact />
+        </div>
       </CardHeader>
       <CardContent className="pt-0">
         <p className="text-muted-foreground line-clamp-2 text-sm">
@@ -300,8 +291,7 @@ function DomainCardTableRow({
 }) {
   const { isInCompare } = useCompare();
   const domainColor = domainColors[card.domain] ?? defaultDomainColor;
-  const hopeCost = card.hopeCost ?? card.recallCost ?? 0;
-  const stressCost = card.stressCost ?? 0;
+  const costs = useMemo(() => getCardCosts(card), [card]);
   const cardId = getCardId(card);
   const inCompare = isInCompare(cardId);
 
@@ -338,21 +328,7 @@ function DomainCardTableRow({
         </Badge>
       </TableCell>
       <TableCell>
-        <div className="flex gap-1">
-          {hopeCost > 0 && (
-            <Badge className="bg-yellow-500/20 text-xs text-yellow-700 dark:text-yellow-400">
-              {hopeCost}✦
-            </Badge>
-          )}
-          {stressCost > 0 && (
-            <Badge className="bg-red-500/20 text-xs text-red-700 dark:text-red-400">
-              {stressCost}⚡
-            </Badge>
-          )}
-          {hopeCost === 0 && stressCost === 0 && (
-            <span className="text-muted-foreground">—</span>
-          )}
-        </div>
+        <CardCostBadges costs={costs} compact />
       </TableCell>
     </TableRow>
   );
@@ -360,8 +336,10 @@ function DomainCardTableRow({
 
 function CardDetail({ card }: { card: DomainCard }) {
   const domainColor = domainColors[card.domain] ?? defaultDomainColor;
-  const hopeCost = card.hopeCost ?? card.recallCost ?? 0;
-  const stressCost = card.stressCost ?? 0;
+  const costs = useMemo(() => getCardCosts(card), [card]);
+  const hasActivationCosts = costs.activationCosts.length > 0;
+  const hopeCosts = costs.activationCosts.filter(c => c.type === 'Hope');
+  const stressCosts = costs.activationCosts.filter(c => c.type === 'Stress');
 
   return (
     <div className="space-y-4">
@@ -380,27 +358,48 @@ function CardDetail({ card }: { card: DomainCard }) {
         </Badge>
       </div>
 
-      {/* Costs section */}
-      {(hopeCost > 0 || stressCost > 0) && (
-        <div className="flex flex-wrap gap-3">
-          {hopeCost > 0 && (
-            <div className="min-w-28 flex-1 rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-3">
-              <div className="text-muted-foreground text-xs">Hope Cost</div>
-              <div className="text-lg font-bold text-yellow-700 dark:text-yellow-400">
-                ✦ {hopeCost}
-              </div>
-            </div>
-          )}
-          {stressCost > 0 && (
-            <div className="min-w-28 flex-1 rounded-lg border border-red-500/30 bg-red-500/10 p-3">
-              <div className="text-muted-foreground text-xs">Stress Cost</div>
-              <div className="text-lg font-bold text-red-700 dark:text-red-400">
-                ⚡ {stressCost}
-              </div>
-            </div>
-          )}
+      {/* Costs section - always visible */}
+      <div className="flex flex-wrap gap-3">
+        <div className="min-w-24 flex-1 rounded-lg border border-rose-500/30 bg-rose-500/10 p-3">
+          <div className="text-muted-foreground text-xs">Recall Cost</div>
+          <div className="text-lg font-bold text-rose-700 dark:text-rose-400">
+            ⚡ {costs.recallCost === 0 ? 'Free' : costs.recallCost}
+          </div>
         </div>
-      )}
+        {hopeCosts.length > 0 && (
+          <div className="min-w-24 flex-1 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3">
+            <div className="text-muted-foreground text-xs">
+              Activation (Hope)
+            </div>
+            <div className="text-lg font-bold text-amber-700 dark:text-amber-400">
+              💫{' '}
+              {hopeCosts
+                .map(c => (c.amount === 'any' ? 'X' : c.amount))
+                .join(' + ')}
+            </div>
+          </div>
+        )}
+        {stressCosts.length > 0 && (
+          <div className="min-w-24 flex-1 rounded-lg border border-purple-500/30 bg-purple-500/10 p-3">
+            <div className="text-muted-foreground text-xs">
+              Activation (Stress)
+            </div>
+            <div className="text-lg font-bold text-purple-700 dark:text-purple-400">
+              😰{' '}
+              {stressCosts.reduce(
+                (sum, c) => sum + (c.amount === 'any' ? 0 : c.amount),
+                0
+              )}
+            </div>
+          </div>
+        )}
+        {costs.recallCost === 0 && !hasActivationCosts && (
+          <div className="min-w-24 flex-1 rounded-lg border border-dashed p-3">
+            <div className="text-muted-foreground text-xs">Activation</div>
+            <div className="text-muted-foreground text-lg font-bold">Free</div>
+          </div>
+        )}
+      </div>
 
       <div className="bg-muted/50 rounded-lg border p-4">
         <p className="text-sm leading-relaxed whitespace-pre-line">

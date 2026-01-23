@@ -12,7 +12,6 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from '@/components/ui/drawer';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 
 export interface ComparisonItem<T = unknown> {
@@ -207,8 +206,8 @@ export function CompareDrawer({
             Compare ({compareItems.length})
           </Button>
         </DrawerTrigger>
-        <DrawerContent className="max-h-[85vh]">
-          <DrawerHeader className="border-b">
+        <DrawerContent className="flex max-h-[85vh] flex-col">
+          <DrawerHeader className="shrink-0 border-b">
             <div className="flex items-center justify-between">
               <div>
                 <DrawerTitle>{title}</DrawerTitle>
@@ -242,9 +241,10 @@ export function CompareDrawer({
               ))}
             </div>
           </DrawerHeader>
-          <ScrollArea className="flex-1 p-4">
+          {/* Mobile-friendly scrollable content */}
+          <div className="min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-contain p-4">
             {(renderComparison ?? defaultRenderComparison)(compareItems)}
-          </ScrollArea>
+          </div>
         </DrawerContent>
       </Drawer>
     </div>

@@ -1,5 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { ArrowUpDown, Grid3X3, List } from 'lucide-react';
+import {
+  ArrowUpDown,
+  ChevronDown,
+  ChevronRight,
+  Grid3X3,
+  List,
+} from 'lucide-react';
 import * as React from 'react';
 
 import {
@@ -27,6 +33,11 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import {
   Sheet,
   SheetContent,
@@ -106,6 +117,38 @@ function formatDamage(damage: PrimaryWeapon['damage']): string {
     modifier > 0 ? `+${modifier}` : modifier < 0 ? `${modifier}` : '';
   const typeStr = type === 'phy' ? 'physical' : 'magic';
   return `${count}d${diceType}${modStr} ${typeStr}`;
+}
+
+/** Parse feature description to extract stat modifiers for display */
+function parseFeatureModifier(description: string): {
+  modifier: string;
+  isPositive: boolean;
+} | null {
+  // Match patterns like "+1 to Evasion", "−1 to Finesse", "+2 to attack rolls"
+  const match = description.match(/([+−-])(\d+)\s+to\s+(\w+(?:\s+\w+)?)/i);
+  if (!match) return null;
+  const [, sign, value, stat] = match;
+  const isPositive = sign === '+';
+  const modifier = `${isPositive ? '+' : '−'}${value} ${stat}`;
+  return { modifier, isPositive };
+}
+
+/** Get all feature modifiers from an equipment item */
+function getFeatureModifiers(
+  features: Array<{ name: string; description: string }> | undefined
+): Array<{ name: string; modifier: string; isPositive: boolean }> {
+  if (!features) return [];
+  return features
+    .map(f => {
+      const parsed = parseFeatureModifier(f.description);
+      if (!parsed) return null;
+      return { name: f.name, ...parsed };
+    })
+    .filter(Boolean) as Array<{
+    name: string;
+    modifier: string;
+    isPositive: boolean;
+  }>;
 }
 
 // Build filter groups
@@ -338,16 +381,29 @@ function EquipmentCard({
               <Badge variant="secondary" className="py-0 text-xs">
                 {(data as PrimaryWeapon).burden}
               </Badge>
-              {data.features && data.features.length > 0 && (
-                <Badge
-                  variant="outline"
-                  className="text-muted-foreground py-0 text-xs"
-                >
-                  {data.features.length} feature
-                  {data.features.length > 1 ? 's' : ''}
-                </Badge>
-              )}
             </div>
+            {/* Feature modifiers - show prominently */}
+            {(() => {
+              const mods = getFeatureModifiers(data.features);
+              if (mods.length === 0) return null;
+              return (
+                <div className="flex flex-wrap gap-1">
+                  {mods.map((m, i) => (
+                    <Badge
+                      key={i}
+                      variant="outline"
+                      className={
+                        m.isPositive
+                          ? 'border-green-500/50 bg-green-500/10 text-green-700 dark:text-green-400'
+                          : 'border-red-500/50 bg-red-500/10 text-red-700 dark:text-red-400'
+                      }
+                    >
+                      {m.modifier}
+                    </Badge>
+                  ))}
+                </div>
+              );
+            })()}
           </>
         )}
         {isArmor && (
@@ -383,6 +439,28 @@ function EquipmentCard({
                 Severe {(data as StandardArmor).baseThresholds.severe}+
               </Badge>
             </div>
+            {/* Feature modifiers for armor */}
+            {(() => {
+              const mods = getFeatureModifiers(data.features);
+              if (mods.length === 0) return null;
+              return (
+                <div className="flex flex-wrap gap-1">
+                  {mods.map((m, i) => (
+                    <Badge
+                      key={i}
+                      variant="outline"
+                      className={
+                        m.isPositive
+                          ? 'border-green-500/50 bg-green-500/10 text-green-700 dark:text-green-400'
+                          : 'border-red-500/50 bg-red-500/10 text-red-700 dark:text-red-400'
+                      }
+                    >
+                      {m.modifier}
+                    </Badge>
+                  ))}
+                </div>
+              );
+            })()}
           </>
         )}
       </CardContent>
@@ -390,7 +468,7 @@ function EquipmentCard({
   );
 }
 
-// Table row component
+// Table row component - mobile-friendly with stacked layout
 function EquipmentTableRow({
   item,
   onClick,
@@ -403,29 +481,34 @@ function EquipmentTableRow({
   const isArmor = type === 'armor';
   const itemId = getEquipmentId(item);
   const inCompare = isInCompare(itemId);
+  const featureMods = getFeatureModifiers(data.features);
 
   return (
     <TableRow
       className={`hover:bg-muted/50 cursor-pointer ${inCompare ? 'bg-primary/10' : ''}`}
       onClick={onClick}
     >
+      {/* Name + compare button - always visible */}
       <TableCell className="font-medium">
         <div className="flex items-center gap-2">
           <CompareToggleButton
             item={{ id: itemId, name: data.name, data: item }}
             size="sm"
           />
-          {data.name}
+          <span className="truncate">{data.name}</span>
         </div>
       </TableCell>
-      <TableCell>
+      {/* Tier */}
+      <TableCell className="hidden sm:table-cell">
         <Badge className={tierColors[data.tier]} variant="outline">
-          Tier {data.tier}
+          T{data.tier}
         </Badge>
       </TableCell>
-      <TableCell className="capitalize">
-        {type.replace('wheelchair', 'Combat Wheelchair')}
+      {/* Type - hidden on mobile */}
+      <TableCell className="hidden capitalize md:table-cell">
+        {type.replace('wheelchair', 'Wheelchair')}
       </TableCell>
+      {/* Trait or Armor stats */}
       <TableCell>
         {!isArmor ? (
           <Badge
@@ -435,26 +518,112 @@ function EquipmentTableRow({
             {(data as PrimaryWeapon).trait}
           </Badge>
         ) : (
-          '—'
-        )}
-      </TableCell>
-      <TableCell>
-        {!isArmor ? (
-          <Badge
-            variant="outline"
-            className={damageTypeColors[(data as PrimaryWeapon).damage.type]}
-          >
-            {formatDamage((data as PrimaryWeapon).damage)}
-          </Badge>
-        ) : (
-          <span>
-            AS: {(data as StandardArmor).baseScore} / EV:{' '}
+          <span className="text-xs">
+            AS:{(data as StandardArmor).baseScore} EV:
             {(data as StandardArmor).evasionModifier >= 0 ? '+' : ''}
             {(data as StandardArmor).evasionModifier}
           </span>
         )}
       </TableCell>
+      {/* Feature modifiers - compact display */}
+      <TableCell className="hidden lg:table-cell">
+        {featureMods.length > 0 ? (
+          <div className="flex flex-wrap gap-1">
+            {featureMods.map((m, i) => (
+              <Badge
+                key={i}
+                variant="outline"
+                className={`py-0 text-xs ${
+                  m.isPositive
+                    ? 'border-green-500/50 bg-green-500/10 text-green-700 dark:text-green-400'
+                    : 'border-red-500/50 bg-red-500/10 text-red-700 dark:text-red-400'
+                }`}
+              >
+                {m.modifier}
+              </Badge>
+            ))}
+          </div>
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        )}
+      </TableCell>
     </TableRow>
+  );
+}
+
+/** Collapsible features list for detail view */
+function CollapsibleFeatureList({
+  features,
+}: {
+  features: Array<{ name: string; description: string }>;
+}) {
+  const [isOpen, setIsOpen] = React.useState(true);
+
+  if (!features || features.length === 0) return null;
+
+  // Get stat modifiers for quick display
+  const mods = getFeatureModifiers(features);
+
+  return (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <CollapsibleTrigger asChild>
+        <button className="bg-muted/30 hover:bg-muted/50 flex w-full items-center justify-between rounded-lg border p-3 transition-colors">
+          <div className="flex items-center gap-2">
+            <h3 className="font-semibold">Features ({features.length})</h3>
+            {/* Show modifiers summary when collapsed */}
+            {!isOpen && mods.length > 0 && (
+              <div className="flex gap-1">
+                {mods.map((m, i) => (
+                  <Badge
+                    key={i}
+                    variant="outline"
+                    className={`py-0 text-xs ${
+                      m.isPositive
+                        ? 'border-green-500/50 bg-green-500/10 text-green-700 dark:text-green-400'
+                        : 'border-red-500/50 bg-red-500/10 text-red-700 dark:text-red-400'
+                    }`}
+                  >
+                    {m.modifier}
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+          {isOpen ? (
+            <ChevronDown className="text-muted-foreground size-4" />
+          ) : (
+            <ChevronRight className="text-muted-foreground size-4" />
+          )}
+        </button>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="space-y-2 pt-2">
+        {features.map((feature, idx) => {
+          const mod = parseFeatureModifier(feature.description);
+          return (
+            <div key={idx} className="bg-muted/30 rounded-lg border p-3">
+              <div className="flex items-center gap-2">
+                <span className="text-primary font-medium">{feature.name}</span>
+                {mod && (
+                  <Badge
+                    variant="outline"
+                    className={`py-0 text-xs ${
+                      mod.isPositive
+                        ? 'border-green-500/50 bg-green-500/10 text-green-700 dark:text-green-400'
+                        : 'border-red-500/50 bg-red-500/10 text-red-700 dark:text-red-400'
+                    }`}
+                  >
+                    {mod.modifier}
+                  </Badge>
+                )}
+              </div>
+              <div className="text-muted-foreground text-sm">
+                {feature.description}
+              </div>
+            </div>
+          );
+        })}
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
 
@@ -503,19 +672,7 @@ function ItemDetail({ item }: { item: EquipmentItem }) {
           </Badge>
         </div>
 
-        {armor.features && armor.features.length > 0 && (
-          <div className="space-y-2">
-            <h3 className="font-semibold">Features</h3>
-            {armor.features.map((feature, idx) => (
-              <div key={idx} className="bg-muted/30 rounded-lg border p-3">
-                <div className="text-primary font-medium">{feature.name}</div>
-                <div className="text-muted-foreground text-sm">
-                  {feature.description}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        <CollapsibleFeatureList features={armor.features ?? []} />
       </div>
     );
   }
@@ -550,19 +707,7 @@ function ItemDetail({ item }: { item: EquipmentItem }) {
           </div>
         </div>
 
-        {wheelchair.features && wheelchair.features.length > 0 && (
-          <div className="space-y-2">
-            <h3 className="font-semibold">Features</h3>
-            {wheelchair.features.map((feature, idx) => (
-              <div key={idx} className="bg-muted/30 rounded-lg border p-3">
-                <div className="text-primary font-medium">{feature.name}</div>
-                <div className="text-muted-foreground text-sm">
-                  {feature.description}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        <CollapsibleFeatureList features={wheelchair.features ?? []} />
       </div>
     );
   }
@@ -595,19 +740,7 @@ function ItemDetail({ item }: { item: EquipmentItem }) {
         </div>
       </div>
 
-      {weapon.features && weapon.features.length > 0 && (
-        <div className="space-y-2">
-          <h3 className="font-semibold">Features</h3>
-          {weapon.features.map((feature, idx) => (
-            <div key={idx} className="bg-muted/30 rounded-lg border p-3">
-              <div className="text-primary font-medium">{feature.name}</div>
-              <div className="text-muted-foreground text-sm">
-                {feature.description}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      <CollapsibleFeatureList features={weapon.features ?? []} />
     </div>
   );
 }
@@ -853,6 +986,7 @@ function EquipmentReferencePage() {
                       currentSort={sortBy}
                       direction={sortDir}
                       onSort={handleSortClick}
+                      className="hidden sm:table-cell"
                     />
                     <SortableTableHead
                       column="type"
@@ -860,15 +994,18 @@ function EquipmentReferencePage() {
                       currentSort={sortBy}
                       direction={sortDir}
                       onSort={handleSortClick}
+                      className="hidden md:table-cell"
                     />
                     <SortableTableHead
                       column="trait"
-                      label="Trait"
+                      label="Trait/Stats"
                       currentSort={sortBy}
                       direction={sortDir}
                       onSort={handleSortClick}
                     />
-                    <TableHead>Stats</TableHead>
+                    <TableHead className="hidden lg:table-cell">
+                      Modifiers
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
