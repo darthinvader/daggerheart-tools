@@ -24,6 +24,21 @@ export const Route = createRootRoute({
       <main className="flex-1">
         <Outlet />
       </main>
+      <footer className="text-muted-foreground border-t px-4 py-3 text-center text-xs">
+        <p>
+          Fan-made tool for friends. I&apos;m a small creator and don&apos;t
+          want to infringe on Daggerheart copyrights. For official info, visit{' '}
+          <a
+            href="https://www.daggerheart.com"
+            className="text-foreground underline underline-offset-4"
+            target="_blank"
+            rel="noreferrer"
+          >
+            daggerheart.com
+          </a>
+          .
+        </p>
+      </footer>
     </>
   ),
 });

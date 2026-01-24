@@ -3,7 +3,9 @@ import {
   ArrowRight,
   Backpack,
   BookOpen,
+  Leaf,
   Shield,
+  ShieldAlert,
   Sparkles,
   Sword,
   Users,
@@ -72,6 +74,22 @@ const referenceCategories = [
     iconColor: 'text-cyan-600 dark:text-cyan-400',
     bgColor: 'bg-cyan-500/10',
   },
+  {
+    to: '/references/adversaries',
+    title: 'Adversaries',
+    description: 'Roles, tiers, and encounter traits',
+    icon: ShieldAlert,
+    iconColor: 'text-red-600 dark:text-red-400',
+    bgColor: 'bg-red-500/10',
+  },
+  {
+    to: '/references/environments',
+    title: 'Environments',
+    description: 'Scene tags, hazards, and encounter flavor',
+    icon: Leaf,
+    iconColor: 'text-emerald-600 dark:text-emerald-400',
+    bgColor: 'bg-emerald-500/10',
+  },
 ];
 
 function Index() {
@@ -89,8 +107,8 @@ function Index() {
           </h1>
           <p className="text-muted-foreground mx-auto mb-8 max-w-2xl text-lg md:text-xl">
             Your companion app for the Daggerheart TTRPG. Build characters,
-            track resources, manage inventory, and enhance your tabletop
-            experience.
+            track resources, manage inventory, and browse adversaries and
+            environments to enhance your tabletop experience.
           </p>
 
           <Button
@@ -166,7 +184,7 @@ function Index() {
                 <CardTitle>Reference Guide</CardTitle>
                 <CardDescription>
                   Browse complete game data: equipment, classes, ancestries,
-                  communities, and domain cards.
+                  communities, domain cards, adversaries, and environments.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -194,7 +212,7 @@ function Index() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-4">
             {referenceCategories.map(category => {
               const Icon = category.icon;
               return (
