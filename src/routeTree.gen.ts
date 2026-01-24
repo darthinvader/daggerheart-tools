@@ -9,12 +9,21 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as RulesRouteImport } from './routes/rules'
 import { Route as ReferencesRouteImport } from './routes/references'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as CharacterRouteImport } from './routes/character'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as RulesIndexRouteImport } from './routes/rules/index'
 import { Route as ReferencesIndexRouteImport } from './routes/references/index'
 import { Route as CharacterIndexRouteImport } from './routes/character/index'
+import { Route as RulesGmGuideRouteImport } from './routes/rules/gm-guide'
+import { Route as RulesDowntimeAdvancementRouteImport } from './routes/rules/downtime-advancement'
+import { Route as RulesCoreMechanicsRouteImport } from './routes/rules/core-mechanics'
+import { Route as RulesCombatRouteImport } from './routes/rules/combat'
+import { Route as RulesCharacterCreationRouteImport } from './routes/rules/character-creation'
+import { Route as RulesCampaignFramesRouteImport } from './routes/rules/campaign-frames'
+import { Route as RulesAdversariesEnvironmentsRouteImport } from './routes/rules/adversaries-environments'
 import { Route as ReferencesInventoryRouteImport } from './routes/references/inventory'
 import { Route as ReferencesEquipmentRouteImport } from './routes/references/equipment'
 import { Route as ReferencesEnvironmentsRouteImport } from './routes/references/environments'
@@ -26,6 +35,11 @@ import { Route as ReferencesAdversariesRouteImport } from './routes/references/a
 import { Route as CharacterNewRouteImport } from './routes/character/new'
 import { Route as CharacterCharacterIdRouteImport } from './routes/character/$characterId'
 
+const RulesRoute = RulesRouteImport.update({
+  id: '/rules',
+  path: '/rules',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ReferencesRoute = ReferencesRouteImport.update({
   id: '/references',
   path: '/references',
@@ -46,6 +60,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RulesIndexRoute = RulesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => RulesRoute,
+} as any)
 const ReferencesIndexRoute = ReferencesIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -56,6 +75,43 @@ const CharacterIndexRoute = CharacterIndexRouteImport.update({
   path: '/',
   getParentRoute: () => CharacterRoute,
 } as any)
+const RulesGmGuideRoute = RulesGmGuideRouteImport.update({
+  id: '/gm-guide',
+  path: '/gm-guide',
+  getParentRoute: () => RulesRoute,
+} as any)
+const RulesDowntimeAdvancementRoute =
+  RulesDowntimeAdvancementRouteImport.update({
+    id: '/downtime-advancement',
+    path: '/downtime-advancement',
+    getParentRoute: () => RulesRoute,
+  } as any)
+const RulesCoreMechanicsRoute = RulesCoreMechanicsRouteImport.update({
+  id: '/core-mechanics',
+  path: '/core-mechanics',
+  getParentRoute: () => RulesRoute,
+} as any)
+const RulesCombatRoute = RulesCombatRouteImport.update({
+  id: '/combat',
+  path: '/combat',
+  getParentRoute: () => RulesRoute,
+} as any)
+const RulesCharacterCreationRoute = RulesCharacterCreationRouteImport.update({
+  id: '/character-creation',
+  path: '/character-creation',
+  getParentRoute: () => RulesRoute,
+} as any)
+const RulesCampaignFramesRoute = RulesCampaignFramesRouteImport.update({
+  id: '/campaign-frames',
+  path: '/campaign-frames',
+  getParentRoute: () => RulesRoute,
+} as any)
+const RulesAdversariesEnvironmentsRoute =
+  RulesAdversariesEnvironmentsRouteImport.update({
+    id: '/adversaries-environments',
+    path: '/adversaries-environments',
+    getParentRoute: () => RulesRoute,
+  } as any)
 const ReferencesInventoryRoute = ReferencesInventoryRouteImport.update({
   id: '/inventory',
   path: '/inventory',
@@ -112,6 +168,7 @@ export interface FileRoutesByFullPath {
   '/character': typeof CharacterRouteWithChildren
   '/login': typeof LoginRoute
   '/references': typeof ReferencesRouteWithChildren
+  '/rules': typeof RulesRouteWithChildren
   '/character/$characterId': typeof CharacterCharacterIdRoute
   '/character/new': typeof CharacterNewRoute
   '/references/adversaries': typeof ReferencesAdversariesRoute
@@ -122,8 +179,16 @@ export interface FileRoutesByFullPath {
   '/references/environments': typeof ReferencesEnvironmentsRoute
   '/references/equipment': typeof ReferencesEquipmentRoute
   '/references/inventory': typeof ReferencesInventoryRoute
+  '/rules/adversaries-environments': typeof RulesAdversariesEnvironmentsRoute
+  '/rules/campaign-frames': typeof RulesCampaignFramesRoute
+  '/rules/character-creation': typeof RulesCharacterCreationRoute
+  '/rules/combat': typeof RulesCombatRoute
+  '/rules/core-mechanics': typeof RulesCoreMechanicsRoute
+  '/rules/downtime-advancement': typeof RulesDowntimeAdvancementRoute
+  '/rules/gm-guide': typeof RulesGmGuideRoute
   '/character/': typeof CharacterIndexRoute
   '/references/': typeof ReferencesIndexRoute
+  '/rules/': typeof RulesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -138,8 +203,16 @@ export interface FileRoutesByTo {
   '/references/environments': typeof ReferencesEnvironmentsRoute
   '/references/equipment': typeof ReferencesEquipmentRoute
   '/references/inventory': typeof ReferencesInventoryRoute
+  '/rules/adversaries-environments': typeof RulesAdversariesEnvironmentsRoute
+  '/rules/campaign-frames': typeof RulesCampaignFramesRoute
+  '/rules/character-creation': typeof RulesCharacterCreationRoute
+  '/rules/combat': typeof RulesCombatRoute
+  '/rules/core-mechanics': typeof RulesCoreMechanicsRoute
+  '/rules/downtime-advancement': typeof RulesDowntimeAdvancementRoute
+  '/rules/gm-guide': typeof RulesGmGuideRoute
   '/character': typeof CharacterIndexRoute
   '/references': typeof ReferencesIndexRoute
+  '/rules': typeof RulesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -147,6 +220,7 @@ export interface FileRoutesById {
   '/character': typeof CharacterRouteWithChildren
   '/login': typeof LoginRoute
   '/references': typeof ReferencesRouteWithChildren
+  '/rules': typeof RulesRouteWithChildren
   '/character/$characterId': typeof CharacterCharacterIdRoute
   '/character/new': typeof CharacterNewRoute
   '/references/adversaries': typeof ReferencesAdversariesRoute
@@ -157,8 +231,16 @@ export interface FileRoutesById {
   '/references/environments': typeof ReferencesEnvironmentsRoute
   '/references/equipment': typeof ReferencesEquipmentRoute
   '/references/inventory': typeof ReferencesInventoryRoute
+  '/rules/adversaries-environments': typeof RulesAdversariesEnvironmentsRoute
+  '/rules/campaign-frames': typeof RulesCampaignFramesRoute
+  '/rules/character-creation': typeof RulesCharacterCreationRoute
+  '/rules/combat': typeof RulesCombatRoute
+  '/rules/core-mechanics': typeof RulesCoreMechanicsRoute
+  '/rules/downtime-advancement': typeof RulesDowntimeAdvancementRoute
+  '/rules/gm-guide': typeof RulesGmGuideRoute
   '/character/': typeof CharacterIndexRoute
   '/references/': typeof ReferencesIndexRoute
+  '/rules/': typeof RulesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -167,6 +249,7 @@ export interface FileRouteTypes {
     | '/character'
     | '/login'
     | '/references'
+    | '/rules'
     | '/character/$characterId'
     | '/character/new'
     | '/references/adversaries'
@@ -177,8 +260,16 @@ export interface FileRouteTypes {
     | '/references/environments'
     | '/references/equipment'
     | '/references/inventory'
+    | '/rules/adversaries-environments'
+    | '/rules/campaign-frames'
+    | '/rules/character-creation'
+    | '/rules/combat'
+    | '/rules/core-mechanics'
+    | '/rules/downtime-advancement'
+    | '/rules/gm-guide'
     | '/character/'
     | '/references/'
+    | '/rules/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -193,14 +284,23 @@ export interface FileRouteTypes {
     | '/references/environments'
     | '/references/equipment'
     | '/references/inventory'
+    | '/rules/adversaries-environments'
+    | '/rules/campaign-frames'
+    | '/rules/character-creation'
+    | '/rules/combat'
+    | '/rules/core-mechanics'
+    | '/rules/downtime-advancement'
+    | '/rules/gm-guide'
     | '/character'
     | '/references'
+    | '/rules'
   id:
     | '__root__'
     | '/'
     | '/character'
     | '/login'
     | '/references'
+    | '/rules'
     | '/character/$characterId'
     | '/character/new'
     | '/references/adversaries'
@@ -211,8 +311,16 @@ export interface FileRouteTypes {
     | '/references/environments'
     | '/references/equipment'
     | '/references/inventory'
+    | '/rules/adversaries-environments'
+    | '/rules/campaign-frames'
+    | '/rules/character-creation'
+    | '/rules/combat'
+    | '/rules/core-mechanics'
+    | '/rules/downtime-advancement'
+    | '/rules/gm-guide'
     | '/character/'
     | '/references/'
+    | '/rules/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -220,10 +328,18 @@ export interface RootRouteChildren {
   CharacterRoute: typeof CharacterRouteWithChildren
   LoginRoute: typeof LoginRoute
   ReferencesRoute: typeof ReferencesRouteWithChildren
+  RulesRoute: typeof RulesRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/rules': {
+      id: '/rules'
+      path: '/rules'
+      fullPath: '/rules'
+      preLoaderRoute: typeof RulesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/references': {
       id: '/references'
       path: '/references'
@@ -252,6 +368,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/rules/': {
+      id: '/rules/'
+      path: '/'
+      fullPath: '/rules/'
+      preLoaderRoute: typeof RulesIndexRouteImport
+      parentRoute: typeof RulesRoute
+    }
     '/references/': {
       id: '/references/'
       path: '/'
@@ -265,6 +388,55 @@ declare module '@tanstack/react-router' {
       fullPath: '/character/'
       preLoaderRoute: typeof CharacterIndexRouteImport
       parentRoute: typeof CharacterRoute
+    }
+    '/rules/gm-guide': {
+      id: '/rules/gm-guide'
+      path: '/gm-guide'
+      fullPath: '/rules/gm-guide'
+      preLoaderRoute: typeof RulesGmGuideRouteImport
+      parentRoute: typeof RulesRoute
+    }
+    '/rules/downtime-advancement': {
+      id: '/rules/downtime-advancement'
+      path: '/downtime-advancement'
+      fullPath: '/rules/downtime-advancement'
+      preLoaderRoute: typeof RulesDowntimeAdvancementRouteImport
+      parentRoute: typeof RulesRoute
+    }
+    '/rules/core-mechanics': {
+      id: '/rules/core-mechanics'
+      path: '/core-mechanics'
+      fullPath: '/rules/core-mechanics'
+      preLoaderRoute: typeof RulesCoreMechanicsRouteImport
+      parentRoute: typeof RulesRoute
+    }
+    '/rules/combat': {
+      id: '/rules/combat'
+      path: '/combat'
+      fullPath: '/rules/combat'
+      preLoaderRoute: typeof RulesCombatRouteImport
+      parentRoute: typeof RulesRoute
+    }
+    '/rules/character-creation': {
+      id: '/rules/character-creation'
+      path: '/character-creation'
+      fullPath: '/rules/character-creation'
+      preLoaderRoute: typeof RulesCharacterCreationRouteImport
+      parentRoute: typeof RulesRoute
+    }
+    '/rules/campaign-frames': {
+      id: '/rules/campaign-frames'
+      path: '/campaign-frames'
+      fullPath: '/rules/campaign-frames'
+      preLoaderRoute: typeof RulesCampaignFramesRouteImport
+      parentRoute: typeof RulesRoute
+    }
+    '/rules/adversaries-environments': {
+      id: '/rules/adversaries-environments'
+      path: '/adversaries-environments'
+      fullPath: '/rules/adversaries-environments'
+      preLoaderRoute: typeof RulesAdversariesEnvironmentsRouteImport
+      parentRoute: typeof RulesRoute
     }
     '/references/inventory': {
       id: '/references/inventory'
@@ -383,11 +555,36 @@ const ReferencesRouteWithChildren = ReferencesRoute._addFileChildren(
   ReferencesRouteChildren,
 )
 
+interface RulesRouteChildren {
+  RulesAdversariesEnvironmentsRoute: typeof RulesAdversariesEnvironmentsRoute
+  RulesCampaignFramesRoute: typeof RulesCampaignFramesRoute
+  RulesCharacterCreationRoute: typeof RulesCharacterCreationRoute
+  RulesCombatRoute: typeof RulesCombatRoute
+  RulesCoreMechanicsRoute: typeof RulesCoreMechanicsRoute
+  RulesDowntimeAdvancementRoute: typeof RulesDowntimeAdvancementRoute
+  RulesGmGuideRoute: typeof RulesGmGuideRoute
+  RulesIndexRoute: typeof RulesIndexRoute
+}
+
+const RulesRouteChildren: RulesRouteChildren = {
+  RulesAdversariesEnvironmentsRoute: RulesAdversariesEnvironmentsRoute,
+  RulesCampaignFramesRoute: RulesCampaignFramesRoute,
+  RulesCharacterCreationRoute: RulesCharacterCreationRoute,
+  RulesCombatRoute: RulesCombatRoute,
+  RulesCoreMechanicsRoute: RulesCoreMechanicsRoute,
+  RulesDowntimeAdvancementRoute: RulesDowntimeAdvancementRoute,
+  RulesGmGuideRoute: RulesGmGuideRoute,
+  RulesIndexRoute: RulesIndexRoute,
+}
+
+const RulesRouteWithChildren = RulesRoute._addFileChildren(RulesRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CharacterRoute: CharacterRouteWithChildren,
   LoginRoute: LoginRoute,
   ReferencesRoute: ReferencesRouteWithChildren,
+  RulesRoute: RulesRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

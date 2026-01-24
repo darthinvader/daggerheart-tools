@@ -1,15 +1,23 @@
 import { Link, useLocation, useNavigate } from '@tanstack/react-router';
 import {
   Backpack,
+  BookOpen,
   ChevronDown,
+  ClipboardList,
+  Clock,
+  Dice5,
+  Gavel,
   Leaf,
   LogIn,
+  Map,
   Menu,
   Plus,
   Shield,
   ShieldAlert,
+  Skull,
   Sparkles,
   Sword,
+  Swords,
   Users,
   UsersRound,
 } from 'lucide-react';
@@ -125,6 +133,58 @@ const defaultLinks: NavLink[] = [
       },
     ],
   },
+  {
+    to: '/rules',
+    label: 'Rules',
+    children: [
+      {
+        to: '/rules/core-mechanics',
+        label: 'Core Mechanics',
+        icon: <Dice5 className="size-4 text-indigo-600 dark:text-indigo-400" />,
+      },
+      {
+        to: '/rules/character-creation',
+        label: 'Character Creation',
+        icon: (
+          <ClipboardList className="size-4 text-pink-600 dark:text-pink-400" />
+        ),
+      },
+      {
+        to: '/rules/combat',
+        label: 'Combat & Consequences',
+        icon: <Swords className="size-4 text-amber-600 dark:text-amber-400" />,
+      },
+      {
+        to: '/rules/downtime-advancement',
+        label: 'Downtime & Advancement',
+        icon: (
+          <Clock className="size-4 text-emerald-600 dark:text-emerald-400" />
+        ),
+      },
+      {
+        to: '/rules/gm-guide',
+        label: 'GM Guide',
+        icon: <Gavel className="size-4 text-sky-600 dark:text-sky-400" />,
+      },
+      {
+        to: '/rules/adversaries-environments',
+        label: 'Adversaries & Environments',
+        icon: <Skull className="size-4 text-red-600 dark:text-red-400" />,
+      },
+      {
+        to: '/rules/campaign-frames',
+        label: 'Campaign Frames',
+        icon: <Map className="size-4 text-violet-600 dark:text-violet-400" />,
+      },
+      {
+        to: '/rules/',
+        label: 'Rules Overview',
+        icon: (
+          <BookOpen className="size-4 text-fuchsia-600 dark:text-fuchsia-400" />
+        ),
+      },
+    ],
+  },
 ];
 
 export function Navbar({
@@ -188,7 +248,7 @@ function DesktopNavbar({ links, brandName }: NavbarInternalProps) {
           {brandName}
         </Link>
 
-        <NavigationMenu>
+        <NavigationMenu viewport={false}>
           <NavigationMenuList>
             {links.map(link =>
               link.children ? (
