@@ -1,14 +1,4 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import {
-  Backpack,
-  Leaf,
-  Shield,
-  ShieldAlert,
-  Sparkles,
-  Sword,
-  Users,
-  UsersRound,
-} from 'lucide-react';
 
 import {
   Card,
@@ -27,79 +17,71 @@ const referenceCategories = [
     title: 'Equipment',
     description:
       'Browse all weapons, armor, and combat wheelchairs organized by tier and category.',
-    icon: Sword,
+    emoji: '⚔️',
     gradient: 'from-amber-500 to-orange-600',
-    iconColor: 'text-amber-600 dark:text-amber-400',
-    bgColor: 'bg-amber-500/10',
+    tint: 'bg-amber-500/10',
   },
   {
     to: '/references/classes',
     title: 'Classes & Subclasses',
     description:
       'Explore all classes with their subclasses, features, domains, and progression.',
-    icon: Shield,
+    emoji: '🛡️',
     gradient: 'from-purple-500 to-indigo-600',
-    iconColor: 'text-purple-600 dark:text-purple-400',
-    bgColor: 'bg-purple-500/10',
+    tint: 'bg-purple-500/10',
   },
   {
     to: '/references/ancestries',
     title: 'Ancestries',
     description:
       'Discover ancestries with their unique physical characteristics and special features.',
-    icon: UsersRound,
+    emoji: '👥',
     gradient: 'from-teal-500 to-cyan-600',
-    iconColor: 'text-teal-600 dark:text-teal-400',
-    bgColor: 'bg-teal-500/10',
+    tint: 'bg-teal-500/10',
   },
   {
     to: '/references/communities',
     title: 'Communities',
     description:
       'Learn about community backgrounds, traits, and unique community features.',
-    icon: Users,
+    emoji: '🏘️',
     gradient: 'from-green-500 to-emerald-600',
-    iconColor: 'text-green-600 dark:text-green-400',
-    bgColor: 'bg-green-500/10',
+    tint: 'bg-green-500/10',
   },
   {
     to: '/references/domain-cards',
     title: 'Domain Cards',
     description:
       'Search through all spells, abilities, and grimoires organized by domain.',
-    icon: Sparkles,
+    emoji: '✨',
     gradient: 'from-violet-500 to-purple-600',
-    iconColor: 'text-violet-600 dark:text-violet-400',
-    bgColor: 'bg-violet-500/10',
+    tint: 'bg-violet-500/10',
   },
   {
     to: '/references/inventory',
     title: 'Inventory Items',
     description:
       'Find utility items, consumables, potions, relics, modifications, and recipes.',
-    icon: Backpack,
+    emoji: '🎒',
     gradient: 'from-cyan-500 to-blue-600',
-    iconColor: 'text-cyan-600 dark:text-cyan-400',
-    bgColor: 'bg-cyan-500/10',
+    tint: 'bg-cyan-500/10',
   },
   {
     to: '/references/adversaries',
     title: 'Adversaries',
     description:
       'Review adversary roles, tiers, and traits for encounter planning.',
-    icon: ShieldAlert,
+    emoji: '👹',
     gradient: 'from-red-500 to-rose-600',
-    iconColor: 'text-red-600 dark:text-red-400',
-    bgColor: 'bg-red-500/10',
+    tint: 'bg-red-500/10',
   },
   {
     to: '/references/environments',
     title: 'Environments',
     description: 'Reference scene environments, hazards, and encounter tags.',
-    icon: Leaf,
+    emoji: '🌲',
     gradient: 'from-emerald-500 to-green-600',
-    iconColor: 'text-emerald-600 dark:text-emerald-400',
-    bgColor: 'bg-emerald-500/10',
+    tint: 'bg-emerald-500/10',
   },
 ];
 
@@ -117,33 +99,30 @@ function ReferencesIndexPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {referenceCategories.map(category => {
-          const Icon = category.icon;
-          return (
-            <Link key={category.to} to={category.to} className="group">
-              <Card className="group-hover:border-primary/50 h-full overflow-hidden transition-all hover:scale-[1.02] hover:shadow-xl">
-                <div className={`h-2 bg-linear-to-r ${category.gradient}`} />
-                <CardHeader>
-                  <div className="flex items-start gap-4">
-                    <div
-                      className={`shrink-0 rounded-xl p-3 ${category.bgColor} transition-transform group-hover:scale-110`}
-                    >
-                      <Icon className={`size-7 ${category.iconColor}`} />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <CardTitle className="group-hover:text-primary text-xl transition-colors">
-                        {category.title}
-                      </CardTitle>
-                      <CardDescription className="mt-1 text-sm leading-relaxed">
-                        {category.description}
-                      </CardDescription>
-                    </div>
+        {referenceCategories.map(category => (
+          <Link key={category.to} to={category.to} className="group">
+            <Card className="group-hover:border-primary/50 h-full overflow-hidden transition-all hover:scale-[1.02] hover:shadow-xl">
+              <div className={`h-2 bg-linear-to-r ${category.gradient}`} />
+              <CardHeader>
+                <div className="flex items-start gap-4">
+                  <div
+                    className={`shrink-0 rounded-xl p-3 ${category.tint} transition-transform group-hover:scale-110`}
+                  >
+                    <span className="text-2xl">{category.emoji}</span>
                   </div>
-                </CardHeader>
-              </Card>
-            </Link>
-          );
-        })}
+                  <div className="min-w-0 flex-1">
+                    <CardTitle className="group-hover:text-primary text-xl transition-colors">
+                      {category.title}
+                    </CardTitle>
+                    <CardDescription className="mt-1 text-sm leading-relaxed">
+                      {category.description}
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+          </Link>
+        ))}
       </div>
     </div>
   );

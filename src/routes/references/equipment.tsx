@@ -891,7 +891,7 @@ function EquipmentReferencePage() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="bg-linear-to-r from-amber-500 to-orange-600 bg-clip-text text-2xl font-bold text-transparent">
-                Equipment Reference
+                ⚔️ Equipment Reference
               </h1>
               <ResultsCounter
                 filtered={filteredItems.length}

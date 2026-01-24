@@ -738,7 +738,7 @@ function InventoryReferencePage() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="bg-linear-to-r from-cyan-500 to-blue-600 bg-clip-text text-2xl font-bold text-transparent">
-                Inventory Items
+                🎒 Inventory Items
               </h1>
               <ResultsCounter
                 filtered={filteredItems.length}

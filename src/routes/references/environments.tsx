@@ -424,7 +424,7 @@ function EnvironmentsReferencePage() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="bg-linear-to-r from-emerald-500 via-teal-500 to-sky-500 bg-clip-text text-2xl font-bold text-transparent">
-              🌎 Environments Reference
+              � Environments Reference
             </h1>
             <ResultsCounter
               filtered={filteredEnvironments.length}

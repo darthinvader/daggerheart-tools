@@ -1,26 +1,5 @@
 import { Link, useLocation, useNavigate } from '@tanstack/react-router';
-import {
-  Backpack,
-  BookOpen,
-  ChevronDown,
-  ClipboardList,
-  Clock,
-  Dice5,
-  Gavel,
-  Leaf,
-  LogIn,
-  Map,
-  Menu,
-  Plus,
-  Shield,
-  ShieldAlert,
-  Skull,
-  Sparkles,
-  Sword,
-  Swords,
-  Users,
-  UsersRound,
-} from 'lucide-react';
+import { ChevronDown, LogIn, Menu, Plus } from 'lucide-react';
 import * as React from 'react';
 
 import { UserMenu } from '@/components/auth';
@@ -86,50 +65,42 @@ const defaultLinks: NavLink[] = [
       {
         to: '/references/equipment',
         label: 'Equipment',
-        icon: <Sword className="size-4 text-amber-600 dark:text-amber-400" />,
+        icon: <span className="text-base">⚔️</span>,
       },
       {
         to: '/references/adversaries',
         label: 'Adversaries',
-        icon: <ShieldAlert className="size-4 text-red-600 dark:text-red-400" />,
+        icon: <span className="text-base">👹</span>,
       },
       {
         to: '/references/environments',
         label: 'Environments',
-        icon: (
-          <Leaf className="size-4 text-emerald-600 dark:text-emerald-400" />
-        ),
+        icon: <span className="text-base">🌲</span>,
       },
       {
         to: '/references/classes',
         label: 'Classes & Subclasses',
-        icon: (
-          <Shield className="size-4 text-purple-600 dark:text-purple-400" />
-        ),
+        icon: <span className="text-base">🛡️</span>,
       },
       {
         to: '/references/ancestries',
         label: 'Ancestries',
-        icon: (
-          <UsersRound className="size-4 text-teal-600 dark:text-teal-400" />
-        ),
+        icon: <span className="text-base">👥</span>,
       },
       {
         to: '/references/communities',
         label: 'Communities',
-        icon: <Users className="size-4 text-green-600 dark:text-green-400" />,
+        icon: <span className="text-base">🏘️</span>,
       },
       {
         to: '/references/domain-cards',
         label: 'Domain Cards',
-        icon: (
-          <Sparkles className="size-4 text-violet-600 dark:text-violet-400" />
-        ),
+        icon: <span className="text-base">✨</span>,
       },
       {
         to: '/references/inventory',
         label: 'Inventory Items',
-        icon: <Backpack className="size-4 text-cyan-600 dark:text-cyan-400" />,
+        icon: <span className="text-base">🎒</span>,
       },
     ],
   },
@@ -140,48 +111,42 @@ const defaultLinks: NavLink[] = [
       {
         to: '/rules/core-mechanics',
         label: 'Core Mechanics',
-        icon: <Dice5 className="size-4 text-indigo-600 dark:text-indigo-400" />,
+        icon: <span className="text-base">🎲</span>,
       },
       {
         to: '/rules/character-creation',
         label: 'Character Creation',
-        icon: (
-          <ClipboardList className="size-4 text-pink-600 dark:text-pink-400" />
-        ),
+        icon: <span className="text-base">🧑‍🎤</span>,
       },
       {
         to: '/rules/combat',
         label: 'Combat & Consequences',
-        icon: <Swords className="size-4 text-amber-600 dark:text-amber-400" />,
+        icon: <span className="text-base">⚔️</span>,
       },
       {
         to: '/rules/downtime-advancement',
         label: 'Downtime & Advancement',
-        icon: (
-          <Clock className="size-4 text-emerald-600 dark:text-emerald-400" />
-        ),
+        icon: <span className="text-base">⛺</span>,
       },
       {
         to: '/rules/gm-guide',
         label: 'GM Guide',
-        icon: <Gavel className="size-4 text-sky-600 dark:text-sky-400" />,
+        icon: <span className="text-base">🧭</span>,
       },
       {
         to: '/rules/adversaries-environments',
         label: 'Adversaries & Environments',
-        icon: <Skull className="size-4 text-red-600 dark:text-red-400" />,
+        icon: <span className="text-base">🐉</span>,
       },
       {
         to: '/rules/campaign-frames',
         label: 'Campaign Frames',
-        icon: <Map className="size-4 text-violet-600 dark:text-violet-400" />,
+        icon: <span className="text-base">🗺️</span>,
       },
       {
         to: '/rules/',
         label: 'Rules Overview',
-        icon: (
-          <BookOpen className="size-4 text-fuchsia-600 dark:text-fuchsia-400" />
-        ),
+        icon: <span className="text-base">📜</span>,
       },
     ],
   },

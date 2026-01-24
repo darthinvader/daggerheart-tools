@@ -513,7 +513,7 @@ function AdversariesReferencePage() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="bg-linear-to-r from-fuchsia-500 via-red-500 to-orange-500 bg-clip-text text-2xl font-bold text-transparent">
-              🧨 Adversaries Reference
+              👹 Adversaries Reference
             </h1>
             <ResultsCounter
               filtered={filteredAdversaries.length}
