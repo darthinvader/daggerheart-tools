@@ -21,3 +21,6 @@ export * from './player-character';
 
 // Adversaries
 export * from './adversaries';
+
+// Environments
+export * from './environments';

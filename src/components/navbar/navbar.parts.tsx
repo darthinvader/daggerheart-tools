@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from '@tanstack/react-router';
 import {
   Backpack,
   ChevronDown,
+  Leaf,
   LogIn,
   Menu,
   Plus,
@@ -83,6 +84,13 @@ const defaultLinks: NavLink[] = [
         to: '/references/adversaries',
         label: 'Adversaries',
         icon: <ShieldAlert className="size-4 text-red-600 dark:text-red-400" />,
+      },
+      {
+        to: '/references/environments',
+        label: 'Environments',
+        icon: (
+          <Leaf className="size-4 text-emerald-600 dark:text-emerald-400" />
+        ),
       },
       {
         to: '/references/classes',
