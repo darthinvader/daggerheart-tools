@@ -77,8 +77,11 @@ export function RestEffectsPreview({
         ))}
       </div>
       {effects.downtime && (
-        <div className="bg-primary/10 rounded-lg p-3 text-sm">
-          ✨ You may perform <strong>downtime moves</strong> during this rest
+        <div className="bg-primary/10 flex items-center gap-2 rounded-lg p-3 text-sm">
+          <Sparkles className="size-4" />
+          <span>
+            You may perform <strong>downtime moves</strong> during this rest
+          </span>
         </div>
       )}
     </div>

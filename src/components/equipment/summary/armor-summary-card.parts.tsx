@@ -1,4 +1,5 @@
 import { Badge } from '@/components/ui/badge';
+import { Shield, Wrench, Zap } from '@/lib/icons';
 
 import { FeatureDisplay, ModifierDisplay } from './shared';
 
@@ -69,15 +70,18 @@ function ArmorHeader({
   return (
     <div className="mb-2 flex items-center justify-between">
       <div className="flex items-center gap-2">
-        <span className="text-xl">🛡️</span>
+        <Shield className="h-5 w-5" />
         <span className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
           Armor
         </span>
       </div>
       <div className="flex items-center gap-1">
         {isHomebrew && (
-          <Badge variant="outline" className="text-[10px]">
-            �️ Homebrew
+          <Badge
+            variant="outline"
+            className="flex items-center gap-1 text-[10px]"
+          >
+            <Wrench className="h-3 w-3" /> Homebrew
           </Badge>
         )}
         {tier && (
@@ -115,13 +119,19 @@ function ArmorStatBadges({
   return (
     <div className="flex flex-wrap gap-2">
       {baseScore !== undefined && (
-        <Badge variant="secondary">🛡️ Score: {baseScore}</Badge>
+        <Badge variant="secondary" className="flex items-center gap-1">
+          <Shield className="h-3 w-3" /> Score: {baseScore}
+        </Badge>
       )}
       {major !== undefined && (
-        <Badge variant="secondary">💥 Major: {major}</Badge>
+        <Badge variant="secondary" className="flex items-center gap-1">
+          <Zap className="h-3 w-3" /> Major: {major}
+        </Badge>
       )}
       {severe !== undefined && (
-        <Badge variant="secondary">⚡ Severe: {severe}</Badge>
+        <Badge variant="secondary" className="flex items-center gap-1">
+          <Zap className="h-3 w-3" /> Severe: {severe}
+        </Badge>
       )}
     </div>
   );

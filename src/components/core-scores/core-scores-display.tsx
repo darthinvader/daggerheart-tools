@@ -1,3 +1,4 @@
+import { Shield } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 
 import { EditableSection } from '@/components/shared/editable-section';
@@ -161,7 +162,7 @@ export function CoreScoresDisplay({
   return (
     <EditableSection
       title="Core Scores"
-      emoji="🛡️"
+      icon={Shield}
       isEditing={isEditing}
       onEditToggle={isEditing ? handleEditToggle : handleOpen}
       showEditButton={!readOnly}

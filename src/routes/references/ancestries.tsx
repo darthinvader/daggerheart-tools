@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ANCESTRIES } from '@/lib/data/characters/ancestries';
+import { Users } from '@/lib/icons';
 
 export const Route = createFileRoute('/references/ancestries')({
   component: AncestriesReferencePage,
@@ -328,7 +329,8 @@ function AncestriesReferencePage() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="bg-linear-to-r from-teal-500 to-cyan-600 bg-clip-text text-2xl font-bold text-transparent">
-              👥 Ancestries
+              <Users className="mr-2 inline-block size-6" />
+              Ancestries
             </h1>
             <ResultsCounter
               filtered={filteredAncestries.length}

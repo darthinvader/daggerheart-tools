@@ -1,4 +1,4 @@
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Sparkles, Trash2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,13 +14,15 @@ export interface FeaturesEditorProps {
   onChange: (features: Feature[]) => void;
   maxFeatures?: number;
   label?: string;
+  showIcon?: boolean;
 }
 
 export function FeaturesEditor({
   features,
   onChange,
   maxFeatures = 5,
-  label = '✨ Features',
+  label = 'Features',
+  showIcon = true,
 }: FeaturesEditorProps) {
   const handleAdd = () => {
     if (features.length < maxFeatures) {
@@ -41,7 +43,10 @@ export function FeaturesEditor({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium">{label}</span>
+        <span className="flex items-center gap-1 text-sm font-medium">
+          {showIcon && <Sparkles className="size-4" />}
+          {label}
+        </span>
         <Button
           type="button"
           variant="outline"

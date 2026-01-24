@@ -1,5 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { BarChart3, Heart, Shield } from '@/lib/icons';
 
 interface StartingStatsCardProps {
   hitPoints?: number;
@@ -16,7 +17,7 @@ export function StartingStatsCard({
     <Card className="overflow-hidden">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-sm">
-          <span className="shrink-0">📊</span>
+          <BarChart3 className="size-4 shrink-0" />
           <span>Starting Stats</span>
         </CardTitle>
       </CardHeader>
@@ -24,14 +25,14 @@ export function StartingStatsCard({
         <div className="flex flex-wrap gap-4 text-sm">
           {hitPoints && (
             <div className="flex items-center gap-2">
-              <span className="shrink-0">❤️</span>
+              <Heart className="size-4 shrink-0 text-red-500" />
               <span>HP:</span>
               <Badge variant="secondary">{hitPoints}</Badge>
             </div>
           )}
           {evasion && (
             <div className="flex items-center gap-2">
-              <span className="shrink-0">🛡️</span>
+              <Shield className="size-4 shrink-0 text-blue-500" />
               <span>Evasion:</span>
               <Badge variant="secondary">{evasion}</Badge>
             </div>

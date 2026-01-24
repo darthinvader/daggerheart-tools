@@ -1,4 +1,6 @@
+import type { LucideProps } from 'lucide-react';
 import { Minus, Plus } from 'lucide-react';
+import type { ComponentType } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -9,7 +11,7 @@ interface CounterTrainingProps {
   value: number;
   max?: number;
   onChange: (delta: number) => void;
-  emoji?: string;
+  Icon?: ComponentType<LucideProps>;
   color?: string;
 }
 
@@ -19,7 +21,7 @@ export function CounterTraining({
   value,
   max = 3,
   onChange,
-  emoji,
+  Icon,
   color = 'border-primary/20',
 }: CounterTrainingProps) {
   const isActive = value > 0;
@@ -30,7 +32,7 @@ export function CounterTraining({
       }`}
     >
       <div className="flex items-center gap-2">
-        {emoji && <span className="text-lg">{emoji}</span>}
+        {Icon && <Icon className="size-5" />}
         <div>
           <p className="text-sm font-medium">{label}</p>
           <p className="text-muted-foreground text-xs">{description}</p>
@@ -68,7 +70,7 @@ interface CheckboxTrainingProps {
   description: string;
   checked: boolean;
   onCheckedChange: () => void;
-  emoji?: string;
+  Icon?: ComponentType<LucideProps>;
   color?: string;
 }
 
@@ -77,7 +79,7 @@ export function CheckboxTraining({
   description,
   checked,
   onCheckedChange,
-  emoji,
+  Icon,
   color = 'border-primary/20',
 }: CheckboxTrainingProps) {
   return (
@@ -92,7 +94,7 @@ export function CheckboxTraining({
         className="mt-0.5"
       />
       <div className="flex items-center gap-2">
-        {emoji && <span className="text-lg">{emoji}</span>}
+        {Icon && <Icon className="size-5" />}
         <div>
           <p className="text-sm font-medium">{label}</p>
           <p className="text-muted-foreground text-xs">{description}</p>

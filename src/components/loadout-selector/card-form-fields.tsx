@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { ALL_DOMAIN_NAMES } from '@/lib/data/domains';
-import { DOMAIN_EMOJIS } from '@/lib/schemas/loadout';
+import { CardTypeIcons, DomainIcons, ICON_SIZE_MD } from '@/lib/icons';
 
 interface HomebrewCardDraft {
   name: string;
@@ -50,11 +50,20 @@ export function CardFormFields({ draft, onUpdate }: CardFormFieldsProps) {
               <SelectValue placeholder="Select domain" />
             </SelectTrigger>
             <SelectContent>
-              {ALL_DOMAIN_NAMES.map(domain => (
-                <SelectItem key={domain} value={domain}>
-                  {DOMAIN_EMOJIS[domain]} {domain}
-                </SelectItem>
-              ))}
+              {ALL_DOMAIN_NAMES.map(domain => {
+                const DomainIcon = DomainIcons[domain];
+                return (
+                  <SelectItem key={domain} value={domain}>
+                    {DomainIcon && (
+                      <DomainIcon
+                        size={ICON_SIZE_MD}
+                        className="mr-1 inline-block"
+                      />
+                    )}
+                    {domain}
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
         </div>
@@ -68,8 +77,20 @@ export function CardFormFields({ draft, onUpdate }: CardFormFieldsProps) {
               <SelectValue placeholder="Select type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="Spell">✨ Spell</SelectItem>
-              <SelectItem value="Ability">💪 Ability</SelectItem>
+              <SelectItem value="Spell">
+                <CardTypeIcons.Spell
+                  size={ICON_SIZE_MD}
+                  className="mr-1 inline-block"
+                />
+                Spell
+              </SelectItem>
+              <SelectItem value="Ability">
+                <CardTypeIcons.Ability
+                  size={ICON_SIZE_MD}
+                  className="mr-1 inline-block"
+                />
+                Ability
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>

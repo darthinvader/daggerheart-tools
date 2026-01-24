@@ -1,4 +1,5 @@
 import { ALL_PRIMARY_WEAPONS } from '@/lib/data/equipment';
+import { Sword } from '@/lib/icons';
 import type { PrimaryWeapon } from '@/lib/schemas/equipment';
 
 import { type EquipmentMode, EquipmentModeTabs } from '../equipment-mode-tabs';
@@ -37,7 +38,7 @@ export function PrimaryWeaponSection({
       ) : (
         <EquipmentSection
           title="Primary Weapons"
-          icon="⚔️"
+          icon={Sword}
           items={ALL_PRIMARY_WEAPONS}
           selectedItem={weapon}
           onSelect={onWeaponChange}

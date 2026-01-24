@@ -1,17 +1,18 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
+import { Check, Hand, ICON_SIZE_MD } from '@/lib/icons';
 import type { DomainCardLite } from '@/lib/schemas/loadout';
 
 interface SectionTitleProps {
-  emoji: string;
+  icon: React.ReactNode;
   title: string;
   isSwapTarget: boolean;
   tooltipContent: string;
 }
 
 export function SectionTitle({
-  emoji,
+  icon,
   title,
   isSwapTarget,
   tooltipContent,
@@ -23,14 +24,15 @@ export function SectionTitle({
       content={<p>{tooltipContent}</p>}
     >
       <span className="flex cursor-help items-center gap-2">
-        <span>{emoji}</span>
+        <span>{icon}</span>
         <span>{title}</span>
         {isSwapTarget && (
           <Badge
             variant="outline"
             className="border-amber-500 bg-amber-500/20 text-amber-700"
           >
-            👆 Select swap target
+            <Hand size={ICON_SIZE_MD} className="mr-1 inline-block" />
+            Select swap target
           </Badge>
         )}
       </span>
@@ -125,7 +127,11 @@ export function RecallCostFooter({
           Total Recall Cost: <strong>{totalRecall}</strong> Stress
         </span>
       </SmartTooltip>
-      {isFull && <span className={fullTextClass}>✓ Full</span>}
+      {isFull && (
+        <span className={`flex items-center gap-1 ${fullTextClass}`}>
+          <Check size={ICON_SIZE_MD} className="inline-block" /> Full
+        </span>
+      )}
     </div>
   );
 }

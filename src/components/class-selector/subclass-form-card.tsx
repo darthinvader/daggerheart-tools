@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Trash2 } from '@/lib/icons';
 import type { HomebrewSubclass } from '@/lib/schemas/class-selection';
 import type { SubclassFeature } from '@/lib/schemas/core';
 
@@ -48,9 +49,9 @@ export function SubclassFormCard({
             variant="ghost"
             size="sm"
             onClick={onRemove}
-            className="text-destructive hover:text-destructive"
+            className="text-destructive hover:text-destructive inline-flex items-center gap-1"
           >
-            🗑️ Remove
+            <Trash2 className="size-4" /> Remove
           </Button>
         )}
       </div>

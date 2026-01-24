@@ -10,6 +10,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { Sparkles, Zap } from '@/lib/icons';
 import { cn } from '@/lib/utils';
 
 interface QuickConditionsInfoProps {
@@ -46,7 +47,7 @@ export function QuickConditionsInfo({
     <div className={cn('bg-card rounded-lg border p-3', className)}>
       <div className="mb-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-lg">⚡</span>
+          <Zap className="size-5" />
           <span className="font-semibold">Conditions</span>
         </div>
         {onChange && (
@@ -80,8 +81,8 @@ export function QuickConditionsInfo({
       </div>
 
       {conditions.items.length === 0 ? (
-        <p className="text-muted-foreground text-center text-sm">
-          ✨ No conditions
+        <p className="text-muted-foreground flex items-center justify-center gap-1 text-sm">
+          <Sparkles className="size-4" /> No conditions
         </p>
       ) : (
         <div className="flex flex-wrap gap-1">

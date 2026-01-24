@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/card';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import type { GameSubclass } from '@/lib/data/classes';
+import { PawPrint } from '@/lib/icons';
 import { CLASS_COLORS } from '@/lib/schemas/class-selection';
 import { cn } from '@/lib/utils';
 
@@ -60,8 +61,11 @@ function CompanionBadge() {
         </>
       }
     >
-      <Badge variant="secondary" className="cursor-help text-xs">
-        🐾 Companion
+      <Badge
+        variant="secondary"
+        className="inline-flex cursor-help items-center gap-1 text-xs"
+      >
+        <PawPrint className="size-3" /> Companion
       </Badge>
     </SmartTooltip>
   );

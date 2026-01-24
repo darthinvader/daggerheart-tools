@@ -1,24 +1,17 @@
+import type { LucideProps } from 'lucide-react';
+import type { ComponentType } from 'react';
 import { z } from 'zod';
+import { DomainIcons, getIcon } from '@/lib/icons';
 
 import { DomainNameSchema, MetadataSchema } from './core';
 
-// Domain emoji mapping for visual engagement
-export const DOMAIN_EMOJIS: Record<string, string> = {
-  Arcana: '✨',
-  Blade: '⚔️',
-  Bone: '💀',
-  Codex: '📜',
-  Grace: '💫',
-  Midnight: '🌙',
-  Sage: '🦉',
-  Splendor: '👑',
-  Valor: '🔥',
-  Chaos: '🌀',
-  Moon: '🌕',
-  Sun: '☀️',
-  Blood: '🩸',
-  Fate: '🎲',
-};
+// Domain icon mapping for visual engagement
+// Returns Lucide icon components instead of emoji strings
+export const getDomainIcon = (domain: string): ComponentType<LucideProps> =>
+  getIcon(DomainIcons, domain);
+
+// Legacy export for backward compatibility (components should use getDomainIcon)
+export const DOMAIN_ICONS = DomainIcons;
 
 // Domain color theme mapping
 export const DOMAIN_COLORS: Record<string, string> = {

@@ -7,7 +7,7 @@ export interface RulesTag {
 export interface RuleSection {
   id: string;
   title: string;
-  emoji: string;
+  iconKey: string;
   summary: string;
   bullets: string[];
   details?: string[];
@@ -22,7 +22,7 @@ export interface RuleSection {
 export interface RulesPage {
   id: string;
   title: string;
-  emoji: string;
+  iconKey: string;
   description: string;
   gradient: string;
   quickFacts?: Array<{ label: string; value: string; tooltip?: string }>;
@@ -33,7 +33,7 @@ export interface RulesIndexCard {
   to: string;
   title: string;
   description: string;
-  emoji: string;
+  iconKey: string;
   gradient: string;
   accent: string;
   tint: string;
@@ -45,7 +45,7 @@ export const RULES_INDEX_CARDS: RulesIndexCard[] = [
     title: 'Character Creation',
     description:
       'Step-by-step flow for building heroes: class, heritage, traits, and starting gear.',
-    emoji: '🧑‍🎤',
+    iconKey: 'characterCreation',
     gradient: 'from-pink-500 to-rose-600',
     accent: 'text-pink-600 dark:text-pink-400',
     tint: 'bg-pink-500/10',
@@ -55,7 +55,7 @@ export const RULES_INDEX_CARDS: RulesIndexCard[] = [
     title: 'Core Mechanics',
     description:
       'Spotlight, moves, Duality Dice, Hope/Fear, and the action roll loop.',
-    emoji: '🎲',
+    iconKey: 'rolling',
     gradient: 'from-indigo-500 to-violet-600',
     accent: 'text-indigo-600 dark:text-indigo-400',
     tint: 'bg-indigo-500/10',
@@ -65,7 +65,7 @@ export const RULES_INDEX_CARDS: RulesIndexCard[] = [
     title: 'Combat & Consequences',
     description:
       'Narrative combat flow, damage, thresholds, conditions, and death moves.',
-    emoji: '⚔️',
+    iconKey: 'combat',
     gradient: 'from-amber-500 to-orange-600',
     accent: 'text-amber-600 dark:text-amber-400',
     tint: 'bg-amber-500/10',
@@ -75,7 +75,7 @@ export const RULES_INDEX_CARDS: RulesIndexCard[] = [
     title: 'Downtime & Advancement',
     description:
       'Healing, recovery, leveling up, and how gear and gold fit in.',
-    emoji: '⛺',
+    iconKey: 'camping',
     gradient: 'from-emerald-500 to-teal-600',
     accent: 'text-emerald-600 dark:text-emerald-400',
     tint: 'bg-emerald-500/10',
@@ -85,7 +85,7 @@ export const RULES_INDEX_CARDS: RulesIndexCard[] = [
     title: 'GM Guide',
     description:
       'Principles, best practices, pitfalls, and Fear economy guidance.',
-    emoji: '🧭',
+    iconKey: 'navigation',
     gradient: 'from-sky-500 to-cyan-600',
     accent: 'text-sky-600 dark:text-sky-400',
     tint: 'bg-sky-500/10',
@@ -94,7 +94,7 @@ export const RULES_INDEX_CARDS: RulesIndexCard[] = [
     to: '/rules/adversaries-environments',
     title: 'Adversaries & Environments',
     description: 'Stat blocks, roles, features, and encounter building points.',
-    emoji: '🐉',
+    iconKey: 'adversaries',
     gradient: 'from-red-500 to-rose-600',
     accent: 'text-red-600 dark:text-red-400',
     tint: 'bg-red-500/10',
@@ -104,7 +104,7 @@ export const RULES_INDEX_CARDS: RulesIndexCard[] = [
     title: 'Campaign Frames',
     description:
       'Start a campaign with frames, complexity ratings, and session zero tools.',
-    emoji: '🗺️',
+    iconKey: 'worldbuilding',
     gradient: 'from-violet-500 to-fuchsia-600',
     accent: 'text-violet-600 dark:text-violet-400',
     tint: 'bg-violet-500/10',
@@ -115,7 +115,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
   'character-creation': {
     id: 'character-creation',
     title: 'Character Creation',
-    emoji: '🧑‍🎤',
+    iconKey: 'characterCreation',
     description:
       'Build a hero by collaborating on tone, choosing a class and heritage, and setting your starting kit.',
     gradient: 'from-pink-500 via-rose-500 to-orange-500',
@@ -142,7 +142,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
       {
         id: 'session-zero',
         title: 'Session Zero & Concept',
-        emoji: '🤝',
+        iconKey: 'socialContract',
         summary:
           'Agree on tone, safety tools, and party goals before finalizing characters.',
         bullets: [
@@ -171,7 +171,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
       {
         id: 'class-subclass',
         title: 'Choose Class & Subclass',
-        emoji: '🛡️',
+        iconKey: 'safetyTools',
         summary:
           'Class defines your core role; subclass sharpens the fantasy and mechanics.',
         bullets: [
@@ -206,7 +206,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
       {
         id: 'heritage',
         title: 'Heritage: Ancestry & Community',
-        emoji: '🌍',
+        iconKey: 'worldInfo',
         summary:
           'Heritage blends lineage and upbringing to shape your character’s identity.',
         bullets: [
@@ -230,7 +230,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
       {
         id: 'traits',
         title: 'Assign Traits',
-        emoji: '📊',
+        iconKey: 'coreStats',
         summary:
           'Traits drive action rolls for Agility, Strength, Finesse, Instinct, Presence, and Knowledge.',
         bullets: [
@@ -254,7 +254,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
       {
         id: 'vitals',
         title: 'Vitals: Evasion, HP, Stress',
-        emoji: '❤️',
+        iconKey: 'hitPoints',
         summary:
           'Record survivability stats tied to your class and armor choices.',
         bullets: [
@@ -288,7 +288,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
       {
         id: 'starting-gear',
         title: 'Starting Equipment',
-        emoji: '🎒',
+        iconKey: 'inventory',
         summary:
           'Choose weapons, armor, and items that define your early playstyle.',
         bullets: [
@@ -312,7 +312,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
   'core-mechanics': {
     id: 'core-mechanics',
     title: 'Core Mechanics',
-    emoji: '🎲',
+    iconKey: 'rolling',
     description:
       'Learn the spotlight loop, Duality Dice, Hope/Fear, and how action rolls resolve.',
     gradient: 'from-indigo-500 via-violet-500 to-fuchsia-500',
@@ -337,7 +337,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
       {
         id: 'flow',
         title: 'Flow of the Game',
-        emoji: '🔁',
+        iconKey: 'actionTokens',
         summary: 'A fast conversation loop drives every scene.',
         bullets: [
           'GM narrates the situation and stakes.',
@@ -361,7 +361,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
       {
         id: 'spotlight',
         title: 'The Spotlight & Moves',
-        emoji: '🎯',
+        iconKey: 'experiences',
         summary: 'The spotlight shifts to whoever is acting in the fiction.',
         bullets: [
           'When you’re in the spotlight, describe your move.',
@@ -391,7 +391,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
       {
         id: 'duality',
         title: 'Duality Dice: Hope & Fear',
-        emoji: '✨',
+        iconKey: 'domainCards',
         summary: 'Hope and Fear shape outcomes beyond success or failure.',
         bullets: [
           'Roll 2d12: one Hope die and one Fear die.',
@@ -425,7 +425,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
       {
         id: 'action-rolls',
         title: 'Action Rolls',
-        emoji: '🧮',
+        iconKey: 'hopeAndFear',
         summary: 'Four-step resolution keeps rolls fast and clear.',
         bullets: [
           'Pick the trait and Difficulty with the GM.',
@@ -455,7 +455,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
       {
         id: 'hope-uses',
         title: 'Spending Hope',
-        emoji: '🌟',
+        iconKey: 'hope',
         summary: 'Hope powers teamwork and signature abilities.',
         bullets: [
           'Help an ally to add an advantage die.',
@@ -477,7 +477,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
       {
         id: 'stress-hp',
         title: 'Stress & Thresholds',
-        emoji: '💢',
+        iconKey: 'stress',
         summary:
           'Stress is strain; thresholds determine how much harm you take.',
         bullets: [
@@ -508,7 +508,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
   combat: {
     id: 'combat',
     title: 'Combat & Consequences',
-    emoji: '⚔️',
+    iconKey: 'combat',
     description:
       'Combat is narrative and fluid—spotlight passes through bold actions, not rigid rounds.',
     gradient: 'from-amber-500 via-orange-500 to-rose-500',
@@ -528,7 +528,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
       {
         id: 'narrative-combat',
         title: 'Narrative Combat Flow',
-        emoji: '🎬',
+        iconKey: 'scenes',
         summary: 'Combat works like any other scene—describe, roll, respond.',
         bullets: [
           'No fixed number of actions per turn.',
@@ -548,7 +548,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
       {
         id: 'attacks',
         title: 'Attacks & Damage Rolls',
-        emoji: '🗡️',
+        iconKey: 'weapons',
         summary: 'Attack rolls set whether damage is dealt.',
         bullets: [
           'Make an attack roll against a target’s Difficulty or Evasion.',
@@ -569,7 +569,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
       {
         id: 'armor-thresholds',
         title: 'Armor & Thresholds',
-        emoji: '🧱',
+        iconKey: 'thresholds',
         summary: 'Armor mitigates damage through thresholds and armor slots.',
         bullets: [
           'Compare damage to Minor/Major/Severe thresholds.',
@@ -595,7 +595,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
       {
         id: 'conditions',
         title: 'Conditions & Vulnerable',
-        emoji: '🧩',
+        iconKey: 'conditions',
         summary: 'Conditions add narrative and mechanical pressure.',
         bullets: [
           'Conditions change how you act or how others act against you.',
@@ -614,7 +614,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
       {
         id: 'range-targets',
         title: 'Range, Targets, & Groups',
-        emoji: '📏',
+        iconKey: 'distances',
         summary: 'Ranges are narrative distances; groups can be hit together.',
         bullets: [
           'Ranges: Melee, Very Close, Close, Far, Very Far.',
@@ -633,7 +633,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
       {
         id: 'death',
         title: 'Death & Last Moves',
-        emoji: '☠️',
+        iconKey: 'death',
         summary: 'Reaching 0 HP triggers a death move that shapes the story.',
         bullets: [
           'When your last HP is marked, make a death move.',
@@ -657,7 +657,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
   'downtime-advancement': {
     id: 'downtime-advancement',
     title: 'Downtime & Advancement',
-    emoji: '⛺',
+    iconKey: 'camping',
     description:
       'Recover between scenes, clear stress, and grow your character over time.',
     gradient: 'from-emerald-500 via-teal-500 to-cyan-500',
@@ -665,7 +665,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
       {
         id: 'downtime',
         title: 'Downtime Moves',
-        emoji: '🛌',
+        iconKey: 'longRest',
         summary: 'Downtime restores resources and advances personal goals.',
         bullets: [
           'Clear marked HP and Stress based on your downtime move.',
@@ -685,7 +685,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
       {
         id: 'leveling',
         title: 'Leveling Up',
-        emoji: '📈',
+        iconKey: 'levelUp',
         summary: 'Leveling unlocks new cards, traits, and survivability.',
         bullets: [
           'Increase level and gain new domain cards or features.',
@@ -704,7 +704,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
       {
         id: 'equipment-gold',
         title: 'Equipment & Gold',
-        emoji: '💰',
+        iconKey: 'gold',
         summary: 'Gold and loot fuel new tools and narrative rewards.',
         bullets: [
           'Use gold for gear upgrades or narrative investments.',
@@ -721,7 +721,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
       {
         id: 'optional',
         title: 'Optional Rules',
-        emoji: '🧪',
+        iconKey: 'crafting',
         summary: 'Table options let you tune risk and pacing.',
         bullets: [
           'Massive damage can add a higher damage threshold.',
@@ -741,7 +741,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
   'gm-guide': {
     id: 'gm-guide',
     title: 'GM Guide',
-    emoji: '🧭',
+    iconKey: 'navigation',
     description:
       'Principles and practices for running cinematic, player-driven adventures.',
     gradient: 'from-sky-500 via-cyan-500 to-emerald-500',
@@ -749,7 +749,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
       {
         id: 'gm-principles',
         title: 'GM Principles',
-        emoji: '✨',
+        iconKey: 'domainCards',
         summary: 'Guiding truths for every ruling and scene.',
         bullets: [
           'Begin and end with the fiction.',
@@ -769,7 +769,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
       {
         id: 'best-practices',
         title: 'Best Practices',
-        emoji: '🛠️',
+        iconKey: 'features',
         summary: 'Concrete habits that keep play moving.',
         bullets: [
           'Keep the story moving forward (fail forward).',
@@ -789,7 +789,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
       {
         id: 'pitfalls',
         title: 'Pitfalls to Avoid',
-        emoji: '⚠️',
+        iconKey: 'hazards',
         summary: 'Common friction points and how to dodge them.',
         bullets: [
           'Avoid undermining heroes; they are competent.',
@@ -806,7 +806,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
       {
         id: 'fear-economy',
         title: 'Fear Economy & GM Moves',
-        emoji: '🌀',
+        iconKey: 'environments',
         summary: 'Fear fuels adversity and dramatic momentum.',
         bullets: [
           'Gain Fear when players roll with Fear or during downtime.',
@@ -832,7 +832,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
       {
         id: 'session-zero',
         title: 'Session Zero & Safety',
-        emoji: '🪞',
+        iconKey: 'adversaryDesign',
         summary: 'Set expectations and support player trust.',
         bullets: [
           'Use safety tools and check-ins during play.',
@@ -850,7 +850,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
   'adversaries-environments': {
     id: 'adversaries-environments',
     title: 'Adversaries & Environments',
-    emoji: '🐉',
+    iconKey: 'adversaries',
     description:
       'Stat blocks define enemies and hazards with roles, features, and tactics.',
     gradient: 'from-red-500 via-rose-500 to-amber-500',
@@ -858,7 +858,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
       {
         id: 'stat-blocks',
         title: 'Stat Block Breakdown',
-        emoji: '🧾',
+        iconKey: 'statBlocks',
         summary: 'Every adversary block is a quick play kit.',
         bullets: [
           'Tier indicates intended PC level range.',
@@ -879,7 +879,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
       {
         id: 'roles',
         title: 'Adversary Roles',
-        emoji: '🎭',
+        iconKey: 'roleplay',
         summary: 'Roles describe how adversaries behave in fights.',
         bullets: [
           'Bruiser, Horde, Leader, Minion, Ranged, Skulk, Social, Solo, Standard, Support.',
@@ -894,7 +894,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
       {
         id: 'features',
         title: 'Features: Actions, Reactions, Passives',
-        emoji: '✨',
+        iconKey: 'domainCards',
         summary: 'Features are the heart of an adversary’s toolkit.',
         bullets: [
           'Actions require spotlight; reactions trigger off events.',
@@ -914,7 +914,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
       {
         id: 'fear-features',
         title: 'Fear Features',
-        emoji: '🔥',
+        iconKey: 'encounterDesign',
         summary: 'Scene-defining moves paid for with Fear.',
         bullets: [
           'Spend Fear for big area effects or reinforcements.',
@@ -928,7 +928,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
       {
         id: 'battle-points',
         title: 'Battle Points',
-        emoji: '📐',
+        iconKey: 'scaling',
         summary: 'A quick budgeting method for balanced encounters.',
         bullets: [
           'Base points: (3 × number of PCs) + 2.',
@@ -948,7 +948,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
   'campaign-frames': {
     id: 'campaign-frames',
     title: 'Campaign Frames',
-    emoji: '🗺️',
+    iconKey: 'worldbuilding',
     description:
       'Use frames to launch a campaign with shared tone, themes, and mechanics.',
     gradient: 'from-violet-500 via-fuchsia-500 to-pink-500',
@@ -956,7 +956,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
       {
         id: 'what-is',
         title: 'What Is a Campaign Frame?',
-        emoji: '📚',
+        iconKey: 'lore',
         summary: 'A frame is a structured starter kit for a full campaign.',
         bullets: [
           'Provides pitch, tone, themes, and touchstones.',
@@ -972,7 +972,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
       {
         id: 'complexity',
         title: 'Complexity Rating',
-        emoji: '⚙️',
+        iconKey: 'settings',
         summary: 'Higher complexity frames need more GM prep.',
         bullets: [
           'Lower complexity stays close to core Daggerheart play.',
@@ -986,7 +986,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
       {
         id: 'using-frame',
         title: 'Using a Frame',
-        emoji: '🧩',
+        iconKey: 'conditions',
         summary: 'Follow the shared steps to align the table.',
         bullets: [
           'Pitch the campaign to the players.',
@@ -1004,7 +1004,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
       {
         id: 'session-zero',
         title: 'Session Zero Questions',
-        emoji: '💬',
+        iconKey: 'communication',
         summary: 'Questions sharpen themes and set expectations.',
         bullets: [
           'Use frame questions to seed bonds and motivations.',

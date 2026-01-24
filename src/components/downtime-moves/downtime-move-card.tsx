@@ -27,7 +27,7 @@ export function DowntimeMoveCard({ move, onSelect }: DowntimeMoveCardProps) {
         <div className="flex items-start justify-between">
           <CardTitle className="text-base">{move.name}</CardTitle>
           <Badge variant="outline">
-            {category.icon} {category.label}
+            <category.icon className="size-4" /> {category.label}
           </Badge>
         </div>
         <CardDescription className="line-clamp-2">

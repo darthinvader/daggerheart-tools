@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useCoarsePointer } from '@/hooks/use-coarse-pointer';
+import { ICON_SIZE_MD, Package } from '@/lib/icons';
 import type { DomainCardLite } from '@/lib/schemas/loadout';
 
 import { buildCardProps, type PreviewCard } from './card-props-builder';
@@ -64,7 +65,7 @@ export function VaultSection({
       <Separator />
       <div>
         <h5 className="text-muted-foreground mb-3 flex items-center gap-2 text-xs font-medium tracking-wide uppercase">
-          📦 Vault
+          <Package size={ICON_SIZE_MD} className="inline-block" /> Vault
           <Badge variant="secondary" className="text-xs">
             {safeOriginalCards.length}
           </Badge>

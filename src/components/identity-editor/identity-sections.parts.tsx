@@ -1,3 +1,19 @@
+import {
+  Eye,
+  Handshake,
+  MessageSquare,
+  Pencil,
+  Scissors,
+  Scroll,
+  Shirt,
+  Sparkles,
+  Star,
+  Theater,
+  User,
+  UserRound,
+} from 'lucide-react';
+import type { ReactNode } from 'react';
+
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
@@ -15,7 +31,7 @@ export function IdentityHeader({ identity }: { identity: IdentityFormValues }) {
       {identity.pronouns && (
         <SmartTooltip content="Pronouns">
           <Badge variant="secondary" className="gap-1">
-            💬 {identity.pronouns}
+            <MessageSquare className="size-3" /> {identity.pronouns}
           </Badge>
         </SmartTooltip>
       )}
@@ -25,7 +41,7 @@ export function IdentityHeader({ identity }: { identity: IdentityFormValues }) {
             variant="outline"
             className="gap-1 border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-900/30"
           >
-            ⭐ {identity.calling}
+            <Star className="size-3" /> {identity.calling}
           </Badge>
         </SmartTooltip>
       )}
@@ -41,7 +57,7 @@ export function DescriptionSection({ description }: { description?: string }) {
       <Separator />
       <div>
         <h5 className="text-muted-foreground mb-2 flex items-center gap-2 text-xs font-medium tracking-wide uppercase">
-          📝 Description
+          <Pencil className="size-3" /> Description
         </h5>
         <p className="text-muted-foreground text-sm leading-relaxed">
           {description}
@@ -56,24 +72,54 @@ export function AppearanceSection({
 }: {
   details: IdentityFormValues['descriptionDetails'];
 }) {
-  const items = [
-    { key: 'eyes', label: 'Eyes', emoji: '👁️', value: details.eyes },
-    { key: 'hair', label: 'Hair', emoji: '💇', value: details.hair },
-    { key: 'skin', label: 'Skin', emoji: '✋', value: details.skin },
-    { key: 'body', label: 'Body', emoji: '🧍', value: details.body },
+  const items: {
+    key: string;
+    label: string;
+    icon: ReactNode;
+    value: string | undefined;
+  }[] = [
+    {
+      key: 'eyes',
+      label: 'Eyes',
+      icon: <Eye className="size-3" />,
+      value: details.eyes,
+    },
+    {
+      key: 'hair',
+      label: 'Hair',
+      icon: <Scissors className="size-3" />,
+      value: details.hair,
+    },
+    {
+      key: 'skin',
+      label: 'Skin',
+      icon: <UserRound className="size-3" />,
+      value: details.skin,
+    },
+    {
+      key: 'body',
+      label: 'Body',
+      icon: <User className="size-3" />,
+      value: details.body,
+    },
     {
       key: 'clothing',
       label: 'Clothing',
-      emoji: '👕',
+      icon: <Shirt className="size-3" />,
       value: details.clothing,
     },
     {
       key: 'mannerisms',
       label: 'Mannerisms',
-      emoji: '💭',
+      icon: <MessageSquare className="size-3" />,
       value: details.mannerisms,
     },
-    { key: 'other', label: 'Other', emoji: '✨', value: details.other },
+    {
+      key: 'other',
+      label: 'Other',
+      icon: <Sparkles className="size-3" />,
+      value: details.other,
+    },
   ].filter(item => item.value);
 
   if (items.length === 0) return null;
@@ -83,7 +129,7 @@ export function AppearanceSection({
       <Separator />
       <div>
         <h5 className="text-muted-foreground mb-3 flex items-center gap-2 text-xs font-medium tracking-wide uppercase">
-          🎭 Appearance
+          <Theater className="size-3" /> Appearance
         </h5>
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {items.map(item => (
@@ -92,7 +138,7 @@ export function AppearanceSection({
               className="rounded-lg border bg-linear-to-br from-slate-50 to-slate-100 p-3 dark:from-slate-900 dark:to-slate-800"
             >
               <div className="text-muted-foreground mb-1 flex items-center gap-1 text-xs tracking-wide uppercase">
-                <span>{item.emoji}</span>
+                {item.icon}
                 <span>{item.label}</span>
               </div>
               <p className="text-sm">{item.value}</p>
@@ -112,7 +158,7 @@ export function BackgroundSection({ background }: { background?: string }) {
       <Separator />
       <div>
         <h5 className="text-muted-foreground mb-2 flex items-center gap-2 text-xs font-medium tracking-wide uppercase">
-          📜 Background
+          <Scroll className="size-3" /> Background
         </h5>
         <div className="rounded-lg border bg-linear-to-br from-amber-50 to-orange-50 p-4 dark:from-amber-950/20 dark:to-orange-950/20">
           <p className="text-muted-foreground text-sm leading-relaxed">
@@ -139,7 +185,7 @@ function ConnectionCard({ connection }: { connection: Connection }) {
       <p className="text-muted-foreground mt-1 text-sm">{connection.answer}</p>
       {connection.withPlayer?.name && (
         <Badge variant="outline" className="mt-2 gap-1 text-xs">
-          🤝 With: {connection.withPlayer.name}
+          <Handshake className="size-3" /> With: {connection.withPlayer.name}
         </Badge>
       )}
     </div>
@@ -158,7 +204,7 @@ export function ConnectionsSection({
       <Separator />
       <div>
         <h5 className="text-muted-foreground mb-3 flex items-center gap-2 text-xs font-medium tracking-wide uppercase">
-          🤝 Connections
+          <Handshake className="size-3" /> Connections
         </h5>
         <div className="grid gap-3 sm:grid-cols-2">
           {connections.map((connection, index) => (

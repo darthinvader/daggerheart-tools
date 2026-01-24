@@ -6,6 +6,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import { Sparkle } from '@/lib/icons';
 import { cn } from '@/lib/utils';
 
 interface HopeFeatureCardProps {
@@ -22,7 +23,7 @@ export function HopeFeatureCard({ feature }: HopeFeatureCardProps) {
   return (
     <div className="space-y-1.5">
       <div className="flex items-center gap-2 px-1 text-sm font-medium">
-        <span>💫</span>
+        <Sparkle className="size-4" />
         <span>Hope Feature</span>
       </div>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>

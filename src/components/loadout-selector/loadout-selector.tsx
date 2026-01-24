@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 
+import { Package, Scroll, Zap } from '@/lib/icons';
 import type { DomainCard } from '@/lib/schemas/domains';
 import type {
   HomebrewDomainCard,
@@ -60,14 +61,18 @@ export function LoadoutSelector({
       {!hideHeader && (
         <div className="space-y-4">
           <h2 className="flex items-center gap-2 text-xl font-semibold">
-            <span>📜</span>
+            <Scroll size={20} />
             <span>Build Your Domain Loadout</span>
           </h2>
           <p className="text-muted-foreground">
-            Select cards for your active loadout (⚡) and vault (📦). You can
-            equip up to <strong>{state.rules.maxActiveCards}</strong> active
-            cards and store <strong>{state.rules.maxVaultCards}</strong> in your
-            vault.
+            Select cards for your active loadout (
+            <Zap size={14} className="inline-block" />) and vault (
+            <Package size={14} className="inline-block" />
+            ). You can equip up to <strong>
+              {state.rules.maxActiveCards}
+            </strong>{' '}
+            active cards and store <strong>{state.rules.maxVaultCards}</strong>{' '}
+            in your vault.
           </p>
         </div>
       )}

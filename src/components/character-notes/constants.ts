@@ -1,16 +1,20 @@
+import type { LucideIcon } from 'lucide-react';
+
+import { NoteCategoryIcons } from '@/lib/icons';
+
 import type { NoteCategory } from './types';
 
 export const NOTE_CATEGORIES: {
   value: NoteCategory;
   label: string;
-  icon: string;
+  icon: LucideIcon;
 }[] = [
-  { value: 'general', label: 'General', icon: '📝' },
-  { value: 'session', label: 'Session', icon: '📅' },
-  { value: 'npc', label: 'NPC', icon: '👤' },
-  { value: 'location', label: 'Location', icon: '🗺️' },
-  { value: 'quest', label: 'Quest', icon: '⚔️' },
-  { value: 'lore', label: 'Lore', icon: '📚' },
+  { value: 'general', label: 'General', icon: NoteCategoryIcons.general },
+  { value: 'session', label: 'Session', icon: NoteCategoryIcons.session },
+  { value: 'npc', label: 'NPC', icon: NoteCategoryIcons.npc },
+  { value: 'location', label: 'Location', icon: NoteCategoryIcons.location },
+  { value: 'quest', label: 'Quest', icon: NoteCategoryIcons.quest },
+  { value: 'lore', label: 'Lore', icon: NoteCategoryIcons.lore },
 ];
 
 export const NOTE_CATEGORY_MAP = Object.fromEntries(

@@ -109,7 +109,7 @@ export function DowntimeMoves({ activities, onChange }: DowntimeMovesProps) {
               return (
                 <div key={category.value} className="space-y-3">
                   <h4 className="flex items-center gap-2 font-medium">
-                    {category.icon} {category.label}
+                    <category.icon className="size-4" /> {category.label}
                   </h4>
                   <div className="grid gap-3 sm:grid-cols-2">
                     {moves.map(move => (

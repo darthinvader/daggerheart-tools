@@ -38,6 +38,18 @@ import {
 } from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ENVIRONMENTS } from '@/lib/data/environments';
+import {
+  Brain,
+  Compass,
+  DynamicIcon,
+  EnvironmentTierIcons,
+  EnvironmentTypeIcons,
+  getIcon,
+  Mountain,
+  Sparkles,
+  Swords,
+  Target,
+} from '@/lib/icons';
 import type { Environment } from '@/lib/schemas/environments';
 
 export const Route = createFileRoute('/references/environments')({
@@ -76,19 +88,43 @@ const typeColors: Record<Environment['type'], string> = {
 
 const defaultBadgeColor = 'bg-muted/50 text-foreground border-border';
 
-const tierEmojis: Record<Environment['tier'], string> = {
-  '1': '🌱',
-  '2': '🌿',
-  '3': '🔥',
-  '4': '⚡',
+// Text labels for select options (can't use icons in <option> elements)
+const tierLabels: Record<Environment['tier'], string> = {
+  '1': '[T1]',
+  '2': '[T2]',
+  '3': '[T3]',
+  '4': '[T4]',
 };
 
-const typeEmojis: Record<Environment['type'], string> = {
-  Exploration: '🧭',
-  Event: '🎭',
-  Social: '🗣️',
-  Traversal: '🧗',
+const typeLabels: Record<Environment['type'], string> = {
+  Exploration: '●',
+  Event: '●',
+  Social: '●',
+  Traversal: '●',
 };
+
+// Icon helper components for badges
+function TierIcon({
+  tier,
+  className = 'size-3 mr-1',
+}: {
+  tier: string;
+  className?: string;
+}) {
+  const icon = getIcon(EnvironmentTierIcons, tier);
+  return <DynamicIcon icon={icon} className={className} />;
+}
+
+function TypeIcon({
+  type,
+  className = 'size-3 mr-1',
+}: {
+  type: string;
+  className?: string;
+}) {
+  const icon = getIcon(EnvironmentTypeIcons, type, 'default');
+  return <DynamicIcon icon={icon} className={className} />;
+}
 
 const typeDescriptions: Record<Environment['type'], string> = {
   Exploration: 'Discovery-focused scenes and investigation play.',
@@ -105,15 +141,22 @@ interface TooltipLabelProps {
   label: string;
   tooltip: string;
   className?: string;
+  labelIcon?: React.ComponentType<{ className?: string }>;
 }
 
-function TooltipLabel({ label, tooltip, className }: TooltipLabelProps) {
+function TooltipLabel({
+  label,
+  tooltip,
+  className,
+  labelIcon: LabelIcon,
+}: TooltipLabelProps) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <span
           className={`cursor-help underline decoration-dotted underline-offset-2 ${className ?? ''}`}
         >
+          {LabelIcon && <LabelIcon className="mr-1 inline-block size-3" />}
           {label}:
         </span>
       </TooltipTrigger>
@@ -155,16 +198,16 @@ function EnvironmentCard({
       <CardHeader className={compact ? 'pb-2' : undefined}>
         <div className="flex flex-wrap items-center gap-2">
           <CardTitle className={compact ? 'text-lg' : 'text-2xl'}>
-            <span className="mr-2">🏞️</span>
+            <Mountain className="mr-2 inline-block size-5" />
             {environment.name}
           </CardTitle>
           <Badge variant="outline" className={`text-xs ${tierBadge}`}>
-            {tierEmojis[environment.tier]} Tier {environment.tier}
+            <TierIcon tier={environment.tier} /> Tier {environment.tier}
           </Badge>
           <Tooltip>
             <TooltipTrigger asChild>
               <Badge variant="outline" className={`text-xs ${typeBadge}`}>
-                {typeEmojis[environment.type] ?? '🧩'} {environment.type}
+                <TypeIcon type={environment.type} /> {environment.type}
               </Badge>
             </TooltipTrigger>
             <TooltipContent sideOffset={6}>
@@ -182,7 +225,8 @@ function EnvironmentCard({
         <div className="text-muted-foreground grid grid-cols-2 gap-2 text-xs">
           <div>
             <TooltipLabel
-              label="🎯 Difficulty"
+              label="Difficulty"
+              labelIcon={Target}
               tooltip="Target number to meet or beat in this environment."
               className="font-semibold"
             />{' '}
@@ -190,7 +234,8 @@ function EnvironmentCard({
           </div>
           <div>
             <TooltipLabel
-              label="🧠 Impulses"
+              label="Impulses"
+              labelIcon={Brain}
               tooltip="Narrative goals or behaviors the environment pushes toward."
               className="font-semibold"
             />{' '}
@@ -200,7 +245,8 @@ function EnvironmentCard({
         {!compact && environment.features.length > 0 && (
           <div className="text-muted-foreground space-y-1 text-xs">
             <TooltipLabel
-              label="✨ Features"
+              label="Features"
+              labelIcon={Sparkles}
               tooltip="Actions, reactions, or passive effects for the scene."
               className="font-semibold"
             />
@@ -225,15 +271,20 @@ function EnvironmentDetail({ environment }: { environment: EnvironmentItem }) {
   return (
     <div className="space-y-6">
       <div className="-mx-4 -mt-4 bg-linear-to-r from-emerald-500 via-teal-500 to-sky-500 p-6">
-        <h2 className="text-3xl font-bold text-white">🏞️ {environment.name}</h2>
+        <h2 className="text-3xl font-bold text-white">
+          <Mountain className="mr-2 inline-block size-8" />
+          {environment.name}
+        </h2>
         <div className="mt-3 flex flex-wrap gap-2">
           <Badge className="border-white/30 bg-white/20 text-white">
-            {tierEmojis[environment.tier]} Tier {environment.tier}
+            <TierIcon tier={environment.tier} className="mr-1 size-4" /> Tier{' '}
+            {environment.tier}
           </Badge>
           <Tooltip>
             <TooltipTrigger asChild>
               <Badge className="border-white/30 bg-white/20 text-white">
-                {typeEmojis[environment.type] ?? '🧩'} {environment.type}
+                <TypeIcon type={environment.type} className="mr-1 size-4" />{' '}
+                {environment.type}
               </Badge>
             </TooltipTrigger>
             <TooltipContent sideOffset={6}>
@@ -248,7 +299,8 @@ function EnvironmentDetail({ environment }: { environment: EnvironmentItem }) {
       <div className="grid grid-cols-2 gap-4 text-sm">
         <div>
           <TooltipLabel
-            label="🎯 Difficulty"
+            label="Difficulty"
+            labelIcon={Target}
             tooltip="Target number to meet or beat in this environment."
             className="font-semibold"
           />{' '}
@@ -256,7 +308,8 @@ function EnvironmentDetail({ environment }: { environment: EnvironmentItem }) {
         </div>
         <div>
           <TooltipLabel
-            label="🧭 Type"
+            label="Type"
+            labelIcon={Compass}
             tooltip="Scene style this environment supports most naturally."
             className="font-semibold"
           />{' '}
@@ -267,7 +320,8 @@ function EnvironmentDetail({ environment }: { environment: EnvironmentItem }) {
       <div>
         <h4 className="mb-2 font-semibold">
           <TooltipLabel
-            label="🧠 Impulses"
+            label="Impulses"
+            labelIcon={Brain}
             tooltip="Narrative goals or behaviors the environment pushes toward."
             className="font-semibold"
           />
@@ -283,7 +337,8 @@ function EnvironmentDetail({ environment }: { environment: EnvironmentItem }) {
         <div>
           <h4 className="mb-2 font-semibold">
             <TooltipLabel
-              label="⚔️ Potential Adversaries"
+              label="Potential Adversaries"
+              labelIcon={Swords}
               tooltip="Common adversaries that appear in this environment."
               className="font-semibold"
             />
@@ -300,7 +355,8 @@ function EnvironmentDetail({ environment }: { environment: EnvironmentItem }) {
         <div>
           <h4 className="mb-2 font-semibold">
             <TooltipLabel
-              label="✨ Features"
+              label="Features"
+              labelIcon={Sparkles}
               tooltip="Actions, reactions, or passive effects for the scene."
               className="font-semibold"
             />
@@ -315,12 +371,12 @@ function EnvironmentDetail({ environment }: { environment: EnvironmentItem }) {
 
       <div className="flex flex-wrap gap-2">
         <Badge variant="outline" className={`text-xs ${tierBadge}`}>
-          {tierEmojis[environment.tier]} Tier {environment.tier}
+          <TierIcon tier={environment.tier} /> Tier {environment.tier}
         </Badge>
         <Tooltip>
           <TooltipTrigger asChild>
             <Badge variant="outline" className={`text-xs ${typeBadge}`}>
-              {typeEmojis[environment.type] ?? '🧩'} {environment.type}
+              <TypeIcon type={environment.type} /> {environment.type}
             </Badge>
           </TooltipTrigger>
           <TooltipContent sideOffset={6}>
@@ -424,7 +480,8 @@ function EnvironmentsReferencePage() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="bg-linear-to-r from-emerald-500 via-teal-500 to-sky-500 bg-clip-text text-2xl font-bold text-transparent">
-              � Environments Reference
+              <Mountain className="mr-2 inline-block size-6" />
+              Environments Reference
             </h1>
             <ResultsCounter
               filtered={filteredEnvironments.length}
@@ -445,7 +502,7 @@ function EnvironmentsReferencePage() {
                 <option value="all">All tiers</option>
                 {tierOrder.map(tier => (
                   <option key={tier} value={tier}>
-                    {tierEmojis[tier]} Tier {tier}
+                    {tierLabels[tier]} Tier {tier}
                   </option>
                 ))}
               </select>
@@ -460,7 +517,7 @@ function EnvironmentsReferencePage() {
                 <option value="all">All types</option>
                 {typeOrder.map(type => (
                   <option key={type} value={type}>
-                    {typeEmojis[type]} {type}
+                    {typeLabels[type]} {type}
                   </option>
                 ))}
               </select>

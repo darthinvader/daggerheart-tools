@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 
 import { EditableSection } from '@/components/shared/editable-section';
+import { Scroll } from '@/lib/icons';
 import type { DomainCardLite, LoadoutSelection } from '@/lib/schemas/loadout';
 import { cn } from '@/lib/utils';
 
@@ -97,7 +98,7 @@ export function LoadoutDisplay({
   return (
     <EditableSection
       title="Domain Loadout"
-      emoji="📜"
+      icon={Scroll}
       isEditing={isEditing}
       onEditToggle={handleEditToggle}
       onSave={handleSave}

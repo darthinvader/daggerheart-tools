@@ -1,3 +1,4 @@
+import { Dice5 } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
 import { EditableSection } from '@/components/shared/editable-section';
@@ -154,7 +155,7 @@ export function TraitsDisplay({
   return (
     <EditableSection
       title="Traits"
-      emoji="🎲"
+      icon={Dice5}
       isEditing={isEditing}
       onEditToggle={isEditing ? handleEditToggle : handleOpen}
       showEditButton={!readOnly}

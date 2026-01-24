@@ -2,6 +2,7 @@ import { Dog } from 'lucide-react';
 
 import { CompanionDisplay, type CompanionState } from '@/components/companion';
 import { Button } from '@/components/ui/button';
+import { PawPrint } from '@/lib/icons';
 
 interface CompanionSectionProps {
   hasCompanionFeature: boolean;
@@ -42,7 +43,7 @@ export function CompanionSection({
     <section className="bg-card hover:border-primary/20 rounded-xl border shadow-sm transition-colors">
       <div className="flex items-center justify-between border-b px-4 py-3 sm:px-6">
         <div className="flex items-center gap-2">
-          <span className="text-xl">🐾</span>
+          <PawPrint className="size-5" />
           <h3 className="text-lg font-semibold">Companion</h3>
         </div>
       </div>

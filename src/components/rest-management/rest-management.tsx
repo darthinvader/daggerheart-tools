@@ -68,7 +68,7 @@ export function RestManagement({
       <section className="bg-card hover:border-primary/20 rounded-xl border shadow-sm transition-colors">
         <div className="flex items-center justify-between border-b px-4 py-3 sm:px-6">
           <div className="flex items-center gap-2">
-            <span className="text-xl">💤</span>
+            <Moon className="size-5" />
             <h3 className="text-lg font-semibold">Rest Management</h3>
           </div>
         </div>

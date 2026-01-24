@@ -1,5 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Axe, Gem, Sword, Wheelchair } from '@/lib/icons';
 import type {
   CombatWheelchair,
   PrimaryWeapon,
@@ -101,7 +102,7 @@ function WeaponGrid({
   return (
     <div className="grid gap-4 md:grid-cols-2">
       <WeaponSummaryCard
-        icon="⚔️"
+        icon={Sword}
         label="Primary Weapon"
         name={primaryData.name}
         isHomebrew={primaryMode === 'homebrew'}
@@ -114,7 +115,7 @@ function WeaponGrid({
         tier={primaryData.tier}
       />
       <WeaponSummaryCard
-        icon="🗡️"
+        icon={Axe}
         label="Secondary Weapon"
         name={secondaryData.name}
         isHomebrew={secondaryMode === 'homebrew'}
@@ -159,7 +160,7 @@ function ArmorGrid({
         tier={armorData.tier}
       />
       <WeaponSummaryCard
-        icon="♿"
+        icon={Wheelchair}
         label="Combat Wheelchair"
         name={wheelchairData.name}
         isHomebrew={useCombatWheelchair && wheelchairMode === 'homebrew'}
@@ -185,7 +186,7 @@ function CustomSlotsSection({ slots }: { slots: CustomEquipment[] }) {
       <Separator />
       <div>
         <h4 className="text-muted-foreground mb-3 flex items-center gap-2 text-sm font-medium">
-          💎 Custom Equipment
+          <Gem className="h-4 w-4" /> Custom Equipment
           <Badge variant="secondary">{slots.length}</Badge>
         </h4>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

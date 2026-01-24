@@ -1,3 +1,5 @@
+import { Star, Zap } from 'lucide-react';
+
 import { Badge } from '@/components/ui/badge';
 import { CLASS_BG_COLORS, CLASS_COLORS } from '@/lib/schemas/class-selection';
 import type { SubclassFeature } from '@/lib/schemas/core';
@@ -37,10 +39,17 @@ export function UpgradeOptionCard({
         </span>
         <Badge
           variant={option.upgradeType === 'mastery' ? 'default' : 'secondary'}
+          className="gap-1"
         >
-          {option.upgradeType === 'mastery'
-            ? '⭐ Mastery'
-            : '🔷 Specialization'}
+          {option.upgradeType === 'mastery' ? (
+            <>
+              <Star className="size-3" /> Mastery
+            </>
+          ) : (
+            <>
+              <Zap className="size-3" /> Specialization
+            </>
+          )}
         </Badge>
         {option.feature.level && (
           <Badge variant="outline">Level {option.feature.level}+</Badge>

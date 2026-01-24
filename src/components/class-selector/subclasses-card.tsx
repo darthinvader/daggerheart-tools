@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Theater } from '@/lib/icons';
 import type { HomebrewClass } from '@/lib/schemas/class-selection';
 import type { SubclassFeature } from '@/lib/schemas/core';
 
@@ -43,7 +44,9 @@ export function SubclassesCard({
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Badge variant="outline">🎭</Badge>
+            <Badge variant="outline" className="inline-flex items-center">
+              <Theater className="size-3" />
+            </Badge>
             <CardTitle className="text-base">Subclasses</CardTitle>
           </div>
           <Button variant="outline" size="sm" onClick={addSubclass}>

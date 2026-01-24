@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Flame } from '@/lib/icons';
 
 import { DEATH_MOVE_OPTIONS } from './constants';
 import { DeathMoveOptionCard } from './death-move-option-card';
@@ -139,8 +140,12 @@ export function DeathMoveModal({
               <Button variant="outline" onClick={() => setIsConfirming(false)}>
                 Go Back
               </Button>
-              <Button variant="destructive" onClick={handleConfirmBlazeOfGlory}>
-                🔥 Embrace Death
+              <Button
+                variant="destructive"
+                onClick={handleConfirmBlazeOfGlory}
+                className="gap-1.5"
+              >
+                <Flame className="size-4" /> Embrace Death
               </Button>
             </>
           )}

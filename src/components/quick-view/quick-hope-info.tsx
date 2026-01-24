@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 
 import type { HopeWithScarsState } from '@/components/scars';
 import { NumberControl } from '@/components/shared/labeled-counter/number-control';
+import { Check, Circle, PawPrint, Skull, Sparkles } from '@/lib/icons';
 import type { Scar } from '@/lib/schemas/session-state';
 import { cn } from '@/lib/utils';
 
@@ -14,7 +15,9 @@ interface QuickHopeInfoProps {
 
 function ScarItem({ scar }: { scar: Scar }) {
   return (
-    <span className="text-destructive text-xs">💀 {scar.description}</span>
+    <span className="text-destructive flex items-center gap-1 text-xs">
+      <Skull className="size-3" /> {scar.description}
+    </span>
   );
 }
 
@@ -45,7 +48,7 @@ export function QuickHopeInfo({
     <div className={cn('bg-card rounded-lg border p-3', className)}>
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <span className="text-lg">✨</span>
+          <Sparkles className="size-5" />
           <span className="text-muted-foreground text-sm">Hope</span>
         </div>
         <div className="flex items-center gap-2">
@@ -79,8 +82,15 @@ export function QuickHopeInfo({
           )}
           disabled={!onChange}
         >
-          <span>🐾</span>
-          <span>Companion: {companionHopeFilled ? '✓' : '○'}</span>
+          <PawPrint className="size-3" />
+          <span className="flex items-center gap-0.5">
+            Companion:{' '}
+            {companionHopeFilled ? (
+              <Check className="size-3" />
+            ) : (
+              <Circle className="size-3" />
+            )}
+          </span>
         </button>
       )}
 

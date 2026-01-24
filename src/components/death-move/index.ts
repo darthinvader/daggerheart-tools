@@ -15,4 +15,4 @@ export { useDeathMove } from './use-death-move';
 export { checkForScar, resolveRiskItAll, rollD12 } from './death-move-utils';
 
 // Constants
-export { DEATH_MOVE_OPTIONS } from './constants';
+export { DEATH_MOVE_OPTIONS, type DeathMoveIconKey } from './constants';

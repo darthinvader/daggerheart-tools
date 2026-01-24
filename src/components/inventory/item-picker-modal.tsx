@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { AlertTriangle, Backpack, Ban, Package } from '@/lib/icons';
 import type { AnyItem, InventoryItemEntry } from '@/lib/schemas/equipment';
 
 import { ItemFilters } from './item-filters';
@@ -45,7 +46,7 @@ function PickerHeader({
   return (
     <DialogHeader className="shrink-0">
       <DialogTitle className="flex flex-wrap items-center gap-2">
-        <span className="text-2xl">🎒</span>
+        <Backpack className="size-6" />
         Add Items to Inventory
         {totalQuantity > 0 && (
           <Badge className="bg-green-500">{totalQuantity} selected</Badge>
@@ -59,9 +60,15 @@ function PickerHeader({
                 : 'border-blue-300 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/50 dark:text-blue-300'
             }
           >
-            {slotsRemaining <= 0
-              ? '🚫 Full'
-              : `📦 ${slotsRemaining} slots left`}
+            {slotsRemaining <= 0 ? (
+              <span className="flex items-center gap-1">
+                <Ban className="size-3" /> Full
+              </span>
+            ) : (
+              <span className="flex items-center gap-1">
+                <Package className="size-3" /> {slotsRemaining} slots left
+              </span>
+            )}
           </Badge>
         )}
       </DialogTitle>
@@ -75,7 +82,7 @@ function PickerHeader({
 function CapacityWarning({ maxSlots }: { maxSlots: number }) {
   return (
     <div className="flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-950/50 dark:text-amber-200">
-      <span className="text-lg">⚠️</span>
+      <AlertTriangle className="size-5 shrink-0" />
       <div>
         <span className="font-medium">Inventory Full!</span> You've reached your
         maximum of <strong>{maxSlots} slots</strong>. Remove items or enable{' '}

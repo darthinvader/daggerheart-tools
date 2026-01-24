@@ -10,14 +10,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { FeatureTypeIcons } from '@/lib/icons';
 import type { SubclassFeature } from '@/lib/schemas/core';
 
 const FEATURE_TYPES = ['foundation', 'specialization', 'mastery'] as const;
-const FEATURE_TYPE_EMOJIS: Record<string, string> = {
-  foundation: '🏛️',
-  specialization: '⚡',
-  mastery: '👑',
-};
 const FEATURE_TYPE_COLORS: Record<string, string> = {
   foundation: 'bg-blue-500/10 text-blue-700 border-blue-500/30',
   specialization: 'bg-purple-500/10 text-purple-700 border-purple-500/30',
@@ -42,11 +38,16 @@ export function SubclassFeatureItem({
       <div className="flex items-center justify-between gap-2">
         <Badge
           variant="outline"
-          className={
+          className={`inline-flex items-center gap-1 ${
             FEATURE_TYPE_COLORS[feature.type] || FEATURE_TYPE_COLORS.foundation
-          }
+          }`}
         >
-          {FEATURE_TYPE_EMOJIS[feature.type] || '⭐'} {feature.type}
+          {(() => {
+            const Icon =
+              FeatureTypeIcons[feature.type] ?? FeatureTypeIcons.default;
+            return <Icon className="size-3" />;
+          })()}
+          {feature.type}
         </Badge>
         <Button
           variant="ghost"
@@ -78,12 +79,18 @@ export function SubclassFeatureItem({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {FEATURE_TYPES.map(type => (
-                <SelectItem key={type} value={type}>
-                  {FEATURE_TYPE_EMOJIS[type]}{' '}
-                  {type.charAt(0).toUpperCase() + type.slice(1)}
-                </SelectItem>
-              ))}
+              {FEATURE_TYPES.map(type => {
+                const TypeIcon =
+                  FeatureTypeIcons[type] ?? FeatureTypeIcons.default;
+                return (
+                  <SelectItem key={type} value={type}>
+                    <span className="flex items-center gap-1">
+                      <TypeIcon className="size-3" />
+                      {type.charAt(0).toUpperCase() + type.slice(1)}
+                    </span>
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
         </div>

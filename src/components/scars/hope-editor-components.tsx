@@ -1,3 +1,5 @@
+import { PawPrint } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 
@@ -14,7 +16,7 @@ export function CompanionHopeToggle({
     <div className="rounded-lg border-2 border-emerald-400/50 bg-emerald-50/50 p-4 dark:bg-emerald-950/20">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-xl">🐾</span>
+          <PawPrint className="size-5 text-emerald-600" />
           <div>
             <Label className="font-medium text-emerald-700 dark:text-emerald-300">
               Companion Hope
@@ -34,7 +36,9 @@ export function CompanionHopeToggle({
           }`}
           aria-label={`Companion hope ${filled ? 'filled' : 'empty'}`}
         >
-          <span className={`text-xl ${filled ? '' : 'opacity-40'}`}>🐾</span>
+          <PawPrint
+            className={`size-5 ${filled ? 'text-white' : 'opacity-40'}`}
+          />
         </button>
       </div>
     </div>

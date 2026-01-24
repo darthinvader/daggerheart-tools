@@ -1,3 +1,5 @@
+import { Axe, Sword } from '@/lib/icons';
+
 import { ClickableCard } from './clickable-card';
 import type { EquipmentState } from './equipment-editor';
 import { WeaponSummaryCard } from './summary';
@@ -30,7 +32,7 @@ export function WeaponCardsRow({
     <div className="grid gap-4 md:grid-cols-2">
       <ClickableCard onClick={() => openSection('primary')} disabled={readOnly}>
         <WeaponSummaryCard
-          icon="⚔️"
+          icon={Sword}
           label="Primary Weapon"
           name={primaryData.name}
           isHomebrew={equipment.primaryWeaponMode === 'homebrew'}
@@ -49,7 +51,7 @@ export function WeaponCardsRow({
         disabled={readOnly}
       >
         <WeaponSummaryCard
-          icon="🗡️"
+          icon={Axe}
           label="Secondary Weapon"
           name={secondaryData.name}
           isHomebrew={equipment.secondaryWeaponMode === 'homebrew'}

@@ -5,6 +5,15 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
+import {
+  Blend,
+  BookOpen,
+  PersonStanding,
+  Ruler,
+  Sparkles,
+  Star,
+  Theater,
+} from '@/lib/icons';
 import type {
   Ancestry,
   AncestrySelection,
@@ -67,14 +76,14 @@ interface AncestryDisplayProps {
 function EmptyAncestry({ onEdit }: { onEdit?: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center py-8 text-center">
-      <span className="text-4xl opacity-50">🧬</span>
+      <PersonStanding className="size-10 opacity-50" />
       <p className="text-muted-foreground mt-2">No ancestry selected</p>
       <p className="text-muted-foreground mb-4 text-sm">
         Choose your character's heritage
       </p>
       {onEdit && (
         <Button variant="outline" onClick={onEdit}>
-          🧬 Select Ancestry
+          <PersonStanding className="mr-1 size-4" /> Select Ancestry
         </Button>
       )}
     </div>
@@ -87,14 +96,14 @@ function StandardAncestryContent({ ancestry }: { ancestry: Ancestry }) {
       <div className="flex flex-wrap items-center gap-2">
         <h4 className="text-xl font-bold">{ancestry.name}</h4>
         <Badge variant="secondary" className="gap-1">
-          📖 Standard
+          <BookOpen className="size-3" /> Standard
         </Badge>
       </div>
 
       <div className="flex flex-wrap gap-3 text-sm">
         <SmartTooltip content="Typical height range for this ancestry">
           <span className="bg-muted flex items-center gap-1 rounded-full px-3 py-1">
-            📏 {ancestry.heightRange}
+            <Ruler className="size-4" /> {ancestry.heightRange}
           </span>
         </SmartTooltip>
         <SmartTooltip content="Average lifespan">
@@ -132,7 +141,7 @@ function StandardAncestryContent({ ancestry }: { ancestry: Ancestry }) {
           <Separator />
           <div>
             <h5 className="text-muted-foreground mb-3 flex items-center gap-2 text-xs font-medium tracking-wide uppercase">
-              🎭 Physical Characteristics
+              <Theater className="size-4" /> Physical Characteristics
             </h5>
             <div className="flex flex-wrap gap-2">
               {ancestry.physicalCharacteristics.map(char => (
@@ -171,7 +180,7 @@ function MixedAncestryContent({
           variant="secondary"
           className="gap-1 border-purple-300 bg-purple-100 text-purple-700 dark:border-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
         >
-          🔀 Mixed
+          <Blend className="size-4" /> Mixed
         </Badge>
       </div>
 
@@ -182,7 +191,8 @@ function MixedAncestryContent({
               variant="outline"
               className="border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-900/30"
             >
-              ⭐ {parentAncestries[0]}
+              <Star className="size-4 text-amber-600 dark:text-amber-400" />{' '}
+              {parentAncestries[0]}
             </Badge>
           </SmartTooltip>
           <span className="text-muted-foreground">+</span>
@@ -191,7 +201,8 @@ function MixedAncestryContent({
               variant="outline"
               className="border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-900/30"
             >
-              ✨ {parentAncestries[1]}
+              <Sparkles className="size-4 text-blue-600 dark:text-blue-400" />{' '}
+              {parentAncestries[1]}
             </Badge>
           </SmartTooltip>
         </div>
@@ -205,10 +216,12 @@ function MixedAncestryContent({
             {primaryParent && (
               <div className="space-y-2 rounded-lg border border-amber-200 bg-amber-50/50 p-3 dark:border-amber-800 dark:bg-amber-950/20">
                 <h6 className="flex items-center gap-2 font-medium text-amber-600 dark:text-amber-400">
-                  ⭐ {primaryParent.name}
+                  <Star className="size-4" /> {primaryParent.name}
                 </h6>
                 <div className="text-muted-foreground space-y-1 text-xs">
-                  <p>📏 {primaryParent.heightRange}</p>
+                  <p className="flex items-center gap-1">
+                    <Ruler className="size-3" /> {primaryParent.heightRange}
+                  </p>
                   <p>⏳ {primaryParent.lifespan}</p>
                 </div>
               </div>
@@ -217,10 +230,12 @@ function MixedAncestryContent({
             {secondaryParent && (
               <div className="space-y-2 rounded-lg border border-blue-200 bg-blue-50/50 p-3 dark:border-blue-800 dark:bg-blue-950/20">
                 <h6 className="flex items-center gap-2 font-medium text-blue-600 dark:text-blue-400">
-                  ✨ {secondaryParent.name}
+                  <Sparkles className="size-4" /> {secondaryParent.name}
                 </h6>
                 <div className="text-muted-foreground space-y-1 text-xs">
-                  <p>📏 {secondaryParent.heightRange}</p>
+                  <p className="flex items-center gap-1">
+                    <Ruler className="size-3" /> {secondaryParent.heightRange}
+                  </p>
                   <p>⏳ {secondaryParent.lifespan}</p>
                 </div>
               </div>
@@ -312,7 +327,7 @@ export function AncestryDisplay({
   return (
     <EditableSection
       title="Ancestry"
-      emoji="🧬"
+      icon={PersonStanding}
       isEditing={isEditing}
       onEditToggle={handleEditToggle}
       onSave={handleSave}

@@ -18,6 +18,7 @@ import { LevelUpModal } from '@/components/level-up';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
+import { Backpack, BarChart3, Dice5, User } from '@/lib/icons';
 
 import { ResponsiveTabsList } from './responsive-tabs';
 import { useCharacterSheetWithApi } from './use-character-sheet-api';
@@ -142,14 +143,18 @@ export function CharacterSheet({
 
   const primaryTabs = [
     { value: 'quick', label: '⚡ Quick' },
-    { value: 'overview', label: '📊 Overview' },
+    {
+      value: 'overview',
+      label: 'Overview',
+      icon: <BarChart3 className="size-4" />,
+    },
   ];
 
   const secondaryTabs = [
-    { value: 'identity', label: '👤 Identity' },
+    { value: 'identity', label: 'Identity', icon: <User className="size-4" /> },
     { value: 'combat', label: '⚔️ Combat' },
-    { value: 'items', label: '🎒 Items' },
-    { value: 'session', label: '🎲 Session' },
+    { value: 'items', label: 'Items', icon: <Backpack className="size-4" /> },
+    { value: 'session', label: 'Session', icon: <Dice5 className="size-4" /> },
   ];
 
   if (isLoading) {

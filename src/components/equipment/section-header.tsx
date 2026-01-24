@@ -8,7 +8,6 @@ import { Switch } from '@/components/ui/switch';
 
 interface SectionHeaderProps {
   icon: React.ReactNode;
-  emoji: string;
   title: string;
   isOpen: boolean;
   onToggle: () => void;
@@ -20,7 +19,6 @@ interface SectionHeaderProps {
 
 export function SectionHeader({
   icon,
-  emoji,
   title,
   isOpen,
   onToggle,
@@ -36,9 +34,7 @@ export function SectionHeader({
       onClick={onToggle}
     >
       {icon}
-      <span className="text-lg font-semibold">
-        {emoji} {title}
-      </span>
+      <span className="text-lg font-semibold">{title}</span>
       {selectedName && !isOpen && (
         <Badge variant="secondary" className="ml-2">
           {selectedName}

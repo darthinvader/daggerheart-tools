@@ -4,7 +4,9 @@ import { FeaturesEditor } from '@/components/shared';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { DynamicIcon, EquipmentSlotIcons, Sparkles } from '@/lib/icons';
 
+import { getSlotIcon } from './constants';
 import { TextField } from './form';
 import { SlotTypeSelector } from './slot-type-selector';
 
@@ -13,7 +15,7 @@ export interface CustomEquipment {
   id: string;
   name: string;
   slotName: string;
-  slotIcon: string;
+  slotIconKey: string;
   description: string;
   features: Array<{ name: string; description: string }>;
 }
@@ -46,8 +48,8 @@ export function CustomSlotEditor({
 
       <Header
         equipment={equipment}
-        onSlotChange={(slotName, slotIcon) =>
-          onUpdate({ ...equipment, slotName, slotIcon })
+        onSlotChange={(slotName, slotIconKey) =>
+          onUpdate({ ...equipment, slotName, slotIconKey })
         }
         onDelete={onDelete}
       />
@@ -93,7 +95,7 @@ function DragHandle() {
 
 interface HeaderProps {
   equipment: CustomEquipment;
-  onSlotChange: (slotName: string, slotIcon: string) => void;
+  onSlotChange: (slotName: string, slotIconKey: string) => void;
   onDelete: () => void;
 }
 
@@ -102,7 +104,7 @@ function Header({ equipment, onSlotChange, onDelete }: HeaderProps) {
     <div className="mb-4 flex items-start justify-between gap-3">
       <SlotTypeSelector
         slotName={equipment.slotName}
-        slotIcon={equipment.slotIcon}
+        slotIconKey={equipment.slotIconKey}
         onSlotChange={onSlotChange}
       />
       <Button
@@ -124,11 +126,14 @@ function Preview({ equipment }: { equipment: CustomEquipment }) {
   const filledFeatures = equipment.features.filter(f => f.name);
   const displaySlotName =
     equipment.slotName === 'Custom' ? 'Custom Slot' : equipment.slotName;
+  const slotIcon = getSlotIcon(
+    equipment.slotIconKey as keyof typeof EquipmentSlotIcons
+  );
 
   return (
     <div className="bg-card mt-4 rounded border p-3">
       <div className="mb-1 flex items-center gap-2">
-        <span className="text-lg">{equipment.slotIcon}</span>
+        <DynamicIcon icon={slotIcon} className="h-5 w-5" />
         <span className="font-semibold">{equipment.name}</span>
         <Badge variant="outline" className="text-[10px]">
           {displaySlotName}
@@ -144,8 +149,11 @@ function Preview({ equipment }: { equipment: CustomEquipment }) {
           {filledFeatures.map((f, i) => (
             <div key={i} className="bg-muted/50 rounded border p-2">
               <div className="flex items-center gap-1">
-                <Badge variant="secondary" className="text-[10px]">
-                  ✨ {f.name}
+                <Badge
+                  variant="secondary"
+                  className="flex items-center gap-1 text-[10px]"
+                >
+                  <Sparkles className="h-3 w-3" /> {f.name}
                 </Badge>
               </div>
               {f.description && (

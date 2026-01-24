@@ -1,6 +1,8 @@
+import { GraduationCap } from 'lucide-react';
+
 import { Label } from '@/components/ui/label';
 
-import { TRAINING_EMOJIS } from './constants';
+import { CompanionTrainingIcons } from './constants';
 import { CheckboxTraining, CounterTraining } from './training-controls';
 import type { CompanionState } from './types';
 
@@ -21,7 +23,7 @@ export function TrainingSection({
   return (
     <div className="space-y-3">
       <Label className="flex items-center gap-2">
-        <span className="text-lg">🎓</span>
+        <GraduationCap className="size-5" />
         Training (choose when you level up)
       </Label>
 
@@ -32,7 +34,7 @@ export function TrainingSection({
           value={training.intelligent ?? 0}
           max={3}
           onChange={delta => onCount('intelligent', delta)}
-          emoji={TRAINING_EMOJIS.intelligent}
+          Icon={CompanionTrainingIcons.intelligent}
           color="border-blue-400/50"
         />
         <CounterTraining
@@ -41,7 +43,7 @@ export function TrainingSection({
           value={training.vicious ?? 0}
           max={3}
           onChange={delta => onCount('vicious', delta)}
-          emoji={TRAINING_EMOJIS.vicious}
+          Icon={CompanionTrainingIcons.vicious}
           color="border-red-400/50"
         />
         <CounterTraining
@@ -50,7 +52,7 @@ export function TrainingSection({
           value={training.resilient ?? 0}
           max={3}
           onChange={delta => onCount('resilient', delta)}
-          emoji={TRAINING_EMOJIS.resilient}
+          Icon={CompanionTrainingIcons.resilient}
           color="border-amber-400/50"
         />
         <CounterTraining
@@ -59,7 +61,7 @@ export function TrainingSection({
           value={training.aware ?? 0}
           max={3}
           onChange={delta => onCount('aware', delta)}
-          emoji={TRAINING_EMOJIS.aware}
+          Icon={CompanionTrainingIcons.aware}
           color="border-purple-400/50"
         />
       </div>
@@ -70,7 +72,7 @@ export function TrainingSection({
           description="Additional Hope slot for your character"
           checked={training.lightInTheDark ?? false}
           onCheckedChange={() => onToggle('lightInTheDark')}
-          emoji={TRAINING_EMOJIS.lightInTheDark}
+          Icon={CompanionTrainingIcons.lightInTheDark}
           color="border-yellow-400/50"
         />
         <CheckboxTraining
@@ -78,7 +80,7 @@ export function TrainingSection({
           description="Once per rest: gain Hope or both clear Stress"
           checked={training.creatureComfort ?? false}
           onCheckedChange={() => onToggle('creatureComfort')}
-          emoji={TRAINING_EMOJIS.creatureComfort}
+          Icon={CompanionTrainingIcons.creatureComfort}
           color="border-pink-400/50"
         />
         <CheckboxTraining
@@ -86,7 +88,7 @@ export function TrainingSection({
           description="Mark your Armor Slot instead of companion Stress"
           checked={training.armored ?? false}
           onCheckedChange={() => onToggle('armored')}
-          emoji={TRAINING_EMOJIS.armored}
+          Icon={CompanionTrainingIcons.armored}
           color="border-slate-400/50"
         />
         <CheckboxTraining
@@ -94,7 +96,7 @@ export function TrainingSection({
           description="Companion may help you up at last HP"
           checked={training.bonded ?? false}
           onCheckedChange={() => onToggle('bonded')}
-          emoji={TRAINING_EMOJIS.bonded}
+          Icon={CompanionTrainingIcons.bonded}
           color="border-green-400/50"
         />
       </div>

@@ -1,5 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Ruler, Theater, Wrench } from '@/lib/icons';
 import type { Ancestry } from '@/lib/schemas/identity';
 
 import { FeatureCard } from './feature-card';
@@ -16,7 +17,7 @@ function AncestryPhysicalStats({
     <div className="flex flex-wrap gap-3 text-sm">
       {heightRange && (
         <span className="bg-muted flex items-center gap-1 rounded-full px-3 py-1">
-          📏 {heightRange}
+          <Ruler className="size-4" /> {heightRange}
         </span>
       )}
       {lifespan && (
@@ -67,7 +68,7 @@ function PhysicalCharacteristics({
       <Separator />
       <div>
         <h5 className="text-muted-foreground mb-3 flex items-center gap-2 text-xs font-medium tracking-wide uppercase">
-          🎭 Physical Characteristics
+          <Theater className="size-4" /> Physical Characteristics
         </h5>
         <div className="flex flex-wrap gap-2">
           {characteristics.map(char => (
@@ -92,7 +93,7 @@ export function HomebrewAncestryContent({ ancestry }: { ancestry: Ancestry }) {
           variant="secondary"
           className="gap-1 border-green-300 bg-green-100 text-green-700 dark:border-green-700 dark:bg-green-900/30 dark:text-green-300"
         >
-          🛠️ Homebrew
+          <Wrench className="size-3" /> Homebrew
         </Badge>
       </div>
 

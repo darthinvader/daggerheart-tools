@@ -1,3 +1,4 @@
+import { Axe, Sword } from '@/lib/icons';
 import type { BaseFeature } from '@/lib/schemas/core';
 
 import { ClickableCard } from './clickable-card';
@@ -38,7 +39,7 @@ export function WeaponsGridRow({
     <div className="grid gap-3 sm:grid-cols-2">
       <ClickableCard onClick={onPrimaryClick} disabled={readOnly}>
         <WeaponSummaryCard
-          icon="⚔️"
+          icon={Sword}
           label="Primary Weapon"
           name={primaryData.name}
           isHomebrew={primaryIsHomebrew}
@@ -54,7 +55,7 @@ export function WeaponsGridRow({
       </ClickableCard>
       <ClickableCard onClick={onSecondaryClick} disabled={readOnly}>
         <WeaponSummaryCard
-          icon="🗡️"
+          icon={Axe}
           label="Secondary Weapon"
           name={secondaryData.name}
           isHomebrew={secondaryIsHomebrew}

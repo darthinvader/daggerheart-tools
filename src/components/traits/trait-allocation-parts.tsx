@@ -1,4 +1,4 @@
-import { Minus, Plus, RotateCcw, Sparkles } from 'lucide-react';
+import { Check, Minus, Plus, RotateCcw, Sparkles } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -48,8 +48,17 @@ export function TraitAllocationHeader({
 }) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <Badge variant={isComplete ? 'default' : 'secondary'} className="w-fit">
-        {isComplete ? '✓ Complete' : 'Allocating...'}
+      <Badge
+        variant={isComplete ? 'default' : 'secondary'}
+        className="w-fit gap-1"
+      >
+        {isComplete ? (
+          <>
+            <Check className="size-3" /> Complete
+          </>
+        ) : (
+          'Allocating...'
+        )}
       </Badge>
       <div className="flex flex-wrap gap-2">
         {[2, 1, 0, -1].map(mod => (

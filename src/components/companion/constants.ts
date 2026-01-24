@@ -1,3 +1,8 @@
+import type { LucideProps } from 'lucide-react';
+import type { ComponentType } from 'react';
+
+import { CompanionTrainingIcons, CompanionTypeIcons } from '@/lib/icons';
+
 export const COMPANION_TYPE_SUGGESTIONS = [
   'Wolf',
   'Bear',
@@ -28,38 +33,19 @@ export const COMPANION_ATTACK_SUGGESTIONS = [
   'Web',
 ] as const;
 
-// Emoji mappings for companion types
-export const COMPANION_TYPE_EMOJIS: Record<string, string> = {
-  Wolf: '🐺',
-  Bear: '🐻',
-  Hawk: '🦅',
-  Fox: '🦊',
-  Panther: '🐆',
-  Owl: '🦉',
-  Serpent: '🐍',
-  Boar: '🐗',
-  Stag: '🦌',
-  Raven: '🪶',
-  Spider: '🕷️',
-  Eagle: '🦅',
-  Horse: '🐴',
-  Lynx: '🐱',
-};
+// Re-export icon mappings from centralized location
+export { CompanionTrainingIcons, CompanionTypeIcons };
 
-// Training emojis for visual flair
-export const TRAINING_EMOJIS = {
-  intelligent: '🧠',
-  vicious: '💥',
-  resilient: '🛡️',
-  aware: '👁️',
-  lightInTheDark: '✨',
-  creatureComfort: '💕',
-  armored: '🛡️',
-  bonded: '🤝',
-} as const;
+// Type alias for icon components
+type IconComponent = ComponentType<LucideProps>;
 
-// Get emoji for companion type, with fallback
-export function getCompanionEmoji(type: string): string {
+// Get icon for companion type, with fallback
+export function getCompanionIcon(type: string): IconComponent {
   const normalized = type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
-  return COMPANION_TYPE_EMOJIS[normalized] ?? '🐾';
+  return CompanionTypeIcons[normalized] ?? CompanionTypeIcons.default;
+}
+
+// Get icon for training type
+export function getTrainingIcon(training: string): IconComponent {
+  return CompanionTrainingIcons[training] ?? CompanionTrainingIcons.intelligent;
 }

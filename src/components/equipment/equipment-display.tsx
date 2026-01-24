@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 
+import { Shield } from '@/lib/icons';
 import { cn } from '@/lib/utils';
 
 import { EquipmentCardsGrid } from './equipment-cards-grid';
@@ -51,7 +52,7 @@ export function EquipmentDisplay({
       >
         <div className="flex items-center justify-between border-b px-4 py-3 sm:px-6">
           <div className="flex items-center gap-2">
-            <span className="text-xl">🛡️</span>
+            <Shield className="h-5 w-5" />
             <h3 className="text-lg font-semibold">Equipment</h3>
           </div>
         </div>

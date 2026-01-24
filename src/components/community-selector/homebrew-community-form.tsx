@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Wrench } from '@/lib/icons';
 import type { HomebrewCommunity } from '@/lib/schemas/identity';
 
 interface HomebrewCommunityFormProps {
@@ -136,7 +137,9 @@ export function HomebrewCommunityForm({
     <Card className="border-primary/50 border-dashed">
       <CardHeader className="pb-3">
         <div className="flex items-center gap-2">
-          <Badge>🛠️ Homebrew</Badge>
+          <Badge className="gap-1">
+            <Wrench className="size-3" /> Homebrew
+          </Badge>
           <CardTitle className="text-base">Create Community</CardTitle>
         </div>
       </CardHeader>

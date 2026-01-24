@@ -5,12 +5,19 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { getClassByName, getSubclassByName } from '@/lib/data/classes';
+import {
+  ClassIcons,
+  HelpCircle,
+  ICON_SIZE_SM,
+  Shuffle,
+  Swords,
+} from '@/lib/icons';
 import type {
   ClassDraft,
   ClassSelection,
   ClassSubclassPair,
 } from '@/lib/schemas/class-selection';
-import { CLASS_COLORS, CLASS_EMOJIS } from '@/lib/schemas/class-selection';
+import { CLASS_COLORS } from '@/lib/schemas/class-selection';
 import { cn } from '@/lib/utils';
 
 import type { ClassDetailsData, FeatureUnlockState } from './class-details';
@@ -28,14 +35,14 @@ interface ClassDisplayProps {
 function EmptyClass({ onEdit }: { onEdit?: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center py-8 text-center">
-      <span className="text-4xl opacity-50">⚔️</span>
+      <Swords size={40} className="opacity-50" />
       <p className="text-muted-foreground mt-2">No class selected</p>
       <p className="text-muted-foreground mb-4 text-sm">
         Choose your character's combat style
       </p>
       {onEdit && (
         <Button variant="outline" onClick={onEdit}>
-          ⚔️ Select Class
+          <Swords size={ICON_SIZE_SM} className="mr-1" /> Select Class
         </Button>
       )}
     </div>
@@ -47,17 +54,21 @@ function MulticlassHeader({ classPairs }: { classPairs: ClassSubclassPair[] }) {
     <div className="rounded-lg border border-purple-500/30 bg-linear-to-r from-purple-500/10 to-blue-500/10 p-3">
       <div className="flex flex-wrap items-center gap-2">
         <Badge variant="secondary" className="text-xs">
-          🔀 Multiclass
+          <Shuffle size={ICON_SIZE_SM} className="mr-1" /> Multiclass
         </Badge>
-        {classPairs.map(pair => (
-          <Badge
-            key={pair.className}
-            variant="outline"
-            className={cn('text-xs', CLASS_COLORS[pair.className])}
-          >
-            {CLASS_EMOJIS[pair.className]} {pair.className}
-          </Badge>
-        ))}
+        {classPairs.map(pair => {
+          const ClassIcon = ClassIcons[pair.className] ?? HelpCircle;
+          return (
+            <Badge
+              key={pair.className}
+              variant="outline"
+              className={cn('text-xs', CLASS_COLORS[pair.className])}
+            >
+              <ClassIcon size={ICON_SIZE_SM} className="mr-1" />{' '}
+              {pair.className}
+            </Badge>
+          );
+        })}
       </div>
     </div>
   );
@@ -244,7 +255,7 @@ export function ClassDisplay({
   return (
     <EditableSection
       title="Class"
-      emoji="⚔️"
+      icon={Swords}
       isEditing={isEditing}
       onEditToggle={handleEditToggle}
       onSave={handleSave}

@@ -1,31 +1,31 @@
-import type { ReactNode } from 'react';
+import {
+  BookOpen,
+  Dna,
+  Ruler,
+  Scroll,
+  Search,
+  Shuffle,
+  Sparkles,
+  Star,
+  Theater,
+  Wrench,
+} from 'lucide-react';
 
 export interface IconProps {
   className?: string;
 }
 
-type EmojiIconFactory = (emoji: string) => (props: IconProps) => ReactNode;
-
-const createEmojiIcon: EmojiIconFactory = emoji =>
-  function EmojiIcon({ className }: IconProps) {
-    return (
-      <span className={className} aria-hidden="true">
-        {emoji}
-      </span>
-    );
-  };
-
-// Common icons used across multiple selectors
-export const SearchIcon = createEmojiIcon('🔍');
-export const HomebrewIcon = createEmojiIcon('🛠️');
-export const StandardIcon = createEmojiIcon('📖');
-export const DescriptionIcon = createEmojiIcon('📜');
-export const FeatureIcon = createEmojiIcon('⭐');
-export const SecondaryFeatureIcon = createEmojiIcon('✨');
-export const TraitsIcon = createEmojiIcon('🎭');
+// Common icons used across multiple selectors - now using Lucide icons
+export const SearchIcon = Search;
+export const HomebrewIcon = Wrench;
+export const StandardIcon = BookOpen;
+export const DescriptionIcon = Scroll;
+export const FeatureIcon = Star;
+export const SecondaryFeatureIcon = Sparkles;
+export const TraitsIcon = Theater;
 
 // Ancestry-specific icons
-export const HeightIcon = createEmojiIcon('📏');
-export const LifespanIcon = createEmojiIcon('🧬');
-export const MixedIcon = createEmojiIcon('🔀');
-export const CharacteristicsIcon = createEmojiIcon('🎭');
+export const HeightIcon = Ruler;
+export const LifespanIcon = Dna;
+export const MixedIcon = Shuffle;
+export const CharacteristicsIcon = Theater;

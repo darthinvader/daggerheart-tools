@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
+import type { LucideIcon } from 'lucide-react';
 
 import {
   Card,
@@ -6,18 +7,37 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Backpack,
+  Home,
+  Shield,
+  Skull,
+  Sparkles,
+  Swords,
+  TreePine,
+  Users,
+} from '@/lib/icons';
 
 export const Route = createFileRoute('/references/')({
   component: ReferencesIndexPage,
 });
 
-const referenceCategories = [
+interface ReferenceCategory {
+  to: string;
+  title: string;
+  description: string;
+  icon: LucideIcon;
+  gradient: string;
+  tint: string;
+}
+
+const referenceCategories: ReferenceCategory[] = [
   {
     to: '/references/equipment',
     title: 'Equipment',
     description:
       'Browse all weapons, armor, and combat wheelchairs organized by tier and category.',
-    emoji: '⚔️',
+    icon: Swords,
     gradient: 'from-amber-500 to-orange-600',
     tint: 'bg-amber-500/10',
   },
@@ -26,7 +46,7 @@ const referenceCategories = [
     title: 'Classes & Subclasses',
     description:
       'Explore all classes with their subclasses, features, domains, and progression.',
-    emoji: '🛡️',
+    icon: Shield,
     gradient: 'from-purple-500 to-indigo-600',
     tint: 'bg-purple-500/10',
   },
@@ -35,7 +55,7 @@ const referenceCategories = [
     title: 'Ancestries',
     description:
       'Discover ancestries with their unique physical characteristics and special features.',
-    emoji: '👥',
+    icon: Users,
     gradient: 'from-teal-500 to-cyan-600',
     tint: 'bg-teal-500/10',
   },
@@ -44,7 +64,7 @@ const referenceCategories = [
     title: 'Communities',
     description:
       'Learn about community backgrounds, traits, and unique community features.',
-    emoji: '🏘️',
+    icon: Home,
     gradient: 'from-green-500 to-emerald-600',
     tint: 'bg-green-500/10',
   },
@@ -53,7 +73,7 @@ const referenceCategories = [
     title: 'Domain Cards',
     description:
       'Search through all spells, abilities, and grimoires organized by domain.',
-    emoji: '✨',
+    icon: Sparkles,
     gradient: 'from-violet-500 to-purple-600',
     tint: 'bg-violet-500/10',
   },
@@ -62,7 +82,7 @@ const referenceCategories = [
     title: 'Inventory Items',
     description:
       'Find utility items, consumables, potions, relics, modifications, and recipes.',
-    emoji: '🎒',
+    icon: Backpack,
     gradient: 'from-cyan-500 to-blue-600',
     tint: 'bg-cyan-500/10',
   },
@@ -71,7 +91,7 @@ const referenceCategories = [
     title: 'Adversaries',
     description:
       'Review adversary roles, tiers, and traits for encounter planning.',
-    emoji: '👹',
+    icon: Skull,
     gradient: 'from-red-500 to-rose-600',
     tint: 'bg-red-500/10',
   },
@@ -79,7 +99,7 @@ const referenceCategories = [
     to: '/references/environments',
     title: 'Environments',
     description: 'Reference scene environments, hazards, and encounter tags.',
-    emoji: '🌲',
+    icon: TreePine,
     gradient: 'from-emerald-500 to-green-600',
     tint: 'bg-emerald-500/10',
   },
@@ -108,7 +128,7 @@ function ReferencesIndexPage() {
                   <div
                     className={`shrink-0 rounded-xl p-3 ${category.tint} transition-transform group-hover:scale-110`}
                   >
-                    <span className="text-2xl">{category.emoji}</span>
+                    <category.icon className="size-6" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <CardTitle className="group-hover:text-primary text-xl transition-colors">

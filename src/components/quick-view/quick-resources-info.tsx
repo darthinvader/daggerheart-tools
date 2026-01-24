@@ -1,7 +1,8 @@
-import { useCallback } from 'react';
+import { type ReactNode, useCallback } from 'react';
 
 import type { ResourcesState } from '@/components/resources';
 import { NumberControl } from '@/components/shared/labeled-counter/number-control';
+import { AlertTriangle, Heart, Shield } from '@/lib/icons';
 import { cn } from '@/lib/utils';
 
 interface QuickResourcesInfoProps {
@@ -12,7 +13,7 @@ interface QuickResourcesInfoProps {
 
 interface QuickResourceProps {
   label: string;
-  emoji: string;
+  icon: ReactNode;
   current: number;
   max: number;
   onChange?: (value: number) => void;
@@ -21,7 +22,7 @@ interface QuickResourceProps {
 
 function QuickResource({
   label,
-  emoji,
+  icon,
   current,
   max,
   onChange,
@@ -31,7 +32,7 @@ function QuickResource({
     <div className="flex flex-col items-center gap-1">
       <span className="text-muted-foreground text-xs">{label}</span>
       <div className="flex items-center gap-1">
-        <span className="text-sm">{emoji}</span>
+        <span className="text-muted-foreground">{icon}</span>
         {onChange ? (
           <NumberControl
             value={current}
@@ -93,7 +94,7 @@ export function QuickResourcesInfo({
     >
       <QuickResource
         label="HP"
-        emoji="❤️"
+        icon={<Heart className="size-4" />}
         current={resources.hp.current}
         max={resources.hp.max}
         onChange={onChange ? handleHpChange : undefined}
@@ -108,7 +109,7 @@ export function QuickResourcesInfo({
       <div className="bg-border hidden h-8 w-px sm:block" />
       <QuickResource
         label="Armor"
-        emoji="🛡️"
+        icon={<Shield className="size-4" />}
         current={resources.armorScore.current}
         max={resources.armorScore.max}
         onChange={onChange ? handleArmorChange : undefined}
@@ -117,7 +118,7 @@ export function QuickResourcesInfo({
       <div className="bg-border hidden h-8 w-px sm:block" />
       <QuickResource
         label="Stress"
-        emoji="😰"
+        icon={<AlertTriangle className="size-4" />}
         current={resources.stress.current}
         max={resources.stress.max}
         onChange={onChange ? handleStressChange : undefined}

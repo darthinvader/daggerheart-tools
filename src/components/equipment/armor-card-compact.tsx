@@ -1,6 +1,7 @@
 import { Check } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
+import { Shield, Zap } from '@/lib/icons';
 import type { SpecialArmor, StandardArmor } from '@/lib/schemas/equipment';
 
 import { isStandardArmor } from './constants';
@@ -30,8 +31,8 @@ export function ArmorCardCompact({
       )}
 
       <div className="mb-3 flex items-start justify-between gap-2">
-        <h4 className="text-base leading-tight font-semibold">
-          🛡️ {armor.name}
+        <h4 className="flex items-center gap-1 text-base leading-tight font-semibold">
+          <Shield className="h-4 w-4" /> {armor.name}
         </h4>
         <Badge variant="outline" className="shrink-0 text-xs">
           Tier {armor.tier}
@@ -44,18 +45,20 @@ export function ArmorCardCompact({
         <div className="grid grid-cols-3 gap-2 text-center">
           <div className="bg-background rounded-md p-2">
             <div className="text-muted-foreground text-[10px]">Score</div>
-            <div className="text-lg font-bold">🛡️ {armor.baseScore}</div>
+            <div className="flex items-center justify-center gap-1 text-lg font-bold">
+              <Shield className="h-4 w-4" /> {armor.baseScore}
+            </div>
           </div>
           <div className="bg-background rounded-md p-2">
             <div className="text-muted-foreground text-[10px]">Major</div>
             <div className="text-lg font-bold text-amber-600">
-              💥 {armor.baseThresholds.major}+
+              {armor.baseThresholds.major}+
             </div>
           </div>
           <div className="bg-background rounded-md p-2">
             <div className="text-muted-foreground text-[10px]">Severe</div>
-            <div className="text-lg font-bold text-red-600">
-              ⚡ {armor.baseThresholds.severe}+
+            <div className="flex items-center justify-center gap-1 text-lg font-bold text-red-600">
+              <Zap className="h-4 w-4" /> {armor.baseThresholds.severe}+
             </div>
           </div>
         </div>

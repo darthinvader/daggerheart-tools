@@ -2,8 +2,9 @@ import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import { CardCostBadges } from '@/components/loadout-selector/card-cost-badges';
+import { DomainIcons, Scroll } from '@/lib/icons';
 import type { DomainCardLite, LoadoutSelection } from '@/lib/schemas/loadout';
-import { DOMAIN_BG_COLORS, DOMAIN_EMOJIS } from '@/lib/schemas/loadout';
+import { DOMAIN_BG_COLORS } from '@/lib/schemas/loadout';
 import { cn } from '@/lib/utils';
 import { getCardCosts } from '@/lib/utils/card-costs';
 
@@ -14,7 +15,7 @@ interface QuickLoadoutInfoProps {
 
 function CardMiniDisplay({ card }: { card: DomainCardLite }) {
   const [expanded, setExpanded] = useState(false);
-  const domainEmoji = DOMAIN_EMOJIS[card.domain] ?? '📖';
+  const DomainIcon = DomainIcons[card.domain] ?? Scroll;
   const domainBg = DOMAIN_BG_COLORS[card.domain] ?? '';
   const costs = useMemo(() => getCardCosts(card), [card]);
   const hasDescription = Boolean(card.description?.trim());
@@ -61,7 +62,7 @@ function CardMiniDisplay({ card }: { card: DomainCardLite }) {
               )}
             </span>
           )}
-          <span>{domainEmoji}</span>
+          <DomainIcon size={14} className="shrink-0" />
           <span className="truncate">{card.name}</span>
         </button>
         <div
@@ -92,7 +93,7 @@ export function QuickLoadoutInfo({
     return (
       <div className={cn('bg-card rounded-lg border p-3', className)}>
         <div className="flex items-center gap-2">
-          <span className="text-lg">📜</span>
+          <Scroll className="size-5" />
           <span className="text-muted-foreground">No domain cards</span>
         </div>
       </div>
@@ -102,7 +103,7 @@ export function QuickLoadoutInfo({
   return (
     <div className={cn('bg-card rounded-lg border p-3', className)}>
       <div className="mb-2 flex items-center gap-2">
-        <span className="text-lg">📜</span>
+        <Scroll className="size-5" />
         <span className="font-semibold">Domain Loadout</span>
         <span className="text-muted-foreground text-xs">
           ({activeCards.length} active, {vaultCards.length} vault)

@@ -1,4 +1,5 @@
 import { Badge } from '@/components/ui/badge';
+import { Folder, Gem, Trophy } from '@/lib/icons';
 import type { EquipmentTier, Rarity } from '@/lib/schemas/equipment';
 import { cn } from '@/lib/utils';
 
@@ -41,7 +42,9 @@ export function ItemFilters({
   return (
     <div className="bg-muted/50 space-y-3 rounded-lg border p-4">
       <div>
-        <h4 className="mb-2 text-sm font-medium">📁 Category</h4>
+        <h4 className="mb-2 flex items-center gap-1 text-sm font-medium">
+          <Folder className="inline-block size-4" /> Category
+        </h4>
         <div className="flex flex-wrap gap-1.5">
           {ALL_CATEGORIES.map(cat => {
             const config = CATEGORY_CONFIG[cat];
@@ -58,7 +61,7 @@ export function ItemFilters({
                 )}
                 onClick={() => onToggleCategory(cat)}
               >
-                {config.emoji} {cat}
+                <config.icon className="size-3" /> {cat}
               </Badge>
             );
           })}
@@ -66,7 +69,9 @@ export function ItemFilters({
       </div>
 
       <div>
-        <h4 className="mb-2 text-sm font-medium">💎 Rarity</h4>
+        <h4 className="mb-2 flex items-center gap-1 text-sm font-medium">
+          <Gem className="inline-block size-4" /> Rarity
+        </h4>
         <div className="flex flex-wrap gap-1.5">
           {ALL_RARITIES.map(rarity => {
             const config = RARITY_CONFIG[rarity];
@@ -83,7 +88,7 @@ export function ItemFilters({
                 )}
                 onClick={() => onToggleRarity(rarity)}
               >
-                {config.emoji} {rarity}
+                <config.icon className="size-3" /> {rarity}
               </Badge>
             );
           })}
@@ -91,7 +96,9 @@ export function ItemFilters({
       </div>
 
       <div>
-        <h4 className="mb-2 text-sm font-medium">🏆 Tier</h4>
+        <h4 className="mb-2 flex items-center gap-1 text-sm font-medium">
+          <Trophy className="inline-block size-4" /> Tier
+        </h4>
         <div className="flex flex-wrap gap-1.5">
           {tiersToShow.map(tier => {
             const config = TIER_CONFIG[tier];
@@ -106,7 +113,7 @@ export function ItemFilters({
                 onClick={() => !lockTiers && onToggleTier(tier)}
                 aria-disabled={lockTiers}
               >
-                {config.emoji} {config.label}
+                <config.icon className="size-3" /> {config.label}
               </Badge>
             );
           })}

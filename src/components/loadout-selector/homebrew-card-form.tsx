@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { ICON_SIZE_MD, Package, Plus, Wrench, Zap } from '@/lib/icons';
 import type { HomebrewDomainCard } from '@/lib/schemas/loadout';
 
 import { CardFormFields } from './card-form-fields';
@@ -70,7 +71,10 @@ export function HomebrewCardForm({
     <Card className="border-primary/50 border-dashed">
       <CardHeader className="pb-3">
         <div className="flex items-center gap-2">
-          <Badge>🛠️ Homebrew</Badge>
+          <Badge>
+            <Wrench size={ICON_SIZE_MD} className="mr-1 inline-block" />
+            Homebrew
+          </Badge>
           <CardTitle className="text-base">Create Domain Card</CardTitle>
         </div>
         <CardDescription>
@@ -86,7 +90,8 @@ export function HomebrewCardForm({
               disabled={!canAdd || isLoadoutFull}
               variant="outline"
             >
-              ⚡ Add to Loadout
+              <Zap size={ICON_SIZE_MD} className="mr-1 inline-block" />
+              Add to Loadout
             </Button>
           )}
           {onAddToVault && (
@@ -95,11 +100,13 @@ export function HomebrewCardForm({
               disabled={!canAdd || isVaultFull}
               variant="outline"
             >
-              📦 Add to Vault
+              <Package size={ICON_SIZE_MD} className="mr-1 inline-block" />
+              Add to Vault
             </Button>
           )}
           <Button onClick={() => resetAndAdd(onAdd)} disabled={!canAdd}>
-            ➕ Add Card to Collection
+            <Plus size={ICON_SIZE_MD} className="mr-1 inline-block" />
+            Add Card to Collection
           </Button>
         </div>
       </CardContent>

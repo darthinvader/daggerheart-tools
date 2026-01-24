@@ -1,3 +1,14 @@
+import type { LucideIcon } from 'lucide-react';
+
+import {
+  Backpack,
+  Dog,
+  ICON_SIZE_MD,
+  MapPin,
+  PawPrint,
+  Search,
+  Sword,
+} from '@/lib/icons';
 import type { InventoryState } from '@/lib/schemas/equipment';
 
 import { CompactItemCard } from './compact-item-card';
@@ -19,11 +30,11 @@ interface CompactInventoryListProps {
   readOnly?: boolean;
 }
 
-const LOCATION_EMOJIS: Record<string, string> = {
-  backpack: '🎒',
-  equipped: '⚔️',
-  saddlebags: '🐴',
-  companion: '🐕',
+const LOCATION_ICONS: Record<string, LucideIcon> = {
+  backpack: Backpack,
+  equipped: Sword,
+  saddlebags: PawPrint,
+  companion: Dog,
 };
 
 export function CompactInventoryList({
@@ -46,7 +57,7 @@ export function CompactInventoryList({
   if (filteredItems.length === 0 && hasActiveFilters(searchQuery, filters)) {
     return (
       <div className="flex flex-col items-center py-8 text-center">
-        <span className="mb-2 text-4xl">🔍</span>
+        <Search size={40} className="mb-2" />
         <p className="text-muted-foreground text-sm">
           No items match your filters
         </p>
@@ -97,10 +108,11 @@ function LocationGroup({
   onEdit,
   readOnly,
 }: LocationGroupProps) {
+  const IconComponent = LOCATION_ICONS[location] ?? MapPin;
   return (
     <div>
       <h5 className="text-muted-foreground mb-2 flex items-center gap-2 text-xs font-medium tracking-wide uppercase">
-        <span>{LOCATION_EMOJIS[location] ?? '📍'}</span>
+        <IconComponent size={ICON_SIZE_MD} />
         <span className="capitalize">{location}</span>
         <span className="text-muted-foreground">({items.length})</span>
       </h5>

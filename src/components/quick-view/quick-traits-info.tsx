@@ -1,3 +1,14 @@
+import {
+  Activity,
+  BarChart3,
+  Crosshair,
+  Eye,
+  Footprints,
+  Library,
+  type LucideIcon,
+  Sparkles,
+} from 'lucide-react';
+
 import type { TraitsState } from '@/components/traits';
 import type { CharacterTrait } from '@/lib/equipment-feature-parser';
 import { cn } from '@/lib/utils';
@@ -18,14 +29,14 @@ interface QuickTraitsInfoProps {
   className?: string;
 }
 
-const TRAIT_CONFIG = [
-  { name: 'Agility', emoji: '🏃' },
-  { name: 'Strength', emoji: '💪' },
-  { name: 'Finesse', emoji: '🎯' },
-  { name: 'Instinct', emoji: '👁️' },
-  { name: 'Presence', emoji: '✨' },
-  { name: 'Knowledge', emoji: '📚' },
-] as const;
+const TRAIT_CONFIG: { name: string; icon: LucideIcon }[] = [
+  { name: 'Agility', icon: Footprints },
+  { name: 'Strength', icon: Activity },
+  { name: 'Finesse', icon: Crosshair },
+  { name: 'Instinct', icon: Eye },
+  { name: 'Presence', icon: Sparkles },
+  { name: 'Knowledge', icon: Library },
+];
 
 export function QuickTraitsInfo({
   traits,
@@ -35,11 +46,11 @@ export function QuickTraitsInfo({
   return (
     <div className={cn('bg-card rounded-lg border p-3', className)}>
       <div className="mb-2 flex items-center gap-2">
-        <span className="text-lg">📊</span>
+        <BarChart3 className="size-5" />
         <span className="font-semibold">Traits</span>
       </div>
       <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
-        {TRAIT_CONFIG.map(({ name, emoji }) => {
+        {TRAIT_CONFIG.map(({ name, icon: Icon }) => {
           const trait = traits[name as keyof TraitsState];
           const equipMod = equipmentModifiers?.[name as CharacterTrait] ?? 0;
           const total = trait.value + trait.bonus + equipMod;
@@ -55,7 +66,7 @@ export function QuickTraitsInfo({
                 trait.marked && 'bg-primary/10 border-primary/30'
               )}
             >
-              <span className="text-sm">{emoji}</span>
+              <Icon className="size-4" />
               <span className="text-muted-foreground text-xs">{name}</span>
               <span className="text-primary text-lg font-bold">{modifier}</span>
               {hasBonus && (

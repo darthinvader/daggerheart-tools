@@ -1,4 +1,13 @@
-import { ChevronUp } from 'lucide-react';
+import {
+  ChevronUp,
+  Crown,
+  Flame,
+  type LucideIcon,
+  Sprout,
+  Star,
+  Sword,
+  TrendingUp,
+} from 'lucide-react';
 import { useCallback, useState } from 'react';
 
 import { EditableSection } from '@/components/shared/editable-section';
@@ -29,11 +38,11 @@ const TIER_COLORS: Record<string, string> = {
   '8-10': 'text-amber-600 border-amber-500/30 bg-amber-500/10',
 };
 
-const TIER_EMOJIS: Record<string, string> = {
-  '1': '🌱',
-  '2-4': '⚔️',
-  '5-7': '🔥',
-  '8-10': '👑',
+const TIER_ICONS: Record<string, LucideIcon> = {
+  '1': Sprout,
+  '2-4': Sword,
+  '5-7': Flame,
+  '8-10': Crown,
 };
 
 const TIER_NAMES: Record<string, string> = {
@@ -53,7 +62,7 @@ const TIER_NUMBERS: Record<string, number> = {
 function EmptyProgression() {
   return (
     <div className="flex flex-col items-center justify-center py-8 text-center">
-      <span className="text-4xl opacity-50">📈</span>
+      <TrendingUp className="size-10 opacity-50" />
       <p className="text-muted-foreground mt-2">No progression data</p>
       <p className="text-muted-foreground text-sm">
         Start your adventure to track progress
@@ -63,7 +72,7 @@ function EmptyProgression() {
 }
 
 function LevelBadge({ level, tier }: { level: number; tier: string }) {
-  const emoji = TIER_EMOJIS[tier] ?? '⭐';
+  const TierIcon = TIER_ICONS[tier] ?? Star;
   const tierName = TIER_NAMES[tier] ?? 'Unknown';
   const tierColor = TIER_COLORS[tier] ?? '';
   const tierNumber = TIER_NUMBERS[tier] ?? 1;
@@ -79,7 +88,7 @@ function LevelBadge({ level, tier }: { level: number; tier: string }) {
         >
           <span className="text-2xl">{level}</span>
         </div>
-        <span className="absolute -right-1 -bottom-1 text-2xl">{emoji}</span>
+        <TierIcon className="absolute -right-1 -bottom-1 size-6" />
       </div>
       <div>
         <p className="text-muted-foreground text-xs tracking-wide uppercase">
@@ -132,7 +141,7 @@ function ProgressionContent({
       <div className="grid grid-cols-2 gap-4 text-center sm:grid-cols-4">
         {Object.entries(TIER_NAMES).map(([tier, name]) => {
           const isActive = tier === currentTier;
-          const tierEmoji = TIER_EMOJIS[tier];
+          const TierIcon = TIER_ICONS[tier] ?? Star;
           const tierNumber = TIER_NUMBERS[tier];
           return (
             <div
@@ -144,7 +153,7 @@ function ProgressionContent({
                   : 'border-muted bg-muted/20 opacity-50'
               )}
             >
-              <span className="text-xl">{tierEmoji}</span>
+              <TierIcon className="mx-auto size-5" />
               <p
                 className={cn(
                   'text-xs font-medium',
@@ -235,7 +244,7 @@ export function ProgressionDisplay({
   return (
     <EditableSection
       title="Progression"
-      emoji="📈"
+      icon={TrendingUp}
       isEditing={isEditing}
       onEditToggle={handleEditToggle}
       showEditButton={!readOnly}

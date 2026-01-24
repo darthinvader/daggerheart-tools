@@ -1,4 +1,4 @@
-import { Check } from 'lucide-react';
+import { Check, Gift, Sparkles } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -24,7 +24,9 @@ export function AutomaticBenefitsStep({
   return (
     <div className="space-y-4 overflow-y-auto p-6">
       <section>
-        <h4 className="mb-3 font-semibold">✨ Automatic Benefits</h4>
+        <h4 className="mb-3 flex items-center gap-2 font-semibold">
+          <Sparkles className="size-4" /> Automatic Benefits
+        </h4>
         <div className="space-y-2">
           {(targetLevel === 2 || targetLevel === 5 || targetLevel === 8) && (
             <div className="flex items-center gap-2 rounded-lg border border-green-500/30 bg-green-500/10 p-3 text-sm">
@@ -48,7 +50,9 @@ export function AutomaticBenefitsStep({
       <Separator />
 
       <section>
-        <h4 className="mb-3 font-semibold">🎁 Select Your Benefits</h4>
+        <h4 className="mb-3 flex items-center gap-2 font-semibold">
+          <Gift className="size-4" /> Select Your Benefits
+        </h4>
         <div className="space-y-3">
           <div
             className={cn(

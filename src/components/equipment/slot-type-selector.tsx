@@ -6,13 +6,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { DynamicIcon, EquipmentSlotIcons } from '@/lib/icons';
 
-import { SLOT_PRESETS, type SlotPresetName } from './constants';
+import { getSlotIcon, SLOT_PRESETS, type SlotPresetName } from './constants';
 
 interface SlotTypeSelectorProps {
   slotName: string;
-  slotIcon: string;
-  onSlotChange: (slotName: string, slotIcon: string) => void;
+  slotIconKey: string;
+  onSlotChange: (slotName: string, slotIconKey: string) => void;
 }
 
 /**
@@ -21,58 +22,59 @@ interface SlotTypeSelectorProps {
  */
 export function SlotTypeSelector({
   slotName,
-  slotIcon,
+  slotIconKey,
   onSlotChange,
 }: SlotTypeSelectorProps) {
   const isCustom =
     slotName === 'Custom' || !SLOT_PRESETS.some(p => p.name === slotName);
   const displayValue = isCustom ? 'Custom' : slotName;
+  const slotIcon = getSlotIcon(slotIconKey as keyof typeof EquipmentSlotIcons);
 
   const handlePresetChange = (value: SlotPresetName | 'Custom') => {
     const preset = SLOT_PRESETS.find(p => p.name === value);
     if (preset && value !== 'Custom') {
-      onSlotChange(preset.name, preset.icon);
+      onSlotChange(preset.name, preset.iconKey);
     } else {
-      onSlotChange(slotName === 'Custom' ? slotName : 'Custom', slotIcon);
+      onSlotChange(slotName === 'Custom' ? slotName : 'Custom', slotIconKey);
     }
   };
 
   return (
     <div className="flex flex-1 flex-wrap items-center gap-2">
-      <span className="text-2xl">{slotIcon}</span>
+      <DynamicIcon icon={slotIcon} className="h-6 w-6" />
       <Select value={displayValue} onValueChange={handlePresetChange}>
         <SelectTrigger className="h-8 w-[130px]">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
           {SLOT_PRESETS.map(preset => (
-            <SelectItem key={preset.name} value={preset.name}>
-              {preset.icon} {preset.name}
-            </SelectItem>
+            <PresetOption key={preset.name} preset={preset} />
           ))}
         </SelectContent>
       </Select>
 
       {isCustom && (
-        <>
-          <Input
-            value={slotIcon}
-            onChange={e => onSlotChange(slotName, e.target.value)}
-            placeholder="🎲"
-            className="h-8 w-14 text-center"
-            maxLength={2}
-            aria-label="Custom icon"
-          />
-          <Input
-            value={slotName === 'Custom' ? '' : slotName}
-            onChange={e => onSlotChange(e.target.value || 'Custom', slotIcon)}
-            placeholder="Slot name..."
-            className="h-8 w-[100px]"
-            maxLength={20}
-            aria-label="Custom slot name"
-          />
-        </>
+        <Input
+          value={slotName === 'Custom' ? '' : slotName}
+          onChange={e => onSlotChange(e.target.value || 'Custom', slotIconKey)}
+          placeholder="Slot name..."
+          className="h-8 w-[100px]"
+          maxLength={20}
+          aria-label="Custom slot name"
+        />
       )}
     </div>
+  );
+}
+
+// Separate component to properly memoize the icon
+function PresetOption({ preset }: { preset: (typeof SLOT_PRESETS)[number] }) {
+  const icon = getSlotIcon(preset.iconKey);
+  return (
+    <SelectItem value={preset.name}>
+      <span className="flex items-center gap-2">
+        <DynamicIcon icon={icon} className="h-4 w-4" /> {preset.name}
+      </span>
+    </SelectItem>
   );
 }

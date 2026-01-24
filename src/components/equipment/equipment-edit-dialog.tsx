@@ -14,7 +14,7 @@ import { EditSectionContent } from './edit-section-content';
 import type { EquipmentState } from './equipment-editor';
 import {
   type EditingSection,
-  getSectionEmoji,
+  getSectionIcon,
   getSectionTitle,
 } from './use-equipment-editor';
 
@@ -53,16 +53,16 @@ export function EquipmentEditDialog({
       >
         {hideDialogHeader && (
           <VisuallyHidden>
-            <DialogTitle>
-              {getSectionEmoji(editingSection)}{' '}
-              {getSectionTitle(editingSection)}
-            </DialogTitle>
+            <DialogTitle>{getSectionTitle(editingSection)}</DialogTitle>
           </VisuallyHidden>
         )}
         {!hideDialogHeader && (
           <DialogHeader className="shrink-0 border-b p-6 pb-4">
             <DialogTitle className="flex items-center gap-2">
-              <span>{getSectionEmoji(editingSection)}</span>
+              {(() => {
+                const SectionIcon = getSectionIcon(editingSection);
+                return <SectionIcon className="size-5" />;
+              })()}
               {getSectionTitle(editingSection)}
             </DialogTitle>
             <DialogDescription>

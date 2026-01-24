@@ -49,7 +49,7 @@ export function NoteListItem({
 
       <div className="flex items-center justify-between">
         <Badge variant="secondary" className="text-xs">
-          {category.icon} {category.label}
+          <category.icon className="size-4" /> {category.label}
         </Badge>
 
         <div className="flex gap-1 opacity-100 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100">

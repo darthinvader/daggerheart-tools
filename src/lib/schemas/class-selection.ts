@@ -1,4 +1,8 @@
+import type { LucideProps } from 'lucide-react';
+import type { ComponentType } from 'react';
 import { z } from 'zod';
+
+import { ClassIcons, getIcon } from '@/lib/icons';
 
 import {
   BaseClassSchema,
@@ -8,18 +12,13 @@ import {
   SubclassNameSchema,
 } from './core';
 
-// Class emoji mapping for visual engagement
-export const CLASS_EMOJIS: Record<string, string> = {
-  Bard: '🎭',
-  Druid: '🌿',
-  Guardian: '🛡️',
-  Ranger: '🏹',
-  Rogue: '🗡️',
-  Seraph: '🪽',
-  Sorcerer: '🔮',
-  Warrior: '⚔️',
-  Wizard: '📖',
-};
+// Class icon mapping for visual engagement
+// Returns Lucide icon components instead of emoji strings
+export const getClassIcon = (className: string): ComponentType<LucideProps> =>
+  getIcon(ClassIcons, className);
+
+// Legacy export for backward compatibility (components should use getClassIcon)
+export const CLASS_ICONS = ClassIcons;
 
 // Class color theme mapping
 export const CLASS_COLORS: Record<string, string> = {

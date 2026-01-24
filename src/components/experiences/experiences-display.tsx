@@ -1,4 +1,4 @@
-import { Plus, Trash2 } from 'lucide-react';
+import { BookOpen, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
 import { EditableSection } from '@/components/shared/editable-section';
@@ -36,7 +36,7 @@ function ExperiencesDetailedDisplay({
   if (items.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-center">
-        <span className="text-4xl opacity-50">📚</span>
+        <BookOpen className="size-10 opacity-50" />
         <p className="text-muted-foreground mt-2">No experiences</p>
         <p className="text-muted-foreground mb-4 text-sm">
           Track your character's knowledge and skills
@@ -182,7 +182,7 @@ export function ExperiencesDisplay({
   return (
     <EditableSection
       title="Experiences"
-      emoji="📚"
+      icon={BookOpen}
       isEditing={isEditing}
       onEditToggle={isEditing ? handleEditToggle : handleOpen}
       showEditButton={!readOnly}

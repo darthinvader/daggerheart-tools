@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 
 import { EditableSection } from '@/components/shared/editable-section';
 import { Badge } from '@/components/ui/badge';
+import { Coins, HandMetal, Package, Trophy } from '@/lib/icons';
 import type { Gold } from '@/lib/schemas/character-state';
 import { cn } from '@/lib/utils';
 
@@ -15,33 +16,30 @@ interface GoldDisplayProps {
   compactMode?: boolean;
 }
 
-const EMOJI_FIST = '🤛';
-const EMOJI_MONEYBAG = '💰';
-const EMOJI_TROPHY = '🏆';
-const EMOJI_COIN = '🪙';
-
 function GoldCompactDisplay({ gold }: { gold: Gold }) {
   return (
     <div className="flex items-center gap-3">
-      <span className="text-2xl">💰</span>
+      <Coins className="size-6" />
       <div className="flex flex-wrap items-center gap-2">
         <Badge
           variant="outline"
           className="gap-1 border-amber-500/30 bg-amber-500/10"
         >
-          {EMOJI_TROPHY} {gold.chests} {gold.chests === 1 ? 'Chest' : 'Chests'}
+          <Trophy className="size-3" /> {gold.chests}{' '}
+          {gold.chests === 1 ? 'Chest' : 'Chests'}
         </Badge>
         <Badge
           variant="outline"
           className="gap-1 border-yellow-500/30 bg-yellow-500/10"
         >
-          {EMOJI_MONEYBAG} {gold.bags} {gold.bags === 1 ? 'Bag' : 'Bags'}
+          <Package className="size-3" /> {gold.bags}{' '}
+          {gold.bags === 1 ? 'Bag' : 'Bags'}
         </Badge>
         <Badge
           variant="outline"
           className="gap-1 border-orange-500/30 bg-orange-500/10"
         >
-          {EMOJI_FIST} {gold.handfuls}{' '}
+          <HandMetal className="size-3" /> {gold.handfuls}{' '}
           {gold.handfuls === 1 ? 'Handful' : 'Handfuls'}
         </Badge>
         {gold.showCoins && (
@@ -49,7 +47,7 @@ function GoldCompactDisplay({ gold }: { gold: Gold }) {
             variant="outline"
             className="gap-1 border-stone-500/30 bg-stone-500/10"
           >
-            {EMOJI_COIN} {gold.coins ?? 0}{' '}
+            <Coins className="size-3" /> {gold.coins ?? 0}{' '}
             {(gold.coins ?? 0) === 1 ? 'Coin' : 'Coins'}
           </Badge>
         )}
@@ -112,7 +110,7 @@ function GoldDetailedDisplay({ gold }: { gold: Gold }) {
       >
         {gold.showCoins && (
           <div className="rounded-lg border border-stone-500/30 bg-stone-500/10 p-4 text-center">
-            <span className="text-3xl">{EMOJI_COIN}</span>
+            <Coins className="mx-auto size-8" />
             <p className="text-2xl font-bold text-stone-600 dark:text-stone-400">
               {gold.coins ?? 0}
             </p>
@@ -123,7 +121,7 @@ function GoldDetailedDisplay({ gold }: { gold: Gold }) {
           </div>
         )}
         <div className="rounded-lg border border-orange-500/30 bg-orange-500/10 p-4 text-center">
-          <span className="text-3xl">{EMOJI_FIST}</span>
+          <HandMetal className="mx-auto size-8" />
           <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
             {gold.handfuls}
           </p>
@@ -134,7 +132,7 @@ function GoldDetailedDisplay({ gold }: { gold: Gold }) {
         </div>
 
         <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-4 text-center">
-          <span className="text-3xl">{EMOJI_MONEYBAG}</span>
+          <Package className="mx-auto size-8" />
           <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
             {gold.bags}
           </p>
@@ -145,7 +143,7 @@ function GoldDetailedDisplay({ gold }: { gold: Gold }) {
         </div>
 
         <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 text-center">
-          <span className="text-3xl">{EMOJI_TROPHY}</span>
+          <Trophy className="mx-auto size-8" />
           <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
             {gold.chests}
           </p>
@@ -216,7 +214,7 @@ export function GoldDisplay({
   return (
     <EditableSection
       title="Gold"
-      emoji="💰"
+      icon={Coins}
       isEditing={isEditing}
       onEditToggle={handleEditToggle}
       onSave={handleSave}

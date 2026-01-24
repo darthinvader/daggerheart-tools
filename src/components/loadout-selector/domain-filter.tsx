@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { DOMAIN_COLORS, DOMAIN_EMOJIS } from '@/lib/schemas/loadout';
+import { DomainIcons, ICON_SIZE_MD } from '@/lib/icons';
+import { DOMAIN_COLORS } from '@/lib/schemas/loadout';
 import { cn } from '@/lib/utils';
 
 interface DomainFilterProps {
@@ -35,6 +36,7 @@ export function DomainFilter({
         {domains.map(domain => {
           const isSelected = selectedDomains.includes(domain);
           const colorClass = DOMAIN_COLORS[domain] ?? 'text-foreground';
+          const DomainIcon = DomainIcons[domain];
 
           return (
             <Badge
@@ -54,7 +56,10 @@ export function DomainFilter({
                 }
               }}
             >
-              {DOMAIN_EMOJIS[domain]} {domain}
+              {DomainIcon && (
+                <DomainIcon size={ICON_SIZE_MD} className="mr-1 inline-block" />
+              )}
+              {domain}
             </Badge>
           );
         })}

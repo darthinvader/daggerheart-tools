@@ -1,6 +1,7 @@
 import { memo } from 'react';
 
 import { SearchInput } from '@/components/shared';
+import { AlertTriangle, Box, ICON_SIZE_XL, Library, Search } from '@/lib/icons';
 import type { DomainCard } from '@/lib/schemas/domains';
 import type { DomainCardLite } from '@/lib/schemas/loadout';
 
@@ -41,7 +42,9 @@ function CardGridComponent(props: CardGridProps) {
   if (cards.length === 0) {
     return (
       <div className="text-muted-foreground py-12 text-center">
-        <span className="mb-2 block text-4xl">📭</span>
+        <span className="mb-2 block text-4xl">
+          <Box size={ICON_SIZE_XL} className="mx-auto" />
+        </span>
         <p>No cards available for the selected filters.</p>
       </div>
     );
@@ -112,14 +115,16 @@ function CardCountLabel({
 }) {
   return (
     <div className="text-muted-foreground flex items-center gap-2 px-1 text-sm">
-      <span>
-        📚 {filtered}
+      <span className="flex items-center gap-1">
+        <Library size={16} className="inline-block" />
+        {filtered}
         {hasSearch && ` of ${total}`} card{filtered !== 1 ? 's' : ''}
         {hasSearch ? ' found' : ' available'}
       </span>
       {isActiveFull && !isVaultFull && (
-        <span className="text-xs text-amber-600">
-          ⚠️ Active full — cards go to vault
+        <span className="flex items-center gap-1 text-xs text-amber-600">
+          <AlertTriangle size={14} className="inline-block" />
+          Active full — cards go to vault
         </span>
       )}
     </div>
@@ -129,7 +134,9 @@ function CardCountLabel({
 function NoMatchMessage({ search }: { search: string }) {
   return (
     <div className="text-muted-foreground py-12 text-center">
-      <span className="mb-2 block text-4xl">🔍</span>
+      <span className="mb-2 block text-4xl">
+        <Search size={ICON_SIZE_XL} className="mx-auto" />
+      </span>
       <p>No cards match "{search}"</p>
     </div>
   );

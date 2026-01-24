@@ -5,8 +5,15 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import type { GameClass, GameSubclass } from '@/lib/data/classes';
+import {
+  ClassIcons,
+  HelpCircle,
+  ICON_SIZE_MD,
+  ICON_SIZE_SM,
+  Palette,
+  Shuffle,
+} from '@/lib/icons';
 import type { ClassDraft, ClassSelection } from '@/lib/schemas/class-selection';
-import { CLASS_EMOJIS } from '@/lib/schemas/class-selection';
 
 import { ClassList } from './class-list';
 import { ClassModeTabs } from './class-mode-tabs';
@@ -51,7 +58,9 @@ function StandardModeContent({
               htmlFor="multiclass-toggle"
               className="flex cursor-pointer items-center gap-2"
             >
-              <span>🔀 Multiclass</span>
+              <span className="flex items-center gap-1">
+                <Shuffle size={ICON_SIZE_MD} /> Multiclass
+              </span>
               {isMulticlass && (
                 <Badge variant="secondary" className="text-xs">
                   Select multiple
@@ -65,11 +74,14 @@ function StandardModeContent({
             <span className="text-muted-foreground shrink-0 text-sm">
               Selected:
             </span>
-            {selectedClasses.map(c => (
-              <Badge key={c.name} variant="outline" className="text-xs">
-                {CLASS_EMOJIS[c.name]} {c.name}
-              </Badge>
-            ))}
+            {selectedClasses.map(c => {
+              const ClassIcon = ClassIcons[c.name] ?? HelpCircle;
+              return (
+                <Badge key={c.name} variant="outline" className="text-xs">
+                  <ClassIcon size={ICON_SIZE_SM} className="mr-1" /> {c.name}
+                </Badge>
+              );
+            })}
           </div>
         )}
       </div>
@@ -88,6 +100,7 @@ function StandardModeContent({
             </span>
             {selectedClasses.map(c => {
               const subclass = selectedSubclasses.get(c.name);
+              const ClassIcon = ClassIcons[c.name] ?? HelpCircle;
               return (
                 <Badge
                   key={c.name}
@@ -95,7 +108,7 @@ function StandardModeContent({
                   className="cursor-pointer text-xs"
                   onClick={() => onOpenModal(c)}
                 >
-                  {CLASS_EMOJIS[c.name]}{' '}
+                  <ClassIcon size={ICON_SIZE_SM} className="mr-1" />
                   {subclass?.name ?? `Choose ${c.name} subclass`}
                 </Badge>
               );
@@ -188,8 +201,11 @@ export function ClassSelector({
           <Button onClick={handleComplete} size="lg" className="max-w-full">
             {mode === 'standard' && selectedClasses.length > 0 && (
               <span className="flex min-w-0 items-center gap-1">
-                <span className="shrink-0">
-                  {selectedClasses.map(c => CLASS_EMOJIS[c.name]).join('')}
+                <span className="flex shrink-0 items-center gap-0.5">
+                  {selectedClasses.map(c => {
+                    const Icon = ClassIcons[c.name] ?? HelpCircle;
+                    return <Icon key={c.name} className="size-4" />;
+                  })}
                 </span>
                 <span className="truncate">
                   Continue with{' '}
@@ -201,7 +217,7 @@ export function ClassSelector({
             )}
             {mode === 'homebrew' && homebrewClass && (
               <span className="flex min-w-0 items-center gap-1">
-                <span className="shrink-0">🎨</span>
+                <Palette className="size-4 shrink-0" />
                 <span className="truncate">
                   Continue with {homebrewClass.name || 'Homebrew Class'}
                 </span>

@@ -2,12 +2,6 @@ import type { DomainCardType } from '@/lib/schemas/domains';
 
 export const CARD_TYPES: DomainCardType[] = ['Spell', 'Ability', 'Grimoire'];
 
-export const CARD_TYPE_EMOJIS: Record<DomainCardType, string> = {
-  Spell: '✨',
-  Ability: '💪',
-  Grimoire: '📖',
-};
-
 export const CARD_LEVELS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const;
 
 export interface CardFiltersState {

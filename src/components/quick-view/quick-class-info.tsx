@@ -1,11 +1,20 @@
 import { Badge } from '@/components/ui/badge';
 import { getClassByName, getSubclassByName } from '@/lib/data/classes';
+import {
+  Blend,
+  ChevronRight,
+  ClassIcons,
+  DomainIcons,
+  Scroll,
+  Sparkles,
+  Square,
+  Sword,
+} from '@/lib/icons';
 import type {
   ClassSelection,
   ClassSubclassPair,
 } from '@/lib/schemas/class-selection';
-import { CLASS_COLORS, CLASS_EMOJIS } from '@/lib/schemas/class-selection';
-import { DOMAIN_EMOJIS } from '@/lib/schemas/loadout';
+import { CLASS_COLORS } from '@/lib/schemas/class-selection';
 import { cn } from '@/lib/utils';
 
 import { ExpandableFeature } from './expandable-feature';
@@ -142,7 +151,7 @@ export function QuickClassInfo({
     return (
       <div className={cn('bg-card rounded-lg border p-3', className)}>
         <div className="flex items-center gap-2">
-          <span className="text-lg">⚔️</span>
+          <Sword className="size-5" />
           <span className="text-muted-foreground">No class selected</span>
         </div>
       </div>
@@ -163,16 +172,19 @@ export function QuickClassInfo({
       {/* Class header - show all classes for multiclass */}
       <div className="mb-2 flex flex-wrap items-center gap-2">
         {isMulticlass && (
-          <Badge variant="secondary" className="text-xs">
-            🔀 Multiclass
+          <Badge
+            variant="secondary"
+            className="flex items-center gap-1 text-xs"
+          >
+            <Blend className="size-3" /> Multiclass
           </Badge>
         )}
         {classPairs.map(pair => {
           const colorClass = CLASS_COLORS[pair.className] ?? 'text-foreground';
-          const emoji = CLASS_EMOJIS[pair.className] ?? '⚔️';
+          const ClassIcon = ClassIcons[pair.className] ?? Sword;
           return (
             <div key={pair.className} className="flex items-center gap-1">
-              <span className="text-lg">{emoji}</span>
+              <ClassIcon size={20} className={colorClass} />
               <span className={cn('font-semibold', colorClass)}>
                 {pair.className}
               </span>
@@ -189,15 +201,18 @@ export function QuickClassInfo({
       {/* Domains */}
       {selection.domains.length > 0 && (
         <div className="mb-2 flex flex-wrap gap-1">
-          {selection.domains.map(domain => (
-            <Badge
-              key={domain}
-              variant="outline"
-              className="px-2 py-0.5 text-xs"
-            >
-              {DOMAIN_EMOJIS[domain] ?? '📖'} {domain}
-            </Badge>
-          ))}
+          {selection.domains.map(domain => {
+            const DomainIcon = DomainIcons[domain] ?? Scroll;
+            return (
+              <Badge
+                key={domain}
+                variant="outline"
+                className="flex items-center gap-1 px-2 py-0.5 text-xs"
+              >
+                <DomainIcon size={12} className="inline-block" /> {domain}
+              </Badge>
+            );
+          })}
         </div>
       )}
 
@@ -209,7 +224,13 @@ export function QuickClassInfo({
               key={`${f.sourceClass}-${f.name}-${i}`}
               feature={f}
               icon={
-                f.type === 'hope' ? '✨' : f.type === 'subclass' ? '🔹' : '▸'
+                f.type === 'hope' ? (
+                  <Sparkles className="size-3" />
+                ) : f.type === 'subclass' ? (
+                  <Square className="size-3" />
+                ) : (
+                  <ChevronRight className="size-3" />
+                )
               }
               label={isMulticlass ? f.sourceClass : undefined}
             />

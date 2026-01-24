@@ -1,5 +1,6 @@
 import type { GameClass, GameSubclass } from '@/lib/data/classes';
-import { CLASS_COLORS, CLASS_EMOJIS } from '@/lib/schemas/class-selection';
+import { ClassIcons, HelpCircle, ICON_SIZE_LG } from '@/lib/icons';
+import { CLASS_COLORS } from '@/lib/schemas/class-selection';
 import { cn } from '@/lib/utils';
 
 import { SubclassCard } from './subclass-card';
@@ -18,7 +19,7 @@ export function SubclassList({
   return (
     <div className="space-y-6">
       {gameClasses.map(gameClass => {
-        const emoji = CLASS_EMOJIS[gameClass.name] ?? '⚔️';
+        const ClassIcon = ClassIcons[gameClass.name] ?? HelpCircle;
         const colorClass = CLASS_COLORS[gameClass.name] ?? 'text-foreground';
         const selectedSubclass = selectedSubclasses.get(gameClass.name);
 
@@ -30,7 +31,7 @@ export function SubclassList({
                 colorClass
               )}
             >
-              <span>{emoji}</span>
+              <ClassIcon size={ICON_SIZE_LG} />
               <span>Choose Your {gameClass.name} Subclass</span>
             </h3>
             <div className="grid items-start gap-4 sm:grid-cols-2">

@@ -10,7 +10,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import type { GameClass, GameSubclass } from '@/lib/data/classes';
-import { CLASS_COLORS, CLASS_EMOJIS } from '@/lib/schemas/class-selection';
+import { ClassIcons, HelpCircle, ICON_SIZE_LG } from '@/lib/icons';
+import { CLASS_COLORS } from '@/lib/schemas/class-selection';
 import { cn } from '@/lib/utils';
 
 import { SubclassCard } from './subclass-card';
@@ -33,7 +34,7 @@ function SubclassModalContent({
     selectedSubclass ?? null
   );
 
-  const emoji = CLASS_EMOJIS[gameClass.name] ?? '⚔️';
+  const ClassIcon = ClassIcons[gameClass.name] ?? HelpCircle;
   const colorClass = CLASS_COLORS[gameClass.name] ?? 'text-foreground';
 
   const handleConfirm = useCallback(() => {
@@ -46,7 +47,7 @@ function SubclassModalContent({
     <DialogContent className="flex max-h-[80vh] w-[95vw] flex-col gap-4 overflow-hidden p-4 sm:max-h-[85vh] sm:max-w-4xl sm:p-6 lg:max-w-5xl">
       <DialogHeader className="shrink-0">
         <DialogTitle className={cn('flex items-center gap-2', colorClass)}>
-          <span>{emoji}</span>
+          <ClassIcon size={ICON_SIZE_LG} />
           <span>Choose Your {gameClass.name} Subclass</span>
         </DialogTitle>
         <DialogDescription>

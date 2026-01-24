@@ -1,9 +1,10 @@
 import { Check } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
+import { DynamicIcon, Wheelchair } from '@/lib/icons';
 import type { CombatWheelchair } from '@/lib/schemas/equipment';
 
-import { DAMAGE_TYPE_EMOJI, formatDamage, RANGE_EMOJI } from './constants';
+import { formatDamage, getDamageIcon, getRangeIcon } from './constants';
 
 interface WheelchairCardCompactProps {
   wheelchair: CombatWheelchair;
@@ -22,12 +23,8 @@ export function WheelchairCardCompact({
   isSelected,
   onClick,
 }: WheelchairCardCompactProps) {
-  const damageEmoji =
-    DAMAGE_TYPE_EMOJI[
-      wheelchair.damage.type as keyof typeof DAMAGE_TYPE_EMOJI
-    ] ?? '⚔️';
-  const rangeEmoji =
-    RANGE_EMOJI[wheelchair.range as keyof typeof RANGE_EMOJI] ?? '📍';
+  const damageIcon = getDamageIcon(wheelchair.damage.type as 'phy' | 'mag');
+  const rangeIcon = getRangeIcon(wheelchair.range);
   const frameColorClasses =
     FRAME_TYPE_COLORS[wheelchair.frameType] ??
     'text-gray-600 bg-gray-50 border-gray-200';
@@ -44,8 +41,8 @@ export function WheelchairCardCompact({
       )}
 
       <div className="mb-3 flex items-start justify-between gap-2">
-        <h4 className="text-base leading-tight font-semibold">
-          ♿ {wheelchair.name}
+        <h4 className="flex items-center gap-1 text-base leading-tight font-semibold">
+          <Wheelchair className="h-4 w-4" /> {wheelchair.name}
         </h4>
         <Badge variant="outline" className="shrink-0 text-xs">
           Tier {wheelchair.tier}
@@ -64,7 +61,7 @@ export function WheelchairCardCompact({
         <div className="mb-2 text-xs font-medium">Combat Stats</div>
         <div className="grid grid-cols-2 gap-2">
           <div className="bg-background flex items-center gap-2 rounded-md p-2">
-            <span className="text-lg">{damageEmoji}</span>
+            <DynamicIcon icon={damageIcon} className="h-5 w-5" />
             <div>
               <div className="text-muted-foreground text-[10px]">Damage</div>
               <div className="text-sm font-bold">
@@ -73,7 +70,7 @@ export function WheelchairCardCompact({
             </div>
           </div>
           <div className="bg-background flex items-center gap-2 rounded-md p-2">
-            <span className="text-lg">{rangeEmoji}</span>
+            <DynamicIcon icon={rangeIcon} className="h-5 w-5" />
             <div>
               <div className="text-muted-foreground text-[10px]">Range</div>
               <div className="text-sm font-bold">{wheelchair.range}</div>
@@ -100,9 +97,9 @@ export function WheelchairCardCompact({
               <Badge
                 key={idx}
                 variant="outline"
-                className="border-primary/30 bg-primary/5 text-xs"
+                className="border-primary/30 bg-primary/5 flex items-center gap-1 text-xs"
               >
-                ♿ {feature}
+                <Wheelchair className="h-3 w-3" /> {feature}
               </Badge>
             ))}
           </div>

@@ -1,5 +1,6 @@
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Wheelchair } from '@/lib/icons';
 
 import { ClickableCard } from './clickable-card';
 import { CustomEquipmentSection } from './custom-equipment-section';
@@ -59,9 +60,9 @@ export function EquipmentCardsGrid({
         <div className="flex items-center justify-end gap-2 py-1">
           <Label
             htmlFor="wheelchair-toggle"
-            className="text-muted-foreground text-xs"
+            className="text-muted-foreground flex items-center gap-1 text-xs"
           >
-            ♿ Combat Wheelchair
+            <Wheelchair className="h-4 w-4" /> Combat Wheelchair
           </Label>
           <Switch
             id="wheelchair-toggle"

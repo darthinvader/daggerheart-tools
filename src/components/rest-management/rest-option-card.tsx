@@ -31,7 +31,7 @@ export function RestOptionCard({
     <Card className="flex flex-col">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <span className="text-2xl">{config.icon}</span>
+          <config.icon className="size-6" />
           {config.label}
         </CardTitle>
         <CardDescription>{config.description}</CardDescription>

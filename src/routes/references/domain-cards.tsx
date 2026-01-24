@@ -44,6 +44,7 @@ import {
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ALL_DOMAIN_NAMES, getAllDomainCards } from '@/lib/data/domains';
+import { AlertTriangle, Sparkle, Sparkles, Zap } from '@/lib/icons';
 import type { DomainCard } from '@/lib/schemas/domains';
 import { getCardCosts } from '@/lib/utils/card-costs';
 
@@ -366,7 +367,8 @@ function CardDetail({ card }: { card: DomainCard }) {
         <div className="min-w-24 flex-1 rounded-lg border border-rose-500/30 bg-rose-500/10 p-3">
           <div className="text-muted-foreground text-xs">Recall Cost</div>
           <div className="text-lg font-bold text-rose-700 dark:text-rose-400">
-            ⚡ {costs.recallCost === 0 ? 'Free' : costs.recallCost}
+            <Zap className="mr-1 inline-block size-4" />
+            {costs.recallCost === 0 ? 'Free' : costs.recallCost}
           </div>
         </div>
         {hopeCosts.length > 0 && (
@@ -375,7 +377,7 @@ function CardDetail({ card }: { card: DomainCard }) {
               Activation (Hope)
             </div>
             <div className="text-lg font-bold text-amber-700 dark:text-amber-400">
-              💫{' '}
+              <Sparkle className="mr-1 inline-block size-4" />
               {hopeCosts
                 .map(c => (c.amount === 'any' ? 'X' : c.amount))
                 .join(' + ')}
@@ -388,7 +390,7 @@ function CardDetail({ card }: { card: DomainCard }) {
               Activation (Stress)
             </div>
             <div className="text-lg font-bold text-purple-700 dark:text-purple-400">
-              😰{' '}
+              <AlertTriangle className="mr-1 inline-block size-4" />
               {stressCosts.reduce(
                 (sum, c) => sum + (c.amount === 'any' ? 0 : c.amount),
                 0
@@ -557,7 +559,8 @@ function DomainCardsReferencePage() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="bg-linear-to-r from-violet-500 to-purple-600 bg-clip-text text-2xl font-bold text-transparent">
-                ✨ Domain Cards
+                <Sparkles className="mr-2 inline-block size-6" />
+                Domain Cards
               </h1>
               <ResultsCounter
                 filtered={filteredCards.length}

@@ -1,3 +1,17 @@
+import {
+  Axe,
+  Crosshair,
+  EquipmentSlotIcons,
+  Grip,
+  Hand,
+  HandMetal,
+  type LucideIcon,
+  MapPin,
+  Sparkles,
+  Star,
+  Sword,
+  Target,
+} from '@/lib/icons';
 import type {
   CombatWheelchair,
   SpecialArmor,
@@ -23,20 +37,27 @@ export function isCombatWheelchair(
   return typeof weapon === 'object' && weapon !== null && 'frameType' in weapon;
 }
 
-/** Preset slot types for custom equipment with their icons */
+/** Preset slot types for custom equipment with their icon components */
 export const SLOT_PRESETS = [
-  { name: 'Ring', icon: '💍' },
-  { name: 'Necklace', icon: '📿' },
-  { name: 'Cloak', icon: '🧥' },
-  { name: 'Belt', icon: '🎗️' },
-  { name: 'Boots', icon: '👢' },
-  { name: 'Gloves', icon: '🧤' },
-  { name: 'Bracers', icon: '⌚' },
-  { name: 'Circlet', icon: '👑' },
-  { name: 'Amulet', icon: '🔮' },
-  { name: 'Trinket', icon: '✨' },
-  { name: 'Custom', icon: '🎲' },
+  { name: 'Ring', iconKey: 'ring' as const },
+  { name: 'Necklace', iconKey: 'necklace' as const },
+  { name: 'Cloak', iconKey: 'cloak' as const },
+  { name: 'Belt', iconKey: 'necklace' as const },
+  { name: 'Boots', iconKey: 'boots' as const },
+  { name: 'Gloves', iconKey: 'gloves' as const },
+  { name: 'Bracers', iconKey: 'bracers' as const },
+  { name: 'Circlet', iconKey: 'circlet' as const },
+  { name: 'Amulet', iconKey: 'amulet' as const },
+  { name: 'Trinket', iconKey: 'trinket' as const },
+  { name: 'Custom', iconKey: 'custom' as const },
 ] as const;
+
+/** Get the icon component for a slot preset */
+export function getSlotIcon(
+  iconKey: keyof typeof EquipmentSlotIcons
+): LucideIcon {
+  return EquipmentSlotIcons[iconKey];
+}
 
 export type SlotPreset = (typeof SLOT_PRESETS)[number];
 export type SlotPresetName = SlotPreset['name'];
@@ -72,8 +93,8 @@ export type Burden = (typeof BURDENS)[number];
 
 /** Damage types with display labels */
 export const DAMAGE_TYPES = [
-  { value: 'phy', label: '⚔️ Physical' },
-  { value: 'mag', label: '✨ Magic' },
+  { value: 'phy', label: 'Physical' },
+  { value: 'mag', label: 'Magic' },
 ] as const;
 
 /** Available dice types for damage rolls */
@@ -98,26 +119,41 @@ export const DEFAULT_DAMAGE = {
   type: 'phy',
 } as const;
 
-/** Emoji mappings for damage types */
-export const DAMAGE_TYPE_EMOJI = {
-  phy: '⚔️',
-  mag: '✨',
+/** Icon mappings for damage types */
+export const DAMAGE_TYPE_ICONS = {
+  phy: Sword,
+  mag: Sparkles,
 } as const;
 
-/** Emoji mappings for weapon ranges */
-export const RANGE_EMOJI = {
-  Melee: '👊',
-  'Very Close': '🗡️',
-  Close: '🏹',
-  Far: '🎯',
-  'Very Far': '🌟',
+/** Get damage type icon component */
+export function getDamageIcon(type: 'phy' | 'mag'): LucideIcon {
+  return DAMAGE_TYPE_ICONS[type] ?? Sword;
+}
+
+/** Icon mappings for weapon ranges */
+export const RANGE_ICONS = {
+  Melee: HandMetal,
+  'Very Close': Axe,
+  Close: Target,
+  Far: Crosshair,
+  'Very Far': Star,
 } as const;
 
-/** Emoji mappings for weapon burden */
-export const BURDEN_EMOJI = {
-  'One-Handed': '🖐️',
-  'Two-Handed': '🙌',
+/** Get range icon component */
+export function getRangeIcon(range: string): LucideIcon {
+  return RANGE_ICONS[range as keyof typeof RANGE_ICONS] ?? MapPin;
+}
+
+/** Icon mappings for weapon burden */
+export const BURDEN_ICONS = {
+  'One-Handed': Hand,
+  'Two-Handed': Grip,
 } as const;
+
+/** Get burden icon component */
+export function getBurdenIcon(burden: string): LucideIcon {
+  return BURDEN_ICONS[burden as keyof typeof BURDEN_ICONS] ?? Hand;
+}
 
 /** Format damage dice for display */
 export function formatDamage(damage: {

@@ -1,5 +1,14 @@
 import * as React from 'react';
 
+import {
+  Backpack,
+  FlaskConical,
+  Landmark,
+  type LucideIcon,
+  Scroll,
+  Shield,
+  Wrench,
+} from '@/lib/icons';
 import type { Inventory, InventorySlot, Item } from '@/lib/schemas/equipment';
 
 // Player inventory should not be constrained by shop-facing maxQuantity values.
@@ -134,23 +143,23 @@ function computeCategoryCounts(slots: InventorySlot[]) {
   return acc;
 }
 
-// Helper to get emoji for item category
-function getCategoryEmoji(category: string | undefined): string {
+// Helper to get icon for item category
+function getCategoryIcon(category: string | undefined): LucideIcon {
   switch (category) {
     case 'Utility':
-      return '🧰';
+      return Wrench;
     case 'Consumable':
-      return '🍽️';
+      return FlaskConical;
     case 'Relic':
-      return '🗿';
+      return Landmark;
     case 'Weapon Modification':
-      return '🛠️';
+      return Wrench;
     case 'Armor Modification':
-      return '🛡️';
+      return Shield;
     case 'Recipe':
-      return '📜';
+      return Scroll;
     default:
-      return '🎒';
+      return Backpack;
   }
 }
 
@@ -180,8 +189,8 @@ export function useInventorySummary(inventory?: Inventory) {
 
   const counts = React.useMemo(() => computeCategoryCounts(slots), [slots]);
 
-  const getEmoji = React.useCallback(
-    (s: unknown) => getCategoryEmoji(getItemCategory(s)),
+  const getIcon = React.useCallback(
+    (s: unknown): LucideIcon => getCategoryIcon(getItemCategory(s)),
     []
   );
 
@@ -192,6 +201,6 @@ export function useInventorySummary(inventory?: Inventory) {
     equipped,
     remaining,
     counts,
-    getEmoji,
+    getIcon,
   };
 }

@@ -1,4 +1,5 @@
 import { ALL_CLASSES, type GameClass } from '@/lib/data/classes';
+import { Library } from '@/lib/icons';
 
 import { ClassCard } from './class-card';
 
@@ -18,7 +19,7 @@ export function ClassList({
   return (
     <div className="space-y-4">
       <h3 className="flex items-center gap-2 text-lg font-semibold">
-        <span>📚</span>
+        <Library className="size-5" />
         <span>
           {isMulticlass ? 'Choose Your Classes' : 'Choose Your Class'}
         </span>

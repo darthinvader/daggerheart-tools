@@ -1,14 +1,8 @@
-export const COMMUNITY_EMOJIS: Record<string, string> = {
-  Highborne: '👑',
-  Loreborne: '📚',
-  Orderborne: '⚖️',
-  Ridgeborne: '🏔️',
-  Seaborne: '🌊',
-  Slyborne: '🗡️',
-  Underborne: '🕳️',
-  Wanderborne: '🧭',
-  Wildborne: '🌲',
-};
+import type { LucideProps } from 'lucide-react';
+import type { ComponentType } from 'react';
+import { CommunityIcons, Home } from '@/lib/icons';
+
+type IconComponent = ComponentType<LucideProps>;
 
 export const COMMUNITY_COLORS: Record<
   string,
@@ -70,8 +64,8 @@ export const COMMUNITY_COLORS: Record<
   },
 };
 
-export function getCommunityEmoji(name: string): string {
-  return COMMUNITY_EMOJIS[name] ?? '🏘️';
+export function getCommunityIcon(name: string): IconComponent {
+  return CommunityIcons[name] ?? Home;
 }
 
 export function getCommunityColors(name: string) {

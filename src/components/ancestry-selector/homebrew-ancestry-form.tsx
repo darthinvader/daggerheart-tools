@@ -3,6 +3,7 @@ import { useCallback, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Wrench } from '@/lib/icons';
 import type { HomebrewAncestry } from '@/lib/schemas/identity';
 
 import { HomebrewBasicFields } from './homebrew-basic-fields';
@@ -74,7 +75,9 @@ export function HomebrewAncestryForm({
     <Card className="border-primary/50 border-dashed">
       <CardHeader className="pb-3">
         <div className="flex items-center gap-2">
-          <Badge>🛠️ Homebrew</Badge>
+          <Badge className="gap-1">
+            <Wrench className="size-3" /> Homebrew
+          </Badge>
           <CardTitle className="text-base">Create Ancestry</CardTitle>
         </div>
       </CardHeader>
@@ -126,8 +129,13 @@ export function HomebrewAncestryForm({
 
         {!hideSaveButton && (
           <div className="flex justify-end border-t pt-4">
-            <Button onClick={handleSave} disabled={!isValid} size="lg">
-              🛠️ Save Homebrew Ancestry
+            <Button
+              onClick={handleSave}
+              disabled={!isValid}
+              size="lg"
+              className="gap-1.5"
+            >
+              <Wrench className="size-4" /> Save Homebrew Ancestry
             </Button>
           </div>
         )}

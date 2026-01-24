@@ -1,5 +1,25 @@
 import { Link, useLocation, useNavigate } from '@tanstack/react-router';
-import { ChevronDown, LogIn, Menu, Plus, Users } from 'lucide-react';
+import {
+  Backpack,
+  ChevronDown,
+  Compass,
+  Dice5,
+  Home,
+  LogIn,
+  Map,
+  Menu,
+  Plus,
+  Scroll,
+  Shield,
+  Skull,
+  Sparkles,
+  Sword,
+  Swords,
+  Tent,
+  TreePine,
+  User,
+  Users,
+} from 'lucide-react';
 import * as React from 'react';
 
 import { UserMenu } from '@/components/auth';
@@ -65,42 +85,42 @@ const defaultLinks: NavLink[] = [
       {
         to: '/references/equipment',
         label: 'Equipment',
-        icon: <span className="text-base">⚔️</span>,
+        icon: <Sword className="size-4" />,
       },
       {
         to: '/references/adversaries',
         label: 'Adversaries',
-        icon: <span className="text-base">👹</span>,
+        icon: <Skull className="size-4" />,
       },
       {
         to: '/references/environments',
         label: 'Environments',
-        icon: <span className="text-base">🌲</span>,
+        icon: <TreePine className="size-4" />,
       },
       {
         to: '/references/classes',
         label: 'Classes & Subclasses',
-        icon: <span className="text-base">🛡️</span>,
+        icon: <Shield className="size-4" />,
       },
       {
         to: '/references/ancestries',
         label: 'Ancestries',
-        icon: <span className="text-base">👥</span>,
+        icon: <Users className="size-4" />,
       },
       {
         to: '/references/communities',
         label: 'Communities',
-        icon: <span className="text-base">🏘️</span>,
+        icon: <Home className="size-4" />,
       },
       {
         to: '/references/domain-cards',
         label: 'Domain Cards',
-        icon: <span className="text-base">✨</span>,
+        icon: <Sparkles className="size-4" />,
       },
       {
         to: '/references/inventory',
         label: 'Inventory Items',
-        icon: <span className="text-base">🎒</span>,
+        icon: <Backpack className="size-4" />,
       },
     ],
   },
@@ -111,42 +131,42 @@ const defaultLinks: NavLink[] = [
       {
         to: '/rules/core-mechanics',
         label: 'Core Mechanics',
-        icon: <span className="text-base">🎲</span>,
+        icon: <Dice5 className="size-4" />,
       },
       {
         to: '/rules/character-creation',
         label: 'Character Creation',
-        icon: <span className="text-base">🧑‍🎤</span>,
+        icon: <User className="size-4" />,
       },
       {
         to: '/rules/combat',
         label: 'Combat & Consequences',
-        icon: <span className="text-base">⚔️</span>,
+        icon: <Swords className="size-4" />,
       },
       {
         to: '/rules/downtime-advancement',
         label: 'Downtime & Advancement',
-        icon: <span className="text-base">⛺</span>,
+        icon: <Tent className="size-4" />,
       },
       {
         to: '/rules/gm-guide',
         label: 'GM Guide',
-        icon: <span className="text-base">🧭</span>,
+        icon: <Compass className="size-4" />,
       },
       {
         to: '/rules/adversaries-environments',
         label: 'Adversaries & Environments',
-        icon: <span className="text-base">🐉</span>,
+        icon: <Skull className="size-4" />,
       },
       {
         to: '/rules/campaign-frames',
         label: 'Campaign Frames',
-        icon: <span className="text-base">🗺️</span>,
+        icon: <Map className="size-4" />,
       },
       {
         to: '/rules/',
         label: 'Rules Overview',
-        icon: <span className="text-base">📜</span>,
+        icon: <Scroll className="size-4" />,
       },
     ],
   },

@@ -1,4 +1,5 @@
 import { ALL_STANDARD_ARMOR } from '@/lib/data/equipment';
+import { Shield } from '@/lib/icons';
 import type { StandardArmor } from '@/lib/schemas/equipment';
 
 import { ArmorCardCompact } from '../armor-card-compact';
@@ -33,7 +34,7 @@ export function ArmorSection({
       ) : (
         <EquipmentSection
           title="Armor"
-          icon="🛡️"
+          icon={Shield}
           items={ALL_STANDARD_ARMOR}
           selectedItem={armor}
           onSelect={onArmorChange}

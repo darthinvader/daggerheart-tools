@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { ICON_SIZE_XL, Scroll } from '@/lib/icons';
 import type { DomainCardLite, LoadoutSelection } from '@/lib/schemas/loadout';
 
 import { ActiveLoadoutSection } from './active-loadout-section';
@@ -11,14 +12,15 @@ import { VaultSection } from './vault-section';
 function EmptyLoadout({ onEdit }: { onEdit?: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center py-8 text-center">
-      <span className="text-4xl opacity-50">📜</span>
+      <Scroll size={ICON_SIZE_XL} className="opacity-50" />
       <p className="text-muted-foreground mt-2">No domain cards selected</p>
       <p className="text-muted-foreground mb-4 text-sm">
         Build your domain card loadout
       </p>
       {onEdit && (
         <Button variant="outline" onClick={onEdit}>
-          📜 Select Domain Cards
+          <Scroll size={16} className="mr-1 inline-block" />
+          Select Domain Cards
         </Button>
       )}
     </div>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { Backpack } from '@/lib/icons';
 import type { InventoryState } from '@/lib/schemas/equipment';
 import { cn } from '@/lib/utils';
 
@@ -52,7 +53,7 @@ export function InventoryDisplay({
     >
       <div className="flex items-center justify-between border-b px-4 py-3 sm:px-6">
         <div className="flex items-center gap-2">
-          <span className="text-xl">🎒</span>
+          <Backpack className="size-5" />
           <h3 className="text-lg font-semibold">Inventory</h3>
         </div>
       </div>

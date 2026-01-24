@@ -10,6 +10,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { BookOpen, Check, Pencil, Save, Wrench } from '@/lib/icons';
 import type { AnyItem } from '@/lib/schemas/equipment';
 
 import {
@@ -46,7 +47,11 @@ export function CustomItemForm({
       <DialogContent className="flex max-h-[90vh] w-[98vw] max-w-4xl flex-col overflow-y-auto sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <span className="text-2xl">{isEditing ? '✏️' : '🛠️'}</span>
+            {isEditing ? (
+              <Pencil className="size-6" />
+            ) : (
+              <Wrench className="size-6" />
+            )}
             {isEditing ? 'Edit Item' : 'Create Custom Item'}
           </DialogTitle>
           <DialogDescription className="sr-only">
@@ -65,7 +70,9 @@ export function CustomItemForm({
           />
 
           <div className="space-y-2">
-            <Label htmlFor="item-name">📝 Name *</Label>
+            <Label htmlFor="item-name" className="flex items-center gap-1.5">
+              <Pencil className="size-4" /> Name *
+            </Label>
             <Input
               id="item-name"
               placeholder="Enter item name..."
@@ -91,7 +98,9 @@ export function CustomItemForm({
           />
 
           <div className="space-y-2">
-            <Label htmlFor="description">📖 Description</Label>
+            <Label htmlFor="description" className="flex items-center gap-1.5">
+              <BookOpen className="size-4" /> Description
+            </Label>
             <Textarea
               id="description"
               placeholder="Optional item description..."
@@ -111,8 +120,20 @@ export function CustomItemForm({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={!form.isValid}>
-            {isEditing ? '💾 Save Changes' : '✅ Create Item'}
+          <Button
+            onClick={handleSave}
+            disabled={!form.isValid}
+            className="gap-1.5"
+          >
+            {isEditing ? (
+              <>
+                <Save className="size-4" /> Save Changes
+              </>
+            ) : (
+              <>
+                <Check className="size-4" /> Create Item
+              </>
+            )}
           </Button>
         </div>
       </DialogContent>

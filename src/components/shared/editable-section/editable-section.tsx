@@ -1,3 +1,4 @@
+import type { LucideIcon } from 'lucide-react';
 import { Pencil } from 'lucide-react';
 import type { ReactNode } from 'react';
 
@@ -15,6 +16,7 @@ import { cn } from '@/lib/utils';
 interface EditableSectionProps {
   title: string;
   emoji?: string;
+  icon?: LucideIcon;
   description?: string;
   children: ReactNode;
   isEditing: boolean;
@@ -43,6 +45,7 @@ const MODAL_SIZE_CLASSES = {
 export function EditableSection({
   title,
   emoji,
+  icon: Icon,
   description,
   children,
   isEditing,
@@ -79,7 +82,11 @@ export function EditableSection({
       >
         <div className="flex items-center justify-between border-b px-4 py-3 sm:px-6">
           <div className="flex items-center gap-2">
-            {emoji && <span className="text-xl">{emoji}</span>}
+            {Icon ? (
+              <Icon className="size-5" />
+            ) : (
+              emoji && <span className="text-xl">{emoji}</span>
+            )}
             <h3 className="text-lg font-semibold">{title}</h3>
           </div>
           {showEditButton && (
@@ -113,7 +120,11 @@ export function EditableSection({
         >
           <DialogHeader className="shrink-0 border-b p-6 pb-4">
             <DialogTitle className="flex items-center gap-2">
-              {emoji && <span>{emoji}</span>}
+              {Icon ? (
+                <Icon className="size-5" />
+              ) : (
+                emoji && <span>{emoji}</span>
+              )}
               {editTitle ?? `Edit ${title}`}
             </DialogTitle>
             {editDescription && (

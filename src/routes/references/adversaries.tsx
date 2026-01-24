@@ -38,6 +38,21 @@ import {
 } from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ADVERSARIES } from '@/lib/data/adversaries';
+import {
+  AdversaryRoleIcons,
+  AdversaryTierIcons,
+  AlertTriangle,
+  Brain,
+  Compass,
+  DynamicIcon,
+  getIcon,
+  Heart,
+  Layers,
+  Skull,
+  Sparkles,
+  Swords,
+  Target,
+} from '@/lib/icons';
 import type { Adversary } from '@/lib/schemas/adversaries';
 
 export const Route = createFileRoute('/references/adversaries')({
@@ -80,25 +95,49 @@ const tierColors: Record<Adversary['tier'], string> = {
 
 const defaultBadgeColor = 'bg-muted/50 text-foreground border-border';
 
-const roleEmojis: Record<string, string> = {
-  Bruiser: '💥',
-  Horde: '🐜',
-  Leader: '👑',
-  Minion: '🪶',
-  Ranged: '🏹',
-  Skulk: '🕶️',
-  Social: '🗣️',
-  Solo: '⚔️',
-  Standard: '🛡️',
-  Support: '✨',
+// Text labels for select options (can't use icons in <option> elements)
+const tierLabels: Record<Adversary['tier'], string> = {
+  '1': '[T1]',
+  '2': '[T2]',
+  '3': '[T3]',
+  '4': '[T4]',
 };
 
-const tierEmojis: Record<Adversary['tier'], string> = {
-  '1': '🌟',
-  '2': '🔥',
-  '3': '⚡',
-  '4': '💀',
+const roleLabels: Record<string, string> = {
+  Bruiser: '●',
+  Horde: '●',
+  Leader: '●',
+  Minion: '●',
+  Ranged: '●',
+  Skulk: '●',
+  Social: '●',
+  Solo: '●',
+  Standard: '●',
+  Support: '●',
 };
+
+// Icon helper components for badges
+function RoleIcon({
+  role,
+  className = 'size-3 mr-1',
+}: {
+  role: string;
+  className?: string;
+}) {
+  const icon = getIcon(AdversaryRoleIcons, role, 'default');
+  return <DynamicIcon icon={icon} className={className} />;
+}
+
+function TierIcon({
+  tier,
+  className = 'size-3 mr-1',
+}: {
+  tier: string;
+  className?: string;
+}) {
+  const icon = getIcon(AdversaryTierIcons, tier);
+  return <DynamicIcon icon={icon} className={className} />;
+}
 
 const roleDescriptions: Record<string, string> = {
   Bruiser: 'Tough adversaries that deliver powerful attacks.',
@@ -124,15 +163,22 @@ interface TooltipLabelProps {
   label: string;
   tooltip: string;
   className?: string;
+  labelIcon?: React.ComponentType<{ className?: string }>;
 }
 
-function TooltipLabel({ label, tooltip, className }: TooltipLabelProps) {
+function TooltipLabel({
+  label,
+  tooltip,
+  className,
+  labelIcon: LabelIcon,
+}: TooltipLabelProps) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <span
           className={`cursor-help underline decoration-dotted underline-offset-2 ${className ?? ''}`}
         >
+          {LabelIcon && <LabelIcon className="mr-1 inline-block size-3" />}
           {label}:
         </span>
       </TooltipTrigger>
@@ -190,16 +236,16 @@ function AdversaryCard({
       <CardHeader className={compact ? 'pb-2' : undefined}>
         <div className="flex flex-wrap items-center gap-2">
           <CardTitle className={compact ? 'text-lg' : 'text-2xl'}>
-            <span className="mr-2">🧿</span>
+            <Skull className="mr-2 inline-block size-5" />
             {adversary.name}
           </CardTitle>
           <Badge variant="outline" className={`text-xs ${tierBadge}`}>
-            {tierEmojis[adversary.tier]} Tier {adversary.tier}
+            <TierIcon tier={adversary.tier} /> Tier {adversary.tier}
           </Badge>
           <Tooltip>
             <TooltipTrigger asChild>
               <Badge variant="outline" className={`text-xs ${roleBadge}`}>
-                {roleEmojis[adversary.role] ?? '🧩'} {adversary.role}
+                <RoleIcon role={adversary.role} /> {adversary.role}
               </Badge>
             </TooltipTrigger>
             <TooltipContent sideOffset={6}>
@@ -217,7 +263,8 @@ function AdversaryCard({
         <div className="text-muted-foreground grid grid-cols-2 gap-2 text-xs">
           <div>
             <TooltipLabel
-              label="🎯 Difficulty"
+              label="Difficulty"
+              labelIcon={Target}
               tooltip="Target number to meet or beat on rolls against this adversary."
               className="font-semibold"
             />{' '}
@@ -225,7 +272,8 @@ function AdversaryCard({
           </div>
           <div>
             <TooltipLabel
-              label="🧱 Thresholds"
+              label="Thresholds"
+              labelIcon={Layers}
               tooltip="Major/Severe/Massive damage thresholds. Massive is typically double Severe if not listed."
               className="font-semibold"
             />{' '}
@@ -233,7 +281,8 @@ function AdversaryCard({
           </div>
           <div>
             <TooltipLabel
-              label="❤️ HP"
+              label="HP"
+              labelIcon={Heart}
               tooltip="Hit Points tracked for defeating this adversary."
               className="font-semibold"
             />{' '}
@@ -241,7 +290,8 @@ function AdversaryCard({
           </div>
           <div>
             <TooltipLabel
-              label="💢 Stress"
+              label="Stress"
+              labelIcon={AlertTriangle}
               tooltip="Stress track used for special actions and reactions."
               className="font-semibold"
             />{' '}
@@ -250,7 +300,8 @@ function AdversaryCard({
         </div>
         <div className="text-xs">
           <TooltipLabel
-            label="⚔️ ATK"
+            label="ATK"
+            labelIcon={Swords}
             tooltip="Attack modifier, name, range, and damage type (phy/mag)."
             className="font-semibold"
           />{' '}
@@ -260,7 +311,8 @@ function AdversaryCard({
         {!compact && adversary.features.length > 0 && (
           <div className="text-muted-foreground space-y-1 text-xs">
             <TooltipLabel
-              label="✨ Features"
+              label="Features"
+              labelIcon={Sparkles}
               tooltip="Special actions, reactions, or passive abilities for this adversary."
               className="font-semibold"
             />
@@ -285,15 +337,20 @@ function AdversaryDetail({ adversary }: { adversary: AdversaryItem }) {
   return (
     <div className="space-y-6">
       <div className="-mx-4 -mt-4 bg-linear-to-r from-fuchsia-500 via-red-500 to-orange-500 p-6">
-        <h2 className="text-3xl font-bold text-white">🐉 {adversary.name}</h2>
+        <h2 className="text-3xl font-bold text-white">
+          <Skull className="mr-2 inline-block size-8" />
+          {adversary.name}
+        </h2>
         <div className="mt-3 flex flex-wrap gap-2">
           <Badge className="border-white/30 bg-white/20 text-white">
-            {tierEmojis[adversary.tier]} Tier {adversary.tier}
+            <TierIcon tier={adversary.tier} className="mr-1 size-4" /> Tier{' '}
+            {adversary.tier}
           </Badge>
           <Tooltip>
             <TooltipTrigger asChild>
               <Badge className="border-white/30 bg-white/20 text-white">
-                {roleEmojis[adversary.role] ?? '🧩'} {adversary.role}
+                <RoleIcon role={adversary.role} className="mr-1 size-4" />{' '}
+                {adversary.role}
               </Badge>
             </TooltipTrigger>
             <TooltipContent sideOffset={6}>
@@ -308,7 +365,8 @@ function AdversaryDetail({ adversary }: { adversary: AdversaryItem }) {
       <div>
         <h4 className="mb-2 font-semibold">
           <TooltipLabel
-            label="🧭 Motives & Tactics"
+            label="Motives & Tactics"
+            labelIcon={Compass}
             tooltip="Guidance for how this adversary behaves and prioritizes targets."
             className="font-semibold"
           />
@@ -321,7 +379,8 @@ function AdversaryDetail({ adversary }: { adversary: AdversaryItem }) {
       <div className="grid grid-cols-2 gap-4 text-sm">
         <div>
           <TooltipLabel
-            label="🎯 Difficulty"
+            label="Difficulty"
+            labelIcon={Target}
             tooltip="Target number to meet or beat on rolls against this adversary."
             className="font-semibold"
           />{' '}
@@ -329,7 +388,8 @@ function AdversaryDetail({ adversary }: { adversary: AdversaryItem }) {
         </div>
         <div>
           <TooltipLabel
-            label="🧱 Thresholds"
+            label="Thresholds"
+            labelIcon={Layers}
             tooltip="Major/Severe/Massive damage thresholds. Massive is typically double Severe if not listed."
             className="font-semibold"
           />{' '}
@@ -337,7 +397,8 @@ function AdversaryDetail({ adversary }: { adversary: AdversaryItem }) {
         </div>
         <div>
           <TooltipLabel
-            label="❤️ HP"
+            label="HP"
+            labelIcon={Heart}
             tooltip="Hit Points tracked for defeating this adversary."
             className="font-semibold"
           />{' '}
@@ -345,7 +406,8 @@ function AdversaryDetail({ adversary }: { adversary: AdversaryItem }) {
         </div>
         <div>
           <TooltipLabel
-            label="💢 Stress"
+            label="Stress"
+            labelIcon={AlertTriangle}
             tooltip="Stress track used for special actions and reactions."
             className="font-semibold"
           />{' '}
@@ -355,11 +417,14 @@ function AdversaryDetail({ adversary }: { adversary: AdversaryItem }) {
 
       <div className="rounded-lg border border-red-500/30 bg-linear-to-r from-red-500/10 to-rose-500/10 p-4">
         <div className="mb-2 flex items-center gap-2">
-          <Badge className={`border-red-500/40 ${tierBadge}`}>⚔️ Attack</Badge>
+          <Badge className={`border-red-500/40 ${tierBadge}`}>
+            <Swords className="mr-1 size-3" /> Attack
+          </Badge>
         </div>
         <p className="text-sm">
           <TooltipLabel
-            label="⚔️ ATK"
+            label="ATK"
+            labelIcon={Swords}
             tooltip="Attack modifier, name, range, and damage type (phy/mag)."
             className="font-semibold"
           />{' '}
@@ -372,7 +437,8 @@ function AdversaryDetail({ adversary }: { adversary: AdversaryItem }) {
         <div>
           <h4 className="mb-2 font-semibold">
             <TooltipLabel
-              label="🧠 Experiences"
+              label="Experiences"
+              labelIcon={Brain}
               tooltip="Training or background bonuses that add to rolls."
               className="font-semibold"
             />
@@ -389,7 +455,8 @@ function AdversaryDetail({ adversary }: { adversary: AdversaryItem }) {
         <div>
           <h4 className="mb-2 font-semibold">
             <TooltipLabel
-              label="✨ Features"
+              label="Features"
+              labelIcon={Sparkles}
               tooltip="Special actions, reactions, or passive abilities for this adversary."
               className="font-semibold"
             />
@@ -404,12 +471,12 @@ function AdversaryDetail({ adversary }: { adversary: AdversaryItem }) {
 
       <div className="flex flex-wrap gap-2">
         <Badge variant="outline" className={`text-xs ${tierBadge}`}>
-          {tierEmojis[adversary.tier]} Tier {adversary.tier}
+          <TierIcon tier={adversary.tier} /> Tier {adversary.tier}
         </Badge>
         <Tooltip>
           <TooltipTrigger asChild>
             <Badge variant="outline" className={`text-xs ${roleBadge}`}>
-              {roleEmojis[adversary.role] ?? '🧩'} {adversary.role}
+              <RoleIcon role={adversary.role} /> {adversary.role}
             </Badge>
           </TooltipTrigger>
           <TooltipContent sideOffset={6}>
@@ -513,7 +580,8 @@ function AdversariesReferencePage() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="bg-linear-to-r from-fuchsia-500 via-red-500 to-orange-500 bg-clip-text text-2xl font-bold text-transparent">
-              👹 Adversaries Reference
+              <Skull className="mr-2 inline-block size-6" />
+              Adversaries Reference
             </h1>
             <ResultsCounter
               filtered={filteredAdversaries.length}
@@ -534,7 +602,7 @@ function AdversariesReferencePage() {
                 <option value="all">All tiers</option>
                 {tierOrder.map(tier => (
                   <option key={tier} value={tier}>
-                    {tierEmojis[tier]} Tier {tier}
+                    {tierLabels[tier]} Tier {tier}
                   </option>
                 ))}
               </select>
@@ -551,7 +619,7 @@ function AdversariesReferencePage() {
                   .sort((a, b) => a.localeCompare(b))
                   .map(role => (
                     <option key={role} value={role}>
-                      {roleEmojis[role] ?? '🧩'} {role}
+                      {roleLabels[role] ?? '●'} {role}
                     </option>
                   ))}
               </select>

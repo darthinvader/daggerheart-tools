@@ -4,6 +4,7 @@ import { MixedIcon } from '@/components/shared';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { Sparkles, Star } from '@/lib/icons';
 import type { Ancestry, MixedAncestry } from '@/lib/schemas/identity';
 import { ANCESTRIES } from '@/lib/schemas/identity';
 
@@ -97,7 +98,7 @@ export function MixedAncestrySelector({
       <div className="space-y-6 lg:grid lg:grid-cols-2 lg:gap-6 lg:space-y-0">
         <div className="space-y-4">
           <div className="flex items-center gap-2 lg:hidden">
-            <span className="text-amber-600 dark:text-amber-400">⭐</span>
+            <Star className="size-4 text-amber-600 dark:text-amber-400" />
             <span className="text-muted-foreground text-sm font-medium tracking-wide uppercase">
               Primary Feature Selection
             </span>
@@ -115,7 +116,7 @@ export function MixedAncestrySelector({
 
         <div className="space-y-4">
           <div className="flex items-center gap-2 lg:hidden">
-            <span className="text-blue-600 dark:text-blue-400">✨</span>
+            <Sparkles className="size-4 text-blue-600 dark:text-blue-400" />
             <span className="text-muted-foreground text-sm font-medium tracking-wide uppercase">
               Secondary Feature Selection
             </span>

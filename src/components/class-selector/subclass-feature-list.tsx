@@ -6,18 +6,13 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
+import { FeatureTypeIcons } from '@/lib/icons';
 import type { SubclassFeature } from '@/lib/schemas/core';
 
 const FEATURE_TYPE_COLORS: Record<string, string> = {
   foundation: 'bg-blue-500/10 text-blue-700 border-blue-500/30',
   specialization: 'bg-purple-500/10 text-purple-700 border-purple-500/30',
   mastery: 'bg-amber-500/10 text-amber-700 border-amber-500/30',
-};
-
-const FEATURE_TYPE_EMOJIS: Record<string, string> = {
-  foundation: '🏛️',
-  specialization: '⚡',
-  mastery: '👑',
 };
 
 const FEATURE_TYPE_DESCRIPTIONS: Record<string, string> = {
@@ -33,7 +28,7 @@ interface FeatureTypeBadgeProps {
 
 export function FeatureTypeBadge({ type, level }: FeatureTypeBadgeProps) {
   const typeColor = FEATURE_TYPE_COLORS[type] ?? FEATURE_TYPE_COLORS.foundation;
-  const typeEmoji = FEATURE_TYPE_EMOJIS[type] ?? '⭐';
+  const TypeIcon = FeatureTypeIcons[type] ?? FeatureTypeIcons.default;
   const typeDesc = FEATURE_TYPE_DESCRIPTIONS[type] ?? '';
 
   return (
@@ -46,8 +41,11 @@ export function FeatureTypeBadge({ type, level }: FeatureTypeBadgeProps) {
         </>
       }
     >
-      <Badge variant="outline" className={`cursor-help text-xs ${typeColor}`}>
-        {typeEmoji} {type}
+      <Badge
+        variant="outline"
+        className={`inline-flex cursor-help items-center gap-1 text-xs ${typeColor}`}
+      >
+        <TypeIcon className="size-3" /> {type}
       </Badge>
     </SmartTooltip>
   );

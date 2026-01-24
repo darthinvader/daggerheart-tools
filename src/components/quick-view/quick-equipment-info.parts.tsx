@@ -4,6 +4,15 @@ import { useState } from 'react';
 import type { EquipmentState } from '@/components/equipment';
 import type { CustomEquipment } from '@/components/equipment/custom-slot-editor';
 import { Badge } from '@/components/ui/badge';
+import {
+  Footprints,
+  Hand,
+  Ruler,
+  Shield,
+  Sword,
+  Target,
+  Wheelchair,
+} from '@/lib/icons';
 import type {
   CombatWheelchair,
   PrimaryWeapon,
@@ -128,12 +137,12 @@ function getArmorSummary(equipment: EquipmentState): ArmorSummary | null {
 
 function WeaponCard({ weapon }: { weapon: WeaponSummary }) {
   const [expanded, setExpanded] = useState(false);
-  const typeIcon =
+  const TypeIcon =
     weapon.type === 'Wheelchair'
-      ? '♿'
+      ? Wheelchair
       : weapon.type === 'Primary'
-        ? '⚔️'
-        : '🗡️';
+        ? Sword
+        : Target;
   const hasFeatures = weapon.features.length > 0;
 
   return (
@@ -148,9 +157,9 @@ function WeaponCard({ weapon }: { weapon: WeaponSummary }) {
         disabled={!hasFeatures}
       >
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
-          <span className="shrink-0 font-medium">
+          <span className="flex shrink-0 items-center gap-1 font-medium">
             {hasFeatures && (
-              <span className="text-muted-foreground mr-1">
+              <span className="text-muted-foreground">
                 {expanded ? (
                   <ChevronDown className="inline h-3 w-3" />
                 ) : (
@@ -158,10 +167,12 @@ function WeaponCard({ weapon }: { weapon: WeaponSummary }) {
                 )}
               </span>
             )}
-            {typeIcon} {weapon.name}
+            <TypeIcon className="size-4" /> {weapon.name}
           </span>
-          <span className="text-muted-foreground shrink-0 text-xs">
-            🎯 {weapon.damage} · 📏 {weapon.range} · 🤚 {weapon.burden}
+          <span className="text-muted-foreground flex shrink-0 items-center gap-1 text-xs">
+            <Target className="size-3" /> {weapon.damage} ·{' '}
+            <Ruler className="size-3" /> {weapon.range} ·{' '}
+            <Hand className="size-3" /> {weapon.burden}
           </span>
         </div>
         <Badge variant="outline" className="shrink-0 text-xs">
@@ -192,7 +203,7 @@ function ArmorCard({ armor }: { armor: ArmorSummary }) {
   const hasFeatures = armor.features.length > 0;
   const evasionStr =
     armor.evasionMod !== 0
-      ? ` · 🏃 ${armor.evasionMod >= 0 ? '+' : ''}${armor.evasionMod}`
+      ? ` ${armor.evasionMod >= 0 ? '+' : ''}${armor.evasionMod}`
       : '';
 
   return (
@@ -207,9 +218,9 @@ function ArmorCard({ armor }: { armor: ArmorSummary }) {
         disabled={!hasFeatures}
       >
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
-          <span className="shrink-0 font-medium">
+          <span className="flex shrink-0 items-center gap-1 font-medium">
             {hasFeatures && (
-              <span className="text-muted-foreground mr-1">
+              <span className="text-muted-foreground">
                 {expanded ? (
                   <ChevronDown className="inline h-3 w-3" />
                 ) : (
@@ -217,11 +228,17 @@ function ArmorCard({ armor }: { armor: ArmorSummary }) {
                 )}
               </span>
             )}
-            🛡️ {armor.name}
+            <Shield className="size-4" /> {armor.name}
           </span>
-          <span className="text-muted-foreground shrink-0 text-xs">
+          <span className="text-muted-foreground flex shrink-0 items-center gap-1 text-xs">
             Score: {armor.score} · Major: {armor.major}+ · Severe:{' '}
-            {armor.severe}+{evasionStr}
+            {armor.severe}+
+            {armor.evasionMod !== 0 && (
+              <>
+                · <Footprints className="size-3" />
+                {evasionStr}
+              </>
+            )}
           </span>
         </div>
         <Badge variant="outline" className="shrink-0 text-xs">
@@ -271,7 +288,7 @@ function CustomSlotCard({ slot }: { slot: CustomEquipment }) {
               )}
             </span>
           )}
-          {slot.slotIcon} {slot.name}
+          {slot.name}
         </span>
         <Badge variant="outline" className="shrink-0 text-xs">
           {slot.slotName}
@@ -313,7 +330,7 @@ export function QuickEquipmentInfo({
     return (
       <div className={cn('bg-card rounded-lg border p-3', className)}>
         <div className="flex items-center gap-2">
-          <span className="text-lg">🛡️</span>
+          <Shield className="size-5" />
           <span className="text-muted-foreground">No equipment</span>
         </div>
       </div>
@@ -323,7 +340,7 @@ export function QuickEquipmentInfo({
   return (
     <div className={cn('bg-card rounded-lg border p-3', className)}>
       <div className="mb-2 flex items-center gap-2">
-        <span className="text-lg">🛡️</span>
+        <Shield className="size-5" />
         <span className="font-semibold">Equipment</span>
       </div>
       <div className="grid gap-2 sm:grid-cols-2">

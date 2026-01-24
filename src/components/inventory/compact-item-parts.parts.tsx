@@ -1,8 +1,18 @@
-import { Minus, Pencil, Plus, Sparkles, Trash2 } from 'lucide-react';
+import {
+  Coins,
+  FlaskConical,
+  Library,
+  Minus,
+  Pencil,
+  Plus,
+  Sparkles,
+  Trash2,
+} from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
+import { DynamicIcon } from '@/lib/icons';
 import type { AnyItem, EquipmentTier, Rarity } from '@/lib/schemas/equipment';
 import { cn } from '@/lib/utils';
 
@@ -12,7 +22,7 @@ import {
   RARITY_CONFIG,
   TIER_CONFIG,
 } from './constants';
-import { getItemEmoji } from './item-utils';
+import { getItemIcon } from './item-utils';
 
 interface ItemHeaderProps {
   item: AnyItem;
@@ -29,10 +39,11 @@ export function ItemHeader({
   rarityConfig,
   tierConfig,
 }: ItemHeaderProps) {
+  const itemIcon = getItemIcon(item);
   return (
     <div className="flex items-start gap-3">
-      <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-white/70 text-2xl shadow-inner dark:bg-gray-800/70">
-        {getItemEmoji(item)}
+      <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-white/70 shadow-inner dark:bg-gray-800/70">
+        <DynamicIcon icon={itemIcon} className="size-6" />
       </div>
       <div className="min-w-0">
         <p className="leading-tight font-semibold">{item.name}</p>
@@ -46,7 +57,7 @@ export function ItemHeader({
                 catConfig.color
               )}
             >
-              {catConfig.emoji} {category}
+              <catConfig.icon className="size-3" /> {category}
             </Badge>
           )}
           {rarityConfig && (
@@ -58,7 +69,7 @@ export function ItemHeader({
                 rarityConfig.borderColor
               )}
             >
-              {rarityConfig.emoji} {item.rarity}
+              <rarityConfig.icon className="size-3" /> {item.rarity}
             </Badge>
           )}
           {tierConfig && (
@@ -66,7 +77,7 @@ export function ItemHeader({
               variant="secondary"
               className="gap-1 px-2 py-0.5 text-xs font-medium"
             >
-              {tierConfig.emoji} Tier {item.tier}
+              <tierConfig.icon className="size-3" /> Tier {item.tier}
             </Badge>
           )}
         </div>
@@ -90,8 +101,8 @@ export function QuantityBadge({
     <SmartTooltip
       content={
         unlimitedQuantity
-          ? `📦 ${quantity} in inventory (unlimited stacking)`
-          : `📦 ${quantity}/${maxQuantity} max`
+          ? `${quantity} in inventory (unlimited stacking)`
+          : `${quantity}/${maxQuantity} max`
       }
     >
       <Badge
@@ -152,19 +163,20 @@ export function ItemStats({
   return (
     <div className="mt-3 flex flex-wrap gap-2 text-xs">
       {showMaxStack && (
-        <SmartTooltip content="📚 Maximum stack size for this item">
+        <SmartTooltip content="Maximum stack size for this item">
           <Badge variant="outline" className="gap-1">
-            📚 Max Stack: {unlimitedQuantity ? '∞' : maxQuantity}
+            <Library className="size-3" /> Max Stack:{' '}
+            {unlimitedQuantity ? '∞' : maxQuantity}
           </Badge>
         </SmartTooltip>
       )}
       {showCost && (
-        <SmartTooltip content="💰 Item value in gold">
+        <SmartTooltip content="Item value in gold">
           <Badge
             variant="outline"
             className="gap-1 border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-700 dark:bg-amber-950/50 dark:text-amber-300"
           >
-            💰 {cost} gold
+            <Coins className="size-3" /> {cost} gold
           </Badge>
         </SmartTooltip>
       )}
@@ -202,7 +214,7 @@ export function StatusBadges({
           variant="outline"
           className="gap-1 border-rose-300 bg-rose-50 text-rose-700 dark:border-rose-700 dark:bg-rose-950/50 dark:text-rose-300"
         >
-          🍷 Consumable
+          <FlaskConical className="size-3" /> Consumable
         </Badge>
       )}
     </div>
@@ -311,7 +323,7 @@ export function ItemActions({
           </SmartTooltip>
         )}
         {onRemove && (
-          <SmartTooltip content="🗑️ Remove from inventory">
+          <SmartTooltip content="Remove from inventory">
             <Button
               variant="outline"
               size="icon"

@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { ICON_SIZE_MD, Package, Wrench, Zap } from '@/lib/icons';
 import type { DomainCard } from '@/lib/schemas/domains';
 import type { HomebrewDomainCard } from '@/lib/schemas/loadout';
 import { getCardCosts, getTotalHopeCost } from '@/lib/utils/card-costs';
@@ -102,7 +103,7 @@ function HomebrewFromCardModalContent({
       <DialogContent className="flex max-h-[85vh] w-[95vw] flex-col overflow-hidden sm:max-h-[90vh] sm:max-w-2xl">
         <DialogHeader className="shrink-0">
           <DialogTitle className="flex items-center gap-2">
-            <span>🛠️</span>
+            <Wrench size={ICON_SIZE_MD} />
             <span>Edit as Homebrew</span>
           </DialogTitle>
           <DialogDescription>
@@ -125,13 +126,15 @@ function HomebrewFromCardModalContent({
             onClick={handleSaveToVault}
             disabled={!canSave || isVaultFull}
           >
-            📦 Add to Vault
+            <Package size={ICON_SIZE_MD} className="mr-1 inline-block" />
+            Add to Vault
           </Button>
           <Button
             onClick={handleSaveToLoadout}
             disabled={!canSave || isLoadoutFull}
           >
-            ⚡ Add to Loadout
+            <Zap size={ICON_SIZE_MD} className="mr-1 inline-block" />
+            Add to Loadout
           </Button>
         </DialogFooter>
       </DialogContent>

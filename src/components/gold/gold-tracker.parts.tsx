@@ -1,6 +1,9 @@
+import type { LucideIcon } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { Coins, Grip, Package, Trophy } from '@/lib/icons';
 import { cn } from '@/lib/utils';
 
 import { useGoldTrackerState } from './use-gold-tracker-state';
@@ -28,7 +31,7 @@ interface GoldTrackerProps {
 
 interface DenominationRowProps {
   label: string;
-  emoji: string;
+  icon: LucideIcon;
   value: number;
   maxValue: number;
   onChange: (value: number) => void;
@@ -36,12 +39,12 @@ interface DenominationRowProps {
 
 function DenominationRow({
   label,
-  emoji,
+  icon: Icon,
   value,
   maxValue,
   onChange,
 }: DenominationRowProps) {
-  const handleEmojiClick = (index: number) => {
+  const handleIconClick = (index: number) => {
     onChange(index + 1);
   };
 
@@ -82,14 +85,14 @@ function DenominationRow({
             <button
               key={i}
               type="button"
-              onClick={() => handleEmojiClick(i)}
+              onClick={() => handleIconClick(i)}
               className={cn(
-                'size-6 cursor-pointer text-base transition-opacity select-none',
+                'flex size-6 cursor-pointer items-center justify-center transition-opacity select-none',
                 i < value ? 'opacity-100' : 'opacity-30 grayscale'
               )}
               aria-label={`Set ${label} to ${i + 1}`}
             >
-              {emoji}
+              <Icon className="size-4" />
             </button>
           ))}
         </div>
@@ -119,10 +122,12 @@ function DenominationRow({
   );
 }
 
-const EMOJI_COIN = String.fromCodePoint(0x1fa99);
-const EMOJI_FIST = String.fromCodePoint(0x1f91b);
-const EMOJI_MONEYBAG = String.fromCodePoint(0x1f4b0);
-const EMOJI_TROPHY = String.fromCodePoint(0x1f3c6);
+const DENOMINATION_ICONS: Record<GoldDenomination, LucideIcon> = {
+  coins: Coins,
+  handfuls: Grip,
+  bags: Package,
+  chests: Trophy,
+};
 
 const DENOMINATION_LABELS: Record<GoldDenomination, string> = {
   coins: 'Coins',
@@ -159,7 +164,7 @@ function DenominationGrid({
       {showCoins && (
         <DenominationRow
           label="Coins"
-          emoji={EMOJI_COIN}
+          icon={DENOMINATION_ICONS.coins}
           value={coins}
           maxValue={10}
           onChange={onCoinsChange}
@@ -167,21 +172,21 @@ function DenominationGrid({
       )}
       <DenominationRow
         label="Handfuls"
-        emoji={EMOJI_FIST}
+        icon={DENOMINATION_ICONS.handfuls}
         value={handfuls}
         maxValue={10}
         onChange={onHandfulsChange}
       />
       <DenominationRow
         label="Bags"
-        emoji={EMOJI_MONEYBAG}
+        icon={DENOMINATION_ICONS.bags}
         value={bags}
         maxValue={10}
         onChange={onBagsChange}
       />
       <DenominationRow
         label="Chests"
-        emoji={EMOJI_TROPHY}
+        icon={DENOMINATION_ICONS.chests}
         value={chests}
         maxValue={10}
         onChange={onChestsChange}

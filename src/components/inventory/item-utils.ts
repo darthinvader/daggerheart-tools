@@ -1,3 +1,6 @@
+import type { LucideIcon } from 'lucide-react';
+
+import { Package } from '@/lib/icons';
 import type { AnyItem, EquipmentTier, Rarity } from '@/lib/schemas/equipment';
 
 import {
@@ -7,15 +10,15 @@ import {
   TIER_CONFIG,
 } from './constants';
 
-export function getItemEmoji(item: {
+export function getItemIcon(item: {
   category?: string;
   type?: string;
-}): string {
+}): LucideIcon {
   const category = item.category as ItemCategory;
   if (category && CATEGORY_CONFIG[category]) {
-    return CATEGORY_CONFIG[category].emoji;
+    return CATEGORY_CONFIG[category].icon;
   }
-  return '📦';
+  return Package;
 }
 
 export function getItemDetails(item: AnyItem) {

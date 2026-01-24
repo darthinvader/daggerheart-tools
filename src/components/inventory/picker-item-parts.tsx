@@ -50,11 +50,15 @@ export function RarityTierDisplay({
 }: RarityTierDisplayProps) {
   return (
     <div className="mt-1 flex flex-wrap gap-1">
-      <span className={cn('text-xs', rarityConfig.color)}>
-        {rarityConfig.emoji} {rarity}
+      <span
+        className={cn('flex items-center gap-0.5 text-xs', rarityConfig.color)}
+      >
+        <rarityConfig.icon className="size-3" /> {rarity}
       </span>
-      <span className={cn('text-xs', tierConfig.color)}>
-        {tierConfig.emoji} T{tier}
+      <span
+        className={cn('flex items-center gap-0.5 text-xs', tierConfig.color)}
+      >
+        <tierConfig.icon className="size-3" /> T{tier}
       </span>
     </div>
   );

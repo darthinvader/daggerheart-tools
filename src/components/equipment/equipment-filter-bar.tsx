@@ -1,5 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Axe, Shield, Sparkles, Sword, Wheelchair } from '@/lib/icons';
 
 import type { EquipmentState } from './equipment-editor';
 
@@ -39,29 +40,29 @@ export function EquipmentFilterBar({
           All
         </ToggleGroupItem>
         <ToggleGroupItem value="primary" size="sm" className="gap-1">
-          ⚔️ Primary
+          <Sword className="h-4 w-4" /> Primary
           {state.primaryWeapon && (
             <Badge variant="secondary" className="size-2 p-0" />
           )}
         </ToggleGroupItem>
         <ToggleGroupItem value="secondary" size="sm" className="gap-1">
-          🗡️ Secondary
+          <Axe className="h-4 w-4" /> Secondary
           {state.secondaryWeapon && (
             <Badge variant="secondary" className="size-2 p-0" />
           )}
         </ToggleGroupItem>
         <ToggleGroupItem value="armor" size="sm" className="gap-1">
-          🛡️ Armor
+          <Shield className="h-4 w-4" /> Armor
           {state.armor && <Badge variant="secondary" className="size-2 p-0" />}
         </ToggleGroupItem>
         <ToggleGroupItem value="wheelchair" size="sm" className="gap-1">
-          ♿ Wheelchair
+          <Wheelchair className="h-4 w-4" /> Wheelchair
           {state.useCombatWheelchair && (
             <Badge variant="secondary" className="size-2 p-0" />
           )}
         </ToggleGroupItem>
         <ToggleGroupItem value="custom" size="sm" className="gap-1">
-          ✨ Custom
+          <Sparkles className="h-4 w-4" /> Custom
           {(state.customSlots?.length ?? 0) > 0 && (
             <Badge variant="secondary" className="px-1 text-xs">
               {state.customSlots?.length ?? 0}

@@ -7,6 +7,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { RULES_INDEX_CARDS } from '@/lib/data/rules/rules-content';
+import { RulesSectionIcons, Scroll } from '@/lib/icons';
 
 export const Route = createFileRoute('/rules/')({
   component: RulesIndexPage,
@@ -17,7 +18,8 @@ function RulesIndexPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-10 text-center">
         <h1 className="bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-4xl font-bold text-transparent">
-          📜 Daggerheart Rules Guide
+          <Scroll className="mr-2 inline-block size-8" />
+          Daggerheart Rules Guide
         </h1>
         <p className="text-muted-foreground mx-auto mt-3 max-w-2xl text-lg">
           Quick, friendly rule breakdowns for players and GMs. Pick a section to
@@ -35,9 +37,12 @@ function RulesIndexPage() {
                   <div
                     className={`shrink-0 rounded-xl p-3 ${card.tint} transition-transform group-hover:scale-110`}
                   >
-                    <span className={`text-2xl ${card.accent}`}>
-                      {card.emoji}
-                    </span>
+                    {(() => {
+                      const IconComp = RulesSectionIcons[card.iconKey];
+                      return IconComp ? (
+                        <IconComp className={`size-6 ${card.accent}`} />
+                      ) : null;
+                    })()}
                   </div>
                   <div className="min-w-0 flex-1">
                     <CardTitle className="group-hover:text-primary text-xl transition-colors">

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import { useCoarsePointer } from '@/hooks/use-coarse-pointer';
+import { ICON_SIZE_MD, Zap } from '@/lib/icons';
 import type { DomainCardLite } from '@/lib/schemas/loadout';
 
 import { buildCardProps, type PreviewCard } from './card-props-builder';
@@ -26,7 +27,7 @@ function LoadoutHeader({
 }: LoadoutHeaderProps) {
   return (
     <h5 className="text-muted-foreground mb-3 flex items-center gap-2 text-xs font-medium tracking-wide uppercase">
-      ⚡ Active Loadout
+      <Zap size={ICON_SIZE_MD} className="inline-block" /> Active Loadout
       <div className="flex items-center gap-1">
         {onChangeMaxActiveCards && (
           <SmartTooltip content="Decrease max active cards">

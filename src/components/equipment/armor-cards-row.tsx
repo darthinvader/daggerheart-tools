@@ -1,3 +1,5 @@
+import { Wheelchair } from '@/lib/icons';
+
 import { ClickableCard } from './clickable-card';
 import type { EquipmentState } from './equipment-editor';
 import { ArmorSummaryCard, WeaponSummaryCard } from './summary';
@@ -53,7 +55,7 @@ export function ArmorCardsRow({
           disabled={readOnly}
         >
           <WeaponSummaryCard
-            icon="♿"
+            icon={Wheelchair}
             label="Combat Wheelchair"
             name={wheelchairData.name}
             isHomebrew={equipment.wheelchairMode === 'homebrew'}

@@ -1,5 +1,8 @@
+import type { LucideIcon } from 'lucide-react';
+
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { Package, Star } from '@/lib/icons';
 import type {
   EquipmentTier,
   InventoryItemEntry,
@@ -51,7 +54,7 @@ export function InventoryItemCard({
     return (
       <CompactItemCard
         item={item}
-        emoji={configs.categoryConfig?.emoji ?? '📦'}
+        Icon={configs.categoryConfig?.icon ?? Package}
         borderColor={configs.rarityConfig.borderColor}
         bgColor={configs.rarityConfig.bgColor}
       />
@@ -69,9 +72,9 @@ export function InventoryItemCard({
       <ItemHeader
         name={item.item.name}
         isEquipped={item.isEquipped}
-        emoji={configs.categoryConfig?.emoji ?? '📦'}
+        Icon={configs.categoryConfig?.icon ?? Package}
         bgColor={configs.rarityConfig.bgColor}
-        locationEmoji={configs.locationConfig?.emoji}
+        LocationIcon={configs.locationConfig?.icon}
       />
 
       <CardContent className="space-y-3 p-4">
@@ -116,12 +119,12 @@ export function InventoryItemCard({
 
 function CompactItemCard({
   item,
-  emoji,
+  Icon,
   borderColor,
   bgColor,
 }: {
   item: InventoryItemEntry;
-  emoji: string;
+  Icon: LucideIcon;
   borderColor: string;
   bgColor: string;
 }) {
@@ -133,7 +136,7 @@ function CompactItemCard({
         bgColor
       )}
     >
-      <span className="text-lg">{emoji}</span>
+      <Icon className="size-5 shrink-0" />
       <span className="flex-1 truncate text-sm font-medium">
         {item.item.name}
       </span>
@@ -143,7 +146,9 @@ function CompactItemCard({
         </Badge>
       )}
       {item.isEquipped && (
-        <Badge className="bg-yellow-500 text-xs text-white">⭐ Equipped</Badge>
+        <Badge className="flex items-center gap-1 bg-yellow-500 text-xs text-white">
+          <Star className="size-3" /> Equipped
+        </Badge>
       )}
     </div>
   );
@@ -152,28 +157,32 @@ function CompactItemCard({
 function ItemHeader({
   name,
   isEquipped,
-  emoji,
+  Icon,
   bgColor,
-  locationEmoji,
+  LocationIcon,
 }: {
   name: string;
   isEquipped: boolean;
-  emoji: string;
+  Icon: LucideIcon;
   bgColor: string;
-  locationEmoji?: string;
+  LocationIcon?: LucideIcon;
 }) {
   return (
     <div className={cn('px-3 py-2 sm:px-4', bgColor)}>
       <div className="flex flex-wrap items-center gap-2">
         <div className="flex min-w-0 flex-1 items-center gap-2">
-          <span className="shrink-0 text-xl">{emoji}</span>
+          <Icon className="size-5 shrink-0" />
           <h3 className="truncate font-semibold">{name}</h3>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-1">
-          {isEquipped && <Badge className="bg-yellow-500 text-white">⭐</Badge>}
-          {locationEmoji && (
+          {isEquipped && (
+            <Badge className="flex items-center gap-1 bg-yellow-500 text-white">
+              <Star className="size-3" />
+            </Badge>
+          )}
+          {LocationIcon && (
             <Badge variant="outline" className="text-xs">
-              {locationEmoji}
+              <LocationIcon className="size-3" />
             </Badge>
           )}
         </div>

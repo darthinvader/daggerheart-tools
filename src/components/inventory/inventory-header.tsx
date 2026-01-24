@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Backpack, ICON_SIZE_LG } from '@/lib/icons';
 
 interface InventoryHeaderProps {
   totalItems: number;
@@ -36,7 +37,8 @@ export function InventoryHeader({
     <CardHeader className="pb-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <CardTitle className="flex items-center gap-2">
-          <span className="text-2xl">🎒</span>Inventory
+          <Backpack size={ICON_SIZE_LG} />
+          Inventory
           {unlimitedSlots ? (
             <Badge variant="secondary">{totalItems}/∞ items</Badge>
           ) : (
@@ -97,7 +99,7 @@ export function InventoryHeader({
       <div className="relative mt-2">
         <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
         <Input
-          placeholder="🔍 Search your inventory..."
+          placeholder="Search your inventory..."
           value={searchQuery}
           onChange={e => onSearchChange(e.target.value)}
           className="pl-9"

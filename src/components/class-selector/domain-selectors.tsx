@@ -7,7 +7,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ALL_DOMAIN_NAMES } from '@/lib/data/domains';
-import { DOMAIN_EMOJIS } from '@/lib/schemas/loadout';
+import { DomainIcons, HelpCircle, ICON_SIZE_MD } from '@/lib/icons';
 
 interface DomainSelectorsProps {
   primaryDomain: string;
@@ -29,11 +29,16 @@ export function DomainSelectors({
             <SelectValue placeholder="Select domain" />
           </SelectTrigger>
           <SelectContent>
-            {ALL_DOMAIN_NAMES.map(domain => (
-              <SelectItem key={domain} value={domain}>
-                {DOMAIN_EMOJIS[domain]} {domain}
-              </SelectItem>
-            ))}
+            {ALL_DOMAIN_NAMES.map(domain => {
+              const DomainIcon = DomainIcons[domain] ?? HelpCircle;
+              return (
+                <SelectItem key={domain} value={domain}>
+                  <span className="flex items-center gap-2">
+                    <DomainIcon size={ICON_SIZE_MD} /> {domain}
+                  </span>
+                </SelectItem>
+              );
+            })}
           </SelectContent>
         </Select>
       </div>
@@ -47,11 +52,16 @@ export function DomainSelectors({
             <SelectValue placeholder="Select domain" />
           </SelectTrigger>
           <SelectContent>
-            {ALL_DOMAIN_NAMES.map(domain => (
-              <SelectItem key={domain} value={domain}>
-                {DOMAIN_EMOJIS[domain]} {domain}
-              </SelectItem>
-            ))}
+            {ALL_DOMAIN_NAMES.map(domain => {
+              const DomainIcon = DomainIcons[domain] ?? HelpCircle;
+              return (
+                <SelectItem key={domain} value={domain}>
+                  <span className="flex items-center gap-2">
+                    <DomainIcon size={ICON_SIZE_MD} /> {domain}
+                  </span>
+                </SelectItem>
+              );
+            })}
           </SelectContent>
         </Select>
       </div>

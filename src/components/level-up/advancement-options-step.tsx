@@ -2,6 +2,7 @@ import { Lock, Minus, Plus } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Target } from '@/lib/icons';
 import { cn } from '@/lib/utils';
 
 import {
@@ -78,7 +79,9 @@ export function AdvancementOptionsStep({
     <div className="space-y-6 overflow-y-auto p-6">
       <section>
         <div className="mb-3 flex items-center justify-between">
-          <h4 className="font-semibold">🎯 Choose Advancements</h4>
+          <h4 className="flex items-center gap-1 font-semibold">
+            <Target size={16} className="inline-block" /> Choose Advancements
+          </h4>
           <Badge
             variant={pointsRemaining > 0 ? 'default' : 'secondary'}
             className="text-sm"

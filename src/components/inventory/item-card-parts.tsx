@@ -2,6 +2,7 @@ import { ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ICON_SIZE_MD, Pin, Sparkles, Star } from '@/lib/icons';
 import { cn } from '@/lib/utils';
 
 import type { ItemCategory } from './constants';
@@ -25,14 +26,15 @@ export function ItemBadges({
     <div className="flex flex-wrap gap-1.5">
       {categoryConfig && (
         <Badge className={cn(categoryConfig.bgColor, categoryConfig.color)}>
-          {categoryConfig.emoji} {category}
+          <categoryConfig.icon size={ICON_SIZE_MD} className="mr-1" />
+          {category}
         </Badge>
       )}
       <Badge className={cn(rarityConfig.bgColor, rarityConfig.color)}>
-        {rarityConfig.emoji} {rarity}
+        <rarityConfig.icon size={ICON_SIZE_MD} className="mr-1" /> {rarity}
       </Badge>
       <Badge variant="outline" className={tierConfig.color}>
-        {tierConfig.emoji} {tierLabel}
+        <tierConfig.icon size={ICON_SIZE_MD} className="mr-1" /> {tierLabel}
       </Badge>
     </div>
   );
@@ -48,7 +50,10 @@ export function FeatureList({ features }: FeatureListProps) {
     <div className="space-y-1.5">
       {features.map((feature, idx) => (
         <div key={idx} className="bg-muted/50 rounded-md p-2 text-sm">
-          <span className="font-medium">✨ {feature.name}:</span>{' '}
+          <span className="font-medium">
+            <Sparkles size={ICON_SIZE_MD} className="mr-1 inline-block" />
+            {feature.name}:
+          </span>{' '}
           <span className="text-muted-foreground">{feature.description}</span>
         </div>
       ))}
@@ -117,7 +122,11 @@ export function ItemActions({
           variant={isEquipped ? 'default' : 'outline'}
           onClick={onEquipToggle}
         >
-          {isEquipped ? '⭐' : '📌'}
+          {isEquipped ? (
+            <Star size={ICON_SIZE_MD} />
+          ) : (
+            <Pin size={ICON_SIZE_MD} />
+          )}
         </Button>
       )}
       {onEdit && (

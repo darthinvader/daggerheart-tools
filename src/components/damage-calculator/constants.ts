@@ -1,12 +1,16 @@
+import type { LucideIcon } from 'lucide-react';
+
+import { DamageTypeIcons } from '@/lib/icons';
+
 import type { DamageType } from './types';
 
 export const DAMAGE_TYPES: {
   value: DamageType;
   label: string;
-  icon: string;
+  icon: LucideIcon;
 }[] = [
-  { value: 'physical', label: 'Physical', icon: '⚔️' },
-  { value: 'magic', label: 'Magic', icon: '✨' },
+  { value: 'physical', label: 'Physical', icon: DamageTypeIcons.physical },
+  { value: 'magic', label: 'Magic', icon: DamageTypeIcons.magic },
 ];
 
 export const SEVERITY_LEVELS = [

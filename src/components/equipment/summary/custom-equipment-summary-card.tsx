@@ -1,5 +1,7 @@
 import { Badge } from '@/components/ui/badge';
+import { DynamicIcon, EquipmentSlotIcons, Sparkles, Wrench } from '@/lib/icons';
 
+import { getSlotIcon } from '../constants';
 import type { CustomEquipment } from '../custom-slot-editor';
 
 interface CustomEquipmentSummaryCardProps {
@@ -10,6 +12,9 @@ export function CustomEquipmentSummaryCard({
   slot,
 }: CustomEquipmentSummaryCardProps) {
   const hasContent = slot.name || slot.description || slot.features.length > 0;
+  const slotIcon = getSlotIcon(
+    slot.slotIconKey as keyof typeof EquipmentSlotIcons
+  );
 
   return (
     <div
@@ -17,13 +22,16 @@ export function CustomEquipmentSummaryCard({
     >
       <div className="mb-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-xl">{slot.slotIcon}</span>
+          <DynamicIcon icon={slotIcon} className="h-5 w-5" />
           <span className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
             {slot.slotName}
           </span>
         </div>
-        <Badge variant="outline" className="text-[10px]">
-          �️ Custom
+        <Badge
+          variant="outline"
+          className="flex items-center gap-1 text-[10px]"
+        >
+          <Wrench className="h-3 w-3" /> Custom
         </Badge>
       </div>
 
@@ -43,8 +51,8 @@ export function CustomEquipmentSummaryCard({
 
           {slot.features.length > 0 && (
             <div className="space-y-1">
-              <p className="text-muted-foreground text-xs font-medium">
-                ✨ Features:
+              <p className="text-muted-foreground flex items-center gap-1 text-xs font-medium">
+                <Sparkles className="h-3 w-3" /> Features:
               </p>
               {slot.features.map((feature, idx) => (
                 <div

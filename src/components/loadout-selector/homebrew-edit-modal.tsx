@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { ICON_SIZE_MD, Wrench } from '@/lib/icons';
 import type { DomainCardLite, LoadoutSelection } from '@/lib/schemas/loadout';
 
 import { CardFormFields } from './card-form-fields';
@@ -102,7 +103,7 @@ export function HomebrewEditModal({
       <DialogContent className="w-[95vw] max-w-2xl sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <span>🛠️</span>
+            <Wrench size={ICON_SIZE_MD} />
             <span>Edit as Homebrew</span>
           </DialogTitle>
           <DialogDescription>

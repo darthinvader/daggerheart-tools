@@ -1,16 +1,18 @@
 import type { DeathMoveType } from './types';
 
+export type DeathMoveIconKey = 'flame' | 'sparkle' | 'dice5';
+
 export const DEATH_MOVE_OPTIONS: {
   type: DeathMoveType;
   name: string;
-  emoji: string;
+  iconKey: DeathMoveIconKey;
   description: string;
   riskLevel: 'safe' | 'risky' | 'heroic';
 }[] = [
   {
     type: 'blaze_of_glory',
     name: 'Blaze of Glory',
-    emoji: '🔥',
+    iconKey: 'flame',
     description:
       'Embrace death and go out heroically. Take one action that critically succeeds, then cross through the veil of death.',
     riskLevel: 'heroic',
@@ -18,7 +20,7 @@ export const DEATH_MOVE_OPTIONS: {
   {
     type: 'avoid_death',
     name: 'Avoid Death',
-    emoji: '💫',
+    iconKey: 'sparkle',
     description:
       "Drop unconscious and face consequences. You can't move or act while unconscious. Roll your Hope Die - if equal to or under your level, you gain a scar.",
     riskLevel: 'safe',
@@ -26,7 +28,7 @@ export const DEATH_MOVE_OPTIONS: {
   {
     type: 'risk_it_all',
     name: 'Risk It All',
-    emoji: '🎲',
+    iconKey: 'dice5',
     description:
       'Roll your Duality Dice. If Hope is higher, stay up and clear HP/Stress equal to the Hope Die. If Fear is higher, you die. Critical success clears all HP and Stress.',
     riskLevel: 'risky',

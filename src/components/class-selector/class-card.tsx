@@ -17,11 +17,18 @@ import {
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import type { GameClass } from '@/lib/data/classes';
 import {
-  CLASS_BG_COLORS,
-  CLASS_COLORS,
-  CLASS_EMOJIS,
-} from '@/lib/schemas/class-selection';
-import { DOMAIN_COLORS, DOMAIN_EMOJIS } from '@/lib/schemas/loadout';
+  ClassIcons,
+  DomainIcons,
+  Heart,
+  HelpCircle,
+  ICON_SIZE_LG,
+  ICON_SIZE_MD,
+  Shield,
+  Star,
+  Theater,
+} from '@/lib/icons';
+import { CLASS_BG_COLORS, CLASS_COLORS } from '@/lib/schemas/class-selection';
+import { DOMAIN_COLORS } from '@/lib/schemas/loadout';
 import { cn } from '@/lib/utils';
 
 import {
@@ -38,7 +45,7 @@ interface ClassCardProps {
 
 function DomainBadge({ domain }: { domain: string }) {
   const color = DOMAIN_COLORS[domain] ?? '';
-  const emoji = DOMAIN_EMOJIS[domain] ?? '📜';
+  const DomainIcon = DomainIcons[domain] ?? HelpCircle;
 
   return (
     <SmartTooltip
@@ -50,7 +57,7 @@ function DomainBadge({ domain }: { domain: string }) {
       }
     >
       <Badge variant="outline" className={cn('cursor-help text-xs', color)}>
-        {emoji} {domain}
+        <DomainIcon size={ICON_SIZE_MD} className="mr-1" /> {domain}
       </Badge>
     </SmartTooltip>
   );
@@ -72,7 +79,7 @@ function StatBadges({ hp, evasion }: { hp: number; evasion: number }) {
         }
       >
         <Badge variant="secondary" className="cursor-help text-xs">
-          ❤️ {hp}
+          <Heart size={ICON_SIZE_MD} className="mr-1 text-red-500" /> {hp}
         </Badge>
       </SmartTooltip>
       <SmartTooltip
@@ -88,7 +95,7 @@ function StatBadges({ hp, evasion }: { hp: number; evasion: number }) {
         }
       >
         <Badge variant="secondary" className="cursor-help text-xs">
-          🛡️ {evasion}
+          <Shield size={ICON_SIZE_MD} className="mr-1" /> {evasion}
         </Badge>
       </SmartTooltip>
     </div>
@@ -101,7 +108,7 @@ export function ClassCardComponent({
   onSelect,
 }: ClassCardProps) {
   const [showDetails, setShowDetails] = useState(false);
-  const emoji = CLASS_EMOJIS[gameClass.name] ?? '⚔️';
+  const ClassIcon = ClassIcons[gameClass.name] ?? HelpCircle;
   const colorClass = CLASS_COLORS[gameClass.name] ?? 'text-foreground';
   const bgClass = CLASS_BG_COLORS[gameClass.name] ?? '';
 
@@ -130,7 +137,7 @@ export function ClassCardComponent({
       <CardHeader className="pb-2">
         <div className="flex items-center gap-3">
           <span className="text-3xl" aria-hidden="true">
-            {emoji}
+            <ClassIcon size={ICON_SIZE_LG} className={colorClass} />
           </span>
           <div className="flex-1 space-y-1">
             <CardTitle className={cn('text-lg', colorClass)}>
@@ -169,7 +176,7 @@ export function ClassCardComponent({
                 }
               >
                 <Badge variant="outline" className="cursor-help text-xs">
-                  ⭐ {featureCount}
+                  <Star size={ICON_SIZE_MD} className="mr-1" /> {featureCount}
                 </Badge>
               </SmartTooltip>
             )}
@@ -182,7 +189,8 @@ export function ClassCardComponent({
                 }
               >
                 <Badge variant="outline" className="cursor-help text-xs">
-                  🎭 {subclassCount}
+                  <Theater size={ICON_SIZE_MD} className="mr-1" />{' '}
+                  {subclassCount}
                 </Badge>
               </SmartTooltip>
             )}

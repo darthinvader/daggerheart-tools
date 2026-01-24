@@ -1,3 +1,6 @@
+import type { LucideIcon } from 'lucide-react';
+import { Heart, HeartCrack, Shield } from 'lucide-react';
+
 import type { ResourcesState } from './resources-display';
 
 export const DEFAULT_RESOURCES_STATE: ResourcesState = {
@@ -11,23 +14,28 @@ export const DEFAULT_RESOURCES_STATE: ResourcesState = {
   autoCalculateThresholds: true,
 };
 
-export const RESOURCE_CONFIG = [
+export const RESOURCE_CONFIG: {
+  key: keyof ResourcesState;
+  label: string;
+  icon: LucideIcon;
+  color: string;
+}[] = [
   {
     key: 'hp' as const,
     label: 'Hit Points',
-    emoji: '❤️',
+    icon: Heart,
     color: 'text-red-500',
   },
   {
     key: 'stress' as const,
     label: 'Stress',
-    emoji: '😰',
+    icon: HeartCrack,
     color: 'text-yellow-500',
   },
   {
     key: 'armorScore' as const,
     label: 'Armor Score',
-    emoji: '🛡️',
+    icon: Shield,
     color: 'text-slate-500',
   },
 ];

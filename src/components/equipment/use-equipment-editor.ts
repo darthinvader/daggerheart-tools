@@ -1,5 +1,13 @@
 import { useCallback, useState } from 'react';
 
+import {
+  Axe,
+  Gem,
+  type LucideIcon,
+  Shield,
+  Sword,
+  Wheelchair,
+} from '@/lib/icons';
 import { generateId } from '@/lib/utils';
 
 import type { CustomEquipment } from './custom-slot-editor';
@@ -47,7 +55,7 @@ export function useEquipmentEditor(
       id: generateId(),
       name: '',
       slotName: 'Ring',
-      slotIcon: '💍',
+      slotIconKey: 'ring',
       description: '',
       features: [],
     };
@@ -85,20 +93,20 @@ export function getSectionTitle(section: EditingSection): string {
   }
 }
 
-export function getSectionEmoji(section: EditingSection): string {
+export function getSectionIcon(section: EditingSection): LucideIcon {
   switch (section) {
     case 'primary':
-      return '⚔️';
+      return Sword;
     case 'secondary':
-      return '🗡️';
+      return Axe;
     case 'armor':
-      return '🛡️';
+      return Shield;
     case 'wheelchair':
-      return '♿';
+      return Wheelchair;
     case 'custom':
-      return '💎';
+      return Gem;
     default:
-      return '🛡️';
+      return Shield;
   }
 }
 

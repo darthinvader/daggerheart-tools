@@ -22,7 +22,7 @@ import {
   type GameSubclass,
   getSubclassesForClass,
 } from '@/lib/data/classes';
-import { CLASS_EMOJIS } from '@/lib/schemas/class-selection';
+import { ClassIcons, Scroll } from '@/lib/icons';
 
 import { SubclassSelectionGrid } from './subclass-selection-grid';
 
@@ -108,14 +108,17 @@ export function MulticlassSelectionModal({
                 <SelectValue placeholder="Choose a class..." />
               </SelectTrigger>
               <SelectContent>
-                {availableClasses.map(cls => (
-                  <SelectItem key={cls.name} value={cls.name}>
-                    <span className="flex items-center gap-2">
-                      <span>{CLASS_EMOJIS[cls.name] ?? '📜'}</span>
-                      <span>{cls.name}</span>
-                    </span>
-                  </SelectItem>
-                ))}
+                {availableClasses.map(cls => {
+                  const ClassIcon = ClassIcons[cls.name] ?? Scroll;
+                  return (
+                    <SelectItem key={cls.name} value={cls.name}>
+                      <span className="flex items-center gap-2">
+                        <ClassIcon size={16} className="inline-block" />
+                        <span>{cls.name}</span>
+                      </span>
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
           </div>

@@ -1,6 +1,7 @@
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { ALL_COMBAT_WHEELCHAIRS } from '@/lib/data/equipment';
+import { Wheelchair } from '@/lib/icons';
 import type { CombatWheelchair } from '@/lib/schemas/equipment';
 
 import { type EquipmentMode, EquipmentModeTabs } from '../equipment-mode-tabs';
@@ -56,7 +57,7 @@ export function WheelchairSection({
     ) : (
       <EquipmentSection
         title="Combat Wheelchairs"
-        icon="♿"
+        icon={Wheelchair}
         items={ALL_COMBAT_WHEELCHAIRS}
         selectedItem={wheelchair}
         onSelect={onWheelchairChange}

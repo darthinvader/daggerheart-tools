@@ -1,4 +1,4 @@
-import { X } from 'lucide-react';
+import { PawPrint, Sparkles, X } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
@@ -54,12 +54,14 @@ function getSlotIcon(
     return <X className="text-destructive size-4 sm:size-5" strokeWidth={3} />;
   }
   if (isFilled) {
-    return (
-      <span className="text-base sm:text-lg">{isBonus ? '🐾' : '✨'}</span>
+    return isBonus ? (
+      <PawPrint className="size-4 text-white sm:size-5" />
+    ) : (
+      <Sparkles className="size-4 text-white sm:size-5" />
     );
   }
   if (isBonus) {
-    return <span className="text-xs text-emerald-500">🐾</span>;
+    return <PawPrint className="size-3 text-emerald-500" />;
   }
   return null;
 }

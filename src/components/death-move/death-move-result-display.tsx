@@ -1,5 +1,6 @@
 import { AlertTriangle } from 'lucide-react';
 
+import { HeartCrack, Skull, Sparkles, Star } from '@/lib/icons';
 import { cn } from '@/lib/utils';
 
 import type { DeathMoveResult } from './types';
@@ -29,11 +30,11 @@ export function DeathMoveResultDisplay({
     return 'You Survived!';
   };
 
-  const getResultEmoji = () => {
-    if (!result.survived) return '💀';
-    if (result.gainedScar) return '💔';
-    if (result.hpCleared === 999) return '🌟';
-    return '✨';
+  const getResultIcon = () => {
+    if (!result.survived) return <Skull className="size-6" />;
+    if (result.gainedScar) return <HeartCrack className="size-6" />;
+    if (result.hpCleared === 999) return <Star className="size-6" />;
+    return <Sparkles className="size-6" />;
   };
 
   return (
@@ -45,7 +46,7 @@ export function DeathMoveResultDisplay({
       )}
     >
       <div className="flex items-center gap-2">
-        <span className="text-2xl">{getResultEmoji()}</span>
+        {getResultIcon()}
         <h4 className="text-lg font-bold">{getResultTitle()}</h4>
       </div>
 

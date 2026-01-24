@@ -9,6 +9,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import { Switch } from '@/components/ui/switch';
+import { FeatureTypeIcons, Lock, Target } from '@/lib/icons';
 import { cn } from '@/lib/utils';
 
 import type { FeatureUnlockState } from './types';
@@ -23,12 +24,6 @@ const FEATURE_TYPE_BG: Record<string, string> = {
   foundation: 'bg-blue-500/5 border-blue-500/20 hover:bg-blue-500/10',
   specialization: 'bg-purple-500/5 border-purple-500/20 hover:bg-purple-500/10',
   mastery: 'bg-amber-500/5 border-amber-500/20 hover:bg-amber-500/10',
-};
-
-const FEATURE_TYPE_EMOJIS: Record<string, string> = {
-  foundation: '🏛️',
-  specialization: '⚡',
-  mastery: '👑',
 };
 
 function getDefaultUnlockState(featureType: string): boolean {
@@ -64,7 +59,7 @@ export function SubclassFeaturesCard({
   return (
     <div className="space-y-1.5">
       <div className="flex items-center gap-2 px-1 text-sm font-medium">
-        <span>🎯</span>
+        <Target className="size-4" />
         <span>Subclass Features</span>
         <Badge variant="secondary" className="text-xs">
           {features.length}
@@ -77,7 +72,8 @@ export function SubclassFeaturesCard({
             FEATURE_TYPE_COLORS[featureType] ?? FEATURE_TYPE_COLORS.foundation;
           const typeBg =
             FEATURE_TYPE_BG[featureType] ?? FEATURE_TYPE_BG.foundation;
-          const typeEmoji = FEATURE_TYPE_EMOJIS[featureType] ?? '⭐';
+          const TypeIcon =
+            FeatureTypeIcons[featureType] ?? FeatureTypeIcons.default;
           const featureKey = `${className}:${feature.name}`;
           const isUnlocked =
             unlockState[featureKey] ?? getDefaultUnlockState(featureType);
@@ -99,9 +95,12 @@ export function SubclassFeaturesCard({
                   <span className="font-medium">{feature.name}</span>
                   <Badge
                     variant="outline"
-                    className={cn('text-[10px]', typeColor)}
+                    className={cn(
+                      'inline-flex items-center text-[10px]',
+                      typeColor
+                    )}
                   >
-                    {typeEmoji}
+                    <TypeIcon className="size-3" />
                   </Badge>
                   {isUnlocked ? (
                     <Badge
@@ -113,9 +112,9 @@ export function SubclassFeaturesCard({
                   ) : (
                     <Badge
                       variant="outline"
-                      className="text-muted-foreground text-[10px]"
+                      className="text-muted-foreground inline-flex items-center text-[10px]"
                     >
-                      🔒
+                      <Lock className="size-3" />
                     </Badge>
                   )}
                 </div>

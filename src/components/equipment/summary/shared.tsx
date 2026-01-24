@@ -1,4 +1,5 @@
 import { Badge } from '@/components/ui/badge';
+import { Grip, Hand, MapPin, Sparkles } from '@/lib/icons';
 
 interface FeatureDisplayProps {
   features: Array<{ name: string; description?: string }>;
@@ -9,7 +10,9 @@ export function FeatureDisplay({ features }: FeatureDisplayProps) {
 
   return (
     <div className="mt-2 space-y-1">
-      <p className="text-muted-foreground text-xs font-medium">✨ Features:</p>
+      <p className="text-muted-foreground flex items-center gap-1 text-xs font-medium">
+        <Sparkles className="h-3 w-3" /> Features:
+      </p>
       {features.map((feature, idx) => (
         <div key={idx} className="bg-muted/50 rounded px-2 py-1.5 text-xs">
           <span className="font-semibold">{feature.name}</span>
@@ -34,6 +37,8 @@ interface StatBadgesProps {
 export function StatBadges({ damage, range, burden }: StatBadgesProps) {
   if (!damage && !range && !burden) return null;
 
+  const BurdenIcon = burden === 'Two-Handed' ? Grip : Hand;
+
   return (
     <div className="flex min-w-0 flex-wrap gap-1.5">
       {damage && (
@@ -42,13 +47,13 @@ export function StatBadges({ damage, range, burden }: StatBadgesProps) {
         </Badge>
       )}
       {range && (
-        <Badge variant="secondary" className="shrink-0">
-          📍 {range}
+        <Badge variant="secondary" className="flex shrink-0 items-center gap-1">
+          <MapPin className="h-3 w-3" /> {range}
         </Badge>
       )}
       {burden && (
-        <Badge variant="secondary" className="shrink-0">
-          {burden === 'One-Handed' ? '🖐️' : '🙌'} {burden}
+        <Badge variant="secondary" className="flex shrink-0 items-center gap-1">
+          <BurdenIcon className="h-3 w-3" /> {burden}
         </Badge>
       )}
     </div>

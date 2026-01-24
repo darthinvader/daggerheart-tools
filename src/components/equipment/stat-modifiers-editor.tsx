@@ -15,6 +15,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { Label } from '@/components/ui/label';
+import { ChevronDown, ChevronRight, Sword } from '@/lib/icons';
 import type { EquipmentStatModifiers } from '@/lib/schemas/equipment';
 
 import { NumberField } from './form';
@@ -171,14 +172,19 @@ export function StatModifiersEditor({
       <CollapsibleTrigger asChild>
         <Button variant="ghost" size="sm" className="w-full justify-between">
           <span className="flex items-center gap-2">
-            <span>⚔️ Stat Modifiers</span>
+            <Sword className="h-4 w-4" />
+            <span>Stat Modifiers</span>
             {hasModifiers && (
               <Badge variant="secondary" className="text-xs">
                 Active
               </Badge>
             )}
           </span>
-          <span className="text-muted-foreground">{isOpen ? '▼' : '▶'}</span>
+          {isOpen ? (
+            <ChevronDown className="text-muted-foreground h-4 w-4" />
+          ) : (
+            <ChevronRight className="text-muted-foreground h-4 w-4" />
+          )}
         </Button>
       </CollapsibleTrigger>
       <CollapsibleContent className="space-y-4 pt-3">

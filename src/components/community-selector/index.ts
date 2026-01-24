@@ -8,5 +8,5 @@ export { CommunityDisplay } from './community-display';
 export { CommunitySelector } from './community-selector';
 
 // Used by demo
-export { getCommunityColors, getCommunityEmoji } from './community-config';
+export { getCommunityColors, getCommunityIcon } from './community-config';
 export { CommunityFeatureDisplay } from './community-feature-display';

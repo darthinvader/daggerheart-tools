@@ -1,10 +1,25 @@
-import { Minus, Plus, Shield, Swords, Trash2, Wind } from 'lucide-react';
+import type { LucideProps } from 'lucide-react';
+import {
+  AlertTriangle,
+  BookOpen,
+  GraduationCap,
+  Minus,
+  Pencil,
+  Plus,
+  Shield,
+  Swords,
+  Trash2,
+  Wind,
+  Zap,
+} from 'lucide-react';
+import type { ComponentType } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { DynamicIcon } from '@/lib/icons';
 import { cn } from '@/lib/utils';
 
-import { getCompanionEmoji, TRAINING_EMOJIS } from './constants';
+import { CompanionTrainingIcons, getCompanionIcon } from './constants';
 import type { CompanionState } from './types';
 
 interface CompanionHeaderProps {
@@ -22,12 +37,12 @@ export function CompanionHeader({
   onEdit,
   onDisable,
 }: CompanionHeaderProps) {
-  const emoji = getCompanionEmoji(type);
+  const icon = getCompanionIcon(type);
   return (
     <div className="flex items-center justify-between">
       <div>
         <h3 className="flex items-center gap-2 text-lg font-semibold">
-          <span className="text-2xl">{emoji}</span>
+          <DynamicIcon icon={icon} className="size-6" />
           {name}
           {isHomebrew && (
             <span className="text-muted-foreground text-xs font-normal">
@@ -39,7 +54,7 @@ export function CompanionHeader({
       </div>
       <div className="flex gap-1">
         <Button variant="ghost" size="sm" onClick={onEdit}>
-          ✏️ Edit
+          <Pencil className="mr-1 size-4" /> Edit
         </Button>
         {onDisable && (
           <Button
@@ -99,7 +114,7 @@ export function CompanionStatsGrid({
         </div>
       </div>
       <div className="flex items-center gap-2 rounded-lg border-2 border-purple-400/30 bg-purple-50/50 p-3 dark:bg-purple-950/20">
-        <span className="text-xl">⚔️</span>
+        <Swords className="h-5 w-5 text-purple-500" />
         <div>
           <p className="text-muted-foreground text-xs">Attack</p>
           <p className="truncate text-sm font-bold text-purple-600 dark:text-purple-400">
@@ -128,7 +143,7 @@ export function CompanionStressTracker({
     <div className="space-y-2 rounded-lg border-2 border-orange-400/30 bg-orange-50/30 p-3 dark:bg-orange-950/10">
       <div className="flex items-center justify-between">
         <span className="flex items-center gap-2 text-sm font-medium">
-          <span className="text-lg">😰</span> Stress
+          <Zap className="size-5 text-orange-500" /> Stress
         </span>
         <div className="flex items-center gap-2">
           <Button
@@ -167,7 +182,9 @@ export function CompanionStressTracker({
             onClick={() => onSlotClick(i)}
             aria-label={`Stress slot ${i + 1}`}
           >
-            {i < markedStress && <span className="text-xs text-white">💢</span>}
+            {i < markedStress && (
+              <AlertTriangle className="size-4 text-white" />
+            )}
           </button>
         ))}
       </div>
@@ -190,15 +207,15 @@ export function CompanionExperiencesBadges({
       <Separator />
       <div>
         <h4 className="mb-2 flex items-center gap-2 text-sm font-medium">
-          <span>📚</span> Companion Experiences
+          <BookOpen className="size-4" /> Companion Experiences
         </h4>
         <div className="flex flex-wrap gap-2">
           {validExperiences.map((exp, i) => (
             <span
               key={i}
-              className="rounded-full bg-linear-to-r from-emerald-500/20 to-teal-500/20 px-3 py-1.5 text-sm font-medium text-emerald-700 ring-1 ring-emerald-500/30 dark:text-emerald-300"
+              className="flex items-center gap-1 rounded-full bg-linear-to-r from-emerald-500/20 to-teal-500/20 px-3 py-1.5 text-sm font-medium text-emerald-700 ring-1 ring-emerald-500/30 dark:text-emerald-300"
             >
-              ✨ {exp.name} +{exp.bonus}
+              {exp.name} +{exp.bonus}
             </span>
           ))}
         </div>
@@ -209,18 +226,18 @@ export function CompanionExperiencesBadges({
 
 function TrainingBadge({
   children,
-  emoji,
+  Icon,
   color = 'bg-secondary',
 }: {
   children: React.ReactNode;
-  emoji?: string;
+  Icon?: ComponentType<LucideProps>;
   color?: string;
 }) {
   return (
     <span
       className={`${color} text-secondary-foreground flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium`}
     >
-      {emoji && <span>{emoji}</span>}
+      {Icon && <Icon className="size-3.5" />}
       {children}
     </span>
   );
@@ -253,12 +270,12 @@ export function CompanionTrainingBadges({
       <Separator />
       <div>
         <h4 className="mb-2 flex items-center gap-2 text-sm font-medium">
-          <span>🎓</span> Training
+          <GraduationCap className="size-4" /> Training
         </h4>
         <div className="flex flex-wrap gap-2">
           {training.intelligent > 0 && (
             <TrainingBadge
-              emoji={TRAINING_EMOJIS.intelligent}
+              Icon={CompanionTrainingIcons.intelligent}
               color="bg-blue-100 dark:bg-blue-900/40"
             >
               Intelligent ×{training.intelligent}
@@ -266,7 +283,7 @@ export function CompanionTrainingBadges({
           )}
           {training.lightInTheDark && (
             <TrainingBadge
-              emoji={TRAINING_EMOJIS.lightInTheDark}
+              Icon={CompanionTrainingIcons.lightInTheDark}
               color="bg-yellow-100 dark:bg-yellow-900/40"
             >
               Light in the Dark
@@ -274,7 +291,7 @@ export function CompanionTrainingBadges({
           )}
           {training.creatureComfort && (
             <TrainingBadge
-              emoji={TRAINING_EMOJIS.creatureComfort}
+              Icon={CompanionTrainingIcons.creatureComfort}
               color="bg-pink-100 dark:bg-pink-900/40"
             >
               Creature Comfort
@@ -282,7 +299,7 @@ export function CompanionTrainingBadges({
           )}
           {training.armored && (
             <TrainingBadge
-              emoji={TRAINING_EMOJIS.armored}
+              Icon={CompanionTrainingIcons.armored}
               color="bg-slate-200 dark:bg-slate-700/40"
             >
               Armored
@@ -290,7 +307,7 @@ export function CompanionTrainingBadges({
           )}
           {training.vicious > 0 && (
             <TrainingBadge
-              emoji={TRAINING_EMOJIS.vicious}
+              Icon={CompanionTrainingIcons.vicious}
               color="bg-red-100 dark:bg-red-900/40"
             >
               Vicious ×{training.vicious}
@@ -298,7 +315,7 @@ export function CompanionTrainingBadges({
           )}
           {training.resilient > 0 && (
             <TrainingBadge
-              emoji={TRAINING_EMOJIS.resilient}
+              Icon={CompanionTrainingIcons.resilient}
               color="bg-amber-100 dark:bg-amber-900/40"
             >
               Resilient ×{training.resilient}
@@ -306,7 +323,7 @@ export function CompanionTrainingBadges({
           )}
           {training.bonded && (
             <TrainingBadge
-              emoji={TRAINING_EMOJIS.bonded}
+              Icon={CompanionTrainingIcons.bonded}
               color="bg-green-100 dark:bg-green-900/40"
             >
               Bonded
@@ -314,7 +331,7 @@ export function CompanionTrainingBadges({
           )}
           {(training.aware ?? 0) > 0 && (
             <TrainingBadge
-              emoji={TRAINING_EMOJIS.aware}
+              Icon={CompanionTrainingIcons.aware}
               color="bg-purple-100 dark:bg-purple-900/40"
             >
               Aware ×{training.aware}

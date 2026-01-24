@@ -1,8 +1,9 @@
 import { FeatureIcon, TraitsIcon } from '@/components/shared';
+import { DynamicIcon } from '@/lib/icons';
 import type { Community } from '@/lib/schemas/identity';
 import { cn } from '@/lib/utils';
 
-import { getCommunityColors, getCommunityEmoji } from './community-config';
+import { getCommunityColors, getCommunityIcon } from './community-config';
 
 interface CommunityCardProps {
   community: Community;
@@ -16,7 +17,7 @@ export function CommunityCard({
   onSelect,
 }: CommunityCardProps) {
   const colors = getCommunityColors(community.name);
-  const emoji = getCommunityEmoji(community.name);
+  const icon = getCommunityIcon(community.name);
 
   return (
     <button
@@ -33,7 +34,7 @@ export function CommunityCard({
     >
       <div className="space-y-2">
         <div className="flex items-center gap-2">
-          <span className="text-xl">{emoji}</span>
+          <DynamicIcon icon={icon} className="size-5" />
           <h3
             className={cn('text-lg font-semibold', isSelected && colors.text)}
           >

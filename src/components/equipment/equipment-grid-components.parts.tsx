@@ -1,3 +1,8 @@
+import type { ComponentType } from 'react';
+
+import type { LucideProps } from '@/lib/icons';
+import { Axe, Sword, Wheelchair } from '@/lib/icons';
+
 import { ClickableCard } from './clickable-card';
 import type { EquipmentState } from './equipment-editor';
 import { ArmorSummaryCard, WeaponSummaryCard } from './summary';
@@ -7,8 +12,10 @@ import type {
 } from './summary/data-helpers';
 import type { EditingSection } from './use-equipment-editor';
 
+type IconComponent = ComponentType<LucideProps>;
+
 interface WeaponCardProps {
-  icon: string;
+  icon: IconComponent;
   label: string;
   data: WeaponDisplayData;
   isHomebrew: boolean;
@@ -101,7 +108,7 @@ export function WheelchairCard({
       disabled={readOnly}
     >
       <WeaponSummaryCard
-        icon="♿"
+        icon={Wheelchair}
         label="Combat Wheelchair"
         name={data.name}
         isHomebrew={isHomebrew}
@@ -140,7 +147,7 @@ export function EquipmentGrid3Col({
   return (
     <div className="grid gap-3 lg:grid-cols-3">
       <WeaponCard
-        icon="⚔️"
+        icon={Sword}
         label="Primary Weapon"
         data={primaryData}
         isHomebrew={equipment.primaryWeaponMode === 'homebrew'}
@@ -149,7 +156,7 @@ export function EquipmentGrid3Col({
         openSection={openSection}
       />
       <WeaponCard
-        icon="🗡️"
+        icon={Axe}
         label="Secondary Weapon"
         data={secondaryData}
         isHomebrew={equipment.secondaryWeaponMode === 'homebrew'}
@@ -186,7 +193,7 @@ export function EquipmentGrid2x2({
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       <WeaponCard
-        icon="⚔️"
+        icon={Sword}
         label="Primary Weapon"
         data={primaryData}
         isHomebrew={equipment.primaryWeaponMode === 'homebrew'}
@@ -195,7 +202,7 @@ export function EquipmentGrid2x2({
         openSection={openSection}
       />
       <WeaponCard
-        icon="🗡️"
+        icon={Axe}
         label="Secondary Weapon"
         data={secondaryData}
         isHomebrew={equipment.secondaryWeaponMode === 'homebrew'}

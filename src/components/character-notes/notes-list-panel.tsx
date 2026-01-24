@@ -76,7 +76,7 @@ export function NotesListPanel({
           <SelectItem value="all">All Categories</SelectItem>
           {NOTE_CATEGORIES.map(cat => (
             <SelectItem key={cat.value} value={cat.value}>
-              {cat.icon} {cat.label}
+              <cat.icon className="size-4" /> {cat.label}
             </SelectItem>
           ))}
         </SelectContent>

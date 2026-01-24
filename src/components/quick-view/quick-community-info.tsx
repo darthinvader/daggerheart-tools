@@ -1,3 +1,4 @@
+import { Home } from '@/lib/icons';
 import type { CommunitySelection } from '@/lib/schemas/identity';
 import { cn } from '@/lib/utils';
 
@@ -40,7 +41,7 @@ export function QuickCommunityInfo({
   return (
     <div className={cn('bg-card rounded-lg border p-3', className)}>
       <div className="mb-2 flex items-center gap-2">
-        <span className="text-lg">🏘️</span>
+        <Home className="size-5" />
         <span className="font-semibold">{name}</span>
       </div>
       {feature && <ExpandableFeature feature={feature} />}

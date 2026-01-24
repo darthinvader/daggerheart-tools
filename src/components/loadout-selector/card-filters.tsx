@@ -10,12 +10,12 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
+import { CardTypeIcons, ICON_SIZE_MD, Unlock } from '@/lib/icons';
 import type { DomainCardType } from '@/lib/schemas/domains';
 import { cn } from '@/lib/utils';
 
 import {
   CARD_LEVELS,
-  CARD_TYPE_EMOJIS,
   CARD_TYPES,
   type CardFiltersState,
 } from './card-filters-utils';
@@ -49,24 +49,30 @@ function TypeFilterSection({
         </Button>
       </div>
       <div className="flex flex-wrap gap-2">
-        {CARD_TYPES.map(type => (
-          <Badge
-            key={type}
-            variant={types.includes(type) ? 'default' : 'outline'}
-            className={cn('cursor-pointer transition-all hover:opacity-80')}
-            onClick={() => onToggle(type)}
-            role="button"
-            tabIndex={0}
-            onKeyDown={e => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                onToggle(type);
-              }
-            }}
-          >
-            {CARD_TYPE_EMOJIS[type]} {type}
-          </Badge>
-        ))}
+        {CARD_TYPES.map(type => {
+          const TypeIcon = CardTypeIcons[type];
+          return (
+            <Badge
+              key={type}
+              variant={types.includes(type) ? 'default' : 'outline'}
+              className={cn('cursor-pointer transition-all hover:opacity-80')}
+              onClick={() => onToggle(type)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onToggle(type);
+                }
+              }}
+            >
+              {TypeIcon && (
+                <TypeIcon size={ICON_SIZE_MD} className="mr-1 inline-block" />
+              )}
+              {type}
+            </Badge>
+          );
+        })}
       </div>
     </div>
   );
@@ -213,9 +219,10 @@ export function CardFilters({
               <div className="flex items-center justify-between">
                 <Label
                   htmlFor="higher-level-toggle"
-                  className="cursor-pointer text-sm"
+                  className="flex cursor-pointer items-center gap-1 text-sm"
                 >
-                  🔓 Show higher level cards
+                  <Unlock size={ICON_SIZE_MD} className="inline-block" />
+                  Show higher level cards
                 </Label>
                 <Switch
                   id="higher-level-toggle"

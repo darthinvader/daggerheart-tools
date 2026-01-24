@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ClipboardList } from '@/lib/icons';
 import type {
   CombatWheelchair,
   PrimaryWeapon,
@@ -85,7 +86,7 @@ function SummaryCard({ state }: { state: EquipmentState }) {
     <Card className="bg-muted/30">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2">
-          📋 Equipment Summary
+          <ClipboardList className="size-5" /> Equipment Summary
         </CardTitle>
       </CardHeader>
       <CardContent>

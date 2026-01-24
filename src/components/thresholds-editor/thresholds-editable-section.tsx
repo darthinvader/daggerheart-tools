@@ -1,3 +1,5 @@
+import { HeartCrack } from 'lucide-react';
+
 import { EditableSection } from '@/components/shared/editable-section';
 import type { ThresholdsSettings } from '@/lib/schemas/character-state';
 import { cn } from '@/lib/utils';
@@ -24,7 +26,7 @@ interface ThresholdsEditableSectionProps {
 function EmptyThresholds() {
   return (
     <div className="flex flex-col items-center justify-center py-8 text-center">
-      <span className="text-4xl opacity-50">💔</span>
+      <HeartCrack className="size-10 opacity-50" />
       <p className="text-muted-foreground mt-2">No thresholds configured</p>
       <p className="text-muted-foreground text-sm">
         Click edit to configure damage thresholds
@@ -68,7 +70,7 @@ export function ThresholdsEditableSection({
   return (
     <EditableSection
       title="Damage Thresholds"
-      emoji="💔"
+      icon={HeartCrack}
       isEditing={isEditing}
       onEditToggle={handleEditToggle}
       onSave={handleSave}

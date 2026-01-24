@@ -1,3 +1,4 @@
+import { Pencil } from '@/lib/icons';
 import type { InventoryState } from '@/lib/schemas/equipment';
 import { cn } from '@/lib/utils';
 
@@ -66,8 +67,8 @@ export function CompactItemCard({
 
       {item.description && (
         <div className="mt-3 rounded-lg bg-white/50 p-3 dark:bg-gray-800/50">
-          <p className="text-muted-foreground text-sm leading-relaxed">
-            📝 {item.description}
+          <p className="text-muted-foreground flex items-start gap-1.5 text-sm leading-relaxed">
+            <Pencil className="mt-0.5 size-3.5 shrink-0" /> {item.description}
           </p>
         </div>
       )}

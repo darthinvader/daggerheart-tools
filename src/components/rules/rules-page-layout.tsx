@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/card';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import type { RulesPage, RulesTag } from '@/lib/data/rules/rules-content';
+import { AlertTriangle, Leaf, RulesSectionIcons } from '@/lib/icons';
 import { cn } from '@/lib/utils';
 
 interface RulesPageLayoutProps {
@@ -38,7 +39,13 @@ export function RulesPageLayout({ page }: RulesPageLayoutProps) {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-10 text-center">
         <h1 className="bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-4xl font-bold text-transparent">
-          {page.emoji} {page.title}
+          {(() => {
+            const PageIcon = RulesSectionIcons[page.iconKey];
+            return PageIcon ? (
+              <PageIcon className="mr-2 inline-block size-8" />
+            ) : null;
+          })()}
+          {page.title}
         </h1>
         <p className="text-muted-foreground mx-auto mt-3 max-w-2xl text-lg">
           {page.description}
@@ -73,8 +80,13 @@ export function RulesPageLayout({ page }: RulesPageLayoutProps) {
               <div className={cn('h-1.5 bg-linear-to-r', page.gradient)} />
               <CardHeader>
                 <div className="flex items-start gap-3">
-                  <div className="bg-muted rounded-lg p-2 text-2xl">
-                    {section.emoji}
+                  <div className="bg-muted rounded-lg p-2">
+                    {(() => {
+                      const SectionIcon = RulesSectionIcons[section.iconKey];
+                      return SectionIcon ? (
+                        <SectionIcon className="size-6" />
+                      ) : null;
+                    })()}
                   </div>
                   <div className="min-w-0 flex-1">
                     <CardTitle className="text-xl">{section.title}</CardTitle>
@@ -117,9 +129,17 @@ export function RulesPageLayout({ page }: RulesPageLayoutProps) {
           isOpen={Boolean(activeSection)}
           onClose={() => setActiveSection(null)}
           title={
-            activeSection
-              ? `${activeSection.emoji} ${activeSection.title}`
-              : 'Rule detail'
+            activeSection ? (
+              <span className="flex items-center gap-2">
+                {(() => {
+                  const DetailIcon = RulesSectionIcons[activeSection.iconKey];
+                  return DetailIcon ? <DetailIcon className="size-5" /> : null;
+                })()}
+                {activeSection.title}
+              </span>
+            ) : (
+              'Rule detail'
+            )
           }
         >
           {activeSection && (
@@ -199,7 +219,9 @@ export function RulesPageLayout({ page }: RulesPageLayoutProps) {
 
               {activeSection.tips && activeSection.tips.length > 0 && (
                 <Alert className="border-emerald-500/30 bg-emerald-500/10">
-                  <AlertTitle>🌿 Pro Tip</AlertTitle>
+                  <AlertTitle>
+                    <Leaf size={16} className="mr-1 inline-block" /> Pro Tip
+                  </AlertTitle>
                   <AlertDescription>
                     <ul className="list-disc space-y-1 pl-5">
                       {activeSection.tips.map((tip, idx) => (
@@ -212,7 +234,10 @@ export function RulesPageLayout({ page }: RulesPageLayoutProps) {
 
               {activeSection.cautions && activeSection.cautions.length > 0 && (
                 <Alert className="border-amber-500/30 bg-amber-500/10">
-                  <AlertTitle>⚠️ Heads Up</AlertTitle>
+                  <AlertTitle>
+                    <AlertTriangle size={16} className="mr-1 inline-block" />{' '}
+                    Heads Up
+                  </AlertTitle>
                   <AlertDescription>
                     <ul className="list-disc space-y-1 pl-5">
                       {activeSection.cautions.map((note, idx) => (

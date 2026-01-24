@@ -1,5 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { ICON_SIZE_MD, Package, Sword } from '@/lib/icons';
 import type { InventoryItemEntry } from '@/lib/schemas/equipment';
 import { cn } from '@/lib/utils';
 
@@ -101,7 +102,7 @@ export function InventoryList({
         {equippedItems.length > 0 && (
           <div>
             <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-amber-600 dark:text-amber-400">
-              <span>⚔️</span>
+              <Sword size={ICON_SIZE_MD} />
               Equipped
               <Badge variant="secondary">{equippedItems.length}</Badge>
             </h3>
@@ -110,6 +111,7 @@ export function InventoryList({
         )}
         {Object.entries(itemsByCategory).map(([category, catItems]) => {
           const catConfig = CATEGORY_CONFIG[category as ItemCategory];
+          const IconComponent = catConfig?.icon ?? Package;
           return (
             <div key={category}>
               <h3
@@ -118,7 +120,7 @@ export function InventoryList({
                   catConfig?.color ?? 'text-foreground'
                 )}
               >
-                <span>{catConfig?.emoji ?? '📦'}</span>
+                <IconComponent size={ICON_SIZE_MD} />
                 {category}
                 <Badge variant="secondary">{catItems.length}</Badge>
               </h3>

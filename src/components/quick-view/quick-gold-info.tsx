@@ -1,6 +1,7 @@
-import { useCallback } from 'react';
+import { type ReactNode, useCallback } from 'react';
 
 import { NumberControl } from '@/components/shared/labeled-counter/number-control';
+import { Coins, HandMetal, Package, Trophy } from '@/lib/icons';
 import type { Gold } from '@/lib/schemas/character-state';
 import { cn } from '@/lib/utils';
 
@@ -10,27 +11,27 @@ interface QuickGoldInfoProps {
   className?: string;
 }
 
-const EMOJI_FIST = '🤛';
-const EMOJI_MONEYBAG = '💰';
-const EMOJI_TROPHY = '🏆';
-const EMOJI_COIN = '🪙';
+const ICON_FIST = <HandMetal className="size-4" />;
+const ICON_MONEYBAG = <Package className="size-4" />;
+const ICON_TROPHY = <Trophy className="size-4" />;
+const ICON_COIN = <Coins className="size-4" />;
 
 interface GoldDenominationProps {
   label: string;
-  emoji: string;
+  icon: ReactNode;
   value: number;
   onChange?: (value: number) => void;
 }
 
 function GoldDenomination({
   label,
-  emoji,
+  icon,
   value,
   onChange,
 }: GoldDenominationProps) {
   return (
     <div className="flex flex-col items-center gap-1">
-      <span className="text-xs">{emoji}</span>
+      <span className="text-muted-foreground">{icon}</span>
       {onChange ? (
         <NumberControl value={value} onChange={onChange} min={0} size="sm" />
       ) : (
@@ -60,30 +61,30 @@ export function QuickGoldInfo({
         className
       )}
     >
-      <span className="text-lg">💰</span>
+      <Coins className="size-5" />
       {gold.showCoins && (
         <GoldDenomination
           label="Coins"
-          emoji={EMOJI_COIN}
+          icon={ICON_COIN}
           value={gold.coins ?? 0}
           onChange={onChange ? v => handleChange('coins', v) : undefined}
         />
       )}
       <GoldDenomination
         label="Handfuls"
-        emoji={EMOJI_FIST}
+        icon={ICON_FIST}
         value={gold.handfuls}
         onChange={onChange ? v => handleChange('handfuls', v) : undefined}
       />
       <GoldDenomination
         label="Bags"
-        emoji={EMOJI_MONEYBAG}
+        icon={ICON_MONEYBAG}
         value={gold.bags}
         onChange={onChange ? v => handleChange('bags', v) : undefined}
       />
       <GoldDenomination
         label="Chests"
-        emoji={EMOJI_TROPHY}
+        icon={ICON_TROPHY}
         value={gold.chests}
         onChange={onChange ? v => handleChange('chests', v) : undefined}
       />

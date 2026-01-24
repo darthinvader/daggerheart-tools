@@ -64,6 +64,7 @@ import {
   ALL_PRIMARY_WEAPONS,
   ALL_SECONDARY_WEAPONS,
 } from '@/lib/data/equipment';
+import { Swords } from '@/lib/icons';
 import type {
   CombatWheelchair,
   PrimaryWeapon,
@@ -891,7 +892,8 @@ function EquipmentReferencePage() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="bg-linear-to-r from-amber-500 to-orange-600 bg-clip-text text-2xl font-bold text-transparent">
-                ⚔️ Equipment Reference
+                <Swords className="mr-2 inline-block size-6" />
+                Equipment Reference
               </h1>
               <ResultsCounter
                 filtered={filteredItems.length}

@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
+import { Backpack, ICON_SIZE_MD, Package, Sparkles, Sword } from '@/lib/icons';
 import type { InventoryState } from '@/lib/schemas/equipment';
 import { cn } from '@/lib/utils';
 
@@ -111,7 +112,7 @@ function ToolbarActionButtons({
           onClick={onCustomClick}
           className="gap-1.5 border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 hover:text-purple-800 dark:border-purple-800 dark:bg-purple-950/50 dark:text-purple-300 dark:hover:bg-purple-900/50"
         >
-          ✨ Custom Item
+          <Sparkles size={ICON_SIZE_MD} /> Custom Item
         </Button>
       )}
       {onAddClick && (
@@ -120,16 +121,14 @@ function ToolbarActionButtons({
           onClick={onAddClick}
           className="gap-1.5 bg-sky-600 text-white hover:bg-sky-700 dark:bg-sky-700 dark:hover:bg-sky-600"
         >
-          📦 Add Items
+          <Package size={ICON_SIZE_MD} /> Add Items
         </Button>
       )}
 
       {totalItems > 0 && (
         <SmartTooltip
           content={
-            showFilters
-              ? '🔽 Hide filters'
-              : '🔍 Show filters to narrow down items'
+            showFilters ? 'Hide filters' : 'Show filters to narrow down items'
           }
         >
           <Button
@@ -156,7 +155,7 @@ function ToolbarActionButtons({
       )}
 
       {activeFilterCount > 0 && (
-        <SmartTooltip content="❌ Clear all filters">
+        <SmartTooltip content="Clear all filters">
           <Button
             variant="ghost"
             size="sm"
@@ -199,13 +198,13 @@ interface ToolbarStatsRowProps {
 
 interface StatBadgeProps {
   count: number;
-  emoji: string;
+  icon: React.ReactNode;
   label: string;
   tooltip: string;
   variant?: 'green' | 'purple';
 }
 
-function StatBadge({ count, emoji, label, tooltip, variant }: StatBadgeProps) {
+function StatBadge({ count, icon, label, tooltip, variant }: StatBadgeProps) {
   if (count === 0) return null;
 
   const colorClasses =
@@ -221,7 +220,7 @@ function StatBadge({ count, emoji, label, tooltip, variant }: StatBadgeProps) {
         variant={variant ? 'outline' : 'secondary'}
         className={cn('gap-1 text-xs', colorClasses)}
       >
-        {emoji} {count}
+        {icon} {count}
         {label && ` ${label}`}
       </Badge>
     </SmartTooltip>
@@ -249,8 +248,8 @@ function ToolbarStatsRow({
         <SmartTooltip
           content={
             inventory.unlimitedSlots
-              ? '♾️ Unlimited inventory slots'
-              : `🎒 ${totalQuantity} of ${inventory.maxSlots} slots used`
+              ? 'Unlimited inventory slots'
+              : `${totalQuantity} of ${inventory.maxSlots} slots used`
           }
         >
           <Badge
@@ -262,7 +261,7 @@ function ToolbarStatsRow({
                 : 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/50 dark:text-blue-300'
             )}
           >
-            🎒{' '}
+            <Backpack size={ICON_SIZE_MD} className="mr-1 inline-block" />
             {inventory.unlimitedSlots
               ? `${totalQuantity}/∞`
               : `${totalQuantity}/${inventory.maxSlots}`}
@@ -271,7 +270,7 @@ function ToolbarStatsRow({
 
         {!readOnly && onMaxSlotsChange && !inventory.unlimitedSlots && (
           <div className="flex items-center gap-0.5">
-            <SmartTooltip content="➖ Decrease max slots">
+            <SmartTooltip content="Decrease max slots">
               <Button
                 variant="ghost"
                 size="icon"
@@ -282,7 +281,7 @@ function ToolbarStatsRow({
                 <Minus className="size-3" />
               </Button>
             </SmartTooltip>
-            <SmartTooltip content="➕ Increase max slots">
+            <SmartTooltip content="Increase max slots">
               <Button
                 variant="ghost"
                 size="icon"
@@ -298,25 +297,25 @@ function ToolbarStatsRow({
         {totalItems > 0 && (
           <StatBadge
             count={totalItems}
-            emoji="📦"
+            icon={<Package size={ICON_SIZE_MD} />}
             label={totalItems !== 1 ? 'types' : 'type'}
-            tooltip="📦 Unique item types"
+            tooltip="Unique item types"
           />
         )}
 
         <StatBadge
           count={equippedItems}
-          emoji="⚔️"
+          icon={<Sword size={ICON_SIZE_MD} />}
           label=""
-          tooltip="⚔️ Currently equipped"
+          tooltip="Currently equipped"
           variant="green"
         />
 
         <StatBadge
           count={customItems}
-          emoji="✨"
+          icon={<Sparkles size={ICON_SIZE_MD} />}
           label=""
-          tooltip="✨ Custom/homebrew items"
+          tooltip="Custom/homebrew items"
           variant="purple"
         />
       </div>
@@ -325,7 +324,7 @@ function ToolbarStatsRow({
         <div className="relative w-full sm:w-auto">
           <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
           <Input
-            placeholder="🔍 Search items..."
+            placeholder="Search items..."
             value={searchQuery}
             onChange={e => onSearchChange(e.target.value)}
             className="w-full pl-9 sm:w-48"

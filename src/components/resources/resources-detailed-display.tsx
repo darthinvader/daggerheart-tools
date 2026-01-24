@@ -1,3 +1,4 @@
+import type { LucideIcon } from 'lucide-react';
 import { Minus, Plus } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -9,7 +10,7 @@ import type { ResourcesState, ResourceValue } from './resources-display';
 interface QuickResourceCardProps {
   resourceKey: keyof ResourcesState;
   label: string;
-  emoji: string;
+  icon: LucideIcon;
   color: string;
   resource: ResourceValue;
   onChange?: (key: keyof ResourcesState, current: number) => void;
@@ -19,7 +20,7 @@ interface QuickResourceCardProps {
 function QuickResourceCard({
   resourceKey,
   label,
-  emoji,
+  icon: Icon,
   color,
   resource,
   onChange,
@@ -34,7 +35,7 @@ function QuickResourceCard({
   };
   return (
     <div className="flex flex-col items-center rounded-lg border p-3">
-      <span className="text-2xl">{emoji}</span>
+      <Icon className="size-6" />
       <span className="text-muted-foreground text-xs">{label}</span>
       <span className={cn('text-xl font-bold', color)}>
         {resource.current}/{resource.max}
@@ -82,14 +83,14 @@ export function ResourcesDetailedDisplay({
 
   return (
     <div className="grid grid-cols-3 gap-4">
-      {displayableResources.map(({ key, label, emoji, color }) => (
+      {displayableResources.map(({ key, label, icon, color }) => (
         <QuickResourceCard
           key={key}
           resourceKey={key}
           label={label}
-          emoji={emoji}
+          icon={icon}
           color={color}
-          resource={resources[key] ?? { current: 0, max: 0 }}
+          resource={resources[key] as ResourceValue}
           onChange={onChange}
           readOnly={readOnly}
         />

@@ -2,8 +2,16 @@ import { memo } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  ArrowLeftRight,
+  DomainIcons,
+  ICON_SIZE_MD,
+  Package,
+  X,
+  Zap,
+} from '@/lib/icons';
 import type { DomainCardLite } from '@/lib/schemas/loadout';
-import { DOMAIN_COLORS, DOMAIN_EMOJIS } from '@/lib/schemas/loadout';
+import { DOMAIN_COLORS } from '@/lib/schemas/loadout';
 import { cn } from '@/lib/utils';
 
 import { RecallCostBadge } from './card-cost-badges';
@@ -33,11 +41,8 @@ function CardRowActions({
   onMove: (cardName: string) => void;
   onRemove: (cardName: string) => void;
 }) {
-  const moveLabel = targetIsFull
-    ? '🔄 Swap'
-    : isActive
-      ? '📦 Vault'
-      : '⚡ Active';
+  const MoveIcon = targetIsFull ? ArrowLeftRight : isActive ? Package : Zap;
+  const moveLabel = targetIsFull ? 'Swap' : isActive ? 'Vault' : 'Active';
 
   return (
     <div className="flex shrink-0 gap-1">
@@ -45,7 +50,7 @@ function CardRowActions({
         variant="ghost"
         size="sm"
         className={cn(
-          'h-7 px-2 text-xs',
+          'h-7 gap-1 px-2 text-xs',
           targetIsFull && 'text-amber-600 hover:text-amber-700'
         )}
         onClick={e => {
@@ -53,6 +58,7 @@ function CardRowActions({
           onMove(cardName);
         }}
       >
+        <MoveIcon size={ICON_SIZE_MD} className="inline-block" />
         {moveLabel}
       </Button>
       <Button
@@ -64,7 +70,7 @@ function CardRowActions({
           onRemove(cardName);
         }}
       >
-        ✕
+        <X size={ICON_SIZE_MD} />
       </Button>
     </div>
   );
@@ -99,6 +105,7 @@ function LoadoutCardRowComponent({
 }: LoadoutCardRowProps) {
   const domainColor = DOMAIN_COLORS[card.domain] ?? '';
   const recallCost = card.hopeCost ?? card.recallCost ?? 0;
+  const DomainIcon = DomainIcons[card.domain];
 
   return (
     <div
@@ -108,7 +115,7 @@ function LoadoutCardRowComponent({
     >
       <div className="flex min-w-0 flex-1 items-center gap-1.5">
         <span className={cn('shrink-0 text-sm', domainColor)}>
-          {DOMAIN_EMOJIS[card.domain]}
+          {DomainIcon && <DomainIcon size={ICON_SIZE_MD} />}
         </span>
         <span className="min-w-0 flex-1 truncate text-sm">{card.name}</span>
         <Badge variant="secondary" className="shrink-0 text-xs">

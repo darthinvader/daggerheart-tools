@@ -10,12 +10,19 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
+import {
+  CardTypeIcons,
+  DomainIcons,
+  ICON_SIZE_MD,
+  Package,
+  Wrench,
+  Zap,
+} from '@/lib/icons';
 import type { DomainCard } from '@/lib/schemas/domains';
 import {
   CARD_TYPE_COLORS,
   DOMAIN_BG_COLORS,
   DOMAIN_COLORS,
-  DOMAIN_EMOJIS,
 } from '@/lib/schemas/loadout';
 import { cn } from '@/lib/utils';
 import { getCardCosts } from '@/lib/utils/card-costs';
@@ -50,7 +57,13 @@ function SelectionIndicator({ type }: { type: SelectionType }) {
       )}
       aria-hidden={!isVisible}
     >
-      {isActive ? '⚡' : isVault ? '📦' : '\u00A0'}
+      {isActive ? (
+        <Zap size={12} />
+      ) : isVault ? (
+        <Package size={12} />
+      ) : (
+        '\u00A0'
+      )}
     </span>
   );
 }
@@ -64,15 +77,22 @@ interface CardBadgesProps {
 function CardBadges({ domain, type, level }: CardBadgesProps) {
   const domainColor = DOMAIN_COLORS[domain] ?? 'text-foreground';
   const typeColor = CARD_TYPE_COLORS[type] ?? 'text-muted-foreground';
-  const typeEmoji = type === 'Spell' ? '✨' : type === 'Grimoire' ? '📖' : '💪';
+  const DomainIcon = DomainIcons[domain];
+  const TypeIcon = CardTypeIcons[type];
 
   return (
     <div className="flex min-w-0 flex-wrap items-center gap-1.5">
       <Badge variant="outline" className={cn('shrink-0 text-xs', domainColor)}>
-        {DOMAIN_EMOJIS[domain]} {domain}
+        {DomainIcon && (
+          <DomainIcon size={ICON_SIZE_MD} className="mr-1 inline-block" />
+        )}
+        {domain}
       </Badge>
       <Badge variant="secondary" className={cn('shrink-0 text-xs', typeColor)}>
-        {typeEmoji} {type}
+        {TypeIcon && (
+          <TypeIcon size={ICON_SIZE_MD} className="mr-1 inline-block" />
+        )}
+        {type}
       </Badge>
       <Badge variant="outline" className="shrink-0 font-mono text-xs">
         Lvl {level}
@@ -179,7 +199,7 @@ function DomainCardDisplayComponent({
                   className="size-6"
                   onClick={handleHomebrewClick}
                 >
-                  🛠️
+                  <Wrench size={ICON_SIZE_MD} />
                 </Button>
               </SmartTooltip>
             )}

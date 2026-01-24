@@ -1,11 +1,13 @@
+import type { LucideProps } from 'lucide-react';
 import { Minus, Plus } from 'lucide-react';
+import type { ComponentType } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface CompanionStatCardProps {
   label: string;
-  emoji: string;
+  Icon: ComponentType<LucideProps>;
   color: string;
   current: number;
   max: number;
@@ -15,7 +17,7 @@ interface CompanionStatCardProps {
 
 export function CompanionStatCard({
   label,
-  emoji,
+  Icon,
   color,
   current,
   max,
@@ -32,7 +34,7 @@ export function CompanionStatCard({
 
   return (
     <div className="flex flex-col items-center rounded-lg border p-2">
-      <span className="text-lg">{emoji}</span>
+      <Icon className="size-5" />
       <span className="text-muted-foreground text-xs">{label}</span>
       <span className={cn('text-lg font-bold', color)}>
         {current}/{max}

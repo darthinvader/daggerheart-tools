@@ -9,9 +9,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { ClassIcons, Scroll } from '@/lib/icons';
 import {
   CLASS_COLORS,
-  CLASS_EMOJIS,
   type ClassSubclassPair,
 } from '@/lib/schemas/class-selection';
 
@@ -90,10 +90,11 @@ export function SubclassUpgradeModal({
           ) : (
             Object.entries(groupedByClass).map(([classKey, options]) => {
               const className = options[0].className;
+              const ClassIcon = ClassIcons[className] ?? Scroll;
               return (
                 <div key={classKey} className="space-y-2">
                   <h4 className="flex items-center gap-2 font-medium">
-                    <span>{CLASS_EMOJIS[className] ?? '📜'}</span>
+                    <ClassIcon size={20} className={CLASS_COLORS[className]} />
                     <span className={CLASS_COLORS[className]}>{classKey}</span>
                   </h4>
                   <div className="space-y-2">

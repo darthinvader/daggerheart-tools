@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 import type { CompanionState } from '@/components/companion';
 import { NumberControl } from '@/components/shared/labeled-counter/number-control';
 import { Badge } from '@/components/ui/badge';
+import { PawPrint } from '@/lib/icons';
 import { cn } from '@/lib/utils';
 
 interface QuickCompanionInfoProps {
@@ -44,7 +45,7 @@ export function QuickCompanionInfo({
     >
       <div className="mb-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-lg">🐾</span>
+          <PawPrint className="size-5" />
           <span className="font-semibold">{companion.name || 'Companion'}</span>
           {companion.type && (
             <span className="text-muted-foreground text-sm">

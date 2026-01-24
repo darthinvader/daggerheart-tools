@@ -1,3 +1,4 @@
+import { Check, PawPrint, Skull, Sparkles } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 
 import { EditableSection } from '@/components/shared/editable-section';
@@ -47,13 +48,14 @@ function HopeStatus({
       </div>
       {bonusHopeSlots > 0 && (
         <div className="flex items-center gap-1 text-xs">
-          <span>🐾</span>
+          <PawPrint className="size-3" />
           <span
             className={
               companionHopeFilled ? 'text-emerald-500' : 'text-muted-foreground'
             }
           >
-            Companion: {companionHopeFilled ? '✓' : '○'}
+            Companion:{' '}
+            {companionHopeFilled ? <Check className="inline size-3" /> : '○'}
           </span>
         </div>
       )}
@@ -79,8 +81,11 @@ function ScarsList({ scars }: { scars: Scar[] }) {
   return (
     <div className="space-y-1">
       {scars.map(scar => (
-        <div key={scar.id} className="text-muted-foreground text-xs italic">
-          💀 {scar.description}
+        <div
+          key={scar.id}
+          className="text-muted-foreground flex items-center gap-1 text-xs italic"
+        >
+          <Skull className="size-3" /> {scar.description}
         </div>
       ))}
     </div>
@@ -183,7 +188,7 @@ export function HopeWithScarsDisplay({
   return (
     <EditableSection
       title="Hope & Scars"
-      emoji="✨"
+      icon={Sparkles}
       description="Your Hope fuels special abilities. Scars permanently reduce your maximum Hope."
       isEditing={isEditing}
       onEditToggle={handleEditToggle}
@@ -230,11 +235,9 @@ export function HopeWithScarsDisplay({
                 aria-label={`Companion hope slot ${companionHopeFilled ? '(filled)' : '(empty)'}`}
                 title="Companion Hope (Light in the Dark)"
               >
-                <span
-                  className={`text-lg sm:text-xl ${companionHopeFilled ? '' : 'opacity-50'}`}
-                >
-                  🐾
-                </span>
+                <PawPrint
+                  className={`size-5 sm:size-6 ${companionHopeFilled ? 'text-white' : 'opacity-50'}`}
+                />
               </button>
             </div>
           )}

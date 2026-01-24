@@ -1,4 +1,5 @@
 import { Search, X } from 'lucide-react';
+import type { ComponentType } from 'react';
 import { useMemo, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
@@ -12,12 +13,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Check, type LucideProps } from '@/lib/icons';
 
 const TIER_OPTIONS = ['1', '2', '3', '4'] as const;
 
+type IconComponent = ComponentType<LucideProps>;
+
 interface EquipmentSectionProps<T extends { name: string; tier: string }> {
   title: string;
-  icon: string;
+  icon: IconComponent;
   items: T[];
   selectedItem: T | null;
   onSelect: (item: T | null) => void;
@@ -32,7 +36,7 @@ interface EquipmentSectionProps<T extends { name: string; tier: string }> {
 
 export function EquipmentSection<T extends { name: string; tier: string }>({
   title,
-  icon: _icon,
+  icon: _Icon,
   items,
   selectedItem,
   onSelect,
@@ -40,7 +44,7 @@ export function EquipmentSection<T extends { name: string; tier: string }>({
   emptyMessage = 'No items available',
   allowedTiers,
 }: EquipmentSectionProps<T>) {
-  void _icon;
+  void _Icon;
   const [search, setSearch] = useState('');
   const initialTier =
     allowedTiers && allowedTiers.length === 1 ? allowedTiers[0] : 'all';
@@ -69,7 +73,7 @@ export function EquipmentSection<T extends { name: string; tier: string }>({
       {selectedItem && (
         <div className="bg-primary/5 border-primary/20 flex items-center justify-between gap-3 rounded-lg border-2 px-3 py-2">
           <div className="flex items-center gap-2">
-            <span className="text-primary text-xs font-medium">✓</span>
+            <Check className="text-primary h-4 w-4" />
             <span className="font-medium">{selectedItem.name}</span>
             <Badge variant="outline" className="text-xs">
               Tier {selectedItem.tier}

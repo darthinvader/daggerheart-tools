@@ -9,6 +9,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Wrench } from '@/lib/icons';
 import type { HomebrewClass } from '@/lib/schemas/class-selection';
 import type { ClassFeature, HopeFeature } from '@/lib/schemas/core';
 
@@ -37,7 +38,9 @@ export function ClassDetailsCard({
     <Card className="border-primary/50 border-dashed">
       <CardHeader className="pb-3">
         <div className="flex items-center gap-2">
-          <Badge>🛠️ Homebrew</Badge>
+          <Badge className="inline-flex items-center gap-1">
+            <Wrench className="size-3" /> Homebrew
+          </Badge>
           <CardTitle className="text-base">Create Class</CardTitle>
         </div>
         <CardDescription>

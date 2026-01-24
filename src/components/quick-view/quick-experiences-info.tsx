@@ -1,4 +1,5 @@
 import type { ExperiencesState } from '@/components/experiences';
+import { Library } from '@/lib/icons';
 import { cn } from '@/lib/utils';
 
 interface QuickExperiencesInfoProps {
@@ -19,7 +20,7 @@ export function QuickExperiencesInfo({
   return (
     <div className={cn('bg-card rounded-lg border p-3', className)}>
       <div className="mb-2 flex items-center gap-2">
-        <span className="text-lg">📚</span>
+        <Library className="size-5" />
         <span className="font-semibold">Experiences</span>
       </div>
       <div className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-3">

@@ -1,9 +1,15 @@
+import type { ComponentType } from 'react';
+
 import { Badge } from '@/components/ui/badge';
+import type { LucideProps } from '@/lib/icons';
+import { Wheelchair, Wrench } from '@/lib/icons';
 
 import { FeatureDisplay, StatBadges } from './shared';
 
+type IconComponent = ComponentType<LucideProps>;
+
 interface WeaponSummaryCardProps {
-  icon: string;
+  icon: IconComponent;
   label: string;
   name: string;
   isHomebrew: boolean;
@@ -20,7 +26,7 @@ interface WeaponSummaryCardProps {
 }
 
 export function WeaponSummaryCard({
-  icon,
+  icon: Icon,
   label,
   name,
   isHomebrew,
@@ -40,7 +46,7 @@ export function WeaponSummaryCard({
       className={`flex h-full flex-col rounded-lg border p-4 ${isEmpty ? 'border-dashed opacity-60' : 'bg-card'}`}
     >
       <CardHeader
-        icon={icon}
+        icon={Icon}
         label={label}
         isHomebrew={isHomebrew}
         tier={tier}
@@ -66,12 +72,12 @@ export function WeaponSummaryCard({
 }
 
 function CardHeader({
-  icon,
+  icon: Icon,
   label,
   isHomebrew,
   tier,
 }: {
-  icon: string;
+  icon: IconComponent;
   label: string;
   isHomebrew: boolean;
   tier?: string;
@@ -79,15 +85,18 @@ function CardHeader({
   return (
     <div className="mb-2 flex items-center justify-between">
       <div className="flex items-center gap-2">
-        <span className="text-xl">{icon}</span>
+        <Icon className="h-5 w-5" />
         <span className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
           {label}
         </span>
       </div>
       <div className="flex items-center gap-1">
         {isHomebrew && (
-          <Badge variant="outline" className="text-[10px]">
-            �️ Homebrew
+          <Badge
+            variant="outline"
+            className="flex items-center gap-1 text-[10px]"
+          >
+            <Wrench className="h-3 w-3" /> Homebrew
           </Badge>
         )}
         {tier && (
@@ -123,9 +132,10 @@ function TraitDisplay({ trait }: { trait?: string }) {
 function FrameDisplay({ frameType }: { frameType?: string }) {
   if (!frameType) return null;
   return (
-    <p className="text-sm">
+    <p className="flex items-center gap-1 text-sm">
       <span className="text-muted-foreground">Frame:</span>{' '}
-      <span className="font-medium">♿ {frameType}</span>
+      <Wheelchair className="h-4 w-4" />
+      <span className="font-medium">{frameType}</span>
     </p>
   );
 }

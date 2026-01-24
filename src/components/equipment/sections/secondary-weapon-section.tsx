@@ -1,4 +1,5 @@
 import { ALL_SECONDARY_WEAPONS } from '@/lib/data/equipment';
+import { Axe } from '@/lib/icons';
 import type { SecondaryWeapon } from '@/lib/schemas/equipment';
 
 import { type EquipmentMode, EquipmentModeTabs } from '../equipment-mode-tabs';
@@ -37,7 +38,7 @@ export function SecondaryWeaponSection({
       ) : (
         <EquipmentSection
           title="Secondary Weapons"
-          icon="🗡️"
+          icon={Axe}
           items={ALL_SECONDARY_WEAPONS}
           selectedItem={weapon}
           onSelect={onWeaponChange}

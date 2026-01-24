@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
+import { Theater } from '@/lib/icons';
 
 interface SubclassCardProps {
   subclassName: string;
@@ -17,7 +18,7 @@ export function SubclassInfoCard({
     <Card className="overflow-hidden">
       <CardHeader className="pb-2">
         <CardTitle className="flex min-w-0 items-center gap-2 text-sm">
-          <span className="shrink-0">🎭</span>
+          <Theater className="size-4 shrink-0" />
           <span className="truncate">Subclass: {subclassName}</span>
         </CardTitle>
       </CardHeader>

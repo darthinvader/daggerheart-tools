@@ -1,4 +1,4 @@
-import { PawPrint, Trash2 } from 'lucide-react';
+import { AlertTriangle, PawPrint, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -82,7 +82,7 @@ function EmptyCompanionState({
     <section className="bg-card hover:border-primary/20 rounded-xl border shadow-sm transition-colors">
       <div className="flex items-center justify-between border-b px-4 py-3 sm:px-6">
         <div className="flex items-center gap-2">
-          <span className="text-xl">🐾</span>
+          <PawPrint className="size-5" />
           <h3 className="text-lg font-semibold">Companion</h3>
           {isHomebrew && (
             <span className="text-muted-foreground text-xs">(Homebrew)</span>
@@ -185,7 +185,7 @@ export function CompanionDisplay({
       <section className="bg-card hover:border-primary/20 rounded-xl border shadow-sm transition-colors">
         <div className="flex items-center justify-between border-b px-4 py-3 sm:px-6">
           <div className="flex items-center gap-2">
-            <span className="text-xl">🐾</span>
+            <PawPrint className="size-5" />
             <h3 className="text-lg font-semibold">Companion</h3>
             {isHomebrew && (
               <span className="text-muted-foreground text-xs">(Homebrew)</span>
@@ -203,9 +203,9 @@ export function CompanionDisplay({
           />
 
           {isOutOfScene && (
-            <div className="bg-destructive/10 text-destructive rounded-md p-3 text-sm">
-              ⚠️ Companion has fled the scene! Returns after long rest with 1
-              Stress cleared.
+            <div className="bg-destructive/10 text-destructive flex items-center gap-2 rounded-md p-3 text-sm">
+              <AlertTriangle className="size-4" /> Companion has fled the scene!
+              Returns after long rest with 1 Stress cleared.
             </div>
           )}
 

@@ -1,3 +1,4 @@
+import { User } from 'lucide-react';
 import { useCallback, useRef, useState } from 'react';
 
 import { EditableSection } from '@/components/shared/editable-section';
@@ -23,7 +24,7 @@ interface IdentityDisplayProps {
 function EmptyIdentity() {
   return (
     <div className="flex flex-col items-center justify-center py-8 text-center">
-      <span className="text-4xl opacity-50">👤</span>
+      <User className="size-10 opacity-50" />
       <p className="text-muted-foreground mt-2">No identity set</p>
       <p className="text-muted-foreground text-sm">
         Click edit to define your character&apos;s identity
@@ -90,7 +91,7 @@ export function IdentityDisplay({
   return (
     <EditableSection
       title="Identity"
-      emoji="👤"
+      icon={User}
       isEditing={isEditing}
       onEditToggle={handleEditToggle}
       onSave={handleSave}

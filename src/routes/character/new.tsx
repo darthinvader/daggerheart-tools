@@ -1,10 +1,12 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { ArrowLeft, Check, type LucideIcon } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
 import { ClassSelector } from '@/components/class-selector';
 import { LoadoutSelector } from '@/components/loadout-selector';
 import { ReviewStep } from '@/components/shared/review-step';
 import { Button } from '@/components/ui/button';
+import { Scroll, Sparkles, Swords, Theater } from '@/lib/icons';
 import type { ClassSelection } from '@/lib/schemas/class-selection';
 import type { LoadoutSelection } from '@/lib/schemas/loadout';
 import { cn, generateId } from '@/lib/utils';
@@ -17,22 +19,22 @@ type CreationStep = 'class' | 'loadout' | 'review';
 
 const STEP_INFO: Record<
   CreationStep,
-  { title: string; emoji: string; description: string }
+  { title: string; icon: LucideIcon; description: string }
 > = {
   class: {
     title: 'Choose Your Class',
-    emoji: '⚔️',
+    icon: Swords,
     description:
       "Select your class and subclass to define your character's core abilities.",
   },
   loadout: {
     title: 'Build Your Loadout',
-    emoji: '📜',
+    icon: Scroll,
     description: 'Choose domain cards for your active loadout and vault.',
   },
   review: {
     title: 'Review & Create',
-    emoji: '✨',
+    icon: Sparkles,
     description: 'Review your selections and create your character.',
   },
 };
@@ -68,7 +70,11 @@ function StepIndicator({ currentStep }: { currentStep: CreationStep }) {
                     : 'bg-muted text-muted-foreground'
               )}
             >
-              <span>{isComplete ? '✓' : info.emoji}</span>
+              {isComplete ? (
+                <Check className="size-4" />
+              ) : (
+                <info.icon className="size-4" />
+              )}
               <span className="hidden text-sm font-medium sm:inline">
                 {info.title}
               </span>
@@ -124,7 +130,7 @@ function NewCharacter() {
     <div className="container mx-auto max-w-5xl p-4">
       <div className="mb-6">
         <h1 className="flex items-center gap-3 text-3xl font-bold">
-          <span>🎭</span>
+          <Theater className="size-8" />
           <span>Create New Character</span>
         </h1>
         <p className="text-muted-foreground mt-2">
@@ -136,7 +142,7 @@ function NewCharacter() {
 
       <div className="mb-4">
         <h2 className="flex items-center gap-2 text-xl font-semibold">
-          <span>{stepInfo.emoji}</span>
+          <stepInfo.icon className="size-5" />
           <span>{stepInfo.title}</span>
         </h2>
         <p className="text-muted-foreground">{stepInfo.description}</p>
@@ -145,7 +151,8 @@ function NewCharacter() {
       {step !== 'class' && (
         <div className="mb-4">
           <Button variant="ghost" onClick={handleBack}>
-            ← Back
+            <ArrowLeft className="mr-1 size-4" />
+            Back
           </Button>
         </div>
       )}

@@ -2,6 +2,7 @@ import { ChevronDown, ChevronRight, Minus, Plus } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
+import { Backpack } from '@/lib/icons';
 import type { InventoryState } from '@/lib/schemas/equipment';
 import { cn } from '@/lib/utils';
 
@@ -76,7 +77,7 @@ export function QuickInventoryInfo({
     return (
       <div className={cn('bg-card rounded-lg border p-3', className)}>
         <div className="flex items-center gap-2">
-          <span className="text-lg">🎒</span>
+          <Backpack className="size-5" />
           <span className="text-muted-foreground">Inventory empty</span>
         </div>
       </div>
@@ -86,7 +87,7 @@ export function QuickInventoryInfo({
   return (
     <div className={cn('bg-card rounded-lg border p-3', className)}>
       <div className="mb-2 flex items-center gap-2">
-        <span className="text-lg">🎒</span>
+        <Backpack className="size-5" />
         <span className="font-semibold">Inventory</span>
         <span className="text-muted-foreground text-xs">
           ({items.length} items)

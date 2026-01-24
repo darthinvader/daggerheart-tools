@@ -54,7 +54,7 @@ export function NoteEditor({ note, onChange }: NoteEditorProps) {
           <SelectContent>
             {NOTE_CATEGORIES.map(cat => (
               <SelectItem key={cat.value} value={cat.value}>
-                {cat.icon} {cat.label}
+                <cat.icon className="size-4" /> {cat.label}
               </SelectItem>
             ))}
           </SelectContent>

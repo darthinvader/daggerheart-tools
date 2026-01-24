@@ -15,7 +15,7 @@ import {
 
 interface LoadoutSectionProps {
   title: string;
-  emoji: string;
+  icon: React.ReactNode;
   cards: DomainCardLite[];
   location: 'active' | 'vault';
   maxCards: number;
@@ -39,7 +39,7 @@ interface LoadoutSectionProps {
 
 export function LoadoutSection({
   title,
-  emoji,
+  icon,
   cards,
   location,
   maxCards,
@@ -87,7 +87,7 @@ export function LoadoutSection({
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center justify-between text-sm">
           <SectionTitle
-            emoji={emoji}
+            icon={icon}
             title={title}
             isSwapTarget={isSwapTarget}
             tooltipContent={tooltipContent}

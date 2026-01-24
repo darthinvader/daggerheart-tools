@@ -1,5 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
+import { CostIcons, ICON_SIZE_MD } from '@/lib/icons';
 import { cn } from '@/lib/utils';
 import type { ActivationCost, CardCosts } from '@/lib/utils/card-costs';
 import { formatActivationCost, getTotalHopeCost } from '@/lib/utils/card-costs';
@@ -37,7 +38,8 @@ function RecallCostBadge({
           compact && 'px-1.5 text-xs'
         )}
       >
-        ⚡ {isFree ? 'Free' : cost}
+        <CostIcons.recall size={ICON_SIZE_MD} className="mr-0.5 inline-block" />
+        {isFree ? 'Free' : cost}
       </Badge>
     </SmartTooltip>
   );
@@ -76,7 +78,8 @@ function ActivationCostBadge({
           compact && 'px-1.5 text-xs'
         )}
       >
-        💫 {displayValue}
+        <CostIcons.hope size={ICON_SIZE_MD} className="mr-0.5 inline-block" />
+        {displayValue}
       </Badge>
     </SmartTooltip>
   );
@@ -117,7 +120,8 @@ function StressCostBadge({
           compact && 'px-1.5 text-xs'
         )}
       >
-        😰 {totalStress}
+        <CostIcons.stress size={ICON_SIZE_MD} className="mr-0.5 inline-block" />
+        {totalStress}
       </Badge>
     </SmartTooltip>
   );

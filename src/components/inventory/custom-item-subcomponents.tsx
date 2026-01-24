@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { FlaskConical, Package } from '@/lib/icons';
 import type { EquipmentTier, Rarity } from '@/lib/schemas/equipment';
 import { cn } from '@/lib/utils';
 
@@ -37,18 +38,18 @@ export function ItemPreviewBadge({
       )}
     >
       <div className="flex items-center gap-2 text-lg font-semibold">
-        <span>{catConfig.emoji}</span>
+        <catConfig.icon className="size-5" />
         <span>{name || 'New Item'}</span>
       </div>
       <div className="mt-1 flex gap-1.5">
         <Badge className={cn(catConfig.bgColor, catConfig.color)}>
-          {catConfig.emoji} {category}
+          <catConfig.icon className="mr-1 size-3" /> {category}
         </Badge>
         <Badge className={cn(rarityConfig.bgColor, rarityConfig.color)}>
-          {rarityConfig.emoji} {rarity}
+          <rarityConfig.icon className="mr-1 size-3" /> {rarity}
         </Badge>
         <Badge variant="outline" className={tierConfig.color}>
-          {tierConfig.emoji} {tierConfig.label}
+          <tierConfig.icon className="mr-1 size-3" /> {tierConfig.label}
         </Badge>
       </div>
     </div>
@@ -71,7 +72,9 @@ export function QuantityConsumableRow({
   return (
     <div className="grid grid-cols-2 gap-3">
       <div className="space-y-2">
-        <Label htmlFor="max-qty">📦 Max Quantity</Label>
+        <Label htmlFor="max-qty" className="flex items-center gap-1.5">
+          <Package className="size-4" /> Max Quantity
+        </Label>
         <Input
           id="max-qty"
           type="number"
@@ -91,7 +94,9 @@ export function QuantityConsumableRow({
             onChange={e => onConsumableChange(e.target.checked)}
             className="h-4 w-4 rounded"
           />
-          <span className="text-sm">🧪 Consumable</span>
+          <span className="flex items-center gap-1 text-sm">
+            <FlaskConical className="size-4" /> Consumable
+          </span>
         </label>
       </div>
     </div>

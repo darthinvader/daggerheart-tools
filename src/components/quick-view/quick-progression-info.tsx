@@ -1,3 +1,5 @@
+import { BarChart3 } from 'lucide-react';
+
 import type { ProgressionState } from '@/components/shared/progression-display';
 import { cn } from '@/lib/utils';
 
@@ -17,7 +19,7 @@ export function QuickProgressionInfo({
         className
       )}
     >
-      <span className="text-lg">📊</span>
+      <BarChart3 className="size-5" />
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
           <span className="text-muted-foreground text-sm">Level</span>

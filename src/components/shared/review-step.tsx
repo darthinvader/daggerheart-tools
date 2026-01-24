@@ -1,3 +1,5 @@
+import { PartyPopper, Scroll, Sparkles, Sword } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -28,7 +30,7 @@ export function ReviewStep({
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <span>⚔️</span>
+              <Sword className="size-5" />
               <span>Class & Subclass</span>
             </CardTitle>
           </CardHeader>
@@ -53,7 +55,7 @@ export function ReviewStep({
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <span>📜</span>
+              <Scroll className="size-5" />
               <span>Domain Loadout</span>
             </CardTitle>
           </CardHeader>
@@ -85,7 +87,7 @@ export function ReviewStep({
       <Card className="bg-primary/5 border-primary/30">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <span>✨</span>
+            <Sparkles className="size-5" />
             <span>Ready to Create!</span>
           </CardTitle>
           <CardDescription>
@@ -95,7 +97,8 @@ export function ReviewStep({
         </CardHeader>
         <CardContent>
           <Button onClick={onCreateCharacter} size="lg" className="w-full">
-            🎉 Create Character
+            <PartyPopper className="size-4" />
+            Create Character
           </Button>
         </CardContent>
       </Card>

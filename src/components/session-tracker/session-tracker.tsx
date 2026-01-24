@@ -1,4 +1,4 @@
-import { Coins, Plus, Star } from 'lucide-react';
+import { BookOpen, Coins, Plus, Star } from 'lucide-react';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -77,7 +77,7 @@ export function SessionTracker({
       <section className="bg-card hover:border-primary/20 flex h-full flex-col rounded-xl border shadow-sm transition-colors">
         <div className="flex items-center justify-between border-b px-4 py-3 sm:px-6">
           <div className="flex items-center gap-2">
-            <span className="text-xl">📖</span>
+            <BookOpen className="size-5" />
             <h3 className="text-lg font-semibold">Session Log</h3>
           </div>
           <Button size="sm" onClick={handleNew}>

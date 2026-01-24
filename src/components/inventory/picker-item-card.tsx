@@ -1,6 +1,7 @@
-import { AlertTriangle, Check, Sparkles } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { AlertTriangle, Check, Package, Sparkles } from '@/lib/icons';
 import type { AnyItem, EquipmentTier, Rarity } from '@/lib/schemas/equipment';
 import { cn } from '@/lib/utils';
 
@@ -20,11 +21,11 @@ import {
 function getCardIcon(
   isAtMax: boolean,
   selected: boolean,
-  emoji: string
+  Icon: LucideIcon
 ): React.ReactNode {
   if (isAtMax) return <AlertTriangle className="h-5 w-5 text-amber-500" />;
   if (selected) return <Check className="h-5 w-5 text-green-600" />;
-  return emoji;
+  return <Icon className="size-5" />;
 }
 
 interface PickerItemCardProps {
@@ -82,7 +83,7 @@ export function PickerItemCard({
       )}
     >
       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-lg dark:bg-gray-800">
-        {getCardIcon(isAtMax, selected, catConfig?.emoji ?? '📦')}
+        {getCardIcon(isAtMax, selected, catConfig?.icon ?? Package)}
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">

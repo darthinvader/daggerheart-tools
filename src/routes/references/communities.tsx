@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { COMMUNITIES } from '@/lib/data/characters/communities';
+import { Home } from '@/lib/icons';
 
 export const Route = createFileRoute('/references/communities')({
   component: CommunitiesReferencePage,
@@ -346,7 +347,8 @@ function CommunitiesReferencePage() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="bg-linear-to-r from-green-500 to-emerald-600 bg-clip-text text-2xl font-bold text-transparent">
-              🏘️ Communities
+              <Home className="mr-2 inline-block size-6" />
+              Communities
             </h1>
             <ResultsCounter
               filtered={filteredCommunities.length}

@@ -1,7 +1,6 @@
-import { Plus } from 'lucide-react';
-
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Gem, Plus } from '@/lib/icons';
 
 import { type CustomEquipment, CustomSlotEditor } from '../custom-slot-editor';
 
@@ -69,7 +68,9 @@ export function CustomEquipmentSection({
     <div className="flex min-h-0 flex-1 flex-col space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <span className="text-lg font-semibold">💎 Custom Equipment</span>
+          <span className="flex items-center gap-2 text-lg font-semibold">
+            <Gem className="h-5 w-5" /> Custom Equipment
+          </span>
           {slots.length > 0 && (
             <Badge variant="secondary">{slots.length}</Badge>
           )}

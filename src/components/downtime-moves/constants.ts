@@ -1,15 +1,23 @@
+import type { LucideIcon } from 'lucide-react';
+
+import { DowntimeMoveIcons } from '@/lib/icons';
+
 import type { DowntimeCategory, DowntimeMove } from './types';
 
 export const DOWNTIME_CATEGORIES: {
   value: DowntimeCategory;
   label: string;
-  icon: string;
+  icon: LucideIcon;
 }[] = [
-  { value: 'recovery', label: 'Recovery', icon: '❤️‍🩹' },
-  { value: 'crafting', label: 'Crafting', icon: '🔨' },
-  { value: 'social', label: 'Social', icon: '🤝' },
-  { value: 'exploration', label: 'Exploration', icon: '🔍' },
-  { value: 'training', label: 'Training', icon: '💪' },
+  { value: 'recovery', label: 'Recovery', icon: DowntimeMoveIcons.recovery },
+  { value: 'crafting', label: 'Crafting', icon: DowntimeMoveIcons.crafting },
+  { value: 'social', label: 'Social', icon: DowntimeMoveIcons.social },
+  {
+    value: 'exploration',
+    label: 'Exploration',
+    icon: DowntimeMoveIcons.exploration,
+  },
+  { value: 'training', label: 'Training', icon: DowntimeMoveIcons.training },
 ];
 
 export const STANDARD_DOWNTIME_MOVES: DowntimeMove[] = [

@@ -1,4 +1,4 @@
-import { Plus, X } from 'lucide-react';
+import { Plus, Sparkles, X, Zap } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
@@ -46,7 +46,7 @@ function ConditionsDetailedDisplay({
   if (conditions.items.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-center">
-        <span className="text-4xl opacity-50">✨</span>
+        <Sparkles className="size-10 opacity-50" />
         <p className="text-muted-foreground mt-2">No conditions</p>
         <p className="text-muted-foreground mb-4 text-sm">
           Your character is in good shape!
@@ -161,7 +161,7 @@ export function ConditionsDisplay({
   return (
     <div className={cn('bg-card rounded-lg border p-4', className)}>
       <div className="mb-3 flex items-center gap-2">
-        <span className="text-lg">⚡</span>
+        <Zap className="size-5" />
         <h3 className="font-semibold">Conditions</h3>
       </div>
       <ConditionsDetailedDisplay

@@ -1,3 +1,5 @@
+import { Dna } from 'lucide-react';
+
 import type { AncestrySelection } from '@/lib/schemas/identity';
 import { cn } from '@/lib/utils';
 
@@ -53,7 +55,7 @@ export function QuickAncestryInfo({
   return (
     <div className={cn('bg-card rounded-lg border p-3', className)}>
       <div className="mb-2 flex items-center gap-2">
-        <span className="text-lg">🧬</span>
+        <Dna className="size-5" />
         <span className="font-semibold">{name}</span>
       </div>
       <ExpandableFeaturesList features={features} />

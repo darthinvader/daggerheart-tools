@@ -1,3 +1,13 @@
+import {
+  Check,
+  Heart,
+  HeartCrack,
+  type LucideIcon,
+  PawPrint,
+  Shield,
+  Skull,
+  Sparkles,
+} from 'lucide-react';
 import { useCallback } from 'react';
 
 import type { ResourcesState } from '@/components/resources';
@@ -17,7 +27,7 @@ interface QuickVitalsInfoProps {
 
 interface VitalProps {
   label: string;
-  emoji: string;
+  icon: LucideIcon;
   current: number;
   max: number;
   onChange?: (value: number) => void;
@@ -26,7 +36,7 @@ interface VitalProps {
 
 function Vital({
   label,
-  emoji,
+  icon: Icon,
   current,
   max,
   onChange,
@@ -36,7 +46,7 @@ function Vital({
     <div className="flex flex-col items-center gap-1">
       <span className="text-muted-foreground text-xs">{label}</span>
       <div className="flex items-center gap-1">
-        <span className="text-sm">{emoji}</span>
+        <Icon className="size-4" />
         {onChange ? (
           <NumberControl
             value={current}
@@ -56,7 +66,9 @@ function Vital({
 
 function ScarItem({ scar }: { scar: Scar }) {
   return (
-    <span className="text-destructive text-xs">💀 {scar.description}</span>
+    <span className="text-destructive flex items-center gap-1 text-xs">
+      <Skull className="size-3" /> {scar.description}
+    </span>
   );
 }
 
@@ -122,7 +134,7 @@ export function QuickVitalsInfo({
         {/* HP */}
         <Vital
           label="HP"
-          emoji="❤️"
+          icon={Heart}
           current={resources.hp.current}
           max={resources.hp.max}
           onChange={onResourcesChange ? handleHpChange : undefined}
@@ -139,7 +151,7 @@ export function QuickVitalsInfo({
         {/* Armor */}
         <Vital
           label="Armor"
-          emoji="🛡️"
+          icon={Shield}
           current={resources.armorScore.current}
           max={resources.armorScore.max}
           onChange={onResourcesChange ? handleArmorChange : undefined}
@@ -150,7 +162,7 @@ export function QuickVitalsInfo({
         {/* Stress */}
         <Vital
           label="Stress"
-          emoji="😰"
+          icon={HeartCrack}
           current={resources.stress.current}
           max={resources.stress.max}
           onChange={onResourcesChange ? handleStressChange : undefined}
@@ -161,7 +173,7 @@ export function QuickVitalsInfo({
         {/* Hope */}
         <Vital
           label="Hope"
-          emoji="✨"
+          icon={Sparkles}
           current={hopeState.current}
           max={effectiveMax}
           onChange={onHopeChange ? handleHopeChange : undefined}
@@ -181,8 +193,12 @@ export function QuickVitalsInfo({
             )}
             disabled={!onHopeChange}
           >
-            <span>🐾</span>
-            <span>{companionHopeFilled ? '✓' : '○'}</span>
+            <PawPrint className="size-3" />
+            {companionHopeFilled ? (
+              <Check className="size-3" />
+            ) : (
+              <span>○</span>
+            )}
           </button>
         )}
       </div>

@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { ArrowLeftRight, ICON_SIZE_MD, Package, Zap } from '@/lib/icons';
 import type { DomainCardLite, LoadoutRules } from '@/lib/schemas/loadout';
 
 import { LoadoutSection } from './loadout-section';
@@ -28,7 +29,7 @@ function SwapModeBanner({
   return (
     <div className="flex items-center justify-between rounded-lg border border-amber-500/30 bg-amber-500/10 p-3">
       <div className="flex items-center gap-2">
-        <span className="text-lg">🔄</span>
+        <ArrowLeftRight size={ICON_SIZE_MD} />
         <span className="text-sm">
           <strong>Swap Mode:</strong> Select a card from{' '}
           <strong>{swapMode.source === 'active' ? 'Vault' : 'Active'}</strong>{' '}
@@ -91,7 +92,7 @@ export function LoadoutSummary({
         <div className="min-w-0">
           <LoadoutSection
             title="Active Loadout"
-            emoji="⚡"
+            icon={<Zap size={ICON_SIZE_MD} />}
             cards={safeActiveCards}
             location="active"
             maxCards={rules.maxActiveCards}
@@ -117,7 +118,7 @@ export function LoadoutSummary({
         <div className="min-w-0">
           <LoadoutSection
             title="Vault"
-            emoji="📦"
+            icon={<Package size={ICON_SIZE_MD} />}
             cards={safeVaultCards}
             location="vault"
             maxCards={vaultMaxCards}

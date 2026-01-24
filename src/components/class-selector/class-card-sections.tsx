@@ -1,5 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
+import { Sparkle, Star, Theater } from '@/lib/icons';
 
 interface ClassFeature {
   name: string;
@@ -33,9 +34,9 @@ function HopeFeatureBadge({ hopeCost }: { hopeCost: number }) {
     >
       <Badge
         variant="outline"
-        className="cursor-help border-amber-500/50 text-xs text-amber-600"
+        className="inline-flex cursor-help items-center gap-1 border-amber-500/50 text-xs text-amber-600"
       >
-        💫 {hopeCost} Hope
+        <Sparkle className="size-3" /> {hopeCost} Hope
       </Badge>
     </SmartTooltip>
   );
@@ -51,7 +52,7 @@ export function ClassFeaturesSection({
   return (
     <div className="space-y-1.5">
       <div className="bg-card sticky top-0 flex items-center gap-2 py-1">
-        <span className="text-sm">⭐</span>
+        <Star className="size-4" />
         <span className="text-xs font-medium">Class Features</span>
       </div>
       {features.map((feature, idx) => (
@@ -86,7 +87,7 @@ export function HopeFeatureSection({
   return (
     <div className="space-y-1.5">
       <div className="bg-card sticky top-0 flex items-center gap-2 py-1">
-        <span className="text-sm">💫</span>
+        <Sparkle className="size-4" />
         <span className="text-xs font-medium">Hope Feature</span>
         <HopeFeatureBadge hopeCost={hopeFeature.hopeCost} />
       </div>
@@ -121,7 +122,7 @@ export function SubclassesSection({
   return (
     <div className="space-y-1.5">
       <div className="bg-card sticky top-0 flex items-center gap-2 py-1">
-        <span className="text-sm">🎭</span>
+        <Theater className="size-4" />
         <span className="text-xs font-medium">Subclasses</span>
       </div>
       <div className="flex flex-wrap gap-1">

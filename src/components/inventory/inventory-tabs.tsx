@@ -1,4 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Folder, Package, Star } from '@/lib/icons';
 import type { InventoryItemEntry } from '@/lib/schemas/equipment';
 
 import { InventoryList } from './inventory-list';
@@ -27,11 +28,15 @@ export function InventoryTabs({
   return (
     <Tabs defaultValue="all" className="w-full">
       <TabsList className="mb-4 w-full justify-start">
-        <TabsTrigger value="all">📦 All ({safeItems.length})</TabsTrigger>
-        <TabsTrigger value="equipped">
-          ⭐ Equipped ({safeEquipped.length})
+        <TabsTrigger value="all" className="gap-1">
+          <Package className="size-4" /> All ({safeItems.length})
         </TabsTrigger>
-        <TabsTrigger value="category">📁 By Category</TabsTrigger>
+        <TabsTrigger value="equipped" className="gap-1">
+          <Star className="size-4" /> Equipped ({safeEquipped.length})
+        </TabsTrigger>
+        <TabsTrigger value="category" className="gap-1">
+          <Folder className="size-4" /> By Category
+        </TabsTrigger>
       </TabsList>
       <TabsContent value="all">
         <InventoryList

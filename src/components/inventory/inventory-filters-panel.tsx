@@ -1,4 +1,5 @@
 import { Badge } from '@/components/ui/badge';
+import { Folder, Gem, Trophy } from '@/lib/icons';
 import type { EquipmentTier, Rarity } from '@/lib/schemas/equipment';
 import { cn } from '@/lib/utils';
 
@@ -55,7 +56,9 @@ function CategoryFilter({
 }) {
   return (
     <div>
-      <h4 className="mb-2 text-sm font-medium">📁 Category</h4>
+      <h4 className="mb-2 flex items-center gap-1 text-sm font-medium">
+        <Folder className="inline-block size-4" /> Category
+      </h4>
       <div className="flex flex-wrap gap-1.5">
         {ALL_CATEGORIES.map(cat => {
           const config = CATEGORY_CONFIG[cat];
@@ -70,7 +73,7 @@ function CategoryFilter({
               )}
               onClick={() => onToggle(cat)}
             >
-              {config.emoji} {cat}
+              <config.icon className="size-3" /> {cat}
             </Badge>
           );
         })}
@@ -88,7 +91,9 @@ function RarityFilter({
 }) {
   return (
     <div>
-      <h4 className="mb-2 text-sm font-medium">💎 Rarity</h4>
+      <h4 className="mb-2 flex items-center gap-1 text-sm font-medium">
+        <Gem className="inline-block size-4" /> Rarity
+      </h4>
       <div className="flex flex-wrap gap-1.5">
         {ALL_RARITIES.map(rarity => {
           const config = RARITY_CONFIG[rarity];
@@ -105,7 +110,7 @@ function RarityFilter({
               )}
               onClick={() => onToggle(rarity)}
             >
-              {config.emoji} {rarity}
+              <config.icon className="size-3" /> {rarity}
             </Badge>
           );
         })}
@@ -123,7 +128,9 @@ function TierFilter({
 }) {
   return (
     <div>
-      <h4 className="mb-2 text-sm font-medium">🏆 Tier</h4>
+      <h4 className="mb-2 flex items-center gap-1 text-sm font-medium">
+        <Trophy className="inline-block size-4" /> Tier
+      </h4>
       <div className="flex flex-wrap gap-1.5">
         {ALL_TIERS.map(tier => {
           const config = TIER_CONFIG[tier];
@@ -137,7 +144,7 @@ function TierFilter({
               )}
               onClick={() => onToggle(tier)}
             >
-              {config.emoji} {config.label}
+              <config.icon className="size-3" /> {config.label}
             </Badge>
           );
         })}

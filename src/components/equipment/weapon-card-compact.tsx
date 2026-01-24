@@ -1,6 +1,7 @@
 import { Check } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
+import { DynamicIcon, Wheelchair } from '@/lib/icons';
 import type {
   CombatWheelchair,
   PrimaryWeapon,
@@ -8,10 +9,10 @@ import type {
 } from '@/lib/schemas/equipment';
 
 import {
-  DAMAGE_TYPE_EMOJI,
   formatDamage,
+  getDamageIcon,
+  getRangeIcon,
   isCombatWheelchair,
-  RANGE_EMOJI,
 } from './constants';
 
 type WeaponType = PrimaryWeapon | SecondaryWeapon | CombatWheelchair;
@@ -27,11 +28,8 @@ export function WeaponCardCompact({
   isSelected,
   onClick,
 }: WeaponCardCompactProps) {
-  const damageEmoji =
-    DAMAGE_TYPE_EMOJI[weapon.damage.type as keyof typeof DAMAGE_TYPE_EMOJI] ??
-    '⚔️';
-  const rangeEmoji =
-    RANGE_EMOJI[weapon.range as keyof typeof RANGE_EMOJI] ?? '📍';
+  const damageIcon = getDamageIcon(weapon.damage.type as 'phy' | 'mag');
+  const rangeIcon = getRangeIcon(weapon.range);
 
   return (
     <div
@@ -55,7 +53,7 @@ export function WeaponCardCompact({
       <div className="bg-muted/30 mb-3 rounded-lg border p-3">
         <div className="grid grid-cols-2 gap-2">
           <div className="bg-background flex items-center gap-2 rounded-md p-2">
-            <span className="text-lg">{damageEmoji}</span>
+            <DynamicIcon icon={damageIcon} className="h-5 w-5" />
             <div>
               <div className="text-muted-foreground text-[10px]">Damage</div>
               <div className="text-sm font-bold">
@@ -64,7 +62,7 @@ export function WeaponCardCompact({
             </div>
           </div>
           <div className="bg-background flex items-center gap-2 rounded-md p-2">
-            <span className="text-lg">{rangeEmoji}</span>
+            <DynamicIcon icon={rangeIcon} className="h-5 w-5" />
             <div>
               <div className="text-muted-foreground text-[10px]">Range</div>
               <div className="text-sm font-bold">{weapon.range}</div>
@@ -104,8 +102,8 @@ export function WeaponCardCompact({
       )}
 
       {isCombatWheelchair(weapon) && (
-        <div className="text-muted-foreground mt-3 text-xs">
-          ♿ {weapon.frameType} Frame
+        <div className="text-muted-foreground mt-3 flex items-center gap-1 text-xs">
+          <Wheelchair className="h-4 w-4" /> {weapon.frameType} Frame
         </div>
       )}
     </div>

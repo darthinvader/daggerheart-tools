@@ -23,8 +23,7 @@ export function formatDamage(damage?: {
       : damage.modifier < 0
         ? String(damage.modifier)
         : '';
-  const typeEmoji = damage.type === 'mag' ? '✨' : '⚔️';
-  return `${typeEmoji} ${base}${mod} ${damage.type === 'mag' ? 'Magic' : 'Physical'}`;
+  return `${base}${mod} ${damage.type === 'mag' ? 'Magic' : 'Physical'}`;
 }
 
 export function getWeaponData(

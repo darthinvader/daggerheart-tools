@@ -1,4 +1,4 @@
-import { Swords } from 'lucide-react';
+import { Activity, Swords } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 
 import {
@@ -238,7 +238,7 @@ export function ResourcesDisplay({
     <>
       <EditableSection
         title="Resources"
-        emoji="💪"
+        icon={Activity}
         isEditing={isEditing}
         onEditToggle={isEditing ? handleEditToggle : handleOpen}
         showEditButton={!readOnly}

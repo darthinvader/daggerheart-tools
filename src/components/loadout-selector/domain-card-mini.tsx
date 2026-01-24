@@ -11,12 +11,16 @@ import { CardCostBadges } from '@/components/loadout-selector/card-cost-badges';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
-import type { DomainCardLite } from '@/lib/schemas/loadout';
 import {
-  DOMAIN_BG_COLORS,
-  DOMAIN_COLORS,
-  DOMAIN_EMOJIS,
-} from '@/lib/schemas/loadout';
+  DomainIcons,
+  ICON_SIZE_LG,
+  ICON_SIZE_MD,
+  Scroll,
+  Wrench,
+  X,
+} from '@/lib/icons';
+import type { DomainCardLite } from '@/lib/schemas/loadout';
+import { DOMAIN_BG_COLORS, DOMAIN_COLORS } from '@/lib/schemas/loadout';
 import { cn } from '@/lib/utils';
 import { getCardCosts } from '@/lib/utils/card-costs';
 
@@ -26,7 +30,7 @@ export type DragSource = {
 } | null;
 
 interface CardVisualState {
-  emoji: string;
+  DomainIcon: React.ComponentType<{ size?: number; className?: string }> | null;
   color: string;
   bgColor: string;
   isThisSwapSource: boolean;
@@ -41,7 +45,7 @@ function getCardVisualState(
   isSwapMode: boolean | undefined,
   canSwapToActive: boolean | undefined
 ): CardVisualState {
-  const emoji = DOMAIN_EMOJIS[card.domain] ?? '📜';
+  const DomainIcon = DomainIcons[card.domain] ?? Scroll;
   const color = DOMAIN_COLORS[card.domain] ?? 'text-foreground';
   const bgColor = DOMAIN_BG_COLORS[card.domain] ?? '';
   const isThisSwapSource =
@@ -51,7 +55,7 @@ function getCardVisualState(
     !isThisSwapSource &&
     (location === 'active' || canSwapToActive !== false);
 
-  return { emoji, color, bgColor, isThisSwapSource, canBeSwapTarget };
+  return { DomainIcon, color, bgColor, isThisSwapSource, canBeSwapTarget };
 }
 
 function getCardClassNames(
@@ -171,7 +175,7 @@ export function DomainCardMini({
     >
       <CardHeader
         card={card}
-        emoji={visualState.emoji}
+        DomainIcon={visualState.DomainIcon}
         color={visualState.color}
         location={location}
         index={index}
@@ -194,7 +198,7 @@ export function DomainCardMini({
 
 type CardHeaderProps = {
   card: DomainCardLite;
-  emoji: string;
+  DomainIcon: React.ComponentType<{ size?: number; className?: string }> | null;
   color: string;
   location: 'active' | 'vault';
   index: number;
@@ -213,7 +217,7 @@ type CardHeaderProps = {
 // eslint-disable-next-line complexity
 function CardHeader({
   card,
-  emoji,
+  DomainIcon,
   color,
   location,
   index,
@@ -234,7 +238,7 @@ function CardHeader({
         {onDragStart && !isCoarse && (
           <GripVertical className="text-muted-foreground size-4 shrink-0" />
         )}
-        <span className="text-lg">{emoji}</span>
+        {DomainIcon && <DomainIcon size={ICON_SIZE_LG} />}
         <span className={cn('font-medium', color)}>{card.name}</span>
       </div>
       <div className="flex items-center gap-1">
@@ -251,7 +255,7 @@ function CardHeader({
               onCancelSwap?.();
             }}
           >
-            ✕
+            <X size={ICON_SIZE_MD} />
           </Button>
         )}
         {!isSwapMode && onSelectForSwap && (
@@ -308,7 +312,7 @@ function CardHeader({
                 onConvertToHomebrew();
               }}
             >
-              🛠️
+              <Wrench size={ICON_SIZE_MD} />
             </Button>
           </SmartTooltip>
         )}
@@ -347,7 +351,7 @@ function CardBadges({
       <CardCostBadges costs={costs} compact />
       {card.isHomebrew && (
         <Badge variant="secondary" className="gap-1 text-xs">
-          🛠️ Homebrew
+          <Wrench size={ICON_SIZE_MD} className="inline-block" /> Homebrew
         </Badge>
       )}
     </div>

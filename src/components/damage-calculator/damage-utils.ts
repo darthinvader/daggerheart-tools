@@ -100,7 +100,7 @@ export function formatDamageBreakdown(result: DamageResult): string[] {
   }
 
   if (result.isDeadly) {
-    lines.push('⚠️ This damage would reduce HP to 0 or below!');
+    lines.push('WARNING: This damage would reduce HP to 0 or below!');
   }
 
   return lines;

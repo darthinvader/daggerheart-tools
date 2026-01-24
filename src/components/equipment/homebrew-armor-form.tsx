@@ -66,13 +66,13 @@ export function HomebrewArmorForm({ value, onChange }: HomebrewArmorFormProps) {
           <Label>Damage Thresholds</Label>
           <div className="grid gap-3 sm:grid-cols-2">
             <NumberField
-              label="💥 Major"
+              label="Major"
               value={value.baseThresholds?.major ?? 5}
               onChange={v => handleThresholdChange('major', v)}
               min={1}
             />
             <NumberField
-              label="⚡ Severe"
+              label="Severe"
               value={value.baseThresholds?.severe ?? 11}
               onChange={v => handleThresholdChange('severe', v)}
               min={1}

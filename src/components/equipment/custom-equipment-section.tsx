@@ -1,3 +1,5 @@
+import { Gem } from '@/lib/icons';
+
 import type { CustomEquipment } from './custom-slot-editor';
 import { CustomEquipmentSummaryCard } from './summary';
 
@@ -12,7 +14,7 @@ export function CustomEquipmentSection({
     <div className="rounded-lg border p-4">
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-xl">💎</span>
+          <Gem className="h-5 w-5" />
           <span className="font-semibold">Custom Equipment</span>
           {customSlots.length > 0 && (
             <span className="bg-muted rounded-full px-2 py-0.5 text-xs">

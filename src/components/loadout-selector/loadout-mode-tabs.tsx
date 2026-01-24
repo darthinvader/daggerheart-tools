@@ -1,4 +1,5 @@
 import { type ModeOption, ModeTabs } from '@/components/shared';
+import { LoadoutModeIcons } from '@/lib/icons';
 import type { LoadoutMode } from '@/lib/schemas/loadout';
 
 interface LoadoutModeTabsProps {
@@ -12,19 +13,19 @@ const MODES: ModeOption<LoadoutMode>[] = [
     value: 'class-domains',
     label: 'Class Domains',
     shortLabel: 'Class',
-    icon: <span>📚</span>,
+    icon: <LoadoutModeIcons.standard size={16} />,
   },
   {
     value: 'all-domains',
     label: 'All Domains',
     shortLabel: 'All',
-    icon: <span>🌟</span>,
+    icon: <LoadoutModeIcons.allCards size={16} />,
   },
   {
     value: 'homebrew',
     label: 'Homebrew',
     shortLabel: 'Custom',
-    icon: <span>🛠️</span>,
+    icon: <LoadoutModeIcons.homebrew size={16} />,
   },
 ];
 

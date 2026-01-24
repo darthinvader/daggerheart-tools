@@ -1,7 +1,6 @@
-import { Infinity as InfinityIcon } from 'lucide-react';
-
 import { Button } from '@/components/ui/button';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
+import { Backpack, Infinity as InfinityIcon, Package } from '@/lib/icons';
 import { cn } from '@/lib/utils';
 
 interface UnlimitedSlotsToggleProps {
@@ -16,9 +15,17 @@ export function UnlimitedSlotsToggle({
   return (
     <SmartTooltip
       content={
-        enabled
-          ? '♾️ Unlimited slots enabled - click to disable'
-          : '🎒 Limited slots - click to enable unlimited'
+        enabled ? (
+          <span className="flex items-center gap-1">
+            <InfinityIcon className="inline-block size-4" /> Unlimited slots
+            enabled - click to disable
+          </span>
+        ) : (
+          <span className="flex items-center gap-1">
+            <Backpack className="inline-block size-4" /> Limited slots - click
+            to enable unlimited
+          </span>
+        )
       }
     >
       <Button
@@ -50,9 +57,17 @@ export function UnlimitedQuantityToggle({
   return (
     <SmartTooltip
       content={
-        enabled
-          ? '♾️ Unlimited stacking enabled - click to disable'
-          : '📦 Limited stacking - click to enable unlimited'
+        enabled ? (
+          <span className="flex items-center gap-1">
+            <InfinityIcon className="inline-block size-4" /> Unlimited stacking
+            enabled - click to disable
+          </span>
+        ) : (
+          <span className="flex items-center gap-1">
+            <Package className="inline-block size-4" /> Limited stacking - click
+            to enable unlimited
+          </span>
+        )
       }
     >
       <Button
