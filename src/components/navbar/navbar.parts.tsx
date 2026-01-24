@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from '@tanstack/react-router';
-import { ChevronDown, LogIn, Menu, Plus } from 'lucide-react';
+import { ChevronDown, LogIn, Menu, Plus, Users } from 'lucide-react';
 import * as React from 'react';
 
 import { UserMenu } from '@/components/auth';
