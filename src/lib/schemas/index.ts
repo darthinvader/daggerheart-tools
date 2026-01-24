@@ -18,3 +18,6 @@ export * from './loadout';
 
 // Player character schema
 export * from './player-character';
+
+// Adversaries
+export * from './adversaries';

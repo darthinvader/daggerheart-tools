@@ -6,6 +6,7 @@ import {
   Menu,
   Plus,
   Shield,
+  ShieldAlert,
   Sparkles,
   Sword,
   Users,
@@ -77,6 +78,11 @@ const defaultLinks: NavLink[] = [
         to: '/references/equipment',
         label: 'Equipment',
         icon: <Sword className="size-4 text-amber-600 dark:text-amber-400" />,
+      },
+      {
+        to: '/references/adversaries',
+        label: 'Adversaries',
+        icon: <ShieldAlert className="size-4 text-red-600 dark:text-red-400" />,
       },
       {
         to: '/references/classes',
