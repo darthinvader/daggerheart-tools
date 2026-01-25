@@ -12,10 +12,12 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as RulesRouteImport } from './routes/rules'
 import { Route as ReferencesRouteImport } from './routes/references'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as GmRouteImport } from './routes/gm'
 import { Route as CharacterRouteImport } from './routes/character'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RulesIndexRouteImport } from './routes/rules/index'
 import { Route as ReferencesIndexRouteImport } from './routes/references/index'
+import { Route as GmIndexRouteImport } from './routes/gm/index'
 import { Route as CharacterIndexRouteImport } from './routes/character/index'
 import { Route as RulesGmGuideRouteImport } from './routes/rules/gm-guide'
 import { Route as RulesDowntimeAdvancementRouteImport } from './routes/rules/downtime-advancement'
@@ -32,8 +34,12 @@ import { Route as ReferencesCommunitiesRouteImport } from './routes/references/c
 import { Route as ReferencesClassesRouteImport } from './routes/references/classes'
 import { Route as ReferencesAncestriesRouteImport } from './routes/references/ancestries'
 import { Route as ReferencesAdversariesRouteImport } from './routes/references/adversaries'
+import { Route as GmCampaignsRouteImport } from './routes/gm/campaigns'
 import { Route as CharacterNewRouteImport } from './routes/character/new'
 import { Route as CharacterCharacterIdRouteImport } from './routes/character/$characterId'
+import { Route as GmCampaignsIndexRouteImport } from './routes/gm/campaigns/index'
+import { Route as GmCampaignsNewRouteImport } from './routes/gm/campaigns/new'
+import { Route as GmCampaignsIdRouteImport } from './routes/gm/campaigns/$id'
 
 const RulesRoute = RulesRouteImport.update({
   id: '/rules',
@@ -48,6 +54,11 @@ const ReferencesRoute = ReferencesRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GmRoute = GmRouteImport.update({
+  id: '/gm',
+  path: '/gm',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CharacterRoute = CharacterRouteImport.update({
@@ -69,6 +80,11 @@ const ReferencesIndexRoute = ReferencesIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => ReferencesRoute,
+} as any)
+const GmIndexRoute = GmIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => GmRoute,
 } as any)
 const CharacterIndexRoute = CharacterIndexRouteImport.update({
   id: '/',
@@ -152,6 +168,11 @@ const ReferencesAdversariesRoute = ReferencesAdversariesRouteImport.update({
   path: '/adversaries',
   getParentRoute: () => ReferencesRoute,
 } as any)
+const GmCampaignsRoute = GmCampaignsRouteImport.update({
+  id: '/campaigns',
+  path: '/campaigns',
+  getParentRoute: () => GmRoute,
+} as any)
 const CharacterNewRoute = CharacterNewRouteImport.update({
   id: '/new',
   path: '/new',
@@ -162,15 +183,32 @@ const CharacterCharacterIdRoute = CharacterCharacterIdRouteImport.update({
   path: '/$characterId',
   getParentRoute: () => CharacterRoute,
 } as any)
+const GmCampaignsIndexRoute = GmCampaignsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => GmCampaignsRoute,
+} as any)
+const GmCampaignsNewRoute = GmCampaignsNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => GmCampaignsRoute,
+} as any)
+const GmCampaignsIdRoute = GmCampaignsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => GmCampaignsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/character': typeof CharacterRouteWithChildren
+  '/gm': typeof GmRouteWithChildren
   '/login': typeof LoginRoute
   '/references': typeof ReferencesRouteWithChildren
   '/rules': typeof RulesRouteWithChildren
   '/character/$characterId': typeof CharacterCharacterIdRoute
   '/character/new': typeof CharacterNewRoute
+  '/gm/campaigns': typeof GmCampaignsRouteWithChildren
   '/references/adversaries': typeof ReferencesAdversariesRoute
   '/references/ancestries': typeof ReferencesAncestriesRoute
   '/references/classes': typeof ReferencesClassesRoute
@@ -187,8 +225,12 @@ export interface FileRoutesByFullPath {
   '/rules/downtime-advancement': typeof RulesDowntimeAdvancementRoute
   '/rules/gm-guide': typeof RulesGmGuideRoute
   '/character/': typeof CharacterIndexRoute
+  '/gm/': typeof GmIndexRoute
   '/references/': typeof ReferencesIndexRoute
   '/rules/': typeof RulesIndexRoute
+  '/gm/campaigns/$id': typeof GmCampaignsIdRoute
+  '/gm/campaigns/new': typeof GmCampaignsNewRoute
+  '/gm/campaigns/': typeof GmCampaignsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -211,18 +253,24 @@ export interface FileRoutesByTo {
   '/rules/downtime-advancement': typeof RulesDowntimeAdvancementRoute
   '/rules/gm-guide': typeof RulesGmGuideRoute
   '/character': typeof CharacterIndexRoute
+  '/gm': typeof GmIndexRoute
   '/references': typeof ReferencesIndexRoute
   '/rules': typeof RulesIndexRoute
+  '/gm/campaigns/$id': typeof GmCampaignsIdRoute
+  '/gm/campaigns/new': typeof GmCampaignsNewRoute
+  '/gm/campaigns': typeof GmCampaignsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/character': typeof CharacterRouteWithChildren
+  '/gm': typeof GmRouteWithChildren
   '/login': typeof LoginRoute
   '/references': typeof ReferencesRouteWithChildren
   '/rules': typeof RulesRouteWithChildren
   '/character/$characterId': typeof CharacterCharacterIdRoute
   '/character/new': typeof CharacterNewRoute
+  '/gm/campaigns': typeof GmCampaignsRouteWithChildren
   '/references/adversaries': typeof ReferencesAdversariesRoute
   '/references/ancestries': typeof ReferencesAncestriesRoute
   '/references/classes': typeof ReferencesClassesRoute
@@ -239,19 +287,25 @@ export interface FileRoutesById {
   '/rules/downtime-advancement': typeof RulesDowntimeAdvancementRoute
   '/rules/gm-guide': typeof RulesGmGuideRoute
   '/character/': typeof CharacterIndexRoute
+  '/gm/': typeof GmIndexRoute
   '/references/': typeof ReferencesIndexRoute
   '/rules/': typeof RulesIndexRoute
+  '/gm/campaigns/$id': typeof GmCampaignsIdRoute
+  '/gm/campaigns/new': typeof GmCampaignsNewRoute
+  '/gm/campaigns/': typeof GmCampaignsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/character'
+    | '/gm'
     | '/login'
     | '/references'
     | '/rules'
     | '/character/$characterId'
     | '/character/new'
+    | '/gm/campaigns'
     | '/references/adversaries'
     | '/references/ancestries'
     | '/references/classes'
@@ -268,8 +322,12 @@ export interface FileRouteTypes {
     | '/rules/downtime-advancement'
     | '/rules/gm-guide'
     | '/character/'
+    | '/gm/'
     | '/references/'
     | '/rules/'
+    | '/gm/campaigns/$id'
+    | '/gm/campaigns/new'
+    | '/gm/campaigns/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -292,17 +350,23 @@ export interface FileRouteTypes {
     | '/rules/downtime-advancement'
     | '/rules/gm-guide'
     | '/character'
+    | '/gm'
     | '/references'
     | '/rules'
+    | '/gm/campaigns/$id'
+    | '/gm/campaigns/new'
+    | '/gm/campaigns'
   id:
     | '__root__'
     | '/'
     | '/character'
+    | '/gm'
     | '/login'
     | '/references'
     | '/rules'
     | '/character/$characterId'
     | '/character/new'
+    | '/gm/campaigns'
     | '/references/adversaries'
     | '/references/ancestries'
     | '/references/classes'
@@ -319,13 +383,18 @@ export interface FileRouteTypes {
     | '/rules/downtime-advancement'
     | '/rules/gm-guide'
     | '/character/'
+    | '/gm/'
     | '/references/'
     | '/rules/'
+    | '/gm/campaigns/$id'
+    | '/gm/campaigns/new'
+    | '/gm/campaigns/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CharacterRoute: typeof CharacterRouteWithChildren
+  GmRoute: typeof GmRouteWithChildren
   LoginRoute: typeof LoginRoute
   ReferencesRoute: typeof ReferencesRouteWithChildren
   RulesRoute: typeof RulesRouteWithChildren
@@ -352,6 +421,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gm': {
+      id: '/gm'
+      path: '/gm'
+      fullPath: '/gm'
+      preLoaderRoute: typeof GmRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/character': {
@@ -381,6 +457,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/references/'
       preLoaderRoute: typeof ReferencesIndexRouteImport
       parentRoute: typeof ReferencesRoute
+    }
+    '/gm/': {
+      id: '/gm/'
+      path: '/'
+      fullPath: '/gm/'
+      preLoaderRoute: typeof GmIndexRouteImport
+      parentRoute: typeof GmRoute
     }
     '/character/': {
       id: '/character/'
@@ -494,6 +577,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReferencesAdversariesRouteImport
       parentRoute: typeof ReferencesRoute
     }
+    '/gm/campaigns': {
+      id: '/gm/campaigns'
+      path: '/campaigns'
+      fullPath: '/gm/campaigns'
+      preLoaderRoute: typeof GmCampaignsRouteImport
+      parentRoute: typeof GmRoute
+    }
     '/character/new': {
       id: '/character/new'
       path: '/new'
@@ -507,6 +597,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/character/$characterId'
       preLoaderRoute: typeof CharacterCharacterIdRouteImport
       parentRoute: typeof CharacterRoute
+    }
+    '/gm/campaigns/': {
+      id: '/gm/campaigns/'
+      path: '/'
+      fullPath: '/gm/campaigns/'
+      preLoaderRoute: typeof GmCampaignsIndexRouteImport
+      parentRoute: typeof GmCampaignsRoute
+    }
+    '/gm/campaigns/new': {
+      id: '/gm/campaigns/new'
+      path: '/new'
+      fullPath: '/gm/campaigns/new'
+      preLoaderRoute: typeof GmCampaignsNewRouteImport
+      parentRoute: typeof GmCampaignsRoute
+    }
+    '/gm/campaigns/$id': {
+      id: '/gm/campaigns/$id'
+      path: '/$id'
+      fullPath: '/gm/campaigns/$id'
+      preLoaderRoute: typeof GmCampaignsIdRouteImport
+      parentRoute: typeof GmCampaignsRoute
     }
   }
 }
@@ -526,6 +637,34 @@ const CharacterRouteChildren: CharacterRouteChildren = {
 const CharacterRouteWithChildren = CharacterRoute._addFileChildren(
   CharacterRouteChildren,
 )
+
+interface GmCampaignsRouteChildren {
+  GmCampaignsIdRoute: typeof GmCampaignsIdRoute
+  GmCampaignsNewRoute: typeof GmCampaignsNewRoute
+  GmCampaignsIndexRoute: typeof GmCampaignsIndexRoute
+}
+
+const GmCampaignsRouteChildren: GmCampaignsRouteChildren = {
+  GmCampaignsIdRoute: GmCampaignsIdRoute,
+  GmCampaignsNewRoute: GmCampaignsNewRoute,
+  GmCampaignsIndexRoute: GmCampaignsIndexRoute,
+}
+
+const GmCampaignsRouteWithChildren = GmCampaignsRoute._addFileChildren(
+  GmCampaignsRouteChildren,
+)
+
+interface GmRouteChildren {
+  GmCampaignsRoute: typeof GmCampaignsRouteWithChildren
+  GmIndexRoute: typeof GmIndexRoute
+}
+
+const GmRouteChildren: GmRouteChildren = {
+  GmCampaignsRoute: GmCampaignsRouteWithChildren,
+  GmIndexRoute: GmIndexRoute,
+}
+
+const GmRouteWithChildren = GmRoute._addFileChildren(GmRouteChildren)
 
 interface ReferencesRouteChildren {
   ReferencesAdversariesRoute: typeof ReferencesAdversariesRoute
@@ -582,6 +721,7 @@ const RulesRouteWithChildren = RulesRoute._addFileChildren(RulesRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CharacterRoute: CharacterRouteWithChildren,
+  GmRoute: GmRouteWithChildren,
   LoginRoute: LoginRoute,
   ReferencesRoute: ReferencesRouteWithChildren,
   RulesRoute: RulesRouteWithChildren,

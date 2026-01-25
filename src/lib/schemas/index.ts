@@ -24,3 +24,6 @@ export * from './adversaries';
 
 // Environments
 export * from './environments';
+
+// Campaign frames and GM tools
+export * from './campaign';

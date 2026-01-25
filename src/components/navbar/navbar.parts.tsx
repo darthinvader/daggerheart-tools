@@ -3,7 +3,9 @@ import {
   Backpack,
   ChevronDown,
   Compass,
+  Crown,
   Dice5,
+  FolderOpen,
   Home,
   LogIn,
   Map,
@@ -167,6 +169,27 @@ const defaultLinks: NavLink[] = [
         to: '/rules/',
         label: 'Rules Overview',
         icon: <Scroll className="size-4" />,
+      },
+    ],
+  },
+  {
+    to: '/gm',
+    label: 'GM Tools',
+    children: [
+      {
+        to: '/gm/',
+        label: 'GM Dashboard',
+        icon: <Crown className="size-4" />,
+      },
+      {
+        to: '/gm/campaigns',
+        label: 'My Campaigns',
+        icon: <FolderOpen className="size-4" />,
+      },
+      {
+        to: '/gm/campaigns/new',
+        label: 'New Campaign',
+        icon: <Plus className="size-4" />,
       },
     ],
   },
