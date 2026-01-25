@@ -32,12 +32,12 @@ export function DetailPanel({
   if (isMobile) {
     return (
       <Sheet open={isOpen} onOpenChange={open => !open && onClose()}>
-        <SheetContent side="right" className="w-full p-0 sm:w-96">
+        <SheetContent side="right" className="flex w-full flex-col p-0 sm:w-96">
           <SheetHeader className="border-b p-4">
             <SheetTitle className="pr-8">{title}</SheetTitle>
           </SheetHeader>
-          <ScrollArea className="h-[calc(100vh-5rem)]">
-            <div className="p-4">{children}</div>
+          <ScrollArea className="min-h-0 flex-1">
+            <div className="p-4 pb-8">{children}</div>
           </ScrollArea>
         </SheetContent>
       </Sheet>

@@ -434,7 +434,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
           'Resolve outcome and narrate consequences.',
         ],
         details: [
-          'Advantage and disadvantage dice stack; take the highest result.',
+          'Advantage adds a d6; disadvantage subtracts a d6. They cancel to a single net die.',
           'Experiences add a flat bonus when relevant to the action.',
           'Difficulty can be public or hidden, based on table preference.',
         ],
@@ -453,6 +453,90 @@ export const RULES_PAGES: Record<string, RulesPage> = {
         ],
       },
       {
+        id: 'spellcasting',
+        title: 'Spellcasting & Spellcast Rolls',
+        iconKey: 'domainCards',
+        summary: 'Spellcasting requires specific spells or abilities.',
+        bullets: [
+          'Spellcast rolls are action rolls using the Spellcast trait.',
+          'You need a spell or ability to produce a specific magical effect.',
+          'Temporary spells can be ended by the GM with Fear.',
+        ],
+        details: [
+          'If a spell has no duration, it ends when you choose or the fiction changes.',
+          'Multiple spells can be maintained unless a spell says otherwise.',
+        ],
+      },
+      {
+        id: 'advantage-disadvantage',
+        title: 'Advantage & Disadvantage',
+        iconKey: 'conditions',
+        summary: 'Circumstances add a d6 to help or hinder a roll.',
+        bullets: [
+          'Advantage: add a d6 to the total.',
+          'Disadvantage: subtract a d6 from the total.',
+          'Multiple sources cancel to a single net die.',
+        ],
+        details: [
+          'If advantage and disadvantage both apply, roll neither.',
+          'Help an Ally grants advantage on the assisted roll.',
+          'NPCs use d20 for advantage/disadvantage on their rolls.',
+        ],
+        mechanics: [
+          'Advantage and disadvantage never stack into multiple d6s.',
+        ],
+      },
+      {
+        id: 'reaction-rolls',
+        title: 'Reaction Rolls',
+        iconKey: 'actionTokens',
+        summary:
+          'Quick responses to hazards or effects without Hope/Fear gain.',
+        bullets: [
+          'Use Duality Dice with a trait chosen by the GM.',
+          'Reaction rolls do not generate Hope or Fear.',
+          'Allies cannot Help on reaction rolls.',
+        ],
+        details: [
+          'Decide on bonuses before rolling, just like action rolls.',
+          'Critical successes on reaction rolls do not clear Stress.',
+        ],
+      },
+      {
+        id: 'group-tag-team',
+        title: 'Group Actions & Tag Team Rolls',
+        iconKey: 'actionTokens',
+        summary: 'Coordinate with allies to boost a single decisive roll.',
+        bullets: [
+          'Group actions: one leader rolls; others make reaction rolls.',
+          'Each successful reaction roll adds +1; each failure adds −1.',
+          'Tag Team: spend 3 Hope once per session to roll together.',
+        ],
+        details: [
+          'For Tag Team, choose one of the two results for both PCs.',
+          'On a Tag Team attack, both PCs roll damage and combine totals.',
+          'On Hope, all involved gain Hope; on Fear, the GM gains Fear per PC.',
+          'A Tag Team roll counts as a single action roll for countdowns.',
+        ],
+      },
+      {
+        id: 'domain-cards',
+        title: 'Domain Cards: Loadout & Vault',
+        iconKey: 'domainCards',
+        summary:
+          'Active cards live in your loadout; the rest stay in your vault.',
+        bullets: [
+          'You can have up to five active domain cards in your loadout.',
+          'Ancestry, community, and subclass cards don’t count toward the limit.',
+          'Swapping mid-scene costs Stress equal to the Recall Cost.',
+        ],
+        details: [
+          'Swap cards freely at the start of a rest, before downtime moves.',
+          'Cards placed permanently in the vault cannot be reused.',
+          'Use tokens on cards to track limited uses or ongoing effects.',
+        ],
+      },
+      {
         id: 'hope-uses',
         title: 'Spending Hope',
         iconKey: 'hope',
@@ -463,7 +547,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
           'Trigger Hope Features for class-defining power.',
         ],
         details: [
-          'Tag Team Rolls combine efforts for scene-defining moments (cost 3 Hope).',
+          'Tag Team Rolls combine efforts for scene-defining moments (3 Hope, once per session).',
           'Some effects only trigger on a success with Hope.',
           'Hope gained on a roll can be spent immediately on that roll’s effects.',
         ],
@@ -472,7 +556,10 @@ export const RULES_PAGES: Record<string, RulesPage> = {
           'Using multiple Experiences costs multiple Hope.',
         ],
         math: ['Tag Team cost: 3 Hope. Hope cap: 6.'],
-        tips: ['If you roll with Hope, you can often spend it immediately.'],
+        tips: [
+          'If you roll with Hope, you can often spend it immediately.',
+          'If multiple sources grant advantage, roll each d6 and keep the highest.',
+        ],
       },
       {
         id: 'stress-hp',
@@ -559,12 +646,44 @@ export const RULES_PAGES: Record<string, RulesPage> = {
           'Damage dice are based on your weapon/spell and Proficiency.',
           'Physical vs magic damage can matter for resistances or features.',
           'Some abilities modify attacks after the roll result is known.',
+          'Critical attack damage adds the max possible damage dice, then roll damage and add the totals.',
         ],
         mechanics: [
           'Adversaries use Difficulty instead of Evasion.',
           'Attacks can target groups in Very Close range with one roll.',
         ],
         math: ['Damage roll = weapon/spell dice + modifiers (per feature).'],
+      },
+      {
+        id: 'damage-proficiency',
+        title: 'Damage, Proficiency, & Unarmed Attacks',
+        iconKey: 'weapons',
+        summary: 'Proficiency sets how many dice you roll for weapon damage.',
+        bullets: [
+          'Proficiency starts at 1 and increases as you level.',
+          'Damage dice come from the weapon or spell you use.',
+          'Unarmed attacks deal d4 physical damage using Proficiency.',
+        ],
+        details: [
+          'Proficiency is not weapon-specific and does not reset when you swap gear.',
+          'Some spells or abilities use Proficiency for damage as well.',
+        ],
+      },
+      {
+        id: 'damage-types',
+        title: 'Damage Types, Direct Damage, & Resistance',
+        iconKey: 'conditions',
+        summary:
+          'Physical and magic damage interact with armor and resistances.',
+        bullets: [
+          'Physical damage is mundane harm; magic damage comes from spells or magic weapons.',
+          'Direct damage ignores Armor Slots.',
+          'Resistance halves damage before thresholds; immunity prevents it.',
+        ],
+        details: [
+          'Apply resistance or immunity before spending armor slots.',
+          'If damage includes both types, resistance or immunity must cover both.',
+        ],
       },
       {
         id: 'armor-thresholds',
@@ -580,6 +699,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
           'If damage is reduced to 0 or less, you mark no HP.',
           'Armor slots can run out, requiring repairs during downtime.',
           'Thresholds reflect survivability, not “hit chance.”',
+          'Spend an armor slot to reduce damage by one threshold.',
         ],
         mechanics: [
           'Armor slots are spent after damage is known to reduce severity.',
@@ -603,6 +723,9 @@ export const RULES_PAGES: Record<string, RulesPage> = {
           'Many conditions end when fictionally resolved.',
         ],
         details: [
+          'Hidden: rolls against you have disadvantage until you’re revealed.',
+          'Restrained: you can’t move until the condition is cleared.',
+          'Vulnerable: rolls against you have advantage.',
           'Conditions should align with the story (poisoned, burning, pinned, etc.).',
           'Use conditions to spotlight tradeoffs rather than punish players.',
           'Some conditions are cleared by downtime or specific moves.',
@@ -631,19 +754,35 @@ export const RULES_PAGES: Record<string, RulesPage> = {
         ],
       },
       {
+        id: 'movement-cover',
+        title: 'Movement, Cover, & Line of Sight',
+        iconKey: 'navigation',
+        summary: 'Movement is flexible, but danger can force Agility rolls.',
+        bullets: [
+          'You can move within Close range as part of an action.',
+          'Moving farther usually requires an Agility roll.',
+          'Cover can impose disadvantage on attacks against you.',
+        ],
+        details: [
+          'Line of sight matters for many spells and abilities.',
+          'Darkness can increase Difficulty or impose disadvantage.',
+        ],
+      },
+      {
         id: 'death',
         title: 'Death & Last Moves',
         iconKey: 'death',
         summary: 'Reaching 0 HP triggers a death move that shapes the story.',
         bullets: [
           'When your last HP is marked, make a death move.',
-          'Some moves let you return at a cost or in a changed form.',
-          'Death is story-forward, not a “game over.”',
+          'Choose Blaze of Glory, Avoid Death, or Risk It All.',
+          'Scars permanently cross out a Hope slot.',
         ],
         details: [
           'Death moves give the player narrative agency in a final moment.',
           'The GM should telegraph lethal consequences before they happen.',
           'Fictional logic can override mechanics when it makes sense.',
+          'If you cross out your last Hope slot, it’s time to retire the character.',
         ],
         mechanics: [
           'A death move is triggered the moment your final HP is marked.',
@@ -674,12 +813,16 @@ export const RULES_PAGES: Record<string, RulesPage> = {
         ],
         details: [
           'Downtime can be brief scenes or montages between big moments.',
-          'Some features refresh on a short rest, others on a long rest.',
+          'Each rest grants two downtime moves (you can repeat a move).',
+          'A party can take up to three short rests before a long rest.',
           'Narrative actions in downtime can shift relationships and stakes.',
+          'Once-per-session features refresh at the start of the next session.',
         ],
         mechanics: [
-          'Short rest: light recovery and limited refreshes.',
-          'Long rest: full recovery and more significant reset points.',
+          'Short rest: clear 1d4 + tier for HP/Stress/Armor Slots.',
+          'Long rest: clear all HP/Stress or all Armor Slots, plus projects.',
+          'Interrupted rests grant no benefit (short) or downgrade to short (long).',
+          'GM gains Fear during downtime (short: 1d4, long: 1d4 + number of PCs).',
         ],
       },
       {
@@ -715,8 +858,12 @@ export const RULES_PAGES: Record<string, RulesPage> = {
           'Loot is often a story reward, not only a power boost.',
           'Trade and crafting can be handled as downtime scenes.',
           'The GM can tailor rewards to match the party’s goals.',
+          'Gold is tracked in handfuls, bags, and chests (10 per step).',
         ],
-        mechanics: ['Tiered gear adds higher damage or stronger features.'],
+        mechanics: [
+          'Tiered gear adds higher damage or stronger features.',
+          'When you gain a 10th unit, convert and clear the lower tier.',
+        ],
       },
       {
         id: 'optional',
@@ -726,12 +873,17 @@ export const RULES_PAGES: Record<string, RulesPage> = {
         bullets: [
           'Massive damage can add a higher damage threshold.',
           'Spotlight trackers can add turn structure if desired.',
+          'Defined ranges can map distances to a 1-inch grid.',
+          'Gold coins add a granular currency step (10 coins = 1 handful).',
         ],
         details: [
           'Optional rules should be agreed on during session zero.',
           'If a rule adds friction, consider dropping or simplifying it.',
         ],
-        mechanics: ['Massive damage typically equals double Severe threshold.'],
+        mechanics: [
+          'Massive damage typically equals double Severe threshold.',
+          'Defined ranges: Melee 1, Very Close 3, Close 6, Far 12, Very Far 13+ squares.',
+        ],
         tips: [
           'Use optional rules only if they improve the fun at your table.',
         ],
@@ -787,6 +939,22 @@ export const RULES_PAGES: Record<string, RulesPage> = {
         ],
       },
       {
+        id: 'making-moves',
+        title: 'Making GM Moves',
+        iconKey: 'hazards',
+        summary: 'Moves answer the dice and keep the fiction in motion.',
+        bullets: [
+          'Make a move after a roll with Fear or a failed roll.',
+          'Make a move when players hand you a golden opportunity.',
+          'Make a move when the table looks to you for what happens next.',
+          'Use soft moves to warn; hard moves to change the scene.',
+        ],
+        details: [
+          'Success with Fear: yes, but; Failure with Hope: no, but.',
+          'Avoid negating successes—complicate instead of nullifying.',
+        ],
+      },
+      {
         id: 'pitfalls',
         title: 'Pitfalls to Avoid',
         iconKey: 'hazards',
@@ -809,14 +977,15 @@ export const RULES_PAGES: Record<string, RulesPage> = {
         iconKey: 'environments',
         summary: 'Fear fuels adversity and dramatic momentum.',
         bullets: [
+          'Start with Fear equal to the number of PCs.',
           'Gain Fear when players roll with Fear or during downtime.',
-          'Spend Fear to spotlight adversaries and trigger Fear moves.',
-          'Use consequences to shift the spotlight and raise stakes.',
+          'Spend Fear to interrupt, spotlight, add moves, or trigger Fear features.',
         ],
         details: [
-          'Fear can power adversary Experiences and special actions.',
-          'Big scenes often start with more Fear to spike tension.',
-          'Consequences should be clear and fictionally grounded.',
+          'Fear can power adversary or environment Fear Features.',
+          'Spend Fear to add an adversary’s Experience to a roll.',
+          'Fear carries between sessions and caps at 12.',
+          'Spending Fear can justify scene-defining “Fear moves.”',
         ],
         mechanics: [
           'Fear is a shared GM pool; spend it to spotlight or trigger features.',
@@ -827,6 +996,54 @@ export const RULES_PAGES: Record<string, RulesPage> = {
             description: 'GM resource used to power threats and complications.',
             tone: 'warning',
           },
+        ],
+      },
+      {
+        id: 'setting-difficulty',
+        title: 'Setting Difficulty',
+        iconKey: 'scaling',
+        summary: 'Pick a target number that fits the risk and fiction.',
+        bullets: [
+          'Use 5/10/15/20/25/30 as a quick ladder of difficulty.',
+          'Tell the Difficulty openly or keep it secret, per table preference.',
+          'Degrees of success can reveal more or less information.',
+        ],
+        details: [
+          'Difficulty rolls (d20 + Experience) can stand in for NPCs without stat blocks.',
+        ],
+      },
+      {
+        id: 'countdowns',
+        title: 'Countdowns',
+        iconKey: 'hazards',
+        summary: 'Track looming events with visible or hidden timers.',
+        bullets: [
+          'Standard countdowns tick down each action roll.',
+          'Dynamic countdowns shift based on roll outcomes.',
+          'Trigger the event when the die reaches 0.',
+        ],
+        details: [
+          'Short countdowns (2–4) trigger fast; longer ones build tension.',
+          'Use countdowns for hazards, pursuits, rituals, and projects.',
+        ],
+      },
+      {
+        id: 'optional-gm',
+        title: 'Optional GM Mechanics',
+        iconKey: 'adversaryDesign',
+        summary: 'Use optional rules to support specific scenes or styles.',
+        bullets: [
+          'Fate rolls: roll a single d12 to decide off-screen outcomes.',
+          'Underwater conflict: use disadvantage and breath countdowns.',
+          'PC vs PC: resolve with agreed terms and reaction rolls.',
+          'Falling/collision damage provides quick hazard numbers.',
+        ],
+        details: [
+          'Fate rolls use either Hope or Fear die and don’t generate Hope/Fear.',
+          'Breath countdowns usually start at 3+ and tick down each action.',
+          'Falling damage: Very Close 1d10+3, Close 1d20+5, Far+ 1d100+15 or death.',
+          'Collision damage: 1d20+5 direct physical damage.',
+          'Use these only when they improve clarity or tension for your table.',
         ],
       },
       {
@@ -843,6 +1060,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
           'Revisit boundaries if the campaign tone changes.',
           'Use questions to give players narrative authority.',
           'Trust grows when you follow through on table promises.',
+          'CATS can help structure the talk: Concept, Aim, Tone, Subject.',
         ],
       },
     ],
@@ -889,6 +1107,21 @@ export const RULES_PAGES: Record<string, RulesPage> = {
           'Bruisers soak damage; Solos anchor big fights.',
           'Leaders and Supports change battlefield momentum.',
           'Social adversaries create conflict through conversation.',
+        ],
+      },
+      {
+        id: 'adversary-rolls',
+        title: 'Adversary Rolls',
+        iconKey: 'statBlocks',
+        summary: 'Adversaries roll d20s using their stat block values.',
+        bullets: [
+          'Attack rolls use d20 + Attack Modifier.',
+          'Spend Fear to add an adversary Experience to a roll.',
+          'Reaction rolls use d20 versus a stated Difficulty.',
+        ],
+        details: [
+          'Adversaries typically don’t make action rolls unless a move calls for it.',
+          'Advantage/disadvantage for NPCs uses extra d20s.',
         ],
       },
       {
@@ -942,6 +1175,25 @@ export const RULES_PAGES: Record<string, RulesPage> = {
         ],
         math: ['Battle Points = (3 × PC count) + 2.'],
         tips: ['Don’t count summoned adversaries against the point total.'],
+      },
+      {
+        id: 'environments',
+        title: 'Environments',
+        iconKey: 'environments',
+        summary: 'Scenes gain teeth with environment stat blocks and impulses.',
+        bullets: [
+          'Environments represent hazards, background NPCs, and terrain.',
+          'Each environment has a tier, type, Difficulty, and impulses.',
+          'Features act like GM moves: actions, reactions, passives.',
+        ],
+        details: [
+          'Environment types: Exploration, Social, Traversal, Event.',
+          'Fear Features can be spent to make a scene-defining shift.',
+          'Feature questions inspire hooks and connective story beats.',
+        ],
+        mechanics: [
+          'Environment Difficulty sets a baseline for rolls against the scene.',
+        ],
       },
     ],
   },
@@ -999,6 +1251,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
           'Share distinctions and special mechanics before play begins.',
           'Use touchstones to align tone and expectations quickly.',
           'Let players add locations and factions to the campaign map.',
+          'Some frames introduce optional mechanics (e.g., Corruption tracks).',
         ],
       },
       {
