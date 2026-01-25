@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { FolderOpen, MoreVertical, Pencil, Plus, Trash2 } from 'lucide-react';
+import { ChevronDown, FolderOpen, Plus, RotateCcw, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import {
   AlertDialog,
@@ -20,16 +20,28 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import {
   deleteCampaign,
+  emptyTrash,
   listCampaigns,
+  listTrashedCampaigns,
+  permanentlyDeleteCampaign,
+  restoreCampaign,
 } from '@/features/campaigns/campaign-storage';
 import type { Campaign } from '@/lib/schemas/campaign';
+
+interface TrashedCampaign extends Campaign {
+  deletedAt: string;
+}
 
 export const Route = createFileRoute('/gm/campaigns/')({
   component: CampaignsList,
@@ -37,32 +49,63 @@ export const Route = createFileRoute('/gm/campaigns/')({
 
 function CampaignsList() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [trashedCampaigns, setTrashedCampaigns] = useState<TrashedCampaign[]>(
+    []
+  );
   const [loading, setLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<Campaign | null>(null);
+  const [permanentDeleteTarget, setPermanentDeleteTarget] =
+    useState<TrashedCampaign | null>(null);
+  const [showEmptyTrashConfirm, setShowEmptyTrashConfirm] = useState(false);
+  const [trashOpen, setTrashOpen] = useState(false);
+
+  const loadData = async () => {
+    setLoading(true);
+    const [campaignsData, trashData] = await Promise.all([
+      listCampaigns(),
+      listTrashedCampaigns(),
+    ]);
+    setCampaigns(campaignsData);
+    setTrashedCampaigns(trashData);
+    setLoading(false);
+  };
 
   useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      const data = await listCampaigns();
-      if (!cancelled) {
-        setCampaigns(data);
-        setLoading(false);
-      }
-    }
-    load();
-    return () => {
-      cancelled = true;
-    };
+    void (async () => {
+      setLoading(true);
+      const [campaignsData, trashData] = await Promise.all([
+        listCampaigns(),
+        listTrashedCampaigns(),
+      ]);
+      setCampaigns(campaignsData);
+      setTrashedCampaigns(trashData);
+      setLoading(false);
+    })();
   }, []);
 
   async function handleDelete() {
     if (!deleteTarget) return;
     await deleteCampaign(deleteTarget.id);
     setDeleteTarget(null);
-    setLoading(true);
-    const data = await listCampaigns();
-    setCampaigns(data);
-    setLoading(false);
+    await loadData();
+  }
+
+  async function handleRestore(id: string) {
+    await restoreCampaign(id);
+    await loadData();
+  }
+
+  async function handlePermanentDelete() {
+    if (!permanentDeleteTarget) return;
+    await permanentlyDeleteCampaign(permanentDeleteTarget.id);
+    setPermanentDeleteTarget(null);
+    await loadData();
+  }
+
+  async function handleEmptyTrash() {
+    await emptyTrash();
+    setShowEmptyTrashConfirm(false);
+    await loadData();
   }
 
   function getComplexityLabel(complexity: '1' | '2' | '3') {
@@ -74,6 +117,17 @@ function CampaignsList() {
       case '3':
         return { label: 'Complex', color: 'bg-purple-500/20 text-purple-600' };
     }
+  }
+
+  function formatDeletedDate(dateStr: string) {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    return date.toLocaleDateString();
   }
 
   if (loading) {
@@ -124,7 +178,16 @@ function CampaignsList() {
           {campaigns.map(campaign => {
             const complexity = getComplexityLabel(campaign.frame.complexity);
             return (
-              <Card key={campaign.id} className="group relative">
+              <Card
+                key={campaign.id}
+                className="group relative cursor-pointer transition-shadow hover:shadow-md"
+              >
+                <Link
+                  to="/gm/campaigns/$id"
+                  params={{ id: campaign.id }}
+                  className="absolute inset-0 z-0"
+                  aria-label={`Open ${campaign.name}`}
+                />
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="min-w-0 flex-1">
@@ -139,31 +202,23 @@ function CampaignsList() {
                         </span>
                       </CardDescription>
                     </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild>
-                          <Link
-                            to="/gm/campaigns/$id"
-                            params={{ id: campaign.id }}
-                          >
-                            <Pencil className="mr-2 h-4 w-4" />
-                            Edit
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-destructive focus:text-destructive"
-                          onClick={() => setDeleteTarget(campaign)}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive hover:bg-destructive/10 relative z-10 h-8 w-8"
+                          onClick={e => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setDeleteTarget(campaign);
+                          }}
                         >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Move to trash</TooltipContent>
+                    </Tooltip>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -194,16 +249,115 @@ function CampaignsList() {
         </div>
       )}
 
+      {/* Recycle Bin Section */}
+      {trashedCampaigns.length > 0 && (
+        <Collapsible
+          open={trashOpen}
+          onOpenChange={setTrashOpen}
+          className="mt-8"
+        >
+          <div className="flex items-center justify-between">
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" className="gap-2">
+                <Trash2 className="h-4 w-4" />
+                Recycle Bin ({trashedCampaigns.length})
+                <ChevronDown
+                  className={`h-4 w-4 transition-transform ${trashOpen ? 'rotate-180' : ''}`}
+                />
+              </Button>
+            </CollapsibleTrigger>
+            {trashOpen && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-destructive hover:bg-destructive/10"
+                onClick={() => setShowEmptyTrashConfirm(true)}
+              >
+                Empty Trash
+              </Button>
+            )}
+          </div>
+          <CollapsibleContent className="mt-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {trashedCampaigns.map(campaign => {
+                const complexity = getComplexityLabel(
+                  campaign.frame.complexity
+                );
+                return (
+                  <Card key={campaign.id} className="border-dashed opacity-75">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
+                        <div className="min-w-0 flex-1">
+                          <CardTitle className="truncate text-base">
+                            {campaign.name}
+                          </CardTitle>
+                          <CardDescription className="mt-1">
+                            <span
+                              className={`rounded px-2 py-0.5 text-xs ${complexity.color}`}
+                            >
+                              {complexity.label}
+                            </span>
+                            <span className="text-muted-foreground ml-2 text-xs">
+                              Deleted {formatDeletedDate(campaign.deletedAt)}
+                            </span>
+                          </CardDescription>
+                        </div>
+                        <div className="flex gap-1">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-green-600 hover:bg-green-500/10"
+                                onClick={() => handleRestore(campaign.id)}
+                              >
+                                <RotateCcw className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Restore campaign</TooltipContent>
+                          </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-destructive hover:bg-destructive/10 h-8 w-8"
+                                onClick={() =>
+                                  setPermanentDeleteTarget(campaign)
+                                }
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Delete permanently</TooltipContent>
+                          </Tooltip>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-muted-foreground line-clamp-2 text-sm">
+                        {campaign.frame.pitch || 'No pitch defined'}
+                      </p>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      )}
+
+      {/* Move to Trash Confirmation */}
       <AlertDialog
         open={!!deleteTarget}
         onOpenChange={() => setDeleteTarget(null)}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Campaign</AlertDialogTitle>
+            <AlertDialogTitle>Move to Trash</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{deleteTarget?.name}"? This
-              action cannot be undone.
+              Are you sure you want to move "{deleteTarget?.name}" to the
+              recycle bin? You can restore it later.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -212,7 +366,58 @@ function CampaignsList() {
               onClick={handleDelete}
               className="bg-destructive hover:bg-destructive/90 text-white"
             >
-              Delete
+              Move to Trash
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Permanent Delete Confirmation */}
+      <AlertDialog
+        open={!!permanentDeleteTarget}
+        onOpenChange={() => setPermanentDeleteTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Permanently</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to permanently delete "
+              {permanentDeleteTarget?.name}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handlePermanentDelete}
+              className="bg-destructive hover:bg-destructive/90 text-white"
+            >
+              Delete Forever
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Empty Trash Confirmation */}
+      <AlertDialog
+        open={showEmptyTrashConfirm}
+        onOpenChange={setShowEmptyTrashConfirm}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Empty Recycle Bin</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to permanently delete all{' '}
+              {trashedCampaigns.length} campaign(s) in the recycle bin? This
+              action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleEmptyTrash}
+              className="bg-destructive hover:bg-destructive/90 text-white"
+            >
+              Empty Trash
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

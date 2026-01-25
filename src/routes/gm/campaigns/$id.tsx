@@ -1,23 +1,46 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import {
   ArrowLeft,
+  ArrowRight,
   BookOpen,
+  Building,
   Calendar,
+  CheckCircle2,
   ChevronDown,
+  Circle,
   Copy,
+  Dice5,
+  Eye,
+  Flag,
+  HelpCircle,
+  Lightbulb,
   Map,
+  MapPin,
   MessageSquare,
+  Mountain,
   Plus,
   Save,
   Scroll,
   Sparkles,
+  Target,
   Trash2,
+  TreePine,
   User,
   Users,
   X,
 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -44,14 +67,25 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
+  addLocation,
   addNPC,
+  addQuest,
   addSession,
+  deleteLocation,
   deleteNPC,
+  deleteQuest,
   deleteSession,
   getCampaign,
   updateCampaign,
   updateCampaignFrame,
+  updateLocation,
   updateNPC,
+  updateQuest,
   updateSession,
 } from '@/features/campaigns/campaign-storage';
 import {
@@ -62,15 +96,39 @@ import type {
   Campaign,
   CampaignDistinction,
   CampaignFrame,
+  CampaignLocation,
   CampaignMechanic,
   CampaignNPC,
   CampaignPrinciple,
+  CampaignQuest,
   SessionNote,
   SessionZeroQuestion,
 } from '@/lib/schemas/campaign';
 
+const validTabs = [
+  'overview',
+  'world',
+  'mechanics',
+  'sessions',
+  'characters',
+  'locations',
+  'quests',
+  'session-zero',
+  'gm-tools',
+  'players',
+] as const;
+
+type TabValue = (typeof validTabs)[number];
+
 export const Route = createFileRoute('/gm/campaigns/$id')({
   component: CampaignDetailPage,
+  validateSearch: (search: Record<string, unknown>): { tab: TabValue } => {
+    const tab = search.tab as string;
+    if (tab && validTabs.includes(tab as TabValue)) {
+      return { tab: tab as TabValue };
+    }
+    return { tab: 'overview' };
+  },
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1084,6 +1142,7 @@ function NPCCard({
   const [localNPC, setLocalNPC] = useState(npc);
   const [tagInput, setTagInput] = useState('');
   const [locationInput, setLocationInput] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     setLocalNPC(npc);
@@ -1167,10 +1226,10 @@ function NPCCard({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7"
+                className="text-destructive hover:bg-destructive/10 h-7 w-7"
                 onClick={e => {
                   e.stopPropagation();
-                  onDelete();
+                  setShowDeleteConfirm(true);
                 }}
               >
                 <Trash2 className="h-4 w-4" />
@@ -1178,6 +1237,31 @@ function NPCCard({
             </div>
           </CardHeader>
         </CollapsibleTrigger>
+
+        <AlertDialog
+          open={showDeleteConfirm}
+          onOpenChange={setShowDeleteConfirm}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Character</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete "{npc.name}"? This action cannot
+                be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={onDelete}
+                className="bg-destructive hover:bg-destructive/90 text-white"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         <CollapsibleContent>
           <CardContent className="space-y-4 pt-0">
             {/* Basic Info */}
@@ -1407,16 +1491,1458 @@ function NPCCard({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Location Components
+// ─────────────────────────────────────────────────────────────────────────────
+
+const LOCATION_TYPE_ICONS = {
+  city: Building,
+  town: Building,
+  village: Building,
+  dungeon: Map,
+  wilderness: TreePine,
+  landmark: Mountain,
+  building: Building,
+  region: Map,
+  other: MapPin,
+};
+
+const LOCATION_TYPE_COLORS = {
+  city: 'bg-purple-500/20 text-purple-700 dark:text-purple-400',
+  town: 'bg-blue-500/20 text-blue-700 dark:text-blue-400',
+  village: 'bg-green-500/20 text-green-700 dark:text-green-400',
+  dungeon: 'bg-red-500/20 text-red-700 dark:text-red-400',
+  wilderness: 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400',
+  landmark: 'bg-amber-500/20 text-amber-700 dark:text-amber-400',
+  building: 'bg-slate-500/20 text-slate-700 dark:text-slate-400',
+  region: 'bg-indigo-500/20 text-indigo-700 dark:text-indigo-400',
+  other: 'bg-gray-500/20 text-gray-700 dark:text-gray-400',
+};
+
+function EditableLocations({
+  locations,
+  campaignId,
+  onLocationsChange,
+}: {
+  locations: CampaignLocation[];
+  campaignId: string;
+  onLocationsChange: () => void;
+}) {
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [typeFilter, setTypeFilter] = useState<string | null>(null);
+
+  const allTypes = [...new Set(locations.map(loc => loc.type))].sort();
+
+  const filteredLocations = typeFilter
+    ? locations.filter(loc => loc.type === typeFilter)
+    : locations;
+
+  const sortedLocations = [...filteredLocations].sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
+
+  const handleAddLocation = async () => {
+    await addLocation(campaignId, {
+      name: 'New Location',
+      type: 'other',
+      description: '',
+      history: '',
+      secrets: '',
+      currentState: '',
+      connectedLocations: [],
+      npcsPresent: [],
+      pointsOfInterest: [],
+      tags: [],
+      notes: '',
+    });
+    onLocationsChange();
+  };
+
+  const handleUpdateLocation = async (
+    locationId: string,
+    updates: Partial<Omit<CampaignLocation, 'id' | 'createdAt' | 'updatedAt'>>
+  ) => {
+    await updateLocation(campaignId, locationId, updates);
+    onLocationsChange();
+  };
+
+  const handleDeleteLocation = async (locationId: string) => {
+    await deleteLocation(campaignId, locationId);
+    onLocationsChange();
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        <Button onClick={handleAddLocation} className="flex-1">
+          <Plus className="mr-2 h-4 w-4" />
+          Add Location
+        </Button>
+        {allTypes.length > 0 && (
+          <Select
+            value={typeFilter ?? 'all'}
+            onValueChange={v => setTypeFilter(v === 'all' ? null : v)}
+          >
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Filter by type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              {allTypes.map(type => (
+                <SelectItem key={type} value={type}>
+                  {type.charAt(0).toUpperCase() + type.slice(1)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+      </div>
+
+      {sortedLocations.length === 0 ? (
+        <Card>
+          <CardContent className="py-8 text-center">
+            <MapPin className="text-muted-foreground mx-auto mb-4 h-10 w-10" />
+            <p className="text-muted-foreground">No locations created yet</p>
+            <p className="text-muted-foreground text-sm">
+              Add cities, dungeons, and points of interest
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        sortedLocations.map(location => (
+          <LocationCard
+            key={location.id}
+            location={location}
+            isExpanded={expandedId === location.id}
+            onToggle={() =>
+              setExpandedId(expandedId === location.id ? null : location.id)
+            }
+            onUpdate={updates => handleUpdateLocation(location.id, updates)}
+            onDelete={() => handleDeleteLocation(location.id)}
+          />
+        ))
+      )}
+    </div>
+  );
+}
+
+function LocationCard({
+  location,
+  isExpanded,
+  onToggle,
+  onUpdate,
+  onDelete,
+}: {
+  location: CampaignLocation;
+  isExpanded: boolean;
+  onToggle: () => void;
+  onUpdate: (
+    updates: Partial<Omit<CampaignLocation, 'id' | 'createdAt' | 'updatedAt'>>
+  ) => void;
+  onDelete: () => void;
+}) {
+  const [localLocation, setLocalLocation] = useState(location);
+  const [tagInput, setTagInput] = useState('');
+  const [poiName, setPoiName] = useState('');
+  const [poiDesc, setPoiDesc] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  useEffect(() => {
+    setLocalLocation(location);
+  }, [location]);
+
+  const handleBlur = () => {
+    onUpdate(localLocation);
+  };
+
+  const addTag = () => {
+    if (tagInput.trim() && !localLocation.tags.includes(tagInput.trim())) {
+      const newTags = [...localLocation.tags, tagInput.trim()];
+      setLocalLocation({ ...localLocation, tags: newTags });
+      onUpdate({ tags: newTags });
+      setTagInput('');
+    }
+  };
+
+  const removeTag = (tag: string) => {
+    const newTags = localLocation.tags.filter(t => t !== tag);
+    setLocalLocation({ ...localLocation, tags: newTags });
+    onUpdate({ tags: newTags });
+  };
+
+  const addPOI = () => {
+    if (poiName.trim()) {
+      const newPOIs = [
+        ...localLocation.pointsOfInterest,
+        { name: poiName.trim(), description: poiDesc.trim() },
+      ];
+      setLocalLocation({ ...localLocation, pointsOfInterest: newPOIs });
+      onUpdate({ pointsOfInterest: newPOIs });
+      setPoiName('');
+      setPoiDesc('');
+    }
+  };
+
+  const removePOI = (index: number) => {
+    const newPOIs = localLocation.pointsOfInterest.filter(
+      (_, i) => i !== index
+    );
+    setLocalLocation({ ...localLocation, pointsOfInterest: newPOIs });
+    onUpdate({ pointsOfInterest: newPOIs });
+  };
+
+  const TypeIcon = LOCATION_TYPE_ICONS[localLocation.type];
+
+  return (
+    <Collapsible open={isExpanded} onOpenChange={onToggle}>
+      <Card>
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <CollapsibleTrigger asChild>
+              <Button
+                variant="ghost"
+                className="h-auto flex-1 justify-start p-0"
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`flex h-8 w-8 items-center justify-center rounded ${LOCATION_TYPE_COLORS[localLocation.type]}`}
+                  >
+                    <TypeIcon className="h-4 w-4" />
+                  </div>
+                  <div className="text-left">
+                    <h4 className="font-medium">{localLocation.name}</h4>
+                    <p className="text-muted-foreground text-xs capitalize">
+                      {localLocation.type}
+                    </p>
+                  </div>
+                  <ChevronDown
+                    className={`text-muted-foreground h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                  />
+                </div>
+              </Button>
+            </CollapsibleTrigger>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowDeleteConfirm(true)}
+              className="text-destructive hover:bg-destructive/10 h-8 w-8"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardHeader>
+
+        <AlertDialog
+          open={showDeleteConfirm}
+          onOpenChange={setShowDeleteConfirm}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Location</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete "{localLocation.name}"? This
+                action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={onDelete}
+                className="bg-destructive hover:bg-destructive/90 text-white"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <CollapsibleContent>
+          <CardContent className="space-y-4 pt-4">
+            {/* Name & Type */}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <Label className="text-xs">Name</Label>
+                <Input
+                  value={localLocation.name}
+                  onChange={e =>
+                    setLocalLocation({ ...localLocation, name: e.target.value })
+                  }
+                  onBlur={handleBlur}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Type</Label>
+                <Select
+                  value={localLocation.type}
+                  onValueChange={v => {
+                    const newType = v as CampaignLocation['type'];
+                    setLocalLocation({ ...localLocation, type: newType });
+                    onUpdate({ type: newType });
+                  }}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="city">City</SelectItem>
+                    <SelectItem value="town">Town</SelectItem>
+                    <SelectItem value="village">Village</SelectItem>
+                    <SelectItem value="dungeon">Dungeon</SelectItem>
+                    <SelectItem value="wilderness">Wilderness</SelectItem>
+                    <SelectItem value="landmark">Landmark</SelectItem>
+                    <SelectItem value="building">Building</SelectItem>
+                    <SelectItem value="region">Region</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Description */}
+            <div>
+              <Label className="text-xs">Description</Label>
+              <Textarea
+                value={localLocation.description}
+                onChange={e =>
+                  setLocalLocation({
+                    ...localLocation,
+                    description: e.target.value,
+                  })
+                }
+                onBlur={handleBlur}
+                rows={2}
+                placeholder="What does this place look like?"
+                className="mt-1"
+              />
+            </div>
+
+            {/* Current State */}
+            <div>
+              <Label className="text-xs">Current State</Label>
+              <Textarea
+                value={localLocation.currentState}
+                onChange={e =>
+                  setLocalLocation({
+                    ...localLocation,
+                    currentState: e.target.value,
+                  })
+                }
+                onBlur={handleBlur}
+                rows={2}
+                placeholder="What's happening here now?"
+                className="mt-1"
+              />
+            </div>
+
+            {/* History */}
+            <div>
+              <Label className="text-xs">History & Lore</Label>
+              <Textarea
+                value={localLocation.history}
+                onChange={e =>
+                  setLocalLocation({
+                    ...localLocation,
+                    history: e.target.value,
+                  })
+                }
+                onBlur={handleBlur}
+                rows={2}
+                placeholder="Background and history..."
+                className="mt-1"
+              />
+            </div>
+
+            {/* Secrets */}
+            <div>
+              <Label className="text-xs">Secrets (GM Only)</Label>
+              <Textarea
+                value={localLocation.secrets}
+                onChange={e =>
+                  setLocalLocation({
+                    ...localLocation,
+                    secrets: e.target.value,
+                  })
+                }
+                onBlur={handleBlur}
+                rows={2}
+                placeholder="Hidden information..."
+                className="mt-1"
+              />
+            </div>
+
+            {/* Points of Interest */}
+            <div>
+              <Label className="text-xs">Points of Interest</Label>
+              <div className="mt-1 space-y-2">
+                {localLocation.pointsOfInterest.map((poi, index) => (
+                  <div
+                    key={index}
+                    className="bg-muted/50 flex items-start gap-2 rounded-md p-2"
+                  >
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">{poi.name}</p>
+                      {poi.description && (
+                        <p className="text-muted-foreground text-xs">
+                          {poi.description}
+                        </p>
+                      )}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={() => removePOI(index)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
+                <div className="flex gap-2">
+                  <Input
+                    value={poiName}
+                    onChange={e => setPoiName(e.target.value)}
+                    placeholder="POI name"
+                    className="flex-1"
+                  />
+                  <Input
+                    value={poiDesc}
+                    onChange={e => setPoiDesc(e.target.value)}
+                    placeholder="Description (optional)"
+                    className="flex-1"
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addPOI();
+                      }
+                    }}
+                  />
+                  <Button variant="outline" size="icon" onClick={addPOI}>
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Tags */}
+            <div>
+              <Label className="text-xs">Tags</Label>
+              <div className="mt-1 space-y-2">
+                <div className="flex flex-wrap gap-1">
+                  {localLocation.tags.map(tag => (
+                    <Badge key={tag} variant="secondary" className="gap-1 pr-1">
+                      {tag}
+                      <button
+                        type="button"
+                        onClick={() => removeTag(tag)}
+                        className="hover:bg-muted ml-1 rounded-full p-0.5"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    value={tagInput}
+                    onChange={e => setTagInput(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addTag();
+                      }
+                    }}
+                    placeholder="Add a tag..."
+                    className="flex-1"
+                  />
+                  <Button variant="outline" size="icon" onClick={addTag}>
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Notes */}
+            <div>
+              <Label className="text-xs">Additional Notes</Label>
+              <Textarea
+                value={localLocation.notes}
+                onChange={e =>
+                  setLocalLocation({ ...localLocation, notes: e.target.value })
+                }
+                onBlur={handleBlur}
+                rows={2}
+                placeholder="Any other notes..."
+                className="mt-1"
+              />
+            </div>
+          </CardContent>
+        </CollapsibleContent>
+      </Card>
+    </Collapsible>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Quest Components
+// ─────────────────────────────────────────────────────────────────────────────
+
+const QUEST_TYPE_COLORS = {
+  main: 'bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/30',
+  side: 'bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-500/30',
+  personal:
+    'bg-purple-500/20 text-purple-700 dark:text-purple-400 border-purple-500/30',
+  faction:
+    'bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/30',
+  rumor:
+    'bg-slate-500/20 text-slate-700 dark:text-slate-400 border-slate-500/30',
+  hook: 'bg-pink-500/20 text-pink-700 dark:text-pink-400 border-pink-500/30',
+};
+
+const QUEST_STATUS_COLORS = {
+  available: 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400',
+  active: 'bg-blue-500/20 text-blue-700 dark:text-blue-400',
+  completed: 'bg-green-500/20 text-green-700 dark:text-green-400',
+  failed: 'bg-red-500/20 text-red-700 dark:text-red-400',
+  abandoned: 'bg-gray-500/20 text-gray-700 dark:text-gray-400',
+};
+
+const QUEST_PRIORITY_COLORS = {
+  low: 'text-gray-500',
+  medium: 'text-blue-500',
+  high: 'text-orange-500',
+  urgent: 'text-red-500',
+};
+
+function EditableQuests({
+  quests,
+  campaignId,
+  onQuestsChange,
+}: {
+  quests: CampaignQuest[];
+  campaignId: string;
+  onQuestsChange: () => void;
+}) {
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [typeFilter, setTypeFilter] = useState<string | null>(null);
+
+  const filteredQuests = quests
+    .filter(q => !statusFilter || q.status === statusFilter)
+    .filter(q => !typeFilter || q.type === typeFilter);
+
+  // Sort by priority (urgent first) then by status (active first)
+  const priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3 };
+  const statusOrder = {
+    active: 0,
+    available: 1,
+    completed: 2,
+    failed: 3,
+    abandoned: 4,
+  };
+  const sortedQuests = [...filteredQuests].sort((a, b) => {
+    const statusDiff = statusOrder[a.status] - statusOrder[b.status];
+    if (statusDiff !== 0) return statusDiff;
+    return priorityOrder[a.priority] - priorityOrder[b.priority];
+  });
+
+  const handleAddQuest = async () => {
+    await addQuest(campaignId, {
+      title: 'New Quest',
+      type: 'side',
+      status: 'available',
+      description: '',
+      objectives: [],
+      rewards: '',
+      giver: '',
+      location: '',
+      relatedNpcs: [],
+      notes: '',
+      foreshadowing: '',
+      consequences: '',
+      priority: 'medium',
+      tags: [],
+    });
+    onQuestsChange();
+  };
+
+  const handleUpdateQuest = async (
+    questId: string,
+    updates: Partial<Omit<CampaignQuest, 'id' | 'createdAt' | 'updatedAt'>>
+  ) => {
+    await updateQuest(campaignId, questId, updates);
+    onQuestsChange();
+  };
+
+  const handleDeleteQuest = async (questId: string) => {
+    await deleteQuest(campaignId, questId);
+    onQuestsChange();
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <Button onClick={handleAddQuest} className="flex-1">
+          <Plus className="mr-2 h-4 w-4" />
+          Add Quest
+        </Button>
+        <Select
+          value={statusFilter ?? 'all'}
+          onValueChange={v => setStatusFilter(v === 'all' ? null : v)}
+        >
+          <SelectTrigger className="w-32">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="available">Available</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="completed">Completed</SelectItem>
+            <SelectItem value="failed">Failed</SelectItem>
+            <SelectItem value="abandoned">Abandoned</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select
+          value={typeFilter ?? 'all'}
+          onValueChange={v => setTypeFilter(v === 'all' ? null : v)}
+        >
+          <SelectTrigger className="w-32">
+            <SelectValue placeholder="Type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="main">Main</SelectItem>
+            <SelectItem value="side">Side</SelectItem>
+            <SelectItem value="personal">Personal</SelectItem>
+            <SelectItem value="faction">Faction</SelectItem>
+            <SelectItem value="rumor">Rumor</SelectItem>
+            <SelectItem value="hook">Hook</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {sortedQuests.length === 0 ? (
+        <Card>
+          <CardContent className="py-8 text-center">
+            <Target className="text-muted-foreground mx-auto mb-4 h-10 w-10" />
+            <p className="text-muted-foreground">No quests created yet</p>
+            <p className="text-muted-foreground text-sm">
+              Add main quests, side quests, and plot hooks
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        sortedQuests.map(quest => (
+          <QuestCard
+            key={quest.id}
+            quest={quest}
+            isExpanded={expandedId === quest.id}
+            onToggle={() =>
+              setExpandedId(expandedId === quest.id ? null : quest.id)
+            }
+            onUpdate={updates => handleUpdateQuest(quest.id, updates)}
+            onDelete={() => handleDeleteQuest(quest.id)}
+          />
+        ))
+      )}
+    </div>
+  );
+}
+
+function QuestCard({
+  quest,
+  isExpanded,
+  onToggle,
+  onUpdate,
+  onDelete,
+}: {
+  quest: CampaignQuest;
+  isExpanded: boolean;
+  onToggle: () => void;
+  onUpdate: (
+    updates: Partial<Omit<CampaignQuest, 'id' | 'createdAt' | 'updatedAt'>>
+  ) => void;
+  onDelete: () => void;
+}) {
+  const [localQuest, setLocalQuest] = useState(quest);
+  const [newObjective, setNewObjective] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  useEffect(() => {
+    setLocalQuest(quest);
+  }, [quest]);
+
+  const handleBlur = () => {
+    onUpdate(localQuest);
+  };
+
+  const addObjective = () => {
+    if (newObjective.trim()) {
+      const newObjectives = [
+        ...localQuest.objectives,
+        {
+          id: crypto.randomUUID(),
+          text: newObjective.trim(),
+          completed: false,
+        },
+      ];
+      setLocalQuest({ ...localQuest, objectives: newObjectives });
+      onUpdate({ objectives: newObjectives });
+      setNewObjective('');
+    }
+  };
+
+  const toggleObjective = (id: string) => {
+    const newObjectives = localQuest.objectives.map(obj =>
+      obj.id === id ? { ...obj, completed: !obj.completed } : obj
+    );
+    setLocalQuest({ ...localQuest, objectives: newObjectives });
+    onUpdate({ objectives: newObjectives });
+  };
+
+  const removeObjective = (id: string) => {
+    const newObjectives = localQuest.objectives.filter(obj => obj.id !== id);
+    setLocalQuest({ ...localQuest, objectives: newObjectives });
+    onUpdate({ objectives: newObjectives });
+  };
+
+  const completedCount = localQuest.objectives.filter(o => o.completed).length;
+  const totalCount = localQuest.objectives.length;
+
+  return (
+    <Collapsible open={isExpanded} onOpenChange={onToggle}>
+      <Card className={`border-l-4 ${QUEST_TYPE_COLORS[localQuest.type]}`}>
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <CollapsibleTrigger asChild>
+              <Button
+                variant="ghost"
+                className="h-auto flex-1 justify-start p-0"
+              >
+                <div className="flex items-center gap-3">
+                  <Target
+                    className={`h-5 w-5 ${QUEST_PRIORITY_COLORS[localQuest.priority]}`}
+                  />
+                  <div className="text-left">
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-medium">{localQuest.title}</h4>
+                      <Badge
+                        variant="outline"
+                        className={QUEST_STATUS_COLORS[localQuest.status]}
+                      >
+                        {localQuest.status}
+                      </Badge>
+                    </div>
+                    <p className="text-muted-foreground text-xs capitalize">
+                      {localQuest.type} quest
+                      {totalCount > 0 &&
+                        ` • ${completedCount}/${totalCount} objectives`}
+                    </p>
+                  </div>
+                  <ChevronDown
+                    className={`text-muted-foreground h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                  />
+                </div>
+              </Button>
+            </CollapsibleTrigger>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowDeleteConfirm(true)}
+              className="text-destructive hover:bg-destructive/10 h-8 w-8"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardHeader>
+
+        <AlertDialog
+          open={showDeleteConfirm}
+          onOpenChange={setShowDeleteConfirm}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Quest</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete "{localQuest.title}"? This
+                action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={onDelete}
+                className="bg-destructive hover:bg-destructive/90 text-white"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <CollapsibleContent>
+          <CardContent className="space-y-4 pt-4">
+            {/* Title & Type */}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <Label className="text-xs">Title</Label>
+                <Input
+                  value={localQuest.title}
+                  onChange={e =>
+                    setLocalQuest({ ...localQuest, title: e.target.value })
+                  }
+                  onBlur={handleBlur}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Type</Label>
+                <Select
+                  value={localQuest.type}
+                  onValueChange={v => {
+                    const newType = v as CampaignQuest['type'];
+                    setLocalQuest({ ...localQuest, type: newType });
+                    onUpdate({ type: newType });
+                  }}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="main">Main Quest</SelectItem>
+                    <SelectItem value="side">Side Quest</SelectItem>
+                    <SelectItem value="personal">Personal Quest</SelectItem>
+                    <SelectItem value="faction">Faction Quest</SelectItem>
+                    <SelectItem value="rumor">Rumor</SelectItem>
+                    <SelectItem value="hook">Plot Hook</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Status & Priority */}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <Label className="text-xs">Status</Label>
+                <Select
+                  value={localQuest.status}
+                  onValueChange={v => {
+                    const newStatus = v as CampaignQuest['status'];
+                    setLocalQuest({ ...localQuest, status: newStatus });
+                    onUpdate({ status: newStatus });
+                  }}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="available">Available</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="failed">Failed</SelectItem>
+                    <SelectItem value="abandoned">Abandoned</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs">Priority</Label>
+                <Select
+                  value={localQuest.priority}
+                  onValueChange={v => {
+                    const newPriority = v as CampaignQuest['priority'];
+                    setLocalQuest({ ...localQuest, priority: newPriority });
+                    onUpdate({ priority: newPriority });
+                  }}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="urgent">Urgent</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Description */}
+            <div>
+              <Label className="text-xs">Description</Label>
+              <Textarea
+                value={localQuest.description}
+                onChange={e =>
+                  setLocalQuest({ ...localQuest, description: e.target.value })
+                }
+                onBlur={handleBlur}
+                rows={2}
+                placeholder="What is this quest about?"
+                className="mt-1"
+              />
+            </div>
+
+            {/* Objectives */}
+            <div>
+              <Label className="text-xs">Objectives</Label>
+              <div className="mt-1 space-y-2">
+                {localQuest.objectives.map(obj => (
+                  <div
+                    key={obj.id}
+                    className="bg-muted/50 flex items-center gap-2 rounded-md p-2"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => toggleObjective(obj.id)}
+                      className="flex-shrink-0"
+                    >
+                      {obj.completed ? (
+                        <CheckCircle2 className="h-5 w-5 text-green-500" />
+                      ) : (
+                        <Circle className="text-muted-foreground h-5 w-5" />
+                      )}
+                    </button>
+                    <span
+                      className={`flex-1 text-sm ${obj.completed ? 'text-muted-foreground line-through' : ''}`}
+                    >
+                      {obj.text}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={() => removeObjective(obj.id)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
+                <div className="flex gap-2">
+                  <Input
+                    value={newObjective}
+                    onChange={e => setNewObjective(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addObjective();
+                      }
+                    }}
+                    placeholder="Add an objective..."
+                    className="flex-1"
+                  />
+                  <Button variant="outline" size="icon" onClick={addObjective}>
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Quest Giver & Location */}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <Label className="text-xs">Quest Giver</Label>
+                <Input
+                  value={localQuest.giver}
+                  onChange={e =>
+                    setLocalQuest({ ...localQuest, giver: e.target.value })
+                  }
+                  onBlur={handleBlur}
+                  placeholder="Who gave this quest?"
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Location</Label>
+                <Input
+                  value={localQuest.location}
+                  onChange={e =>
+                    setLocalQuest({ ...localQuest, location: e.target.value })
+                  }
+                  onBlur={handleBlur}
+                  placeholder="Where does it take place?"
+                  className="mt-1"
+                />
+              </div>
+            </div>
+
+            {/* Rewards */}
+            <div>
+              <Label className="text-xs">Rewards</Label>
+              <Textarea
+                value={localQuest.rewards}
+                onChange={e =>
+                  setLocalQuest({ ...localQuest, rewards: e.target.value })
+                }
+                onBlur={handleBlur}
+                rows={2}
+                placeholder="What do they get for completing this?"
+                className="mt-1"
+              />
+            </div>
+
+            {/* Foreshadowing */}
+            <div>
+              <Label className="flex items-center gap-1 text-xs">
+                <Eye className="h-3 w-3" />
+                Foreshadowing
+              </Label>
+              <Textarea
+                value={localQuest.foreshadowing}
+                onChange={e =>
+                  setLocalQuest({
+                    ...localQuest,
+                    foreshadowing: e.target.value,
+                  })
+                }
+                onBlur={handleBlur}
+                rows={2}
+                placeholder="Hints to drop before revealing the quest..."
+                className="mt-1"
+              />
+            </div>
+
+            {/* Consequences */}
+            <div>
+              <Label className="text-xs">Consequences</Label>
+              <Textarea
+                value={localQuest.consequences}
+                onChange={e =>
+                  setLocalQuest({ ...localQuest, consequences: e.target.value })
+                }
+                onBlur={handleBlur}
+                rows={2}
+                placeholder="What happens if they fail or ignore this?"
+                className="mt-1"
+              />
+            </div>
+
+            {/* Notes */}
+            <div>
+              <Label className="text-xs">GM Notes</Label>
+              <Textarea
+                value={localQuest.notes}
+                onChange={e =>
+                  setLocalQuest({ ...localQuest, notes: e.target.value })
+                }
+                onBlur={handleBlur}
+                rows={2}
+                placeholder="Additional notes..."
+                className="mt-1"
+              />
+            </div>
+          </CardContent>
+        </CollapsibleContent>
+      </Card>
+    </Collapsible>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GM Tools Panel
+// ─────────────────────────────────────────────────────────────────────────────
+
+const RANDOM_NPC_NAMES = [
+  'Aldric the Bold',
+  'Brynn of the Vale',
+  'Caspian Nightwind',
+  'Della Ironhand',
+  'Eldrin Shadowmere',
+  'Fira Brightspear',
+  'Gundren Rockseeker',
+  'Helena Stormborn',
+  'Ignis Flameheart',
+  'Jorath the Wise',
+  'Kira Swiftblade',
+  'Lysander Moonwhisper',
+  'Morgana Duskweaver',
+  'Nyx Thornwood',
+  'Osric the Grey',
+  'Petra Stoneheart',
+];
+
+const RANDOM_LOCATIONS = [
+  'The Crooked Lantern Inn',
+  'Blackwater Crossing',
+  'The Gilded Serpent Tavern',
+  'Thornwood Cemetery',
+  'The Sunken Temple',
+  'Mistfall Bridge',
+  'The Shattered Gate',
+  'Ironforge Mines',
+  'The Whispering Woods',
+  'Crimson Harbor',
+  'The Dusty Road Market',
+  'Moonlit Clearing',
+  'The Forgotten Library',
+  'Stormwatch Tower',
+  'The Deep Hollow',
+];
+
+const RANDOM_HOOKS = [
+  'A mysterious stranger offers a map to buried treasure',
+  'Strange lights have been seen in the old ruins at night',
+  'A merchant begs for help finding their missing child',
+  'The local lord has posted a bounty on a dangerous beast',
+  'An ancient artifact was stolen from the temple',
+  'Travelers report seeing ghosts on the old trade road',
+  'A sealed letter arrives with no sender',
+  'The harvest has failed and dark omens are seen',
+];
+
+const IMPROV_PROMPTS = [
+  'What does the room smell like?',
+  'What unexpected sound catches their attention?',
+  'What small detail makes this NPC memorable?',
+  'What obstacle could complicate their plan?',
+  'Who else might be interested in this quest?',
+  'What rumor is going around about this place?',
+  'What does this character want right now?',
+  'What would make this scene more dramatic?',
+];
+
+type ChecklistItem = {
+  id: string;
+  text: string;
+  checked: boolean;
+};
+
+function GMToolsPanel({
+  _campaignId,
+  onAddNPC,
+  onAddLocation,
+  onAddQuest,
+  onNavigateToTab,
+  checklistItems,
+  onChecklistChange,
+}: {
+  _campaignId: string;
+  onAddNPC: (name: string) => Promise<void>;
+  onAddLocation: (name: string) => Promise<void>;
+  onAddQuest: (title: string) => Promise<void>;
+  onNavigateToTab: (tab: string) => void;
+  checklistItems: ChecklistItem[];
+  onChecklistChange: (items: ChecklistItem[]) => void;
+}) {
+  const [randomResult, setRandomResult] = useState<{
+    value: string;
+    type: 'npc' | 'location' | 'quest';
+  } | null>(null);
+  const [improv, setImprov] = useState<string>('');
+  const [adding, setAdding] = useState(false);
+  const [newChecklistItem, setNewChecklistItem] = useState('');
+
+  const rollRandom = (list: string[], type: 'npc' | 'location' | 'quest') => {
+    const result = list[Math.floor(Math.random() * list.length)];
+    setRandomResult({ value: result, type });
+    return result;
+  };
+
+  const handleAddAndGo = async () => {
+    if (!randomResult || adding) return;
+    setAdding(true);
+    try {
+      if (randomResult.type === 'npc') {
+        await onAddNPC(randomResult.value);
+        onNavigateToTab('characters');
+      } else if (randomResult.type === 'location') {
+        await onAddLocation(randomResult.value);
+        onNavigateToTab('locations');
+      } else if (randomResult.type === 'quest') {
+        await onAddQuest(randomResult.value);
+        onNavigateToTab('quests');
+      }
+      setRandomResult(null);
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const getImprovPrompt = () => {
+    const prompt =
+      IMPROV_PROMPTS[Math.floor(Math.random() * IMPROV_PROMPTS.length)];
+    setImprov(prompt);
+  };
+
+  const getTypeLabel = (type: 'npc' | 'location' | 'quest') => {
+    switch (type) {
+      case 'npc':
+        return 'Character';
+      case 'location':
+        return 'Location';
+      case 'quest':
+        return 'Quest';
+    }
+  };
+
+  return (
+    <div className="grid gap-6 md:grid-cols-2">
+      {/* Random Generators */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Dice5 className="h-4 w-4 text-purple-500" />
+            Random Generators
+          </CardTitle>
+          <CardDescription>Quick inspiration when you need it</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap gap-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => rollRandom(RANDOM_NPC_NAMES, 'npc')}
+                >
+                  <User className="mr-1 h-3 w-3" />
+                  NPC Name
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Generate a random NPC name</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => rollRandom(RANDOM_LOCATIONS, 'location')}
+                >
+                  <MapPin className="mr-1 h-3 w-3" />
+                  Location
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Generate a random location name</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => rollRandom(RANDOM_HOOKS, 'quest')}
+                >
+                  <Target className="mr-1 h-3 w-3" />
+                  Plot Hook
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Generate a random plot hook</TooltipContent>
+            </Tooltip>
+          </div>
+          {randomResult && (
+            <div className="bg-muted space-y-2 rounded-lg p-3">
+              <p className="text-sm font-medium">{randomResult.value}</p>
+              <Button
+                size="sm"
+                onClick={handleAddAndGo}
+                disabled={adding}
+                className="w-full"
+              >
+                {adding ? (
+                  'Adding...'
+                ) : (
+                  <>
+                    Add as {getTypeLabel(randomResult.type)}
+                    <ArrowRight className="ml-1 h-3 w-3" />
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Improv Helper */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Lightbulb className="h-4 w-4 text-amber-500" />
+            Improv Helper
+          </CardTitle>
+          <CardDescription>Prompts to spark your imagination</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Button
+            variant="outline"
+            onClick={getImprovPrompt}
+            className="w-full"
+          >
+            Get a Prompt
+          </Button>
+          {improv && (
+            <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-3">
+              <p className="text-sm font-medium text-amber-700 dark:text-amber-400">
+                {improv}
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Quick Reference */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <HelpCircle className="h-4 w-4 text-blue-500" />
+            Quick Reference
+          </CardTitle>
+          <CardDescription>
+            Common Daggerheart rules at a glance
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="space-y-2">
+            <div className="bg-muted/50 rounded-md p-2">
+              <p className="text-xs font-semibold">Fear/Hope Dice</p>
+              <p className="text-muted-foreground text-xs">
+                Higher Fear = GM makes a Fear move. Higher Hope = Player
+                succeeds with Hope.
+              </p>
+            </div>
+            <div className="bg-muted/50 rounded-md p-2">
+              <p className="text-xs font-semibold">Stress</p>
+              <p className="text-muted-foreground text-xs">
+                Clear 1 Stress per Short Rest. Clear all on Long Rest.
+              </p>
+            </div>
+            <div className="bg-muted/50 rounded-md p-2">
+              <p className="text-xs font-semibold">Armor Slots</p>
+              <p className="text-muted-foreground text-xs">
+                Mark when hit to reduce damage. Clear on rest.
+              </p>
+            </div>
+            <div className="bg-muted/50 rounded-md p-2">
+              <p className="text-xs font-semibold">Death&apos;s Door</p>
+              <p className="text-muted-foreground text-xs">
+                At 0 HP, you&apos;re dying. Roll with Death each turn.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Session Checklist */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Flag className="h-4 w-4 text-green-500" />
+            Session Prep Checklist
+          </CardTitle>
+          <CardDescription>
+            Don&apos;t forget before the session starts
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <div className="mb-2 flex gap-2 border-b pb-2">
+              <Input
+                placeholder="Add new item..."
+                value={newChecklistItem}
+                onChange={e => setNewChecklistItem(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && newChecklistItem.trim()) {
+                    onChecklistChange([
+                      {
+                        id: crypto.randomUUID(),
+                        text: newChecklistItem.trim(),
+                        checked: false,
+                      },
+                      ...checklistItems,
+                    ]);
+                    setNewChecklistItem('');
+                  }
+                }}
+                className="text-sm"
+              />
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  if (newChecklistItem.trim()) {
+                    onChecklistChange([
+                      {
+                        id: crypto.randomUUID(),
+                        text: newChecklistItem.trim(),
+                        checked: false,
+                      },
+                      ...checklistItems,
+                    ]);
+                    setNewChecklistItem('');
+                  }
+                }}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            {checklistItems.map(item => (
+              <div key={item.id} className="group flex items-center gap-2">
+                <label className="flex flex-1 items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    className="rounded"
+                    checked={item.checked}
+                    onChange={e => {
+                      onChecklistChange(
+                        checklistItems.map(i =>
+                          i.id === item.id
+                            ? { ...i, checked: e.target.checked }
+                            : i
+                        )
+                      );
+                    }}
+                  />
+                  <span
+                    className={
+                      item.checked ? 'text-muted-foreground line-through' : ''
+                    }
+                  >
+                    {item.text}
+                  </span>
+                </label>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100"
+                  onClick={() => {
+                    onChecklistChange(
+                      checklistItems.filter(i => i.id !== item.id)
+                    );
+                  }}
+                >
+                  <Trash2 className="text-destructive h-3 w-3" />
+                </Button>
+              </div>
+            ))}
+            {checklistItems.length === 0 && (
+              <p className="text-muted-foreground text-sm italic">
+                No items yet. Add your first checklist item above.
+              </p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Main Component
 // ─────────────────────────────────────────────────────────────────────────────
 
 function CampaignDetailPage() {
   const { id } = Route.useParams();
+  const { tab } = Route.useSearch();
   const navigate = useNavigate();
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+
+  const setActiveTab = (newTab: string) => {
+    navigate({
+      to: '/gm/campaigns/$id',
+      params: { id },
+      search: { tab: newTab as TabValue },
+      replace: true,
+    });
+  };
 
   const loadCampaign = useCallback(async () => {
     const data = await getCampaign(id);
@@ -1456,6 +2982,66 @@ function CampaignDetailPage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  // GM Tools callbacks for adding items from random generators
+  const handleAddNPCFromGenerator = async (name: string) => {
+    if (!campaign) return;
+    await addNPC(campaign.id, {
+      name,
+      title: '',
+      description: '',
+      personality: '',
+      motivation: '',
+      secrets: '',
+      connections: [],
+      locations: [],
+      status: 'active',
+      faction: '',
+      notes: '',
+      sessionAppearances: [],
+      tags: [],
+    });
+    await loadCampaign();
+  };
+
+  const handleAddLocationFromGenerator = async (name: string) => {
+    if (!campaign) return;
+    await addLocation(campaign.id, {
+      name,
+      type: 'other',
+      description: '',
+      history: '',
+      secrets: '',
+      currentState: '',
+      connectedLocations: [],
+      npcsPresent: [],
+      pointsOfInterest: [],
+      tags: [],
+      notes: '',
+    });
+    await loadCampaign();
+  };
+
+  const handleAddQuestFromGenerator = async (title: string) => {
+    if (!campaign) return;
+    await addQuest(campaign.id, {
+      title,
+      type: 'hook',
+      status: 'available',
+      description: '',
+      objectives: [],
+      rewards: '',
+      giver: '',
+      location: '',
+      relatedNpcs: [],
+      notes: '',
+      foreshadowing: '',
+      consequences: '',
+      priority: 'medium',
+      tags: [],
+    });
+    await loadCampaign();
   };
 
   const copyInviteCode = () => {
@@ -1541,7 +3127,7 @@ function CampaignDetailPage() {
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="overview">
+      <Tabs value={tab} onValueChange={setActiveTab}>
         <TabsList className="mb-4 w-full flex-wrap justify-start">
           <TabsTrigger value="overview">
             <Map className="mr-2 h-4 w-4" />
@@ -1563,9 +3149,21 @@ function CampaignDetailPage() {
             <User className="mr-2 h-4 w-4" />
             Characters
           </TabsTrigger>
+          <TabsTrigger value="locations">
+            <MapPin className="mr-2 h-4 w-4" />
+            Locations
+          </TabsTrigger>
+          <TabsTrigger value="quests">
+            <Target className="mr-2 h-4 w-4" />
+            Quests
+          </TabsTrigger>
           <TabsTrigger value="session-zero">
             <MessageSquare className="mr-2 h-4 w-4" />
             Session Zero
+          </TabsTrigger>
+          <TabsTrigger value="gm-tools">
+            <Lightbulb className="mr-2 h-4 w-4" />
+            GM Tools
           </TabsTrigger>
           <TabsTrigger value="players" disabled>
             <Users className="mr-2 h-4 w-4" />
@@ -1818,6 +3416,100 @@ function CampaignDetailPage() {
               />
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Locations Tab */}
+        <TabsContent value="locations" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Campaign Locations</CardTitle>
+              <CardDescription>
+                Cities, dungeons, and points of interest in your world
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <EditableLocations
+                locations={campaign.locations ?? []}
+                campaignId={campaign.id}
+                onLocationsChange={loadCampaign}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Quests Tab */}
+        <TabsContent value="quests" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Quests & Plot Hooks</CardTitle>
+              <CardDescription>
+                Main quests, side quests, and story threads
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <EditableQuests
+                quests={campaign.quests ?? []}
+                campaignId={campaign.id}
+                onQuestsChange={loadCampaign}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* GM Tools Tab */}
+        <TabsContent value="gm-tools" className="space-y-6">
+          <GMToolsPanel
+            campaignId={campaign.id}
+            onAddNPC={handleAddNPCFromGenerator}
+            onAddLocation={handleAddLocationFromGenerator}
+            onAddQuest={handleAddQuestFromGenerator}
+            onNavigateToTab={setActiveTab}
+            checklistItems={
+              campaign.sessionPrepChecklist?.length
+                ? campaign.sessionPrepChecklist
+                : [
+                    {
+                      id: 'default-1',
+                      text: 'Review last session notes',
+                      checked: false,
+                    },
+                    {
+                      id: 'default-2',
+                      text: 'Check active quests & objectives',
+                      checked: false,
+                    },
+                    {
+                      id: 'default-3',
+                      text: 'Prepare 2-3 NPC voices/mannerisms',
+                      checked: false,
+                    },
+                    {
+                      id: 'default-4',
+                      text: 'Have a "yes, and" backup plan',
+                      checked: false,
+                    },
+                    {
+                      id: 'default-5',
+                      text: 'Note player character goals',
+                      checked: false,
+                    },
+                    {
+                      id: 'default-6',
+                      text: 'Prepare one memorable description',
+                      checked: false,
+                    },
+                    {
+                      id: 'default-7',
+                      text: 'Check the Fear track',
+                      checked: false,
+                    },
+                  ]
+            }
+            onChecklistChange={items => {
+              setCampaign({ ...campaign, sessionPrepChecklist: items });
+              setHasChanges(true);
+            }}
+          />
         </TabsContent>
 
         {/* Session Zero Tab */}

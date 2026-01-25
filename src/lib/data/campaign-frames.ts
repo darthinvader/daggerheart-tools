@@ -347,6 +347,210 @@ export const CAMPAIGN_FRAME_TEMPLATES: CampaignFrame[] = [
     isTemplate: true,
   },
   {
+    id: 'beast-feast',
+    name: 'Beast Feast',
+    complexity: '1',
+    pitch:
+      "The magical Lure created by Hylaeus the Forest Mage has protected the village of Elmore for centuries, drawing dangerous creatures into the Plover Caves. But now the Lure is fading, and beasts stalk the woods once more. In a Beast Feast campaign, you'll play everyday heroes from humble beginnings diving into the caves to reignite the ancient spell—and cook up delicious meals from the monsters you slay!",
+    toneAndFeel: ['Adventurous', 'Whimsical', 'Humorous', 'Heroic', 'Hopeful'],
+    themes: [
+      'Coming of Age',
+      'Community',
+      'Survival',
+      'Transformation and Change',
+      'Found Family',
+    ],
+    touchstones: [
+      'Delicious in Dungeon',
+      'Monster Hunter World',
+      'One Piece',
+      'Stardew Valley',
+    ],
+    overview:
+      "Long ago, Hylaeus the Forest Mage cast a powerful spell creating a Lure that draws dangerous creatures into the Plover Caves, protecting the peaceful village of Elmore. The caves are now filled with strange creatures from across the region—and the remnants of adventurers brave or foolhardy enough to venture in. When the village's beloved mayor was attacked, it became clear the Lure is fading. Now, the villagers must descend into the caves to reignite the ancient magic. Food is scarce above ground, so adventurers must hunt and cook their meals from the beasts they encounter!",
+    communityGuidance: [
+      {
+        id: 'elmore-villager',
+        type: 'community',
+        name: 'Elmore Villagers',
+        description:
+          'All characters are villagers from Elmore—bakers, weavers, farmers, and cobblers with nary a sword in sight. Consider what quaint job your character holds and how it prepared them for heroism.',
+        questions: [
+          'What was your job in Elmore before this adventure?',
+          'What tool from your trade have you adapted as a weapon?',
+          'Who in the village are you determined to protect?',
+        ],
+      },
+      {
+        id: 'underborne-caves',
+        type: 'community',
+        name: 'Underborne',
+        description:
+          'Underborne folk may be from the Plover Caves or similar environments. Their eyes need not adjust to darkness, and cave life feels like home.',
+        questions: [
+          'What makes the Plover Caves unique from your home caverns?',
+          'What dish from your cave system do you hope to recreate here?',
+          'How did a cave creature injury change you?',
+        ],
+      },
+      {
+        id: 'loreborne-researcher',
+        type: 'community',
+        name: 'Loreborne',
+        description:
+          'As devourers of knowledge, loreborne see the Plover Caves as a unique opportunity to study an ecosystem that brings together creatures from across the region.',
+        questions: [
+          'What rumor about cave beasts have you heard?',
+          'What specific knowledge are you seeking underground?',
+          'Who will you share your research with when you return?',
+        ],
+      },
+    ],
+    ancestryGuidance: [
+      {
+        id: 'clanks-taste',
+        type: 'ancestry',
+        name: 'Clanks',
+        description:
+          'Clanks can consume organic matter but may lack the ability to taste. They might enjoy culinary arts for texture or aesthetics instead.',
+        questions: [],
+      },
+      {
+        id: 'fungril-screaming',
+        type: 'ancestry',
+        name: 'Fungril',
+        description:
+          'Fungril can hear mushrooms screaming as they are harvested. Since most cave plants are fungi, adventurers may need alternatives.',
+        questions: [],
+      },
+    ],
+    classGuidance: [],
+    playerPrinciples: [
+      {
+        id: 'humble-origins',
+        title: 'Build on Humble Origins',
+        description:
+          'Think about what quaint or mundane job your character holds and how it prepared them for heroism. A florist knows plants, a clockmaker has dexterous fingers, a chef excels with knives.',
+        target: 'player',
+      },
+      {
+        id: 'slay-and-filet',
+        title: 'Slay and Filet',
+        description:
+          "Have you tried eating it? No? Then how do you know it's not food? Carry curious mindset—every beast might become a delicious meal.",
+        target: 'player',
+      },
+      {
+        id: 'comedy-heart',
+        title: 'Balance Comedy and Heart',
+        description:
+          'Embrace silly names, low-stakes goals, weird quirks, and zany aesthetics. But also let your character be vulnerable and bond with allies over important moments.',
+        target: 'player',
+      },
+    ],
+    gmPrinciples: [
+      {
+        id: 'make-delicious',
+        title: 'Make It Delicious',
+        description:
+          'Describe the world through a culinary lens. Highlight edible parts of beasts, use food-related colors and names, lean on smell and taste to draw players in.',
+        target: 'gm',
+      },
+      {
+        id: 'give-purpose',
+        title: 'Give Them Purpose',
+        description:
+          'While the long-term goal is reaching the Lure, introduce short-term goals and session-to-session story developments. Let players return to Elmore to contrast worlds.',
+        target: 'gm',
+      },
+      {
+        id: 'personal-conflict',
+        title: 'Create Personal Conflict',
+        description:
+          'Introduce rivals competing for ingredients! Make resources scarce so parties must race to claim catches before others do.',
+        target: 'gm',
+      },
+    ],
+    distinctions: [
+      {
+        id: 'master-chef',
+        title: 'Aspiring Master Chef',
+        description:
+          'You dream of creating the perfect dish. You can identify the culinary value of any beast or bloom with a quick examination.',
+      },
+      {
+        id: 'cave-guide',
+        title: 'Plover Cave Guide',
+        description:
+          'You know the upper layers of the caves well. You have advantage on navigation checks in the Shallows and Twilight layers.',
+      },
+    ],
+    mechanics: [
+      {
+        id: 'cooking-mechanic',
+        name: 'Monster Cooking',
+        description:
+          'After slaying a beast, harvest ingredients and cook meals that provide temporary benefits.',
+        rules: [
+          'Roll to harvest quality ingredients from slain beasts.',
+          'Combine ingredients with a cooking roll to create dishes.',
+          'Quality meals provide temporary HP, stat bonuses, or special effects.',
+        ],
+      },
+      {
+        id: 'cave-layers',
+        name: 'Cave Layer System',
+        description:
+          'The Plover Caves are divided into layers of increasing danger and reward.',
+        rules: [
+          'The Shallows (Layer 1): Common creatures, basic ingredients.',
+          'Twilight (Layer 2): Uncommon creatures, quality ingredients.',
+          'Abyss (Layer 3): Rare creatures, exceptional ingredients.',
+          'Hadral (Layer 4+): Legendary creatures, the Lure lies here.',
+        ],
+      },
+      {
+        id: 'berrys-restaurants',
+        name: "Berry's Restaurants",
+        description:
+          'Chain of small cave restaurants serving catch of the day. Hubs for gossip, entertainment, and warnings about nearby beasts.',
+        rules: [
+          'Spend gold for a meal when too tired to cook.',
+          'Gather rumors about rare ingredients or dangerous creatures.',
+          'Meet rival adventurers and potential allies.',
+        ],
+      },
+    ],
+    sessionZeroQuestions: [
+      {
+        id: 'job-q1',
+        question: 'What was your mundane job in Elmore village?',
+        category: 'character',
+      },
+      {
+        id: 'food-q1',
+        question: "What's your character's favorite food or cooking style?",
+        category: 'character',
+      },
+      {
+        id: 'stakes-q1',
+        question: 'Who in Elmore are you most determined to protect?',
+        category: 'relationships',
+      },
+      {
+        id: 'tone-q3',
+        question: 'How silly vs. serious should the culinary elements be?',
+        category: 'themes',
+      },
+      {
+        id: 'danger-q1',
+        question: 'How dangerous should the caves feel?',
+        category: 'themes',
+      },
+    ],
+    isTemplate: true,
+  },
+  {
     id: 'blank',
     name: 'Blank Campaign Frame',
     complexity: '1',
