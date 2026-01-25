@@ -450,6 +450,10 @@ export const RULES_PAGES: Record<string, RulesPage> = {
             label: 'Difficulty',
             description: 'Target number you must meet or beat.',
           },
+          {
+            label: 'Action Roll',
+            description: 'Used when outcomes are uncertain and stakes matter.',
+          },
         ],
       },
       {
@@ -465,6 +469,12 @@ export const RULES_PAGES: Record<string, RulesPage> = {
         details: [
           'If a spell has no duration, it ends when you choose or the fiction changes.',
           'Multiple spells can be maintained unless a spell says otherwise.',
+        ],
+        tags: [
+          {
+            label: 'Spellcast',
+            description: 'Trait used for spellcasting action rolls.',
+          },
         ],
       },
       {
@@ -485,6 +495,20 @@ export const RULES_PAGES: Record<string, RulesPage> = {
         mechanics: [
           'Advantage and disadvantage never stack into multiple d6s.',
         ],
+        tags: [
+          {
+            label: 'Advantage',
+            description:
+              'Add a d6 to the total; reflects leverage or momentum.',
+            tone: 'success',
+          },
+          {
+            label: 'Disadvantage',
+            description:
+              'Subtract a d6 from the total; reflects pressure or risk.',
+            tone: 'warning',
+          },
+        ],
       },
       {
         id: 'reaction-rolls',
@@ -500,6 +524,13 @@ export const RULES_PAGES: Record<string, RulesPage> = {
         details: [
           'Decide on bonuses before rolling, just like action rolls.',
           'Critical successes on reaction rolls do not clear Stress.',
+        ],
+        tags: [
+          {
+            label: 'Reaction Roll',
+            description:
+              'Instant response to a hazard or effect; no Hope/Fear gain.',
+          },
         ],
       },
       {
@@ -517,6 +548,13 @@ export const RULES_PAGES: Record<string, RulesPage> = {
           'On a Tag Team attack, both PCs roll damage and combine totals.',
           'On Hope, all involved gain Hope; on Fear, the GM gains Fear per PC.',
           'A Tag Team roll counts as a single action roll for countdowns.',
+        ],
+        tags: [
+          {
+            label: 'Tag Team',
+            description:
+              'Spend 3 Hope once per session to combine two PCs’ rolls.',
+          },
         ],
       },
       {
@@ -560,6 +598,14 @@ export const RULES_PAGES: Record<string, RulesPage> = {
           'If you roll with Hope, you can often spend it immediately.',
           'If multiple sources grant advantage, roll each d6 and keep the highest.',
         ],
+        tags: [
+          {
+            label: 'Hope',
+            description:
+              'Player resource gained on Hope rolls and spent for boosts.',
+            tone: 'success',
+          },
+        ],
       },
       {
         id: 'stress-hp',
@@ -588,6 +634,18 @@ export const RULES_PAGES: Record<string, RulesPage> = {
         ],
         cautions: [
           'If you must mark Stress with no slots left, mark 1 HP instead.',
+        ],
+        tags: [
+          {
+            label: 'Stress',
+            description: 'Marked for strain; overflow converts to HP loss.',
+            tone: 'warning',
+          },
+          {
+            label: 'Thresholds',
+            description:
+              'Minor/Major/Severe thresholds decide HP lost per hit.',
+          },
         ],
       },
     ],
@@ -684,6 +742,17 @@ export const RULES_PAGES: Record<string, RulesPage> = {
           'Apply resistance or immunity before spending armor slots.',
           'If damage includes both types, resistance or immunity must cover both.',
         ],
+        tags: [
+          {
+            label: 'Direct Damage',
+            description: 'Bypasses Armor Slots before thresholds apply.',
+            tone: 'warning',
+          },
+          {
+            label: 'Resistance',
+            description: 'Halves damage before thresholds and armor slots.',
+          },
+        ],
       },
       {
         id: 'armor-thresholds',
@@ -709,6 +778,10 @@ export const RULES_PAGES: Record<string, RulesPage> = {
           {
             label: 'Armor Slot',
             description: 'Spend to reduce damage as armor absorbs the hit.',
+          },
+          {
+            label: 'Thresholds',
+            description: 'Major/Severe thresholds increase by your level.',
           },
         ],
       },
@@ -752,6 +825,16 @@ export const RULES_PAGES: Record<string, RulesPage> = {
         mechanics: [
           'Single-target vs group targeting changes how many rolls are needed.',
         ],
+        tags: [
+          {
+            label: 'Range Bands',
+            description: 'Melee, Very Close, Close, Far, Very Far.',
+          },
+          {
+            label: 'Group Target',
+            description: 'Targets clustered within Very Close of a point.',
+          },
+        ],
       },
       {
         id: 'movement-cover',
@@ -766,6 +849,16 @@ export const RULES_PAGES: Record<string, RulesPage> = {
         details: [
           'Line of sight matters for many spells and abilities.',
           'Darkness can increase Difficulty or impose disadvantage.',
+        ],
+        tags: [
+          {
+            label: 'Cover',
+            description: 'Often imposes disadvantage on attacks against you.',
+          },
+          {
+            label: 'Line of Sight',
+            description: 'Required for many spells and abilities.',
+          },
         ],
       },
       {
@@ -789,6 +882,17 @@ export const RULES_PAGES: Record<string, RulesPage> = {
         ],
         cautions: [
           'Some narrative outcomes can bypass death moves if the fiction demands it.',
+        ],
+        tags: [
+          {
+            label: 'Death Move',
+            description: 'Blaze of Glory, Avoid Death, or Risk It All.',
+          },
+          {
+            label: 'Scar',
+            description: 'Permanently crosses out a Hope slot.',
+            tone: 'warning',
+          },
         ],
       },
     ],
@@ -823,6 +927,16 @@ export const RULES_PAGES: Record<string, RulesPage> = {
           'Long rest: clear all HP/Stress or all Armor Slots, plus projects.',
           'Interrupted rests grant no benefit (short) or downgrade to short (long).',
           'GM gains Fear during downtime (short: 1d4, long: 1d4 + number of PCs).',
+        ],
+        tags: [
+          {
+            label: 'Short Rest',
+            description: 'Up to three between long rests; lighter recovery.',
+          },
+          {
+            label: 'Long Rest',
+            description: 'Full recovery options and project progress.',
+          },
         ],
       },
       {
@@ -864,6 +978,12 @@ export const RULES_PAGES: Record<string, RulesPage> = {
           'Tiered gear adds higher damage or stronger features.',
           'When you gain a 10th unit, convert and clear the lower tier.',
         ],
+        tags: [
+          {
+            label: 'Gold Steps',
+            description: '10 handfuls = 1 bag; 10 bags = 1 chest.',
+          },
+        ],
       },
       {
         id: 'optional',
@@ -886,6 +1006,17 @@ export const RULES_PAGES: Record<string, RulesPage> = {
         ],
         tips: [
           'Use optional rules only if they improve the fun at your table.',
+        ],
+        tags: [
+          {
+            label: 'Massive Damage',
+            description: 'Damage ≥ 2× Severe marks 4 HP (optional).',
+            tone: 'warning',
+          },
+          {
+            label: 'Defined Ranges',
+            description: 'Optional 1-inch grid mapping for ranges.',
+          },
         ],
       },
     ],
@@ -953,6 +1084,17 @@ export const RULES_PAGES: Record<string, RulesPage> = {
           'Success with Fear: yes, but; Failure with Hope: no, but.',
           'Avoid negating successes—complicate instead of nullifying.',
         ],
+        tags: [
+          {
+            label: 'GM Move',
+            description: 'Narrative consequence that changes the scene.',
+          },
+          {
+            label: 'Soft vs Hard',
+            description:
+              'Warn with soft moves; change the scene with hard moves.',
+          },
+        ],
       },
       {
         id: 'pitfalls',
@@ -996,6 +1138,10 @@ export const RULES_PAGES: Record<string, RulesPage> = {
             description: 'GM resource used to power threats and complications.',
             tone: 'warning',
           },
+          {
+            label: 'Fear Cap',
+            description: 'Fear carries between sessions and caps at 12.',
+          },
         ],
       },
       {
@@ -1011,6 +1157,12 @@ export const RULES_PAGES: Record<string, RulesPage> = {
         details: [
           'Difficulty rolls (d20 + Experience) can stand in for NPCs without stat blocks.',
         ],
+        tags: [
+          {
+            label: 'Difficulty Ladder',
+            description: '5/10/15/20/25/30 from easy to nearly impossible.',
+          },
+        ],
       },
       {
         id: 'countdowns',
@@ -1025,6 +1177,12 @@ export const RULES_PAGES: Record<string, RulesPage> = {
         details: [
           'Short countdowns (2–4) trigger fast; longer ones build tension.',
           'Use countdowns for hazards, pursuits, rituals, and projects.',
+        ],
+        tags: [
+          {
+            label: 'Countdown',
+            description: 'Ticks down to a trigger; can be standard or dynamic.',
+          },
         ],
       },
       {
@@ -1092,6 +1250,16 @@ export const RULES_PAGES: Record<string, RulesPage> = {
         mechanics: [
           'Adversaries use Difficulty instead of Evasion.',
           'Experience bonuses cost Fear to apply to rolls.',
+        ],
+        tags: [
+          {
+            label: 'Difficulty',
+            description: 'Target number for PC rolls against the adversary.',
+          },
+          {
+            label: 'Experience',
+            description: 'Fear-spend bonus to Difficulty or rolls.',
+          },
         ],
       },
       {
@@ -1175,6 +1343,12 @@ export const RULES_PAGES: Record<string, RulesPage> = {
         ],
         math: ['Battle Points = (3 × PC count) + 2.'],
         tips: ['Don’t count summoned adversaries against the point total.'],
+        tags: [
+          {
+            label: 'Battle Points',
+            description: 'Encounter budget: (3 × PCs) + 2.',
+          },
+        ],
       },
       {
         id: 'environments',
@@ -1193,6 +1367,18 @@ export const RULES_PAGES: Record<string, RulesPage> = {
         ],
         mechanics: [
           'Environment Difficulty sets a baseline for rolls against the scene.',
+        ],
+        tags: [
+          {
+            label: 'Impulse',
+            description:
+              'Narrative push that guides the environment’s behavior.',
+          },
+          {
+            label: 'Fear Feature',
+            description: 'Scene-defining environment effect paid with Fear.',
+            tone: 'warning',
+          },
         ],
       },
     ],
@@ -1220,6 +1406,12 @@ export const RULES_PAGES: Record<string, RulesPage> = {
           'Use the frame to align expectations before characters are built.',
           'Treat frames as flexible inspirations, not rigid scripts.',
         ],
+        tags: [
+          {
+            label: 'Inciting Incident',
+            description: 'Kickoff event that starts the campaign arc.',
+          },
+        ],
       },
       {
         id: 'complexity',
@@ -1233,6 +1425,12 @@ export const RULES_PAGES: Record<string, RulesPage> = {
         details: [
           'Choose a rating that fits your GM comfort level and time.',
           'Complex frames often introduce new mechanics or tone shifts.',
+        ],
+        tags: [
+          {
+            label: 'Complexity',
+            description: 'Signals prep load and rules changes for the frame.',
+          },
         ],
       },
       {
@@ -1252,6 +1450,12 @@ export const RULES_PAGES: Record<string, RulesPage> = {
           'Use touchstones to align tone and expectations quickly.',
           'Let players add locations and factions to the campaign map.',
           'Some frames introduce optional mechanics (e.g., Corruption tracks).',
+        ],
+        tags: [
+          {
+            label: 'Touchstones',
+            description: 'Shared references that align tone and feel quickly.',
+          },
         ],
       },
       {
