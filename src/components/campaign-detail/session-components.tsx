@@ -11,7 +11,13 @@ import {
   User,
   X,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import {
+  type MouseEvent,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -129,6 +135,271 @@ interface SessionCardProps {
   ) => void;
   onDelete: () => void;
 }
+type SessionTextFieldKey = 'title' | 'summary' | 'questProgress';
+
+interface SessionCardContentProps {
+  session: SessionNote;
+  npcs: CampaignNPC[];
+  isExpanded: boolean;
+  highlightInput: string;
+  locationInput: string;
+  onToggle: () => void;
+  onDelete: () => void;
+  onTextChange: (field: SessionTextFieldKey, value: string) => void;
+  onDateChange: (value: string) => void;
+  onBlur: () => void;
+  onHighlightInputChange: (value: string) => void;
+  onLocationInputChange: (value: string) => void;
+  onAddHighlight: () => void;
+  onRemoveHighlight: (index: number) => void;
+  onAddLocation: () => void;
+  onRemoveLocation: (index: number) => void;
+  onToggleNpcInvolved: (npcId: string) => void;
+}
+
+function hasSessionChanges(current: SessionNote, original: SessionNote) {
+  return (
+    current.title !== original.title ||
+    current.summary !== original.summary ||
+    current.date !== original.date ||
+    current.questProgress !== original.questProgress
+  );
+}
+
+function addTrimmedItem(items: string[], input: string) {
+  const trimmed = input.trim();
+  if (!trimmed) {
+    return { items, added: false };
+  }
+  return { items: [...items, trimmed], added: true };
+}
+
+function removeItemAtIndex(items: string[], index: number) {
+  return items.filter((_, currentIndex) => currentIndex !== index);
+}
+
+function toggleNpcInvolvedList(items: string[], npcId: string) {
+  return items.includes(npcId)
+    ? items.filter(id => id !== npcId)
+    : [...items, npcId];
+}
+
+interface SessionHeaderProps {
+  session: SessionNote;
+  isExpanded: boolean;
+  onDelete: (event: MouseEvent<HTMLButtonElement>) => void;
+}
+
+function SessionHeader({ session, isExpanded, onDelete }: SessionHeaderProps) {
+  return (
+    <CardHeader className="cursor-pointer py-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <ChevronDown
+            className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+          />
+          <div>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary">#{session.sessionNumber}</Badge>
+              <span className="font-medium">{session.title}</span>
+            </div>
+            {session.date && (
+              <div className="text-muted-foreground mt-1 flex items-center gap-1 text-xs">
+                <Calendar className="h-3 w-3" />
+                {session.date}
+              </div>
+            )}
+          </div>
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7"
+          onClick={onDelete}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </div>
+    </CardHeader>
+  );
+}
+
+interface SessionTextFieldProps {
+  label: string;
+  value: string;
+  placeholder?: string;
+  type?: string;
+  onChange: (value: string) => void;
+  onBlur?: () => void;
+}
+
+function SessionTextField({
+  label,
+  value,
+  placeholder,
+  type = 'text',
+  onChange,
+  onBlur,
+}: SessionTextFieldProps) {
+  return (
+    <div>
+      <Label className="text-xs">{label}</Label>
+      <Input
+        type={type}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        onBlur={onBlur}
+        placeholder={placeholder}
+        className="mt-1"
+      />
+    </div>
+  );
+}
+
+interface SessionTextAreaFieldProps {
+  label: string;
+  value: string;
+  placeholder?: string;
+  rows?: number;
+  onChange: (value: string) => void;
+  onBlur?: () => void;
+  icon?: ReactNode;
+}
+
+function SessionTextAreaField({
+  label,
+  value,
+  placeholder,
+  rows = 2,
+  onChange,
+  onBlur,
+  icon,
+}: SessionTextAreaFieldProps) {
+  return (
+    <div>
+      <Label className="flex items-center gap-1 text-xs">
+        {icon}
+        {label}
+      </Label>
+      <Textarea
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        onBlur={onBlur}
+        rows={rows}
+        placeholder={placeholder}
+        className="mt-1"
+      />
+    </div>
+  );
+}
+
+interface SessionBadgeListFieldProps {
+  label: string;
+  items: string[];
+  inputValue: string;
+  inputPlaceholder: string;
+  onInputChange: (value: string) => void;
+  onAdd: () => void;
+  onRemove: (index: number) => void;
+  icon?: ReactNode;
+  variant?: 'secondary' | 'outline';
+}
+
+function SessionBadgeListField({
+  label,
+  items,
+  inputValue,
+  inputPlaceholder,
+  onInputChange,
+  onAdd,
+  onRemove,
+  icon,
+  variant = 'secondary',
+}: SessionBadgeListFieldProps) {
+  return (
+    <div>
+      <Label className="text-xs">{label}</Label>
+      <div className="mt-1 space-y-2">
+        <div className="flex flex-wrap gap-1">
+          {items.map((item, index) => (
+            <Badge
+              key={`${item}-${index}`}
+              variant={variant}
+              className="gap-1 pr-1"
+            >
+              {icon}
+              {item}
+              <button
+                type="button"
+                onClick={() => onRemove(index)}
+                className="hover:bg-muted ml-1 rounded-full p-0.5"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <Input
+            value={inputValue}
+            onChange={e => onInputChange(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                onAdd();
+              }
+            }}
+            placeholder={inputPlaceholder}
+            className="flex-1"
+          />
+          <Button variant="outline" size="icon" onClick={onAdd}>
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface SessionNPCSelectorProps {
+  npcs: CampaignNPC[];
+  selectedNPCs: string[];
+  onToggleNPC: (npcId: string) => void;
+}
+
+function SessionNPCSelector({
+  npcs,
+  selectedNPCs,
+  onToggleNPC,
+}: SessionNPCSelectorProps) {
+  return (
+    <div>
+      <Label className="text-xs">NPCs Involved</Label>
+      <div className="mt-1 flex flex-wrap gap-2">
+        {npcs.length === 0 ? (
+          <p className="text-muted-foreground text-sm">No NPCs available</p>
+        ) : (
+          npcs.map(npc => {
+            const isSelected = selectedNPCs.includes(npc.id);
+            return (
+              <Button
+                key={npc.id}
+                type="button"
+                variant={isSelected ? 'default' : 'outline'}
+                size="sm"
+                className="h-7"
+                onClick={() => onToggleNPC(npc.id)}
+              >
+                <User className="mr-1 h-3 w-3" />
+                {npc.name}
+              </Button>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
 
 function SessionCard({
   session,
@@ -146,254 +417,202 @@ function SessionCard({
     setLocalSession(session);
   }, [session]);
 
-  const handleBlur = () => {
-    if (
-      localSession.title !== session.title ||
-      localSession.summary !== session.summary ||
-      localSession.date !== session.date ||
-      localSession.questProgress !== session.questProgress
-    ) {
+  const updateLocalSession = useCallback(
+    (updates: Partial<SessionNote>) => {
+      setLocalSession(current => ({ ...current, ...updates }));
+      onUpdate(updates);
+    },
+    [onUpdate]
+  );
+
+  const handleBlur = useCallback(() => {
+    if (hasSessionChanges(localSession, session)) {
       onUpdate(localSession);
     }
-  };
+  }, [localSession, onUpdate, session]);
 
-  const addHighlight = () => {
-    if (highlightInput.trim()) {
-      const newHighlights = [...localSession.highlights, highlightInput.trim()];
-      setLocalSession({ ...localSession, highlights: newHighlights });
-      onUpdate({ highlights: newHighlights });
-      setHighlightInput('');
+  const handleTextChange = useCallback(
+    (field: SessionTextFieldKey, value: string) => {
+      updateLocalSession({ [field]: value } as Partial<SessionNote>);
+    },
+    [updateLocalSession]
+  );
+
+  const handleDateChange = useCallback(
+    (value: string) => {
+      updateLocalSession({ date: value });
+    },
+    [updateLocalSession]
+  );
+
+  const addHighlight = useCallback(() => {
+    const result = addTrimmedItem(localSession.highlights, highlightInput);
+    if (!result.added) {
+      return;
     }
-  };
+    updateLocalSession({ highlights: result.items });
+    setHighlightInput('');
+  }, [highlightInput, localSession.highlights, updateLocalSession]);
 
-  const removeHighlight = (index: number) => {
-    const newHighlights = localSession.highlights.filter((_, i) => i !== index);
-    setLocalSession({ ...localSession, highlights: newHighlights });
-    onUpdate({ highlights: newHighlights });
-  };
+  const removeHighlight = useCallback(
+    (index: number) => {
+      updateLocalSession({
+        highlights: removeItemAtIndex(localSession.highlights, index),
+      });
+    },
+    [localSession.highlights, updateLocalSession]
+  );
 
-  const addLocation = () => {
-    if (locationInput.trim()) {
-      const newLocations = [...localSession.locations, locationInput.trim()];
-      setLocalSession({ ...localSession, locations: newLocations });
-      onUpdate({ locations: newLocations });
-      setLocationInput('');
+  const addLocation = useCallback(() => {
+    const result = addTrimmedItem(localSession.locations, locationInput);
+    if (!result.added) {
+      return;
     }
-  };
+    updateLocalSession({ locations: result.items });
+    setLocationInput('');
+  }, [localSession.locations, locationInput, updateLocalSession]);
 
-  const removeLocation = (index: number) => {
-    const newLocations = localSession.locations.filter((_, i) => i !== index);
-    setLocalSession({ ...localSession, locations: newLocations });
-    onUpdate({ locations: newLocations });
-  };
+  const removeLocation = useCallback(
+    (index: number) => {
+      updateLocalSession({
+        locations: removeItemAtIndex(localSession.locations, index),
+      });
+    },
+    [localSession.locations, updateLocalSession]
+  );
 
-  const toggleNpcInvolved = (npcId: string) => {
-    const newNpcs = localSession.npcsInvolved.includes(npcId)
-      ? localSession.npcsInvolved.filter(id => id !== npcId)
-      : [...localSession.npcsInvolved, npcId];
-    setLocalSession({ ...localSession, npcsInvolved: newNpcs });
-    onUpdate({ npcsInvolved: newNpcs });
-  };
+  const toggleNpcInvolved = useCallback(
+    (npcId: string) => {
+      updateLocalSession({
+        npcsInvolved: toggleNpcInvolvedList(localSession.npcsInvolved, npcId),
+      });
+    },
+    [localSession.npcsInvolved, updateLocalSession]
+  );
 
+  return (
+    <SessionCardContent
+      session={localSession}
+      npcs={npcs}
+      isExpanded={isExpanded}
+      highlightInput={highlightInput}
+      locationInput={locationInput}
+      onToggle={onToggle}
+      onDelete={onDelete}
+      onTextChange={handleTextChange}
+      onDateChange={handleDateChange}
+      onBlur={handleBlur}
+      onHighlightInputChange={setHighlightInput}
+      onLocationInputChange={setLocationInput}
+      onAddHighlight={addHighlight}
+      onRemoveHighlight={removeHighlight}
+      onAddLocation={addLocation}
+      onRemoveLocation={removeLocation}
+      onToggleNpcInvolved={toggleNpcInvolved}
+    />
+  );
+}
+
+function SessionCardContent({
+  session,
+  npcs,
+  isExpanded,
+  highlightInput,
+  locationInput,
+  onToggle,
+  onDelete,
+  onTextChange,
+  onDateChange,
+  onBlur,
+  onHighlightInputChange,
+  onLocationInputChange,
+  onAddHighlight,
+  onRemoveHighlight,
+  onAddLocation,
+  onRemoveLocation,
+  onToggleNpcInvolved,
+}: SessionCardContentProps) {
   return (
     <Collapsible open={isExpanded} onOpenChange={onToggle}>
       <Card>
         <CollapsibleTrigger asChild>
-          <CardHeader className="cursor-pointer py-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <ChevronDown
-                  className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-                />
-                <div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary">#{session.sessionNumber}</Badge>
-                    <span className="font-medium">{session.title}</span>
-                  </div>
-                  {session.date && (
-                    <div className="text-muted-foreground mt-1 flex items-center gap-1 text-xs">
-                      <Calendar className="h-3 w-3" />
-                      {session.date}
-                    </div>
-                  )}
-                </div>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7"
-                onClick={e => {
-                  e.stopPropagation();
-                  onDelete();
-                }}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardHeader>
+          <SessionHeader
+            session={session}
+            isExpanded={isExpanded}
+            onDelete={event => {
+              event.stopPropagation();
+              onDelete();
+            }}
+          />
         </CollapsibleTrigger>
         <CollapsibleContent>
           <CardContent className="space-y-4 pt-0">
             <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <Label className="text-xs">Session Title</Label>
-                <Input
-                  value={localSession.title}
-                  onChange={e =>
-                    setLocalSession({ ...localSession, title: e.target.value })
-                  }
-                  onBlur={handleBlur}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label className="text-xs">Date Played</Label>
-                <Input
-                  type="date"
-                  value={localSession.date ?? ''}
-                  onChange={e => {
-                    setLocalSession({ ...localSession, date: e.target.value });
-                    onUpdate({ date: e.target.value });
-                  }}
-                  className="mt-1"
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label className="text-xs">Session Summary</Label>
-              <Textarea
-                value={localSession.summary}
-                onChange={e =>
-                  setLocalSession({ ...localSession, summary: e.target.value })
-                }
-                onBlur={handleBlur}
-                rows={4}
-                placeholder="What happened during this session..."
-                className="mt-1"
+              <SessionTextField
+                label="Session Title"
+                value={session.title}
+                onChange={value => onTextChange('title', value)}
+                onBlur={onBlur}
+              />
+              <SessionTextField
+                label="Date Played"
+                type="date"
+                value={session.date ?? ''}
+                onChange={onDateChange}
               />
             </div>
 
-            <div>
-              <Label className="text-xs">Key Highlights</Label>
-              <div className="mt-1 space-y-2">
-                <div className="flex flex-wrap gap-1">
-                  {localSession.highlights.map((highlight, i) => (
-                    <Badge key={i} variant="outline" className="gap-1 pr-1">
-                      {highlight}
-                      <button
-                        type="button"
-                        onClick={() => removeHighlight(i)}
-                        className="hover:bg-muted ml-1 rounded-full p-0.5"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-                <div className="flex gap-2">
-                  <Input
-                    value={highlightInput}
-                    onChange={e => setHighlightInput(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        addHighlight();
-                      }
-                    }}
-                    placeholder="Add a highlight..."
-                    className="flex-1"
-                  />
-                  <Button variant="outline" size="icon" onClick={addHighlight}>
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
+            <SessionTextAreaField
+              label="Session Summary"
+              value={session.summary}
+              rows={4}
+              placeholder="What happened during this session..."
+              onChange={value => onTextChange('summary', value)}
+              onBlur={onBlur}
+            />
 
-            <div>
-              <Label className="text-xs">Locations Visited</Label>
-              <div className="mt-1 space-y-2">
-                <div className="flex flex-wrap gap-1">
-                  {localSession.locations.map((location, i) => (
-                    <Badge key={i} variant="secondary" className="gap-1 pr-1">
-                      <Map className="h-3 w-3" />
-                      {location}
-                      <button
-                        type="button"
-                        onClick={() => removeLocation(i)}
-                        className="hover:bg-muted ml-1 rounded-full p-0.5"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-                <div className="flex gap-2">
-                  <Input
-                    value={locationInput}
-                    onChange={e => setLocationInput(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        addLocation();
-                      }
-                    }}
-                    placeholder="Add a location..."
-                    className="flex-1"
-                  />
-                  <Button variant="outline" size="icon" onClick={addLocation}>
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
+            <SessionBadgeListField
+              label="Key Highlights"
+              items={session.highlights}
+              inputValue={highlightInput}
+              inputPlaceholder="Add a highlight..."
+              onInputChange={onHighlightInputChange}
+              onAdd={onAddHighlight}
+              onRemove={onRemoveHighlight}
+              variant="outline"
+            />
 
-            {npcs.length > 0 && (
-              <div>
-                <Label className="text-xs">NPCs Involved</Label>
-                <div className="mt-1 flex flex-wrap gap-1">
-                  {npcs.map(npc => (
-                    <Badge
-                      key={npc.id}
-                      variant={
-                        localSession.npcsInvolved.includes(npc.id)
-                          ? 'default'
-                          : 'outline'
-                      }
-                      className="cursor-pointer"
-                      onClick={() => toggleNpcInvolved(npc.id)}
-                    >
-                      <User className="mr-1 h-3 w-3" />
-                      {npc.name}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
+            <SessionBadgeListField
+              label="Locations Visited"
+              items={session.locations}
+              inputValue={locationInput}
+              inputPlaceholder="Add a location..."
+              onInputChange={onLocationInputChange}
+              onAdd={onAddLocation}
+              onRemove={onRemoveLocation}
+              icon={<Map className="h-3 w-3" />}
+              variant="secondary"
+            />
 
-            <div>
-              <Label className="text-xs">Quest/Story Progress</Label>
-              <Textarea
-                value={localSession.questProgress}
-                onChange={e =>
-                  setLocalSession({
-                    ...localSession,
-                    questProgress: e.target.value,
-                  })
-                }
-                onBlur={handleBlur}
-                rows={2}
-                placeholder="Notes on story or quest advancement..."
-                className="mt-1"
-              />
-            </div>
+            <SessionNPCSelector
+              npcs={npcs}
+              selectedNPCs={session.npcsInvolved}
+              onToggleNPC={onToggleNpcInvolved}
+            />
 
-            {localSession.playerNotes.length > 0 && (
+            <SessionTextAreaField
+              label="Quest/Story Progress"
+              value={session.questProgress}
+              placeholder="Notes on story or quest advancement..."
+              onChange={value => onTextChange('questProgress', value)}
+              onBlur={onBlur}
+            />
+
+            {session.playerNotes.length > 0 && (
               <div>
                 <Label className="text-xs">Player Notes</Label>
                 <div className="mt-1 space-y-2">
-                  {localSession.playerNotes.map((pn, i) => (
+                  {session.playerNotes.map((pn, i) => (
                     <Card key={i} className="bg-muted/50">
                       <CardContent className="py-2">
                         <div className="text-muted-foreground text-xs">

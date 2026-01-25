@@ -1,4 +1,4 @@
-/* eslint-disable max-lines, max-lines-per-function */
+/* eslint-disable max-lines */
 // Inventory reference page with page-specific detail components
 
 import { createFileRoute } from '@tanstack/react-router';
@@ -22,7 +22,6 @@ import {
   useDeferredItems,
   useDeferredLoad,
   useFilterState,
-  useKeyboardNavigation,
 } from '@/components/references';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -604,6 +603,453 @@ type InventorySortKey = 'name' | 'type' | 'rarity';
 // Stable loader function for useDeferredLoad
 const loadAllItems = () => getAllItems();
 
+const INVENTORY_SORTERS: Record<
+  InventorySortKey,
+  (a: InventoryItem, b: InventoryItem) => number
+> = {
+  name: (a, b) => a.data.name.localeCompare(b.data.name),
+  type: (a, b) => {
+    const cmp = a.type.localeCompare(b.type);
+    return cmp === 0 ? a.data.name.localeCompare(b.data.name) : cmp;
+  },
+  rarity: (a, b) => {
+    const cmp = (a.data.rarity || '').localeCompare(b.data.rarity || '');
+    return cmp === 0 ? a.data.name.localeCompare(b.data.name) : cmp;
+  },
+};
+
+const categoryOrder = [
+  'utility',
+  'consumable',
+  'potion',
+  'relic',
+  'weapon-mod',
+  'armor-mod',
+  'recipe',
+];
+
+function sortInventoryItems(
+  items: InventoryItem[],
+  sortBy: InventorySortKey,
+  sortDir: 'asc' | 'desc'
+) {
+  const sorted = [...items].sort(INVENTORY_SORTERS[sortBy]);
+  return sortDir === 'asc' ? sorted : sorted.reverse();
+}
+
+function groupInventoryItems(items: InventoryItem[]) {
+  const groups: Record<string, InventoryItem[]> = {};
+  for (const item of items) {
+    if (!groups[item.type]) groups[item.type] = [];
+    groups[item.type].push(item);
+  }
+  return groups;
+}
+
+type InventoryHeaderProps = {
+  isMobile: boolean;
+  filterGroups: FilterGroup[];
+  filterState: ReturnType<typeof useFilterState>['filterState'];
+  onSearchChange: ReturnType<typeof useFilterState>['onSearchChange'];
+  onFilterChange: ReturnType<typeof useFilterState>['onFilterChange'];
+  onClearFilters: ReturnType<typeof useFilterState>['onClearFilters'];
+  filteredCount: number;
+  totalCount: number;
+  sortBy: InventorySortKey;
+  sortDir: 'asc' | 'desc';
+  onSortByChange: (value: InventorySortKey) => void;
+  onSortDirChange: (value: 'asc' | 'desc') => void;
+  viewMode: 'grid' | 'table';
+  onViewModeChange: (value: 'grid' | 'table') => void;
+};
+
+function InventoryHeader({
+  isMobile,
+  filterGroups,
+  filterState,
+  onSearchChange,
+  onFilterChange,
+  onClearFilters,
+  filteredCount,
+  totalCount,
+  sortBy,
+  sortDir,
+  onSortByChange,
+  onSortDirChange,
+  viewMode,
+  onViewModeChange,
+}: InventoryHeaderProps) {
+  return (
+    <div className="bg-background shrink-0 border-b p-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="bg-linear-to-r from-cyan-500 to-blue-600 bg-clip-text text-2xl font-bold text-transparent">
+            <Backpack className="mr-2 inline-block size-6" />
+            Inventory Items
+          </h1>
+          <ResultsCounter
+            filtered={filteredCount}
+            total={totalCount}
+            label="items"
+          />
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {isMobile && (
+            <ReferenceFilter
+              filterGroups={filterGroups}
+              filterState={filterState}
+              onSearchChange={onSearchChange}
+              onFilterChange={onFilterChange}
+              onClearFilters={onClearFilters}
+              resultCount={filteredCount}
+              totalCount={totalCount}
+              searchPlaceholder="Search inventory..."
+            />
+          )}
+          <div className="flex items-center gap-2">
+            <select
+              value={sortBy}
+              onChange={e => onSortByChange(e.target.value as InventorySortKey)}
+              className="bg-background h-9 rounded-md border px-2 text-sm"
+            >
+              <option value="name">Name</option>
+              <option value="type">Type</option>
+              <option value="rarity">Rarity</option>
+            </select>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-9"
+              onClick={() =>
+                onSortDirChange(sortDir === 'asc' ? 'desc' : 'asc')
+              }
+              aria-label={
+                sortDir === 'asc' ? 'Sort descending' : 'Sort ascending'
+              }
+            >
+              {sortDir === 'asc' ? (
+                <ArrowUp className="size-4" />
+              ) : (
+                <ArrowDown className="size-4" />
+              )}
+            </Button>
+          </div>
+          {!isMobile && (
+            <ToggleGroup
+              type="single"
+              value={viewMode}
+              onValueChange={v => v && onViewModeChange(v as 'grid' | 'table')}
+            >
+              <ToggleGroupItem value="grid" aria-label="Grid view">
+                <Grid3X3 className="size-4" />
+              </ToggleGroupItem>
+              <ToggleGroupItem value="table" aria-label="Table view">
+                <List className="size-4" />
+              </ToggleGroupItem>
+            </ToggleGroup>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function InventoryGridSections({
+  groupedItems,
+  onSelectItem,
+}: {
+  groupedItems: Record<string, InventoryItem[]>;
+  onSelectItem: (item: InventoryItem) => void;
+}) {
+  return (
+    <div className="space-y-8">
+      {categoryOrder
+        .filter(category => groupedItems[category]?.length > 0)
+        .map(category => {
+          const items = groupedItems[category];
+          const gradient =
+            categoryGradients[category] ?? 'from-gray-500 to-slate-600';
+          return (
+            <section key={category}>
+              <h2 className="bg-background/95 sticky top-0 z-10 -mx-4 mb-4 flex items-center gap-2 px-4 py-2 text-xl font-semibold backdrop-blur">
+                <span
+                  className={`inline-block h-3 w-3 rounded-full bg-linear-to-r ${gradient}`}
+                />
+                {categoryLabels[category]}s
+                <Badge variant="outline">{items.length}</Badge>
+              </h2>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {items.map((item, idx) => (
+                  <ItemCard
+                    key={`${item.data.name}-${idx}`}
+                    item={item}
+                    onClick={() => onSelectItem(item)}
+                  />
+                ))}
+              </div>
+            </section>
+          );
+        })}
+    </div>
+  );
+}
+
+function InventoryTableView({
+  items,
+  sortBy,
+  sortDir,
+  onSort,
+  onSelectItem,
+}: {
+  items: InventoryItem[];
+  sortBy: InventorySortKey;
+  sortDir: 'asc' | 'desc';
+  onSort: (column: InventorySortKey) => void;
+  onSelectItem: (item: InventoryItem) => void;
+}) {
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <SortableTableHead
+            column="name"
+            label="Name"
+            currentSort={sortBy}
+            direction={sortDir}
+            onSort={onSort}
+          />
+          <SortableTableHead
+            column="type"
+            label="Category"
+            currentSort={sortBy}
+            direction={sortDir}
+            onSort={onSort}
+          />
+          <SortableTableHead
+            column="rarity"
+            label="Rarity"
+            currentSort={sortBy}
+            direction={sortDir}
+            onSort={onSort}
+          />
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {items.map((item, idx) => (
+          <ItemTableRow
+            key={`${item.data.name}-${idx}`}
+            item={item}
+            onClick={() => onSelectItem(item)}
+          />
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+
+function InventoryEmptyState({
+  onClearFilters,
+}: {
+  onClearFilters: () => void;
+}) {
+  return (
+    <div className="text-muted-foreground py-12 text-center">
+      <p>No inventory items match your filters.</p>
+      <Button variant="link" onClick={onClearFilters} className="mt-2">
+        Clear all filters
+      </Button>
+    </div>
+  );
+}
+
+function InventoryDetailSheet({
+  selectedItem,
+  onClose,
+}: {
+  selectedItem: InventoryItem | null;
+  onClose: () => void;
+}) {
+  return (
+    <Sheet
+      open={selectedItem !== null}
+      onOpenChange={open => !open && onClose()}
+    >
+      <SheetContent
+        side="right"
+        className="flex w-full flex-col p-0 sm:max-w-md"
+        hideCloseButton
+      >
+        {selectedItem && (
+          <>
+            <SheetHeader className="bg-background shrink-0 border-b p-4">
+              <SheetTitle className="flex items-center justify-between gap-2">
+                <span className="truncate">{selectedItem.data.name}</span>
+                <div className="flex shrink-0 items-center gap-2">
+                  <KeyboardHint />
+                  <DetailCloseButton onClose={onClose} />
+                </div>
+              </SheetTitle>
+            </SheetHeader>
+            <div className="min-h-0 flex-1 overflow-y-auto p-4">
+              <ItemDetail item={selectedItem} />
+            </div>
+          </>
+        )}
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+function InventoryCompareDrawer() {
+  return (
+    <CompareDrawer
+      title="Compare Items"
+      renderComparison={(items: ComparisonItem<InventoryItem>[]) => (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {items.map(item => (
+            <div
+              key={item.id}
+              className="bg-card overflow-hidden rounded-lg border p-4"
+            >
+              <h3 className="mb-3 text-lg font-semibold">{item.name}</h3>
+              <ItemDetail item={item.data} />
+            </div>
+          ))}
+        </div>
+      )}
+    />
+  );
+}
+
+type InventoryLayoutProps = {
+  isInitialLoading: boolean;
+  isMobile: boolean;
+  filterGroups: FilterGroup[];
+  filterState: ReturnType<typeof useFilterState>['filterState'];
+  onSearchChange: ReturnType<typeof useFilterState>['onSearchChange'];
+  onFilterChange: ReturnType<typeof useFilterState>['onFilterChange'];
+  onClearFilters: ReturnType<typeof useFilterState>['onClearFilters'];
+  filteredItems: InventoryItem[];
+  totalCount: number;
+  sortBy: InventorySortKey;
+  sortDir: 'asc' | 'desc';
+  onSortByChange: (value: InventorySortKey) => void;
+  onSortDirChange: (value: 'asc' | 'desc') => void;
+  viewMode: 'grid' | 'table';
+  onViewModeChange: (value: 'grid' | 'table') => void;
+  scrollRef: React.RefObject<HTMLDivElement | null>;
+  isFiltering: boolean;
+  groupedItems: Record<string, InventoryItem[]>;
+  onSelectItem: (item: InventoryItem) => void;
+  selectedItem: InventoryItem | null;
+  onCloseItem: () => void;
+  onSort: (column: InventorySortKey) => void;
+};
+
+function InventoryLayout({
+  isInitialLoading,
+  isMobile,
+  filterGroups,
+  filterState,
+  onSearchChange,
+  onFilterChange,
+  onClearFilters,
+  filteredItems,
+  totalCount,
+  sortBy,
+  sortDir,
+  onSortByChange,
+  onSortDirChange,
+  viewMode,
+  onViewModeChange,
+  scrollRef,
+  isFiltering,
+  groupedItems,
+  onSelectItem,
+  selectedItem,
+  onCloseItem,
+  onSort,
+}: InventoryLayoutProps) {
+  if (isInitialLoading) {
+    return <ReferencePageSkeleton showFilters={!isMobile} />;
+  }
+
+  return (
+    <div className="flex min-h-0 flex-1">
+      {!isMobile && (
+        <ReferenceFilter
+          filterGroups={filterGroups}
+          filterState={filterState}
+          onSearchChange={onSearchChange}
+          onFilterChange={onFilterChange}
+          onClearFilters={onClearFilters}
+          resultCount={filteredItems.length}
+          totalCount={totalCount}
+          searchPlaceholder="Search inventory..."
+        />
+      )}
+
+      <div className="flex min-h-0 flex-1 flex-col">
+        <InventoryHeader
+          isMobile={isMobile}
+          filterGroups={filterGroups}
+          filterState={filterState}
+          onSearchChange={onSearchChange}
+          onFilterChange={onFilterChange}
+          onClearFilters={onClearFilters}
+          filteredCount={filteredItems.length}
+          totalCount={totalCount}
+          sortBy={sortBy}
+          sortDir={sortDir}
+          onSortByChange={onSortByChange}
+          onSortDirChange={onSortDirChange}
+          viewMode={viewMode}
+          onViewModeChange={onViewModeChange}
+        />
+
+        <div
+          ref={scrollRef}
+          className="relative min-h-0 flex-1 overflow-y-auto"
+        >
+          {isFiltering && (
+            <div className="bg-background/60 absolute inset-0 z-10 flex items-start justify-center pt-20 backdrop-blur-[1px]">
+              <div className="bg-background rounded-lg border p-4 shadow-lg">
+                <div className="border-primary h-6 w-6 animate-spin rounded-full border-2 border-t-transparent" />
+              </div>
+            </div>
+          )}
+          <div className="p-4">
+            {viewMode === 'grid' ? (
+              <InventoryGridSections
+                groupedItems={groupedItems}
+                onSelectItem={onSelectItem}
+              />
+            ) : (
+              <InventoryTableView
+                items={filteredItems}
+                sortBy={sortBy}
+                sortDir={sortDir}
+                onSort={onSort}
+                onSelectItem={onSelectItem}
+              />
+            )}
+
+            {filteredItems.length === 0 && (
+              <InventoryEmptyState onClearFilters={onClearFilters} />
+            )}
+          </div>
+        </div>
+      </div>
+
+      <BackToTop scrollRef={scrollRef} />
+
+      <InventoryDetailSheet selectedItem={selectedItem} onClose={onCloseItem} />
+
+      <InventoryCompareDrawer />
+    </div>
+  );
+}
+
 function InventoryReferencePage() {
   const isMobile = useIsMobile();
   const scrollRef = React.useRef<HTMLDivElement>(null);
@@ -625,19 +1071,6 @@ function InventoryReferencePage() {
   const { data: allItems, isLoading: isInitialLoading } =
     useDeferredLoad(loadAllItems);
 
-  // Handle column header click for sorting
-  const handleSortClick = React.useCallback(
-    (column: InventorySortKey) => {
-      if (sortBy === column) {
-        setSortDir(d => (d === 'asc' ? 'desc' : 'asc'));
-      } else {
-        setSortBy(column);
-        setSortDir('asc');
-      }
-    },
-    [sortBy]
-  );
-
   const filterGroups = React.useMemo(
     () => (allItems ? buildFilterGroups(allItems) : []),
     [allItems]
@@ -653,315 +1086,57 @@ function InventoryReferencePage() {
       filterState.search,
       filterState.filters
     );
-
-    // Apply sorting
-    return [...items].sort((a, b) => {
-      let cmp = 0;
-      switch (sortBy) {
-        case 'name':
-          cmp = a.data.name.localeCompare(b.data.name);
-          break;
-        case 'type':
-          cmp = a.type.localeCompare(b.type);
-          // Secondary sort by name for stability
-          if (cmp === 0) {
-            cmp = a.data.name.localeCompare(b.data.name);
-          }
-          break;
-        case 'rarity':
-          cmp = (a.data.rarity || '').localeCompare(b.data.rarity || '');
-          // Secondary sort by name for stability
-          if (cmp === 0) {
-            cmp = a.data.name.localeCompare(b.data.name);
-          }
-          break;
-      }
-      return sortDir === 'asc' ? cmp : -cmp;
-    });
+    return sortInventoryItems(items, sortBy, sortDir);
   }, [allItems, filterState, sortBy, sortDir]);
 
   // Use deferred rendering for smooth filtering on mobile
   const { deferredItems, isPending: isFiltering } =
     useDeferredItems(filteredItems);
 
-  // Group by category for grid view
-  const groupedItems = React.useMemo(() => {
-    const groups: Record<string, InventoryItem[]> = {};
-    for (const item of deferredItems) {
-      if (!groups[item.type]) groups[item.type] = [];
-      groups[item.type].push(item);
-    }
-    return groups;
-  }, [deferredItems]);
+  const groupedItems = React.useMemo(
+    () => groupInventoryItems(deferredItems),
+    [deferredItems]
+  );
 
-  const categoryOrder = [
-    'utility',
-    'consumable',
-    'potion',
-    'relic',
-    'weapon-mod',
-    'armor-mod',
-    'recipe',
-  ];
-
-  // Keyboard navigation
-  useKeyboardNavigation({
-    items: deferredItems,
-    selectedItem,
-    onSelect: setSelectedItem,
-    onClose: () => setSelectedItem(null),
-  });
-
-  // Show skeleton while data is loading
-  if (isInitialLoading) {
-    return <ReferencePageSkeleton showFilters={!isMobile} />;
-  }
+  const handleSortClick = React.useCallback(
+    (column: InventorySortKey) => {
+      if (sortBy === column) {
+        setSortDir(dir => (dir === 'asc' ? 'desc' : 'asc'));
+      } else {
+        setSortBy(column);
+        setSortDir('asc');
+      }
+    },
+    [sortBy]
+  );
 
   const totalCount = allItems?.length ?? 0;
 
   return (
-    <div className="flex min-h-0 flex-1">
-      {/* Filter sidebar */}
-      {!isMobile && (
-        <ReferenceFilter
-          filterGroups={filterGroups}
-          filterState={filterState}
-          onSearchChange={onSearchChange}
-          onFilterChange={onFilterChange}
-          onClearFilters={onClearFilters}
-          resultCount={filteredItems.length}
-          totalCount={totalCount}
-          searchPlaceholder="Search inventory..."
-        />
-      )}
-
-      {/* Main content */}
-      <div className="flex min-h-0 flex-1 flex-col">
-        {/* Header */}
-        <div className="bg-background shrink-0 border-b p-4">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h1 className="bg-linear-to-r from-cyan-500 to-blue-600 bg-clip-text text-2xl font-bold text-transparent">
-                <Backpack className="mr-2 inline-block size-6" />
-                Inventory Items
-              </h1>
-              <ResultsCounter
-                filtered={filteredItems.length}
-                total={totalCount}
-                label="items"
-              />
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              {isMobile && (
-                <ReferenceFilter
-                  filterGroups={filterGroups}
-                  filterState={filterState}
-                  onSearchChange={onSearchChange}
-                  onFilterChange={onFilterChange}
-                  onClearFilters={onClearFilters}
-                  resultCount={filteredItems.length}
-                  totalCount={totalCount}
-                  searchPlaceholder="Search inventory..."
-                />
-              )}
-              {/* Sort control */}
-              <div className="flex items-center gap-2">
-                <select
-                  value={sortBy}
-                  onChange={e => setSortBy(e.target.value as InventorySortKey)}
-                  className="bg-background h-9 rounded-md border px-2 text-sm"
-                >
-                  <option value="name">Name</option>
-                  <option value="type">Type</option>
-                  <option value="rarity">Rarity</option>
-                </select>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-9"
-                  onClick={() =>
-                    setSortDir(d => (d === 'asc' ? 'desc' : 'asc'))
-                  }
-                  aria-label={
-                    sortDir === 'asc' ? 'Sort descending' : 'Sort ascending'
-                  }
-                >
-                  {sortDir === 'asc' ? (
-                    <ArrowUp className="size-4" />
-                  ) : (
-                    <ArrowDown className="size-4" />
-                  )}
-                </Button>
-              </div>
-              {/* Hide view toggle on mobile - table view is too wide for small screens */}
-              {!isMobile && (
-                <ToggleGroup
-                  type="single"
-                  value={viewMode}
-                  onValueChange={v => v && setViewMode(v as 'grid' | 'table')}
-                >
-                  <ToggleGroupItem value="grid" aria-label="Grid view">
-                    <Grid3X3 className="size-4" />
-                  </ToggleGroupItem>
-                  <ToggleGroupItem value="table" aria-label="Table view">
-                    <List className="size-4" />
-                  </ToggleGroupItem>
-                </ToggleGroup>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Content - scrollable */}
-        <div
-          ref={scrollRef}
-          className="relative min-h-0 flex-1 overflow-y-auto"
-        >
-          {/* Loading overlay during filtering */}
-          {isFiltering && (
-            <div className="bg-background/60 absolute inset-0 z-10 flex items-start justify-center pt-20 backdrop-blur-[1px]">
-              <div className="bg-background rounded-lg border p-4 shadow-lg">
-                <div className="border-primary h-6 w-6 animate-spin rounded-full border-2 border-t-transparent" />
-              </div>
-            </div>
-          )}
-          <div className="p-4">
-            {viewMode === 'grid' ? (
-              <div className="space-y-8">
-                {categoryOrder
-                  .filter(cat => groupedItems[cat]?.length > 0)
-                  .map(category => {
-                    const items = groupedItems[category];
-                    const gradient =
-                      categoryGradients[category] ??
-                      'from-gray-500 to-slate-600';
-                    return (
-                      <section key={category}>
-                        <h2 className="bg-background/95 sticky top-0 z-10 -mx-4 mb-4 flex items-center gap-2 px-4 py-2 text-xl font-semibold backdrop-blur">
-                          <span
-                            className={`inline-block h-3 w-3 rounded-full bg-linear-to-r ${gradient}`}
-                          />
-                          {categoryLabels[category]}s
-                          <Badge variant="outline">{items.length}</Badge>
-                        </h2>
-                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                          {items.map((item, idx) => (
-                            <ItemCard
-                              key={`${item.data.name}-${idx}`}
-                              item={item}
-                              onClick={() => setSelectedItem(item)}
-                            />
-                          ))}
-                        </div>
-                      </section>
-                    );
-                  })}
-              </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <SortableTableHead
-                      column="name"
-                      label="Name"
-                      currentSort={sortBy}
-                      direction={sortDir}
-                      onSort={handleSortClick}
-                    />
-                    <SortableTableHead
-                      column="type"
-                      label="Category"
-                      currentSort={sortBy}
-                      direction={sortDir}
-                      onSort={handleSortClick}
-                    />
-                    <SortableTableHead
-                      column="rarity"
-                      label="Rarity"
-                      currentSort={sortBy}
-                      direction={sortDir}
-                      onSort={handleSortClick}
-                    />
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredItems.map((item, idx) => (
-                    <ItemTableRow
-                      key={`${item.data.name}-${idx}`}
-                      item={item}
-                      onClick={() => setSelectedItem(item)}
-                    />
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-
-            {filteredItems.length === 0 && (
-              <div className="text-muted-foreground py-12 text-center">
-                <p>No inventory items match your filters.</p>
-                <Button
-                  variant="link"
-                  onClick={onClearFilters}
-                  className="mt-2"
-                >
-                  Clear all filters
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Back to top button */}
-      <BackToTop scrollRef={scrollRef} />
-
-      {/* Detail sheet */}
-      <Sheet
-        open={selectedItem !== null}
-        onOpenChange={open => !open && setSelectedItem(null)}
-      >
-        <SheetContent
-          side="right"
-          className="flex w-full flex-col p-0 sm:max-w-md"
-          hideCloseButton
-        >
-          {selectedItem && (
-            <>
-              <SheetHeader className="bg-background shrink-0 border-b p-4">
-                <SheetTitle className="flex items-center justify-between gap-2">
-                  <span className="truncate">{selectedItem.data.name}</span>
-                  <div className="flex shrink-0 items-center gap-2">
-                    <KeyboardHint />
-                    <DetailCloseButton onClose={() => setSelectedItem(null)} />
-                  </div>
-                </SheetTitle>
-              </SheetHeader>
-              <div className="min-h-0 flex-1 overflow-y-auto p-4">
-                <ItemDetail item={selectedItem} />
-              </div>
-            </>
-          )}
-        </SheetContent>
-      </Sheet>
-
-      {/* Comparison drawer */}
-      <CompareDrawer
-        title="Compare Items"
-        renderComparison={(items: ComparisonItem<InventoryItem>[]) => (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {items.map(item => (
-              <div
-                key={item.id}
-                className="bg-card overflow-hidden rounded-lg border p-4"
-              >
-                <h3 className="mb-3 text-lg font-semibold">{item.name}</h3>
-                <ItemDetail item={item.data} />
-              </div>
-            ))}
-          </div>
-        )}
-      />
-    </div>
+    <InventoryLayout
+      isInitialLoading={isInitialLoading}
+      isMobile={isMobile}
+      filterGroups={filterGroups}
+      filterState={filterState}
+      onSearchChange={onSearchChange}
+      onFilterChange={onFilterChange}
+      onClearFilters={onClearFilters}
+      filteredItems={filteredItems}
+      totalCount={totalCount}
+      sortBy={sortBy}
+      sortDir={sortDir}
+      onSortByChange={setSortBy}
+      onSortDirChange={setSortDir}
+      viewMode={viewMode}
+      onViewModeChange={setViewMode}
+      scrollRef={scrollRef}
+      isFiltering={isFiltering}
+      groupedItems={groupedItems}
+      onSelectItem={setSelectedItem}
+      selectedItem={selectedItem}
+      onCloseItem={() => setSelectedItem(null)}
+      onSort={handleSortClick}
+    />
   );
 }
 

@@ -82,6 +82,98 @@ interface CompanionBenefitsStepProps {
   onSelectExperienceIndex: (index: number | null) => void;
 }
 
+interface TrainingOptionButtonProps {
+  option: TrainingOption;
+  isSelected: boolean;
+  onSelect: (optionId: string) => void;
+}
+
+function TrainingOptionButton({
+  option,
+  isSelected,
+  onSelect,
+}: TrainingOptionButtonProps) {
+  const currentCount =
+    typeof option.currentValue === 'number'
+      ? option.currentValue
+      : option.currentValue
+        ? 1
+        : 0;
+
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(option.id)}
+      className={cn(
+        'w-full rounded-lg border p-3 text-left transition-all',
+        'hover:border-primary/50 hover:bg-accent/50',
+        isSelected && 'border-primary bg-primary/10 ring-primary ring-1'
+      )}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span className="font-medium">{option.label}</span>
+            {option.maxSelections > 1 && (
+              <Badge variant="outline" className="text-xs">
+                {currentCount}/{option.maxSelections}
+              </Badge>
+            )}
+          </div>
+          <p className="text-muted-foreground mt-1 text-sm">
+            {option.description}
+          </p>
+        </div>
+        {isSelected && <Check className="text-primary size-5 shrink-0" />}
+      </div>
+    </button>
+  );
+}
+
+interface ExperienceSelectorProps {
+  experiences: { name: string; bonus: number }[];
+  selectedExperienceIndex: number | null;
+  onSelectExperienceIndex: (index: number | null) => void;
+}
+
+function ExperienceSelector({
+  experiences,
+  selectedExperienceIndex,
+  onSelectExperienceIndex,
+}: ExperienceSelectorProps) {
+  return (
+    <div className="mt-4 space-y-2">
+      <Label>Choose a companion experience to boost</Label>
+      <Select
+        value={
+          selectedExperienceIndex !== null
+            ? String(selectedExperienceIndex)
+            : ''
+        }
+        onValueChange={value =>
+          onSelectExperienceIndex(value ? Number(value) : null)
+        }
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="Select an experience" />
+        </SelectTrigger>
+        <SelectContent>
+          {experiences.map((exp, index) => (
+            <SelectItem key={index} value={String(index)}>
+              {exp.name || `Experience ${index + 1}`} (+{exp.bonus})
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      {selectedExperienceIndex === null && (
+        <p className="text-muted-foreground text-xs">
+          Select an experience to apply the +1 bonus.
+        </p>
+      )}
+    </div>
+  );
+}
+
 export function CompanionBenefitsStep({
   companionName,
   currentTraining,
@@ -128,81 +220,23 @@ export function CompanionBenefitsStep({
             All training options have been maxed out.
           </p>
         ) : (
-          availableOptions.map(option => {
-            const isSelected = selectedTraining === option.id;
-            const currentCount =
-              typeof option.currentValue === 'number'
-                ? option.currentValue
-                : option.currentValue
-                  ? 1
-                  : 0;
-
-            return (
-              <button
-                key={option.id}
-                type="button"
-                onClick={() => handleSelect(option.id)}
-                className={cn(
-                  'w-full rounded-lg border p-3 text-left transition-all',
-                  'hover:border-primary/50 hover:bg-accent/50',
-                  isSelected &&
-                    'border-primary bg-primary/10 ring-primary ring-1'
-                )}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{option.label}</span>
-                      {option.maxSelections > 1 && (
-                        <Badge variant="outline" className="text-xs">
-                          {currentCount}/{option.maxSelections}
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-muted-foreground mt-1 text-sm">
-                      {option.description}
-                    </p>
-                  </div>
-                  {isSelected && (
-                    <Check className="text-primary size-5 shrink-0" />
-                  )}
-                </div>
-              </button>
-            );
-          })
+          availableOptions.map(option => (
+            <TrainingOptionButton
+              key={option.id}
+              option={option}
+              isSelected={selectedTraining === option.id}
+              onSelect={handleSelect}
+            />
+          ))
         )}
       </div>
 
       {selectedTraining === 'intelligent' && experiences.length > 0 && (
-        <div className="mt-4 space-y-2">
-          <Label>Choose a companion experience to boost</Label>
-          <Select
-            value={
-              selectedExperienceIndex !== null
-                ? String(selectedExperienceIndex)
-                : ''
-            }
-            onValueChange={value =>
-              onSelectExperienceIndex(value ? Number(value) : null)
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select an experience" />
-            </SelectTrigger>
-            <SelectContent>
-              {experiences.map((exp, index) => (
-                <SelectItem key={index} value={String(index)}>
-                  {exp.name || `Experience ${index + 1}`} (+{exp.bonus})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {selectedExperienceIndex === null && (
-            <p className="text-muted-foreground text-xs">
-              Select an experience to apply the +1 bonus.
-            </p>
-          )}
-        </div>
+        <ExperienceSelector
+          experiences={experiences}
+          selectedExperienceIndex={selectedExperienceIndex}
+          onSelectExperienceIndex={onSelectExperienceIndex}
+        />
       )}
     </div>
   );

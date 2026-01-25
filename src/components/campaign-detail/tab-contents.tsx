@@ -267,7 +267,7 @@ interface SessionsTabProps {
   sessions: SessionNote[];
   npcs: CampaignNPC[];
   campaignId: string;
-  onSessionsChange: () => Promise<void>;
+  onSessionsChange: () => void | Promise<void>;
 }
 
 export function SessionsTabContent({
@@ -301,7 +301,7 @@ export function SessionsTabContent({
 interface CharactersTabProps {
   npcs: CampaignNPC[];
   campaignId: string;
-  onNPCsChange: () => Promise<void>;
+  onNPCsChange: () => void | Promise<void>;
 }
 
 export function CharactersTabContent({
@@ -333,7 +333,7 @@ export function CharactersTabContent({
 interface LocationsTabProps {
   locations: Campaign['locations'];
   campaignId: string;
-  onLocationsChange: () => Promise<void>;
+  onLocationsChange: () => void | Promise<void>;
 }
 
 export function LocationsTabContent({
@@ -365,7 +365,7 @@ export function LocationsTabContent({
 interface QuestsTabProps {
   quests: Campaign['quests'];
   campaignId: string;
-  onQuestsChange: () => Promise<void>;
+  onQuestsChange: () => void | Promise<void>;
 }
 
 export function QuestsTabContent({
@@ -415,9 +415,9 @@ const DEFAULT_CHECKLIST_ITEMS: ChecklistItem[] = [
 interface GMToolsTabProps {
   campaignId: string;
   sessionPrepChecklist: ChecklistItem[] | undefined;
-  onAddNPC: (name: string) => Promise<void>;
-  onAddLocation: (name: string) => Promise<void>;
-  onAddQuest: (title: string) => Promise<void>;
+  onAddNPC: (name: string) => void | Promise<void>;
+  onAddLocation: (name: string) => void | Promise<void>;
+  onAddQuest: (title: string) => void | Promise<void>;
   onNavigateToTab: (tab: string) => void;
   onChecklistChange: (items: ChecklistItem[]) => void;
 }

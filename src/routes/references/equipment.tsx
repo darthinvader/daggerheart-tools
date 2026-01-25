@@ -1,4 +1,4 @@
-/* eslint-disable max-lines, max-lines-per-function, complexity */
+/* eslint-disable max-lines, complexity */
 // Equipment reference page with page-specific detail components
 
 import { createFileRoute } from '@tanstack/react-router';
@@ -29,7 +29,6 @@ import {
   useDeferredItems,
   useDeferredLoad,
   useFilterState,
-  useKeyboardNavigation,
 } from '@/components/references';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -157,6 +156,110 @@ function getFeatureModifiers(
     modifier: string;
     isPositive: boolean;
   }>;
+}
+
+type FeatureModifier = {
+  name: string;
+  modifier: string;
+  isPositive: boolean;
+};
+
+function EquipmentFeatureBadges({
+  modifiers,
+  className,
+}: {
+  modifiers: FeatureModifier[];
+  className?: string;
+}) {
+  if (modifiers.length === 0) return null;
+  return (
+    <div className={className ?? 'flex flex-wrap gap-1'}>
+      {modifiers.map((modifier, idx) => (
+        <Badge
+          key={idx}
+          variant="outline"
+          className={
+            modifier.isPositive
+              ? 'border-green-500/50 bg-green-500/10 text-green-700 dark:text-green-400'
+              : 'border-red-500/50 bg-red-500/10 text-red-700 dark:text-red-400'
+          }
+        >
+          {modifier.modifier}
+        </Badge>
+      ))}
+    </div>
+  );
+}
+
+function EquipmentWeaponSummary({
+  data,
+  modifiers,
+}: {
+  data: PrimaryWeapon | SecondaryWeapon | CombatWheelchair;
+  modifiers: FeatureModifier[];
+}) {
+  return (
+    <>
+      <div className="flex flex-wrap gap-1">
+        <Badge variant="outline" className={traitColors[data.trait]}>
+          {data.trait}
+        </Badge>
+        <Badge variant="outline" className={damageTypeColors[data.damage.type]}>
+          {formatDamage(data.damage)}
+        </Badge>
+      </div>
+      <div className="flex flex-wrap gap-1 text-xs">
+        <Badge variant="secondary" className="py-0 text-xs">
+          {data.range}
+        </Badge>
+        <Badge variant="secondary" className="py-0 text-xs">
+          {data.burden}
+        </Badge>
+      </div>
+      <EquipmentFeatureBadges modifiers={modifiers} />
+    </>
+  );
+}
+
+function EquipmentArmorSummary({
+  data,
+  modifiers,
+}: {
+  data: StandardArmor | SpecialArmor;
+  modifiers: FeatureModifier[];
+}) {
+  return (
+    <>
+      <div className="grid grid-cols-2 gap-2 text-sm">
+        <div className="bg-muted/50 rounded p-2 text-center">
+          <div className="text-muted-foreground text-xs">Armor</div>
+          <div className="font-bold">{data.baseScore}</div>
+        </div>
+        <div className="bg-muted/50 rounded p-2 text-center">
+          <div className="text-muted-foreground text-xs">Evasion</div>
+          <div className="font-bold">
+            {data.evasionModifier >= 0 ? '+' : ''}
+            {data.evasionModifier}
+          </div>
+        </div>
+      </div>
+      <div className="flex gap-1.5 text-xs">
+        <Badge
+          variant="outline"
+          className="border-amber-500/30 bg-amber-500/10 py-0 text-amber-700 dark:text-amber-400"
+        >
+          Major {data.baseThresholds.major}+
+        </Badge>
+        <Badge
+          variant="outline"
+          className="border-red-500/30 bg-red-500/10 py-0 text-red-700 dark:text-red-400"
+        >
+          Severe {data.baseThresholds.severe}+
+        </Badge>
+      </div>
+      <EquipmentFeatureBadges modifiers={modifiers} />
+    </>
+  );
 }
 
 // Build filter groups
@@ -328,6 +431,7 @@ function EquipmentCard({
     type === 'primary' || type === 'secondary' || type === 'wheelchair';
   const itemId = getEquipmentId(item);
   const inCompare = isInCompare(itemId);
+  const featureMods = getFeatureModifiers(data.features);
 
   return (
     <Card
@@ -363,113 +467,16 @@ function EquipmentCard({
       </CardHeader>
       <CardContent className="space-y-2 pt-0">
         {isWeapon && (
-          <>
-            {/* Primary stats row */}
-            <div className="flex flex-wrap gap-1">
-              <Badge
-                variant="outline"
-                className={traitColors[(data as PrimaryWeapon).trait]}
-              >
-                {(data as PrimaryWeapon).trait}
-              </Badge>
-              <Badge
-                variant="outline"
-                className={
-                  damageTypeColors[(data as PrimaryWeapon).damage.type]
-                }
-              >
-                {formatDamage((data as PrimaryWeapon).damage)}
-              </Badge>
-            </div>
-            {/* Secondary stats row */}
-            <div className="flex flex-wrap gap-1 text-xs">
-              <Badge variant="secondary" className="py-0 text-xs">
-                {(data as PrimaryWeapon).range}
-              </Badge>
-              <Badge variant="secondary" className="py-0 text-xs">
-                {(data as PrimaryWeapon).burden}
-              </Badge>
-            </div>
-            {/* Feature modifiers - show prominently */}
-            {(() => {
-              const mods = getFeatureModifiers(data.features);
-              if (mods.length === 0) return null;
-              return (
-                <div className="flex flex-wrap gap-1">
-                  {mods.map((m, i) => (
-                    <Badge
-                      key={i}
-                      variant="outline"
-                      className={
-                        m.isPositive
-                          ? 'border-green-500/50 bg-green-500/10 text-green-700 dark:text-green-400'
-                          : 'border-red-500/50 bg-red-500/10 text-red-700 dark:text-red-400'
-                      }
-                    >
-                      {m.modifier}
-                    </Badge>
-                  ))}
-                </div>
-              );
-            })()}
-          </>
+          <EquipmentWeaponSummary
+            data={data as PrimaryWeapon | SecondaryWeapon | CombatWheelchair}
+            modifiers={featureMods}
+          />
         )}
         {isArmor && (
-          <>
-            {/* Armor stats */}
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <div className="bg-muted/50 rounded p-2 text-center">
-                <div className="text-muted-foreground text-xs">Armor</div>
-                <div className="font-bold">
-                  {(data as StandardArmor).baseScore}
-                </div>
-              </div>
-              <div className="bg-muted/50 rounded p-2 text-center">
-                <div className="text-muted-foreground text-xs">Evasion</div>
-                <div className="font-bold">
-                  {(data as StandardArmor).evasionModifier >= 0 ? '+' : ''}
-                  {(data as StandardArmor).evasionModifier}
-                </div>
-              </div>
-            </div>
-            {/* Thresholds */}
-            <div className="flex gap-1.5 text-xs">
-              <Badge
-                variant="outline"
-                className="border-amber-500/30 bg-amber-500/10 py-0 text-amber-700 dark:text-amber-400"
-              >
-                Major {(data as StandardArmor).baseThresholds.major}+
-              </Badge>
-              <Badge
-                variant="outline"
-                className="border-red-500/30 bg-red-500/10 py-0 text-red-700 dark:text-red-400"
-              >
-                Severe {(data as StandardArmor).baseThresholds.severe}+
-              </Badge>
-            </div>
-            {/* Feature modifiers for armor */}
-            {(() => {
-              const mods = getFeatureModifiers(data.features);
-              if (mods.length === 0) return null;
-              return (
-                <div className="flex flex-wrap gap-1">
-                  {mods.map((m, i) => (
-                    <Badge
-                      key={i}
-                      variant="outline"
-                      className={
-                        m.isPositive
-                          ? 'border-green-500/50 bg-green-500/10 text-green-700 dark:text-green-400'
-                          : 'border-red-500/50 bg-red-500/10 text-red-700 dark:text-red-400'
-                      }
-                    >
-                      {m.modifier}
-                    </Badge>
-                  ))}
-                </div>
-              );
-            })()}
-          </>
+          <EquipmentArmorSummary
+            data={data as StandardArmor | SpecialArmor}
+            modifiers={featureMods}
+          />
         )}
       </CardContent>
     </Card>
@@ -758,6 +765,495 @@ type EquipmentSortKey = 'name' | 'tier' | 'type' | 'trait';
 // Stable loader function for useDeferredLoad
 const loadAllItems = () => getAllItems();
 
+const EQUIPMENT_SORTERS: Record<
+  EquipmentSortKey,
+  (a: EquipmentItem, b: EquipmentItem) => number
+> = {
+  name: (a, b) => a.data.name.localeCompare(b.data.name),
+  tier: (a, b) => {
+    const cmp = a.data.tier.localeCompare(b.data.tier);
+    return cmp === 0 ? a.data.name.localeCompare(b.data.name) : cmp;
+  },
+  type: (a, b) => {
+    const cmp = a.type.localeCompare(b.type);
+    return cmp === 0 ? a.data.name.localeCompare(b.data.name) : cmp;
+  },
+  trait: (a, b) => {
+    const traitA = 'trait' in a.data ? (a.data.trait ?? '') : '';
+    const traitB = 'trait' in b.data ? (b.data.trait ?? '') : '';
+    const cmp = traitA.localeCompare(traitB);
+    return cmp === 0 ? a.data.name.localeCompare(b.data.name) : cmp;
+  },
+};
+
+function sortEquipmentItems(
+  items: EquipmentItem[],
+  sortBy: EquipmentSortKey,
+  sortDir: 'asc' | 'desc'
+) {
+  const sorted = [...items].sort(EQUIPMENT_SORTERS[sortBy]);
+  return sortDir === 'asc' ? sorted : sorted.reverse();
+}
+
+function groupEquipmentItems(items: EquipmentItem[]) {
+  const groups: Record<string, EquipmentItem[]> = {
+    primary: [],
+    secondary: [],
+    armor: [],
+    wheelchair: [],
+  };
+  for (const item of items) {
+    groups[item.type].push(item);
+  }
+  return groups;
+}
+
+function getCategoryLabel(category: string) {
+  switch (category) {
+    case 'primary':
+      return 'Primary Weapons';
+    case 'secondary':
+      return 'Secondary Weapons';
+    case 'armor':
+      return 'Armor';
+    default:
+      return 'Combat Wheelchairs';
+  }
+}
+
+function groupItemsByTier(items: EquipmentItem[]) {
+  return items.reduce(
+    (acc, item) => {
+      const tier = item.data.tier;
+      if (!acc[tier]) acc[tier] = [];
+      acc[tier].push(item);
+      return acc;
+    },
+    {} as Record<string, EquipmentItem[]>
+  );
+}
+
+function getSortedTierEntries(groups: Record<string, EquipmentItem[]>) {
+  return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
+}
+
+type EquipmentHeaderProps = {
+  isMobile: boolean;
+  filterState: ReturnType<typeof useFilterState>['filterState'];
+  onSearchChange: ReturnType<typeof useFilterState>['onSearchChange'];
+  onFilterChange: ReturnType<typeof useFilterState>['onFilterChange'];
+  onClearFilters: ReturnType<typeof useFilterState>['onClearFilters'];
+  filteredCount: number;
+  totalCount: number;
+  sortBy: EquipmentSortKey;
+  sortDir: 'asc' | 'desc';
+  onSortByChange: (value: EquipmentSortKey) => void;
+  onSortDirChange: (value: 'asc' | 'desc') => void;
+  viewMode: 'grid' | 'table';
+  onViewModeChange: (value: 'grid' | 'table') => void;
+};
+
+function EquipmentHeader({
+  isMobile,
+  filterState,
+  onSearchChange,
+  onFilterChange,
+  onClearFilters,
+  filteredCount,
+  totalCount,
+  sortBy,
+  sortDir,
+  onSortByChange,
+  onSortDirChange,
+  viewMode,
+  onViewModeChange,
+}: EquipmentHeaderProps) {
+  return (
+    <div className="bg-background shrink-0 border-b p-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="bg-linear-to-r from-amber-500 to-orange-600 bg-clip-text text-2xl font-bold text-transparent">
+            <Swords className="mr-2 inline-block size-6" />
+            Equipment Reference
+          </h1>
+          <ResultsCounter
+            filtered={filteredCount}
+            total={totalCount}
+            label="items"
+          />
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {isMobile && (
+            <ReferenceFilter
+              filterGroups={filterGroups}
+              filterState={filterState}
+              onSearchChange={onSearchChange}
+              onFilterChange={onFilterChange}
+              onClearFilters={onClearFilters}
+              resultCount={filteredCount}
+              totalCount={totalCount}
+              searchPlaceholder="Search equipment..."
+            />
+          )}
+          <div className="flex items-center gap-2">
+            <select
+              value={sortBy}
+              onChange={e => onSortByChange(e.target.value as EquipmentSortKey)}
+              className="bg-background h-9 rounded-md border px-2 text-sm"
+            >
+              <option value="name">Name</option>
+              <option value="tier">Tier</option>
+              <option value="type">Type</option>
+              <option value="trait">Trait</option>
+            </select>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-9"
+              onClick={() =>
+                onSortDirChange(sortDir === 'asc' ? 'desc' : 'asc')
+              }
+              aria-label={
+                sortDir === 'asc' ? 'Sort descending' : 'Sort ascending'
+              }
+            >
+              {sortDir === 'asc' ? (
+                <ArrowUp className="size-4" />
+              ) : (
+                <ArrowDown className="size-4" />
+              )}
+            </Button>
+          </div>
+          {!isMobile && (
+            <ToggleGroup
+              type="single"
+              value={viewMode}
+              onValueChange={v => v && onViewModeChange(v as 'grid' | 'table')}
+            >
+              <ToggleGroupItem value="grid" aria-label="Grid view">
+                <Grid3X3 className="size-4" />
+              </ToggleGroupItem>
+              <ToggleGroupItem value="table" aria-label="Table view">
+                <List className="size-4" />
+              </ToggleGroupItem>
+            </ToggleGroup>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EquipmentGridSections({
+  groupedItems,
+  onSelectItem,
+}: {
+  groupedItems: Record<string, EquipmentItem[]>;
+  onSelectItem: (item: EquipmentItem) => void;
+}) {
+  return (
+    <div className="space-y-8">
+      {Object.entries(groupedItems).map(([category, items]) => {
+        if (items.length === 0) return null;
+        const categoryLabel = getCategoryLabel(category);
+        const byTier = groupItemsByTier(items);
+        return (
+          <section key={category}>
+            <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold">
+              {categoryLabel}
+              <Badge variant="outline">{items.length}</Badge>
+            </h2>
+            <div className="space-y-6">
+              {getSortedTierEntries(byTier).map(([tier, tierItems]) => (
+                <div key={tier}>
+                  <h3 className="text-muted-foreground mb-3 flex items-center gap-2 text-sm font-medium">
+                    <span
+                      className={`inline-block h-2 w-2 rounded-full ${tierDotColors[tier]}`}
+                    />
+                    Tier {tier}
+                  </h3>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {tierItems.map((item, idx) => (
+                      <EquipmentCard
+                        key={`${item.data.name}-${idx}`}
+                        item={item}
+                        onClick={() => onSelectItem(item)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        );
+      })}
+    </div>
+  );
+}
+
+function EquipmentTableView({
+  items,
+  sortBy,
+  sortDir,
+  onSort,
+  onSelectItem,
+}: {
+  items: EquipmentItem[];
+  sortBy: EquipmentSortKey;
+  sortDir: 'asc' | 'desc';
+  onSort: (column: EquipmentSortKey) => void;
+  onSelectItem: (item: EquipmentItem) => void;
+}) {
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <SortableTableHead
+            column="name"
+            label="Name"
+            currentSort={sortBy}
+            direction={sortDir}
+            onSort={onSort}
+          />
+          <SortableTableHead
+            column="tier"
+            label="Tier"
+            currentSort={sortBy}
+            direction={sortDir}
+            onSort={onSort}
+            className="hidden sm:table-cell"
+          />
+          <SortableTableHead
+            column="type"
+            label="Type"
+            currentSort={sortBy}
+            direction={sortDir}
+            onSort={onSort}
+            className="hidden md:table-cell"
+          />
+          <SortableTableHead
+            column="trait"
+            label="Trait/Stats"
+            currentSort={sortBy}
+            direction={sortDir}
+            onSort={onSort}
+          />
+          <TableHead className="hidden lg:table-cell">Modifiers</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {items.map((item, idx) => (
+          <EquipmentTableRow
+            key={`${item.data.name}-${idx}`}
+            item={item}
+            onClick={() => onSelectItem(item)}
+          />
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+
+function EquipmentEmptyState({
+  onClearFilters,
+}: {
+  onClearFilters: () => void;
+}) {
+  return (
+    <div className="text-muted-foreground py-12 text-center">
+      <p>No equipment matches your filters.</p>
+      <Button variant="link" onClick={onClearFilters} className="mt-2">
+        Clear all filters
+      </Button>
+    </div>
+  );
+}
+
+function EquipmentDetailSheet({
+  selectedItem,
+  onClose,
+}: {
+  selectedItem: EquipmentItem | null;
+  onClose: () => void;
+}) {
+  return (
+    <Sheet
+      open={selectedItem !== null}
+      onOpenChange={open => !open && onClose()}
+    >
+      <SheetContent
+        side="right"
+        className="flex w-full flex-col p-0 sm:max-w-md"
+        hideCloseButton
+      >
+        {selectedItem && (
+          <>
+            <SheetHeader className="bg-background shrink-0 border-b p-4">
+              <SheetTitle className="flex items-center justify-between gap-2">
+                <span className="truncate">{selectedItem.data.name}</span>
+                <div className="flex shrink-0 items-center gap-2">
+                  <KeyboardHint />
+                  <DetailCloseButton onClose={onClose} />
+                </div>
+              </SheetTitle>
+            </SheetHeader>
+            <div className="min-h-0 flex-1 overflow-y-auto p-4">
+              <ItemDetail item={selectedItem} />
+            </div>
+          </>
+        )}
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+function EquipmentCompareDrawer() {
+  return (
+    <CompareDrawer
+      title="Compare Equipment"
+      renderComparison={(items: ComparisonItem<EquipmentItem>[]) => (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {items.map(item => (
+            <div
+              key={item.id}
+              className="bg-card overflow-hidden rounded-lg border p-4"
+            >
+              <h3 className="mb-3 text-lg font-semibold">{item.name}</h3>
+              <ItemDetail item={item.data} />
+            </div>
+          ))}
+        </div>
+      )}
+    />
+  );
+}
+
+type EquipmentLayoutProps = {
+  isInitialLoading: boolean;
+  isMobile: boolean;
+  filterState: ReturnType<typeof useFilterState>['filterState'];
+  onSearchChange: ReturnType<typeof useFilterState>['onSearchChange'];
+  onFilterChange: ReturnType<typeof useFilterState>['onFilterChange'];
+  onClearFilters: ReturnType<typeof useFilterState>['onClearFilters'];
+  filteredItems: EquipmentItem[];
+  totalCount: number;
+  sortBy: EquipmentSortKey;
+  sortDir: 'asc' | 'desc';
+  onSortByChange: (value: EquipmentSortKey) => void;
+  onSortDirChange: (value: 'asc' | 'desc') => void;
+  viewMode: 'grid' | 'table';
+  onViewModeChange: (value: 'grid' | 'table') => void;
+  scrollRef: React.RefObject<HTMLDivElement | null>;
+  isFiltering: boolean;
+  groupedItems: Record<string, EquipmentItem[]>;
+  onSelectItem: (item: EquipmentItem) => void;
+  selectedItem: EquipmentItem | null;
+  onCloseItem: () => void;
+  onSort: (column: EquipmentSortKey) => void;
+};
+
+function EquipmentLayout({
+  isInitialLoading,
+  isMobile,
+  filterState,
+  onSearchChange,
+  onFilterChange,
+  onClearFilters,
+  filteredItems,
+  totalCount,
+  sortBy,
+  sortDir,
+  onSortByChange,
+  onSortDirChange,
+  viewMode,
+  onViewModeChange,
+  scrollRef,
+  isFiltering,
+  groupedItems,
+  onSelectItem,
+  selectedItem,
+  onCloseItem,
+  onSort,
+}: EquipmentLayoutProps) {
+  if (isInitialLoading) {
+    return <ReferencePageSkeleton showFilters={!isMobile} />;
+  }
+
+  return (
+    <div className="flex min-h-0 flex-1">
+      {!isMobile && (
+        <ReferenceFilter
+          filterGroups={filterGroups}
+          filterState={filterState}
+          onSearchChange={onSearchChange}
+          onFilterChange={onFilterChange}
+          onClearFilters={onClearFilters}
+          resultCount={filteredItems.length}
+          totalCount={totalCount}
+          searchPlaceholder="Search equipment..."
+        />
+      )}
+
+      <div className="flex min-h-0 flex-1 flex-col">
+        <EquipmentHeader
+          isMobile={isMobile}
+          filterState={filterState}
+          onSearchChange={onSearchChange}
+          onFilterChange={onFilterChange}
+          onClearFilters={onClearFilters}
+          filteredCount={filteredItems.length}
+          totalCount={totalCount}
+          sortBy={sortBy}
+          sortDir={sortDir}
+          onSortByChange={onSortByChange}
+          onSortDirChange={onSortDirChange}
+          viewMode={viewMode}
+          onViewModeChange={onViewModeChange}
+        />
+
+        <div
+          ref={scrollRef}
+          className="relative min-h-0 flex-1 overflow-y-auto"
+        >
+          {isFiltering && (
+            <div className="bg-background/60 absolute inset-0 z-10 flex items-start justify-center pt-20 backdrop-blur-[1px]">
+              <div className="bg-background rounded-lg border p-4 shadow-lg">
+                <div className="border-primary h-6 w-6 animate-spin rounded-full border-2 border-t-transparent" />
+              </div>
+            </div>
+          )}
+          <div className="p-4">
+            {viewMode === 'grid' ? (
+              <EquipmentGridSections
+                groupedItems={groupedItems}
+                onSelectItem={onSelectItem}
+              />
+            ) : (
+              <EquipmentTableView
+                items={filteredItems}
+                sortBy={sortBy}
+                sortDir={sortDir}
+                onSort={onSort}
+                onSelectItem={onSelectItem}
+              />
+            )}
+
+            {filteredItems.length === 0 && (
+              <EquipmentEmptyState onClearFilters={onClearFilters} />
+            )}
+          </div>
+        </div>
+      </div>
+
+      <BackToTop scrollRef={scrollRef} />
+
+      <EquipmentDetailSheet selectedItem={selectedItem} onClose={onCloseItem} />
+
+      <EquipmentCompareDrawer />
+    </div>
+  );
+}
+
 function EquipmentReferencePage() {
   const isMobile = useIsMobile();
   const scrollRef = React.useRef<HTMLDivElement>(null);
@@ -779,19 +1275,6 @@ function EquipmentReferencePage() {
   const { data: allItems, isLoading: isInitialLoading } =
     useDeferredLoad(loadAllItems);
 
-  // Handle column header click for sorting
-  const handleSortClick = React.useCallback(
-    (column: EquipmentSortKey) => {
-      if (sortBy === column) {
-        setSortDir(d => (d === 'asc' ? 'desc' : 'asc'));
-      } else {
-        setSortBy(column);
-        setSortDir('asc');
-      }
-    },
-    [sortBy]
-  );
-
   const { filterState, onSearchChange, onFilterChange, onClearFilters } =
     useFilterState(filterGroups);
 
@@ -802,358 +1285,56 @@ function EquipmentReferencePage() {
       filterState.search,
       filterState.filters
     );
-
-    // Apply sorting
-    return [...items].sort((a, b) => {
-      let cmp = 0;
-      switch (sortBy) {
-        case 'name':
-          cmp = a.data.name.localeCompare(b.data.name);
-          break;
-        case 'tier':
-          cmp = a.data.tier.localeCompare(b.data.tier);
-          // Secondary sort by name for stability
-          if (cmp === 0) {
-            cmp = a.data.name.localeCompare(b.data.name);
-          }
-          break;
-        case 'type':
-          cmp = a.type.localeCompare(b.type);
-          // Secondary sort by name for stability
-          if (cmp === 0) {
-            cmp = a.data.name.localeCompare(b.data.name);
-          }
-          break;
-        case 'trait': {
-          const traitA = 'trait' in a.data ? (a.data.trait ?? '') : '';
-          const traitB = 'trait' in b.data ? (b.data.trait ?? '') : '';
-          cmp = traitA.localeCompare(traitB);
-          // Secondary sort by name for stability
-          if (cmp === 0) {
-            cmp = a.data.name.localeCompare(b.data.name);
-          }
-          break;
-        }
-      }
-      return sortDir === 'asc' ? cmp : -cmp;
-    });
+    return sortEquipmentItems(items, sortBy, sortDir);
   }, [allItems, filterState, sortBy, sortDir]);
 
   // Use deferred rendering for smooth filtering on mobile
   const { deferredItems, isPending: isFiltering } =
     useDeferredItems(filteredItems);
 
-  // Group by category for sectioned display
-  const groupedItems = React.useMemo(() => {
-    const groups: Record<string, EquipmentItem[]> = {
-      primary: [],
-      secondary: [],
-      armor: [],
-      wheelchair: [],
-    };
-    for (const item of deferredItems) {
-      groups[item.type].push(item);
-    }
-    return groups;
-  }, [deferredItems]);
+  const groupedItems = React.useMemo(
+    () => groupEquipmentItems(deferredItems),
+    [deferredItems]
+  );
 
-  // Keyboard navigation
-  useKeyboardNavigation({
-    items: deferredItems,
-    selectedItem,
-    onSelect: setSelectedItem,
-    onClose: () => setSelectedItem(null),
-  });
-
-  // Show skeleton while data is loading
-  if (isInitialLoading) {
-    return <ReferencePageSkeleton showFilters={!isMobile} />;
-  }
+  const handleSortClick = React.useCallback(
+    (column: EquipmentSortKey) => {
+      if (sortBy === column) {
+        setSortDir(dir => (dir === 'asc' ? 'desc' : 'asc'));
+      } else {
+        setSortBy(column);
+        setSortDir('asc');
+      }
+    },
+    [sortBy]
+  );
 
   const totalCount = allItems?.length ?? 0;
 
   return (
-    <div className="flex min-h-0 flex-1">
-      {/* Filter sidebar - hidden on mobile, shown via sheet */}
-      {!isMobile && (
-        <ReferenceFilter
-          filterGroups={filterGroups}
-          filterState={filterState}
-          onSearchChange={onSearchChange}
-          onFilterChange={onFilterChange}
-          onClearFilters={onClearFilters}
-          resultCount={filteredItems.length}
-          totalCount={totalCount}
-          searchPlaceholder="Search equipment..."
-        />
-      )}
-
-      {/* Main content */}
-      <div className="flex min-h-0 flex-1 flex-col">
-        {/* Header */}
-        <div className="bg-background shrink-0 border-b p-4">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h1 className="bg-linear-to-r from-amber-500 to-orange-600 bg-clip-text text-2xl font-bold text-transparent">
-                <Swords className="mr-2 inline-block size-6" />
-                Equipment Reference
-              </h1>
-              <ResultsCounter
-                filtered={filteredItems.length}
-                total={totalCount}
-                label="items"
-              />
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              {isMobile && (
-                <ReferenceFilter
-                  filterGroups={filterGroups}
-                  filterState={filterState}
-                  onSearchChange={onSearchChange}
-                  onFilterChange={onFilterChange}
-                  onClearFilters={onClearFilters}
-                  resultCount={filteredItems.length}
-                  totalCount={totalCount}
-                  searchPlaceholder="Search equipment..."
-                />
-              )}
-              {/* Sort control */}
-              <div className="flex items-center gap-2">
-                <select
-                  value={sortBy}
-                  onChange={e => setSortBy(e.target.value as EquipmentSortKey)}
-                  className="bg-background h-9 rounded-md border px-2 text-sm"
-                >
-                  <option value="name">Name</option>
-                  <option value="tier">Tier</option>
-                  <option value="type">Type</option>
-                  <option value="trait">Trait</option>
-                </select>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-9"
-                  onClick={() =>
-                    setSortDir(d => (d === 'asc' ? 'desc' : 'asc'))
-                  }
-                  aria-label={
-                    sortDir === 'asc' ? 'Sort descending' : 'Sort ascending'
-                  }
-                >
-                  {sortDir === 'asc' ? (
-                    <ArrowUp className="size-4" />
-                  ) : (
-                    <ArrowDown className="size-4" />
-                  )}
-                </Button>
-              </div>
-              {/* Hide view toggle on mobile - table view is too wide for small screens */}
-              {!isMobile && (
-                <ToggleGroup
-                  type="single"
-                  value={viewMode}
-                  onValueChange={v => v && setViewMode(v as 'grid' | 'table')}
-                >
-                  <ToggleGroupItem value="grid" aria-label="Grid view">
-                    <Grid3X3 className="size-4" />
-                  </ToggleGroupItem>
-                  <ToggleGroupItem value="table" aria-label="Table view">
-                    <List className="size-4" />
-                  </ToggleGroupItem>
-                </ToggleGroup>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Content - scrollable */}
-        <div
-          ref={scrollRef}
-          className="relative min-h-0 flex-1 overflow-y-auto"
-        >
-          {/* Loading overlay during filtering */}
-          {isFiltering && (
-            <div className="bg-background/60 absolute inset-0 z-10 flex items-start justify-center pt-20 backdrop-blur-[1px]">
-              <div className="bg-background rounded-lg border p-4 shadow-lg">
-                <div className="border-primary h-6 w-6 animate-spin rounded-full border-2 border-t-transparent" />
-              </div>
-            </div>
-          )}
-          <div className="p-4">
-            {viewMode === 'grid' ? (
-              <div className="space-y-8">
-                {Object.entries(groupedItems).map(([category, items]) => {
-                  if (items.length === 0) return null;
-                  const categoryLabel =
-                    category === 'primary'
-                      ? 'Primary Weapons'
-                      : category === 'secondary'
-                        ? 'Secondary Weapons'
-                        : category === 'armor'
-                          ? 'Armor'
-                          : 'Combat Wheelchairs';
-
-                  // Group by tier within category
-                  const byTier = items.reduce(
-                    (acc, item) => {
-                      const tier = item.data.tier;
-                      if (!acc[tier]) acc[tier] = [];
-                      acc[tier].push(item);
-                      return acc;
-                    },
-                    {} as Record<string, EquipmentItem[]>
-                  );
-
-                  return (
-                    <section key={category}>
-                      <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold">
-                        {categoryLabel}
-                        <Badge variant="outline">{items.length}</Badge>
-                      </h2>
-                      <div className="space-y-6">
-                        {Object.entries(byTier)
-                          .sort(([a], [b]) => a.localeCompare(b))
-                          .map(([tier, tierItems]) => (
-                            <div key={tier}>
-                              <h3 className="text-muted-foreground mb-3 flex items-center gap-2 text-sm font-medium">
-                                <span
-                                  className={`inline-block h-2 w-2 rounded-full ${tierDotColors[tier]}`}
-                                />
-                                Tier {tier}
-                              </h3>
-                              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                                {tierItems.map((item, idx) => (
-                                  <EquipmentCard
-                                    key={`${item.data.name}-${idx}`}
-                                    item={item}
-                                    onClick={() => setSelectedItem(item)}
-                                  />
-                                ))}
-                              </div>
-                            </div>
-                          ))}
-                      </div>
-                    </section>
-                  );
-                })}
-              </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <SortableTableHead
-                      column="name"
-                      label="Name"
-                      currentSort={sortBy}
-                      direction={sortDir}
-                      onSort={handleSortClick}
-                    />
-                    <SortableTableHead
-                      column="tier"
-                      label="Tier"
-                      currentSort={sortBy}
-                      direction={sortDir}
-                      onSort={handleSortClick}
-                      className="hidden sm:table-cell"
-                    />
-                    <SortableTableHead
-                      column="type"
-                      label="Type"
-                      currentSort={sortBy}
-                      direction={sortDir}
-                      onSort={handleSortClick}
-                      className="hidden md:table-cell"
-                    />
-                    <SortableTableHead
-                      column="trait"
-                      label="Trait/Stats"
-                      currentSort={sortBy}
-                      direction={sortDir}
-                      onSort={handleSortClick}
-                    />
-                    <TableHead className="hidden lg:table-cell">
-                      Modifiers
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredItems.map((item, idx) => (
-                    <EquipmentTableRow
-                      key={`${item.data.name}-${idx}`}
-                      item={item}
-                      onClick={() => setSelectedItem(item)}
-                    />
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-
-            {filteredItems.length === 0 && (
-              <div className="text-muted-foreground py-12 text-center">
-                <p>No equipment matches your filters.</p>
-                <Button
-                  variant="link"
-                  onClick={onClearFilters}
-                  className="mt-2"
-                >
-                  Clear all filters
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Back to top button */}
-      <BackToTop scrollRef={scrollRef} />
-
-      {/* Detail panel - sheet on mobile, sidebar on desktop */}
-      <Sheet
-        open={selectedItem !== null}
-        onOpenChange={open => !open && setSelectedItem(null)}
-      >
-        <SheetContent
-          side="right"
-          className="flex w-full flex-col p-0 sm:max-w-md"
-          hideCloseButton
-        >
-          {selectedItem && (
-            <>
-              <SheetHeader className="bg-background shrink-0 border-b p-4">
-                <SheetTitle className="flex items-center justify-between gap-2">
-                  <span className="truncate">{selectedItem.data.name}</span>
-                  <div className="flex shrink-0 items-center gap-2">
-                    <KeyboardHint />
-                    <DetailCloseButton onClose={() => setSelectedItem(null)} />
-                  </div>
-                </SheetTitle>
-              </SheetHeader>
-              <div className="min-h-0 flex-1 overflow-y-auto p-4">
-                <ItemDetail item={selectedItem} />
-              </div>
-            </>
-          )}
-        </SheetContent>
-      </Sheet>
-
-      {/* Comparison drawer */}
-      <CompareDrawer
-        title="Compare Equipment"
-        renderComparison={(items: ComparisonItem<EquipmentItem>[]) => (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {items.map(item => (
-              <div
-                key={item.id}
-                className="bg-card overflow-hidden rounded-lg border p-4"
-              >
-                <h3 className="mb-3 text-lg font-semibold">{item.name}</h3>
-                <ItemDetail item={item.data} />
-              </div>
-            ))}
-          </div>
-        )}
-      />
-    </div>
+    <EquipmentLayout
+      isInitialLoading={isInitialLoading}
+      isMobile={isMobile}
+      filterState={filterState}
+      onSearchChange={onSearchChange}
+      onFilterChange={onFilterChange}
+      onClearFilters={onClearFilters}
+      filteredItems={filteredItems}
+      totalCount={totalCount}
+      sortBy={sortBy}
+      sortDir={sortDir}
+      onSortByChange={setSortBy}
+      onSortDirChange={setSortDir}
+      viewMode={viewMode}
+      onViewModeChange={setViewMode}
+      scrollRef={scrollRef}
+      isFiltering={isFiltering}
+      groupedItems={groupedItems}
+      onSelectItem={setSelectedItem}
+      selectedItem={selectedItem}
+      onCloseItem={() => setSelectedItem(null)}
+      onSort={handleSortClick}
+    />
   );
 }
 

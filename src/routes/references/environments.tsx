@@ -1,4 +1,4 @@
-/* eslint-disable max-lines, max-lines-per-function */
+/* eslint-disable max-lines */
 // Environments reference page with page-specific detail components
 
 import {
@@ -169,6 +169,280 @@ function TooltipLabel({
 }
 
 const loadAllEnvironments = () => [...ENVIRONMENTS];
+
+type EnvironmentSortKey = 'name' | 'tier' | 'type';
+
+const ENVIRONMENT_SORTERS: Record<
+  EnvironmentSortKey,
+  (a: EnvironmentItem, b: EnvironmentItem) => number
+> = {
+  name: (a, b) => a.name.localeCompare(b.name),
+  tier: (a, b) => tierOrder.indexOf(a.tier) - tierOrder.indexOf(b.tier),
+  type: (a, b) => a.type.localeCompare(b.type),
+};
+
+function getEnvironmentSearchText(environment: EnvironmentItem) {
+  const impulses = environment.impulses.join(' ').toLowerCase();
+  const adversaries = environment.potentialAdversaries.join(' ').toLowerCase();
+  const features = environment.features
+    .map(feature => formatFeature(feature).toLowerCase())
+    .join(' ');
+  return [
+    environment.name,
+    environment.description,
+    environment.type,
+    impulses,
+    adversaries,
+    features,
+  ]
+    .join(' ')
+    .toLowerCase();
+}
+
+function filterEnvironments(
+  items: EnvironmentItem[],
+  search: string,
+  tierFilter: Environment['tier'] | 'all',
+  typeFilter: Environment['type'] | 'all'
+) {
+  return items.filter(environment => {
+    if (tierFilter !== 'all' && environment.tier !== tierFilter) return false;
+    if (typeFilter !== 'all' && environment.type !== typeFilter) return false;
+    if (!search) return true;
+    return getEnvironmentSearchText(environment).includes(search.toLowerCase());
+  });
+}
+
+function sortEnvironments(
+  items: EnvironmentItem[],
+  sortBy: EnvironmentSortKey,
+  sortDir: 'asc' | 'desc'
+) {
+  const sorted = [...items].sort(ENVIRONMENT_SORTERS[sortBy]);
+  return sortDir === 'asc' ? sorted : sorted.reverse();
+}
+
+type EnvironmentsHeaderProps = {
+  filteredCount: number;
+  totalCount: number;
+  tierFilter: Environment['tier'] | 'all';
+  typeFilter: Environment['type'] | 'all';
+  sortBy: EnvironmentSortKey;
+  sortDir: 'asc' | 'desc';
+  search: string;
+  onTierFilterChange: (value: Environment['tier'] | 'all') => void;
+  onTypeFilterChange: (value: Environment['type'] | 'all') => void;
+  onSortByChange: (value: EnvironmentSortKey) => void;
+  onSortDirChange: (value: 'asc' | 'desc') => void;
+  onSearchChange: (value: string) => void;
+  onClearSearch: () => void;
+};
+
+function EnvironmentsHeader({
+  filteredCount,
+  totalCount,
+  tierFilter,
+  typeFilter,
+  sortBy,
+  sortDir,
+  search,
+  onTierFilterChange,
+  onTypeFilterChange,
+  onSortByChange,
+  onSortDirChange,
+  onSearchChange,
+  onClearSearch,
+}: EnvironmentsHeaderProps) {
+  return (
+    <div className="shrink-0 border-b bg-linear-to-r from-emerald-500/10 via-teal-500/10 to-sky-500/10 p-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="bg-linear-to-r from-emerald-500 via-teal-500 to-sky-500 bg-clip-text text-2xl font-bold text-transparent">
+            <Mountain className="mr-2 inline-block size-6" />
+            Environments Reference
+          </h1>
+          <ResultsCounter
+            filtered={filteredCount}
+            total={totalCount}
+            label="environments"
+          />
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            <select
+              value={tierFilter}
+              onChange={e =>
+                onTierFilterChange(
+                  e.target.value as Environment['tier'] | 'all'
+                )
+              }
+              className="bg-background h-9 rounded-md border px-2 text-sm"
+              aria-label="Filter by tier"
+            >
+              <option value="all">All tiers</option>
+              {tierOrder.map(tier => (
+                <option key={tier} value={tier}>
+                  {tierLabels[tier]} Tier {tier}
+                </option>
+              ))}
+            </select>
+            <select
+              value={typeFilter}
+              onChange={e =>
+                onTypeFilterChange(
+                  e.target.value as Environment['type'] | 'all'
+                )
+              }
+              className="bg-background h-9 rounded-md border px-2 text-sm"
+              aria-label="Filter by type"
+            >
+              <option value="all">All types</option>
+              {typeOrder.map(type => (
+                <option key={type} value={type}>
+                  {typeLabels[type]} {type}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <select
+              value={sortBy}
+              onChange={e =>
+                onSortByChange(e.target.value as EnvironmentSortKey)
+              }
+              className="bg-background h-9 rounded-md border px-2 text-sm"
+              aria-label="Sort environments"
+            >
+              <option value="name">Name</option>
+              <option value="tier">Tier</option>
+              <option value="type">Type</option>
+            </select>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-9"
+              onClick={() =>
+                onSortDirChange(sortDir === 'asc' ? 'desc' : 'asc')
+              }
+              aria-label={
+                sortDir === 'asc' ? 'Sort descending' : 'Sort ascending'
+              }
+            >
+              {sortDir === 'asc' ? (
+                <ArrowUp className="size-4" />
+              ) : (
+                <ArrowDown className="size-4" />
+              )}
+            </Button>
+          </div>
+          <div className="relative w-full sm:w-64">
+            <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+            <Input
+              placeholder="Search environments..."
+              value={search}
+              onChange={e => onSearchChange(e.target.value)}
+              className="pr-9 pl-9"
+            />
+            {search && (
+              <button
+                onClick={onClearSearch}
+                className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
+                aria-label="Clear search"
+              >
+                <X className="size-4" />
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EnvironmentsGrid({
+  items,
+  isMobile,
+  onSelect,
+}: {
+  items: EnvironmentItem[];
+  isMobile: boolean;
+  onSelect: (environment: EnvironmentItem) => void;
+}) {
+  if (isMobile) {
+    return (
+      <div className="grid grid-cols-1 gap-3">
+        {items.map(environment => (
+          <EnvironmentCard
+            key={environment.name}
+            environment={environment}
+            compact
+            onClick={() => onSelect(environment)}
+          />
+        ))}
+      </div>
+    );
+  }
+  return (
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {items.map(environment => (
+        <EnvironmentCard
+          key={environment.name}
+          environment={environment}
+          onClick={() => onSelect(environment)}
+        />
+      ))}
+    </div>
+  );
+}
+
+function EnvironmentsEmptyState({ onClear }: { onClear: () => void }) {
+  return (
+    <div className="text-muted-foreground py-12 text-center">
+      <p>No environments match your filters.</p>
+      <Button variant="link" onClick={onClear} className="mt-2">
+        Clear filters
+      </Button>
+    </div>
+  );
+}
+
+function EnvironmentDetailSheet({
+  selectedEnvironment,
+  onClose,
+}: {
+  selectedEnvironment: EnvironmentItem | null;
+  onClose: () => void;
+}) {
+  return (
+    <Sheet
+      open={selectedEnvironment !== null}
+      onOpenChange={open => !open && onClose()}
+    >
+      <SheetContent
+        side="right"
+        className="flex w-full flex-col p-0 sm:max-w-lg"
+        hideCloseButton
+      >
+        {selectedEnvironment && (
+          <>
+            <SheetHeader className="bg-background shrink-0 border-b p-4">
+              <SheetTitle className="flex items-center justify-between gap-2">
+                <span className="truncate">{selectedEnvironment.name}</span>
+                <div className="flex shrink-0 items-center gap-2">
+                  <KeyboardHint />
+                  <DetailCloseButton onClose={onClose} />
+                </div>
+              </SheetTitle>
+            </SheetHeader>
+            <div className="min-h-0 flex-1 overflow-y-auto p-4">
+              <EnvironmentDetail environment={selectedEnvironment} />
+            </div>
+          </>
+        )}
+      </SheetContent>
+    </Sheet>
+  );
+}
 
 function formatDifficulty(difficulty: Environment['difficulty']) {
   return typeof difficulty === 'number' ? difficulty : difficulty;
@@ -401,7 +675,7 @@ function EnvironmentsReferencePage() {
   const [typeFilter, setTypeFilter] = React.useState<
     Environment['type'] | 'all'
   >('all');
-  const [sortBy, setSortBy] = React.useState<'name' | 'tier' | 'type'>('name');
+  const [sortBy, setSortBy] = React.useState<EnvironmentSortKey>('name');
   const [sortDir, setSortDir] = React.useState<'asc' | 'desc'>('asc');
   const [selectedEnvironment, setSelectedEnvironment] =
     React.useState<EnvironmentItem | null>(null);
@@ -413,54 +687,13 @@ function EnvironmentsReferencePage() {
 
   const filteredEnvironments = React.useMemo(() => {
     if (!allEnvironments) return [];
-    let result = [...allEnvironments];
-
-    if (tierFilter !== 'all') {
-      result = result.filter(environment => environment.tier === tierFilter);
-    }
-
-    if (typeFilter !== 'all') {
-      result = result.filter(environment => environment.type === typeFilter);
-    }
-
-    if (search) {
-      const searchLower = search.toLowerCase();
-      result = result.filter(environment => {
-        const impulses = environment.impulses.join(' ').toLowerCase();
-        const adversaries = environment.potentialAdversaries
-          .join(' ')
-          .toLowerCase();
-        const features = environment.features
-          .map(feature => formatFeature(feature).toLowerCase())
-          .join(' ');
-        return (
-          environment.name.toLowerCase().includes(searchLower) ||
-          environment.description.toLowerCase().includes(searchLower) ||
-          environment.type.toLowerCase().includes(searchLower) ||
-          impulses.includes(searchLower) ||
-          adversaries.includes(searchLower) ||
-          features.includes(searchLower)
-        );
-      });
-    }
-
-    result.sort((a, b) => {
-      let cmp = 0;
-      switch (sortBy) {
-        case 'name':
-          cmp = a.name.localeCompare(b.name);
-          break;
-        case 'tier':
-          cmp = tierOrder.indexOf(a.tier) - tierOrder.indexOf(b.tier);
-          break;
-        case 'type':
-          cmp = a.type.localeCompare(b.type);
-          break;
-      }
-      return sortDir === 'asc' ? cmp : -cmp;
-    });
-
-    return result;
+    const filtered = filterEnvironments(
+      allEnvironments,
+      search,
+      tierFilter,
+      typeFilter
+    );
+    return sortEnvironments(filtered, sortBy, sortDir);
   }, [allEnvironments, tierFilter, typeFilter, search, sortBy, sortDir]);
 
   const { deferredItems: deferredEnvironments, isPending: isFiltering } =
@@ -479,102 +712,21 @@ function EnvironmentsReferencePage() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="shrink-0 border-b bg-linear-to-r from-emerald-500/10 via-teal-500/10 to-sky-500/10 p-4">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="bg-linear-to-r from-emerald-500 via-teal-500 to-sky-500 bg-clip-text text-2xl font-bold text-transparent">
-              <Mountain className="mr-2 inline-block size-6" />
-              Environments Reference
-            </h1>
-            <ResultsCounter
-              filtered={filteredEnvironments.length}
-              total={totalCount}
-              label="environments"
-            />
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2">
-              <select
-                value={tierFilter}
-                onChange={e =>
-                  setTierFilter(e.target.value as Environment['tier'] | 'all')
-                }
-                className="bg-background h-9 rounded-md border px-2 text-sm"
-                aria-label="Filter by tier"
-              >
-                <option value="all">All tiers</option>
-                {tierOrder.map(tier => (
-                  <option key={tier} value={tier}>
-                    {tierLabels[tier]} Tier {tier}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={typeFilter}
-                onChange={e =>
-                  setTypeFilter(e.target.value as Environment['type'] | 'all')
-                }
-                className="bg-background h-9 rounded-md border px-2 text-sm"
-                aria-label="Filter by type"
-              >
-                <option value="all">All types</option>
-                {typeOrder.map(type => (
-                  <option key={type} value={type}>
-                    {typeLabels[type]} {type}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="flex items-center gap-2">
-              <select
-                value={sortBy}
-                onChange={e =>
-                  setSortBy(e.target.value as 'name' | 'tier' | 'type')
-                }
-                className="bg-background h-9 rounded-md border px-2 text-sm"
-                aria-label="Sort environments"
-              >
-                <option value="name">Name</option>
-                <option value="tier">Tier</option>
-                <option value="type">Type</option>
-              </select>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-9"
-                onClick={() => setSortDir(sortDir === 'asc' ? 'desc' : 'asc')}
-                aria-label={
-                  sortDir === 'asc' ? 'Sort descending' : 'Sort ascending'
-                }
-              >
-                {sortDir === 'asc' ? (
-                  <ArrowUp className="size-4" />
-                ) : (
-                  <ArrowDown className="size-4" />
-                )}
-              </Button>
-            </div>
-            <div className="relative w-full sm:w-64">
-              <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-              <Input
-                placeholder="Search environments..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="pr-9 pl-9"
-              />
-              {search && (
-                <button
-                  onClick={() => setSearch('')}
-                  className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
-                  aria-label="Clear search"
-                >
-                  <X className="size-4" />
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
+      <EnvironmentsHeader
+        filteredCount={filteredEnvironments.length}
+        totalCount={totalCount}
+        tierFilter={tierFilter}
+        typeFilter={typeFilter}
+        sortBy={sortBy}
+        sortDir={sortDir}
+        search={search}
+        onTierFilterChange={setTierFilter}
+        onTypeFilterChange={setTypeFilter}
+        onSortByChange={setSortBy}
+        onSortDirChange={setSortDir}
+        onSearchChange={setSearch}
+        onClearSearch={() => setSearch('')}
+      />
 
       <div ref={scrollRef} className="relative min-h-0 flex-1 overflow-y-auto">
         {isFiltering && (
@@ -585,79 +737,30 @@ function EnvironmentsReferencePage() {
           </div>
         )}
         <div className="p-4">
-          {isMobile ? (
-            <div className="grid grid-cols-1 gap-3">
-              {deferredEnvironments.map(environment => (
-                <EnvironmentCard
-                  key={environment.name}
-                  environment={environment}
-                  compact
-                  onClick={() => setSelectedEnvironment(environment)}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {deferredEnvironments.map(environment => (
-                <EnvironmentCard
-                  key={environment.name}
-                  environment={environment}
-                  onClick={() => setSelectedEnvironment(environment)}
-                />
-              ))}
-            </div>
-          )}
+          <EnvironmentsGrid
+            items={deferredEnvironments}
+            isMobile={isMobile}
+            onSelect={setSelectedEnvironment}
+          />
 
           {deferredEnvironments.length === 0 && !isFiltering && (
-            <div className="text-muted-foreground py-12 text-center">
-              <p>No environments match your filters.</p>
-              <Button
-                variant="link"
-                onClick={() => {
-                  setSearch('');
-                  setTierFilter('all');
-                  setTypeFilter('all');
-                }}
-                className="mt-2"
-              >
-                Clear filters
-              </Button>
-            </div>
+            <EnvironmentsEmptyState
+              onClear={() => {
+                setSearch('');
+                setTierFilter('all');
+                setTypeFilter('all');
+              }}
+            />
           )}
         </div>
       </div>
 
       <BackToTop scrollRef={scrollRef} />
 
-      <Sheet
-        open={selectedEnvironment !== null}
-        onOpenChange={open => !open && setSelectedEnvironment(null)}
-      >
-        <SheetContent
-          side="right"
-          className="flex w-full flex-col p-0 sm:max-w-lg"
-          hideCloseButton
-        >
-          {selectedEnvironment && (
-            <>
-              <SheetHeader className="bg-background shrink-0 border-b p-4">
-                <SheetTitle className="flex items-center justify-between gap-2">
-                  <span className="truncate">{selectedEnvironment.name}</span>
-                  <div className="flex shrink-0 items-center gap-2">
-                    <KeyboardHint />
-                    <DetailCloseButton
-                      onClose={() => setSelectedEnvironment(null)}
-                    />
-                  </div>
-                </SheetTitle>
-              </SheetHeader>
-              <div className="min-h-0 flex-1 overflow-y-auto p-4">
-                <EnvironmentDetail environment={selectedEnvironment} />
-              </div>
-            </>
-          )}
-        </SheetContent>
-      </Sheet>
+      <EnvironmentDetailSheet
+        selectedEnvironment={selectedEnvironment}
+        onClose={() => setSelectedEnvironment(null)}
+      />
     </div>
   );
 }

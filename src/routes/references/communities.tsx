@@ -1,4 +1,4 @@
-/* eslint-disable max-lines, max-lines-per-function */
+/* eslint-disable max-lines */
 // Communities reference page with page-specific detail components
 
 import { createFileRoute } from '@tanstack/react-router';
@@ -278,11 +278,217 @@ function CommunityDetail({ community }: { community: Community }) {
 // Stable loader function for useDeferredLoad
 const loadAllCommunities = () => [...COMMUNITIES];
 
+type CommunitySortKey = 'name' | 'feature';
+
+const COMMUNITY_SORTERS: Record<
+  CommunitySortKey,
+  (a: Community, b: Community) => number
+> = {
+  name: (a, b) => a.name.localeCompare(b.name),
+  feature: (a, b) => a.feature.name.localeCompare(b.feature.name),
+};
+
+function filterCommunities(items: Community[], search: string) {
+  if (!search) return items;
+  const searchLower = search.toLowerCase();
+  return items.filter(
+    community =>
+      community.name.toLowerCase().includes(searchLower) ||
+      community.description.toLowerCase().includes(searchLower) ||
+      community.feature.name.toLowerCase().includes(searchLower) ||
+      community.commonTraits.some(trait =>
+        trait.toLowerCase().includes(searchLower)
+      )
+  );
+}
+
+function sortCommunities(
+  items: Community[],
+  sortBy: CommunitySortKey,
+  sortDir: 'asc' | 'desc'
+) {
+  const sorted = [...items].sort(COMMUNITY_SORTERS[sortBy]);
+  return sortDir === 'asc' ? sorted : sorted.reverse();
+}
+
+type CommunitiesHeaderProps = {
+  filteredCount: number;
+  totalCount: number;
+  sortBy: CommunitySortKey;
+  sortDir: 'asc' | 'desc';
+  search: string;
+  onSortByChange: (value: CommunitySortKey) => void;
+  onSortDirChange: (value: 'asc' | 'desc') => void;
+  onSearchChange: (value: string) => void;
+  onClearSearch: () => void;
+};
+
+function CommunitiesHeader({
+  filteredCount,
+  totalCount,
+  sortBy,
+  sortDir,
+  search,
+  onSortByChange,
+  onSortDirChange,
+  onSearchChange,
+  onClearSearch,
+}: CommunitiesHeaderProps) {
+  return (
+    <div className="bg-background shrink-0 border-b p-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="bg-linear-to-r from-green-500 to-emerald-600 bg-clip-text text-2xl font-bold text-transparent">
+            <Home className="mr-2 inline-block size-6" />
+            Communities
+          </h1>
+          <ResultsCounter
+            filtered={filteredCount}
+            total={totalCount}
+            label="communities"
+          />
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            <select
+              value={sortBy}
+              onChange={e => onSortByChange(e.target.value as CommunitySortKey)}
+              className="bg-background h-9 rounded-md border px-2 text-sm"
+            >
+              <option value="name">Name</option>
+              <option value="feature">Feature</option>
+            </select>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-9"
+              onClick={() =>
+                onSortDirChange(sortDir === 'asc' ? 'desc' : 'asc')
+              }
+              aria-label={
+                sortDir === 'asc' ? 'Sort descending' : 'Sort ascending'
+              }
+            >
+              {sortDir === 'asc' ? (
+                <ArrowUp className="size-4" />
+              ) : (
+                <ArrowDown className="size-4" />
+              )}
+            </Button>
+          </div>
+          <div className="relative w-full sm:w-64">
+            <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+            <Input
+              placeholder="Search communities..."
+              value={search}
+              onChange={e => onSearchChange(e.target.value)}
+              className="pr-9 pl-9"
+            />
+            {search && (
+              <button
+                onClick={onClearSearch}
+                className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
+              >
+                <X className="size-4" />
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CommunitiesGrid({
+  items,
+  isMobile,
+  onSelect,
+}: {
+  items: Community[];
+  isMobile: boolean;
+  onSelect: (community: Community) => void;
+}) {
+  if (isMobile) {
+    return (
+      <div className="grid grid-cols-1 gap-3">
+        {items.map(community => (
+          <CommunityCard
+            key={community.name}
+            community={community}
+            onClick={() => onSelect(community)}
+            compact
+          />
+        ))}
+      </div>
+    );
+  }
+  return (
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {items.map(community => (
+        <CommunityCard
+          key={community.name}
+          community={community}
+          onClick={() => onSelect(community)}
+        />
+      ))}
+    </div>
+  );
+}
+
+function CommunitiesEmptyState({ onClear }: { onClear: () => void }) {
+  return (
+    <div className="text-muted-foreground py-12 text-center">
+      <p>No communities match your search.</p>
+      <Button variant="link" onClick={onClear} className="mt-2">
+        Clear search
+      </Button>
+    </div>
+  );
+}
+
+function CommunityDetailSheet({
+  selectedCommunity,
+  onClose,
+}: {
+  selectedCommunity: Community | null;
+  onClose: () => void;
+}) {
+  return (
+    <Sheet
+      open={selectedCommunity !== null}
+      onOpenChange={open => !open && onClose()}
+    >
+      <SheetContent
+        side="right"
+        className="flex w-full flex-col p-0 sm:max-w-lg"
+        hideCloseButton
+      >
+        {selectedCommunity && (
+          <>
+            <SheetHeader className="bg-background shrink-0 border-b p-4">
+              <SheetTitle className="flex items-center justify-between gap-2">
+                <span className="truncate">{selectedCommunity.name}</span>
+                <div className="flex shrink-0 items-center gap-2">
+                  <KeyboardHint />
+                  <DetailCloseButton onClose={onClose} />
+                </div>
+              </SheetTitle>
+            </SheetHeader>
+            <div className="min-h-0 flex-1 overflow-y-auto p-4">
+              <CommunityDetail community={selectedCommunity} />
+            </div>
+          </>
+        )}
+      </SheetContent>
+    </Sheet>
+  );
+}
+
 function CommunitiesReferencePage() {
   const isMobile = useIsMobile();
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const [search, setSearch] = React.useState('');
-  const [sortBy, setSortBy] = React.useState<'name' | 'feature'>('name');
+  const [sortBy, setSortBy] = React.useState<CommunitySortKey>('name');
   const [sortDir, setSortDir] = React.useState<'asc' | 'desc'>('asc');
   const [selectedCommunity, setSelectedCommunity] =
     React.useState<Community | null>(null);
@@ -295,35 +501,8 @@ function CommunitiesReferencePage() {
 
   const filteredCommunities = React.useMemo(() => {
     if (!allCommunities) return [];
-    let result = [...allCommunities];
-
-    // Filter
-    if (search) {
-      const searchLower = search.toLowerCase();
-      result = result.filter(
-        c =>
-          c.name.toLowerCase().includes(searchLower) ||
-          c.description.toLowerCase().includes(searchLower) ||
-          c.feature.name.toLowerCase().includes(searchLower) ||
-          c.commonTraits.some(t => t.toLowerCase().includes(searchLower))
-      );
-    }
-
-    // Sort
-    result.sort((a, b) => {
-      let cmp = 0;
-      switch (sortBy) {
-        case 'name':
-          cmp = a.name.localeCompare(b.name);
-          break;
-        case 'feature':
-          cmp = a.feature.name.localeCompare(b.feature.name);
-          break;
-      }
-      return sortDir === 'asc' ? cmp : -cmp;
-    });
-
-    return result;
+    const filtered = filterCommunities(allCommunities, search);
+    return sortCommunities(filtered, sortBy, sortDir);
   }, [allCommunities, search, sortBy, sortDir]);
 
   // Use deferred rendering for smooth filtering on mobile
@@ -346,67 +525,17 @@ function CommunitiesReferencePage() {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       {/* Header */}
-      <div className="bg-background shrink-0 border-b p-4">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="bg-linear-to-r from-green-500 to-emerald-600 bg-clip-text text-2xl font-bold text-transparent">
-              <Home className="mr-2 inline-block size-6" />
-              Communities
-            </h1>
-            <ResultsCounter
-              filtered={filteredCommunities.length}
-              total={totalCount}
-              label="communities"
-            />
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Sort control */}
-            <div className="flex items-center gap-2">
-              <select
-                value={sortBy}
-                onChange={e => setSortBy(e.target.value as 'name' | 'feature')}
-                className="bg-background h-9 rounded-md border px-2 text-sm"
-              >
-                <option value="name">Name</option>
-                <option value="feature">Feature</option>
-              </select>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-9"
-                onClick={() => setSortDir(sortDir === 'asc' ? 'desc' : 'asc')}
-                aria-label={
-                  sortDir === 'asc' ? 'Sort descending' : 'Sort ascending'
-                }
-              >
-                {sortDir === 'asc' ? (
-                  <ArrowUp className="size-4" />
-                ) : (
-                  <ArrowDown className="size-4" />
-                )}
-              </Button>
-            </div>
-            {/* Search */}
-            <div className="relative w-full sm:w-64">
-              <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-              <Input
-                placeholder="Search communities..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="pr-9 pl-9"
-              />
-              {search && (
-                <button
-                  onClick={() => setSearch('')}
-                  className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
-                >
-                  <X className="size-4" />
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
+      <CommunitiesHeader
+        filteredCount={filteredCommunities.length}
+        totalCount={totalCount}
+        sortBy={sortBy}
+        sortDir={sortDir}
+        search={search}
+        onSortByChange={setSortBy}
+        onSortDirChange={setSortDir}
+        onSearchChange={setSearch}
+        onClearSearch={() => setSearch('')}
+      />
 
       {/* Content - scrollable */}
       <div ref={scrollRef} className="relative min-h-0 flex-1 overflow-y-auto">
@@ -419,42 +548,14 @@ function CommunitiesReferencePage() {
           </div>
         )}
         <div className="p-4">
-          {isMobile ? (
-            /* Mobile: Compact cards */
-            <div className="grid grid-cols-1 gap-3">
-              {deferredCommunities.map(community => (
-                <CommunityCard
-                  key={community.name}
-                  community={community}
-                  onClick={() => setSelectedCommunity(community)}
-                  compact
-                />
-              ))}
-            </div>
-          ) : (
-            /* Desktop: Full cards */
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {deferredCommunities.map(community => (
-                <CommunityCard
-                  key={community.name}
-                  community={community}
-                  onClick={() => setSelectedCommunity(community)}
-                />
-              ))}
-            </div>
-          )}
+          <CommunitiesGrid
+            items={deferredCommunities}
+            isMobile={isMobile}
+            onSelect={setSelectedCommunity}
+          />
 
           {deferredCommunities.length === 0 && !isFiltering && (
-            <div className="text-muted-foreground py-12 text-center">
-              <p>No communities match your search.</p>
-              <Button
-                variant="link"
-                onClick={() => setSearch('')}
-                className="mt-2"
-              >
-                Clear search
-              </Button>
-            </div>
+            <CommunitiesEmptyState onClear={() => setSearch('')} />
           )}
         </div>
       </div>
@@ -463,35 +564,10 @@ function CommunitiesReferencePage() {
       <BackToTop scrollRef={scrollRef} />
 
       {/* Detail sheet */}
-      <Sheet
-        open={selectedCommunity !== null}
-        onOpenChange={open => !open && setSelectedCommunity(null)}
-      >
-        <SheetContent
-          side="right"
-          className="flex w-full flex-col p-0 sm:max-w-lg"
-          hideCloseButton
-        >
-          {selectedCommunity && (
-            <>
-              <SheetHeader className="bg-background shrink-0 border-b p-4">
-                <SheetTitle className="flex items-center justify-between gap-2">
-                  <span className="truncate">{selectedCommunity.name}</span>
-                  <div className="flex shrink-0 items-center gap-2">
-                    <KeyboardHint />
-                    <DetailCloseButton
-                      onClose={() => setSelectedCommunity(null)}
-                    />
-                  </div>
-                </SheetTitle>
-              </SheetHeader>
-              <div className="min-h-0 flex-1 overflow-y-auto p-4">
-                <CommunityDetail community={selectedCommunity} />
-              </div>
-            </>
-          )}
-        </SheetContent>
-      </Sheet>
+      <CommunityDetailSheet
+        selectedCommunity={selectedCommunity}
+        onClose={() => setSelectedCommunity(null)}
+      />
     </div>
   );
 }

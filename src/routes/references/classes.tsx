@@ -1,4 +1,4 @@
-/* eslint-disable max-lines, max-lines-per-function */
+/* eslint-disable max-lines */
 // Classes reference page with page-specific detail components
 
 import { createFileRoute } from '@tanstack/react-router';
@@ -13,6 +13,7 @@ import {
   ResultsCounter,
   useDeferredItems,
   useDeferredLoad,
+  useKeyboardNavigation,
 } from '@/components/references';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -394,6 +395,227 @@ function ClassDetail({ gameClass }: { gameClass: GameClass }) {
 // Stable loader function for useDeferredLoad
 const loadAllClasses = () => [...ALL_CLASSES];
 
+function filterClasses(allClasses: readonly GameClass[], search: string) {
+  if (!search) return [...allClasses];
+  const searchLower = search.toLowerCase();
+  return [...allClasses].filter(
+    gameClass =>
+      gameClass.name.toLowerCase().includes(searchLower) ||
+      gameClass.description.toLowerCase().includes(searchLower) ||
+      gameClass.domains.some(domain =>
+        domain.toLowerCase().includes(searchLower)
+      ) ||
+      gameClass.subclasses.some(subclass =>
+        subclass.name.toLowerCase().includes(searchLower)
+      )
+  );
+}
+
+function ClassCard({
+  gameClass,
+  onSelect,
+}: {
+  gameClass: GameClass;
+  onSelect: (name: string) => void;
+}) {
+  const gradient =
+    classGradients[gameClass.name] ?? 'from-gray-500 to-slate-600';
+  return (
+    <Card
+      className="cursor-pointer transition-all hover:scale-[1.01] hover:shadow-lg"
+      onClick={() => onSelect(gameClass.name)}
+    >
+      <div className={`h-2 bg-linear-to-r ${gradient}`} />
+      <CardHeader>
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 space-y-2">
+            <CardTitle className="flex items-center gap-2 text-2xl">
+              {gameClass.name}
+              <ChevronRight className="size-5 opacity-50" />
+            </CardTitle>
+            <CardDescription>{gameClass.description}</CardDescription>
+          </div>
+        </div>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {gameClass.domains.map(domain => (
+            <Badge key={domain} className={domainColors[domain] ?? 'bg-muted'}>
+              {domain}
+            </Badge>
+          ))}
+        </div>
+      </CardHeader>
+      <CardContent className="pt-0">
+        <div className="text-muted-foreground flex gap-4 text-sm">
+          <span>
+            <span className="text-foreground font-medium">
+              {gameClass.startingHitPoints}
+            </span>{' '}
+            HP
+          </span>
+          <span>
+            <span className="text-foreground font-medium">
+              {gameClass.startingEvasion}
+            </span>{' '}
+            Evasion
+          </span>
+          <span>
+            <span className="text-foreground font-medium">
+              {gameClass.subclasses.length}
+            </span>{' '}
+            Subclasses
+          </span>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+type ClassesHeaderProps = {
+  filteredCount: number;
+  totalCount: number;
+  subclassCount: number;
+  isMobile: boolean;
+  classes: GameClass[];
+  selectedClass: string | null;
+  search: string;
+  onSearchChange: (value: string) => void;
+  onSelectClass: (name: string) => void;
+};
+
+function ClassesHeader({
+  filteredCount,
+  totalCount,
+  subclassCount,
+  isMobile,
+  classes,
+  selectedClass,
+  search,
+  onSearchChange,
+  onSelectClass,
+}: ClassesHeaderProps) {
+  return (
+    <div className="bg-background shrink-0 border-b p-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="bg-linear-to-r from-purple-500 to-indigo-600 bg-clip-text text-2xl font-bold text-transparent">
+            <Shield className="mr-2 inline-block size-6" />
+            Classes & Subclasses
+          </h1>
+          <ResultsCounter
+            filtered={filteredCount}
+            total={totalCount}
+            label="classes"
+            suffix={` with ${subclassCount} subclasses`}
+          />
+        </div>
+        {isMobile && (
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Search className="mr-2 size-4" />
+                Browse Classes
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-72 p-0">
+              <ClassOutline
+                classes={classes}
+                selectedClass={selectedClass}
+                onSelectClass={onSelectClass}
+                search={search}
+                onSearchChange={onSearchChange}
+              />
+            </SheetContent>
+          </Sheet>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ClassesContent({
+  selectedClass,
+  classes,
+  onSelectClass,
+  onClearSelection,
+}: {
+  selectedClass: GameClass | null;
+  classes: GameClass[];
+  onSelectClass: (name: string) => void;
+  onClearSelection: () => void;
+}) {
+  if (selectedClass) {
+    return (
+      <div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onClearSelection}
+          className="mb-4 -ml-2"
+        >
+          <ArrowLeft className="mr-2 size-4" />
+          Back to all classes
+        </Button>
+        <ClassDetail gameClass={selectedClass} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {classes.map(gameClass => (
+        <ClassCard
+          key={gameClass.name}
+          gameClass={gameClass}
+          onSelect={onSelectClass}
+        />
+      ))}
+    </div>
+  );
+}
+
+function ClassesEmptyState({ onClear }: { onClear: () => void }) {
+  return (
+    <div className="text-muted-foreground py-12 text-center">
+      <p>No classes match your search.</p>
+      <Button variant="link" onClick={onClear} className="mt-2">
+        Clear search
+      </Button>
+    </div>
+  );
+}
+
+function ClassDetailSheet({
+  selectedClass,
+  onClose,
+}: {
+  selectedClass: GameClass | null;
+  onClose: () => void;
+}) {
+  if (!selectedClass) return null;
+  return (
+    <Sheet open={!!selectedClass} onOpenChange={open => !open && onClose()}>
+      <SheetContent
+        side="right"
+        className="flex w-full flex-col p-0 sm:max-w-lg"
+        hideCloseButton
+      >
+        <SheetHeader className="shrink-0 border-b p-4">
+          <SheetTitle className="flex items-center justify-between gap-2">
+            <span className="truncate">{selectedClass.name}</span>
+            <div className="flex shrink-0 items-center gap-2">
+              <KeyboardHint showNavigation={false} />
+              <DetailCloseButton onClose={onClose} />
+            </div>
+          </SheetTitle>
+        </SheetHeader>
+        <div className="min-h-0 flex-1 overflow-y-auto p-4">
+          <ClassDetail gameClass={selectedClass} />
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
 function ClassesReferencePage() {
   const isMobile = useIsMobile();
   const scrollRef = React.useRef<HTMLDivElement>(null);
@@ -405,17 +627,9 @@ function ClassesReferencePage() {
     useDeferredLoad(loadAllClasses);
 
   // Filter classes by search
-  const filteredClasses = React.useMemo((): GameClass[] => {
+  const filteredClasses = React.useMemo(() => {
     if (!allClasses) return [];
-    if (!search) return allClasses;
-    const searchLower = search.toLowerCase();
-    return allClasses.filter(
-      c =>
-        c.name.toLowerCase().includes(searchLower) ||
-        c.description.toLowerCase().includes(searchLower) ||
-        c.domains.some(d => d.toLowerCase().includes(searchLower)) ||
-        c.subclasses.some(s => s.name.toLowerCase().includes(searchLower))
-    );
+    return filterClasses(allClasses, search);
   }, [allClasses, search]);
 
   // Use deferred rendering for smooth filtering on mobile
@@ -429,37 +643,12 @@ function ClassesReferencePage() {
 
   const totalCount = allClasses?.length ?? 0;
 
-  // Keyboard navigation for classes
-  React.useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape' && selectedClass) {
-        e.preventDefault();
-        setSelectedClass(null);
-        return;
-      }
-
-      if (!selectedClass && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
-        e.preventDefault();
-        const currentIndex = deferredClasses.findIndex(
-          c => c.name === selectedClass
-        );
-        let newIndex: number;
-        if (e.key === 'ArrowDown') {
-          newIndex =
-            currentIndex < deferredClasses.length - 1 ? currentIndex + 1 : 0;
-        } else {
-          newIndex =
-            currentIndex > 0 ? currentIndex - 1 : deferredClasses.length - 1;
-        }
-        if (deferredClasses[newIndex]) {
-          setSelectedClass(deferredClasses[newIndex].name);
-        }
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedClass, deferredClasses]);
+  useKeyboardNavigation<GameClass>({
+    items: deferredClasses,
+    selectedItem: selectedClassData,
+    onSelect: item => setSelectedClass(item?.name ?? null),
+    onClose: () => setSelectedClass(null),
+  });
 
   // Show skeleton while loading initial data
   if (isInitialLoading) {
@@ -484,43 +673,20 @@ function ClassesReferencePage() {
       {/* Main content */}
       <div className="flex min-h-0 flex-1 flex-col">
         {/* Header */}
-        <div className="bg-background shrink-0 border-b p-4">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h1 className="bg-linear-to-r from-purple-500 to-indigo-600 bg-clip-text text-2xl font-bold text-transparent">
-                <Shield className="mr-2 inline-block size-6" />
-                Classes & Subclasses
-              </h1>
-              <ResultsCounter
-                filtered={filteredClasses.length}
-                total={totalCount}
-                label="classes"
-                suffix={` with ${filteredClasses.reduce((sum: number, c) => sum + c.subclasses.length, 0)} subclasses`}
-              />
-            </div>
-            {isMobile && (
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Search className="mr-2 size-4" />
-                    Browse Classes
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="w-72 p-0">
-                  <ClassOutline
-                    classes={deferredClasses}
-                    selectedClass={selectedClass}
-                    onSelectClass={name => {
-                      setSelectedClass(name);
-                    }}
-                    search={search}
-                    onSearchChange={setSearch}
-                  />
-                </SheetContent>
-              </Sheet>
-            )}
-          </div>
-        </div>
+        <ClassesHeader
+          filteredCount={filteredClasses.length}
+          totalCount={totalCount}
+          subclassCount={filteredClasses.reduce(
+            (sum: number, gameClass) => sum + gameClass.subclasses.length,
+            0
+          )}
+          isMobile={isMobile}
+          classes={deferredClasses}
+          selectedClass={selectedClass}
+          search={search}
+          onSearchChange={setSearch}
+          onSelectClass={setSelectedClass}
+        />
 
         {/* Content - scrollable */}
         <div
@@ -536,96 +702,15 @@ function ClassesReferencePage() {
             </div>
           )}
           <div className="p-4">
-            {selectedClassData ? (
-              <div>
-                {/* Back button inside content for better UX */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSelectedClass(null)}
-                  className="mb-4 -ml-2"
-                >
-                  <ArrowLeft className="mr-2 size-4" />
-                  Back to all classes
-                </Button>
-                <ClassDetail gameClass={selectedClassData} />
-              </div>
-            ) : (
-              /* No selection - show all classes in grid */
-              <div className="space-y-6">
-                {deferredClasses.map(gameClass => {
-                  const gradient =
-                    classGradients[gameClass.name] ??
-                    'from-gray-500 to-slate-600';
-                  return (
-                    <Card
-                      key={gameClass.name}
-                      className="cursor-pointer transition-all hover:scale-[1.01] hover:shadow-lg"
-                      onClick={() => setSelectedClass(gameClass.name)}
-                    >
-                      <div className={`h-2 bg-linear-to-r ${gradient}`} />
-                      <CardHeader>
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex-1 space-y-2">
-                            <CardTitle className="flex items-center gap-2 text-2xl">
-                              {gameClass.name}
-                              <ChevronRight className="size-5 opacity-50" />
-                            </CardTitle>
-                            <CardDescription>
-                              {gameClass.description}
-                            </CardDescription>
-                          </div>
-                        </div>
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {gameClass.domains.map(domain => (
-                            <Badge
-                              key={domain}
-                              className={domainColors[domain] ?? 'bg-muted'}
-                            >
-                              {domain}
-                            </Badge>
-                          ))}
-                        </div>
-                      </CardHeader>
-                      <CardContent className="pt-0">
-                        <div className="text-muted-foreground flex gap-4 text-sm">
-                          <span>
-                            <span className="text-foreground font-medium">
-                              {gameClass.startingHitPoints}
-                            </span>{' '}
-                            HP
-                          </span>
-                          <span>
-                            <span className="text-foreground font-medium">
-                              {gameClass.startingEvasion}
-                            </span>{' '}
-                            Evasion
-                          </span>
-                          <span>
-                            <span className="text-foreground font-medium">
-                              {gameClass.subclasses.length}
-                            </span>{' '}
-                            Subclasses
-                          </span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            )}
+            <ClassesContent
+              selectedClass={selectedClassData}
+              classes={deferredClasses}
+              onSelectClass={setSelectedClass}
+              onClearSelection={() => setSelectedClass(null)}
+            />
 
             {deferredClasses.length === 0 && !isFiltering && (
-              <div className="text-muted-foreground py-12 text-center">
-                <p>No classes match your search.</p>
-                <Button
-                  variant="link"
-                  onClick={() => setSearch('')}
-                  className="mt-2"
-                >
-                  Clear search
-                </Button>
-              </div>
+              <ClassesEmptyState onClear={() => setSearch('')} />
             )}
           </div>
         </div>
@@ -635,30 +720,11 @@ function ClassesReferencePage() {
       </div>
 
       {/* Mobile sheet for class detail */}
-      {isMobile && selectedClassData && (
-        <Sheet
-          open={!!selectedClassData}
-          onOpenChange={open => !open && setSelectedClass(null)}
-        >
-          <SheetContent
-            side="right"
-            className="flex w-full flex-col p-0 sm:max-w-lg"
-            hideCloseButton
-          >
-            <SheetHeader className="shrink-0 border-b p-4">
-              <SheetTitle className="flex items-center justify-between gap-2">
-                <span className="truncate">{selectedClassData.name}</span>
-                <div className="flex shrink-0 items-center gap-2">
-                  <KeyboardHint showNavigation={false} />
-                  <DetailCloseButton onClose={() => setSelectedClass(null)} />
-                </div>
-              </SheetTitle>
-            </SheetHeader>
-            <div className="min-h-0 flex-1 overflow-y-auto p-4">
-              <ClassDetail gameClass={selectedClassData} />
-            </div>
-          </SheetContent>
-        </Sheet>
+      {isMobile && (
+        <ClassDetailSheet
+          selectedClass={selectedClassData}
+          onClose={() => setSelectedClass(null)}
+        />
       )}
     </div>
   );

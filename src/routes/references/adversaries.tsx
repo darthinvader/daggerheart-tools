@@ -1,4 +1,4 @@
-/* eslint-disable max-lines, max-lines-per-function */
+/* eslint-disable max-lines */
 // Adversaries reference page with page-specific detail components
 
 import {
@@ -192,6 +192,278 @@ function TooltipLabel({
 
 const loadAllAdversaries = () => [...ADVERSARIES];
 
+type AdversarySortKey = 'name' | 'tier' | 'role';
+
+const ADVERSARY_SORTERS: Record<
+  AdversarySortKey,
+  (a: AdversaryItem, b: AdversaryItem) => number
+> = {
+  name: (a, b) => a.name.localeCompare(b.name),
+  tier: (a, b) => tierOrder.indexOf(a.tier) - tierOrder.indexOf(b.tier),
+  role: (a, b) => a.role.localeCompare(b.role),
+};
+
+function getAdversarySearchText(adversary: AdversaryItem) {
+  const experiences = adversary.experiences
+    .map(exp => formatExperience(exp).toLowerCase())
+    .join(' ');
+  const features = adversary.features
+    .map(feature => formatFeature(feature).toLowerCase())
+    .join(' ');
+  return [
+    adversary.name,
+    adversary.description,
+    adversary.motivesAndTactics,
+    adversary.role,
+    adversary.attack.name,
+    experiences,
+    features,
+  ]
+    .join(' ')
+    .toLowerCase();
+}
+
+function filterAdversaries(
+  items: AdversaryItem[],
+  search: string,
+  tierFilter: Adversary['tier'] | 'all',
+  roleFilter: Adversary['role'] | 'all'
+) {
+  return items.filter(adversary => {
+    if (tierFilter !== 'all' && adversary.tier !== tierFilter) return false;
+    if (roleFilter !== 'all' && adversary.role !== roleFilter) return false;
+    if (!search) return true;
+    return getAdversarySearchText(adversary).includes(search.toLowerCase());
+  });
+}
+
+function sortAdversaries(
+  items: AdversaryItem[],
+  sortBy: AdversarySortKey,
+  sortDir: 'asc' | 'desc'
+) {
+  const sorted = [...items].sort(ADVERSARY_SORTERS[sortBy]);
+  return sortDir === 'asc' ? sorted : sorted.reverse();
+}
+
+type AdversariesHeaderProps = {
+  filteredCount: number;
+  totalCount: number;
+  tierFilter: Adversary['tier'] | 'all';
+  roleFilter: Adversary['role'] | 'all';
+  sortBy: AdversarySortKey;
+  sortDir: 'asc' | 'desc';
+  search: string;
+  onTierFilterChange: (value: Adversary['tier'] | 'all') => void;
+  onRoleFilterChange: (value: Adversary['role'] | 'all') => void;
+  onSortByChange: (value: AdversarySortKey) => void;
+  onSortDirChange: (value: 'asc' | 'desc') => void;
+  onSearchChange: (value: string) => void;
+  onClearSearch: () => void;
+};
+
+function AdversariesHeader({
+  filteredCount,
+  totalCount,
+  tierFilter,
+  roleFilter,
+  sortBy,
+  sortDir,
+  search,
+  onTierFilterChange,
+  onRoleFilterChange,
+  onSortByChange,
+  onSortDirChange,
+  onSearchChange,
+  onClearSearch,
+}: AdversariesHeaderProps) {
+  return (
+    <div className="shrink-0 border-b bg-linear-to-r from-fuchsia-500/10 via-red-500/10 to-orange-500/10 p-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="bg-linear-to-r from-fuchsia-500 via-red-500 to-orange-500 bg-clip-text text-2xl font-bold text-transparent">
+            <Skull className="mr-2 inline-block size-6" />
+            Adversaries Reference
+          </h1>
+          <ResultsCounter
+            filtered={filteredCount}
+            total={totalCount}
+            label="adversaries"
+          />
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            <select
+              value={tierFilter}
+              onChange={e =>
+                onTierFilterChange(e.target.value as Adversary['tier'] | 'all')
+              }
+              className="bg-background h-9 rounded-md border px-2 text-sm"
+              aria-label="Filter by tier"
+            >
+              <option value="all">All tiers</option>
+              {tierOrder.map(tier => (
+                <option key={tier} value={tier}>
+                  {tierLabels[tier]} Tier {tier}
+                </option>
+              ))}
+            </select>
+            <select
+              value={roleFilter}
+              onChange={e =>
+                onRoleFilterChange(e.target.value as Adversary['role'] | 'all')
+              }
+              className="bg-background h-9 rounded-md border px-2 text-sm"
+              aria-label="Filter by role"
+            >
+              <option value="all">All roles</option>
+              {Object.keys(roleColors)
+                .sort((a, b) => a.localeCompare(b))
+                .map(role => (
+                  <option key={role} value={role}>
+                    {roleLabels[role] ?? '●'} {role}
+                  </option>
+                ))}
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <select
+              value={sortBy}
+              onChange={e => onSortByChange(e.target.value as AdversarySortKey)}
+              className="bg-background h-9 rounded-md border px-2 text-sm"
+              aria-label="Sort adversaries"
+            >
+              <option value="name">Name</option>
+              <option value="tier">Tier</option>
+              <option value="role">Role</option>
+            </select>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-9"
+              onClick={() =>
+                onSortDirChange(sortDir === 'asc' ? 'desc' : 'asc')
+              }
+              aria-label={
+                sortDir === 'asc' ? 'Sort descending' : 'Sort ascending'
+              }
+            >
+              {sortDir === 'asc' ? (
+                <ArrowUp className="size-4" />
+              ) : (
+                <ArrowDown className="size-4" />
+              )}
+            </Button>
+          </div>
+          <div className="relative w-full sm:w-64">
+            <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+            <Input
+              placeholder="Search adversaries..."
+              value={search}
+              onChange={e => onSearchChange(e.target.value)}
+              className="pr-9 pl-9"
+            />
+            {search && (
+              <button
+                onClick={onClearSearch}
+                className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
+                aria-label="Clear search"
+              >
+                <X className="size-4" />
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AdversariesGrid({
+  items,
+  isMobile,
+  onSelect,
+}: {
+  items: AdversaryItem[];
+  isMobile: boolean;
+  onSelect: (adversary: AdversaryItem) => void;
+}) {
+  if (isMobile) {
+    return (
+      <div className="grid grid-cols-1 gap-3">
+        {items.map(adversary => (
+          <AdversaryCard
+            key={adversary.name}
+            adversary={adversary}
+            compact
+            onClick={() => onSelect(adversary)}
+          />
+        ))}
+      </div>
+    );
+  }
+  return (
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {items.map(adversary => (
+        <AdversaryCard
+          key={adversary.name}
+          adversary={adversary}
+          onClick={() => onSelect(adversary)}
+        />
+      ))}
+    </div>
+  );
+}
+
+function AdversariesEmptyState({ onClear }: { onClear: () => void }) {
+  return (
+    <div className="text-muted-foreground py-12 text-center">
+      <p>No adversaries match your filters.</p>
+      <Button variant="link" onClick={onClear} className="mt-2">
+        Clear filters
+      </Button>
+    </div>
+  );
+}
+
+function AdversaryDetailSheet({
+  selectedAdversary,
+  onClose,
+}: {
+  selectedAdversary: AdversaryItem | null;
+  onClose: () => void;
+}) {
+  return (
+    <Sheet
+      open={selectedAdversary !== null}
+      onOpenChange={open => !open && onClose()}
+    >
+      <SheetContent
+        side="right"
+        className="flex w-full flex-col p-0 sm:max-w-lg"
+        hideCloseButton
+      >
+        {selectedAdversary && (
+          <>
+            <SheetHeader className="bg-background shrink-0 border-b p-4">
+              <SheetTitle className="flex items-center justify-between gap-2">
+                <span className="truncate">{selectedAdversary.name}</span>
+                <div className="flex shrink-0 items-center gap-2">
+                  <KeyboardHint />
+                  <DetailCloseButton onClose={onClose} />
+                </div>
+              </SheetTitle>
+            </SheetHeader>
+            <div className="min-h-0 flex-1 overflow-y-auto p-4">
+              <AdversaryDetail adversary={selectedAdversary} />
+            </div>
+          </>
+        )}
+      </SheetContent>
+    </Sheet>
+  );
+}
+
 function formatThresholds(thresholds: Adversary['thresholds']) {
   if (typeof thresholds === 'string') return thresholds;
   const major = thresholds.major ?? '—';
@@ -333,35 +605,172 @@ function AdversaryCard({
   );
 }
 
-function AdversaryDetail({ adversary }: { adversary: AdversaryItem }) {
+function AdversaryDetailHeader({ adversary }: { adversary: AdversaryItem }) {
+  const tierBadge = tierColors[adversary.tier] ?? defaultBadgeColor;
+  return (
+    <div className="-mx-4 -mt-4 bg-linear-to-r from-fuchsia-500 via-red-500 to-orange-500 p-6">
+      <h2 className="text-3xl font-bold text-white">
+        <Skull className="mr-2 inline-block size-8" />
+        {adversary.name}
+      </h2>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <Badge className="border-white/30 bg-white/20 text-white">
+          <TierIcon tier={adversary.tier} className="mr-1 size-4" /> Tier{' '}
+          {adversary.tier}
+        </Badge>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge className="border-white/30 bg-white/20 text-white">
+              <RoleIcon role={adversary.role} className="mr-1 size-4" />{' '}
+              {adversary.role}
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent sideOffset={6}>
+            {getRoleDescription(adversary.role)}
+          </TooltipContent>
+        </Tooltip>
+        <Badge className="border-white/30 bg-white/20 text-white">
+          {tierBadge}
+        </Badge>
+      </div>
+    </div>
+  );
+}
+
+function AdversaryStatsGrid({ adversary }: { adversary: AdversaryItem }) {
+  return (
+    <div className="grid grid-cols-2 gap-4 text-sm">
+      <div>
+        <TooltipLabel
+          label="Difficulty"
+          labelIcon={Target}
+          tooltip="Target number to meet or beat on rolls against this adversary."
+          className="font-semibold"
+        />{' '}
+        {adversary.difficulty}
+      </div>
+      <div>
+        <TooltipLabel
+          label="Thresholds"
+          labelIcon={Layers}
+          tooltip="Major/Severe/Massive damage thresholds. Massive is typically double Severe if not listed."
+          className="font-semibold"
+        />{' '}
+        {formatThresholds(adversary.thresholds)}
+      </div>
+      <div>
+        <TooltipLabel
+          label="HP"
+          labelIcon={Heart}
+          tooltip="Hit Points tracked for defeating this adversary."
+          className="font-semibold"
+        />{' '}
+        {adversary.hp}
+      </div>
+      <div>
+        <TooltipLabel
+          label="Stress"
+          labelIcon={AlertTriangle}
+          tooltip="Stress track used for special actions and reactions."
+          className="font-semibold"
+        />{' '}
+        {adversary.stress}
+      </div>
+    </div>
+  );
+}
+
+function AdversaryAttackPanel({ adversary }: { adversary: AdversaryItem }) {
+  const tierBadge = tierColors[adversary.tier] ?? defaultBadgeColor;
+  return (
+    <div className="rounded-lg border border-red-500/30 bg-linear-to-r from-red-500/10 to-rose-500/10 p-4">
+      <div className="mb-2 flex items-center gap-2">
+        <Badge className={`border-red-500/40 ${tierBadge}`}>
+          <Swords className="mr-1 size-3" /> Attack
+        </Badge>
+      </div>
+      <p className="text-sm">
+        <TooltipLabel
+          label="ATK"
+          labelIcon={Swords}
+          tooltip="Attack modifier, name, range, and damage type (phy/mag)."
+          className="font-semibold"
+        />{' '}
+        {adversary.attack.modifier} {adversary.attack.name} ·{' '}
+        {adversary.attack.range} · {adversary.attack.damage}
+      </p>
+    </div>
+  );
+}
+
+function AdversaryExperiences({ adversary }: { adversary: AdversaryItem }) {
+  if (adversary.experiences.length === 0) return null;
+  return (
+    <div>
+      <h4 className="mb-2 font-semibold">
+        <TooltipLabel
+          label="Experiences"
+          labelIcon={Brain}
+          tooltip="Training or background bonuses that add to rolls."
+          className="font-semibold"
+        />
+      </h4>
+      <ul className="text-muted-foreground list-disc space-y-2 pl-5 text-sm">
+        {adversary.experiences.map((experience, idx) => (
+          <li key={idx}>{formatExperience(experience)}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function AdversaryFeatures({ adversary }: { adversary: AdversaryItem }) {
+  if (adversary.features.length === 0) return null;
+  return (
+    <div>
+      <h4 className="mb-2 font-semibold">
+        <TooltipLabel
+          label="Features"
+          labelIcon={Sparkles}
+          tooltip="Special actions, reactions, or passive abilities for this adversary."
+          className="font-semibold"
+        />
+      </h4>
+      <ul className="text-muted-foreground list-disc space-y-2 pl-5 text-sm">
+        {adversary.features.map((feature, idx) => (
+          <li key={idx}>{formatFeature(feature)}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function AdversaryFooterBadges({ adversary }: { adversary: AdversaryItem }) {
   const tierBadge = tierColors[adversary.tier] ?? defaultBadgeColor;
   const roleBadge = roleColors[adversary.role] ?? defaultBadgeColor;
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Badge variant="outline" className={`text-xs ${tierBadge}`}>
+        <TierIcon tier={adversary.tier} /> Tier {adversary.tier}
+      </Badge>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Badge variant="outline" className={`text-xs ${roleBadge}`}>
+            <RoleIcon role={adversary.role} /> {adversary.role}
+          </Badge>
+        </TooltipTrigger>
+        <TooltipContent sideOffset={6}>
+          {getRoleDescription(adversary.role)}
+        </TooltipContent>
+      </Tooltip>
+    </div>
+  );
+}
 
+function AdversaryDetail({ adversary }: { adversary: AdversaryItem }) {
   return (
     <div className="space-y-6">
-      <div className="-mx-4 -mt-4 bg-linear-to-r from-fuchsia-500 via-red-500 to-orange-500 p-6">
-        <h2 className="text-3xl font-bold text-white">
-          <Skull className="mr-2 inline-block size-8" />
-          {adversary.name}
-        </h2>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <Badge className="border-white/30 bg-white/20 text-white">
-            <TierIcon tier={adversary.tier} className="mr-1 size-4" /> Tier{' '}
-            {adversary.tier}
-          </Badge>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Badge className="border-white/30 bg-white/20 text-white">
-                <RoleIcon role={adversary.role} className="mr-1 size-4" />{' '}
-                {adversary.role}
-              </Badge>
-            </TooltipTrigger>
-            <TooltipContent sideOffset={6}>
-              {getRoleDescription(adversary.role)}
-            </TooltipContent>
-          </Tooltip>
-        </div>
-      </div>
+      <AdversaryDetailHeader adversary={adversary} />
 
       <p className="text-muted-foreground">{adversary.description}</p>
 
@@ -379,114 +788,15 @@ function AdversaryDetail({ adversary }: { adversary: AdversaryItem }) {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 text-sm">
-        <div>
-          <TooltipLabel
-            label="Difficulty"
-            labelIcon={Target}
-            tooltip="Target number to meet or beat on rolls against this adversary."
-            className="font-semibold"
-          />{' '}
-          {adversary.difficulty}
-        </div>
-        <div>
-          <TooltipLabel
-            label="Thresholds"
-            labelIcon={Layers}
-            tooltip="Major/Severe/Massive damage thresholds. Massive is typically double Severe if not listed."
-            className="font-semibold"
-          />{' '}
-          {formatThresholds(adversary.thresholds)}
-        </div>
-        <div>
-          <TooltipLabel
-            label="HP"
-            labelIcon={Heart}
-            tooltip="Hit Points tracked for defeating this adversary."
-            className="font-semibold"
-          />{' '}
-          {adversary.hp}
-        </div>
-        <div>
-          <TooltipLabel
-            label="Stress"
-            labelIcon={AlertTriangle}
-            tooltip="Stress track used for special actions and reactions."
-            className="font-semibold"
-          />{' '}
-          {adversary.stress}
-        </div>
-      </div>
+      <AdversaryStatsGrid adversary={adversary} />
 
-      <div className="rounded-lg border border-red-500/30 bg-linear-to-r from-red-500/10 to-rose-500/10 p-4">
-        <div className="mb-2 flex items-center gap-2">
-          <Badge className={`border-red-500/40 ${tierBadge}`}>
-            <Swords className="mr-1 size-3" /> Attack
-          </Badge>
-        </div>
-        <p className="text-sm">
-          <TooltipLabel
-            label="ATK"
-            labelIcon={Swords}
-            tooltip="Attack modifier, name, range, and damage type (phy/mag)."
-            className="font-semibold"
-          />{' '}
-          {adversary.attack.modifier} {adversary.attack.name} ·{' '}
-          {adversary.attack.range} · {adversary.attack.damage}
-        </p>
-      </div>
+      <AdversaryAttackPanel adversary={adversary} />
 
-      {adversary.experiences.length > 0 && (
-        <div>
-          <h4 className="mb-2 font-semibold">
-            <TooltipLabel
-              label="Experiences"
-              labelIcon={Brain}
-              tooltip="Training or background bonuses that add to rolls."
-              className="font-semibold"
-            />
-          </h4>
-          <ul className="text-muted-foreground list-disc space-y-2 pl-5 text-sm">
-            {adversary.experiences.map((experience, idx) => (
-              <li key={idx}>{formatExperience(experience)}</li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <AdversaryExperiences adversary={adversary} />
 
-      {adversary.features.length > 0 && (
-        <div>
-          <h4 className="mb-2 font-semibold">
-            <TooltipLabel
-              label="Features"
-              labelIcon={Sparkles}
-              tooltip="Special actions, reactions, or passive abilities for this adversary."
-              className="font-semibold"
-            />
-          </h4>
-          <ul className="text-muted-foreground list-disc space-y-2 pl-5 text-sm">
-            {adversary.features.map((feature, idx) => (
-              <li key={idx}>{formatFeature(feature)}</li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <AdversaryFeatures adversary={adversary} />
 
-      <div className="flex flex-wrap gap-2">
-        <Badge variant="outline" className={`text-xs ${tierBadge}`}>
-          <TierIcon tier={adversary.tier} /> Tier {adversary.tier}
-        </Badge>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Badge variant="outline" className={`text-xs ${roleBadge}`}>
-              <RoleIcon role={adversary.role} /> {adversary.role}
-            </Badge>
-          </TooltipTrigger>
-          <TooltipContent sideOffset={6}>
-            {getRoleDescription(adversary.role)}
-          </TooltipContent>
-        </Tooltip>
-      </div>
+      <AdversaryFooterBadges adversary={adversary} />
     </div>
   );
 }
@@ -501,7 +811,7 @@ function AdversariesReferencePage() {
   const [roleFilter, setRoleFilter] = React.useState<Adversary['role'] | 'all'>(
     'all'
   );
-  const [sortBy, setSortBy] = React.useState<'name' | 'tier' | 'role'>('name');
+  const [sortBy, setSortBy] = React.useState<AdversarySortKey>('name');
   const [sortDir, setSortDir] = React.useState<'asc' | 'desc'>('asc');
   const [selectedAdversary, setSelectedAdversary] =
     React.useState<AdversaryItem | null>(null);
@@ -513,54 +823,13 @@ function AdversariesReferencePage() {
 
   const filteredAdversaries = React.useMemo(() => {
     if (!allAdversaries) return [];
-    let result = [...allAdversaries];
-
-    if (tierFilter !== 'all') {
-      result = result.filter(adversary => adversary.tier === tierFilter);
-    }
-
-    if (roleFilter !== 'all') {
-      result = result.filter(adversary => adversary.role === roleFilter);
-    }
-
-    if (search) {
-      const searchLower = search.toLowerCase();
-      result = result.filter(adversary => {
-        const experiences = adversary.experiences
-          .map(exp => formatExperience(exp).toLowerCase())
-          .join(' ');
-        const features = adversary.features
-          .map(feature => formatFeature(feature).toLowerCase())
-          .join(' ');
-        return (
-          adversary.name.toLowerCase().includes(searchLower) ||
-          adversary.description.toLowerCase().includes(searchLower) ||
-          adversary.motivesAndTactics.toLowerCase().includes(searchLower) ||
-          adversary.role.toLowerCase().includes(searchLower) ||
-          adversary.attack.name.toLowerCase().includes(searchLower) ||
-          experiences.includes(searchLower) ||
-          features.includes(searchLower)
-        );
-      });
-    }
-
-    result.sort((a, b) => {
-      let cmp = 0;
-      switch (sortBy) {
-        case 'name':
-          cmp = a.name.localeCompare(b.name);
-          break;
-        case 'tier':
-          cmp = tierOrder.indexOf(a.tier) - tierOrder.indexOf(b.tier);
-          break;
-        case 'role':
-          cmp = a.role.localeCompare(b.role);
-          break;
-      }
-      return sortDir === 'asc' ? cmp : -cmp;
-    });
-
-    return result;
+    const filtered = filterAdversaries(
+      allAdversaries,
+      search,
+      tierFilter,
+      roleFilter
+    );
+    return sortAdversaries(filtered, sortBy, sortDir);
   }, [allAdversaries, tierFilter, roleFilter, search, sortBy, sortDir]);
 
   const { deferredItems: deferredAdversaries, isPending: isFiltering } =
@@ -579,104 +848,21 @@ function AdversariesReferencePage() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="shrink-0 border-b bg-linear-to-r from-fuchsia-500/10 via-red-500/10 to-orange-500/10 p-4">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="bg-linear-to-r from-fuchsia-500 via-red-500 to-orange-500 bg-clip-text text-2xl font-bold text-transparent">
-              <Skull className="mr-2 inline-block size-6" />
-              Adversaries Reference
-            </h1>
-            <ResultsCounter
-              filtered={filteredAdversaries.length}
-              total={totalCount}
-              label="adversaries"
-            />
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2">
-              <select
-                value={tierFilter}
-                onChange={e =>
-                  setTierFilter(e.target.value as Adversary['tier'] | 'all')
-                }
-                className="bg-background h-9 rounded-md border px-2 text-sm"
-                aria-label="Filter by tier"
-              >
-                <option value="all">All tiers</option>
-                {tierOrder.map(tier => (
-                  <option key={tier} value={tier}>
-                    {tierLabels[tier]} Tier {tier}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={roleFilter}
-                onChange={e =>
-                  setRoleFilter(e.target.value as Adversary['role'] | 'all')
-                }
-                className="bg-background h-9 rounded-md border px-2 text-sm"
-                aria-label="Filter by role"
-              >
-                <option value="all">All roles</option>
-                {Object.keys(roleColors)
-                  .sort((a, b) => a.localeCompare(b))
-                  .map(role => (
-                    <option key={role} value={role}>
-                      {roleLabels[role] ?? '●'} {role}
-                    </option>
-                  ))}
-              </select>
-            </div>
-            <div className="flex items-center gap-2">
-              <select
-                value={sortBy}
-                onChange={e =>
-                  setSortBy(e.target.value as 'name' | 'tier' | 'role')
-                }
-                className="bg-background h-9 rounded-md border px-2 text-sm"
-                aria-label="Sort adversaries"
-              >
-                <option value="name">Name</option>
-                <option value="tier">Tier</option>
-                <option value="role">Role</option>
-              </select>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-9"
-                onClick={() => setSortDir(sortDir === 'asc' ? 'desc' : 'asc')}
-                aria-label={
-                  sortDir === 'asc' ? 'Sort descending' : 'Sort ascending'
-                }
-              >
-                {sortDir === 'asc' ? (
-                  <ArrowUp className="size-4" />
-                ) : (
-                  <ArrowDown className="size-4" />
-                )}
-              </Button>
-            </div>
-            <div className="relative w-full sm:w-64">
-              <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-              <Input
-                placeholder="Search adversaries..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="pr-9 pl-9"
-              />
-              {search && (
-                <button
-                  onClick={() => setSearch('')}
-                  className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
-                  aria-label="Clear search"
-                >
-                  <X className="size-4" />
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
+      <AdversariesHeader
+        filteredCount={filteredAdversaries.length}
+        totalCount={totalCount}
+        tierFilter={tierFilter}
+        roleFilter={roleFilter}
+        sortBy={sortBy}
+        sortDir={sortDir}
+        search={search}
+        onTierFilterChange={setTierFilter}
+        onRoleFilterChange={setRoleFilter}
+        onSortByChange={setSortBy}
+        onSortDirChange={setSortDir}
+        onSearchChange={setSearch}
+        onClearSearch={() => setSearch('')}
+      />
 
       <div ref={scrollRef} className="relative min-h-0 flex-1 overflow-y-auto">
         {isFiltering && (
@@ -687,79 +873,30 @@ function AdversariesReferencePage() {
           </div>
         )}
         <div className="p-4">
-          {isMobile ? (
-            <div className="grid grid-cols-1 gap-3">
-              {deferredAdversaries.map(adversary => (
-                <AdversaryCard
-                  key={adversary.name}
-                  adversary={adversary}
-                  compact
-                  onClick={() => setSelectedAdversary(adversary)}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {deferredAdversaries.map(adversary => (
-                <AdversaryCard
-                  key={adversary.name}
-                  adversary={adversary}
-                  onClick={() => setSelectedAdversary(adversary)}
-                />
-              ))}
-            </div>
-          )}
+          <AdversariesGrid
+            items={deferredAdversaries}
+            isMobile={isMobile}
+            onSelect={setSelectedAdversary}
+          />
 
           {deferredAdversaries.length === 0 && !isFiltering && (
-            <div className="text-muted-foreground py-12 text-center">
-              <p>No adversaries match your filters.</p>
-              <Button
-                variant="link"
-                onClick={() => {
-                  setSearch('');
-                  setTierFilter('all');
-                  setRoleFilter('all');
-                }}
-                className="mt-2"
-              >
-                Clear filters
-              </Button>
-            </div>
+            <AdversariesEmptyState
+              onClear={() => {
+                setSearch('');
+                setTierFilter('all');
+                setRoleFilter('all');
+              }}
+            />
           )}
         </div>
       </div>
 
       <BackToTop scrollRef={scrollRef} />
 
-      <Sheet
-        open={selectedAdversary !== null}
-        onOpenChange={open => !open && setSelectedAdversary(null)}
-      >
-        <SheetContent
-          side="right"
-          className="flex w-full flex-col p-0 sm:max-w-lg"
-          hideCloseButton
-        >
-          {selectedAdversary && (
-            <>
-              <SheetHeader className="bg-background shrink-0 border-b p-4">
-                <SheetTitle className="flex items-center justify-between gap-2">
-                  <span className="truncate">{selectedAdversary.name}</span>
-                  <div className="flex shrink-0 items-center gap-2">
-                    <KeyboardHint />
-                    <DetailCloseButton
-                      onClose={() => setSelectedAdversary(null)}
-                    />
-                  </div>
-                </SheetTitle>
-              </SheetHeader>
-              <div className="min-h-0 flex-1 overflow-y-auto p-4">
-                <AdversaryDetail adversary={selectedAdversary} />
-              </div>
-            </>
-          )}
-        </SheetContent>
-      </Sheet>
+      <AdversaryDetailSheet
+        selectedAdversary={selectedAdversary}
+        onClose={() => setSelectedAdversary(null)}
+      />
     </div>
   );
 }

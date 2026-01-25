@@ -1,4 +1,4 @@
-/* eslint-disable max-lines, max-lines-per-function */
+/* eslint-disable max-lines */
 // Ancestries reference page with page-specific detail components
 
 import { createFileRoute } from '@tanstack/react-router';
@@ -255,13 +255,218 @@ function AncestryDetail({ ancestry }: { ancestry: Ancestry }) {
 // Stable loader function for useDeferredLoad
 const loadAllAncestries = () => [...ANCESTRIES];
 
+type AncestrySortKey = 'name' | 'primary' | 'secondary';
+
+const ANCESTRY_SORTERS: Record<
+  AncestrySortKey,
+  (a: Ancestry, b: Ancestry) => number
+> = {
+  name: (a, b) => a.name.localeCompare(b.name),
+  primary: (a, b) => a.primaryFeature.name.localeCompare(b.primaryFeature.name),
+  secondary: (a, b) =>
+    a.secondaryFeature.name.localeCompare(b.secondaryFeature.name),
+};
+
+function filterAncestries(items: Ancestry[], search: string) {
+  if (!search) return items;
+  const searchLower = search.toLowerCase();
+  return items.filter(
+    ancestry =>
+      ancestry.name.toLowerCase().includes(searchLower) ||
+      ancestry.description.toLowerCase().includes(searchLower) ||
+      ancestry.primaryFeature.name.toLowerCase().includes(searchLower) ||
+      ancestry.secondaryFeature.name.toLowerCase().includes(searchLower)
+  );
+}
+
+function sortAncestries(
+  items: Ancestry[],
+  sortBy: AncestrySortKey,
+  sortDir: 'asc' | 'desc'
+) {
+  const sorted = [...items].sort(ANCESTRY_SORTERS[sortBy]);
+  return sortDir === 'asc' ? sorted : sorted.reverse();
+}
+
+type AncestriesHeaderProps = {
+  filteredCount: number;
+  totalCount: number;
+  sortBy: AncestrySortKey;
+  sortDir: 'asc' | 'desc';
+  search: string;
+  onSortByChange: (value: AncestrySortKey) => void;
+  onSortDirChange: (value: 'asc' | 'desc') => void;
+  onSearchChange: (value: string) => void;
+  onClearSearch: () => void;
+};
+
+function AncestriesHeader({
+  filteredCount,
+  totalCount,
+  sortBy,
+  sortDir,
+  search,
+  onSortByChange,
+  onSortDirChange,
+  onSearchChange,
+  onClearSearch,
+}: AncestriesHeaderProps) {
+  return (
+    <div className="bg-background shrink-0 border-b p-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="bg-linear-to-r from-teal-500 to-cyan-600 bg-clip-text text-2xl font-bold text-transparent">
+            <Users className="mr-2 inline-block size-6" />
+            Ancestries
+          </h1>
+          <ResultsCounter
+            filtered={filteredCount}
+            total={totalCount}
+            label="ancestries"
+          />
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            <select
+              value={sortBy}
+              onChange={e => onSortByChange(e.target.value as AncestrySortKey)}
+              className="bg-background h-9 rounded-md border px-2 text-sm"
+            >
+              <option value="name">Name</option>
+              <option value="primary">Primary Feature</option>
+              <option value="secondary">Secondary Feature</option>
+            </select>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-9"
+              onClick={() =>
+                onSortDirChange(sortDir === 'asc' ? 'desc' : 'asc')
+              }
+              aria-label={
+                sortDir === 'asc' ? 'Sort descending' : 'Sort ascending'
+              }
+            >
+              {sortDir === 'asc' ? (
+                <ArrowUp className="size-4" />
+              ) : (
+                <ArrowDown className="size-4" />
+              )}
+            </Button>
+          </div>
+          <div className="relative w-full sm:w-64">
+            <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+            <Input
+              placeholder="Search ancestries..."
+              value={search}
+              onChange={e => onSearchChange(e.target.value)}
+              className="pr-9 pl-9"
+            />
+            {search && (
+              <button
+                onClick={onClearSearch}
+                className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
+              >
+                <X className="size-4" />
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AncestriesGrid({
+  items,
+  isMobile,
+  onSelect,
+}: {
+  items: Ancestry[];
+  isMobile: boolean;
+  onSelect: (ancestry: Ancestry) => void;
+}) {
+  if (isMobile) {
+    return (
+      <div className="grid grid-cols-1 gap-3">
+        {items.map(ancestry => (
+          <AncestryCard
+            key={ancestry.name}
+            ancestry={ancestry}
+            onClick={() => onSelect(ancestry)}
+            compact
+          />
+        ))}
+      </div>
+    );
+  }
+  return (
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      {items.map(ancestry => (
+        <AncestryCard
+          key={ancestry.name}
+          ancestry={ancestry}
+          onClick={() => onSelect(ancestry)}
+        />
+      ))}
+    </div>
+  );
+}
+
+function AncestriesEmptyState({ onClear }: { onClear: () => void }) {
+  return (
+    <div className="text-muted-foreground py-12 text-center">
+      <p>No ancestries match your search.</p>
+      <Button variant="link" onClick={onClear} className="mt-2">
+        Clear search
+      </Button>
+    </div>
+  );
+}
+
+function AncestryDetailSheet({
+  selectedAncestry,
+  onClose,
+}: {
+  selectedAncestry: Ancestry | null;
+  onClose: () => void;
+}) {
+  return (
+    <Sheet
+      open={selectedAncestry !== null}
+      onOpenChange={open => !open && onClose()}
+    >
+      <SheetContent
+        side="right"
+        className="flex w-full flex-col p-0 sm:max-w-lg"
+        hideCloseButton
+      >
+        {selectedAncestry && (
+          <>
+            <SheetHeader className="bg-background shrink-0 border-b p-4">
+              <SheetTitle className="flex items-center justify-between gap-2">
+                <span className="truncate">{selectedAncestry.name}</span>
+                <div className="flex shrink-0 items-center gap-2">
+                  <KeyboardHint />
+                  <DetailCloseButton onClose={onClose} />
+                </div>
+              </SheetTitle>
+            </SheetHeader>
+            <div className="min-h-0 flex-1 overflow-y-auto p-4">
+              <AncestryDetail ancestry={selectedAncestry} />
+            </div>
+          </>
+        )}
+      </SheetContent>
+    </Sheet>
+  );
+}
+
 function AncestriesReferencePage() {
   const isMobile = useIsMobile();
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const [search, setSearch] = React.useState('');
-  const [sortBy, setSortBy] = React.useState<'name' | 'primary' | 'secondary'>(
-    'name'
-  );
+  const [sortBy, setSortBy] = React.useState<AncestrySortKey>('name');
   const [sortDir, setSortDir] = React.useState<'asc' | 'desc'>('asc');
   const [selectedAncestry, setSelectedAncestry] =
     React.useState<Ancestry | null>(null);
@@ -274,38 +479,8 @@ function AncestriesReferencePage() {
 
   const filteredAncestries = React.useMemo(() => {
     if (!allAncestries) return [];
-    let result = [...allAncestries];
-
-    // Filter by search
-    if (search) {
-      const searchLower = search.toLowerCase();
-      result = result.filter(
-        a =>
-          a.name.toLowerCase().includes(searchLower) ||
-          a.description.toLowerCase().includes(searchLower) ||
-          a.primaryFeature.name.toLowerCase().includes(searchLower) ||
-          a.secondaryFeature.name.toLowerCase().includes(searchLower)
-      );
-    }
-
-    // Sort
-    result.sort((a, b) => {
-      let cmp = 0;
-      switch (sortBy) {
-        case 'name':
-          cmp = a.name.localeCompare(b.name);
-          break;
-        case 'primary':
-          cmp = a.primaryFeature.name.localeCompare(b.primaryFeature.name);
-          break;
-        case 'secondary':
-          cmp = a.secondaryFeature.name.localeCompare(b.secondaryFeature.name);
-          break;
-      }
-      return sortDir === 'asc' ? cmp : -cmp;
-    });
-
-    return result;
+    const filtered = filterAncestries(allAncestries, search);
+    return sortAncestries(filtered, sortBy, sortDir);
   }, [allAncestries, search, sortBy, sortDir]);
 
   // Use deferred rendering for smooth filtering on mobile
@@ -328,70 +503,17 @@ function AncestriesReferencePage() {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       {/* Header */}
-      <div className="bg-background shrink-0 border-b p-4">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="bg-linear-to-r from-teal-500 to-cyan-600 bg-clip-text text-2xl font-bold text-transparent">
-              <Users className="mr-2 inline-block size-6" />
-              Ancestries
-            </h1>
-            <ResultsCounter
-              filtered={filteredAncestries.length}
-              total={totalCount}
-              label="ancestries"
-            />
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Sort control */}
-            <div className="flex items-center gap-2">
-              <select
-                value={sortBy}
-                onChange={e =>
-                  setSortBy(e.target.value as 'name' | 'primary' | 'secondary')
-                }
-                className="bg-background h-9 rounded-md border px-2 text-sm"
-              >
-                <option value="name">Name</option>
-                <option value="primary">Primary Feature</option>
-                <option value="secondary">Secondary Feature</option>
-              </select>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-9"
-                onClick={() => setSortDir(sortDir === 'asc' ? 'desc' : 'asc')}
-                aria-label={
-                  sortDir === 'asc' ? 'Sort descending' : 'Sort ascending'
-                }
-              >
-                {sortDir === 'asc' ? (
-                  <ArrowUp className="size-4" />
-                ) : (
-                  <ArrowDown className="size-4" />
-                )}
-              </Button>
-            </div>
-            {/* Search */}
-            <div className="relative w-full sm:w-64">
-              <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-              <Input
-                placeholder="Search ancestries..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="pr-9 pl-9"
-              />
-              {search && (
-                <button
-                  onClick={() => setSearch('')}
-                  className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
-                >
-                  <X className="size-4" />
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
+      <AncestriesHeader
+        filteredCount={filteredAncestries.length}
+        totalCount={totalCount}
+        sortBy={sortBy}
+        sortDir={sortDir}
+        search={search}
+        onSortByChange={setSortBy}
+        onSortDirChange={setSortDir}
+        onSearchChange={setSearch}
+        onClearSearch={() => setSearch('')}
+      />
 
       {/* Content - scrollable */}
       <div ref={scrollRef} className="relative min-h-0 flex-1 overflow-y-auto">
@@ -404,42 +526,14 @@ function AncestriesReferencePage() {
           </div>
         )}
         <div className="p-4">
-          {isMobile ? (
-            /* Mobile: Compact cards */
-            <div className="grid grid-cols-1 gap-3">
-              {deferredAncestries.map(ancestry => (
-                <AncestryCard
-                  key={ancestry.name}
-                  ancestry={ancestry}
-                  onClick={() => setSelectedAncestry(ancestry)}
-                  compact
-                />
-              ))}
-            </div>
-          ) : (
-            /* Desktop: Full cards */
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-              {deferredAncestries.map(ancestry => (
-                <AncestryCard
-                  key={ancestry.name}
-                  ancestry={ancestry}
-                  onClick={() => setSelectedAncestry(ancestry)}
-                />
-              ))}
-            </div>
-          )}
+          <AncestriesGrid
+            items={deferredAncestries}
+            isMobile={isMobile}
+            onSelect={setSelectedAncestry}
+          />
 
           {deferredAncestries.length === 0 && !isFiltering && (
-            <div className="text-muted-foreground py-12 text-center">
-              <p>No ancestries match your search.</p>
-              <Button
-                variant="link"
-                onClick={() => setSearch('')}
-                className="mt-2"
-              >
-                Clear search
-              </Button>
-            </div>
+            <AncestriesEmptyState onClear={() => setSearch('')} />
           )}
         </div>
       </div>
@@ -448,35 +542,10 @@ function AncestriesReferencePage() {
       <BackToTop scrollRef={scrollRef} />
 
       {/* Detail sheet */}
-      <Sheet
-        open={selectedAncestry !== null}
-        onOpenChange={open => !open && setSelectedAncestry(null)}
-      >
-        <SheetContent
-          side="right"
-          className="flex w-full flex-col p-0 sm:max-w-lg"
-          hideCloseButton
-        >
-          {selectedAncestry && (
-            <>
-              <SheetHeader className="bg-background shrink-0 border-b p-4">
-                <SheetTitle className="flex items-center justify-between gap-2">
-                  <span className="truncate">{selectedAncestry.name}</span>
-                  <div className="flex shrink-0 items-center gap-2">
-                    <KeyboardHint />
-                    <DetailCloseButton
-                      onClose={() => setSelectedAncestry(null)}
-                    />
-                  </div>
-                </SheetTitle>
-              </SheetHeader>
-              <div className="min-h-0 flex-1 overflow-y-auto p-4">
-                <AncestryDetail ancestry={selectedAncestry} />
-              </div>
-            </>
-          )}
-        </SheetContent>
-      </Sheet>
+      <AncestryDetailSheet
+        selectedAncestry={selectedAncestry}
+        onClose={() => setSelectedAncestry(null)}
+      />
     </div>
   );
 }

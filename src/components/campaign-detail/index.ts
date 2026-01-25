@@ -1,4 +1,5 @@
 // Campaign detail page components
+export { CampaignHeader } from './campaign-header';
 export { EditableDistinctions } from './editable-distinctions';
 export { EditableMechanics } from './editable-mechanics';
 export { EditablePrinciples } from './editable-principles';

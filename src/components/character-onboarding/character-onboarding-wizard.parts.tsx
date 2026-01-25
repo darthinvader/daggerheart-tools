@@ -1,11 +1,21 @@
 /* eslint-disable max-lines, max-lines-per-function, react-refresh/only-export-components */
-import type { MutableRefObject, ReactNode } from 'react';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import type { ChangeEvent, MutableRefObject, ReactNode } from 'react';
+import {
+  type Dispatch,
+  type SetStateAction,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import { AncestrySelector } from '@/components/ancestry-selector';
 import { ClassSelector } from '@/components/class-selector';
 import { CommunitySelector } from '@/components/community-selector';
-import { DEFAULT_COMPANION_STATE } from '@/components/companion';
+import {
+  type CompanionState,
+  DEFAULT_COMPANION_STATE,
+} from '@/components/companion';
 import {
   COMPANION_ATTACK_SUGGESTIONS,
   COMPANION_TYPE_SUGGESTIONS,
@@ -35,12 +45,15 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import type { ClassDraft, ClassSelection } from '@/lib/schemas/class-selection';
+import {
+  type ClassDraft,
+  type ClassSelection,
+  DEFAULT_CLASS_DRAFT,
+} from '@/lib/schemas/class-selection';
 
 import {
   getFirstIncompleteStepId,
   getOnboardingCompletion,
-  ONBOARDING_STEP_ORDER,
   type OnboardingStepId,
 } from './onboarding-utils';
 
@@ -75,7 +88,7 @@ function ClassStep({
   classCompleteRef: MutableRefObject<{
     complete: () => ClassSelection | null;
   } | null>;
-  setClassCanProceed: (canProceed: boolean) => void;
+  setClassCanProceed: Dispatch<SetStateAction<boolean>>;
 }) {
   return (
     <ClassSelector
@@ -88,6 +101,31 @@ function ClassStep({
   );
 }
 
+function getCompanionState(
+  companion: CompanionState | null | undefined
+): CompanionState {
+  return companion ?? DEFAULT_COMPANION_STATE;
+}
+
+function updateCompanionState(
+  companion: CompanionState | null | undefined,
+  update: Partial<CompanionState>
+): CompanionState {
+  return { ...getCompanionState(companion), ...update };
+}
+
+function updateCompanionExperience(
+  companion: CompanionState | null | undefined,
+  index: number,
+  name: string
+): CompanionState {
+  const base = getCompanionState(companion);
+  const experiences = base.experiences.map((experience, experienceIndex) =>
+    experienceIndex === index ? { ...experience, name } : experience
+  );
+  return { ...base, experiences };
+}
+
 function CompanionStep({
   state,
   handlers,
@@ -95,6 +133,59 @@ function CompanionStep({
   state: DemoState;
   handlers: DemoHandlers;
 }) {
+  const handleCompanionUpdate = useCallback(
+    (next: CompanionState) => {
+      handlers.setCompanion(next);
+      handlers.setCompanionEnabled(true);
+    },
+    [handlers]
+  );
+
+  const handleNameChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      handleCompanionUpdate(
+        updateCompanionState(state.companion, { name: event.target.value })
+      );
+    },
+    [handleCompanionUpdate, state.companion]
+  );
+
+  const handleTypeChange = useCallback(
+    (value: string) => {
+      handleCompanionUpdate(
+        updateCompanionState(state.companion, { type: value })
+      );
+    },
+    [handleCompanionUpdate, state.companion]
+  );
+
+  const handleExperienceOneChange = useCallback(
+    (value: string) => {
+      handleCompanionUpdate(
+        updateCompanionExperience(state.companion, 0, value)
+      );
+    },
+    [handleCompanionUpdate, state.companion]
+  );
+
+  const handleExperienceTwoChange = useCallback(
+    (value: string) => {
+      handleCompanionUpdate(
+        updateCompanionExperience(state.companion, 1, value)
+      );
+    },
+    [handleCompanionUpdate, state.companion]
+  );
+
+  const handleAttackChange = useCallback(
+    (value: string) => {
+      handleCompanionUpdate(
+        updateCompanionState(state.companion, { standardAttack: value })
+      );
+    },
+    [handleCompanionUpdate, state.companion]
+  );
+
   return (
     <div className="space-y-3">
       <p className="text-muted-foreground text-sm">
@@ -104,24 +195,11 @@ function CompanionStep({
       <Input
         placeholder="Companion name"
         value={state.companion?.name ?? ''}
-        onChange={event => {
-          const name = event.target.value;
-          handlers.setCompanion({
-            ...(state.companion ?? DEFAULT_COMPANION_STATE),
-            name,
-          });
-          handlers.setCompanionEnabled(true);
-        }}
+        onChange={handleNameChange}
       />
       <Select
         value={state.companion?.type ?? ''}
-        onValueChange={value => {
-          handlers.setCompanion({
-            ...(state.companion ?? DEFAULT_COMPANION_STATE),
-            type: value,
-          });
-          handlers.setCompanionEnabled(true);
-        }}
+        onValueChange={handleTypeChange}
       >
         <SelectTrigger>
           <SelectValue placeholder="Select a creature type" />
@@ -137,14 +215,7 @@ function CompanionStep({
       <div className="grid gap-3 sm:grid-cols-2">
         <Select
           value={state.companion?.experiences?.[0]?.name ?? ''}
-          onValueChange={value => {
-            const companion = state.companion ?? DEFAULT_COMPANION_STATE;
-            const experiences = companion.experiences.map((exp, index) =>
-              index === 0 ? { ...exp, name: value } : exp
-            );
-            handlers.setCompanion({ ...companion, experiences });
-            handlers.setCompanionEnabled(true);
-          }}
+          onValueChange={handleExperienceOneChange}
         >
           <SelectTrigger>
             <SelectValue placeholder="Companion experience #1" />
@@ -159,14 +230,7 @@ function CompanionStep({
         </Select>
         <Select
           value={state.companion?.experiences?.[1]?.name ?? ''}
-          onValueChange={value => {
-            const companion = state.companion ?? DEFAULT_COMPANION_STATE;
-            const experiences = companion.experiences.map((exp, index) =>
-              index === 1 ? { ...exp, name: value } : exp
-            );
-            handlers.setCompanion({ ...companion, experiences });
-            handlers.setCompanionEnabled(true);
-          }}
+          onValueChange={handleExperienceTwoChange}
         >
           <SelectTrigger>
             <SelectValue placeholder="Companion experience #2" />
@@ -182,13 +246,7 @@ function CompanionStep({
       </div>
       <Select
         value={state.companion?.standardAttack ?? ''}
-        onValueChange={value => {
-          handlers.setCompanion({
-            ...(state.companion ?? DEFAULT_COMPANION_STATE),
-            standardAttack: value,
-          });
-          handlers.setCompanionEnabled(true);
-        }}
+        onValueChange={handleAttackChange}
       >
         <SelectTrigger>
           <SelectValue placeholder="Select an attack" />
@@ -341,7 +399,7 @@ export function buildWizardSteps({
   classCompleteRef: MutableRefObject<{
     complete: () => ClassSelection | null;
   } | null>;
-  setClassCanProceed: (canProceed: boolean) => void;
+  setClassCanProceed: Dispatch<SetStateAction<boolean>>;
   identityFormRef: MutableRefObject<{ submit: () => void } | null>;
 }): WizardStep[] {
   const baseSteps: WizardStep[] = [
@@ -563,35 +621,25 @@ export function useWizardState({
   handlers: DemoHandlers;
   onFinish: () => void;
 }) {
-  const completion = useMemo(() => getOnboardingCompletion(state), [state]);
-  const firstIncomplete = useMemo(
-    () => getFirstIncompleteStepId(state),
-    [state]
-  );
-  const initialStepIndex = useMemo(() => {
-    const stepId = firstIncomplete ?? 'class';
-    const nextIndex = ONBOARDING_STEP_ORDER.indexOf(stepId);
-    return Math.max(0, nextIndex);
-  }, [firstIncomplete]);
-  const [manualStepIndex, setManualStepIndex] = useState<number | null>(null);
-  const stepIndex = manualStepIndex ?? initialStepIndex;
-  const [stepError, setStepError] = useState<string | null>(null);
-  const [classCanProceed, setClassCanProceed] = useState(false);
-
   const classCompleteRef = useRef<{
     complete: () => ClassSelection | null;
   } | null>(null);
   const identityFormRef = useRef<{ submit: () => void } | null>(null);
+  const [classCanProceed, setClassCanProceed] = useState(false);
+  const [manualStepIndex, setManualStepIndex] = useState<number | null>(null);
+  const [stepError, setStepError] = useState<string | null>(null);
 
-  const classDraft = useMemo<ClassDraft>(
-    () => ({
-      mode: state.classSelection?.mode ?? 'standard',
-      className: state.classSelection?.className,
-      subclassName: state.classSelection?.subclassName,
-      homebrewClass: state.classSelection?.homebrewClass,
-    }),
-    [state.classSelection]
-  );
+  const classDraft = useMemo<ClassDraft>(() => {
+    if (!state.classSelection) {
+      return DEFAULT_CLASS_DRAFT;
+    }
+    return {
+      mode: state.classSelection.isHomebrew ? 'homebrew' : 'standard',
+      className: state.classSelection.className ?? undefined,
+      subclassName: state.classSelection.subclassName ?? undefined,
+      homebrewClass: state.classSelection.homebrewClass ?? undefined,
+    };
+  }, [state.classSelection]);
 
   const isBeastbound = useMemo(() => {
     const className = state.classSelection?.className?.toLowerCase() ?? '';
@@ -600,95 +648,41 @@ export function useWizardState({
     return className.includes('ranger') && subclassName.includes('beastbound');
   }, [state.classSelection]);
 
-  const steps = useMemo<WizardStep[]>(() => {
-    const baseSteps: WizardStep[] = [
-      {
-        id: 'class',
-        title: 'Choose Class & Subclass',
-        description:
-          'Select a class and subclass to define your character’s core abilities.',
-        content: (
-          <ClassStep
-            classDraft={classDraft}
-            handlers={handlers}
-            classCompleteRef={classCompleteRef}
-            setClassCanProceed={setClassCanProceed}
-          />
-        ),
-      },
-      {
-        id: 'companion',
-        title: 'Name Your Companion',
-        description: 'Give your Beastbound companion a name.',
-        content: <CompanionStep state={state} handlers={handlers} />,
-      },
-      {
-        id: 'ancestry',
-        title: 'Choose Ancestry',
-        description:
-          'Select your ancestry or craft a mixed or homebrew heritage.',
-        content: <AncestryStep state={state} handlers={handlers} />,
-      },
-      {
-        id: 'community',
-        title: 'Choose Community',
-        description:
-          'Select the community that shaped your character’s upbringing.',
-        content: <CommunityStep state={state} handlers={handlers} />,
-      },
-      {
-        id: 'traits',
-        title: 'Assign Traits',
-        description:
-          'Distribute your trait modifiers. At creation, assign +2, +1, +1, +0, +0, and -1.',
-        content: <TraitsStep state={state} handlers={handlers} />,
-      },
-      {
-        id: 'identity',
-        title: 'Identity & Background',
-        description:
-          'Add your name, background, and any connections you already know.',
-        content: (
-          <IdentityStep
-            state={state}
-            handlers={handlers}
-            identityFormRef={identityFormRef}
-          />
-        ),
-      },
-      {
-        id: 'experiences',
-        title: 'Create Experiences',
-        description: 'Add at least two experiences that start at +2 each.',
-        content: <ExperiencesStep state={state} handlers={handlers} />,
-      },
-      {
-        id: 'equipment',
-        title: 'Starting Equipment',
-        description:
-          'Choose tier 1 weapons and armor, then add your starting inventory items.',
-        content: <EquipmentStep state={state} handlers={handlers} />,
-      },
-      {
-        id: 'domains',
-        title: 'Choose Domain Cards',
-        description:
-          'Select at least two level 1 domain cards from your class domains.',
-        content: <DomainsStep state={state} handlers={handlers} />,
-      },
-    ];
+  const completion = useMemo(() => getOnboardingCompletion(state), [state]);
+  const firstIncomplete = useMemo(
+    () => getFirstIncompleteStepId(state),
+    [state]
+  );
+  const steps = useMemo<WizardStep[]>(
+    () =>
+      // eslint-disable-next-line react-hooks/refs
+      buildWizardSteps({
+        classDraft,
+        handlers,
+        state,
+        identityFormRef,
+        classCompleteRef,
+        setClassCanProceed,
+        isBeastbound,
+      }),
+    [
+      classDraft,
+      handlers,
+      state,
+      identityFormRef,
+      classCompleteRef,
+      setClassCanProceed,
+      isBeastbound,
+    ]
+  );
 
-    return isBeastbound
-      ? baseSteps
-      : baseSteps.filter(step => step.id !== 'companion');
-  }, [
-    classDraft,
-    handlers,
-    identityFormRef,
-    isBeastbound,
-    setClassCanProceed,
-    state,
-  ]);
+  const stepIndex = useMemo(() => {
+    if (manualStepIndex !== null) {
+      return manualStepIndex;
+    }
+    const firstIndex = steps.findIndex(step => step.id === firstIncomplete);
+    return firstIndex >= 0 ? firstIndex : 0;
+  }, [manualStepIndex, steps, firstIncomplete]);
 
   const currentStep = steps[stepIndex];
   const isLastStep = stepIndex === steps.length - 1;

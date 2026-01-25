@@ -1,4 +1,4 @@
-/* eslint-disable max-lines, max-lines-per-function */
+/* eslint-disable max-lines */
 // Homepage with page-specific feature cards and sections
 
 import { createFileRoute, Link } from '@tanstack/react-router';
@@ -418,6 +418,292 @@ function MainFeatureCard({ feature }: { feature: FeatureCard }) {
   );
 }
 
+function HeroSection() {
+  return (
+    <section className="from-primary/5 via-background to-background relative flex flex-1 flex-col items-center justify-center overflow-hidden bg-linear-to-b px-4 py-16 text-center md:py-24">
+      <div className="bg-primary/10 animate-pulse-slow absolute top-10 left-10 h-32 w-32 rounded-full blur-3xl" />
+      <div className="bg-primary/5 animate-pulse-slow animation-delay-1000 absolute right-10 bottom-20 h-40 w-40 rounded-full blur-3xl" />
+      <div className="absolute top-1/2 left-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-500/5 blur-3xl" />
+
+      <div className="relative z-10 max-w-3xl">
+        <div className="mb-6 flex flex-col items-center justify-center gap-2 sm:flex-row sm:gap-3">
+          <div className="bg-primary/10 rounded-xl p-2 sm:p-3">
+            <Dices className="text-primary h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12" />
+          </div>
+          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">
+            <span className="text-primary">Daggerheart</span> Tools
+          </h1>
+        </div>
+
+        <p className="text-muted-foreground mx-auto mb-8 max-w-2xl px-2 text-base sm:text-lg md:text-xl">
+          The complete companion app for{' '}
+          <SmartTooltip content="The collaborative fantasy TTRPG by Darrington Press">
+            <span className="text-foreground cursor-help border-b border-dashed">
+              Daggerheart
+            </span>
+          </SmartTooltip>
+          . Build characters, calculate damage, track sessions, manage
+          companions, and browse the full SRD—all from your phone or desktop.
+        </p>
+
+        <div className="flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
+          <Button
+            asChild
+            size="default"
+            className="text-primary-foreground group gap-2 shadow-lg sm:text-base"
+          >
+            <Link to="/character/new">
+              <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
+              Create Character
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1 sm:h-5 sm:w-5" />
+            </Link>
+          </Button>
+          <Button
+            asChild
+            size="default"
+            variant="outline"
+            className="group gap-2"
+          >
+            <Link to="/character">
+              <Users className="h-4 w-4 sm:h-5 sm:w-5" />
+              View Characters
+            </Link>
+          </Button>
+        </div>
+
+        <div className="mt-4 flex items-center justify-center gap-4 sm:gap-6">
+          <Link
+            to="/rules"
+            className="text-muted-foreground hover:text-primary flex items-center gap-1 text-xs transition-colors sm:text-sm"
+          >
+            <Scroll className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            Rules
+          </Link>
+          <Link
+            to="/references"
+            className="text-muted-foreground hover:text-primary flex items-center gap-1 text-xs transition-colors sm:text-sm"
+          >
+            <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            References
+          </Link>
+        </div>
+      </div>
+
+      <div className="relative z-10 mt-10 grid w-full max-w-5xl grid-cols-2 gap-2 px-2 sm:mt-12 sm:grid-cols-3 sm:gap-3 sm:px-4 md:mt-16 lg:grid-cols-6">
+        {featureHighlights.map(feature => (
+          <FeatureHighlightCard key={feature.title} feature={feature} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function MainFeaturesSection() {
+  return (
+    <section className="bg-muted/30 px-3 py-10 sm:px-4 sm:py-16">
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-8 text-center sm:mb-12">
+          <h2 className="mb-2 text-xl font-bold sm:mb-3 sm:text-2xl md:text-3xl">
+            Everything you need
+          </h2>
+          <p className="text-muted-foreground mx-auto max-w-2xl px-2 text-sm sm:text-base">
+            A complete toolkit for players and GMs.
+          </p>
+        </div>
+
+        <div className="grid gap-3 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {mainFeatures.map(feature => (
+            <MainFeatureCard key={feature.title} feature={feature} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ReferenceGuideSection() {
+  return (
+    <section className="px-4 py-16">
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-8 text-center sm:mb-10">
+          <div className="mb-3 flex flex-col items-center justify-center gap-1 sm:mb-4 sm:flex-row sm:gap-2">
+            <h2 className="text-xl font-bold sm:text-2xl md:text-3xl">
+              Reference Guide
+            </h2>
+            <SmartTooltip content="All data sourced from the official Daggerheart SRD">
+              <span className="text-muted-foreground cursor-help">
+                <ExternalLink className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              </span>
+            </SmartTooltip>
+          </div>
+          <p className="text-muted-foreground mx-auto max-w-2xl px-2 text-sm sm:text-base">
+            Browse game data with search and filtering. Tap any card for
+            details.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 sm:gap-4 md:grid-cols-4">
+          {referenceCategories.map(category => (
+            <ReferenceCategoryCard key={category.to} category={category} />
+          ))}
+        </div>
+
+        <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row md:mt-8">
+          <Button asChild variant="outline" className="group gap-2">
+            <Link to="/references">
+              Browse All References
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </Link>
+          </Button>
+          <Button asChild variant="ghost" className="gap-2">
+            <Link to="/rules">
+              <Scroll className="h-4 w-4" />
+              Learn the Rules
+            </Link>
+          </Button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function RulesQuickAccessSection() {
+  return (
+    <section className="bg-muted/30 px-4 py-16">
+      <div className="mx-auto max-w-4xl">
+        <Link to="/rules" className="group block">
+          <Card className="group-hover:border-primary/50 group-focus-visible:ring-ring overflow-hidden transition-all duration-200 group-focus-visible:ring-2 hover:shadow-xl">
+            <div className="h-2 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500" />
+            <CardContent className="flex flex-col items-center gap-4 px-4 py-5 sm:flex-row sm:justify-between sm:gap-6 sm:px-6 sm:py-8">
+              <div className="flex flex-col items-center gap-3 sm:flex-row sm:gap-4">
+                <div className="rounded-lg bg-indigo-500/10 p-3 transition-transform group-hover:scale-110 sm:rounded-xl sm:p-4">
+                  <Scroll className="h-6 w-6 text-indigo-600 sm:h-8 sm:w-8 dark:text-indigo-400" />
+                </div>
+                <div className="text-center sm:text-left">
+                  <h3 className="group-hover:text-primary text-lg font-semibold transition-colors sm:text-xl">
+                    Rules Guide
+                  </h3>
+                  <p className="text-muted-foreground mt-0.5 text-xs sm:mt-1 sm:text-sm">
+                    Core mechanics, combat, downtime, and GM tools
+                  </p>
+                  <div className="mt-2 flex flex-wrap justify-center gap-1.5 sm:justify-start sm:gap-2">
+                    <Badge
+                      variant="secondary"
+                      className="px-1.5 py-0 text-[9px] sm:px-2 sm:py-0.5 sm:text-[10px]"
+                    >
+                      Core
+                    </Badge>
+                    <Badge
+                      variant="secondary"
+                      className="px-1.5 py-0 text-[9px] sm:px-2 sm:py-0.5 sm:text-[10px]"
+                    >
+                      Combat
+                    </Badge>
+                    <Badge
+                      variant="secondary"
+                      className="px-1.5 py-0 text-[9px] sm:px-2 sm:py-0.5 sm:text-[10px]"
+                    >
+                      Downtime
+                    </Badge>
+                    <Badge
+                      variant="secondary"
+                      className="px-1.5 py-0 text-[9px] sm:px-2 sm:py-0.5 sm:text-[10px]"
+                    >
+                      GM
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+              <Button
+                size="sm"
+                className="group/btn sm:size-default shrink-0 gap-2"
+              >
+                Explore
+                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/btn:translate-x-1 sm:h-4 sm:w-4" />
+              </Button>
+            </CardContent>
+          </Card>
+        </Link>
+      </div>
+    </section>
+  );
+}
+
+function CTASection() {
+  return (
+    <section className="relative px-4 py-12 text-center sm:py-20">
+      <div className="from-primary/5 to-background absolute inset-0 bg-linear-to-b" />
+
+      <div className="relative z-10 mx-auto max-w-2xl">
+        <div className="bg-primary/10 mx-auto mb-4 w-fit rounded-full p-3 sm:mb-6 sm:p-4">
+          <Dices className="text-primary h-8 w-8 sm:h-12 sm:w-12" />
+        </div>
+        <h2 className="mb-3 text-xl font-bold sm:mb-4 sm:text-2xl md:text-3xl">
+          Ready to begin your adventure?
+        </h2>
+        <p className="text-muted-foreground mb-6 px-2 text-sm sm:mb-8 sm:text-base">
+          Create your first character in minutes with our guided wizard, or dive
+          into the reference guides to prepare for your next session.
+        </p>
+        <div className="flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
+          <Button
+            asChild
+            size="default"
+            className="text-primary-foreground group gap-2 shadow-lg"
+          >
+            <Link to="/character/new">
+              <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
+              Create Character
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1 sm:h-5 sm:w-5" />
+            </Link>
+          </Button>
+          <Button
+            asChild
+            size="default"
+            variant="outline"
+            className="group gap-2"
+          >
+            <Link to="/references">
+              <BookOpen className="h-4 w-4 sm:h-5 sm:w-5" />
+              References
+            </Link>
+          </Button>
+        </div>
+
+        <div className="text-muted-foreground mt-6 flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-xs sm:mt-8 sm:gap-x-6 sm:gap-y-2 sm:text-sm">
+          <Link
+            to="/rules/core-mechanics"
+            className="hover:text-primary transition-colors"
+          >
+            Core Mechanics
+          </Link>
+          <span className="text-muted-foreground/50 hidden sm:inline">•</span>
+          <Link
+            to="/rules/combat"
+            className="hover:text-primary transition-colors"
+          >
+            Combat
+          </Link>
+          <span className="text-muted-foreground/50 hidden sm:inline">•</span>
+          <Link
+            to="/rules/character-creation"
+            className="hover:text-primary transition-colors"
+          >
+            Character Creation
+          </Link>
+          <span className="text-muted-foreground/50 hidden sm:inline">•</span>
+          <Link
+            to="/rules/gm-guide"
+            className="hover:text-primary transition-colors"
+          >
+            GM Guide
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Page
 // ─────────────────────────────────────────────────────────────────────────────
@@ -425,283 +711,11 @@ function MainFeatureCard({ feature }: { feature: FeatureCard }) {
 function Index() {
   return (
     <div className="flex min-h-[calc(100vh-4rem)] flex-col">
-      {/* Hero Section */}
-      <section className="from-primary/5 via-background to-background relative flex flex-1 flex-col items-center justify-center overflow-hidden bg-linear-to-b px-4 py-16 text-center md:py-24">
-        {/* Animated decorative elements */}
-        <div className="bg-primary/10 animate-pulse-slow absolute top-10 left-10 h-32 w-32 rounded-full blur-3xl" />
-        <div className="bg-primary/5 animate-pulse-slow animation-delay-1000 absolute right-10 bottom-20 h-40 w-40 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-500/5 blur-3xl" />
-
-        <div className="relative z-10 max-w-3xl">
-          {/* Logo / Title */}
-          <div className="mb-6 flex flex-col items-center justify-center gap-2 sm:flex-row sm:gap-3">
-            <div className="bg-primary/10 rounded-xl p-2 sm:p-3">
-              <Dices className="text-primary h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12" />
-            </div>
-            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">
-              <span className="text-primary">Daggerheart</span> Tools
-            </h1>
-          </div>
-
-          <p className="text-muted-foreground mx-auto mb-8 max-w-2xl px-2 text-base sm:text-lg md:text-xl">
-            The complete companion app for{' '}
-            <SmartTooltip content="The collaborative fantasy TTRPG by Darrington Press">
-              <span className="text-foreground cursor-help border-b border-dashed">
-                Daggerheart
-              </span>
-            </SmartTooltip>
-            . Build characters, calculate damage, track sessions, manage
-            companions, and browse the full SRD—all from your phone or desktop.
-          </p>
-
-          {/* Primary CTAs */}
-          <div className="flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
-            <Button
-              asChild
-              size="default"
-              className="text-primary-foreground group gap-2 shadow-lg sm:text-base"
-            >
-              <Link to="/character/new">
-                <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
-                Create Character
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1 sm:h-5 sm:w-5" />
-              </Link>
-            </Button>
-            <Button
-              asChild
-              size="default"
-              variant="outline"
-              className="group gap-2"
-            >
-              <Link to="/character">
-                <Users className="h-4 w-4 sm:h-5 sm:w-5" />
-                View Characters
-              </Link>
-            </Button>
-          </div>
-
-          {/* Secondary CTAs */}
-          <div className="mt-4 flex items-center justify-center gap-4 sm:gap-6">
-            <Link
-              to="/rules"
-              className="text-muted-foreground hover:text-primary flex items-center gap-1 text-xs transition-colors sm:text-sm"
-            >
-              <Scroll className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              Rules
-            </Link>
-            <Link
-              to="/references"
-              className="text-muted-foreground hover:text-primary flex items-center gap-1 text-xs transition-colors sm:text-sm"
-            >
-              <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              References
-            </Link>
-          </div>
-        </div>
-
-        {/* Feature highlight chips */}
-        <div className="relative z-10 mt-10 grid w-full max-w-5xl grid-cols-2 gap-2 px-2 sm:mt-12 sm:grid-cols-3 sm:gap-3 sm:px-4 md:mt-16 lg:grid-cols-6">
-          {featureHighlights.map(feature => (
-            <FeatureHighlightCard key={feature.title} feature={feature} />
-          ))}
-        </div>
-      </section>
-
-      {/* Main Features Section */}
-      <section className="bg-muted/30 px-3 py-10 sm:px-4 sm:py-16">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-8 text-center sm:mb-12">
-            <h2 className="mb-2 text-xl font-bold sm:mb-3 sm:text-2xl md:text-3xl">
-              Everything you need
-            </h2>
-            <p className="text-muted-foreground mx-auto max-w-2xl px-2 text-sm sm:text-base">
-              A complete toolkit for players and GMs.
-            </p>
-          </div>
-
-          <div className="grid gap-3 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {mainFeatures.map(feature => (
-              <MainFeatureCard key={feature.title} feature={feature} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Reference Guide Section */}
-      <section className="px-4 py-16">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-8 text-center sm:mb-10">
-            <div className="mb-3 flex flex-col items-center justify-center gap-1 sm:mb-4 sm:flex-row sm:gap-2">
-              <h2 className="text-xl font-bold sm:text-2xl md:text-3xl">
-                Reference Guide
-              </h2>
-              <SmartTooltip content="All data sourced from the official Daggerheart SRD">
-                <span className="text-muted-foreground cursor-help">
-                  <ExternalLink className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                </span>
-              </SmartTooltip>
-            </div>
-            <p className="text-muted-foreground mx-auto max-w-2xl px-2 text-sm sm:text-base">
-              Browse game data with search and filtering. Tap any card for
-              details.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 sm:gap-4 md:grid-cols-4">
-            {referenceCategories.map(category => (
-              <ReferenceCategoryCard key={category.to} category={category} />
-            ))}
-          </div>
-
-          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row md:mt-8">
-            <Button asChild variant="outline" className="group gap-2">
-              <Link to="/references">
-                Browse All References
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </Link>
-            </Button>
-            <Button asChild variant="ghost" className="gap-2">
-              <Link to="/rules">
-                <Scroll className="h-4 w-4" />
-                Learn the Rules
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* Rules Quick Access */}
-      <section className="bg-muted/30 px-4 py-16">
-        <div className="mx-auto max-w-4xl">
-          <Link to="/rules" className="group block">
-            <Card className="group-hover:border-primary/50 group-focus-visible:ring-ring overflow-hidden transition-all duration-200 group-focus-visible:ring-2 hover:shadow-xl">
-              <div className="h-2 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500" />
-              <CardContent className="flex flex-col items-center gap-4 px-4 py-5 sm:flex-row sm:justify-between sm:gap-6 sm:px-6 sm:py-8">
-                <div className="flex flex-col items-center gap-3 sm:flex-row sm:gap-4">
-                  <div className="rounded-lg bg-indigo-500/10 p-3 transition-transform group-hover:scale-110 sm:rounded-xl sm:p-4">
-                    <Scroll className="h-6 w-6 text-indigo-600 sm:h-8 sm:w-8 dark:text-indigo-400" />
-                  </div>
-                  <div className="text-center sm:text-left">
-                    <h3 className="group-hover:text-primary text-lg font-semibold transition-colors sm:text-xl">
-                      Rules Guide
-                    </h3>
-                    <p className="text-muted-foreground mt-0.5 text-xs sm:mt-1 sm:text-sm">
-                      Core mechanics, combat, downtime, and GM tools
-                    </p>
-                    <div className="mt-2 flex flex-wrap justify-center gap-1.5 sm:justify-start sm:gap-2">
-                      <Badge
-                        variant="secondary"
-                        className="px-1.5 py-0 text-[9px] sm:px-2 sm:py-0.5 sm:text-[10px]"
-                      >
-                        Core
-                      </Badge>
-                      <Badge
-                        variant="secondary"
-                        className="px-1.5 py-0 text-[9px] sm:px-2 sm:py-0.5 sm:text-[10px]"
-                      >
-                        Combat
-                      </Badge>
-                      <Badge
-                        variant="secondary"
-                        className="px-1.5 py-0 text-[9px] sm:px-2 sm:py-0.5 sm:text-[10px]"
-                      >
-                        Downtime
-                      </Badge>
-                      <Badge
-                        variant="secondary"
-                        className="px-1.5 py-0 text-[9px] sm:px-2 sm:py-0.5 sm:text-[10px]"
-                      >
-                        GM
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-                <Button
-                  size="sm"
-                  className="group/btn sm:size-default shrink-0 gap-2"
-                >
-                  Explore
-                  <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/btn:translate-x-1 sm:h-4 sm:w-4" />
-                </Button>
-              </CardContent>
-            </Card>
-          </Link>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="relative px-4 py-12 text-center sm:py-20">
-        {/* Background decoration */}
-        <div className="from-primary/5 to-background absolute inset-0 bg-linear-to-b" />
-
-        <div className="relative z-10 mx-auto max-w-2xl">
-          <div className="bg-primary/10 mx-auto mb-4 w-fit rounded-full p-3 sm:mb-6 sm:p-4">
-            <Dices className="text-primary h-8 w-8 sm:h-12 sm:w-12" />
-          </div>
-          <h2 className="mb-3 text-xl font-bold sm:mb-4 sm:text-2xl md:text-3xl">
-            Ready to begin your adventure?
-          </h2>
-          <p className="text-muted-foreground mb-6 px-2 text-sm sm:mb-8 sm:text-base">
-            Create your first character in minutes with our guided wizard, or
-            dive into the reference guides to prepare for your next session.
-          </p>
-          <div className="flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
-            <Button
-              asChild
-              size="default"
-              className="text-primary-foreground group gap-2 shadow-lg"
-            >
-              <Link to="/character/new">
-                <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
-                Create Character
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1 sm:h-5 sm:w-5" />
-              </Link>
-            </Button>
-            <Button
-              asChild
-              size="default"
-              variant="outline"
-              className="group gap-2"
-            >
-              <Link to="/references">
-                <BookOpen className="h-4 w-4 sm:h-5 sm:w-5" />
-                References
-              </Link>
-            </Button>
-          </div>
-
-          {/* Quick links */}
-          <div className="text-muted-foreground mt-6 flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-xs sm:mt-8 sm:gap-x-6 sm:gap-y-2 sm:text-sm">
-            <Link
-              to="/rules/core-mechanics"
-              className="hover:text-primary transition-colors"
-            >
-              Core Mechanics
-            </Link>
-            <span className="text-muted-foreground/50 hidden sm:inline">•</span>
-            <Link
-              to="/rules/combat"
-              className="hover:text-primary transition-colors"
-            >
-              Combat
-            </Link>
-            <span className="text-muted-foreground/50 hidden sm:inline">•</span>
-            <Link
-              to="/rules/character-creation"
-              className="hover:text-primary transition-colors"
-            >
-              Character Creation
-            </Link>
-            <span className="text-muted-foreground/50 hidden sm:inline">•</span>
-            <Link
-              to="/rules/gm-guide"
-              className="hover:text-primary transition-colors"
-            >
-              GM Guide
-            </Link>
-          </div>
-        </div>
-      </section>
+      <HeroSection />
+      <MainFeaturesSection />
+      <ReferenceGuideSection />
+      <RulesQuickAccessSection />
+      <CTASection />
     </div>
   );
 }
