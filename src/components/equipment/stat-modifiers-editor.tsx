@@ -120,6 +120,127 @@ function ModifierSection({
   );
 }
 
+/** Grid of two number fields for core scores */
+function CoreScoresSection({
+  value,
+  updateField,
+}: {
+  value: Partial<EquipmentStatModifiers> | undefined;
+  updateField: (key: SimpleStatKey, fieldValue: number) => void;
+}) {
+  return (
+    <ModifierSection label="Core Scores">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <NumberField
+          label="Evasion"
+          value={value?.evasion ?? 0}
+          onChange={v => updateField('evasion', v)}
+        />
+        <NumberField
+          label="Proficiency"
+          value={value?.proficiency ?? 0}
+          onChange={v => updateField('proficiency', v)}
+        />
+      </div>
+    </ModifierSection>
+  );
+}
+
+/** Armor score input */
+function ArmorScoreSection({
+  value,
+  updateField,
+}: {
+  value: Partial<EquipmentStatModifiers> | undefined;
+  updateField: (key: SimpleStatKey, fieldValue: number) => void;
+}) {
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      <NumberField
+        label="Armor Score"
+        value={value?.armorScore ?? 0}
+        onChange={v => updateField('armorScore', v)}
+      />
+    </div>
+  );
+}
+
+/** Threshold modifiers section */
+function ThresholdSection({
+  value,
+  updateField,
+}: {
+  value: Partial<EquipmentStatModifiers> | undefined;
+  updateField: (key: SimpleStatKey, fieldValue: number) => void;
+}) {
+  return (
+    <ModifierSection label="Damage Thresholds">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <NumberField
+          label="Major Threshold"
+          value={value?.majorThreshold ?? 0}
+          onChange={v => updateField('majorThreshold', v)}
+        />
+        <NumberField
+          label="Severe Threshold"
+          value={value?.severeThreshold ?? 0}
+          onChange={v => updateField('severeThreshold', v)}
+        />
+      </div>
+    </ModifierSection>
+  );
+}
+
+/** Roll modifiers section */
+function RollModifiersSection({
+  value,
+  updateField,
+}: {
+  value: Partial<EquipmentStatModifiers> | undefined;
+  updateField: (key: SimpleStatKey, fieldValue: number) => void;
+}) {
+  return (
+    <ModifierSection label="Roll Modifiers">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <NumberField
+          label="Attack Rolls"
+          value={value?.attackRolls ?? 0}
+          onChange={v => updateField('attackRolls', v)}
+        />
+        <NumberField
+          label="Spellcast Rolls"
+          value={value?.spellcastRolls ?? 0}
+          onChange={v => updateField('spellcastRolls', v)}
+        />
+      </div>
+    </ModifierSection>
+  );
+}
+
+/** Trait modifiers grid */
+function TraitModifiersSection({
+  value,
+  updateTrait,
+}: {
+  value: Partial<EquipmentStatModifiers> | undefined;
+  updateTrait: (trait: TraitName, traitValue: number) => void;
+}) {
+  return (
+    <ModifierSection label="Trait Modifiers">
+      <div className="grid gap-3 sm:grid-cols-3">
+        {TRAIT_NAMES.map(trait => (
+          <NumberField
+            key={trait}
+            label={trait}
+            value={value?.traits?.[trait] ?? 0}
+            onChange={v => updateTrait(trait, v)}
+          />
+        ))}
+      </div>
+    </ModifierSection>
+  );
+}
+
 export function StatModifiersEditor({
   value,
   onChange,
@@ -188,82 +309,16 @@ export function StatModifiersEditor({
         </Button>
       </CollapsibleTrigger>
       <CollapsibleContent className="space-y-4 pt-3">
-        {/* Core Scores */}
-        <ModifierSection label="Core Scores">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <NumberField
-              label="Evasion"
-              value={value?.evasion ?? 0}
-              onChange={v => updateField('evasion', v)}
-            />
-            <NumberField
-              label="Proficiency"
-              value={value?.proficiency ?? 0}
-              onChange={v => updateField('proficiency', v)}
-            />
-          </div>
-        </ModifierSection>
-
-        {/* Armor Score */}
-        <div className="grid gap-3 sm:grid-cols-2">
-          <NumberField
-            label="Armor Score"
-            value={value?.armorScore ?? 0}
-            onChange={v => updateField('armorScore', v)}
-          />
-        </div>
-
-        {/* Thresholds (optional) */}
+        <CoreScoresSection value={value} updateField={updateField} />
+        <ArmorScoreSection value={value} updateField={updateField} />
         {showThresholds && (
-          <ModifierSection label="Damage Thresholds">
-            <div className="grid gap-3 sm:grid-cols-2">
-              <NumberField
-                label="Major Threshold"
-                value={value?.majorThreshold ?? 0}
-                onChange={v => updateField('majorThreshold', v)}
-              />
-              <NumberField
-                label="Severe Threshold"
-                value={value?.severeThreshold ?? 0}
-                onChange={v => updateField('severeThreshold', v)}
-              />
-            </div>
-          </ModifierSection>
+          <ThresholdSection value={value} updateField={updateField} />
         )}
-
-        {/* Roll Modifiers (optional) */}
         {showRolls && (
-          <ModifierSection label="Roll Modifiers">
-            <div className="grid gap-3 sm:grid-cols-2">
-              <NumberField
-                label="Attack Rolls"
-                value={value?.attackRolls ?? 0}
-                onChange={v => updateField('attackRolls', v)}
-              />
-              <NumberField
-                label="Spellcast Rolls"
-                value={value?.spellcastRolls ?? 0}
-                onChange={v => updateField('spellcastRolls', v)}
-              />
-            </div>
-          </ModifierSection>
+          <RollModifiersSection value={value} updateField={updateField} />
         )}
+        <TraitModifiersSection value={value} updateTrait={updateTrait} />
 
-        {/* Trait Modifiers */}
-        <ModifierSection label="Trait Modifiers">
-          <div className="grid gap-3 sm:grid-cols-3">
-            {TRAIT_NAMES.map(trait => (
-              <NumberField
-                key={trait}
-                label={trait}
-                value={value?.traits?.[trait] ?? 0}
-                onChange={v => updateTrait(trait, v)}
-              />
-            ))}
-          </div>
-        </ModifierSection>
-
-        {/* Clear button */}
         <div className="flex justify-end">
           <Button
             variant="ghost"

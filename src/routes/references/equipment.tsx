@@ -1,3 +1,6 @@
+/* eslint-disable max-lines, max-lines-per-function, complexity */
+// Equipment reference page with page-specific detail components
+
 import { createFileRoute } from '@tanstack/react-router';
 import {
   ArrowDown,

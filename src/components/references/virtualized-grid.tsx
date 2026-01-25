@@ -75,6 +75,7 @@ export function VirtualizedGrid<T>({
     return result;
   }, [items, columnCount]);
 
+  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Virtual known limitation
   const virtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => containerRef.current,
@@ -144,6 +145,7 @@ export function VirtualizedList<T>({
   className,
   containerRef,
 }: VirtualizedListProps<T>) {
+  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Virtual known limitation
   const virtualizer = useVirtualizer({
     count: items.length,
     getScrollElement: () => containerRef.current,

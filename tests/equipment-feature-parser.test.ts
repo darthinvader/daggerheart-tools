@@ -1,3 +1,4 @@
+/* eslint-disable max-lines, max-lines-per-function -- Test file with comprehensive test suites */
 import { describe, expect, it } from 'vitest';
 
 import {

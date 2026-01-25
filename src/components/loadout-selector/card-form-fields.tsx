@@ -27,6 +27,32 @@ interface CardFormFieldsProps {
   onUpdate: (updates: Partial<HomebrewCardDraft>) => void;
 }
 
+function CostField({
+  id,
+  label,
+  value,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={id}>{label}</Label>
+      <Input
+        id={id}
+        type="number"
+        min={0}
+        max={6}
+        value={value}
+        onChange={e => onChange(Number(e.target.value))}
+      />
+    </div>
+  );
+}
+
 export function CardFormFields({ draft, onUpdate }: CardFormFieldsProps) {
   return (
     <>
@@ -108,39 +134,24 @@ export function CardFormFields({ draft, onUpdate }: CardFormFieldsProps) {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <div className="space-y-2">
-          <Label htmlFor="card-hope-cost">Hope Cost</Label>
-          <Input
-            id="card-hope-cost"
-            type="number"
-            min={0}
-            max={6}
-            value={draft.hopeCost}
-            onChange={e => onUpdate({ hopeCost: Number(e.target.value) })}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="card-recall-cost">Recall Cost</Label>
-          <Input
-            id="card-recall-cost"
-            type="number"
-            min={0}
-            max={6}
-            value={draft.recallCost}
-            onChange={e => onUpdate({ recallCost: Number(e.target.value) })}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="card-stress-cost">Stress Cost</Label>
-          <Input
-            id="card-stress-cost"
-            type="number"
-            min={0}
-            max={6}
-            value={draft.stressCost}
-            onChange={e => onUpdate({ stressCost: Number(e.target.value) })}
-          />
-        </div>
+        <CostField
+          id="card-hope-cost"
+          label="Hope Cost"
+          value={draft.hopeCost}
+          onChange={v => onUpdate({ hopeCost: v })}
+        />
+        <CostField
+          id="card-recall-cost"
+          label="Recall Cost"
+          value={draft.recallCost}
+          onChange={v => onUpdate({ recallCost: v })}
+        />
+        <CostField
+          id="card-stress-cost"
+          label="Stress Cost"
+          value={draft.stressCost}
+          onChange={v => onUpdate({ stressCost: v })}
+        />
       </div>
 
       <div className="space-y-2">

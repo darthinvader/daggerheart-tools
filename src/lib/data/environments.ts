@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import type { Environment } from '../schemas/environments';
 
 export const ENVIRONMENTS: Environment[] = [

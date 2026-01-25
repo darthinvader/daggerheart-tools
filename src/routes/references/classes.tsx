@@ -1,3 +1,6 @@
+/* eslint-disable max-lines, max-lines-per-function */
+// Classes reference page with page-specific detail components
+
 import { createFileRoute } from '@tanstack/react-router';
 import { ArrowLeft, ChevronDown, ChevronRight, Search, X } from 'lucide-react';
 import * as React from 'react';

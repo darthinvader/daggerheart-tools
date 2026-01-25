@@ -1,3 +1,6 @@
+/* eslint-disable max-lines, max-lines-per-function */
+// Domain cards reference page with page-specific detail components
+
 import { createFileRoute } from '@tanstack/react-router';
 import { Grid3X3, List } from 'lucide-react';
 import * as React from 'react';

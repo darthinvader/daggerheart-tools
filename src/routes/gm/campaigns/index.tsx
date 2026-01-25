@@ -1,3 +1,6 @@
+/* eslint-disable max-lines, max-lines-per-function */
+// Campaigns list page with inline campaign card components
+
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { ChevronDown, FolderOpen, Plus, RotateCcw, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -185,6 +188,7 @@ function CampaignsList() {
                 <Link
                   to="/gm/campaigns/$id"
                   params={{ id: campaign.id }}
+                  search={{ tab: 'overview' }}
                   className="absolute inset-0 z-0"
                   aria-label={`Open ${campaign.name}`}
                 />

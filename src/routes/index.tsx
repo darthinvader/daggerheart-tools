@@ -1,3 +1,6 @@
+/* eslint-disable max-lines, max-lines-per-function */
+// Homepage with page-specific feature cards and sections
+
 import { createFileRoute, Link } from '@tanstack/react-router';
 import type { LucideIcon } from 'lucide-react';
 import {

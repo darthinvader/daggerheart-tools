@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 export interface RulesTag {
   label: string;
   description: string;

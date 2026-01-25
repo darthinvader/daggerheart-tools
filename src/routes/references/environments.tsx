@@ -1,3 +1,6 @@
+/* eslint-disable max-lines, max-lines-per-function */
+// Environments reference page with page-specific detail components
+
 import {
   createFileRoute,
   type ErrorComponentProps,

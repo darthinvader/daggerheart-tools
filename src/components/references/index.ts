@@ -1,10 +1,9 @@
+export { type ComparisonItem, useCompare } from './compare-context';
 export {
   CompareDrawer,
   CompareProvider,
   CompareToggleButton,
-  type ComparisonItem,
   ComparisonTable,
-  useCompare,
 } from './comparison-drawer';
 export { DetailPanel } from './detail-panel';
 export {
@@ -12,6 +11,7 @@ export {
   type FilterOption,
   ReferenceFilter,
 } from './reference-filter';
+export { useKeyboardNavigation, useSortState } from './reference-hooks';
 export {
   ReferenceGridSkeleton,
   ReferencePageSkeleton,
@@ -24,8 +24,6 @@ export {
   ResultsCounter,
   SortableTableHead,
   SortControl,
-  useKeyboardNavigation,
-  useSortState,
 } from './reference-utils';
 export {
   useDeferredItems,

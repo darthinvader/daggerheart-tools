@@ -25,6 +25,55 @@ interface DeathMoveModalProps {
   onExecuteMove: (moveType: DeathMoveType) => DeathMoveResult;
 }
 
+/** Move selection UI */
+function MoveSelectionContent({
+  characterLevel,
+  selectedMove,
+  onSelect,
+}: {
+  characterLevel: number;
+  selectedMove: DeathMoveType | null;
+  onSelect: (type: DeathMoveType) => void;
+}) {
+  return (
+    <>
+      <p className="text-muted-foreground text-sm">
+        Choose how to face death. Your current level is{' '}
+        <span className="font-bold">{characterLevel}</span>.
+      </p>
+      <div className="space-y-3">
+        {DEATH_MOVE_OPTIONS.map(option => (
+          <DeathMoveOptionCard
+            key={option.type}
+            type={option.type}
+            isSelected={selectedMove === option.type}
+            onSelect={onSelect}
+          />
+        ))}
+      </div>
+    </>
+  );
+}
+
+/** Blaze of Glory confirmation UI */
+function BlazeConfirmContent({ characterName }: { characterName: string }) {
+  return (
+    <div className="space-y-4">
+      <div className="bg-destructive/10 border-destructive rounded-lg border-2 p-4">
+        <h4 className="text-destructive mb-2 font-bold">⚠️ Final Warning</h4>
+        <p className="text-sm">
+          Choosing <strong>Blaze of Glory</strong> means your character will
+          die. This cannot be undone. Your next action will critically succeed,
+          and then {characterName} will cross through the veil of death.
+        </p>
+      </div>
+      <p className="text-muted-foreground text-sm">
+        Are you sure you want to proceed?
+      </p>
+    </div>
+  );
+}
+
 export function DeathMoveModal({
   isOpen,
   onClose,
@@ -38,8 +87,7 @@ export function DeathMoveModal({
 
   const handleExecute = () => {
     if (!selectedMove) return;
-    const moveResult = onExecuteMove(selectedMove);
-    setResult(moveResult);
+    setResult(onExecuteMove(selectedMove));
   };
 
   const handleClose = () => {
@@ -50,16 +98,8 @@ export function DeathMoveModal({
   };
 
   const handleConfirmSelection = () => {
-    if (selectedMove === 'blaze_of_glory') {
-      setIsConfirming(true);
-    } else {
-      handleExecute();
-    }
-  };
-
-  const handleConfirmBlazeOfGlory = () => {
-    setIsConfirming(false);
-    handleExecute();
+    if (selectedMove === 'blaze_of_glory') setIsConfirming(true);
+    else handleExecute();
   };
 
   return (
@@ -78,44 +118,15 @@ export function DeathMoveModal({
 
         <div className="space-y-4 py-4">
           {!result && !isConfirming && (
-            <>
-              <p className="text-muted-foreground text-sm">
-                Choose how to face death. Your current level is{' '}
-                <span className="font-bold">{characterLevel}</span>.
-              </p>
-
-              <div className="space-y-3">
-                {DEATH_MOVE_OPTIONS.map(option => (
-                  <DeathMoveOptionCard
-                    key={option.type}
-                    type={option.type}
-                    isSelected={selectedMove === option.type}
-                    onSelect={setSelectedMove}
-                  />
-                ))}
-              </div>
-            </>
+            <MoveSelectionContent
+              characterLevel={characterLevel}
+              selectedMove={selectedMove}
+              onSelect={setSelectedMove}
+            />
           )}
-
           {isConfirming && (
-            <div className="space-y-4">
-              <div className="bg-destructive/10 border-destructive rounded-lg border-2 p-4">
-                <h4 className="text-destructive mb-2 font-bold">
-                  ⚠️ Final Warning
-                </h4>
-                <p className="text-sm">
-                  Choosing <strong>Blaze of Glory</strong> means your character
-                  will die. This cannot be undone. Your next action will
-                  critically succeed, and then {characterName} will cross
-                  through the veil of death.
-                </p>
-              </div>
-              <p className="text-muted-foreground text-sm">
-                Are you sure you want to proceed?
-              </p>
-            </div>
+            <BlazeConfirmContent characterName={characterName} />
           )}
-
           {result && <DeathMoveResultDisplay result={result} />}
         </div>
 
@@ -134,7 +145,6 @@ export function DeathMoveModal({
               </Button>
             </>
           )}
-
           {isConfirming && (
             <>
               <Button variant="outline" onClick={() => setIsConfirming(false)}>
@@ -142,14 +152,16 @@ export function DeathMoveModal({
               </Button>
               <Button
                 variant="destructive"
-                onClick={handleConfirmBlazeOfGlory}
+                onClick={() => {
+                  setIsConfirming(false);
+                  handleExecute();
+                }}
                 className="gap-1.5"
               >
                 <Flame className="size-4" /> Embrace Death
               </Button>
             </>
           )}
-
           {result && (
             <Button onClick={handleClose}>
               {result.survived ? 'Continue' : 'Acknowledge'}

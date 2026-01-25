@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import type { Adversary } from '../schemas/adversaries';
 
 export const ADVERSARIES: Adversary[] = [

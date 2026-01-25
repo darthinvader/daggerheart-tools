@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function -- Test file with comprehensive test suite */
 /**
  * Evasion Double-Count Prevention Tests
  *

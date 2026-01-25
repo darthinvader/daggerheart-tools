@@ -1,3 +1,6 @@
+/* eslint-disable max-lines */
+// Storage layer with cohesive CRUD operations for campaigns - splitting would fragment the API
+
 import { createCampaignFrameFromTemplate } from '@/lib/data/campaign-frames';
 import type {
   Campaign,
