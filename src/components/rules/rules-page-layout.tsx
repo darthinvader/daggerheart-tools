@@ -1,7 +1,10 @@
+import { ChevronRight } from 'lucide-react';
 import * as React from 'react';
 
-import { DetailPanel } from '@/components/references';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import {
+  RulesPageDetailPanel,
+  tagToneClasses,
+} from '@/components/rules/rules-page-detail-panel';
 import { Badge } from '@/components/ui/badge';
 import {
   Card,
@@ -11,23 +14,12 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
-import type { RulesPage, RulesTag } from '@/lib/data/rules/rules-content';
-import { AlertTriangle, Leaf, RulesSectionIcons } from '@/lib/icons';
+import type { RulesPage } from '@/lib/data/rules/rules-content';
+import { RulesSectionIcons } from '@/lib/icons';
 import { cn } from '@/lib/utils';
 
 interface RulesPageLayoutProps {
   page: RulesPage;
-}
-
-function tagToneClasses(tone?: RulesTag['tone']) {
-  switch (tone) {
-    case 'success':
-      return 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300';
-    case 'warning':
-      return 'border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300';
-    default:
-      return 'border-border bg-muted/40 text-foreground';
-  }
 }
 
 export function RulesPageLayout({ page }: RulesPageLayoutProps) {
@@ -74,39 +66,62 @@ export function RulesPageLayout({ page }: RulesPageLayoutProps) {
           {page.sections.map(section => (
             <Card
               key={section.id}
-              className="group hover:border-primary/50 cursor-pointer overflow-hidden transition-all hover:shadow-lg"
+              className="group border-border/50 hover:border-primary/50 relative cursor-pointer overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
               onClick={() => setActiveSection(section)}
             >
+              {/* Gradient top bar */}
               <div className={cn('h-1.5 bg-linear-to-r', page.gradient)} />
-              <CardHeader>
+
+              {/* Subtle glow effect on hover */}
+              <div
+                className={cn(
+                  'pointer-events-none absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100',
+                  'from-primary/5 bg-linear-to-br via-transparent to-transparent'
+                )}
+              />
+
+              <CardHeader className="relative">
                 <div className="flex items-start gap-3">
-                  <div className="bg-muted rounded-lg p-2">
+                  {/* Icon with gradient background */}
+                  <div
+                    className={cn(
+                      'shrink-0 rounded-xl p-2.5 shadow-sm transition-transform group-hover:scale-110',
+                      'from-muted to-muted/50 bg-linear-to-br',
+                      'ring-border/50 ring-1'
+                    )}
+                  >
                     {(() => {
                       const SectionIcon = RulesSectionIcons[section.iconKey];
                       return SectionIcon ? (
-                        <SectionIcon className="size-6" />
+                        <SectionIcon className="text-primary size-6" />
                       ) : null;
                     })()}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <CardTitle className="text-xl">{section.title}</CardTitle>
+                    <CardTitle className="group-hover:text-primary text-xl transition-colors">
+                      {section.title}
+                    </CardTitle>
                     <CardDescription className="mt-1 text-sm leading-relaxed">
                       {section.summary}
                     </CardDescription>
-                    <div className="text-muted-foreground mt-2 text-xs">
-                      Click for deep dive
+                    <div className="text-primary/60 mt-2 flex items-center gap-1 text-xs font-medium">
+                      <ChevronRight className="size-3.5" />
+                      Tap to explore
                     </div>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4 pt-0">
+              <CardContent className="relative space-y-4 pt-0">
                 {section.tags && section.tags.length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {section.tags.map(tag => (
                       <SmartTooltip key={tag.label} content={tag.description}>
                         <Badge
                           variant="outline"
-                          className={cn('text-xs', tagToneClasses(tag.tone))}
+                          className={cn(
+                            'text-xs shadow-sm',
+                            tagToneClasses(tag.tone)
+                          )}
                         >
                           {tag.label}
                         </Badge>
@@ -115,141 +130,31 @@ export function RulesPageLayout({ page }: RulesPageLayoutProps) {
                   </div>
                 )}
 
-                <ul className="text-muted-foreground list-disc space-y-2 pl-5 text-sm">
-                  {section.bullets.map((bullet, idx) => (
-                    <li key={idx}>{bullet}</li>
+                <ul className="space-y-2 text-sm">
+                  {section.bullets.slice(0, 3).map((bullet, bulletIdx) => (
+                    <li
+                      key={bulletIdx}
+                      className="text-muted-foreground flex items-start gap-2"
+                    >
+                      <span className="bg-primary/20 mt-2 size-1.5 shrink-0 rounded-full" />
+                      <span className="line-clamp-1">{bullet}</span>
+                    </li>
                   ))}
+                  {section.bullets.length > 3 && (
+                    <li className="text-muted-foreground/70 text-xs italic">
+                      +{section.bullets.length - 3} more...
+                    </li>
+                  )}
                 </ul>
               </CardContent>
             </Card>
           ))}
         </div>
 
-        <DetailPanel
-          isOpen={Boolean(activeSection)}
+        <RulesPageDetailPanel
+          activeSection={activeSection}
           onClose={() => setActiveSection(null)}
-          title={
-            activeSection ? (
-              <span className="flex items-center gap-2">
-                {(() => {
-                  const DetailIcon = RulesSectionIcons[activeSection.iconKey];
-                  return DetailIcon ? <DetailIcon className="size-5" /> : null;
-                })()}
-                {activeSection.title}
-              </span>
-            ) : (
-              'Rule detail'
-            )
-          }
-        >
-          {activeSection && (
-            <div className="space-y-5">
-              <p className="text-muted-foreground text-sm">
-                {activeSection.summary}
-              </p>
-
-              {activeSection.tags && activeSection.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {activeSection.tags.map(tag => (
-                    <SmartTooltip key={tag.label} content={tag.description}>
-                      <Badge
-                        variant="outline"
-                        className={cn('text-xs', tagToneClasses(tag.tone))}
-                      >
-                        {tag.label}
-                      </Badge>
-                    </SmartTooltip>
-                  ))}
-                </div>
-              )}
-
-              <div>
-                <h3 className="text-sm font-semibold">What it covers</h3>
-                <ul className="text-muted-foreground mt-2 list-disc space-y-2 pl-5 text-sm">
-                  {activeSection.bullets.map((bullet, idx) => (
-                    <li key={idx}>{bullet}</li>
-                  ))}
-                </ul>
-              </div>
-
-              {activeSection.details && activeSection.details.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-semibold">How it works</h3>
-                  <ul className="text-muted-foreground mt-2 list-disc space-y-2 pl-5 text-sm">
-                    {activeSection.details.map((detail, idx) => (
-                      <li key={idx}>{detail}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {activeSection.mechanics &&
-                activeSection.mechanics.length > 0 && (
-                  <div>
-                    <h3 className="text-sm font-semibold">Mechanics</h3>
-                    <ul className="text-muted-foreground mt-2 list-disc space-y-2 pl-5 text-sm">
-                      {activeSection.mechanics.map((item, idx) => (
-                        <li key={idx}>{item}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-              {activeSection.math && activeSection.math.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-semibold">Math & thresholds</h3>
-                  <ul className="text-muted-foreground mt-2 list-disc space-y-2 pl-5 text-sm">
-                    {activeSection.math.map((item, idx) => (
-                      <li key={idx}>{item}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {activeSection.examples && activeSection.examples.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-semibold">Example</h3>
-                  <ul className="text-muted-foreground mt-2 list-disc space-y-2 pl-5 text-sm">
-                    {activeSection.examples.map((item, idx) => (
-                      <li key={idx}>{item}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {activeSection.tips && activeSection.tips.length > 0 && (
-                <Alert className="border-emerald-500/30 bg-emerald-500/10">
-                  <AlertTitle>
-                    <Leaf size={16} className="mr-1 inline-block" /> Pro Tip
-                  </AlertTitle>
-                  <AlertDescription>
-                    <ul className="list-disc space-y-1 pl-5">
-                      {activeSection.tips.map((tip, idx) => (
-                        <li key={idx}>{tip}</li>
-                      ))}
-                    </ul>
-                  </AlertDescription>
-                </Alert>
-              )}
-
-              {activeSection.cautions && activeSection.cautions.length > 0 && (
-                <Alert className="border-amber-500/30 bg-amber-500/10">
-                  <AlertTitle>
-                    <AlertTriangle size={16} className="mr-1 inline-block" />{' '}
-                    Heads Up
-                  </AlertTitle>
-                  <AlertDescription>
-                    <ul className="list-disc space-y-1 pl-5">
-                      {activeSection.cautions.map((note, idx) => (
-                        <li key={idx}>{note}</li>
-                      ))}
-                    </ul>
-                  </AlertDescription>
-                </Alert>
-              )}
-            </div>
-          )}
-        </DetailPanel>
+        />
       </div>
     </div>
   );
