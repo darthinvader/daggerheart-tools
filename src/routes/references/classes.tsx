@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 // Classes reference page with page-specific detail components
 
 import { createFileRoute } from '@tanstack/react-router';

@@ -12,6 +12,7 @@ import {
   Swords,
   User,
 } from 'lucide-react';
+import type { MutableRefObject } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { AddAdversaryDialogEnhanced } from '@/components/battle-tracker/adversary-dialog-enhanced';
@@ -68,103 +69,28 @@ export const Route = createFileRoute('/gm/campaigns/$id/battle')({
   },
 });
 
-function CampaignBattlePage() {
-  const { campaign: initialCampaign } = Route.useLoaderData();
-  const { id: campaignId } = Route.useParams();
-  const { battleId: initialBattleId } = Route.useSearch();
-  const navigate = useNavigate();
-
-  const [campaign, setCampaign] = useState<Campaign | null>(
-    initialCampaign ?? null
-  );
-  const [isSaving, setIsSaving] = useState(false);
-
-  // Track if we've loaded the initial battle to prevent re-loading
-  const [hasLoadedInitialBattle, setHasLoadedInitialBattle] = useState(false);
-
-  // Reset state when campaign or battleId changes from route
-  useEffect(() => {
-    setCampaign(initialCampaign ?? null);
-    setHasLoadedInitialBattle(false);
-  }, [initialCampaign, initialBattleId]);
-
-  // Core roster state
-  const { rosterState, rosterActions } = useBattleRosterState();
-  const { dialogState, dialogActions } = useBattleDialogState();
-
-  // Subscribe to realtime character updates from players
-  useCharacterRealtimeSync(
-    rosterState.characters,
-    rosterActions.updateCharacter
-  );
-
-  // Edit dialog state
-  const [editingAdversary, setEditingAdversary] =
-    useState<AdversaryTracker | null>(null);
-  const [editingEnvironment, setEditingEnvironment] =
-    useState<EnvironmentTracker | null>(null);
-
-  // Track saved battle IDs to know whether to create or update
+function useSavedBattleIds(campaign: Campaign | null) {
   const savedBattleIdsRef = useRef<Set<string>>(
     new Set(campaign?.battles?.map(b => b.id) ?? [])
   );
 
-  // Update the ref when campaign changes
   useEffect(() => {
     savedBattleIdsRef.current = new Set(
       campaign?.battles?.map(b => b.id) ?? []
     );
   }, [campaign]);
 
-  // Campaign battle integration
-  const campaignBattle = useCampaignBattle(rosterState, rosterActions, {
-    campaignId,
-    battleId: initialBattleId,
-    autoSaveDebounceMs: 3000,
-  });
+  return savedBattleIdsRef;
+}
 
-  // Handle save - use the hook's battleId to determine create vs update
-  const handleStateChange = useCallback(
-    async (state: BattleState) => {
-      if (!campaignId) return;
-      setIsSaving(true);
-      try {
-        const battleExists = savedBattleIdsRef.current.has(state.id);
-        if (battleExists) {
-          await updateBattle(campaignId, state.id, state);
-        } else {
-          // Create new battle using the state's ID
-          const created = await createBattle(campaignId, state);
-          savedBattleIdsRef.current.add(created.id);
-          // Sync the ID if it changed (createBattle may generate a new one)
-          if (created.id !== state.id) {
-            campaignBattle.setBattleId(created.id);
-          }
-          // Update URL to include the new battle ID
-          void navigate({
-            to: '/gm/campaigns/$id/battle',
-            params: { id: campaignId },
-            search: { battleId: created.id, tab: 'gm-tools' },
-            replace: true,
-          });
-        }
-        // Mark as clean after successful save
-        campaignBattle.markClean();
-        // Refresh campaign
-        const updated = await getCampaign(campaignId);
-        if (updated) setCampaign(updated);
-      } catch (error) {
-        console.error('Failed to save battle:', error);
-      } finally {
-        setIsSaving(false);
-      }
-    },
-    [campaignId, campaignBattle, navigate]
-  );
-
-  // Connect the state change handler to the campaign battle hook
+function useAutoSaveBattle({
+  campaignBattle,
+  handleStateChange,
+}: {
+  campaignBattle: ReturnType<typeof useCampaignBattle>;
+  handleStateChange: (state: BattleState) => void;
+}) {
   useEffect(() => {
-    // Set up auto-save via effect since we can't pass handleStateChange to hook before it's defined
     if (
       campaignBattle.isDirty &&
       (campaignBattle.status === 'active' || campaignBattle.status === 'paused')
@@ -180,23 +106,36 @@ function CampaignBattlePage() {
     campaignBattle,
     handleStateChange,
   ]);
+}
 
-  // Load existing battle if resuming (by battleId from URL or most recent active/paused)
-  // Using a ref for loadBattleState to avoid dependency issues
-  const loadBattleStateRef = useRef(campaignBattle.loadBattleState);
-  loadBattleStateRef.current = campaignBattle.loadBattleState;
-
+function useInitialBattleLoad({
+  campaign,
+  initialBattleId,
+  campaignId,
+  hasLoadedInitialBattle,
+  setHasLoadedInitialBattle,
+  rosterActions,
+  loadBattleState,
+  navigate,
+}: {
+  campaign: Campaign | null;
+  initialBattleId?: string;
+  campaignId: string;
+  hasLoadedInitialBattle: boolean;
+  setHasLoadedInitialBattle: (value: boolean) => void;
+  rosterActions: ReturnType<typeof useBattleRosterState>['rosterActions'];
+  loadBattleState: (state: BattleState) => void;
+  navigate: ReturnType<typeof useNavigate>;
+}) {
   useEffect(() => {
     if (!campaign || hasLoadedInitialBattle) return;
 
     let battleToLoad: BattleState | undefined;
 
-    // First, try to load battle by ID from URL
     if (initialBattleId) {
       battleToLoad = campaign.battles?.find(b => b.id === initialBattleId);
     }
 
-    // If no battleId provided, find most recent active/paused battle
     if (!battleToLoad) {
       battleToLoad = campaign.battles?.find(
         b => b.status === 'active' || b.status === 'paused'
@@ -204,8 +143,7 @@ function CampaignBattlePage() {
     }
 
     if (battleToLoad) {
-      loadBattleStateRef.current(battleToLoad);
-      // Update URL if we loaded a battle that wasn't in the URL
+      loadBattleState(battleToLoad);
       if (battleToLoad.id !== initialBattleId) {
         void navigate({
           to: '/gm/campaigns/$id/battle',
@@ -215,7 +153,6 @@ function CampaignBattlePage() {
         });
       }
     } else {
-      // No battle to load - reset to clean state
       rosterActions.setCharacters([]);
       rosterActions.setAdversaries([]);
       rosterActions.setEnvironments([]);
@@ -232,18 +169,231 @@ function CampaignBattlePage() {
     rosterActions,
     navigate,
     campaignId,
+    loadBattleState,
+    setHasLoadedInitialBattle,
   ]);
+}
 
-  // Get existing character IDs to filter out already-added characters
-  const existingCharacterIds = useMemo(
-    () =>
-      rosterState.characters
-        .map(c => c.sourceCharacterId)
-        .filter((id): id is string => Boolean(id)),
-    [rosterState.characters]
+function BattleRosterLayout({
+  rosterState,
+  rosterActions,
+  setEditingAdversary,
+}: {
+  rosterState: ReturnType<typeof useBattleRosterState>['rosterState'];
+  rosterActions: ReturnType<typeof useBattleRosterState>['rosterActions'];
+  setEditingAdversary: (value: AdversaryTracker | null) => void;
+}) {
+  return (
+    <div className="grid gap-6 xl:grid-cols-[1fr_1fr_minmax(320px,400px)]">
+      <RosterColumn
+        title="Characters"
+        icon={<User className="size-4" />}
+        count={rosterState.characters.length}
+        emptyText="No characters added"
+      >
+        {rosterState.characters.map(char => (
+          <CharacterCard
+            key={char.id}
+            character={char}
+            isSelected={
+              rosterState.selection?.id === char.id &&
+              rosterState.selection.kind === 'character'
+            }
+            isSpotlight={
+              rosterState.spotlight?.id === char.id &&
+              rosterState.spotlight.kind === 'character'
+            }
+            onSelect={() => rosterActions.handleSelect(char)}
+            onRemove={() => rosterActions.handleRemove(char)}
+            onSpotlight={() => rosterActions.handleSpotlight(char)}
+            onChange={rosterActions.updateCharacter}
+          />
+        ))}
+      </RosterColumn>
+
+      <RosterColumn
+        title="Adversaries"
+        icon={<Swords className="size-4" />}
+        count={rosterState.adversaries.length}
+        emptyText="No adversaries added"
+      >
+        {rosterState.adversaries.map(adv => (
+          <AdversaryCard
+            key={adv.id}
+            adversary={adv}
+            isSelected={
+              rosterState.selection?.id === adv.id &&
+              rosterState.selection.kind === 'adversary'
+            }
+            isSpotlight={
+              rosterState.spotlight?.id === adv.id &&
+              rosterState.spotlight.kind === 'adversary'
+            }
+            onSelect={() => rosterActions.handleSelect(adv)}
+            onRemove={() => rosterActions.handleRemove(adv)}
+            onSpotlight={() => rosterActions.handleSpotlight(adv)}
+            onChange={rosterActions.updateAdversary}
+            onEdit={() => setEditingAdversary(adv)}
+          />
+        ))}
+      </RosterColumn>
+
+      <DetailSidebar
+        item={rosterState.selectedItem}
+        spotlight={rosterState.spotlight}
+        spotlightHistory={rosterState.spotlightHistory}
+        characters={rosterState.characters}
+        adversaries={rosterState.adversaries}
+        environments={rosterState.environments}
+        useMassiveThreshold={rosterState.useMassiveThreshold}
+        onClearSpotlight={() => rosterActions.setSpotlight(null)}
+        onSetSpotlight={rosterActions.setSpotlight}
+        onCharacterChange={rosterActions.updateCharacter}
+        onAdversaryChange={rosterActions.updateAdversary}
+        onEnvironmentChange={rosterActions.updateEnvironment}
+      />
+    </div>
   );
+}
 
-  // Handlers
+function BattleDialogs({
+  dialogState,
+  dialogActions,
+  campaignPlayers,
+  existingCharacterIds,
+  selectedAdversary,
+  selectedEnvironment,
+  onAddCampaignCharacter,
+  onAddManualCharacter,
+  onAddAdversary,
+  onAddEnvironment,
+  onSaveAdversary,
+  onSaveEnvironment,
+  onCloseAdversaryEdit,
+  onCloseEnvironmentEdit,
+}: {
+  dialogState: ReturnType<typeof useBattleDialogState>['dialogState'];
+  dialogActions: ReturnType<typeof useBattleDialogState>['dialogActions'];
+  campaignPlayers: Campaign['players'];
+  existingCharacterIds: string[];
+  selectedAdversary: AdversaryTracker | null;
+  selectedEnvironment: EnvironmentTracker | null;
+  onAddCampaignCharacter: (tracker: CharacterTracker) => void;
+  onAddManualCharacter: () => void;
+  onAddAdversary: (
+    adversary: Parameters<
+      ReturnType<typeof useBattleRosterState>['rosterActions']['addAdversary']
+    >[0]
+  ) => void;
+  onAddEnvironment: (
+    environment: Parameters<
+      ReturnType<typeof useBattleRosterState>['rosterActions']['addEnvironment']
+    >[0]
+  ) => void;
+  onSaveAdversary: (updates: Partial<AdversaryTracker>) => void;
+  onSaveEnvironment: (updates: Partial<EnvironmentTracker>) => void;
+  onCloseAdversaryEdit: () => void;
+  onCloseEnvironmentEdit: () => void;
+}) {
+  return (
+    <>
+      <CampaignCharacterDialog
+        isOpen={dialogState.isAddCharacterOpen}
+        onOpenChange={dialogActions.setIsAddCharacterOpen}
+        campaignPlayers={campaignPlayers ?? []}
+        existingCharacterIds={existingCharacterIds}
+        onAddCampaignCharacter={onAddCampaignCharacter}
+        onAddManualCharacter={onAddManualCharacter}
+        characterDraft={dialogState.characterDraft}
+        onDraftChange={dialogActions.setCharacterDraft}
+      />
+
+      <AddAdversaryDialogEnhanced
+        isOpen={dialogState.isAddAdversaryOpen}
+        adversaries={dialogState.filteredAdversaries}
+        onOpenChange={dialogActions.setIsAddAdversaryOpen}
+        onAdd={onAddAdversary}
+      />
+
+      <AddEnvironmentDialogEnhanced
+        isOpen={dialogState.isAddEnvironmentOpen}
+        environments={dialogState.filteredEnvironments}
+        onOpenChange={dialogActions.setIsAddEnvironmentOpen}
+        onAdd={onAddEnvironment}
+      />
+
+      <EditAdversaryDialog
+        adversary={selectedAdversary}
+        isOpen={selectedAdversary !== null}
+        onOpenChange={open => !open && onCloseAdversaryEdit()}
+        onSave={onSaveAdversary}
+      />
+
+      <EditEnvironmentDialog
+        environment={selectedEnvironment}
+        isOpen={selectedEnvironment !== null}
+        onOpenChange={open => !open && onCloseEnvironmentEdit()}
+        onSave={onSaveEnvironment}
+      />
+    </>
+  );
+}
+
+async function refreshCampaignState(
+  campaignId: string,
+  setCampaign: (campaign: Campaign) => void
+) {
+  const updated = await getCampaign(campaignId);
+  if (updated) setCampaign(updated);
+}
+
+async function saveExistingBattle(campaignId: string, state: BattleState) {
+  await updateBattle(campaignId, state.id, state);
+}
+
+async function createNewBattle({
+  campaignId,
+  state,
+  savedBattleIdsRef,
+  campaignBattle,
+  navigate,
+}: {
+  campaignId: string;
+  state: BattleState;
+  savedBattleIdsRef: MutableRefObject<Set<string>>;
+  campaignBattle: ReturnType<typeof useCampaignBattle>;
+  navigate: ReturnType<typeof useNavigate>;
+}) {
+  const created = await createBattle(campaignId, state);
+  savedBattleIdsRef.current.add(created.id);
+  if (created.id !== state.id) {
+    campaignBattle.setBattleId(created.id);
+  }
+  void navigate({
+    to: '/gm/campaigns/$id/battle',
+    params: { id: campaignId },
+    search: { battleId: created.id, tab: 'gm-tools' },
+    replace: true,
+  });
+}
+
+function useBattleDialogHandlers({
+  rosterActions,
+  dialogState,
+  dialogActions,
+  campaignBattle,
+  handleStateChange,
+  editingAdversary,
+  editingEnvironment,
+}: {
+  rosterActions: ReturnType<typeof useBattleRosterState>['rosterActions'];
+  dialogState: ReturnType<typeof useBattleDialogState>['dialogState'];
+  dialogActions: ReturnType<typeof useBattleDialogState>['dialogActions'];
+  campaignBattle: ReturnType<typeof useCampaignBattle>;
+  handleStateChange: (state: BattleState) => Promise<void>;
+  editingAdversary: AdversaryTracker | null;
+  editingEnvironment: EnvironmentTracker | null;
+}) {
   const handleAddCharacter = () => {
     const newId = rosterActions.addCharacter(dialogState.characterDraft);
     if (!newId) return;
@@ -292,6 +442,132 @@ function CampaignBattlePage() {
     await handleStateChange(state);
   };
 
+  return {
+    handleAddCharacter,
+    handleAddCampaignCharacter,
+    handleAddAdversary,
+    handleAddEnvironment,
+    handleSaveAdversary,
+    handleSaveEnvironment,
+    handleManualSave,
+  };
+}
+
+function CampaignBattlePage() {
+  const { campaign: initialCampaign } = Route.useLoaderData();
+  const { id: campaignId } = Route.useParams();
+  const { battleId: initialBattleId } = Route.useSearch();
+  const navigate = useNavigate();
+
+  const [campaign, setCampaign] = useState<Campaign | null>(
+    initialCampaign ?? null
+  );
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Track if we've loaded the initial battle to prevent re-loading
+  const [hasLoadedInitialBattle, setHasLoadedInitialBattle] = useState(false);
+
+  // Reset state when campaign or battleId changes from route
+  useEffect(() => {
+    setCampaign(initialCampaign ?? null);
+    setHasLoadedInitialBattle(false);
+  }, [initialCampaign, initialBattleId]);
+
+  // Core roster state
+  const { rosterState, rosterActions } = useBattleRosterState();
+  const { dialogState, dialogActions } = useBattleDialogState();
+
+  // Subscribe to realtime character updates from players
+  useCharacterRealtimeSync(
+    rosterState.characters,
+    rosterActions.updateCharacter
+  );
+
+  // Edit dialog state
+  const [editingAdversary, setEditingAdversary] =
+    useState<AdversaryTracker | null>(null);
+  const [editingEnvironment, setEditingEnvironment] =
+    useState<EnvironmentTracker | null>(null);
+
+  const savedBattleIdsRef = useSavedBattleIds(campaign);
+
+  // Campaign battle integration
+  const campaignBattle = useCampaignBattle(rosterState, rosterActions, {
+    campaignId,
+    battleId: initialBattleId,
+    autoSaveDebounceMs: 3000,
+  });
+
+  // Handle save - use the hook's battleId to determine create vs update
+  const handleStateChange = useCallback(
+    async (state: BattleState) => {
+      if (!campaignId) return;
+      setIsSaving(true);
+      try {
+        const battleExists = savedBattleIdsRef.current.has(state.id);
+        if (battleExists) {
+          await saveExistingBattle(campaignId, state);
+        } else {
+          await createNewBattle({
+            campaignId,
+            state,
+            savedBattleIdsRef,
+            campaignBattle,
+            navigate,
+          });
+        }
+        // Mark as clean after successful save
+        campaignBattle.markClean();
+        await refreshCampaignState(campaignId, setCampaign);
+      } catch (error) {
+        console.error('Failed to save battle:', error);
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [campaignId, campaignBattle, navigate, savedBattleIdsRef]
+  );
+
+  useAutoSaveBattle({ campaignBattle, handleStateChange });
+
+  useInitialBattleLoad({
+    campaign,
+    initialBattleId,
+    campaignId,
+    hasLoadedInitialBattle,
+    setHasLoadedInitialBattle,
+    rosterActions,
+    loadBattleState: campaignBattle.loadBattleState,
+    navigate,
+  });
+
+  // Get existing character IDs to filter out already-added characters
+  const existingCharacterIds = useMemo(
+    () =>
+      rosterState.characters
+        .map(c => c.sourceCharacterId)
+        .filter((id): id is string => Boolean(id)),
+    [rosterState.characters]
+  );
+
+  const {
+    handleAddCharacter,
+    handleAddCampaignCharacter,
+    handleAddAdversary,
+    handleAddEnvironment,
+    handleSaveAdversary,
+    handleSaveEnvironment,
+    handleManualSave,
+  } = useBattleDialogHandlers({
+    rosterActions,
+    dialogState,
+    dialogActions,
+    campaignBattle,
+    handleStateChange,
+    editingAdversary,
+    editingEnvironment,
+  });
+
   if (!campaign) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -336,114 +612,27 @@ function CampaignBattlePage() {
         onEditEnvironment={setEditingEnvironment}
       />
 
-      <div className="grid gap-6 xl:grid-cols-[1fr_1fr_minmax(320px,400px)]">
-        <RosterColumn
-          title="Characters"
-          icon={<User className="size-4" />}
-          count={rosterState.characters.length}
-          emptyText="No characters added"
-        >
-          {rosterState.characters.map(char => (
-            <CharacterCard
-              key={char.id}
-              character={char}
-              isSelected={
-                rosterState.selection?.id === char.id &&
-                rosterState.selection.kind === 'character'
-              }
-              isSpotlight={
-                rosterState.spotlight?.id === char.id &&
-                rosterState.spotlight.kind === 'character'
-              }
-              onSelect={() => rosterActions.handleSelect(char)}
-              onRemove={() => rosterActions.handleRemove(char)}
-              onSpotlight={() => rosterActions.handleSpotlight(char)}
-              onChange={rosterActions.updateCharacter}
-            />
-          ))}
-        </RosterColumn>
+      <BattleRosterLayout
+        rosterState={rosterState}
+        rosterActions={rosterActions}
+        setEditingAdversary={setEditingAdversary}
+      />
 
-        <RosterColumn
-          title="Adversaries"
-          icon={<Swords className="size-4" />}
-          count={rosterState.adversaries.length}
-          emptyText="No adversaries added"
-        >
-          {rosterState.adversaries.map(adv => (
-            <AdversaryCard
-              key={adv.id}
-              adversary={adv}
-              isSelected={
-                rosterState.selection?.id === adv.id &&
-                rosterState.selection.kind === 'adversary'
-              }
-              isSpotlight={
-                rosterState.spotlight?.id === adv.id &&
-                rosterState.spotlight.kind === 'adversary'
-              }
-              onSelect={() => rosterActions.handleSelect(adv)}
-              onRemove={() => rosterActions.handleRemove(adv)}
-              onSpotlight={() => rosterActions.handleSpotlight(adv)}
-              onChange={rosterActions.updateAdversary}
-              onEdit={() => setEditingAdversary(adv)}
-            />
-          ))}
-        </RosterColumn>
-
-        <DetailSidebar
-          item={rosterState.selectedItem}
-          spotlight={rosterState.spotlight}
-          spotlightHistory={rosterState.spotlightHistory}
-          characters={rosterState.characters}
-          adversaries={rosterState.adversaries}
-          environments={rosterState.environments}
-          useMassiveThreshold={rosterState.useMassiveThreshold}
-          onClearSpotlight={() => rosterActions.setSpotlight(null)}
-          onSetSpotlight={rosterActions.setSpotlight}
-          onCharacterChange={rosterActions.updateCharacter}
-          onAdversaryChange={rosterActions.updateAdversary}
-          onEnvironmentChange={rosterActions.updateEnvironment}
-        />
-      </div>
-
-      {/* Dialogs */}
-      <CampaignCharacterDialog
-        isOpen={dialogState.isAddCharacterOpen}
-        onOpenChange={dialogActions.setIsAddCharacterOpen}
+      <BattleDialogs
+        dialogState={dialogState}
+        dialogActions={dialogActions}
         campaignPlayers={campaign.players ?? []}
         existingCharacterIds={existingCharacterIds}
+        selectedAdversary={editingAdversary}
+        selectedEnvironment={editingEnvironment}
         onAddCampaignCharacter={handleAddCampaignCharacter}
         onAddManualCharacter={handleAddCharacter}
-        characterDraft={dialogState.characterDraft}
-        onDraftChange={dialogActions.setCharacterDraft}
-      />
-
-      <AddAdversaryDialogEnhanced
-        isOpen={dialogState.isAddAdversaryOpen}
-        adversaries={dialogState.filteredAdversaries}
-        onOpenChange={dialogActions.setIsAddAdversaryOpen}
-        onAdd={handleAddAdversary}
-      />
-
-      <AddEnvironmentDialogEnhanced
-        isOpen={dialogState.isAddEnvironmentOpen}
-        environments={dialogState.filteredEnvironments}
-        onOpenChange={dialogActions.setIsAddEnvironmentOpen}
-        onAdd={handleAddEnvironment}
-      />
-
-      <EditAdversaryDialog
-        adversary={editingAdversary}
-        isOpen={editingAdversary !== null}
-        onOpenChange={open => !open && setEditingAdversary(null)}
-        onSave={handleSaveAdversary}
-      />
-
-      <EditEnvironmentDialog
-        environment={editingEnvironment}
-        isOpen={editingEnvironment !== null}
-        onOpenChange={open => !open && setEditingEnvironment(null)}
-        onSave={handleSaveEnvironment}
+        onAddAdversary={handleAddAdversary}
+        onAddEnvironment={handleAddEnvironment}
+        onSaveAdversary={handleSaveAdversary}
+        onSaveEnvironment={handleSaveEnvironment}
+        onCloseAdversaryEdit={() => setEditingAdversary(null)}
+        onCloseEnvironmentEdit={() => setEditingEnvironment(null)}
       />
     </div>
   );
@@ -453,10 +642,171 @@ function CampaignBattlePage() {
 // Header Component
 // =====================================================================================
 
+const STATUS_COLORS = {
+  planning: 'bg-muted text-muted-foreground',
+  active: 'bg-green-500/20 text-green-700 dark:text-green-400',
+  paused: 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400',
+  completed: 'bg-blue-500/20 text-blue-700 dark:text-blue-400',
+} as const;
+
+type BattleStatus = keyof typeof STATUS_COLORS;
+
+function SaveStatusIndicator({
+  isSaving,
+  isDirty,
+  isAutoSaveEnabled,
+}: {
+  isSaving: boolean;
+  isDirty: boolean;
+  isAutoSaveEnabled: boolean;
+}) {
+  if (isSaving) {
+    return (
+      <Badge variant="outline" className="gap-1 text-xs">
+        <Loader2 className="size-3 animate-spin" />
+        Saving...
+      </Badge>
+    );
+  }
+  if (isDirty && !isAutoSaveEnabled) {
+    return (
+      <Badge
+        variant="outline"
+        className="border-amber-300 text-xs text-amber-600"
+      >
+        Unsaved
+      </Badge>
+    );
+  }
+  if (isAutoSaveEnabled) {
+    return (
+      <Badge
+        variant="outline"
+        className="gap-1 border-green-300 text-xs text-green-600"
+      >
+        <Check className="size-3" />
+        Auto-save
+      </Badge>
+    );
+  }
+  return null;
+}
+
+function SaveStatusTooltipContent({
+  isSaving,
+  isDirty,
+  isAutoSaveEnabled,
+}: {
+  isSaving: boolean;
+  isDirty: boolean;
+  isAutoSaveEnabled: boolean;
+}) {
+  if (isSaving) return <p>Saving battle to campaign...</p>;
+  if (isDirty && !isAutoSaveEnabled) {
+    return (
+      <p>
+        You have unsaved changes. Start the battle for auto-save or save
+        manually.
+      </p>
+    );
+  }
+  if (isAutoSaveEnabled) {
+    return (
+      <p>
+        Changes are automatically saved every 3 seconds while the battle is
+        active or paused.
+      </p>
+    );
+  }
+  return null;
+}
+
+function StatusTooltipContent({ status }: { status: BattleStatus }) {
+  switch (status) {
+    case 'planning':
+      return <p>Click "Start" to begin the battle and enable auto-save</p>;
+    case 'active':
+      return <p>Battle in progress — changes auto-save every 3 seconds</p>;
+    case 'paused':
+      return <p>Battle paused — changes still auto-save</p>;
+    case 'completed':
+      return <p>Battle ended — use manual save if needed</p>;
+  }
+}
+
+interface StatusControlsProps {
+  status: BattleStatus;
+  onStart: () => void;
+  onPause: () => void;
+  onEnd: () => void;
+}
+
+function StatusControls({
+  status,
+  onStart,
+  onPause,
+  onEnd,
+}: StatusControlsProps) {
+  switch (status) {
+    case 'planning':
+      return (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button size="sm" variant="default" onClick={onStart}>
+                <Play className="mr-1.5 size-4" /> Start
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Start the battle and enable auto-save</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
+    case 'active':
+      return (
+        <>
+          <Button size="sm" variant="outline" onClick={onPause}>
+            <Pause className="mr-1.5 size-4" /> Pause
+          </Button>
+          <Button size="sm" variant="destructive" onClick={onEnd}>
+            <Square className="mr-1.5 size-4" /> End
+          </Button>
+        </>
+      );
+    case 'paused':
+      return (
+        <>
+          <Button size="sm" variant="default" onClick={onStart}>
+            <Play className="mr-1.5 size-4" /> Resume
+          </Button>
+          <Button size="sm" variant="destructive" onClick={onEnd}>
+            <Square className="mr-1.5 size-4" /> End
+          </Button>
+        </>
+      );
+    case 'completed':
+      return (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button size="sm" variant="default" onClick={onStart}>
+                <Play className="mr-1.5 size-4" /> Restart
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Restart the battle and enable auto-save</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
+  }
+}
+
 interface CampaignBattleHeaderProps {
   campaign: Campaign;
   battleName: string;
-  status: 'planning' | 'active' | 'paused' | 'completed';
+  status: BattleStatus;
   isDirty: boolean;
   isSaving: boolean;
   onNameChange: (name: string) => void;
@@ -482,13 +832,6 @@ function CampaignBattleHeader({
   onAddCharacter,
   onAddAdversary,
 }: CampaignBattleHeaderProps) {
-  const statusColors = {
-    planning: 'bg-muted text-muted-foreground',
-    active: 'bg-green-500/20 text-green-700 dark:text-green-400',
-    paused: 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400',
-    completed: 'bg-blue-500/20 text-blue-700 dark:text-blue-400',
-  };
-
   const isAutoSaveEnabled = status === 'active' || status === 'paused';
 
   return (
@@ -515,70 +858,30 @@ function CampaignBattleHeader({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Badge className={statusColors[status]}>{status}</Badge>
+                  <Badge className={STATUS_COLORS[status]}>{status}</Badge>
                 </TooltipTrigger>
                 <TooltipContent>
-                  {status === 'planning' && (
-                    <p>
-                      Click "Start" to begin the battle and enable auto-save
-                    </p>
-                  )}
-                  {status === 'active' && (
-                    <p>
-                      Battle in progress — changes auto-save every 3 seconds
-                    </p>
-                  )}
-                  {status === 'paused' && (
-                    <p>Battle paused — changes still auto-save</p>
-                  )}
-                  {status === 'completed' && (
-                    <p>Battle ended — use manual save if needed</p>
-                  )}
+                  <StatusTooltipContent status={status} />
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            {/* Save status indicator */}
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div>
-                    {isSaving ? (
-                      <Badge variant="outline" className="gap-1 text-xs">
-                        <Loader2 className="size-3 animate-spin" />
-                        Saving...
-                      </Badge>
-                    ) : isDirty && !isAutoSaveEnabled ? (
-                      <Badge
-                        variant="outline"
-                        className="border-amber-300 text-xs text-amber-600"
-                      >
-                        Unsaved
-                      </Badge>
-                    ) : isAutoSaveEnabled ? (
-                      <Badge
-                        variant="outline"
-                        className="gap-1 border-green-300 text-xs text-green-600"
-                      >
-                        <Check className="size-3" />
-                        Auto-save
-                      </Badge>
-                    ) : null}
+                    <SaveStatusIndicator
+                      isSaving={isSaving}
+                      isDirty={isDirty}
+                      isAutoSaveEnabled={isAutoSaveEnabled}
+                    />
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>
-                  {isSaving && <p>Saving battle to campaign...</p>}
-                  {isDirty && !isAutoSaveEnabled && (
-                    <p>
-                      You have unsaved changes. Start the battle for auto-save
-                      or save manually.
-                    </p>
-                  )}
-                  {isAutoSaveEnabled && !isSaving && (
-                    <p>
-                      Changes are automatically saved every 3 seconds while the
-                      battle is active or paused.
-                    </p>
-                  )}
+                  <SaveStatusTooltipContent
+                    isSaving={isSaving}
+                    isDirty={isDirty}
+                    isAutoSaveEnabled={isAutoSaveEnabled}
+                  />
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -586,55 +889,12 @@ function CampaignBattleHeader({
         </div>
 
         <div className="flex flex-wrap gap-2">
-          {/* Status controls */}
-          {status === 'planning' && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button size="sm" variant="default" onClick={onStart}>
-                    <Play className="mr-1.5 size-4" /> Start
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Start the battle and enable auto-save</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
-          {status === 'active' && (
-            <>
-              <Button size="sm" variant="outline" onClick={onPause}>
-                <Pause className="mr-1.5 size-4" /> Pause
-              </Button>
-              <Button size="sm" variant="destructive" onClick={onEnd}>
-                <Square className="mr-1.5 size-4" /> End
-              </Button>
-            </>
-          )}
-          {status === 'paused' && (
-            <>
-              <Button size="sm" variant="default" onClick={onStart}>
-                <Play className="mr-1.5 size-4" /> Resume
-              </Button>
-              <Button size="sm" variant="destructive" onClick={onEnd}>
-                <Square className="mr-1.5 size-4" /> End
-              </Button>
-            </>
-          )}
-          {status === 'completed' && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button size="sm" variant="default" onClick={onStart}>
-                    <Play className="mr-1.5 size-4" /> Restart
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Restart the battle and enable auto-save</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
+          <StatusControls
+            status={status}
+            onStart={onStart}
+            onPause={onPause}
+            onEnd={onEnd}
+          />
 
           <TooltipProvider>
             <Tooltip>

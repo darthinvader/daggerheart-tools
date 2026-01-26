@@ -56,6 +56,111 @@ const TYPE_OPTIONS = [
   'Traversal',
 ] as const;
 
+// ============== Style Constants ==============
+
+const TIER_COLORS: Record<string, string> = {
+  '1': 'bg-green-500/20 text-green-700 dark:text-green-400',
+  '2': 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400',
+  '3': 'bg-orange-500/20 text-orange-700 dark:text-orange-400',
+  '4': 'bg-red-500/20 text-red-700 dark:text-red-400',
+};
+
+const TYPE_ICONS: Record<string, string> = {
+  Wilderness: '🌲',
+  Urban: '🏛️',
+  Dungeon: '🏰',
+  Supernatural: '✨',
+  Aquatic: '🌊',
+  Social: '💬',
+};
+
+const FEATURE_TYPE_COLORS: Record<string, string> = {
+  Passive: 'bg-gray-500/20 text-gray-700 dark:text-gray-300',
+  Action: 'bg-green-500/20 text-green-700 dark:text-green-400',
+  Reaction: 'bg-blue-500/20 text-blue-700 dark:text-blue-400',
+  Feature: 'bg-purple-500/20 text-purple-700 dark:text-purple-400',
+};
+
+// ============== Helper Components ==============
+
+function EnvironmentBadges({ environment }: { environment: Environment }) {
+  return (
+    <div className="mt-1 flex flex-wrap gap-1">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Badge className={`text-xs ${TIER_COLORS[environment.tier] ?? ''}`}>
+            T{environment.tier}
+          </Badge>
+        </TooltipTrigger>
+        <TooltipContent>Tier {environment.tier}</TooltipContent>
+      </Tooltip>
+      <Badge variant="outline" className="text-xs">
+        <MapPin className="mr-1 size-3" />
+        {environment.type}
+      </Badge>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Badge variant="outline" className="text-xs">
+            <Crosshair className="mr-1 size-3" />
+            {environment.difficulty}
+          </Badge>
+        </TooltipTrigger>
+        <TooltipContent>Difficulty</TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Badge
+            variant="outline"
+            className="text-xs text-purple-600 dark:text-purple-400"
+          >
+            <Zap className="mr-1 size-3" />
+            {environment.features.length}
+          </Badge>
+        </TooltipTrigger>
+        <TooltipContent>{environment.features.length} Features</TooltipContent>
+      </Tooltip>
+    </div>
+  );
+}
+
+type EnvironmentFeature =
+  | string
+  | { name: string; type?: string; description?: string };
+
+function getEnvFeatureType(f: EnvironmentFeature): string {
+  if (typeof f === 'string') {
+    if (f.includes('Passive')) return 'Passive';
+    if (f.includes('Action')) return 'Action';
+    if (f.includes('Reaction')) return 'Reaction';
+    return 'Feature';
+  }
+  return f.type ?? 'Feature';
+}
+
+function EnvironmentFeatureItem({ feature }: { feature: EnvironmentFeature }) {
+  const featureName =
+    typeof feature === 'string' ? feature.split(' - ')[0] : feature.name;
+  const featureDesc =
+    typeof feature === 'string' ? feature : feature.description;
+  const featureType = getEnvFeatureType(feature);
+
+  return (
+    <li className="bg-background/50 rounded-md border p-2">
+      <div className="mb-1 flex items-center gap-2">
+        <Badge
+          className={`text-xs ${FEATURE_TYPE_COLORS[featureType] ?? FEATURE_TYPE_COLORS.Feature}`}
+        >
+          {featureType}
+        </Badge>
+        <span className="text-sm font-medium">{featureName}</span>
+      </div>
+      <p className="text-muted-foreground text-xs leading-relaxed">
+        {featureDesc}
+      </p>
+    </li>
+  );
+}
+
 const GM_ENVIRONMENT_TIPS = [
   {
     title: 'Environment Purpose',
@@ -283,22 +388,6 @@ function EnvironmentResultCard({
   onToggle: () => void;
   onAdd: () => void;
 }) {
-  const tierColors: Record<string, string> = {
-    '1': 'bg-green-500/20 text-green-700 dark:text-green-400',
-    '2': 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400',
-    '3': 'bg-orange-500/20 text-orange-700 dark:text-orange-400',
-    '4': 'bg-red-500/20 text-red-700 dark:text-red-400',
-  };
-
-  const typeIcons: Record<string, string> = {
-    Wilderness: '🌲',
-    Urban: '🏛️',
-    Dungeon: '🏰',
-    Supernatural: '✨',
-    Aquatic: '🌊',
-    Social: '💬',
-  };
-
   return (
     <Card className="overflow-hidden transition-shadow hover:shadow-md">
       <CardContent className="p-0">
@@ -309,7 +398,7 @@ function EnvironmentResultCard({
                 <div className="min-w-0 flex-1">
                   <div className="flex min-w-0 items-center gap-2">
                     <span className="shrink-0 text-lg" title={environment.type}>
-                      {typeIcons[environment.type] ?? (
+                      {TYPE_ICONS[environment.type] ?? (
                         <TreePine className="size-4" />
                       )}
                     </span>
@@ -317,45 +406,7 @@ function EnvironmentResultCard({
                       {environment.name}
                     </p>
                   </div>
-                  <div className="mt-1 flex flex-wrap gap-1">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Badge
-                          className={`text-xs ${tierColors[environment.tier] ?? ''}`}
-                        >
-                          T{environment.tier}
-                        </Badge>
-                      </TooltipTrigger>
-                      <TooltipContent>Tier {environment.tier}</TooltipContent>
-                    </Tooltip>
-                    <Badge variant="outline" className="text-xs">
-                      <MapPin className="mr-1 size-3" />
-                      {environment.type}
-                    </Badge>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Badge variant="outline" className="text-xs">
-                          <Crosshair className="mr-1 size-3" />
-                          {environment.difficulty}
-                        </Badge>
-                      </TooltipTrigger>
-                      <TooltipContent>Difficulty</TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Badge
-                          variant="outline"
-                          className="text-xs text-purple-600 dark:text-purple-400"
-                        >
-                          <Zap className="mr-1 size-3" />
-                          {environment.features.length}
-                        </Badge>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        {environment.features.length} Features
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
+                  <EnvironmentBadges environment={environment} />
                 </div>
                 {isExpanded ? (
                   <ChevronUp className="text-muted-foreground size-4 shrink-0" />
@@ -371,12 +422,10 @@ function EnvironmentResultCard({
           <CollapsibleContent>
             <Separator />
             <div className="bg-muted/30 space-y-3 p-3">
-              {/* Description */}
               <p className="text-muted-foreground text-sm">
                 {environment.description}
               </p>
 
-              {/* Impulses */}
               <div className="rounded-md border border-amber-500/20 bg-amber-500/10 p-2">
                 <p className="mb-1 flex items-center gap-1 text-xs font-medium text-amber-700 dark:text-amber-400">
                   <Sparkles className="size-3" /> Impulses
@@ -409,7 +458,6 @@ function EnvironmentResultCard({
                 </div>
               )}
 
-              {/* ALL Features - no truncation */}
               {environment.features.length > 0 && (
                 <div>
                   <p className="mb-2 flex items-center gap-1 text-xs font-medium">
@@ -417,54 +465,9 @@ function EnvironmentResultCard({
                     {environment.features.length})
                   </p>
                   <ul className="space-y-2">
-                    {environment.features.map((f, i) => {
-                      const featureName =
-                        typeof f === 'string' ? f.split(' - ')[0] : f.name;
-                      const featureDesc =
-                        typeof f === 'string' ? f : f.description;
-                      const featureType =
-                        typeof f === 'string'
-                          ? f.includes('Passive')
-                            ? 'Passive'
-                            : f.includes('Action')
-                              ? 'Action'
-                              : f.includes('Reaction')
-                                ? 'Reaction'
-                                : 'Feature'
-                          : (f.type ?? 'Feature');
-
-                      const typeColors: Record<string, string> = {
-                        Passive:
-                          'bg-gray-500/20 text-gray-700 dark:text-gray-300',
-                        Action:
-                          'bg-green-500/20 text-green-700 dark:text-green-400',
-                        Reaction:
-                          'bg-blue-500/20 text-blue-700 dark:text-blue-400',
-                        Feature:
-                          'bg-purple-500/20 text-purple-700 dark:text-purple-400',
-                      };
-
-                      return (
-                        <li
-                          key={i}
-                          className="bg-background/50 rounded-md border p-2"
-                        >
-                          <div className="mb-1 flex items-center gap-2">
-                            <Badge
-                              className={`text-xs ${typeColors[featureType] ?? typeColors.Feature}`}
-                            >
-                              {featureType}
-                            </Badge>
-                            <span className="text-sm font-medium">
-                              {featureName}
-                            </span>
-                          </div>
-                          <p className="text-muted-foreground text-xs leading-relaxed">
-                            {featureDesc}
-                          </p>
-                        </li>
-                      );
-                    })}
+                    {environment.features.map((f, i) => (
+                      <EnvironmentFeatureItem key={i} feature={f} />
+                    ))}
                   </ul>
                 </div>
               )}

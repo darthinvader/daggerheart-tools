@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 import { useEffect, useMemo, useRef } from 'react';
 
 import { AncestryDisplay } from '@/components/ancestry-selector';

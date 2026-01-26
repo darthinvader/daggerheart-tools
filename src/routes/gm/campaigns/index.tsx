@@ -1,4 +1,3 @@
-/* eslint-disable max-lines, max-lines-per-function */
 // Campaigns list page with inline campaign card components
 
 import { createFileRoute, Link } from '@tanstack/react-router';

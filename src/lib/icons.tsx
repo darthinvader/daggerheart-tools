@@ -1,4 +1,4 @@
-/* eslint-disable max-lines, react-refresh/only-export-components */
+/* eslint-disable react-refresh/only-export-components */
 import type { LucideIcon, LucideProps } from 'lucide-react';
 import {
   Accessibility,

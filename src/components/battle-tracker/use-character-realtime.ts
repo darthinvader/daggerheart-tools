@@ -13,7 +13,7 @@ const DEBUG_REALTIME = import.meta.env.DEV;
 
 function log(...args: unknown[]) {
   if (DEBUG_REALTIME) {
-    console.log('[BattleRealtime]', ...args);
+    console.info('[BattleRealtime]', ...args);
   }
 }
 

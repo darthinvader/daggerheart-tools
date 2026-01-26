@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 // NPC components - EditableNPCs and NPCCard are tightly coupled
 
 import { ChevronDown, Map, Plus, Trash2, User, X } from 'lucide-react';

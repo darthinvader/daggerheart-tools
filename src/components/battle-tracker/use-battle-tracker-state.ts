@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { type Dispatch, type SetStateAction, useMemo, useState } from 'react';
 
 import { ADVERSARIES } from '@/lib/data/adversaries';
 import { ENVIRONMENTS } from '@/lib/data/environments';
@@ -64,6 +64,78 @@ function createEnvironmentEntry(environment: Environment): EnvironmentTracker {
   };
 }
 
+function resolveSelectedItem(
+  selection: TrackerSelection | null,
+  characters: CharacterTracker[],
+  adversaries: AdversaryTracker[],
+  environments: EnvironmentTracker[]
+): TrackerItem | null {
+  if (!selection) return null;
+  if (selection.kind === 'character') {
+    return characters.find(item => item.id === selection.id) ?? null;
+  }
+  if (selection.kind === 'adversary') {
+    return adversaries.find(item => item.id === selection.id) ?? null;
+  }
+  return environments.find(item => item.id === selection.id) ?? null;
+}
+
+function updateSpotlightHistory(
+  previous: TrackerSelection[],
+  next: TrackerSelection
+) {
+  const filtered = previous.filter(
+    entry => !(entry.kind === next.kind && entry.id === next.id)
+  );
+  return [next, ...filtered].slice(0, 5);
+}
+
+function addEntry<T extends TrackerItem>(
+  entry: T,
+  setItems: Dispatch<SetStateAction<T[]>>,
+  setSelection: Dispatch<SetStateAction<TrackerSelection | null>>
+) {
+  setItems(prev => [...prev, entry]);
+  setSelection({ kind: entry.kind, id: entry.id });
+}
+
+function updateEntryById<T extends { id: string }>(
+  id: string,
+  updater: (prev: T) => T,
+  setItems: Dispatch<SetStateAction<T[]>>
+) {
+  setItems(prev =>
+    prev.map(entry => (entry.id === id ? updater(entry) : entry))
+  );
+}
+
+function removeRosterItem(
+  item: TrackerItem,
+  selection: TrackerSelection | null,
+  spotlight: TrackerSelection | null,
+  setCharacters: Dispatch<SetStateAction<CharacterTracker[]>>,
+  setAdversaries: Dispatch<SetStateAction<AdversaryTracker[]>>,
+  setEnvironments: Dispatch<SetStateAction<EnvironmentTracker[]>>,
+  setSelection: Dispatch<SetStateAction<TrackerSelection | null>>,
+  setSpotlight: Dispatch<SetStateAction<TrackerSelection | null>>
+) {
+  if (item.kind === 'character') {
+    setCharacters(prev => prev.filter(entry => entry.id !== item.id));
+  }
+  if (item.kind === 'adversary') {
+    setAdversaries(prev => prev.filter(entry => entry.id !== item.id));
+  }
+  if (item.kind === 'environment') {
+    setEnvironments(prev => prev.filter(entry => entry.id !== item.id));
+  }
+  if (selection?.id === item.id && selection.kind === item.kind) {
+    setSelection(null);
+  }
+  if (spotlight?.id === item.id && spotlight.kind === item.kind) {
+    setSpotlight(null);
+  }
+}
+
 export function useBattleRosterState() {
   const [characters, setCharacters] = useState<CharacterTracker[]>([]);
   const [adversaries, setAdversaries] = useState<AdversaryTracker[]>([]);
@@ -82,14 +154,12 @@ export function useBattleRosterState() {
     'quick'
   );
   const selectedItem = useMemo(() => {
-    if (!selection) return null;
-    if (selection.kind === 'character') {
-      return characters.find(item => item.id === selection.id) ?? null;
-    }
-    if (selection.kind === 'adversary') {
-      return adversaries.find(item => item.id === selection.id) ?? null;
-    }
-    return environments.find(item => item.id === selection.id) ?? null;
+    return resolveSelectedItem(
+      selection,
+      characters,
+      adversaries,
+      environments
+    );
   }, [selection, characters, adversaries, environments]);
   const handleSelect = (item: TrackerItem) => {
     setSelection({ kind: item.kind, id: item.id });
@@ -97,70 +167,51 @@ export function useBattleRosterState() {
   const handleSpotlight = (item: TrackerItem) => {
     const next = { kind: item.kind, id: item.id } as TrackerSelection;
     setSpotlight(next);
-    setSpotlightHistory(prev => {
-      const filtered = prev.filter(
-        entry => !(entry.kind === next.kind && entry.id === next.id)
-      );
-      return [next, ...filtered].slice(0, 5);
-    });
+    setSpotlightHistory(prev => updateSpotlightHistory(prev, next));
   };
   const handleRemove = (item: TrackerItem) => {
-    if (item.kind === 'character') {
-      setCharacters(prev => prev.filter(entry => entry.id !== item.id));
-    }
-    if (item.kind === 'adversary') {
-      setAdversaries(prev => prev.filter(entry => entry.id !== item.id));
-    }
-    if (item.kind === 'environment') {
-      setEnvironments(prev => prev.filter(entry => entry.id !== item.id));
-    }
-    if (selection?.id === item.id && selection.kind === item.kind) {
-      setSelection(null);
-    }
-    if (spotlight?.id === item.id && spotlight.kind === item.kind) {
-      setSpotlight(null);
-    }
+    removeRosterItem(
+      item,
+      selection,
+      spotlight,
+      setCharacters,
+      setAdversaries,
+      setEnvironments,
+      setSelection,
+      setSpotlight
+    );
   };
   const addCharacter = (draft: NewCharacterDraft) => {
     const entry = createCharacterEntry(draft);
     if (!entry) return null;
-    setCharacters(prev => [...prev, entry]);
-    setSelection({ kind: 'character', id: entry.id });
+    addEntry(entry, setCharacters, setSelection);
     return entry.id;
   };
   const addAdversary = (adversary: Adversary) => {
     const entry = createAdversaryEntry(adversary);
-    setAdversaries(prev => [...prev, entry]);
-    setSelection({ kind: 'adversary', id: entry.id });
+    addEntry(entry, setAdversaries, setSelection);
   };
   const addEnvironment = (environment: Environment) => {
     const entry = createEnvironmentEntry(environment);
-    setEnvironments(prev => [...prev, entry]);
-    setSelection({ kind: 'environment', id: entry.id });
+    addEntry(entry, setEnvironments, setSelection);
   };
   const updateCharacter = (
     id: string,
     updater: (prev: CharacterTracker) => CharacterTracker
   ) => {
-    setCharacters(prev =>
-      prev.map(entry => (entry.id === id ? updater(entry) : entry))
-    );
+    updateEntryById(id, updater, setCharacters);
   };
   const updateAdversary = (
     id: string,
     updater: (prev: AdversaryTracker) => AdversaryTracker
   ) => {
-    setAdversaries(prev =>
-      prev.map(entry => (entry.id === id ? updater(entry) : entry))
-    );
+    updateEntryById(id, updater, setAdversaries);
   };
   const updateEnvironment = (
     id: string,
     updater: (prev: EnvironmentTracker) => EnvironmentTracker
   ) => {
-    setEnvironments(prev =>
-      prev.map(entry => (entry.id === id ? updater(entry) : entry))
-    );
+    updateEntryById(id, updater, setEnvironments);
   };
 
   return {

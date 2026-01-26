@@ -1,4 +1,3 @@
-/* eslint-disable max-lines-per-function -- Test file with comprehensive test suite */
 /**
  * Evasion Double-Count Prevention Tests
  *
@@ -18,6 +17,7 @@ import {
   normalizeEquipment,
 } from '@/lib/equipment-feature-parser';
 
+// eslint-disable-next-line max-lines-per-function -- Comprehensive test coverage in a single suite
 describe('Evasion Double-Count Prevention', () => {
   describe('normalizeEquipment for armor', () => {
     it('returns empty evasion for armor with legacy fields', () => {

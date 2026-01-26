@@ -1,24 +1,8 @@
-import { useQuery } from '@tanstack/react-query';
-import {
-  Heart,
-  Loader2,
-  Plus,
-  Shield,
-  Sparkles,
-  Swords,
-  User,
-} from 'lucide-react';
+import { Plus, User } from 'lucide-react';
 import { useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -31,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { fetchCharacter } from '@/lib/api/characters';
 import type { CampaignPlayer } from '@/lib/schemas/campaign';
 
+import { CampaignCharacterCard } from './campaign-character-card';
 import type { CharacterTracker, NewCharacterDraft } from './types';
 import { characterRecordToTracker, DEFAULT_CHARACTER_DRAFT } from './utils';
 
@@ -125,7 +110,7 @@ export function CampaignCharacterDialog({
                 </p>
               </div>
             ) : (
-              <ScrollArea className="h-[400px] pr-3">
+              <ScrollArea className="h-100 pr-3">
                 <div className="space-y-3">
                   {availablePlayers.map(player => (
                     <CampaignCharacterCard
@@ -157,126 +142,6 @@ export function CampaignCharacterDialog({
         </Tabs>
       </DialogContent>
     </Dialog>
-  );
-}
-
-interface CampaignCharacterCardProps {
-  player: CampaignPlayer;
-  isLoading: boolean;
-  onAdd: () => void;
-}
-
-function CampaignCharacterCard({
-  player,
-  isLoading,
-  onAdd,
-}: CampaignCharacterCardProps) {
-  // Fetch character details for preview (no staleTime to always get fresh data)
-  const { data: character, isLoading: isLoadingDetails } = useQuery({
-    queryKey: ['character-preview', player.characterId],
-    queryFn: () => fetchCharacter(player.characterId!),
-    enabled: Boolean(player.characterId),
-    staleTime: 0, // Always fetch fresh data
-  });
-
-  // Calculate stats if character is loaded
-  const tracker = character ? characterRecordToTracker(character) : null;
-
-  // Use fetched character name (fresh) or fall back to cached name
-  const characterName =
-    character?.identity?.name ||
-    player.characterName ||
-    player.name ||
-    'Unknown Character';
-
-  return (
-    <Card className="transition-shadow hover:shadow-md">
-      <CardHeader className="pb-2">
-        <div className="flex items-start justify-between">
-          <div>
-            <CardTitle className="text-base">{characterName}</CardTitle>
-            <CardDescription className="text-xs">
-              {character?.classDraft?.className || 'Loading...'}
-              {character?.classDraft?.subclassName &&
-                ` · ${character.classDraft.subclassName}`}
-            </CardDescription>
-          </div>
-          <Button
-            size="sm"
-            onClick={onAdd}
-            disabled={isLoading || isLoadingDetails}
-          >
-            {isLoading ? (
-              <Loader2 className="mr-1 size-4 animate-spin" />
-            ) : (
-              <Plus className="mr-1 size-4" />
-            )}
-            Add
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent className="pt-0">
-        {isLoadingDetails ? (
-          <div className="text-muted-foreground flex items-center gap-2 text-sm">
-            <Loader2 className="size-4 animate-spin" />
-            Loading character stats...
-          </div>
-        ) : tracker ? (
-          <div className="space-y-3">
-            {/* Stats row */}
-            <div className="flex flex-wrap gap-3 text-sm">
-              <div className="flex items-center gap-1">
-                <Heart className="text-destructive size-4" />
-                <span className="font-medium">{tracker.hp.max}</span>
-                <span className="text-muted-foreground">HP</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Sparkles className="size-4 text-purple-500" />
-                <span className="font-medium">{tracker.stress.max}</span>
-                <span className="text-muted-foreground">Stress</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Shield className="size-4 text-blue-500" />
-                <span className="font-medium">{tracker.evasion}</span>
-                <span className="text-muted-foreground">Evasion</span>
-              </div>
-              {tracker.armorScore && tracker.armorScore > 0 && (
-                <div className="flex items-center gap-1">
-                  <Swords className="size-4 text-amber-500" />
-                  <span className="font-medium">{tracker.armorScore}</span>
-                  <span className="text-muted-foreground">Armor</span>
-                </div>
-              )}
-            </div>
-
-            {/* Cards preview */}
-            {tracker.loadout && tracker.loadout.length > 0 && (
-              <div>
-                <p className="text-muted-foreground mb-1.5 text-xs font-medium">
-                  Active Cards ({tracker.loadout.length})
-                </p>
-                <div className="flex flex-wrap gap-1">
-                  {tracker.loadout.slice(0, 5).map((card, index) => (
-                    <Badge
-                      key={`${card.name}-${index}`}
-                      variant="secondary"
-                      className="text-xs"
-                    >
-                      {card.name}
-                    </Badge>
-                  ))}
-                  {tracker.loadout.length > 5 && (
-                    <Badge variant="outline" className="text-xs">
-                      +{tracker.loadout.length - 5} more
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        ) : null}
-      </CardContent>
-    </Card>
   );
 }
 

@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 // Session components - EditableSessions and SessionCard are tightly coupled
 
 import {

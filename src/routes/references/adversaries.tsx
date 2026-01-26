@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 // Adversaries reference page with page-specific detail components
 
 import {

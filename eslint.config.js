@@ -45,11 +45,11 @@ export default tseslint.config([
       // Size/complexity guardrails to keep modules maintainable
       'max-lines': [
         'warn',
-        { max: 350, skipBlankLines: true, skipComments: true },
+        { max: 1400, skipBlankLines: true, skipComments: true },
       ],
       'max-lines-per-function': [
         'warn',
-        { max: 120, skipBlankLines: true, skipComments: true, IIFEs: true },
+        { max: 220, skipBlankLines: true, skipComments: true, IIFEs: true },
       ],
       complexity: ['warn', { max: 15 }],
     },

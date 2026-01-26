@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 // Location components - EditableLocations and LocationCard are tightly coupled
 
 import {

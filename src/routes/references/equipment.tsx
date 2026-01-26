@@ -1,4 +1,4 @@
-/* eslint-disable max-lines, complexity */
+/* eslint-disable complexity */
 // Equipment reference page with page-specific detail components
 
 import { createFileRoute } from '@tanstack/react-router';

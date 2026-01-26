@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 // Inventory reference page with page-specific detail components
 
 import { createFileRoute } from '@tanstack/react-router';

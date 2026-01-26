@@ -81,6 +81,92 @@ interface SelectedAdversary {
   count: number;
 }
 
+interface EncounterSuggestion {
+  name: string;
+  description: string;
+  adversaries: SelectedAdversary[];
+}
+
+function addAdversarySelection(
+  prev: SelectedAdversary[],
+  adversary: Adversary
+): SelectedAdversary[] {
+  const existing = prev.find(s => s.adversary.name === adversary.name);
+  if (existing) {
+    return prev.map(s =>
+      s.adversary.name === adversary.name ? { ...s, count: s.count + 1 } : s
+    );
+  }
+  return [...prev, { adversary, count: 1 }];
+}
+
+function removeAdversarySelection(
+  prev: SelectedAdversary[],
+  name: string
+): SelectedAdversary[] {
+  const existing = prev.find(s => s.adversary.name === name);
+  if (existing && existing.count > 1) {
+    return prev.map(s =>
+      s.adversary.name === name ? { ...s, count: s.count - 1 } : s
+    );
+  }
+  return prev.filter(s => s.adversary.name !== name);
+}
+
+function getEncounterSuggestions({
+  partyTier,
+  pcCount,
+}: {
+  partyTier: Adversary['tier'];
+  pcCount: number;
+}): EncounterSuggestion[] {
+  const tierAdversaries = ADVERSARIES.filter(adv => adv.tier === partyTier);
+  const solos = tierAdversaries.filter(adv => adv.role === 'Solo');
+  const standards = tierAdversaries.filter(
+    adv => adv.role === 'Standard' || adv.role === 'Bruiser'
+  );
+  const minions = tierAdversaries.filter(
+    adv => adv.role === 'Minion' || adv.role === 'Horde'
+  );
+
+  const suggestions: EncounterSuggestion[] = [];
+
+  if (solos.length > 0) {
+    const solo = solos[0];
+    suggestions.push({
+      name: 'Boss Battle',
+      description: '1 Solo adversary for a climactic fight',
+      adversaries: [{ adversary: solo, count: 1 }],
+    });
+  }
+
+  if (standards.length > 0 && minions.length > 0) {
+    const std = standards[0];
+    const min = minions[0];
+    suggestions.push({
+      name: 'Standard Encounter',
+      description: '2 Standards + Minions for dynamic combat',
+      adversaries: [
+        { adversary: std, count: 2 },
+        { adversary: min, count: Math.max(1, pcCount - 2) },
+      ],
+    });
+  }
+
+  if (minions.length > 0) {
+    const min = minions[0];
+    suggestions.push({
+      name: 'Swarm Encounter',
+      description: 'Many weak foes for action-economy fun',
+      adversaries: [{ adversary: min, count: Math.max(4, pcCount * 2) }],
+    });
+  }
+
+  return suggestions;
+}
+
+type DifficultyKey = keyof typeof DIFFICULTY_MODIFIERS;
+
 interface FightBuilderWizardProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
@@ -88,6 +174,611 @@ interface FightBuilderWizardProps {
     adversaries: { adversary: Adversary; count: number }[]
   ) => void;
   currentCharacterCount: number;
+}
+
+// =====================================================================================
+// Helper Components
+// =====================================================================================
+
+function DifficultySelector({
+  value,
+  onChange,
+}: {
+  value: DifficultyKey;
+  onChange: (v: DifficultyKey) => void;
+}) {
+  return (
+    <div className="grid grid-cols-1 gap-1.5">
+      {Object.entries(DIFFICULTY_MODIFIERS).map(([key, val]) => (
+        <Button
+          key={key}
+          size="sm"
+          variant={value === key ? 'default' : 'ghost'}
+          className={cn(
+            'h-8 justify-between',
+            value !== key && 'hover:bg-muted'
+          )}
+          onClick={() => onChange(key as DifficultyKey)}
+        >
+          <span>{val.label}</span>
+          <span className={cn('text-xs', val.color)}>
+            {val.modifier >= 0 ? '+' : ''}
+            {val.modifier} pts
+          </span>
+        </Button>
+      ))}
+    </div>
+  );
+}
+
+function TierSelector({
+  value,
+  onChange,
+}: {
+  value: '1' | '2' | '3' | '4';
+  onChange: (v: '1' | '2' | '3' | '4') => void;
+}) {
+  return (
+    <div className="flex gap-1">
+      {(['1', '2', '3', '4'] as const).map(t => (
+        <Button
+          key={t}
+          size="sm"
+          variant={value === t ? 'default' : 'outline'}
+          className="h-8 flex-1"
+          onClick={() => onChange(t)}
+        >
+          {t}
+        </Button>
+      ))}
+    </div>
+  );
+}
+
+function CountControl({
+  value,
+  onChange,
+  min = 1,
+}: {
+  value: number;
+  onChange: (v: number) => void;
+  min?: number;
+}) {
+  return (
+    <div className="flex items-center gap-1">
+      <Button
+        size="icon"
+        variant="outline"
+        className="size-8"
+        onClick={() => onChange(Math.max(min, value - 1))}
+      >
+        <Minus className="size-3" />
+      </Button>
+      <Input
+        type="number"
+        value={value}
+        onChange={e => onChange(Math.max(min, parseInt(e.target.value) || min))}
+        className="h-8 w-12 text-center"
+      />
+      <Button
+        size="icon"
+        variant="outline"
+        className="size-8"
+        onClick={() => onChange(value + 1)}
+      >
+        <Plus className="size-3" />
+      </Button>
+    </div>
+  );
+}
+
+interface BattlePointsDisplayProps {
+  pcCount: number;
+  baseBattlePoints: number;
+  modifiedPoints: number;
+  spentPoints: number;
+  remainingPoints: number;
+  difficulty: DifficultyKey;
+  isBalanced: boolean;
+  isOverBudget: boolean;
+}
+
+function BattlePointsCard({
+  pcCount,
+  baseBattlePoints,
+  modifiedPoints,
+  spentPoints,
+  remainingPoints,
+  difficulty,
+  isBalanced,
+  isOverBudget,
+}: BattlePointsDisplayProps) {
+  const diffMod = DIFFICULTY_MODIFIERS[difficulty];
+  return (
+    <Card
+      className={cn(
+        'border-2 transition-colors',
+        isBalanced && 'border-emerald-400 bg-emerald-500/10',
+        isOverBudget && 'border-red-400 bg-red-500/10',
+        !isBalanced && !isOverBudget && 'border-amber-400 bg-amber-500/10'
+      )}
+    >
+      <CardContent className="space-y-2 p-3">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-muted-foreground">Base (3×{pcCount}+2)</span>
+          <span className="font-mono">{baseBattlePoints}</span>
+        </div>
+        {diffMod.modifier !== 0 && (
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">Difficulty</span>
+            <span className={cn('font-mono', diffMod.color)}>
+              {diffMod.modifier >= 0 ? '+' : ''}
+              {diffMod.modifier}
+            </span>
+          </div>
+        )}
+        <Separator />
+        <div className="flex items-center justify-between font-medium">
+          <span>Budget</span>
+          <span className="font-mono text-lg">{modifiedPoints}</span>
+        </div>
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-muted-foreground">Spent</span>
+          <span className="font-mono">{spentPoints}</span>
+        </div>
+        <Separator />
+        <div className="flex items-center justify-between font-semibold">
+          <span>Remaining</span>
+          <span
+            className={cn(
+              'font-mono text-lg',
+              remainingPoints > 0 && 'text-amber-500',
+              remainingPoints < 0 && 'text-red-500',
+              remainingPoints === 0 && 'text-emerald-500'
+            )}
+          >
+            {remainingPoints}
+          </span>
+        </div>
+        {isBalanced && (
+          <div className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400">
+            <Check className="size-3" />
+            Balanced encounter!
+          </div>
+        )}
+        {isOverBudget && (
+          <div className="flex items-center gap-1.5 text-xs text-red-600 dark:text-red-400">
+            <AlertTriangle className="size-3" />
+            Over budget - very deadly!
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+interface AdversarySelectionCardProps {
+  adversary: Adversary;
+  selected: SelectedAdversary | undefined;
+  remainingPoints: number;
+  onAdd: () => void;
+  onRemove: () => void;
+}
+
+function AdversarySelectionCard({
+  adversary,
+  selected,
+  remainingPoints,
+  onAdd,
+  onRemove,
+}: AdversarySelectionCardProps) {
+  const cost = ROLE_POINT_COSTS[adversary.role] ?? 2;
+  const canAfford = remainingPoints >= cost;
+
+  return (
+    <Card
+      className={cn(
+        'cursor-pointer transition-all hover:shadow-md',
+        selected && 'ring-2 ring-amber-400',
+        !canAfford && !selected && 'opacity-50'
+      )}
+      onClick={() => canAfford && onAdd()}
+    >
+      <CardContent className="p-3">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-medium">{adversary.name}</p>
+            <p className="text-muted-foreground text-xs">
+              {adversary.role} · D{adversary.difficulty}
+            </p>
+          </div>
+          <Badge
+            variant="outline"
+            className={cn(
+              'shrink-0',
+              cost >= 3 && 'border-red-400 text-red-500',
+              cost === 2 && 'border-amber-400 text-amber-500',
+              cost <= 1 && 'border-emerald-400 text-emerald-500'
+            )}
+          >
+            {cost}pt
+          </Badge>
+        </div>
+        <div className="text-muted-foreground mt-2 flex gap-2 text-xs">
+          <span>HP {adversary.hp}</span>
+          <span>·</span>
+          <span>Stress {adversary.stress}</span>
+        </div>
+        {selected && (
+          <div className="mt-2 flex items-center justify-between rounded bg-amber-500/20 px-2 py-1">
+            <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
+              ×{selected.count} selected
+            </span>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="size-5"
+              onClick={e => {
+                e.stopPropagation();
+                onRemove();
+              }}
+            >
+              <Minus className="size-3" />
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function getSelectedCount(selectedAdversaries: SelectedAdversary[]): number {
+  return selectedAdversaries.reduce((sum, entry) => sum + entry.count, 0);
+}
+
+function WizardSidebar({
+  pcCount,
+  onPcCountChange,
+  partyTier,
+  onPartyTierChange,
+  difficulty,
+  onDifficultyChange,
+  baseBattlePoints,
+  modifiedPoints,
+  spentPoints,
+  remainingPoints,
+  isBalanced,
+  isOverBudget,
+}: {
+  pcCount: number;
+  onPcCountChange: (value: number) => void;
+  partyTier: Adversary['tier'];
+  onPartyTierChange: (value: Adversary['tier']) => void;
+  difficulty: DifficultyKey;
+  onDifficultyChange: (value: DifficultyKey) => void;
+  baseBattlePoints: number;
+  modifiedPoints: number;
+  spentPoints: number;
+  remainingPoints: number;
+  isBalanced: boolean;
+  isOverBudget: boolean;
+}) {
+  return (
+    <div className="bg-muted/30 w-80 shrink-0 border-r p-4">
+      <div className="space-y-6">
+        <div className="space-y-3">
+          <Label className="flex items-center gap-2 text-sm font-semibold">
+            <Users className="size-4 text-blue-500" />
+            Party Setup
+          </Label>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label className="text-muted-foreground text-xs">PC Count</Label>
+              <CountControl
+                value={pcCount}
+                onChange={onPcCountChange}
+                min={1}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-muted-foreground text-xs">
+                Party Tier
+              </Label>
+              <TierSelector value={partyTier} onChange={onPartyTierChange} />
+            </div>
+          </div>
+        </div>
+
+        <Separator />
+
+        <div className="space-y-3">
+          <Label className="flex items-center gap-2 text-sm font-semibold">
+            <Target className="size-4 text-amber-500" />
+            Difficulty
+          </Label>
+          <DifficultySelector
+            value={difficulty}
+            onChange={onDifficultyChange}
+          />
+        </div>
+
+        <Separator />
+
+        <div className="space-y-3">
+          <Label className="flex items-center gap-2 text-sm font-semibold">
+            <Calculator className="size-4 text-emerald-500" />
+            Battle Points
+          </Label>
+          <BattlePointsCard
+            pcCount={pcCount}
+            baseBattlePoints={baseBattlePoints}
+            modifiedPoints={modifiedPoints}
+            spentPoints={spentPoints}
+            remainingPoints={remainingPoints}
+            difficulty={difficulty}
+            isBalanced={isBalanced}
+            isOverBudget={isOverBudget}
+          />
+        </div>
+
+        <Collapsible>
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-between"
+            >
+              <span className="flex items-center gap-2">
+                <HelpCircle className="size-4" />
+                Role Costs
+              </span>
+              <ChevronDown className="size-4" />
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="pt-2">
+            <div className="grid grid-cols-2 gap-1 text-xs">
+              {Object.entries(ROLE_POINT_COSTS).map(([role, cost]) => (
+                <div
+                  key={role}
+                  className="bg-muted flex justify-between rounded px-2 py-1"
+                >
+                  <span>{role}</span>
+                  <span className="font-mono text-amber-500">{cost}pt</span>
+                </div>
+              ))}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      </div>
+    </div>
+  );
+}
+
+function AdversarySearchBar({
+  search,
+  onSearchChange,
+  partyTier,
+  availableCount,
+}: {
+  search: string;
+  onSearchChange: (value: string) => void;
+  partyTier: Adversary['tier'];
+  availableCount: number;
+}) {
+  return (
+    <div className="border-b p-4">
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <Swords className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+          <Input
+            value={search}
+            onChange={e => onSearchChange(e.target.value)}
+            placeholder={`Search Tier ${partyTier} adversaries...`}
+            className="pl-9"
+          />
+        </div>
+        <Badge variant="secondary" className="shrink-0">
+          {availableCount} available
+        </Badge>
+      </div>
+    </div>
+  );
+}
+
+function SuggestionsPanel({
+  suggestions,
+  showSuggestions,
+  onShowSuggestions,
+  onApplySuggestion,
+}: {
+  suggestions: EncounterSuggestion[];
+  showSuggestions: boolean;
+  onShowSuggestions: (value: boolean) => void;
+  onApplySuggestion: (suggestion: EncounterSuggestion) => void;
+}) {
+  if (suggestions.length === 0) return null;
+  return (
+    <div className="border-b bg-amber-500/5 p-4">
+      <div className="mb-2 flex items-center justify-between">
+        <div className="flex items-center gap-2 text-sm font-semibold text-amber-600 dark:text-amber-400">
+          <Sparkles className="size-4" />
+          Quick Suggestions
+        </div>
+        {!showSuggestions && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onShowSuggestions(true)}
+            className="h-6 text-xs text-amber-600 dark:text-amber-400"
+          >
+            <Sparkles className="mr-1 size-3" />
+            Show Suggestions
+          </Button>
+        )}
+      </div>
+      {showSuggestions && (
+        <div className="flex flex-wrap gap-2">
+          {suggestions.map((sug, i) => (
+            <TooltipProvider key={i}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onApplySuggestion(sug)}
+                    className="h-8"
+                  >
+                    {sug.name}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{sug.description}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SelectedAdversariesPanel({
+  selectedAdversaries,
+  onReset,
+  onRemove,
+}: {
+  selectedAdversaries: SelectedAdversary[];
+  onReset: () => void;
+  onRemove: (name: string) => void;
+}) {
+  if (selectedAdversaries.length === 0) return null;
+  return (
+    <div className="bg-muted/30 shrink-0 border-b p-4">
+      <div className="mb-2 flex items-center justify-between text-sm font-semibold">
+        <span>Selected ({getSelectedCount(selectedAdversaries)})</span>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onReset}
+          className="h-6 text-xs"
+        >
+          Clear All
+        </Button>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {selectedAdversaries.map(({ adversary, count }) => (
+          <Badge
+            key={adversary.name}
+            variant="secondary"
+            className="gap-2 pr-1"
+          >
+            <span>{adversary.name}</span>
+            <span className="text-amber-500">×{count}</span>
+            <span className="text-muted-foreground text-xs">
+              ({ROLE_POINT_COSTS[adversary.role] ?? 2}pt each)
+            </span>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="hover:bg-destructive/20 size-5"
+              onClick={() => onRemove(adversary.name)}
+            >
+              <Minus className="size-3" />
+            </Button>
+          </Badge>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AdversaryListGrid({
+  filteredAdversaries,
+  selectedAdversaries,
+  remainingPoints,
+  onAdd,
+  onRemove,
+}: {
+  filteredAdversaries: Adversary[];
+  selectedAdversaries: SelectedAdversary[];
+  remainingPoints: number;
+  onAdd: (adversary: Adversary) => void;
+  onRemove: (name: string) => void;
+}) {
+  return (
+    <ScrollArea className="min-h-0 flex-1">
+      <div className="grid gap-2 p-4 sm:grid-cols-2 lg:grid-cols-3">
+        {filteredAdversaries.map(adv => (
+          <AdversarySelectionCard
+            key={adv.name}
+            adversary={adv}
+            selected={selectedAdversaries.find(
+              s => s.adversary.name === adv.name
+            )}
+            remainingPoints={remainingPoints}
+            onAdd={() => onAdd(adv)}
+            onRemove={() => onRemove(adv.name)}
+          />
+        ))}
+      </div>
+    </ScrollArea>
+  );
+}
+
+function WizardFooter({
+  isBalanced,
+  isOverBudget,
+  spentPoints,
+  modifiedPoints,
+  selectedCount,
+  onCancel,
+  onConfirm,
+  disableConfirm,
+}: {
+  isBalanced: boolean;
+  isOverBudget: boolean;
+  spentPoints: number;
+  modifiedPoints: number;
+  selectedCount: number;
+  onCancel: () => void;
+  onConfirm: () => void;
+  disableConfirm: boolean;
+}) {
+  return (
+    <DialogFooter className="border-t px-6 py-4">
+      <div className="flex w-full items-center justify-between">
+        <div className="flex items-center gap-2 text-sm">
+          <Scale
+            className={cn(
+              'size-5',
+              isBalanced && 'text-emerald-500',
+              isOverBudget && 'text-red-500',
+              !isBalanced && !isOverBudget && 'text-amber-500'
+            )}
+          />
+          <span>
+            {spentPoints} / {modifiedPoints} points used
+          </span>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button
+            onClick={onConfirm}
+            disabled={disableConfirm}
+            className="gap-2"
+          >
+            <Swords className="size-4" />
+            Add {selectedCount} Adversaries
+          </Button>
+        </div>
+      </div>
+    </DialogFooter>
+  );
 }
 
 // =====================================================================================
@@ -116,12 +807,14 @@ export function FightBuilderWizard({
   const modifiedPoints =
     baseBattlePoints + DIFFICULTY_MODIFIERS[difficulty].modifier;
 
-  const spentPoints = useMemo(() => {
-    return selectedAdversaries.reduce((sum, { adversary, count }) => {
-      const cost = ROLE_POINT_COSTS[adversary.role] ?? 2;
-      return sum + cost * count;
-    }, 0);
-  }, [selectedAdversaries]);
+  const spentPoints = useMemo(
+    () =>
+      selectedAdversaries.reduce((sum, { adversary, count }) => {
+        const cost = ROLE_POINT_COSTS[adversary.role] ?? 2;
+        return sum + cost * count;
+      }, 0),
+    [selectedAdversaries]
+  );
 
   const remainingPoints = modifiedPoints - spentPoints;
   const isBalanced = Math.abs(remainingPoints) <= 1;
@@ -140,85 +833,21 @@ export function FightBuilderWizard({
   }, [partyTier, search]);
 
   // Suggested encounters - use deterministic selection (first element)
-  const suggestions = useMemo(() => {
-    const tierAdversaries = ADVERSARIES.filter(adv => adv.tier === partyTier);
-    const solos = tierAdversaries.filter(adv => adv.role === 'Solo');
-    const standards = tierAdversaries.filter(
-      adv => adv.role === 'Standard' || adv.role === 'Bruiser'
-    );
-    const minions = tierAdversaries.filter(
-      adv => adv.role === 'Minion' || adv.role === 'Horde'
-    );
-
-    const suggestions: {
-      name: string;
-      description: string;
-      adversaries: SelectedAdversary[];
-    }[] = [];
-
-    // Solo Boss Fight
-    if (solos.length > 0) {
-      const solo = solos[0];
-      suggestions.push({
-        name: 'Boss Battle',
-        description: '1 Solo adversary for a climactic fight',
-        adversaries: [{ adversary: solo, count: 1 }],
-      });
-    }
-
-    // Standard encounter
-    if (standards.length > 0 && minions.length > 0) {
-      const std = standards[0];
-      const min = minions[0];
-      suggestions.push({
-        name: 'Standard Encounter',
-        description: '2 Standards + Minions for dynamic combat',
-        adversaries: [
-          { adversary: std, count: 2 },
-          { adversary: min, count: Math.max(1, pcCount - 2) },
-        ],
-      });
-    }
-
-    // Horde fight
-    if (minions.length > 0) {
-      const min = minions[0];
-      suggestions.push({
-        name: 'Swarm Encounter',
-        description: 'Many weak foes for action-economy fun',
-        adversaries: [{ adversary: min, count: Math.max(4, pcCount * 2) }],
-      });
-    }
-
-    return suggestions;
-  }, [partyTier, pcCount]);
+  const suggestions = useMemo(
+    () => getEncounterSuggestions({ partyTier, pcCount }),
+    [partyTier, pcCount]
+  );
 
   // Handlers
   const addAdversary = (adversary: Adversary) => {
-    setSelectedAdversaries(prev => {
-      const existing = prev.find(s => s.adversary.name === adversary.name);
-      if (existing) {
-        return prev.map(s =>
-          s.adversary.name === adversary.name ? { ...s, count: s.count + 1 } : s
-        );
-      }
-      return [...prev, { adversary, count: 1 }];
-    });
+    setSelectedAdversaries(prev => addAdversarySelection(prev, adversary));
   };
 
   const removeAdversary = (name: string) => {
-    setSelectedAdversaries(prev => {
-      const existing = prev.find(s => s.adversary.name === name);
-      if (existing && existing.count > 1) {
-        return prev.map(s =>
-          s.adversary.name === name ? { ...s, count: s.count - 1 } : s
-        );
-      }
-      return prev.filter(s => s.adversary.name !== name);
-    });
+    setSelectedAdversaries(prev => removeAdversarySelection(prev, name));
   };
 
-  const applySuggestion = (suggestion: (typeof suggestions)[0]) => {
+  const applySuggestion = (suggestion: EncounterSuggestion) => {
     setSelectedAdversaries(suggestion.adversaries);
     setShowSuggestions(false);
   };
@@ -255,434 +884,59 @@ export function FightBuilderWizard({
         </DialogHeader>
 
         <div className="flex flex-1 overflow-hidden">
-          {/* Left Panel - Configuration */}
-          <div className="bg-muted/30 w-80 shrink-0 border-r p-4">
-            <div className="space-y-6">
-              {/* Party Setup */}
-              <div className="space-y-3">
-                <Label className="flex items-center gap-2 text-sm font-semibold">
-                  <Users className="size-4 text-blue-500" />
-                  Party Setup
-                </Label>
+          <WizardSidebar
+            pcCount={pcCount}
+            onPcCountChange={setPcCount}
+            partyTier={partyTier}
+            onPartyTierChange={setPartyTier}
+            difficulty={difficulty}
+            onDifficultyChange={setDifficulty}
+            baseBattlePoints={baseBattlePoints}
+            modifiedPoints={modifiedPoints}
+            spentPoints={spentPoints}
+            remainingPoints={remainingPoints}
+            isBalanced={isBalanced}
+            isOverBudget={isOverBudget}
+          />
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label className="text-muted-foreground text-xs">
-                      PC Count
-                    </Label>
-                    <div className="flex items-center gap-1">
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        className="size-8"
-                        onClick={() => setPcCount(Math.max(1, pcCount - 1))}
-                      >
-                        <Minus className="size-3" />
-                      </Button>
-                      <Input
-                        type="number"
-                        value={pcCount}
-                        onChange={e =>
-                          setPcCount(Math.max(1, parseInt(e.target.value) || 1))
-                        }
-                        className="h-8 w-12 text-center"
-                      />
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        className="size-8"
-                        onClick={() => setPcCount(pcCount + 1)}
-                      >
-                        <Plus className="size-3" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <Label className="text-muted-foreground text-xs">
-                      Party Tier
-                    </Label>
-                    <div className="flex gap-1">
-                      {(['1', '2', '3', '4'] as const).map(t => (
-                        <Button
-                          key={t}
-                          size="sm"
-                          variant={partyTier === t ? 'default' : 'outline'}
-                          className="h-8 flex-1"
-                          onClick={() => setPartyTier(t)}
-                        >
-                          {t}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* Difficulty */}
-              <div className="space-y-3">
-                <Label className="flex items-center gap-2 text-sm font-semibold">
-                  <Target className="size-4 text-amber-500" />
-                  Difficulty
-                </Label>
-                <div className="grid grid-cols-1 gap-1.5">
-                  {Object.entries(DIFFICULTY_MODIFIERS).map(([key, val]) => (
-                    <Button
-                      key={key}
-                      size="sm"
-                      variant={difficulty === key ? 'default' : 'ghost'}
-                      className={cn(
-                        'h-8 justify-between',
-                        difficulty !== key && 'hover:bg-muted'
-                      )}
-                      onClick={() =>
-                        setDifficulty(key as keyof typeof DIFFICULTY_MODIFIERS)
-                      }
-                    >
-                      <span>{val.label}</span>
-                      <span className={cn('text-xs', val.color)}>
-                        {val.modifier >= 0 ? '+' : ''}
-                        {val.modifier} pts
-                      </span>
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* Battle Points Budget */}
-              <div className="space-y-3">
-                <Label className="flex items-center gap-2 text-sm font-semibold">
-                  <Calculator className="size-4 text-emerald-500" />
-                  Battle Points
-                </Label>
-
-                <Card
-                  className={cn(
-                    'border-2 transition-colors',
-                    isBalanced && 'border-emerald-400 bg-emerald-500/10',
-                    isOverBudget && 'border-red-400 bg-red-500/10',
-                    !isBalanced &&
-                      !isOverBudget &&
-                      'border-amber-400 bg-amber-500/10'
-                  )}
-                >
-                  <CardContent className="space-y-2 p-3">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">
-                        Base (3×{pcCount}+2)
-                      </span>
-                      <span className="font-mono">{baseBattlePoints}</span>
-                    </div>
-                    {DIFFICULTY_MODIFIERS[difficulty].modifier !== 0 && (
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">
-                          Difficulty
-                        </span>
-                        <span
-                          className={cn(
-                            'font-mono',
-                            DIFFICULTY_MODIFIERS[difficulty].color
-                          )}
-                        >
-                          {DIFFICULTY_MODIFIERS[difficulty].modifier >= 0
-                            ? '+'
-                            : ''}
-                          {DIFFICULTY_MODIFIERS[difficulty].modifier}
-                        </span>
-                      </div>
-                    )}
-                    <Separator />
-                    <div className="flex items-center justify-between font-medium">
-                      <span>Budget</span>
-                      <span className="font-mono text-lg">
-                        {modifiedPoints}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Spent</span>
-                      <span className="font-mono">{spentPoints}</span>
-                    </div>
-                    <Separator />
-                    <div className="flex items-center justify-between font-semibold">
-                      <span>Remaining</span>
-                      <span
-                        className={cn(
-                          'font-mono text-lg',
-                          remainingPoints > 0 && 'text-amber-500',
-                          remainingPoints < 0 && 'text-red-500',
-                          remainingPoints === 0 && 'text-emerald-500'
-                        )}
-                      >
-                        {remainingPoints}
-                      </span>
-                    </div>
-
-                    {isBalanced && (
-                      <div className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400">
-                        <Check className="size-3" />
-                        Balanced encounter!
-                      </div>
-                    )}
-                    {isOverBudget && (
-                      <div className="flex items-center gap-1.5 text-xs text-red-600 dark:text-red-400">
-                        <AlertTriangle className="size-3" />
-                        Over budget - very deadly!
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Role Costs Reference */}
-              <Collapsible>
-                <CollapsibleTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full justify-between"
-                  >
-                    <span className="flex items-center gap-2">
-                      <HelpCircle className="size-4" />
-                      Role Costs
-                    </span>
-                    <ChevronDown className="size-4" />
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pt-2">
-                  <div className="grid grid-cols-2 gap-1 text-xs">
-                    {Object.entries(ROLE_POINT_COSTS).map(([role, cost]) => (
-                      <div
-                        key={role}
-                        className="bg-muted flex justify-between rounded px-2 py-1"
-                      >
-                        <span>{role}</span>
-                        <span className="font-mono text-amber-500">
-                          {cost}pt
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
-            </div>
-          </div>
-
-          {/* Right Panel - Adversary Selection */}
           <div className="flex flex-1 flex-col overflow-hidden">
-            {/* Search */}
-            <div className="border-b p-4">
-              <div className="flex items-center gap-2">
-                <div className="relative flex-1">
-                  <Swords className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-                  <Input
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    placeholder={`Search Tier ${partyTier} adversaries...`}
-                    className="pl-9"
-                  />
-                </div>
-                <Badge variant="secondary" className="shrink-0">
-                  {filteredAdversaries.length} available
-                </Badge>
-              </div>
-            </div>
-
-            {/* Suggestions */}
-            {suggestions.length > 0 && (
-              <div className="border-b bg-amber-500/5 p-4">
-                <div className="mb-2 flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-sm font-semibold text-amber-600 dark:text-amber-400">
-                    <Sparkles className="size-4" />
-                    Quick Suggestions
-                  </div>
-                  {!showSuggestions && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setShowSuggestions(true)}
-                      className="h-6 text-xs text-amber-600 dark:text-amber-400"
-                    >
-                      <Sparkles className="mr-1 size-3" />
-                      Show Suggestions
-                    </Button>
-                  )}
-                </div>
-                {showSuggestions && (
-                  <div className="flex flex-wrap gap-2">
-                    {suggestions.map((sug, i) => (
-                      <TooltipProvider key={i}>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => applySuggestion(sug)}
-                              className="h-8"
-                            >
-                              {sug.name}
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>{sug.description}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Selected Adversaries */}
-            {selectedAdversaries.length > 0 && (
-              <div className="bg-muted/30 shrink-0 border-b p-4">
-                <div className="mb-2 flex items-center justify-between text-sm font-semibold">
-                  <span>
-                    Selected (
-                    {selectedAdversaries.reduce((s, a) => s + a.count, 0)})
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={reset}
-                    className="h-6 text-xs"
-                  >
-                    Clear All
-                  </Button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {selectedAdversaries.map(({ adversary, count }) => (
-                    <Badge
-                      key={adversary.name}
-                      variant="secondary"
-                      className="gap-2 pr-1"
-                    >
-                      <span>{adversary.name}</span>
-                      <span className="text-amber-500">×{count}</span>
-                      <span className="text-muted-foreground text-xs">
-                        ({ROLE_POINT_COSTS[adversary.role] ?? 2}pt each)
-                      </span>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="hover:bg-destructive/20 size-5"
-                        onClick={() => removeAdversary(adversary.name)}
-                      >
-                        <Minus className="size-3" />
-                      </Button>
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Adversary List */}
-            <ScrollArea className="min-h-0 flex-1">
-              <div className="grid gap-2 p-4 sm:grid-cols-2 lg:grid-cols-3">
-                {filteredAdversaries.map(adv => {
-                  const cost = ROLE_POINT_COSTS[adv.role] ?? 2;
-                  const canAfford = remainingPoints >= cost;
-                  const selected = selectedAdversaries.find(
-                    s => s.adversary.name === adv.name
-                  );
-
-                  return (
-                    <Card
-                      key={adv.name}
-                      className={cn(
-                        'cursor-pointer transition-all hover:shadow-md',
-                        selected && 'ring-2 ring-amber-400',
-                        !canAfford && !selected && 'opacity-50'
-                      )}
-                      onClick={() => canAfford && addAdversary(adv)}
-                    >
-                      <CardContent className="p-3">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate font-medium">{adv.name}</p>
-                            <p className="text-muted-foreground text-xs">
-                              {adv.role} · D{adv.difficulty}
-                            </p>
-                          </div>
-                          <Badge
-                            variant="outline"
-                            className={cn(
-                              'shrink-0',
-                              cost >= 3 && 'border-red-400 text-red-500',
-                              cost === 2 && 'border-amber-400 text-amber-500',
-                              cost <= 1 && 'border-emerald-400 text-emerald-500'
-                            )}
-                          >
-                            {cost}pt
-                          </Badge>
-                        </div>
-                        <div className="text-muted-foreground mt-2 flex gap-2 text-xs">
-                          <span>HP {adv.hp}</span>
-                          <span>·</span>
-                          <span>Stress {adv.stress}</span>
-                        </div>
-                        {selected && (
-                          <div className="mt-2 flex items-center justify-between rounded bg-amber-500/20 px-2 py-1">
-                            <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
-                              ×{selected.count} selected
-                            </span>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="size-5"
-                              onClick={e => {
-                                e.stopPropagation();
-                                removeAdversary(adv.name);
-                              }}
-                            >
-                              <Minus className="size-3" />
-                            </Button>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            </ScrollArea>
+            <AdversarySearchBar
+              search={search}
+              onSearchChange={setSearch}
+              partyTier={partyTier}
+              availableCount={filteredAdversaries.length}
+            />
+            <SuggestionsPanel
+              suggestions={suggestions}
+              showSuggestions={showSuggestions}
+              onShowSuggestions={setShowSuggestions}
+              onApplySuggestion={applySuggestion}
+            />
+            <SelectedAdversariesPanel
+              selectedAdversaries={selectedAdversaries}
+              onReset={reset}
+              onRemove={removeAdversary}
+            />
+            <AdversaryListGrid
+              filteredAdversaries={filteredAdversaries}
+              selectedAdversaries={selectedAdversaries}
+              remainingPoints={remainingPoints}
+              onAdd={addAdversary}
+              onRemove={removeAdversary}
+            />
           </div>
         </div>
 
-        <DialogFooter className="border-t px-6 py-4">
-          <div className="flex w-full items-center justify-between">
-            <div className="flex items-center gap-2 text-sm">
-              <Scale
-                className={cn(
-                  'size-5',
-                  isBalanced && 'text-emerald-500',
-                  isOverBudget && 'text-red-500',
-                  !isBalanced && !isOverBudget && 'text-amber-500'
-                )}
-              />
-              <span>
-                {spentPoints} / {modifiedPoints} points used
-              </span>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
-              <Button
-                onClick={handleConfirm}
-                disabled={selectedAdversaries.length === 0}
-                className="gap-2"
-              >
-                <Swords className="size-4" />
-                Add {selectedAdversaries.reduce((s, a) => s + a.count, 0)}{' '}
-                Adversaries
-              </Button>
-            </div>
-          </div>
-        </DialogFooter>
+        <WizardFooter
+          isBalanced={isBalanced}
+          isOverBudget={isOverBudget}
+          spentPoints={spentPoints}
+          modifiedPoints={modifiedPoints}
+          selectedCount={getSelectedCount(selectedAdversaries)}
+          onCancel={() => onOpenChange(false)}
+          onConfirm={handleConfirm}
+          disableConfirm={selectedAdversaries.length === 0}
+        />
       </DialogContent>
     </Dialog>
   );

@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 import { useQuery } from '@tanstack/react-query';
 import {
   type Dispatch,
@@ -372,7 +371,6 @@ function createSessionsHandler({
   };
 }
 
-// eslint-disable-next-line max-lines-per-function -- centralizes auto-save handler wiring
 function buildAutoSaveHandlers({
   baseHandlers,
   charState,
@@ -695,7 +693,10 @@ export function useCharacterSheetWithApi(
 
   // Auto-save hook
   const autoSave = useAutoSave(characterId);
-  const scheduleSave = options?.readOnly ? () => {} : autoSave.scheduleSave;
+  const scheduleSave = useMemo(
+    () => (options?.readOnly ? () => {} : autoSave.scheduleSave),
+    [options?.readOnly, autoSave.scheduleSave]
+  );
   const isSaving = options?.readOnly ? false : autoSave.isSaving;
   const lastSaved = options?.readOnly ? null : autoSave.lastSaved;
 

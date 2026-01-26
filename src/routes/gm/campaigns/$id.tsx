@@ -156,16 +156,10 @@ function CampaignNotFoundState({ onBack }: { onBack: () => void }) {
   );
 }
 
-function useCampaignDetailState(id: string, tab: TabValue) {
+function useCampaignLoader(id: string) {
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [hasChanges, setHasChanges] = useState(false);
 
-  // Autosave debounce timer
-  const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Full campaign load - used for initial load
   const loadCampaign = useCallback(async () => {
     const data = await getCampaign(id);
     if (data) {
@@ -173,14 +167,11 @@ function useCampaignDetailState(id: string, tab: TabValue) {
     }
   }, [id]);
 
-  // Partial reload - updates sessions, npcs, locations, quests, battles
-  // but preserves local frame and name changes
   const reloadCampaignData = useCallback(async () => {
     const data = await getCampaign(id);
     if (data) {
       setCampaign(current => {
         if (!current) return data;
-        // Preserve local frame and name, update everything else
         return {
           ...data,
           frame: current.frame,
@@ -199,10 +190,17 @@ function useCampaignDetailState(id: string, tab: TabValue) {
     load();
   }, [loadCampaign]);
 
-  // Track previous tab to only reload when actually switching TO gm-tools
+  return { campaign, setCampaign, loading, reloadCampaignData };
+}
+
+function useGmToolsTabReload(
+  tab: TabValue,
+  loading: boolean,
+  reloadCampaignData: () => Promise<void>
+) {
   const prevTabRef = useRef<TabValue | null>(null);
+
   useEffect(() => {
-    // Only reload when switching TO gm-tools tab, not on initial render
     if (
       tab === 'gm-tools' &&
       prevTabRef.current !== null &&
@@ -213,16 +211,78 @@ function useCampaignDetailState(id: string, tab: TabValue) {
     }
     prevTabRef.current = tab;
   }, [tab, loading, reloadCampaignData]);
+}
 
-  const updateFrame = useCallback((updates: Partial<CampaignFrame>) => {
-    setCampaign(current => {
-      if (!current) {
-        return current;
+function useCampaignAutoSave(
+  performSave: () => Promise<void>,
+  hasChanges: boolean,
+  saving: boolean
+) {
+  const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!hasChanges || saving) return;
+
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      void performSave();
+    }, 2000);
+
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
       }
-      setHasChanges(true);
-      return { ...current, frame: { ...current.frame, ...updates } };
-    });
-  }, []);
+    };
+  }, [hasChanges, saving, performSave]);
+
+  const handleSave = useCallback(async () => {
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+    await performSave();
+  }, [performSave]);
+
+  return { handleSave };
+}
+
+function useGeneratorHandler<TValue>(
+  campaign: Campaign | null,
+  reloadCampaignData: () => Promise<void>,
+  action: (campaignId: string, payload: TValue) => Promise<unknown>,
+  buildPayload: (value: string) => TValue
+) {
+  return useCallback(
+    async (value: string) => {
+      if (!campaign) return;
+      await action(campaign.id, buildPayload(value));
+      await reloadCampaignData();
+    },
+    [campaign, reloadCampaignData, action, buildPayload]
+  );
+}
+
+function useCampaignDetailState(id: string, tab: TabValue) {
+  const { campaign, setCampaign, loading, reloadCampaignData } =
+    useCampaignLoader(id);
+  const [saving, setSaving] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+  useGmToolsTabReload(tab, loading, reloadCampaignData);
+
+  const updateFrame = useCallback(
+    (updates: Partial<CampaignFrame>) => {
+      setCampaign(current => {
+        if (!current) {
+          return current;
+        }
+        setHasChanges(true);
+        return { ...current, frame: { ...current.frame, ...updates } };
+      });
+    },
+    [setCampaign, setHasChanges]
+  );
 
   // Perform the actual save
   const performSave = useCallback(async () => {
@@ -237,72 +297,41 @@ function useCampaignDetailState(id: string, tab: TabValue) {
     }
   }, [campaign, id, saving]);
 
-  // Debounced autosave - triggers 2 seconds after changes stop
-  useEffect(() => {
-    if (!hasChanges || saving) return;
+  const { handleSave } = useCampaignAutoSave(performSave, hasChanges, saving);
 
-    // Clear existing timeout
-    if (autoSaveTimeoutRef.current) {
-      clearTimeout(autoSaveTimeoutRef.current);
-    }
-
-    // Set new timeout for autosave
-    autoSaveTimeoutRef.current = setTimeout(() => {
-      void performSave();
-    }, 2000);
-
-    return () => {
-      if (autoSaveTimeoutRef.current) {
-        clearTimeout(autoSaveTimeoutRef.current);
-      }
-    };
-  }, [hasChanges, saving, performSave]);
-
-  // Manual save handler (immediate)
-  const handleSave = useCallback(async () => {
-    // Cancel any pending autosave
-    if (autoSaveTimeoutRef.current) {
-      clearTimeout(autoSaveTimeoutRef.current);
-    }
-    await performSave();
-  }, [performSave]);
-
-  const handleAddNPCFromGenerator = useCallback(
-    async (name: string) => {
-      if (!campaign) return;
-      await addNPC(campaign.id, buildNPCPayload(name));
-      await reloadCampaignData();
-    },
-    [campaign, reloadCampaignData]
+  const handleAddNPCFromGenerator = useGeneratorHandler(
+    campaign,
+    reloadCampaignData,
+    addNPC,
+    buildNPCPayload
   );
 
-  const handleAddLocationFromGenerator = useCallback(
-    async (name: string) => {
-      if (!campaign) return;
-      await addLocation(campaign.id, buildLocationPayload(name));
-      await reloadCampaignData();
-    },
-    [campaign, reloadCampaignData]
+  const handleAddLocationFromGenerator = useGeneratorHandler(
+    campaign,
+    reloadCampaignData,
+    addLocation,
+    buildLocationPayload
   );
 
-  const handleAddQuestFromGenerator = useCallback(
-    async (title: string) => {
-      if (!campaign) return;
-      await addQuest(campaign.id, buildQuestPayload(title));
-      await reloadCampaignData();
-    },
-    [campaign, reloadCampaignData]
+  const handleAddQuestFromGenerator = useGeneratorHandler(
+    campaign,
+    reloadCampaignData,
+    addQuest,
+    buildQuestPayload
   );
 
-  const handleNameChange = useCallback((value: string) => {
-    setCampaign(current => {
-      if (!current) {
-        return current;
-      }
-      setHasChanges(true);
-      return { ...current, name: value };
-    });
-  }, []);
+  const handleNameChange = useCallback(
+    (value: string) => {
+      setCampaign(current => {
+        if (!current) {
+          return current;
+        }
+        setHasChanges(true);
+        return { ...current, name: value };
+      });
+    },
+    [setCampaign, setHasChanges]
+  );
 
   const handleChecklistChange = useCallback(
     (items: Campaign['sessionPrepChecklist']) => {
@@ -314,7 +343,7 @@ function useCampaignDetailState(id: string, tab: TabValue) {
         return { ...current, sessionPrepChecklist: items };
       });
     },
-    []
+    [setCampaign, setHasChanges]
   );
 
   const handleDeleteBattle = useCallback(

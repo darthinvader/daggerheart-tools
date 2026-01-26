@@ -1,4 +1,3 @@
-/* eslint-disable max-lines, max-lines-per-function -- Test file with comprehensive test suites */
 import { describe, expect, it } from 'vitest';
 import {
   ArmorInput,
@@ -50,6 +49,7 @@ function createTraitModifiers(
   };
 }
 
+// eslint-disable-next-line max-lines-per-function -- Comprehensive test coverage in a single suite
 describe('Character Stats Engine', () => {
   // ===== HP Calculation =====
   describe('calculateHp', () => {

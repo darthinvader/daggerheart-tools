@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 // Environments reference page with page-specific detail components
 
 import {

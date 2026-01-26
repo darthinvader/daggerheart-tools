@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 // Homepage with page-specific feature cards and sections
 
 import { createFileRoute, Link } from '@tanstack/react-router';

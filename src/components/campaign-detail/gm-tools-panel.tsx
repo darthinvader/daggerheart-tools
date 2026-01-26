@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 // GM Tools Panel - collection of GM helper tools
 
 import { Link } from '@tanstack/react-router';
@@ -447,7 +446,7 @@ function BattleTrackerCard({
             <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
               Saved Encounters ({battles.length})
             </p>
-            <div className="max-h-[200px] space-y-2 overflow-y-auto pr-1">
+            <div className="max-h-50 space-y-2 overflow-y-auto pr-1">
               {battles.map(battle => (
                 <div
                   key={battle.id}

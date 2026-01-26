@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 // Data file containing all ancestry definitions from the Daggerheart SRD
 export const ANCESTRIES = [
   {

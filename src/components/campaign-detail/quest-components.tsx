@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 // Quest components - EditableQuests and QuestCard are tightly coupled
 
 import {

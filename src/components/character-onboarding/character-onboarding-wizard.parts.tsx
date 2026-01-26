@@ -1,4 +1,4 @@
-/* eslint-disable max-lines, max-lines-per-function, react-refresh/only-export-components */
+/* eslint-disable react-refresh/only-export-components */
 import type { ChangeEvent, MutableRefObject, ReactNode } from 'react';
 import {
   type Dispatch,

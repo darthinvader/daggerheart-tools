@@ -72,7 +72,6 @@ function ScarItem({ scar }: { scar: Scar }) {
   );
 }
 
-// eslint-disable-next-line max-lines-per-function
 export function QuickVitalsInfo({
   resources,
   hopeState,
