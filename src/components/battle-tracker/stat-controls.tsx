@@ -11,9 +11,11 @@ interface StatMiniProps {
   label: string;
   value: number;
   max: number;
-  onChange: (v: number) => void;
+  onChange?: (v: number) => void;
   colorClass?: string;
   icon?: ReactNode;
+  /** If true, shows as read-only display without controls */
+  readOnly?: boolean;
 }
 
 export function StatMini({
@@ -23,7 +25,29 @@ export function StatMini({
   onChange,
   colorClass,
   icon,
+  readOnly,
 }: StatMiniProps) {
+  // Read-only display (for linked player characters)
+  if (readOnly) {
+    return (
+      <div className="bg-muted/30 flex items-center gap-1 rounded border px-2 py-1">
+        <span
+          className={cn(
+            'flex items-center gap-1 text-xs',
+            colorClass ?? 'text-muted-foreground'
+          )}
+        >
+          {icon}
+          {label}
+        </span>
+        <div className="ml-auto flex items-center gap-0.5">
+          <span className={cn('text-sm font-medium', colorClass)}>{value}</span>
+          <span className="text-muted-foreground text-xs">/{max}</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-muted/30 flex items-center gap-1 rounded border px-2 py-1">
       <span
@@ -40,14 +64,14 @@ export function StatMini({
           size="icon"
           variant="ghost"
           className="size-5"
-          onClick={() => onChange(Math.max(0, value - 1))}
+          onClick={() => onChange?.(Math.max(0, value - 1))}
         >
           <Minus className="size-3" />
         </Button>
         <Input
           type="number"
           value={value}
-          onChange={e => onChange(toNumber(e.target.value, value, { max }))}
+          onChange={e => onChange?.(toNumber(e.target.value, value, { max }))}
           className="h-6 w-10 border-0 bg-transparent p-0 text-center text-sm"
         />
         <span className="text-muted-foreground text-xs">/{max}</span>
@@ -55,7 +79,7 @@ export function StatMini({
           size="icon"
           variant="ghost"
           className="size-5"
-          onClick={() => onChange(Math.min(max, value + 1))}
+          onClick={() => onChange?.(Math.min(max, value + 1))}
         >
           <Plus className="size-3" />
         </Button>

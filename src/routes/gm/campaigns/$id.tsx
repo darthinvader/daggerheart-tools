@@ -1,6 +1,11 @@
 // Campaign detail page - main component using extracted sub-components
 
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import {
+  createFileRoute,
+  Outlet,
+  useMatches,
+  useNavigate,
+} from '@tanstack/react-router';
 import {
   BookOpen,
   Lightbulb,
@@ -13,7 +18,7 @@ import {
   User,
   Users,
 } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   CampaignHeader,
@@ -151,16 +156,37 @@ function CampaignNotFoundState({ onBack }: { onBack: () => void }) {
   );
 }
 
-function useCampaignDetailState(id: string) {
+function useCampaignDetailState(id: string, tab: TabValue) {
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
 
+  // Autosave debounce timer
+  const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Full campaign load - used for initial load
   const loadCampaign = useCallback(async () => {
     const data = await getCampaign(id);
     if (data) {
       setCampaign(data);
+    }
+  }, [id]);
+
+  // Partial reload - updates sessions, npcs, locations, quests, battles
+  // but preserves local frame and name changes
+  const reloadCampaignData = useCallback(async () => {
+    const data = await getCampaign(id);
+    if (data) {
+      setCampaign(current => {
+        if (!current) return data;
+        // Preserve local frame and name, update everything else
+        return {
+          ...data,
+          frame: current.frame,
+          name: current.name,
+        };
+      });
     }
   }, [id]);
 
@@ -173,6 +199,21 @@ function useCampaignDetailState(id: string) {
     load();
   }, [loadCampaign]);
 
+  // Track previous tab to only reload when actually switching TO gm-tools
+  const prevTabRef = useRef<TabValue | null>(null);
+  useEffect(() => {
+    // Only reload when switching TO gm-tools tab, not on initial render
+    if (
+      tab === 'gm-tools' &&
+      prevTabRef.current !== null &&
+      prevTabRef.current !== 'gm-tools' &&
+      !loading
+    ) {
+      void reloadCampaignData();
+    }
+    prevTabRef.current = tab;
+  }, [tab, loading, reloadCampaignData]);
+
   const updateFrame = useCallback((updates: Partial<CampaignFrame>) => {
     setCampaign(current => {
       if (!current) {
@@ -183,8 +224,9 @@ function useCampaignDetailState(id: string) {
     });
   }, []);
 
-  const handleSave = useCallback(async () => {
-    if (!campaign) return;
+  // Perform the actual save
+  const performSave = useCallback(async () => {
+    if (!campaign || saving) return;
     setSaving(true);
     try {
       await updateCampaign(id, { name: campaign.name });
@@ -193,33 +235,63 @@ function useCampaignDetailState(id: string) {
     } finally {
       setSaving(false);
     }
-  }, [campaign, id]);
+  }, [campaign, id, saving]);
+
+  // Debounced autosave - triggers 2 seconds after changes stop
+  useEffect(() => {
+    if (!hasChanges || saving) return;
+
+    // Clear existing timeout
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    // Set new timeout for autosave
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      void performSave();
+    }, 2000);
+
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [hasChanges, saving, performSave]);
+
+  // Manual save handler (immediate)
+  const handleSave = useCallback(async () => {
+    // Cancel any pending autosave
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+    await performSave();
+  }, [performSave]);
 
   const handleAddNPCFromGenerator = useCallback(
     async (name: string) => {
       if (!campaign) return;
       await addNPC(campaign.id, buildNPCPayload(name));
-      await loadCampaign();
+      await reloadCampaignData();
     },
-    [campaign, loadCampaign]
+    [campaign, reloadCampaignData]
   );
 
   const handleAddLocationFromGenerator = useCallback(
     async (name: string) => {
       if (!campaign) return;
       await addLocation(campaign.id, buildLocationPayload(name));
-      await loadCampaign();
+      await reloadCampaignData();
     },
-    [campaign, loadCampaign]
+    [campaign, reloadCampaignData]
   );
 
   const handleAddQuestFromGenerator = useCallback(
     async (title: string) => {
       if (!campaign) return;
       await addQuest(campaign.id, buildQuestPayload(title));
-      await loadCampaign();
+      await reloadCampaignData();
     },
-    [campaign, loadCampaign]
+    [campaign, reloadCampaignData]
   );
 
   const handleNameChange = useCallback((value: string) => {
@@ -249,17 +321,21 @@ function useCampaignDetailState(id: string) {
     async (battleId: string) => {
       if (!campaign) return;
       await deleteBattle(campaign.id, battleId);
-      await loadCampaign();
+      await reloadCampaignData();
     },
-    [campaign, loadCampaign]
+    [campaign, reloadCampaignData]
   );
+
+  // Compute save status
+  const saveStatus = saving ? 'saving' : hasChanges ? 'unsaved' : 'saved';
 
   return {
     campaign,
     loading,
     saving,
     hasChanges,
-    loadCampaign,
+    saveStatus: saveStatus as 'saved' | 'unsaved' | 'saving',
+    reloadCampaignData,
     updateFrame,
     handleSave,
     handleNameChange,
@@ -399,12 +475,23 @@ function CampaignDetailPage() {
   const { id } = Route.useParams();
   const { tab } = Route.useSearch();
   const navigate = useNavigate();
+  const matches = useMatches();
+
+  // Check if there's a child route (e.g., /battle) that should be rendered
+  const hasChildRoute = matches.some(
+    match =>
+      match.routeId !== '/gm/campaigns/$id' &&
+      match.routeId.startsWith('/gm/campaigns/$id/')
+  );
+
+  // All hooks must be called before any conditional returns
   const {
     campaign,
     loading,
     saving,
     hasChanges,
-    loadCampaign,
+    saveStatus,
+    reloadCampaignData,
     updateFrame,
     handleSave,
     handleNameChange,
@@ -413,7 +500,7 @@ function CampaignDetailPage() {
     handleAddNPCFromGenerator,
     handleAddLocationFromGenerator,
     handleAddQuestFromGenerator,
-  } = useCampaignDetailState(id);
+  } = useCampaignDetailState(id, tab);
 
   const setActiveTab = useCallback(
     (newTab: string) => {
@@ -451,6 +538,13 @@ function CampaignDetailPage() {
     }
   }, [inviteLink]);
 
+  // Now we can have conditional returns after all hooks are called
+
+  // If there's a child route, render the Outlet to display it
+  if (hasChildRoute) {
+    return <Outlet />;
+  }
+
   if (loading) {
     return <CampaignLoadingState />;
   }
@@ -468,8 +562,10 @@ function CampaignDetailPage() {
         campaign={campaign}
         saving={saving}
         hasChanges={hasChanges}
+        saveStatus={saveStatus}
         onBack={handleBack}
         onNameChange={handleNameChange}
+        onNameBlur={handleSave}
         onCopyInviteCode={copyInviteCode}
         onSave={handleSave}
       />
@@ -483,10 +579,10 @@ function CampaignDetailPage() {
         inviteLink={inviteLink}
         onCopyInviteCode={copyInviteCode}
         onCopyInviteLink={copyInviteLink}
-        onSessionsChange={loadCampaign}
-        onNPCsChange={loadCampaign}
-        onLocationsChange={loadCampaign}
-        onQuestsChange={loadCampaign}
+        onSessionsChange={reloadCampaignData}
+        onNPCsChange={reloadCampaignData}
+        onLocationsChange={reloadCampaignData}
+        onQuestsChange={reloadCampaignData}
         onAddNPC={handleAddNPCFromGenerator}
         onAddLocation={handleAddLocationFromGenerator}
         onAddQuest={handleAddQuestFromGenerator}

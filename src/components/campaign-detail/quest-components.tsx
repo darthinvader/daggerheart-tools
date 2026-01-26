@@ -548,44 +548,39 @@ function QuestCard({
     setLocalQuest(quest);
   }, [quest]);
 
-  const updateLocalQuest = useCallback(
-    (updates: Partial<CampaignQuest>) => {
-      setLocalQuest(current => ({ ...current, ...updates }));
-      onUpdate(updates);
-    },
-    [onUpdate]
-  );
-
   const handleBlur = useCallback(() => {
     onUpdate(localQuest);
   }, [localQuest, onUpdate]);
 
   const handleTextChange = useCallback(
     (field: QuestTextFieldKey, value: string) => {
-      updateLocalQuest({ [field]: value } as Partial<CampaignQuest>);
+      setLocalQuest(current => ({ ...current, [field]: value }));
     },
-    [updateLocalQuest]
+    []
   );
 
   const handleTypeChange = useCallback(
     (value: CampaignQuest['type']) => {
-      updateLocalQuest({ type: value });
+      setLocalQuest(current => ({ ...current, type: value }));
+      onUpdate({ type: value });
     },
-    [updateLocalQuest]
+    [onUpdate]
   );
 
   const handleStatusChange = useCallback(
     (value: CampaignQuest['status']) => {
-      updateLocalQuest({ status: value });
+      setLocalQuest(current => ({ ...current, status: value }));
+      onUpdate({ status: value });
     },
-    [updateLocalQuest]
+    [onUpdate]
   );
 
   const handlePriorityChange = useCallback(
     (value: CampaignQuest['priority']) => {
-      updateLocalQuest({ priority: value });
+      setLocalQuest(current => ({ ...current, priority: value }));
+      onUpdate({ priority: value });
     },
-    [updateLocalQuest]
+    [onUpdate]
   );
 
   const addObjective = useCallback(() => {
@@ -593,26 +588,27 @@ function QuestCard({
     if (!result.added) {
       return;
     }
-    updateLocalQuest({ objectives: result.objectives });
+    setLocalQuest(current => ({ ...current, objectives: result.objectives }));
+    onUpdate({ objectives: result.objectives });
     setNewObjective('');
-  }, [localQuest.objectives, newObjective, updateLocalQuest]);
+  }, [localQuest.objectives, newObjective, onUpdate]);
 
   const toggleObjective = useCallback(
     (id: string) => {
-      updateLocalQuest({
-        objectives: toggleQuestObjective(localQuest.objectives, id),
-      });
+      const newObjectives = toggleQuestObjective(localQuest.objectives, id);
+      setLocalQuest(current => ({ ...current, objectives: newObjectives }));
+      onUpdate({ objectives: newObjectives });
     },
-    [localQuest.objectives, updateLocalQuest]
+    [localQuest.objectives, onUpdate]
   );
 
   const removeObjective = useCallback(
     (id: string) => {
-      updateLocalQuest({
-        objectives: removeQuestObjective(localQuest.objectives, id),
-      });
+      const newObjectives = removeQuestObjective(localQuest.objectives, id);
+      setLocalQuest(current => ({ ...current, objectives: newObjectives }));
+      onUpdate({ objectives: newObjectives });
     },
-    [localQuest.objectives, updateLocalQuest]
+    [localQuest.objectives, onUpdate]
   );
 
   const { completedCount, totalCount } = getQuestObjectiveCounts(

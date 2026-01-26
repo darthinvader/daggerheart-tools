@@ -1,9 +1,10 @@
 // Campaign battle tracker route - auto-saves battles to campaign
 
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import {
   ArrowLeft,
-  Leaf,
+  Check,
+  Loader2,
   Pause,
   Play,
   Save,
@@ -11,24 +12,25 @@ import {
   Swords,
   User,
 } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { AddAdversaryDialogEnhanced } from '@/components/battle-tracker/adversary-dialog-enhanced';
-import { BattleTrackerDialogs } from '@/components/battle-tracker/battle-tracker-dialogs';
+import { CampaignCharacterDialog } from '@/components/battle-tracker/campaign-character-dialog';
 import { DetailSidebar } from '@/components/battle-tracker/detail-sidebar';
 import {
   EditAdversaryDialog,
   EditEnvironmentDialog,
 } from '@/components/battle-tracker/edit-dialogs';
 import { AddEnvironmentDialogEnhanced } from '@/components/battle-tracker/environment-dialog-enhanced';
+import { GMResourcesBar } from '@/components/battle-tracker/gm-resources-bar';
 import {
   AdversaryCard,
   CharacterCard,
-  EnvironmentCard,
 } from '@/components/battle-tracker/roster-cards';
 import { RosterColumn } from '@/components/battle-tracker/roster-column';
 import type {
   AdversaryTracker,
+  CharacterTracker,
   EnvironmentTracker,
 } from '@/components/battle-tracker/types';
 import {
@@ -36,10 +38,17 @@ import {
   useBattleRosterState,
 } from '@/components/battle-tracker/use-battle-tracker-state';
 import { useCampaignBattle } from '@/components/battle-tracker/use-campaign-battle';
+import { useCharacterRealtimeSync } from '@/components/battle-tracker/use-character-realtime';
 import { DEFAULT_CHARACTER_DRAFT } from '@/components/battle-tracker/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import {
   createBattle,
   getCampaign,
@@ -63,18 +72,31 @@ function CampaignBattlePage() {
   const { campaign: initialCampaign } = Route.useLoaderData();
   const { id: campaignId } = Route.useParams();
   const { battleId: initialBattleId } = Route.useSearch();
+  const navigate = useNavigate();
 
   const [campaign, setCampaign] = useState<Campaign | null>(
     initialCampaign ?? null
   );
-  const [activeBattleId, setActiveBattleId] = useState<string | null>(
-    initialBattleId ?? null
-  );
   const [isSaving, setIsSaving] = useState(false);
+
+  // Track if we've loaded the initial battle to prevent re-loading
+  const [hasLoadedInitialBattle, setHasLoadedInitialBattle] = useState(false);
+
+  // Reset state when campaign or battleId changes from route
+  useEffect(() => {
+    setCampaign(initialCampaign ?? null);
+    setHasLoadedInitialBattle(false);
+  }, [initialCampaign, initialBattleId]);
 
   // Core roster state
   const { rosterState, rosterActions } = useBattleRosterState();
   const { dialogState, dialogActions } = useBattleDialogState();
+
+  // Subscribe to realtime character updates from players
+  useCharacterRealtimeSync(
+    rosterState.characters,
+    rosterActions.updateCharacter
+  );
 
   // Edit dialog state
   const [editingAdversary, setEditingAdversary] =
@@ -82,18 +104,52 @@ function CampaignBattlePage() {
   const [editingEnvironment, setEditingEnvironment] =
     useState<EnvironmentTracker | null>(null);
 
+  // Track saved battle IDs to know whether to create or update
+  const savedBattleIdsRef = useRef<Set<string>>(
+    new Set(campaign?.battles?.map(b => b.id) ?? [])
+  );
+
+  // Update the ref when campaign changes
+  useEffect(() => {
+    savedBattleIdsRef.current = new Set(
+      campaign?.battles?.map(b => b.id) ?? []
+    );
+  }, [campaign]);
+
   // Campaign battle integration
+  const campaignBattle = useCampaignBattle(rosterState, rosterActions, {
+    campaignId,
+    battleId: initialBattleId,
+    autoSaveDebounceMs: 3000,
+  });
+
+  // Handle save - use the hook's battleId to determine create vs update
   const handleStateChange = useCallback(
     async (state: BattleState) => {
       if (!campaignId) return;
       setIsSaving(true);
       try {
-        if (activeBattleId) {
-          await updateBattle(campaignId, activeBattleId, state);
+        const battleExists = savedBattleIdsRef.current.has(state.id);
+        if (battleExists) {
+          await updateBattle(campaignId, state.id, state);
         } else {
+          // Create new battle using the state's ID
           const created = await createBattle(campaignId, state);
-          setActiveBattleId(created.id);
+          savedBattleIdsRef.current.add(created.id);
+          // Sync the ID if it changed (createBattle may generate a new one)
+          if (created.id !== state.id) {
+            campaignBattle.setBattleId(created.id);
+          }
+          // Update URL to include the new battle ID
+          void navigate({
+            to: '/gm/campaigns/$id/battle',
+            params: { id: campaignId },
+            search: { battleId: created.id, tab: 'gm-tools' },
+            replace: true,
+          });
         }
+        // Mark as clean after successful save
+        campaignBattle.markClean();
         // Refresh campaign
         const updated = await getCampaign(campaignId);
         if (updated) setCampaign(updated);
@@ -103,34 +159,101 @@ function CampaignBattlePage() {
         setIsSaving(false);
       }
     },
-    [campaignId, activeBattleId]
+    [campaignId, campaignBattle, navigate]
   );
 
-  const campaignBattle = useCampaignBattle(rosterState, rosterActions, {
-    campaignId,
-    onStateChange: handleStateChange,
-    autoSaveDebounceMs: 3000,
-  });
-
-  // Load existing battle if resuming
+  // Connect the state change handler to the campaign battle hook
   useEffect(() => {
-    if (!campaign) return;
-    // Find most recent active/paused battle
-    const activeBattle = campaign.battles?.find(
-      b => b.status === 'active' || b.status === 'paused'
-    );
-    if (activeBattle) {
-      setActiveBattleId(activeBattle.id);
-      campaignBattle.loadBattleState(activeBattle);
-      // TODO: Also need to load characters/adversaries/environments into roster
+    // Set up auto-save via effect since we can't pass handleStateChange to hook before it's defined
+    if (
+      campaignBattle.isDirty &&
+      (campaignBattle.status === 'active' || campaignBattle.status === 'paused')
+    ) {
+      const timeoutId = setTimeout(() => {
+        void handleStateChange(campaignBattle.toBattleState());
+      }, 3000);
+      return () => clearTimeout(timeoutId);
     }
-  }, [campaign?.id]);
+  }, [
+    campaignBattle.isDirty,
+    campaignBattle.status,
+    campaignBattle,
+    handleStateChange,
+  ]);
+
+  // Load existing battle if resuming (by battleId from URL or most recent active/paused)
+  // Using a ref for loadBattleState to avoid dependency issues
+  const loadBattleStateRef = useRef(campaignBattle.loadBattleState);
+  loadBattleStateRef.current = campaignBattle.loadBattleState;
+
+  useEffect(() => {
+    if (!campaign || hasLoadedInitialBattle) return;
+
+    let battleToLoad: BattleState | undefined;
+
+    // First, try to load battle by ID from URL
+    if (initialBattleId) {
+      battleToLoad = campaign.battles?.find(b => b.id === initialBattleId);
+    }
+
+    // If no battleId provided, find most recent active/paused battle
+    if (!battleToLoad) {
+      battleToLoad = campaign.battles?.find(
+        b => b.status === 'active' || b.status === 'paused'
+      );
+    }
+
+    if (battleToLoad) {
+      loadBattleStateRef.current(battleToLoad);
+      // Update URL if we loaded a battle that wasn't in the URL
+      if (battleToLoad.id !== initialBattleId) {
+        void navigate({
+          to: '/gm/campaigns/$id/battle',
+          params: { id: campaignId },
+          search: { battleId: battleToLoad.id, tab: 'gm-tools' },
+          replace: true,
+        });
+      }
+    } else {
+      // No battle to load - reset to clean state
+      rosterActions.setCharacters([]);
+      rosterActions.setAdversaries([]);
+      rosterActions.setEnvironments([]);
+      rosterActions.setSpotlightHistory([]);
+      rosterActions.setSpotlight(null);
+      rosterActions.setFearPool(0);
+    }
+
+    setHasLoadedInitialBattle(true);
+  }, [
+    campaign,
+    initialBattleId,
+    hasLoadedInitialBattle,
+    rosterActions,
+    navigate,
+    campaignId,
+  ]);
+
+  // Get existing character IDs to filter out already-added characters
+  const existingCharacterIds = useMemo(
+    () =>
+      rosterState.characters
+        .map(c => c.sourceCharacterId)
+        .filter((id): id is string => Boolean(id)),
+    [rosterState.characters]
+  );
 
   // Handlers
   const handleAddCharacter = () => {
     const newId = rosterActions.addCharacter(dialogState.characterDraft);
     if (!newId) return;
     dialogActions.setCharacterDraft(DEFAULT_CHARACTER_DRAFT);
+    dialogActions.setIsAddCharacterOpen(false);
+  };
+
+  const handleAddCampaignCharacter = (tracker: CharacterTracker) => {
+    rosterActions.setCharacters(prev => [...prev, tracker]);
+    rosterActions.handleSelect(tracker);
     dialogActions.setIsAddCharacterOpen(false);
   };
 
@@ -195,10 +318,25 @@ function CampaignBattlePage() {
         onSave={handleManualSave}
         onAddCharacter={() => dialogActions.setIsAddCharacterOpen(true)}
         onAddAdversary={() => dialogActions.setIsAddAdversaryOpen(true)}
-        onAddEnvironment={() => dialogActions.setIsAddEnvironmentOpen(true)}
       />
 
-      <div className="grid gap-6 xl:grid-cols-[1fr_1fr_1fr_minmax(320px,400px)]">
+      <GMResourcesBar
+        characterCount={rosterState.characters.length}
+        environments={rosterState.environments}
+        fearPool={rosterState.fearPool}
+        selection={rosterState.selection}
+        spotlight={rosterState.spotlight}
+        useMassiveThreshold={rosterState.useMassiveThreshold}
+        onFearChange={rosterActions.setFearPool}
+        onUseMassiveThresholdChange={rosterActions.setUseMassiveThreshold}
+        onAddEnvironment={() => dialogActions.setIsAddEnvironmentOpen(true)}
+        onSelectEnvironment={rosterActions.handleSelect}
+        onRemoveEnvironment={rosterActions.handleRemove}
+        onSpotlightEnvironment={rosterActions.handleSpotlight}
+        onEditEnvironment={setEditingEnvironment}
+      />
+
+      <div className="grid gap-6 xl:grid-cols-[1fr_1fr_minmax(320px,400px)]">
         <RosterColumn
           title="Characters"
           icon={<User className="size-4" />}
@@ -252,33 +390,6 @@ function CampaignBattlePage() {
           ))}
         </RosterColumn>
 
-        <RosterColumn
-          title="Environments"
-          icon={<Leaf className="size-4" />}
-          count={rosterState.environments.length}
-          emptyText="No environments added"
-        >
-          {rosterState.environments.map(env => (
-            <EnvironmentCard
-              key={env.id}
-              environment={env}
-              isSelected={
-                rosterState.selection?.id === env.id &&
-                rosterState.selection.kind === 'environment'
-              }
-              isSpotlight={
-                rosterState.spotlight?.id === env.id &&
-                rosterState.spotlight.kind === 'environment'
-              }
-              onSelect={() => rosterActions.handleSelect(env)}
-              onRemove={() => rosterActions.handleRemove(env)}
-              onSpotlight={() => rosterActions.handleSpotlight(env)}
-              onChange={rosterActions.updateEnvironment}
-              onEdit={() => setEditingEnvironment(env)}
-            />
-          ))}
-        </RosterColumn>
-
         <DetailSidebar
           item={rosterState.selectedItem}
           spotlight={rosterState.spotlight}
@@ -286,6 +397,7 @@ function CampaignBattlePage() {
           characters={rosterState.characters}
           adversaries={rosterState.adversaries}
           environments={rosterState.environments}
+          useMassiveThreshold={rosterState.useMassiveThreshold}
           onClearSpotlight={() => rosterActions.setSpotlight(null)}
           onSetSpotlight={rosterActions.setSpotlight}
           onCharacterChange={rosterActions.updateCharacter}
@@ -295,12 +407,15 @@ function CampaignBattlePage() {
       </div>
 
       {/* Dialogs */}
-      <BattleTrackerDialogs
-        dialogState={dialogState}
-        dialogActions={dialogActions}
-        onAddCharacter={handleAddCharacter}
-        onAddAdversary={handleAddAdversary}
-        onAddEnvironment={handleAddEnvironment}
+      <CampaignCharacterDialog
+        isOpen={dialogState.isAddCharacterOpen}
+        onOpenChange={dialogActions.setIsAddCharacterOpen}
+        campaignPlayers={campaign.players ?? []}
+        existingCharacterIds={existingCharacterIds}
+        onAddCampaignCharacter={handleAddCampaignCharacter}
+        onAddManualCharacter={handleAddCharacter}
+        characterDraft={dialogState.characterDraft}
+        onDraftChange={dialogActions.setCharacterDraft}
       />
 
       <AddAdversaryDialogEnhanced
@@ -351,7 +466,6 @@ interface CampaignBattleHeaderProps {
   onSave: () => void;
   onAddCharacter: () => void;
   onAddAdversary: () => void;
-  onAddEnvironment: () => void;
 }
 
 function CampaignBattleHeader({
@@ -367,7 +481,6 @@ function CampaignBattleHeader({
   onSave,
   onAddCharacter,
   onAddAdversary,
-  onAddEnvironment,
 }: CampaignBattleHeaderProps) {
   const statusColors = {
     planning: 'bg-muted text-muted-foreground',
@@ -375,6 +488,8 @@ function CampaignBattleHeader({
     paused: 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400',
     completed: 'bg-blue-500/20 text-blue-700 dark:text-blue-400',
   };
+
+  const isAutoSaveEnabled = status === 'active' || status === 'paused';
 
   return (
     <div className="mb-6 space-y-4">
@@ -384,7 +499,7 @@ function CampaignBattleHeader({
             <Link
               to="/gm/campaigns/$id"
               params={{ id: campaign.id }}
-              search={{ tab: 'overview' }}
+              search={{ tab: 'gm-tools' }}
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               {campaign.name}
@@ -397,26 +512,94 @@ function CampaignBattleHeader({
               className="h-8 w-48 text-sm font-medium"
               placeholder="Battle name..."
             />
-            <Badge className={statusColors[status]}>{status}</Badge>
-            {isDirty && !isSaving && (
-              <Badge variant="outline" className="text-xs">
-                Unsaved
-              </Badge>
-            )}
-            {isSaving && (
-              <Badge variant="outline" className="text-xs">
-                Saving...
-              </Badge>
-            )}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge className={statusColors[status]}>{status}</Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {status === 'planning' && (
+                    <p>
+                      Click "Start" to begin the battle and enable auto-save
+                    </p>
+                  )}
+                  {status === 'active' && (
+                    <p>
+                      Battle in progress — changes auto-save every 3 seconds
+                    </p>
+                  )}
+                  {status === 'paused' && (
+                    <p>Battle paused — changes still auto-save</p>
+                  )}
+                  {status === 'completed' && (
+                    <p>Battle ended — use manual save if needed</p>
+                  )}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            {/* Save status indicator */}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div>
+                    {isSaving ? (
+                      <Badge variant="outline" className="gap-1 text-xs">
+                        <Loader2 className="size-3 animate-spin" />
+                        Saving...
+                      </Badge>
+                    ) : isDirty && !isAutoSaveEnabled ? (
+                      <Badge
+                        variant="outline"
+                        className="border-amber-300 text-xs text-amber-600"
+                      >
+                        Unsaved
+                      </Badge>
+                    ) : isAutoSaveEnabled ? (
+                      <Badge
+                        variant="outline"
+                        className="gap-1 border-green-300 text-xs text-green-600"
+                      >
+                        <Check className="size-3" />
+                        Auto-save
+                      </Badge>
+                    ) : null}
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {isSaving && <p>Saving battle to campaign...</p>}
+                  {isDirty && !isAutoSaveEnabled && (
+                    <p>
+                      You have unsaved changes. Start the battle for auto-save
+                      or save manually.
+                    </p>
+                  )}
+                  {isAutoSaveEnabled && !isSaving && (
+                    <p>
+                      Changes are automatically saved every 3 seconds while the
+                      battle is active or paused.
+                    </p>
+                  )}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
 
         <div className="flex flex-wrap gap-2">
           {/* Status controls */}
           {status === 'planning' && (
-            <Button size="sm" variant="default" onClick={onStart}>
-              <Play className="mr-1.5 size-4" /> Start
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button size="sm" variant="default" onClick={onStart}>
+                    <Play className="mr-1.5 size-4" /> Start
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Start the battle and enable auto-save</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
           {status === 'active' && (
             <>
@@ -438,15 +621,42 @@ function CampaignBattleHeader({
               </Button>
             </>
           )}
+          {status === 'completed' && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button size="sm" variant="default" onClick={onStart}>
+                    <Play className="mr-1.5 size-4" /> Restart
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Restart the battle and enable auto-save</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
 
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={onSave}
-            disabled={isSaving}
-          >
-            <Save className="mr-1.5 size-4" /> Save
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={onSave}
+                  disabled={isSaving}
+                >
+                  <Save className="mr-1.5 size-4" /> Save
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {isAutoSaveEnabled ? (
+                  <p>Force save now (auto-save is enabled)</p>
+                ) : (
+                  <p>Save battle to campaign</p>
+                )}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
 
           <div className="border-border flex gap-2 border-l pl-2">
             <Button size="sm" variant="outline" onClick={onAddCharacter}>
@@ -454,9 +664,6 @@ function CampaignBattleHeader({
             </Button>
             <Button size="sm" variant="outline" onClick={onAddAdversary}>
               <Swords className="mr-1.5 size-4" /> Adversary
-            </Button>
-            <Button size="sm" variant="outline" onClick={onAddEnvironment}>
-              <Leaf className="mr-1.5 size-4" /> Environment
             </Button>
           </div>
         </div>

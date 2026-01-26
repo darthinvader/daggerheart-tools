@@ -43,7 +43,7 @@ import { Route as GmCampaignsIndexRouteImport } from './routes/gm/campaigns/inde
 import { Route as GmCampaignsNewRouteImport } from './routes/gm/campaigns/new'
 import { Route as GmCampaignsIdRouteImport } from './routes/gm/campaigns/$id'
 import { Route as CharacterViewCharacterIdRouteImport } from './routes/character/view/$characterId'
-import { Route as GmCampaignsIdBattleRouteImport } from './routes/gm/campaigns/$id/battle'
+import { Route as GmCampaignsIdBattleRouteImport } from './routes/gm/campaigns/$id.battle'
 
 const RulesRoute = RulesRouteImport.update({
   id: '/rules',

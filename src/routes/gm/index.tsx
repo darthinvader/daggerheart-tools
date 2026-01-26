@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { FolderOpen, FolderPlus, Info, Swords, Users } from 'lucide-react';
+import { FolderOpen, FolderPlus, Swords, Users } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -22,22 +22,6 @@ function GmDashboard() {
           sessions
         </p>
       </div>
-
-      {/* Demo Notice */}
-      <Card className="mb-8 border-amber-500/50 bg-amber-500/5">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-amber-600">
-            <Info className="h-5 w-5" />
-            Demo Mode
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground text-sm">
-            Campaign data is currently stored locally in your browser. Database
-            sync and player invitations will be available in a future update.
-          </p>
-        </CardContent>
-      </Card>
 
       {/* Quick Actions */}
       <h2 className="mb-4 text-2xl font-semibold">Quick Actions</h2>

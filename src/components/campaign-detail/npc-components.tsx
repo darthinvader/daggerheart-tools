@@ -215,31 +215,37 @@ function NPCCardHeader({ npc, isExpanded, onOpenDelete }: NPCHeaderProps) {
   };
 
   return (
-    <CardHeader className="cursor-pointer py-3">
+    <CardHeader className="py-3">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <ChevronDown
-            className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-          />
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-medium">{npc.name}</span>
-              {npc.title && (
-                <span className="text-muted-foreground text-sm">
-                  — {npc.title}
-                </span>
-              )}
+        <CollapsibleTrigger asChild>
+          <Button variant="ghost" className="h-auto flex-1 justify-start p-0">
+            <div className="flex items-center gap-3">
+              <ChevronDown
+                className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+              />
+              <div className="text-left">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">{npc.name}</span>
+                  {npc.title && (
+                    <span className="text-muted-foreground text-sm">
+                      — {npc.title}
+                    </span>
+                  )}
+                </div>
+                <div className="mt-1 flex items-center gap-2">
+                  <Badge className={statusColor[npc.status]}>
+                    {npc.status}
+                  </Badge>
+                  {npc.faction && (
+                    <span className="text-muted-foreground text-xs">
+                      {npc.faction}
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
-            <div className="mt-1 flex items-center gap-2">
-              <Badge className={statusColor[npc.status]}>{npc.status}</Badge>
-              {npc.faction && (
-                <span className="text-muted-foreground text-xs">
-                  {npc.faction}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
+          </Button>
+        </CollapsibleTrigger>
         <Button
           variant="ghost"
           size="icon"
@@ -432,30 +438,23 @@ function NPCCard({
     setLocalNPC(npc);
   }, [npc]);
 
-  const updateLocalNPC = useCallback(
-    (updates: Partial<CampaignNPC>) => {
-      setLocalNPC(current => ({ ...current, ...updates }));
-      onUpdate(updates);
-    },
-    [onUpdate]
-  );
-
   const handleBlur = useCallback(() => {
     onUpdate(localNPC);
   }, [localNPC, onUpdate]);
 
   const handleTextChange = useCallback(
     (field: NPCTextFieldKey, value: string) => {
-      updateLocalNPC({ [field]: value } as Partial<CampaignNPC>);
+      setLocalNPC(current => ({ ...current, [field]: value }));
     },
-    [updateLocalNPC]
+    []
   );
 
   const handleStatusChange = useCallback(
     (value: CampaignNPC['status']) => {
-      updateLocalNPC({ status: value });
+      setLocalNPC(current => ({ ...current, status: value }));
+      onUpdate({ status: value });
     },
-    [updateLocalNPC]
+    [onUpdate]
   );
 
   const addTag = useCallback(() => {
@@ -464,16 +463,18 @@ function NPCCard({
       return;
     }
     const newTags = [...localNPC.tags, trimmed];
-    updateLocalNPC({ tags: newTags });
+    setLocalNPC(current => ({ ...current, tags: newTags }));
+    onUpdate({ tags: newTags });
     setTagInput('');
-  }, [localNPC.tags, tagInput, updateLocalNPC]);
+  }, [localNPC.tags, tagInput, onUpdate]);
 
   const removeTag = useCallback(
     (tag: string) => {
       const newTags = localNPC.tags.filter(item => item !== tag);
-      updateLocalNPC({ tags: newTags });
+      setLocalNPC(current => ({ ...current, tags: newTags }));
+      onUpdate({ tags: newTags });
     },
-    [localNPC.tags, updateLocalNPC]
+    [localNPC.tags, onUpdate]
   );
 
   const addLocation = useCallback(() => {
@@ -482,18 +483,20 @@ function NPCCard({
       return;
     }
     const newLocations = [...localNPC.locations, trimmed];
-    updateLocalNPC({ locations: newLocations });
+    setLocalNPC(current => ({ ...current, locations: newLocations }));
+    onUpdate({ locations: newLocations });
     setLocationInput('');
-  }, [localNPC.locations, locationInput, updateLocalNPC]);
+  }, [localNPC.locations, locationInput, onUpdate]);
 
   const removeLocation = useCallback(
     (locationValue: string) => {
       const newLocations = localNPC.locations.filter(
         item => item !== locationValue
       );
-      updateLocalNPC({ locations: newLocations });
+      setLocalNPC(current => ({ ...current, locations: newLocations }));
+      onUpdate({ locations: newLocations });
     },
-    [localNPC.locations, updateLocalNPC]
+    [localNPC.locations, onUpdate]
   );
 
   return (
@@ -543,16 +546,14 @@ function NPCCardContent({
   return (
     <Collapsible open={isExpanded} onOpenChange={onToggle}>
       <Card>
-        <CollapsibleTrigger asChild>
-          <NPCCardHeader
-            npc={npc}
-            isExpanded={isExpanded}
-            onOpenDelete={event => {
-              event.stopPropagation();
-              onOpenDelete();
-            }}
-          />
-        </CollapsibleTrigger>
+        <NPCCardHeader
+          npc={npc}
+          isExpanded={isExpanded}
+          onOpenDelete={event => {
+            event.stopPropagation();
+            onOpenDelete();
+          }}
+        />
 
         <NPCDeleteDialog
           npcName={npc.name}

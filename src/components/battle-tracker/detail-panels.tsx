@@ -1,16 +1,23 @@
 import {
+  Backpack,
+  BookOpen,
+  Coins,
   Crosshair,
   Heart,
   ScrollText,
   Shield,
   Sparkles,
-  Swords,
+  Star,
+  Sword,
   Target,
+  TrendingUp,
   User,
+  Users,
   Zap,
 } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import {
   Tooltip,
   TooltipContent,
@@ -28,11 +35,13 @@ import type {
 
 export function SelectedItemDetails({
   item,
+  useMassiveThreshold,
   onCharacterChange,
   onAdversaryChange,
   onEnvironmentChange,
 }: {
   item: TrackerItem;
+  useMassiveThreshold?: boolean;
   onCharacterChange: (
     id: string,
     fn: (c: CharacterTracker) => CharacterTracker
@@ -47,7 +56,13 @@ export function SelectedItemDetails({
   ) => void;
 }) {
   if (item.kind === 'character') {
-    return <CharacterDetails item={item} onChange={onCharacterChange} />;
+    return (
+      <CharacterDetails
+        item={item}
+        useMassiveThreshold={useMassiveThreshold}
+        onChange={onCharacterChange}
+      />
+    );
   }
   if (item.kind === 'adversary') {
     return <AdversaryDetails item={item} onChange={onAdversaryChange} />;
@@ -57,28 +72,112 @@ export function SelectedItemDetails({
 
 function CharacterDetails({
   item,
+  useMassiveThreshold,
   onChange,
 }: {
   item: CharacterTracker;
+  useMassiveThreshold?: boolean;
   onChange: (id: string, fn: (c: CharacterTracker) => CharacterTracker) => void;
 }) {
+  const hasLoadoutCards = item.loadout && item.loadout.length > 0;
+  const hasVaultCards = item.vaultCards && item.vaultCards.length > 0;
+  const hasExperiences = item.experiences && item.experiences.length > 0;
+  const hasEquipment =
+    item.equipment?.primary ||
+    item.equipment?.secondary ||
+    item.equipment?.armor;
+  const hasInventory = item.inventory && item.inventory.length > 0;
+  const hasCoreScores =
+    item.coreScores &&
+    Object.values(item.coreScores).some(v => v !== undefined);
+  const isLinked = item.isLinkedCharacter === true;
+
+  // Core score display config
+  const coreScoreConfig = [
+    {
+      key: 'agility',
+      label: 'AGI',
+      color: 'text-green-600 dark:text-green-400',
+    },
+    { key: 'strength', label: 'STR', color: 'text-red-600 dark:text-red-400' },
+    { key: 'finesse', label: 'FIN', color: 'text-blue-600 dark:text-blue-400' },
+    {
+      key: 'instinct',
+      label: 'INS',
+      color: 'text-purple-600 dark:text-purple-400',
+    },
+    {
+      key: 'presence',
+      label: 'PRE',
+      color: 'text-amber-600 dark:text-amber-400',
+    },
+    {
+      key: 'knowledge',
+      label: 'KNO',
+      color: 'text-cyan-600 dark:text-cyan-400',
+    },
+  ] as const;
+
   return (
     <div className="space-y-4">
-      {/* Header with icon */}
+      {/* Linked character notice */}
+      {isLinked && (
+        <div className="bg-primary/10 text-primary border-primary/30 flex items-center gap-2 rounded-lg border px-3 py-2 text-sm">
+          <span className="text-base">🔗</span>
+          <span>
+            Stats sync live from player. Only your notes are editable.
+          </span>
+        </div>
+      )}
+
+      {/* Header with identity */}
       <div className="flex items-start gap-3">
         <div className="rounded-full bg-blue-500/20 p-2">
           <User className="size-5 text-blue-500" />
         </div>
-        <div>
+        <div className="min-w-0 flex-1">
           <h3 className="text-lg font-semibold">{item.name}</h3>
           <p className="text-muted-foreground flex items-center gap-1 text-sm">
             <Sparkles className="size-3 text-amber-500" />
-            Player Character
+            {item.className ? (
+              <>
+                {item.className}
+                {item.subclassName && ` · ${item.subclassName}`}
+              </>
+            ) : (
+              'Player Character'
+            )}
           </p>
+          {/* Ancestry & Community */}
+          {(item.ancestry || item.community) && (
+            <p className="text-muted-foreground mt-0.5 text-xs">
+              {item.ancestry}
+              {item.ancestry && item.community && ' · '}
+              {item.community}
+              {item.pronouns && ` (${item.pronouns})`}
+            </p>
+          )}
         </div>
+        {/* Level Badge */}
+        {item.level && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white">
+                  Lv {item.level}
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>
+                  Level {item.level} · Tier {item.tier}
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
       </div>
 
-      {/* Stats Grid with enhanced visuals */}
+      {/* Primary Stats Grid */}
       <div className="grid grid-cols-3 gap-2">
         <TooltipProvider>
           <Tooltip>
@@ -118,15 +217,39 @@ function CharacterDetails({
           </Tooltip>
         </TooltipProvider>
 
+        {item.hope && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="cursor-help rounded-lg border-2 border-amber-500/30 bg-gradient-to-b from-amber-500/10 to-amber-500/5 p-3 text-center">
+                  <Star className="mx-auto mb-1 size-4 text-amber-500" />
+                  <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
+                    {item.hope.current}
+                  </p>
+                  <p className="text-muted-foreground text-xs">
+                    Hope / {item.hope.max}
+                  </p>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Hope - Spend for abilities</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+      </div>
+
+      {/* Secondary Stats Grid */}
+      <div className="grid grid-cols-4 gap-2">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="cursor-help rounded-lg border-2 border-blue-500/30 bg-gradient-to-b from-blue-500/10 to-blue-500/5 p-3 text-center">
-                <Shield className="mx-auto mb-1 size-4 text-blue-500" />
-                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+              <div className="cursor-help rounded-lg border bg-gradient-to-b from-blue-500/10 to-blue-500/5 p-2 text-center">
+                <Shield className="mx-auto mb-0.5 size-3.5 text-blue-500" />
+                <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
                   {item.evasion ?? 0}
                 </p>
-                <p className="text-muted-foreground text-xs">Evasion</p>
+                <p className="text-muted-foreground text-[10px]">Evasion</p>
               </div>
             </TooltipTrigger>
             <TooltipContent>
@@ -134,7 +257,414 @@ function CharacterDetails({
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
+
+        {(item.armorSlots?.max ?? item.armorScore ?? 0) > 0 && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="cursor-help rounded-lg border bg-gradient-to-b from-yellow-500/10 to-yellow-500/5 p-2 text-center">
+                  <Shield className="mx-auto mb-0.5 size-3.5 text-yellow-600" />
+                  <p className="text-lg font-bold text-yellow-600 dark:text-yellow-400">
+                    {item.armorSlots
+                      ? `${item.armorSlots.current}/${item.armorSlots.max}`
+                      : item.armorScore}
+                  </p>
+                  <p className="text-muted-foreground text-[10px]">Armor</p>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Armor Slots - Absorb damage before taking HP loss</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+
+        {item.thresholds && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="cursor-help rounded-lg border bg-gradient-to-b from-orange-500/10 to-orange-500/5 p-2 text-center">
+                  <Target className="mx-auto mb-0.5 size-3.5 text-orange-500" />
+                  <p className="text-lg font-bold text-orange-600 dark:text-orange-400">
+                    {item.thresholds.major}/{item.thresholds.severe}
+                    {useMassiveThreshold && item.thresholds.massive
+                      ? `/${item.thresholds.massive}`
+                      : ''}
+                  </p>
+                  <p className="text-muted-foreground text-[10px]">
+                    Thresholds
+                  </p>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>
+                  Damage Thresholds (Major / Severe
+                  {useMassiveThreshold && item.thresholds.massive
+                    ? ' / Massive'
+                    : ''}
+                  )
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+
+        {item.proficiency !== undefined && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="cursor-help rounded-lg border bg-gradient-to-b from-green-500/10 to-green-500/5 p-2 text-center">
+                  <TrendingUp className="mx-auto mb-0.5 size-3.5 text-green-500" />
+                  <p className="text-lg font-bold text-green-600 dark:text-green-400">
+                    +{item.proficiency}
+                  </p>
+                  <p className="text-muted-foreground text-[10px]">Prof</p>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Proficiency bonus</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+
+        {item.gold !== undefined && item.gold > 0 && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="cursor-help rounded-lg border bg-gradient-to-b from-yellow-500/10 to-yellow-500/5 p-2 text-center">
+                  <Coins className="mx-auto mb-0.5 size-3.5 text-yellow-500" />
+                  <p className="text-lg font-bold text-yellow-600 dark:text-yellow-400">
+                    {item.gold}
+                  </p>
+                  <p className="text-muted-foreground text-[10px]">Gold</p>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Gold pieces</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
       </div>
+
+      {/* Core Scores */}
+      {hasCoreScores && (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Crosshair className="text-muted-foreground size-4" />
+            <h4 className="text-sm font-medium">Core Scores</h4>
+          </div>
+          <div className="grid grid-cols-6 gap-1">
+            {coreScoreConfig.map(({ key, label, color }) => {
+              const value = item.coreScores?.[key];
+              if (value === undefined) return null;
+              const isPositive = value >= 0;
+              return (
+                <div
+                  key={key}
+                  className="bg-muted/30 rounded border p-1.5 text-center"
+                >
+                  <p className={cn('text-sm font-bold', color)}>
+                    {isPositive ? '+' : ''}
+                    {value}
+                  </p>
+                  <p className="text-muted-foreground text-[9px] font-medium uppercase">
+                    {label}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Conditions */}
+      {item.conditions.items.length > 0 && (
+        <div className="space-y-1.5">
+          <p className="text-xs font-medium text-red-500">Active Conditions</p>
+          <div className="flex flex-wrap gap-1">
+            {item.conditions.items.map(condition => (
+              <Badge key={condition} variant="destructive" className="text-xs">
+                {condition}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Massive Threshold Info - shown when enabled globally */}
+      {useMassiveThreshold && item.thresholds?.massive && (
+        <div className="flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 p-2">
+          <Target className="size-4 text-red-500" />
+          <div>
+            <p className="text-sm font-medium text-red-600 dark:text-red-400">
+              Massive Threshold Active
+            </p>
+            <p className="text-muted-foreground text-xs">
+              {item.thresholds.massive}+ damage = instant death
+            </p>
+          </div>
+        </div>
+      )}
+
+      <Separator />
+
+      {/* Equipment - Enhanced */}
+      {hasEquipment && (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Sword className="text-muted-foreground size-4" />
+            <h4 className="text-sm font-medium">Equipment</h4>
+          </div>
+          <div className="space-y-2">
+            {item.equipment?.primary && (
+              <div className="bg-muted/30 rounded-md border p-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">
+                    {item.equipment.primary.name}
+                  </span>
+                  <Badge variant="outline" className="text-xs">
+                    Primary
+                  </Badge>
+                </div>
+                <div className="text-muted-foreground mt-1 flex flex-wrap gap-2 text-xs">
+                  {item.equipment.primary.damage && (
+                    <span className="text-red-500">
+                      {item.equipment.primary.damage}
+                    </span>
+                  )}
+                  {item.equipment.primary.range && (
+                    <span>{item.equipment.primary.range}</span>
+                  )}
+                </div>
+                {item.equipment.primary.traits &&
+                  item.equipment.primary.traits.length > 0 && (
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {item.equipment.primary.traits.map(trait => (
+                        <Badge
+                          key={trait}
+                          variant="secondary"
+                          className="text-[10px]"
+                        >
+                          {trait}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+              </div>
+            )}
+            {item.equipment?.secondary && (
+              <div className="bg-muted/30 rounded-md border p-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">
+                    {item.equipment.secondary.name}
+                  </span>
+                  <Badge variant="outline" className="text-xs">
+                    Secondary
+                  </Badge>
+                </div>
+                <div className="text-muted-foreground mt-1 flex flex-wrap gap-2 text-xs">
+                  {item.equipment.secondary.damage && (
+                    <span className="text-red-500">
+                      {item.equipment.secondary.damage}
+                    </span>
+                  )}
+                  {item.equipment.secondary.range && (
+                    <span>{item.equipment.secondary.range}</span>
+                  )}
+                </div>
+                {item.equipment.secondary.traits &&
+                  item.equipment.secondary.traits.length > 0 && (
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {item.equipment.secondary.traits.map(trait => (
+                        <Badge
+                          key={trait}
+                          variant="secondary"
+                          className="text-[10px]"
+                        >
+                          {trait}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+              </div>
+            )}
+            {item.equipment?.armor && (
+              <div className="bg-muted/30 rounded-md border p-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">
+                    {item.equipment.armor.name}
+                  </span>
+                  <Badge
+                    variant="outline"
+                    className="border-yellow-500/50 text-xs text-yellow-600"
+                  >
+                    Armor
+                  </Badge>
+                </div>
+                {item.equipment.armor.feature && (
+                  <p className="text-muted-foreground mt-1 text-xs">
+                    {item.equipment.armor.feature}
+                  </p>
+                )}
+                {item.equipment.armor.thresholds && (
+                  <div className="text-muted-foreground mt-1 text-xs">
+                    Thresholds: {item.equipment.armor.thresholds.major}/
+                    {item.equipment.armor.thresholds.severe}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Experiences */}
+      {hasExperiences && (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Users className="text-muted-foreground size-4" />
+            <h4 className="text-sm font-medium">Experiences</h4>
+          </div>
+          <div className="flex flex-wrap gap-1">
+            {item.experiences!.map(exp => (
+              <TooltipProvider key={exp.id}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge variant="secondary" className="text-xs">
+                      {exp.name} +{exp.value}
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>+{exp.value} to rolls when this applies</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Domain Cards - Active Loadout */}
+      {hasLoadoutCards && (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <ScrollText className="text-primary size-4" />
+            <h4 className="text-sm font-medium">
+              Active Cards ({item.loadout!.length})
+            </h4>
+          </div>
+          <div className="space-y-1.5">
+            {item.loadout!.map((card, index) => (
+              <TooltipProvider key={`${card.name}-${index}`}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="bg-muted/50 hover:bg-muted cursor-help rounded-md border p-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">{card.name}</span>
+                        <div className="flex items-center gap-1.5">
+                          <Badge variant="secondary" className="text-xs">
+                            {card.domain}
+                          </Badge>
+                          <Badge variant="outline" className="text-xs">
+                            Lv {card.level}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="text-muted-foreground mt-1 flex items-center gap-2 text-xs">
+                        <span>{card.type}</span>
+                        {card.hopeCost !== undefined && card.hopeCost > 0 && (
+                          <span className="text-amber-500">
+                            {card.hopeCost} Hope
+                          </span>
+                        )}
+                        {card.stressCost !== undefined &&
+                          card.stressCost > 0 && (
+                            <span className="text-purple-500">
+                              {card.stressCost} Stress
+                            </span>
+                          )}
+                      </div>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="left" className="max-w-xs">
+                    <p className="text-sm">{card.description}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Vault Cards */}
+      {hasVaultCards && (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <BookOpen className="text-muted-foreground size-4" />
+            <h4 className="text-sm font-medium">
+              Vault ({item.vaultCards!.length})
+            </h4>
+          </div>
+          <div className="flex flex-wrap gap-1">
+            {item.vaultCards!.map((card, index) => (
+              <TooltipProvider key={`vault-${card.name}-${index}`}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge
+                      variant="outline"
+                      className="cursor-help text-xs opacity-70"
+                    >
+                      {card.name}
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent side="left" className="max-w-xs">
+                    <p className="font-medium">
+                      {card.name} (Lv {card.level})
+                    </p>
+                    <p className="text-muted-foreground text-xs">
+                      {card.domain} · {card.type}
+                    </p>
+                    <p className="mt-1 text-sm">{card.description}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Inventory / Stash */}
+      {hasInventory && (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Backpack className="text-muted-foreground size-4" />
+            <h4 className="text-sm font-medium">
+              Inventory ({item.inventory!.length})
+            </h4>
+          </div>
+          <div className="bg-muted/30 rounded-md border p-2">
+            <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm">
+              {item.inventory!.map((invItem, index) => (
+                <span
+                  key={`${invItem.name}-${index}`}
+                  className="text-muted-foreground"
+                >
+                  {invItem.name}
+                  {invItem.quantity > 1 && (
+                    <span className="text-foreground ml-0.5 font-medium">
+                      ×{invItem.quantity}
+                    </span>
+                  )}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Separator />
 
       <NotesField
         value={item.notes}
@@ -301,7 +831,7 @@ function AdversaryDetails({
       {/* Attack Info */}
       <div className="space-y-2 rounded-lg border-2 border-red-500/20 bg-gradient-to-r from-red-500/5 to-orange-500/5 p-3">
         <div className="flex items-center gap-2">
-          <Swords className="size-4 text-red-500" />
+          <Sword className="size-4 text-red-500" />
           <span className="font-semibold text-red-600 dark:text-red-400">
             Attack
           </span>

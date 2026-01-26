@@ -133,7 +133,9 @@ export function BattleTrackerV2() {
         fearPool={rosterState.fearPool}
         selection={rosterState.selection}
         spotlight={rosterState.spotlight}
+        useMassiveThreshold={rosterState.useMassiveThreshold}
         onFearChange={rosterActions.setFearPool}
+        onUseMassiveThresholdChange={rosterActions.setUseMassiveThreshold}
         onAddEnvironment={() => dialogActions.setIsAddEnvironmentOpen(true)}
         onSelectEnvironment={env => rosterActions.handleSelect(env)}
         onRemoveEnvironment={env => rosterActions.handleRemove(env)}
@@ -160,6 +162,7 @@ export function BattleTrackerV2() {
                 rosterState.spotlight?.id === char.id &&
                 rosterState.spotlight.kind === 'character'
               }
+              useMassiveThreshold={rosterState.useMassiveThreshold}
               onSelect={() => rosterActions.handleSelect(char)}
               onRemove={() => rosterActions.handleRemove(char)}
               onSpotlight={() => rosterActions.handleSpotlight(char)}
@@ -186,6 +189,7 @@ export function BattleTrackerV2() {
                 rosterState.spotlight?.id === adv.id &&
                 rosterState.spotlight.kind === 'adversary'
               }
+              useMassiveThreshold={rosterState.useMassiveThreshold}
               onSelect={() => rosterActions.handleSelect(adv)}
               onRemove={() => rosterActions.handleRemove(adv)}
               onSpotlight={() => rosterActions.handleSpotlight(adv)}
@@ -202,6 +206,7 @@ export function BattleTrackerV2() {
           characters={rosterState.characters}
           adversaries={rosterState.adversaries}
           environments={rosterState.environments}
+          useMassiveThreshold={rosterState.useMassiveThreshold}
           onClearSpotlight={() => rosterActions.setSpotlight(null)}
           onSetSpotlight={rosterActions.setSpotlight}
           onCharacterChange={rosterActions.updateCharacter}
@@ -385,7 +390,9 @@ function GMResourcesBar({
   fearPool,
   selection,
   spotlight,
+  useMassiveThreshold: _useMassiveThreshold,
   onFearChange,
+  onUseMassiveThresholdChange: _onUseMassiveThresholdChange,
   onAddEnvironment,
   onSelectEnvironment,
   onRemoveEnvironment,
@@ -397,7 +404,9 @@ function GMResourcesBar({
   fearPool: number;
   selection: Selection | null;
   spotlight: Spotlight | null;
+  useMassiveThreshold: boolean;
   onFearChange: (value: number) => void;
+  onUseMassiveThresholdChange: (value: boolean) => void;
   onAddEnvironment: () => void;
   onSelectEnvironment: (env: EnvironmentTracker) => void;
   onRemoveEnvironment: (env: EnvironmentTracker) => void;

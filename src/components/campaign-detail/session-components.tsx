@@ -157,15 +157,6 @@ interface SessionCardContentProps {
   onToggleNpcInvolved: (npcId: string) => void;
 }
 
-function hasSessionChanges(current: SessionNote, original: SessionNote) {
-  return (
-    current.title !== original.title ||
-    current.summary !== original.summary ||
-    current.date !== original.date ||
-    current.questProgress !== original.questProgress
-  );
-}
-
 function addTrimmedItem(items: string[], input: string) {
   const trimmed = input.trim();
   if (!trimmed) {
@@ -192,25 +183,29 @@ interface SessionHeaderProps {
 
 function SessionHeader({ session, isExpanded, onDelete }: SessionHeaderProps) {
   return (
-    <CardHeader className="cursor-pointer py-3">
+    <CardHeader className="py-3">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <ChevronDown
-            className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-          />
-          <div>
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary">#{session.sessionNumber}</Badge>
-              <span className="font-medium">{session.title}</span>
-            </div>
-            {session.date && (
-              <div className="text-muted-foreground mt-1 flex items-center gap-1 text-xs">
-                <Calendar className="h-3 w-3" />
-                {session.date}
+        <CollapsibleTrigger asChild>
+          <Button variant="ghost" className="h-auto flex-1 justify-start p-0">
+            <div className="flex items-center gap-3">
+              <ChevronDown
+                className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+              />
+              <div className="text-left">
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">#{session.sessionNumber}</Badge>
+                  <span className="font-medium">{session.title}</span>
+                </div>
+                {session.date && (
+                  <div className="text-muted-foreground mt-1 flex items-center gap-1 text-xs">
+                    <Calendar className="h-3 w-3" />
+                    {session.date}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        </div>
+            </div>
+          </Button>
+        </CollapsibleTrigger>
         <Button
           variant="ghost"
           size="icon"
@@ -417,32 +412,23 @@ function SessionCard({
     setLocalSession(session);
   }, [session]);
 
-  const updateLocalSession = useCallback(
-    (updates: Partial<SessionNote>) => {
-      setLocalSession(current => ({ ...current, ...updates }));
-      onUpdate(updates);
-    },
-    [onUpdate]
-  );
-
   const handleBlur = useCallback(() => {
-    if (hasSessionChanges(localSession, session)) {
-      onUpdate(localSession);
-    }
-  }, [localSession, onUpdate, session]);
+    onUpdate(localSession);
+  }, [localSession, onUpdate]);
 
   const handleTextChange = useCallback(
     (field: SessionTextFieldKey, value: string) => {
-      updateLocalSession({ [field]: value } as Partial<SessionNote>);
+      setLocalSession(current => ({ ...current, [field]: value }));
     },
-    [updateLocalSession]
+    []
   );
 
   const handleDateChange = useCallback(
     (value: string) => {
-      updateLocalSession({ date: value });
+      setLocalSession(current => ({ ...current, date: value }));
+      onUpdate({ date: value });
     },
-    [updateLocalSession]
+    [onUpdate]
   );
 
   const addHighlight = useCallback(() => {
@@ -450,17 +436,18 @@ function SessionCard({
     if (!result.added) {
       return;
     }
-    updateLocalSession({ highlights: result.items });
+    setLocalSession(current => ({ ...current, highlights: result.items }));
+    onUpdate({ highlights: result.items });
     setHighlightInput('');
-  }, [highlightInput, localSession.highlights, updateLocalSession]);
+  }, [highlightInput, localSession.highlights, onUpdate]);
 
   const removeHighlight = useCallback(
     (index: number) => {
-      updateLocalSession({
-        highlights: removeItemAtIndex(localSession.highlights, index),
-      });
+      const newHighlights = removeItemAtIndex(localSession.highlights, index);
+      setLocalSession(current => ({ ...current, highlights: newHighlights }));
+      onUpdate({ highlights: newHighlights });
     },
-    [localSession.highlights, updateLocalSession]
+    [localSession.highlights, onUpdate]
   );
 
   const addLocation = useCallback(() => {
@@ -468,26 +455,33 @@ function SessionCard({
     if (!result.added) {
       return;
     }
-    updateLocalSession({ locations: result.items });
+    setLocalSession(current => ({ ...current, locations: result.items }));
+    onUpdate({ locations: result.items });
     setLocationInput('');
-  }, [localSession.locations, locationInput, updateLocalSession]);
+  }, [localSession.locations, locationInput, onUpdate]);
 
   const removeLocation = useCallback(
     (index: number) => {
-      updateLocalSession({
-        locations: removeItemAtIndex(localSession.locations, index),
-      });
+      const newLocations = removeItemAtIndex(localSession.locations, index);
+      setLocalSession(current => ({ ...current, locations: newLocations }));
+      onUpdate({ locations: newLocations });
     },
-    [localSession.locations, updateLocalSession]
+    [localSession.locations, onUpdate]
   );
 
   const toggleNpcInvolved = useCallback(
     (npcId: string) => {
-      updateLocalSession({
-        npcsInvolved: toggleNpcInvolvedList(localSession.npcsInvolved, npcId),
-      });
+      const newNpcsInvolved = toggleNpcInvolvedList(
+        localSession.npcsInvolved,
+        npcId
+      );
+      setLocalSession(current => ({
+        ...current,
+        npcsInvolved: newNpcsInvolved,
+      }));
+      onUpdate({ npcsInvolved: newNpcsInvolved });
     },
-    [localSession.npcsInvolved, updateLocalSession]
+    [localSession.npcsInvolved, onUpdate]
   );
 
   return (
@@ -535,16 +529,14 @@ function SessionCardContent({
   return (
     <Collapsible open={isExpanded} onOpenChange={onToggle}>
       <Card>
-        <CollapsibleTrigger asChild>
-          <SessionHeader
-            session={session}
-            isExpanded={isExpanded}
-            onDelete={event => {
-              event.stopPropagation();
-              onDelete();
-            }}
-          />
-        </CollapsibleTrigger>
+        <SessionHeader
+          session={session}
+          isExpanded={isExpanded}
+          onDelete={event => {
+            event.stopPropagation();
+            onDelete();
+          }}
+        />
         <CollapsibleContent>
           <CardContent className="space-y-4 pt-0">
             <div className="grid gap-4 md:grid-cols-2">

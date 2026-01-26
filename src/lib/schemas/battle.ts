@@ -4,6 +4,20 @@ import { AdversarySchema } from './adversaries';
 import { EnvironmentSchema } from './environments';
 
 /**
+ * Domain card for battle tracker (simplified)
+ */
+export const BattleCardSchema = z.object({
+  name: z.string(),
+  level: z.number(),
+  domain: z.string(),
+  type: z.string(),
+  description: z.string(),
+  hopeCost: z.number().optional(),
+  recallCost: z.number().optional(),
+  stressCost: z.number().optional(),
+});
+
+/**
  * Tracked character in a battle (simplified PC representation)
  */
 export const BattleCharacterSchema = z.object({
@@ -20,6 +34,20 @@ export const BattleCharacterSchema = z.object({
   }),
   conditions: z.record(z.string(), z.boolean()).default({}),
   notes: z.string().default(''),
+  // Extended fields for campaign characters
+  sourceCharacterId: z.string().optional(),
+  className: z.string().optional(),
+  subclassName: z.string().optional(),
+  loadout: z.array(BattleCardSchema).optional(),
+  armorScore: z.number().optional(),
+  thresholds: z
+    .object({
+      major: z.number(),
+      severe: z.number(),
+    })
+    .optional(),
+  /** If true, stats sync from player (read-only for DM) */
+  isLinkedCharacter: z.boolean().optional(),
 });
 
 /**

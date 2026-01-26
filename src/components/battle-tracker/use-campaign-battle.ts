@@ -44,14 +44,20 @@ interface CampaignBattleActions {
   setBattleName: (name: string) => void;
   /** Set battle notes */
   setBattleNotes: (notes: string) => void;
+  /** Set battle ID (for syncing after save) */
+  setBattleId: (id: string) => void;
   /** Get current status */
   status: BattleStatus;
   /** Battle name */
   name: string;
   /** Battle notes */
   notes: string;
+  /** Current battle ID */
+  battleId: string;
   /** Whether there are unsaved changes */
   isDirty: boolean;
+  /** Mark the battle as clean (no unsaved changes) */
+  markClean: () => void;
 }
 
 // =====================================================================================
@@ -69,9 +75,17 @@ export function useCampaignBattle(
     environments: EnvironmentTracker[];
     spotlight: TrackerSelection | null;
     spotlightHistory: TrackerSelection[];
+    fearPool: number;
   },
   rosterActions: {
     setSpotlight: (selection: TrackerSelection | null) => void;
+    setCharacters: React.Dispatch<React.SetStateAction<CharacterTracker[]>>;
+    setAdversaries: React.Dispatch<React.SetStateAction<AdversaryTracker[]>>;
+    setEnvironments: React.Dispatch<React.SetStateAction<EnvironmentTracker[]>>;
+    setSpotlightHistory: React.Dispatch<
+      React.SetStateAction<TrackerSelection[]>
+    >;
+    setFearPool: (value: number) => void;
   },
   options: UseCampaignBattleOptions = {}
 ): CampaignBattleActions {
@@ -83,7 +97,7 @@ export function useCampaignBattle(
   } = options;
 
   // Battle metadata
-  const [battleId] = useState(
+  const [battleId, setBattleId] = useState(
     () => options.battleId ?? `battle-${crypto.randomUUID()}`
   );
   const [name, setName] = useState('New Battle');
@@ -117,6 +131,14 @@ export function useCampaignBattle(
         stress: c.stress,
         conditions: conditionsToRecord(c.conditions),
         notes: c.notes,
+        // Extended fields for campaign characters
+        sourceCharacterId: c.sourceCharacterId,
+        className: c.className,
+        subclassName: c.subclassName,
+        loadout: c.loadout,
+        armorScore: c.armorScore,
+        thresholds: c.thresholds,
+        isLinkedCharacter: c.isLinkedCharacter,
       })),
       adversaries: rosterState.adversaries.map(a => ({
         id: a.id,
@@ -135,7 +157,7 @@ export function useCampaignBattle(
       })),
       spotlight: rosterState.spotlight,
       spotlightHistory: rosterState.spotlightHistory,
-      fearPool: 0, // TODO: Add fear pool state to tracker
+      fearPool: rosterState.fearPool,
       notes,
       status,
       createdAt: createdAtRef.current,
@@ -151,6 +173,7 @@ export function useCampaignBattle(
     rosterState.environments,
     rosterState.spotlight,
     rosterState.spotlightHistory,
+    rosterState.fearPool,
     notes,
     status,
   ]);
@@ -158,15 +181,25 @@ export function useCampaignBattle(
   // Load a battle state
   const loadBattleState = useCallback(
     (state: BattleState) => {
+      setBattleId(state.id);
       setName(state.name);
       setNotes(state.notes);
       setStatus(state.status);
       createdAtRef.current = state.createdAt;
 
-      // Spotlight
-      if (state.spotlight) {
-        rosterActions.setSpotlight(state.spotlight);
-      }
+      // Load characters, adversaries, environments into roster
+      rosterActions.setCharacters(battleCharactersToTrackers(state));
+      rosterActions.setAdversaries(battleAdversariesToTrackers(state));
+      rosterActions.setEnvironments(battleEnvironmentsToTrackers(state));
+
+      // Fear pool
+      rosterActions.setFearPool(state.fearPool);
+
+      // Spotlight - always set, even if null
+      rosterActions.setSpotlight(state.spotlight);
+
+      // Spotlight history - always set, even if empty
+      rosterActions.setSpotlightHistory(state.spotlightHistory ?? []);
 
       setIsDirty(false);
     },
@@ -199,6 +232,10 @@ export function useCampaignBattle(
     setIsDirty(true);
   }, []);
 
+  const markClean = useCallback(() => {
+    setIsDirty(false);
+  }, []);
+
   // Mark dirty when roster changes
   const prevRosterRef = useRef(rosterState);
   /* eslint-disable react-hooks/set-state-in-effect -- Tracking roster changes to mark dirty is a valid pattern */
@@ -210,10 +247,12 @@ export function useCampaignBattle(
   }, [rosterState]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  // Auto-save debounced callback
+  // Auto-save debounced callback - only when battle is active or paused
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
-    if (!isDirty || !onStateChange) return;
+    // Only auto-save when battle is in progress (active or paused)
+    const shouldAutoSave = status === 'active' || status === 'paused';
+    if (!isDirty || !onStateChange || !shouldAutoSave) return;
 
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
@@ -229,7 +268,7 @@ export function useCampaignBattle(
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [isDirty, onStateChange, toBattleState, autoSaveDebounceMs]);
+  }, [isDirty, onStateChange, toBattleState, autoSaveDebounceMs, status]);
 
   return useMemo(
     () => ({
@@ -240,9 +279,12 @@ export function useCampaignBattle(
       endBattle,
       setBattleName,
       setBattleNotes,
+      setBattleId,
+      markClean,
       status,
       name,
       notes,
+      battleId,
       isDirty,
     }),
     [
@@ -253,9 +295,12 @@ export function useCampaignBattle(
       endBattle,
       setBattleName,
       setBattleNotes,
+      setBattleId,
+      markClean,
       status,
       name,
       notes,
+      battleId,
       isDirty,
     ]
   );
@@ -264,6 +309,20 @@ export function useCampaignBattle(
 // =====================================================================================
 // Utilities: Convert BattleState back to tracker entries
 // =====================================================================================
+
+/**
+ * Convert Record<string, boolean> conditions back to { items: string[] }
+ */
+function recordToConditions(record: Record<string, boolean> | undefined): {
+  items: string[];
+} {
+  if (!record) return { items: [] };
+  return {
+    items: Object.entries(record)
+      .filter(([, v]) => v)
+      .map(([k]) => k),
+  };
+}
 
 /**
  * Convert a BattleState's characters back to CharacterTracker[]
@@ -275,13 +334,19 @@ export function battleCharactersToTrackers(
     id: c.id,
     kind: 'character' as const,
     name: c.name,
-    evasion: c.evasion,
+    evasion: c.evasion ?? 10,
     hp: c.hp,
     stress: c.stress,
-    conditions: {
-      items: [],
-    },
+    conditions: recordToConditions(c.conditions),
     notes: c.notes,
+    // Extended fields for campaign characters
+    sourceCharacterId: c.sourceCharacterId,
+    className: c.className,
+    subclassName: c.subclassName,
+    loadout: c.loadout,
+    armorScore: c.armorScore,
+    thresholds: c.thresholds,
+    isLinkedCharacter: c.isLinkedCharacter,
   }));
 }
 
@@ -297,9 +362,7 @@ export function battleAdversariesToTrackers(
     source: a.source,
     hp: a.hp,
     stress: a.stress,
-    conditions: {
-      items: [],
-    },
+    conditions: recordToConditions(a.conditions),
     notes: a.notes,
   }));
 }

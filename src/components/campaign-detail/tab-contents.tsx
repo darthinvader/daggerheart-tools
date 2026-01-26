@@ -1,5 +1,6 @@
 // Campaign detail page tab content components
 
+import { useQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { Copy, Users } from 'lucide-react';
 
@@ -24,6 +25,7 @@ import {
 } from '@/components/ui/table';
 import { TabsContent } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import { fetchCharacter } from '@/lib/api/characters';
 import {
   CAMPAIGN_THEME_OPTIONS,
   CAMPAIGN_TONE_OPTIONS,
@@ -33,6 +35,7 @@ import type {
   Campaign,
   CampaignFrame,
   CampaignNPC,
+  CampaignPlayer,
   SessionNote,
 } from '@/lib/schemas/campaign';
 
@@ -600,17 +603,7 @@ export function PlayersTabContent({
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {player.characterName ? (
-                        <span>{player.characterName}</span>
-                      ) : player.characterId ? (
-                        <span className="text-muted-foreground font-mono text-xs">
-                          {player.characterId}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground">
-                          Not selected
-                        </span>
-                      )}
+                      <CharacterNameCell player={player} />
                     </TableCell>
                     <TableCell className="text-right">
                       {player.characterId ? (
@@ -636,4 +629,39 @@ export function PlayersTabContent({
       </Card>
     </TabsContent>
   );
+}
+
+/**
+ * Component to fetch and display fresh character name
+ * Falls back to cached characterName if fetch fails
+ */
+function CharacterNameCell({ player }: { player: CampaignPlayer }) {
+  const { data: character, isLoading } = useQuery({
+    queryKey: ['character-name', player.characterId],
+    queryFn: () => fetchCharacter(player.characterId!),
+    enabled: Boolean(player.characterId),
+    staleTime: 0, // Always fetch fresh
+    select: data => data.identity?.name,
+  });
+
+  if (!player.characterId) {
+    return <span className="text-muted-foreground">Not selected</span>;
+  }
+
+  if (isLoading) {
+    return <span className="text-muted-foreground">Loading...</span>;
+  }
+
+  // Use fresh name from query, fall back to cached name
+  const displayName = character || player.characterName;
+
+  if (!displayName) {
+    return (
+      <span className="text-muted-foreground font-mono text-xs">
+        {player.characterId.slice(0, 8)}...
+      </span>
+    );
+  }
+
+  return <span>{displayName}</span>;
 }

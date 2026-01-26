@@ -74,6 +74,7 @@ export function useBattleRosterState() {
     []
   );
   const [fearPool, setFearPool] = useState(0); // GM Fear pool
+  const [useMassiveThreshold, setUseMassiveThreshold] = useState(false); // Global massive threshold toggle
   const [activeRosterTab, setActiveRosterTab] = useState<
     'characters' | 'adversaries' | 'environments'
   >('characters');
@@ -171,6 +172,7 @@ export function useBattleRosterState() {
       spotlight,
       spotlightHistory,
       fearPool,
+      useMassiveThreshold,
       activeRosterTab,
       activeDetailTab,
       selectedItem,
@@ -180,6 +182,7 @@ export function useBattleRosterState() {
       setActiveDetailTab,
       setSpotlight,
       setFearPool,
+      setUseMassiveThreshold,
       handleSelect,
       handleSpotlight,
       handleRemove,
@@ -189,6 +192,11 @@ export function useBattleRosterState() {
       updateCharacter,
       updateAdversary,
       updateEnvironment,
+      // Bulk setters for loading battle state
+      setCharacters,
+      setAdversaries,
+      setEnvironments,
+      setSpotlightHistory,
     },
   };
 }

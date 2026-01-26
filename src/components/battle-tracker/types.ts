@@ -4,6 +4,18 @@ import type { Environment } from '@/lib/schemas/environments';
 
 export type TrackerKind = 'character' | 'adversary' | 'environment';
 
+/** Domain card summary for battle tracker display */
+export type BattleCard = {
+  name: string;
+  level: number;
+  domain: string;
+  type: string;
+  description: string;
+  hopeCost?: number;
+  recallCost?: number;
+  stressCost?: number;
+};
+
 export type CharacterTracker = {
   id: string;
   kind: 'character';
@@ -13,6 +25,93 @@ export type CharacterTracker = {
   stress: { current: number; max: number };
   conditions: ConditionsState;
   notes: string;
+  /** ID of the source character if added from campaign */
+  sourceCharacterId?: string;
+  /** Character's class name */
+  className?: string;
+  /** Character's subclass name */
+  subclassName?: string;
+  /** Active domain cards in loadout */
+  loadout?: BattleCard[];
+  /** Armor score if available */
+  armorScore?: number;
+  /** Damage thresholds */
+  thresholds?: {
+    major: number;
+    severe: number;
+    massive?: number;
+  };
+  /** Whether to use massive threshold for this character */
+  useMassiveThreshold?: boolean;
+  /**
+   * If true, this character is linked to a player's live character.
+   * Stats are read-only (HP, stress, conditions sync from player).
+   * DM can only edit notes.
+   */
+  isLinkedCharacter?: boolean;
+
+  // Extended identity fields
+  ancestry?: string;
+  community?: string;
+  pronouns?: string;
+
+  // Character level & progression
+  level?: number;
+  tier?: number;
+  proficiency?: number;
+
+  // Resources
+  hope?: { current: number; max: number };
+  armorSlots?: { current: number; max: number };
+  gold?: number;
+
+  // Experiences (XP items)
+  experiences?: Array<{ id: string; name: string; value: number }>;
+
+  // Equipment summary
+  primaryWeapon?: string;
+  secondaryWeapon?: string;
+  armor?: string;
+
+  // Equipment details (for full display)
+  equipment?: {
+    primary?: {
+      name: string;
+      damage: string;
+      range: string;
+      traits?: string[];
+    };
+    secondary?: {
+      name: string;
+      damage?: string;
+      range?: string;
+      traits?: string[];
+    };
+    armor?: {
+      name: string;
+      feature?: string;
+      thresholds?: { major: number; severe: number };
+    };
+  };
+
+  // Core scores (6 stats)
+  coreScores?: {
+    agility?: number;
+    strength?: number;
+    finesse?: number;
+    instinct?: number;
+    presence?: number;
+    knowledge?: number;
+  };
+
+  // Traits (mapped by trait name)
+  traits?: Record<string, { value: number; bonus: number; marked: boolean }>;
+
+  // Inventory items (stash)
+  inventory?: Array<{ name: string; quantity: number; tier?: string }>;
+
+  // Vault cards (stored domain cards)
+  vaultCards?: BattleCard[];
 };
 
 export type AdversaryAttackOverride = {

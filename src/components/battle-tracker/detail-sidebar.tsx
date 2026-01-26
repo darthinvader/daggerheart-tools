@@ -34,6 +34,7 @@ interface DetailSidebarProps {
   characters: CharacterTracker[];
   adversaries: AdversaryTracker[];
   environments: EnvironmentTracker[];
+  useMassiveThreshold: boolean;
   onClearSpotlight: () => void;
   onSetSpotlight: (s: TrackerSelection) => void;
   onCharacterChange: (
@@ -57,6 +58,7 @@ export function DetailSidebar({
   characters,
   adversaries,
   environments,
+  useMassiveThreshold,
   onClearSpotlight,
   onSetSpotlight,
   onCharacterChange,
@@ -98,6 +100,7 @@ export function DetailSidebar({
             {item ? (
               <SelectedItemDetails
                 item={item}
+                useMassiveThreshold={useMassiveThreshold}
                 onCharacterChange={onCharacterChange}
                 onAdversaryChange={onAdversaryChange}
                 onEnvironmentChange={onEnvironmentChange}

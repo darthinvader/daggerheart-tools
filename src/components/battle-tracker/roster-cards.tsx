@@ -6,6 +6,7 @@ import {
   Pencil,
   Shield,
   Sparkles,
+  Star,
   Swords,
   TreePine,
   X,
@@ -33,6 +34,7 @@ export function CharacterCard({
   character,
   isSelected,
   isSpotlight,
+  useMassiveThreshold,
   onSelect,
   onRemove,
   onSpotlight,
@@ -41,11 +43,15 @@ export function CharacterCard({
   character: CharacterTracker;
   isSelected: boolean;
   isSpotlight: boolean;
+  useMassiveThreshold?: boolean;
   onSelect: () => void;
   onRemove: () => void;
   onSpotlight: () => void;
   onChange: (id: string, fn: (c: CharacterTracker) => CharacterTracker) => void;
 }) {
+  // Linked characters are read-only (stats sync from player)
+  const isReadOnly = character.isLinkedCharacter === true;
+
   return (
     <div
       className={cn(
@@ -57,8 +63,13 @@ export function CharacterCard({
       <div className="mb-2 flex items-start justify-between gap-2">
         <button onClick={onSelect} className="min-w-0 flex-1 text-left">
           <div className="flex items-center gap-1.5">
-            <span className="text-sm">🧙</span>
+            <span className="text-sm">{isReadOnly ? '👤' : '🧙'}</span>
             <p className="truncate font-semibold">{character.name}</p>
+            {isReadOnly && (
+              <Badge variant="secondary" className="ml-1 text-[10px]">
+                Live
+              </Badge>
+            )}
           </div>
           <div className="mt-0.5 flex items-center gap-1">
             <Tooltip>
@@ -70,6 +81,56 @@ export function CharacterCard({
               </TooltipTrigger>
               <TooltipContent>Evasion (Difficulty to hit)</TooltipContent>
             </Tooltip>
+            {character.armorScore !== undefined && character.armorScore > 0 && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge
+                    variant="outline"
+                    className="h-5 border-yellow-500/50 text-xs text-yellow-600 dark:text-yellow-400"
+                  >
+                    <Shield className="mr-0.5 size-3" />
+                    {character.armorSlots
+                      ? `${character.armorSlots.current}/${character.armorSlots.max}`
+                      : character.armorScore}
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>Armor Slots (Current / Max)</TooltipContent>
+              </Tooltip>
+            )}
+            {character.thresholds && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge
+                    variant="outline"
+                    className="h-5 border-orange-500/50 text-xs text-orange-600 dark:text-orange-400"
+                  >
+                    <Crosshair className="mr-0.5 size-3" />
+                    {character.thresholds.major}/{character.thresholds.severe}
+                    {useMassiveThreshold &&
+                      character.thresholds.massive &&
+                      `/${character.thresholds.massive}`}
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  Thresholds (Major / Severe
+                  {useMassiveThreshold ? ' / Massive' : ''})
+                </TooltipContent>
+              </Tooltip>
+            )}
+            {character.hope && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge
+                    variant="outline"
+                    className="h-5 border-amber-500/50 text-xs text-amber-600 dark:text-amber-400"
+                  >
+                    <Star className="mr-0.5 size-3" />
+                    {character.hope.current}/{character.hope.max}
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>Hope (Current / Max)</TooltipContent>
+              </Tooltip>
+            )}
           </div>
         </button>
         <CardActions
@@ -85,6 +146,7 @@ export function CharacterCard({
           max={character.hp.max}
           colorClass="text-red-600 dark:text-red-400"
           icon={<Heart className="size-3" />}
+          readOnly={isReadOnly}
           onChange={v =>
             onChange(character.id, c => ({
               ...c,
@@ -98,6 +160,7 @@ export function CharacterCard({
           max={character.stress.max}
           colorClass="text-purple-600 dark:text-purple-400"
           icon={<Zap className="size-3" />}
+          readOnly={isReadOnly}
           onChange={v =>
             onChange(character.id, c => ({
               ...c,
@@ -114,6 +177,7 @@ export function AdversaryCard({
   adversary,
   isSelected,
   isSpotlight,
+  useMassiveThreshold,
   onSelect,
   onRemove,
   onSpotlight,
@@ -123,6 +187,7 @@ export function AdversaryCard({
   adversary: AdversaryTracker;
   isSelected: boolean;
   isSpotlight: boolean;
+  useMassiveThreshold?: boolean;
   onSelect: () => void;
   onRemove: () => void;
   onSpotlight: () => void;
@@ -598,7 +663,7 @@ export function AdversaryCard({
                   <span className="text-red-600 dark:text-red-400">
                     {effectiveThresholds.severe}
                   </span>
-                  {effectiveThresholds.massive && (
+                  {useMassiveThreshold && effectiveThresholds.massive && (
                     <>
                       <span>/</span>
                       <span className="text-purple-600 dark:text-purple-400">
@@ -613,7 +678,8 @@ export function AdversaryCard({
           </TooltipTrigger>
           <TooltipContent>
             Major / Severe
-            {typeof effectiveThresholds !== 'string' &&
+            {useMassiveThreshold &&
+            typeof effectiveThresholds !== 'string' &&
             effectiveThresholds.massive
               ? ' / Massive'
               : ''}{' '}
