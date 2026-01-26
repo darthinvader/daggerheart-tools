@@ -223,11 +223,11 @@ function createAutoSaveHandler<T>(
   setter: React.Dispatch<React.SetStateAction<T>>,
   toApiUpdates: (v: T) => Partial<CharacterRecord>,
   scheduleSave: (updates: Partial<CharacterRecord>) => void,
-  isHydratedRef: React.RefObject<boolean | null>
+  isHydrated: boolean
 ) {
   return (value: React.SetStateAction<T>) => {
     setter(value);
-    if (isHydratedRef.current && typeof value !== 'function') {
+    if (isHydrated && typeof value !== 'function') {
       scheduleSave(toApiUpdates(value));
     }
   };
@@ -323,13 +323,13 @@ function createHopeWithScarsHandler({
   charState,
   sessionState,
   scheduleSave,
-  isHydratedRef,
+  isHydrated,
   serverData,
 }: {
   charState: ReturnType<typeof useCharacterState>;
   sessionState: ReturnType<typeof useSessionState>;
   scheduleSave: (updates: Partial<CharacterRecord>) => void;
-  isHydratedRef: React.RefObject<boolean | null>;
+  isHydrated: boolean;
   serverData: CharacterRecord | undefined;
 }) {
   return (newState: HopeWithScarsState) => {
@@ -340,7 +340,7 @@ function createHopeWithScarsHandler({
     sessionState.setScars(newState.scars);
     sessionState.setExtraHopeSlots(newState.extraSlots ?? 0);
     sessionState.setCompanionHopeFilled(newState.companionHopeFilled ?? false);
-    if (isHydratedRef.current) {
+    if (isHydrated) {
       scheduleSave(
         mapHopeWithScarsToApi(
           { current: newState.current, max: newState.max },
@@ -357,16 +357,16 @@ function createHopeWithScarsHandler({
 function createSessionsHandler({
   sessionState,
   scheduleSave,
-  isHydratedRef,
+  isHydrated,
 }: {
   sessionState: ReturnType<typeof useSessionState>;
   scheduleSave: (updates: Partial<CharacterRecord>) => void;
-  isHydratedRef: React.RefObject<boolean | null>;
+  isHydrated: boolean;
 }) {
   return (sessions: SessionEntry[], id: string | null) => {
     sessionState.setSessions(sessions);
     sessionState.setCurrentSessionId(id);
-    if (isHydratedRef.current) {
+    if (isHydrated) {
       scheduleSave(mapSessionsToApi(sessions, id));
     }
   };
@@ -379,14 +379,14 @@ function buildAutoSaveHandlers({
   sessionState,
   serverData,
   scheduleSave,
-  isHydratedRef,
+  isHydrated,
 }: {
   baseHandlers: ReturnType<typeof buildCharacterSheetHandlers>;
   charState: ReturnType<typeof useCharacterState>;
   sessionState: ReturnType<typeof useSessionState>;
   serverData: CharacterRecord | undefined;
   scheduleSave: (updates: Partial<CharacterRecord>) => void;
-  isHydratedRef: React.RefObject<boolean | null>;
+  isHydrated: boolean;
 }) {
   return {
     ...baseHandlers,
@@ -394,139 +394,139 @@ function buildAutoSaveHandlers({
       charState.setIdentity,
       v => mapIdentityToApi(v, serverData?.identity),
       scheduleSave,
-      isHydratedRef
+      isHydrated
     ),
     setAncestry: createAutoSaveHandler(
       charState.setAncestry,
       v => mapAncestryToApi(v, serverData?.identity),
       scheduleSave,
-      isHydratedRef
+      isHydrated
     ),
     setCommunity: createAutoSaveHandler(
       charState.setCommunity,
       v => mapCommunityToApi(v, serverData?.identity),
       scheduleSave,
-      isHydratedRef
+      isHydrated
     ),
     setClassSelection: createAutoSaveHandler(
       charState.setClassSelection,
       mapClassSelectionToApi,
       scheduleSave,
-      isHydratedRef
+      isHydrated
     ),
     setTraits: createAutoSaveHandler(
       charState.setTraits,
       mapTraitsToApi,
       scheduleSave,
-      isHydratedRef
+      isHydrated
     ),
     setEquipment: createAutoSaveHandler(
       charState.setEquipment,
       mapEquipmentToApi,
       scheduleSave,
-      isHydratedRef
+      isHydrated
     ),
     setInventory: createAutoSaveHandler(
       charState.setInventory,
       mapInventoryToApi,
       scheduleSave,
-      isHydratedRef
+      isHydrated
     ),
     setLoadout: createAutoSaveHandler(
       charState.setLoadout,
       v => mapLoadoutToApi(v, serverData?.domains),
       scheduleSave,
-      isHydratedRef
+      isHydrated
     ),
     setProgression: createAutoSaveHandler(
       charState.setProgression,
       mapProgressionToApi,
       scheduleSave,
-      isHydratedRef
+      isHydrated
     ),
     setGold: createAutoSaveHandler(
       charState.setGold,
       v => mapGoldToApi(v, serverData?.resources),
       scheduleSave,
-      isHydratedRef
+      isHydrated
     ),
     setThresholds: createAutoSaveHandler(
       charState.setThresholds,
       mapThresholdsToApi,
       scheduleSave,
-      isHydratedRef
+      isHydrated
     ),
     setConditions: createAutoSaveHandler(
       charState.setConditions,
       mapConditionsToApi,
       scheduleSave,
-      isHydratedRef
+      isHydrated
     ),
     setExperiences: createAutoSaveHandler(
       charState.setExperiences,
       mapExperiencesToApi,
       scheduleSave,
-      isHydratedRef
+      isHydrated
     ),
     setResources: createAutoSaveHandler(
       charState.setResources,
       v => mapResourcesToApi(v, charState.gold),
       scheduleSave,
-      isHydratedRef
+      isHydrated
     ),
     setCoreScores: createAutoSaveHandler(
       charState.setCoreScores,
       mapCoreScoresToApi,
       scheduleSave,
-      isHydratedRef
+      isHydrated
     ),
     setCompanion: createAutoSaveHandler(
       sessionState.setCompanion,
       mapCompanionToApi,
       scheduleSave,
-      isHydratedRef
+      isHydrated
     ),
     setCompanionEnabled: createAutoSaveHandler(
       sessionState.setCompanionEnabled,
       mapCompanionEnabledToApi,
       scheduleSave,
-      isHydratedRef
+      isHydrated
     ),
     setHopeWithScars: createHopeWithScarsHandler({
       charState,
       sessionState,
       scheduleSave,
-      isHydratedRef,
+      isHydrated,
       serverData,
     }),
     setCountdowns: createAutoSaveHandler(
       sessionState.setCountdowns,
       mapCountdownsToApi,
       scheduleSave,
-      isHydratedRef
+      isHydrated
     ),
     setSessions: createSessionsHandler({
       sessionState,
       scheduleSave,
-      isHydratedRef,
+      isHydrated,
     }),
     setNotes: createAutoSaveHandler(
       sessionState.setNotes,
       mapNotesToApi,
       scheduleSave,
-      isHydratedRef
+      isHydrated
     ),
     setDowntimeActivities: createAutoSaveHandler(
       sessionState.setDowntimeActivities,
       mapDowntimeActivitiesToApi,
       scheduleSave,
-      isHydratedRef
+      isHydrated
     ),
     setQuickView: createAutoSaveHandler(
       sessionState.setQuickView,
       mapQuickViewToApi,
       scheduleSave,
-      isHydratedRef
+      isHydrated
     ),
   };
 }
@@ -639,7 +639,41 @@ function buildOwnedCardNames(
   ];
 }
 
-export function useCharacterSheetWithApi(characterId: string) {
+const buildReadOnlyHandlers = (): ReturnType<
+  typeof buildCharacterSheetHandlers
+> => ({
+  setIdentity: () => {},
+  setAncestry: () => {},
+  setCommunity: () => {},
+  setClassSelection: () => {},
+  setProgression: () => {},
+  setGold: () => {},
+  setThresholds: () => {},
+  setEquipment: () => {},
+  setInventory: () => {},
+  setLoadout: () => {},
+  setExperiences: () => {},
+  setConditions: () => {},
+  setTraits: () => {},
+  setCoreScores: () => {},
+  setResources: () => {},
+  onLevelUp: () => {},
+  setHopeWithScars: () => {},
+  setDeathState: () => {},
+  setCompanion: () => {},
+  setCompanionEnabled: () => {},
+  setNotes: () => {},
+  setRestState: () => {},
+  setCountdowns: () => {},
+  setDowntimeActivities: () => {},
+  setSessions: () => {},
+  setQuickView: () => {},
+});
+
+export function useCharacterSheetWithApi(
+  characterId: string,
+  options?: { readOnly?: boolean }
+) {
   // Fetch character data from API
   const {
     data: serverData,
@@ -660,7 +694,10 @@ export function useCharacterSheetWithApi(characterId: string) {
   const [isNewCharacter, setIsNewCharacterState] = useState(false);
 
   // Auto-save hook
-  const { isSaving, lastSaved, scheduleSave } = useAutoSave(characterId);
+  const autoSave = useAutoSave(characterId);
+  const scheduleSave = options?.readOnly ? () => {} : autoSave.scheduleSave;
+  const isSaving = options?.readOnly ? false : autoSave.isSaving;
+  const lastSaved = options?.readOnly ? null : autoSave.lastSaved;
 
   // Build state object to pass to components
   const hopeWithScars = buildHopeWithScarsState(charState, sessionState);
@@ -709,20 +746,32 @@ export function useCharacterSheetWithApi(characterId: string) {
     handleSetHopeWithScars
   );
 
+  const readOnlyHandlers = useMemo(() => buildReadOnlyHandlers(), []);
+
   // Wrap setters with auto-save functionality using useMemo
-  const handlers = useMemo(
-    () =>
-      // eslint-disable-next-line react-hooks/refs -- ref only read inside handlers (event-time)
-      buildAutoSaveHandlers({
-        baseHandlers,
-        charState,
-        sessionState,
-        serverData,
-        scheduleSave,
-        isHydratedRef,
-      }),
-    [baseHandlers, charState, sessionState, serverData, scheduleSave]
-  );
+  const handlers = useMemo(() => {
+    if (options?.readOnly) {
+      return readOnlyHandlers;
+    }
+
+    return buildAutoSaveHandlers({
+      baseHandlers,
+      charState,
+      sessionState,
+      serverData,
+      scheduleSave,
+      isHydrated,
+    });
+  }, [
+    baseHandlers,
+    charState,
+    sessionState,
+    serverData,
+    scheduleSave,
+    isHydrated,
+    options?.readOnly,
+    readOnlyHandlers,
+  ]);
 
   const hasCompanionFeature = useHasCompanionFeature(state);
 
@@ -730,7 +779,7 @@ export function useCharacterSheetWithApi(characterId: string) {
     isHydrated,
     state,
     hasCompanionFeature,
-    handlers,
+    handlers: options?.readOnly ? readOnlyHandlers : handlers,
   });
 
   useHydrateCharacterState({

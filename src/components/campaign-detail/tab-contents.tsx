@@ -1,7 +1,10 @@
 // Campaign detail page tab content components
 
-import { Users } from 'lucide-react';
+import { Link } from '@tanstack/react-router';
+import { Copy, Users } from 'lucide-react';
 
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -11,6 +14,14 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { TabsContent } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -481,13 +492,139 @@ export function SessionZeroTabContent({
   );
 }
 
-export function PlayersTabContent() {
+interface PlayersTabProps {
+  campaign: Campaign;
+  inviteLink: string;
+  onCopyInviteCode: () => void;
+  onCopyInviteLink: () => void;
+}
+
+export function PlayersTabContent({
+  campaign,
+  inviteLink,
+  onCopyInviteCode,
+  onCopyInviteLink,
+}: PlayersTabProps) {
+  const players = campaign.players ?? [];
+
   return (
-    <TabsContent value="players">
+    <TabsContent value="players" className="space-y-6">
       <Card>
-        <CardContent className="py-12 text-center">
-          <Users className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
-          <p className="text-muted-foreground">Player management coming soon</p>
+        <CardHeader>
+          <CardTitle className="text-base">Invite Players</CardTitle>
+          <CardDescription>
+            Share this link or invite code with your players so they can join
+            and select a character.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label className="text-xs">Invite Link</Label>
+            <div className="flex gap-2">
+              <Input value={inviteLink} readOnly />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={onCopyInviteLink}
+                disabled={!inviteLink}
+                aria-label="Copy invite link"
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs">Invite Code</Label>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="font-mono">
+                {campaign.inviteCode ?? 'Unavailable'}
+              </Badge>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={onCopyInviteCode}
+                disabled={!campaign.inviteCode}
+                aria-label="Copy invite code"
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Players</CardTitle>
+          <CardDescription>
+            Track who has joined and which character they selected.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {players.length === 0 ? (
+            <div className="py-8 text-center">
+              <Users className="text-muted-foreground mx-auto mb-3 h-10 w-10" />
+              <p className="text-muted-foreground">
+                No players have joined yet.
+              </p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Player</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Character</TableHead>
+                  <TableHead className="text-right">View</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {players.map(player => (
+                  <TableRow key={player.id}>
+                    <TableCell className="font-medium">
+                      {player.name || 'Unnamed Player'}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="capitalize">
+                        {player.role}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {player.characterName ? (
+                        <span>{player.characterName}</span>
+                      ) : player.characterId ? (
+                        <span className="text-muted-foreground font-mono text-xs">
+                          {player.characterId}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">
+                          Not selected
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {player.characterId ? (
+                        <Button variant="outline" size="sm" asChild>
+                          <Link
+                            to="/character/view/$characterId"
+                            params={{ characterId: player.characterId }}
+                            search={{ tab: 'quick' }}
+                          >
+                            View
+                          </Link>
+                        </Button>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">—</span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </TabsContent>

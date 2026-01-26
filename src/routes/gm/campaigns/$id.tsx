@@ -13,7 +13,7 @@ import {
   User,
   Users,
 } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
   CampaignHeader,
@@ -113,6 +113,9 @@ type CampaignTabsProps = {
   frame: CampaignFrame;
   updateFrame: (updates: Partial<CampaignFrame>) => void;
   campaign: Campaign;
+  inviteLink: string;
+  onCopyInviteCode: () => void;
+  onCopyInviteLink: () => void;
   onSessionsChange: () => void;
   onNPCsChange: () => void;
   onLocationsChange: () => void;
@@ -262,6 +265,9 @@ function CampaignTabs({
   frame,
   updateFrame,
   campaign,
+  inviteLink,
+  onCopyInviteCode,
+  onCopyInviteLink,
   onSessionsChange,
   onNPCsChange,
   onLocationsChange,
@@ -310,7 +316,7 @@ function CampaignTabs({
           <Lightbulb className="mr-2 h-4 w-4" />
           GM Tools
         </TabsTrigger>
-        <TabsTrigger value="players" disabled>
+        <TabsTrigger value="players">
           <Users className="mr-2 h-4 w-4" />
           Players
         </TabsTrigger>
@@ -350,7 +356,12 @@ function CampaignTabs({
         onChecklistChange={onChecklistChange}
       />
       <SessionZeroTabContent frame={frame} updateFrame={updateFrame} />
-      <PlayersTabContent />
+      <PlayersTabContent
+        campaign={campaign}
+        inviteLink={inviteLink}
+        onCopyInviteCode={onCopyInviteCode}
+        onCopyInviteLink={onCopyInviteLink}
+      />
     </Tabs>
   );
 }
@@ -410,6 +421,20 @@ function CampaignDetailPage() {
     }
   }, [campaign]);
 
+  const inviteLink = useMemo(() => {
+    if (!campaign?.inviteCode) return '';
+    if (typeof window === 'undefined') return '';
+    return `${window.location.origin}/campaigns/join?code=${encodeURIComponent(
+      campaign.inviteCode
+    )}`;
+  }, [campaign?.inviteCode]);
+
+  const copyInviteLink = useCallback(() => {
+    if (inviteLink) {
+      navigator.clipboard.writeText(inviteLink);
+    }
+  }, [inviteLink]);
+
   if (loading) {
     return <CampaignLoadingState />;
   }
@@ -439,6 +464,9 @@ function CampaignDetailPage() {
         frame={frame}
         updateFrame={updateFrame}
         campaign={campaign}
+        inviteLink={inviteLink}
+        onCopyInviteCode={copyInviteCode}
+        onCopyInviteLink={copyInviteLink}
         onSessionsChange={loadCampaign}
         onNPCsChange={loadCampaign}
         onLocationsChange={loadCampaign}

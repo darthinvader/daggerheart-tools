@@ -15,10 +15,12 @@ import {
   SessionTab,
 } from '@/components/demo/demo-tabs';
 import { LevelUpModal } from '@/components/level-up';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Backpack, BarChart3, Dice5, User } from '@/lib/icons';
+import { cn } from '@/lib/utils';
 
 import { ResponsiveTabsList } from './responsive-tabs';
 import { useCharacterSheetWithApi } from './use-character-sheet-api';
@@ -27,6 +29,7 @@ interface CharacterSheetProps {
   characterId: string;
   activeTab: string;
   onTabChange: (tab: string) => void;
+  readOnly?: boolean;
 }
 
 function SaveIndicator({
@@ -112,6 +115,7 @@ export function CharacterSheet({
   characterId,
   activeTab,
   onTabChange,
+  readOnly = false,
 }: CharacterSheetProps) {
   const [hasDismissedOnboarding, setHasDismissedOnboarding] = useState(false);
   const {
@@ -130,7 +134,7 @@ export function CharacterSheet({
     isSaving,
     lastSaved,
     isHydrated,
-  } = useCharacterSheetWithApi(characterId);
+  } = useCharacterSheetWithApi(characterId, { readOnly });
 
   const onboardingComplete = useMemo(
     () => isOnboardingComplete(state),
@@ -178,20 +182,22 @@ export function CharacterSheet({
   return (
     <div className="container mx-auto px-4 py-4 sm:py-8">
       <div className="space-y-6">
-        <CharacterOnboardingWizard
-          isOpen={isOnboardingOpen}
-          onClose={() => setHasDismissedOnboarding(true)}
-          onSkipWizard={() => {
-            setHasDismissedOnboarding(true);
-            setIsNewCharacter(false);
-          }}
-          onFinish={() => {
-            setHasDismissedOnboarding(true);
-            setIsNewCharacter(false);
-          }}
-          state={state}
-          handlers={handlers}
-        />
+        {!readOnly && (
+          <CharacterOnboardingWizard
+            isOpen={isOnboardingOpen}
+            onClose={() => setHasDismissedOnboarding(true)}
+            onSkipWizard={() => {
+              setHasDismissedOnboarding(true);
+              setIsNewCharacter(false);
+            }}
+            onFinish={() => {
+              setHasDismissedOnboarding(true);
+              setIsNewCharacter(false);
+            }}
+            state={state}
+            handlers={handlers}
+          />
+        )}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
             <Button variant="ghost" size="sm" asChild className="w-fit">
@@ -209,7 +215,11 @@ export function CharacterSheet({
               </p>
             </div>
           </div>
-          <SaveIndicator isSaving={isSaving} lastSaved={lastSaved} />
+          {readOnly ? (
+            <Badge variant="outline">Read-only</Badge>
+          ) : (
+            <SaveIndicator isSaving={isSaving} lastSaved={lastSaved} />
+          )}
         </div>
 
         <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
@@ -220,63 +230,72 @@ export function CharacterSheet({
             onValueChange={onTabChange}
           />
 
-          <TabsContent value="quick">
-            <QuickViewTab state={state} handlers={handlers} />
-          </TabsContent>
-          <TabsContent value="overview">
-            <OverviewTab
-              state={state}
-              handlers={handlers}
-              isHydrated={isHydrated}
-            />
-          </TabsContent>
-          <TabsContent value="identity">
-            <IdentityTab
-              state={state}
-              handlers={handlers}
-              isHydrated={isHydrated}
-            />
-          </TabsContent>
-          <TabsContent value="combat">
-            <CombatTab
-              state={state}
-              handlers={handlers}
-              isHydrated={isHydrated}
-            />
-          </TabsContent>
-          <TabsContent value="items">
-            <ItemsTab
-              state={state}
-              handlers={handlers}
-              isHydrated={isHydrated}
-            />
-          </TabsContent>
-          <TabsContent value="session">
-            <SessionTab
-              state={state}
-              handlers={handlers}
-              isHydrated={isHydrated}
-            />
-          </TabsContent>
+          <div
+            className={cn(
+              readOnly &&
+                '[&_button]:pointer-events-none [&_button]:opacity-60 [&_input]:pointer-events-none [&_input]:opacity-70 [&_select]:pointer-events-none [&_select]:opacity-70 [&_textarea]:pointer-events-none [&_textarea]:opacity-70 **:[[role=button]]:pointer-events-none **:[[role=button]]:opacity-60'
+            )}
+          >
+            <TabsContent value="quick">
+              <QuickViewTab state={state} handlers={handlers} />
+            </TabsContent>
+            <TabsContent value="overview">
+              <OverviewTab
+                state={state}
+                handlers={handlers}
+                isHydrated={isHydrated}
+              />
+            </TabsContent>
+            <TabsContent value="identity">
+              <IdentityTab
+                state={state}
+                handlers={handlers}
+                isHydrated={isHydrated}
+              />
+            </TabsContent>
+            <TabsContent value="combat">
+              <CombatTab
+                state={state}
+                handlers={handlers}
+                isHydrated={isHydrated}
+              />
+            </TabsContent>
+            <TabsContent value="items">
+              <ItemsTab
+                state={state}
+                handlers={handlers}
+                isHydrated={isHydrated}
+              />
+            </TabsContent>
+            <TabsContent value="session">
+              <SessionTab
+                state={state}
+                handlers={handlers}
+                isHydrated={isHydrated}
+              />
+            </TabsContent>
+          </div>
         </Tabs>
 
-        <LevelUpModal
-          isOpen={isLevelUpOpen}
-          onClose={() => setIsLevelUpOpen(false)}
-          onConfirm={handleLevelUpConfirm}
-          currentLevel={state.progression.currentLevel}
-          currentTier={state.progression.currentTier}
-          currentTraits={currentTraitsForModal}
-          currentExperiences={currentExperiencesForModal}
-          tierHistory={state.progression.tierHistory}
-          classSelection={state.classSelection}
-          unlockedSubclassFeatures={state.unlockedSubclassFeatures}
-          ownedCardNames={ownedCardNames}
-          currentCompanionTraining={state.companion?.training}
-          hasCompanion={!!state.companion}
-          companionName={state.companion?.name}
-          companionExperiences={state.companion?.experiences ?? []}
-        />
+        {!readOnly && (
+          <LevelUpModal
+            isOpen={isLevelUpOpen}
+            onClose={() => setIsLevelUpOpen(false)}
+            onConfirm={handleLevelUpConfirm}
+            currentLevel={state.progression.currentLevel}
+            currentTier={state.progression.currentTier}
+            currentTraits={currentTraitsForModal}
+            currentExperiences={currentExperiencesForModal}
+            tierHistory={state.progression.tierHistory}
+            classSelection={state.classSelection}
+            unlockedSubclassFeatures={state.unlockedSubclassFeatures}
+            ownedCardNames={ownedCardNames}
+            currentCompanionTraining={state.companion?.training}
+            hasCompanion={!!state.companion}
+            companionName={state.companion?.name}
+            companionExperiences={state.companion?.experiences ?? []}
+          />
+        )}
       </div>
     </div>
   );

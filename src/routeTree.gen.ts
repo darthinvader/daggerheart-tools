@@ -37,9 +37,11 @@ import { Route as ReferencesAdversariesRouteImport } from './routes/references/a
 import { Route as GmCampaignsRouteImport } from './routes/gm/campaigns'
 import { Route as CharacterNewRouteImport } from './routes/character/new'
 import { Route as CharacterCharacterIdRouteImport } from './routes/character/$characterId'
+import { Route as CampaignsJoinRouteImport } from './routes/campaigns/join'
 import { Route as GmCampaignsIndexRouteImport } from './routes/gm/campaigns/index'
 import { Route as GmCampaignsNewRouteImport } from './routes/gm/campaigns/new'
 import { Route as GmCampaignsIdRouteImport } from './routes/gm/campaigns/$id'
+import { Route as CharacterViewCharacterIdRouteImport } from './routes/character/view/$characterId'
 
 const RulesRoute = RulesRouteImport.update({
   id: '/rules',
@@ -183,6 +185,11 @@ const CharacterCharacterIdRoute = CharacterCharacterIdRouteImport.update({
   path: '/$characterId',
   getParentRoute: () => CharacterRoute,
 } as any)
+const CampaignsJoinRoute = CampaignsJoinRouteImport.update({
+  id: '/campaigns/join',
+  path: '/campaigns/join',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GmCampaignsIndexRoute = GmCampaignsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -198,6 +205,12 @@ const GmCampaignsIdRoute = GmCampaignsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => GmCampaignsRoute,
 } as any)
+const CharacterViewCharacterIdRoute =
+  CharacterViewCharacterIdRouteImport.update({
+    id: '/view/$characterId',
+    path: '/view/$characterId',
+    getParentRoute: () => CharacterRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -206,6 +219,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/references': typeof ReferencesRouteWithChildren
   '/rules': typeof RulesRouteWithChildren
+  '/campaigns/join': typeof CampaignsJoinRoute
   '/character/$characterId': typeof CharacterCharacterIdRoute
   '/character/new': typeof CharacterNewRoute
   '/gm/campaigns': typeof GmCampaignsRouteWithChildren
@@ -228,6 +242,7 @@ export interface FileRoutesByFullPath {
   '/gm/': typeof GmIndexRoute
   '/references/': typeof ReferencesIndexRoute
   '/rules/': typeof RulesIndexRoute
+  '/character/view/$characterId': typeof CharacterViewCharacterIdRoute
   '/gm/campaigns/$id': typeof GmCampaignsIdRoute
   '/gm/campaigns/new': typeof GmCampaignsNewRoute
   '/gm/campaigns/': typeof GmCampaignsIndexRoute
@@ -235,6 +250,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/campaigns/join': typeof CampaignsJoinRoute
   '/character/$characterId': typeof CharacterCharacterIdRoute
   '/character/new': typeof CharacterNewRoute
   '/references/adversaries': typeof ReferencesAdversariesRoute
@@ -256,6 +272,7 @@ export interface FileRoutesByTo {
   '/gm': typeof GmIndexRoute
   '/references': typeof ReferencesIndexRoute
   '/rules': typeof RulesIndexRoute
+  '/character/view/$characterId': typeof CharacterViewCharacterIdRoute
   '/gm/campaigns/$id': typeof GmCampaignsIdRoute
   '/gm/campaigns/new': typeof GmCampaignsNewRoute
   '/gm/campaigns': typeof GmCampaignsIndexRoute
@@ -268,6 +285,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/references': typeof ReferencesRouteWithChildren
   '/rules': typeof RulesRouteWithChildren
+  '/campaigns/join': typeof CampaignsJoinRoute
   '/character/$characterId': typeof CharacterCharacterIdRoute
   '/character/new': typeof CharacterNewRoute
   '/gm/campaigns': typeof GmCampaignsRouteWithChildren
@@ -290,6 +308,7 @@ export interface FileRoutesById {
   '/gm/': typeof GmIndexRoute
   '/references/': typeof ReferencesIndexRoute
   '/rules/': typeof RulesIndexRoute
+  '/character/view/$characterId': typeof CharacterViewCharacterIdRoute
   '/gm/campaigns/$id': typeof GmCampaignsIdRoute
   '/gm/campaigns/new': typeof GmCampaignsNewRoute
   '/gm/campaigns/': typeof GmCampaignsIndexRoute
@@ -303,6 +322,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/references'
     | '/rules'
+    | '/campaigns/join'
     | '/character/$characterId'
     | '/character/new'
     | '/gm/campaigns'
@@ -325,6 +345,7 @@ export interface FileRouteTypes {
     | '/gm/'
     | '/references/'
     | '/rules/'
+    | '/character/view/$characterId'
     | '/gm/campaigns/$id'
     | '/gm/campaigns/new'
     | '/gm/campaigns/'
@@ -332,6 +353,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/campaigns/join'
     | '/character/$characterId'
     | '/character/new'
     | '/references/adversaries'
@@ -353,6 +375,7 @@ export interface FileRouteTypes {
     | '/gm'
     | '/references'
     | '/rules'
+    | '/character/view/$characterId'
     | '/gm/campaigns/$id'
     | '/gm/campaigns/new'
     | '/gm/campaigns'
@@ -364,6 +387,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/references'
     | '/rules'
+    | '/campaigns/join'
     | '/character/$characterId'
     | '/character/new'
     | '/gm/campaigns'
@@ -386,6 +410,7 @@ export interface FileRouteTypes {
     | '/gm/'
     | '/references/'
     | '/rules/'
+    | '/character/view/$characterId'
     | '/gm/campaigns/$id'
     | '/gm/campaigns/new'
     | '/gm/campaigns/'
@@ -398,6 +423,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ReferencesRoute: typeof ReferencesRouteWithChildren
   RulesRoute: typeof RulesRouteWithChildren
+  CampaignsJoinRoute: typeof CampaignsJoinRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -598,6 +624,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CharacterCharacterIdRouteImport
       parentRoute: typeof CharacterRoute
     }
+    '/campaigns/join': {
+      id: '/campaigns/join'
+      path: '/campaigns/join'
+      fullPath: '/campaigns/join'
+      preLoaderRoute: typeof CampaignsJoinRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/gm/campaigns/': {
       id: '/gm/campaigns/'
       path: '/'
@@ -619,6 +652,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GmCampaignsIdRouteImport
       parentRoute: typeof GmCampaignsRoute
     }
+    '/character/view/$characterId': {
+      id: '/character/view/$characterId'
+      path: '/view/$characterId'
+      fullPath: '/character/view/$characterId'
+      preLoaderRoute: typeof CharacterViewCharacterIdRouteImport
+      parentRoute: typeof CharacterRoute
+    }
   }
 }
 
@@ -626,12 +666,14 @@ interface CharacterRouteChildren {
   CharacterCharacterIdRoute: typeof CharacterCharacterIdRoute
   CharacterNewRoute: typeof CharacterNewRoute
   CharacterIndexRoute: typeof CharacterIndexRoute
+  CharacterViewCharacterIdRoute: typeof CharacterViewCharacterIdRoute
 }
 
 const CharacterRouteChildren: CharacterRouteChildren = {
   CharacterCharacterIdRoute: CharacterCharacterIdRoute,
   CharacterNewRoute: CharacterNewRoute,
   CharacterIndexRoute: CharacterIndexRoute,
+  CharacterViewCharacterIdRoute: CharacterViewCharacterIdRoute,
 }
 
 const CharacterRouteWithChildren = CharacterRoute._addFileChildren(
@@ -725,6 +767,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ReferencesRoute: ReferencesRouteWithChildren,
   RulesRoute: RulesRouteWithChildren,
+  CampaignsJoinRoute: CampaignsJoinRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -303,6 +303,7 @@ export const CampaignPlayerSchema = z.object({
   id: z.string(),
   name: z.string(),
   characterId: z.string().optional(),
+  characterName: z.string().optional(),
   joinedAt: z.string().datetime(),
   role: z.enum(['player', 'co-gm']).default('player'),
 });

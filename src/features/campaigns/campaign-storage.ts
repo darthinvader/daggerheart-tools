@@ -1,6 +1,8 @@
 /* eslint-disable max-lines */
 // Storage layer with cohesive CRUD operations for campaigns - splitting would fragment the API
 
+import { z } from 'zod';
+
 import { createCampaignFrameFromTemplate } from '@/lib/data/campaign-frames';
 import type {
   Campaign,
@@ -44,6 +46,27 @@ interface TrashedCampaign extends Campaign {
   deletedAt: string;
 }
 
+interface CampaignInvitePreviewRow {
+  id: string;
+  name: string;
+  status: Campaign['status'];
+  gm_id: string;
+}
+
+const CampaignInvitePreviewSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  status: z.enum(['draft', 'active', 'paused', 'completed']),
+  gm_id: z.string(),
+});
+
+export interface CampaignInvitePreview {
+  id: string;
+  name: string;
+  status: Campaign['status'];
+  gmId: string;
+}
+
 // =====================================================================================
 // Helper functions
 // =====================================================================================
@@ -73,6 +96,17 @@ function rowToTrashedCampaign(row: CampaignRow): TrashedCampaign {
   return {
     ...rowToCampaign(row),
     deletedAt: row.deleted_at!,
+  };
+}
+
+function rowToCampaignInvitePreview(
+  row: CampaignInvitePreviewRow
+): CampaignInvitePreview {
+  return {
+    id: row.id,
+    name: row.name,
+    status: row.status,
+    gmId: row.gm_id,
   };
 }
 
@@ -110,6 +144,56 @@ export function generateInviteCode(): string {
     code += chars[Math.floor(Math.random() * chars.length)];
   }
   return code;
+}
+
+// =====================================================================================
+// Campaign invites
+// =====================================================================================
+
+export async function fetchCampaignInvitePreview(
+  inviteCode: string
+): Promise<CampaignInvitePreview | undefined> {
+  const { data, error } = await supabase.rpc('campaign_invite_preview', {
+    invite_code: inviteCode,
+  });
+
+  if (error) {
+    if (error.code === 'PGRST116') return undefined;
+    console.error('Error fetching campaign invite preview:', error);
+    throw error;
+  }
+
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row) return undefined;
+
+  const parsed = CampaignInvitePreviewSchema.parse(row);
+  return rowToCampaignInvitePreview(parsed);
+}
+
+export async function joinCampaignByInviteCode(params: {
+  inviteCode: string;
+  playerName: string;
+  characterId: string | null;
+  characterName: string | null;
+}): Promise<string> {
+  const { inviteCode, playerName, characterId, characterName } = params;
+  const { data, error } = await supabase.rpc('join_campaign_by_invite', {
+    invite_code: inviteCode,
+    player_name: playerName,
+    character_id: characterId,
+    character_name: characterName,
+  });
+
+  if (error) {
+    console.error('Error joining campaign via invite:', error);
+    throw error;
+  }
+
+  if (!data) {
+    throw new Error('Join campaign failed without a response');
+  }
+
+  return data as string;
 }
 
 // =====================================================================================
