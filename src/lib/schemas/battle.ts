@@ -44,10 +44,124 @@ export const BattleCharacterSchema = z.object({
     .object({
       major: z.number(),
       severe: z.number(),
+      massive: z.number().optional(),
     })
     .optional(),
   /** If true, stats sync from player (read-only for DM) */
   isLinkedCharacter: z.boolean().optional(),
+
+  // Extended identity fields
+  ancestry: z.string().optional(),
+  community: z.string().optional(),
+  pronouns: z.string().optional(),
+
+  // Level & progression
+  level: z.number().optional(),
+  tier: z.number().optional(),
+  proficiency: z.number().optional(),
+
+  // Resources
+  hope: z
+    .object({
+      current: z.number(),
+      max: z.number(),
+    })
+    .optional(),
+  armorSlots: z
+    .object({
+      current: z.number(),
+      max: z.number(),
+    })
+    .optional(),
+  gold: z.number().optional(),
+
+  // Experiences
+  experiences: z
+    .array(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        value: z.number(),
+      })
+    )
+    .optional(),
+
+  // Equipment summary
+  primaryWeapon: z.string().optional(),
+  secondaryWeapon: z.string().optional(),
+  armor: z.string().optional(),
+
+  // Equipment details
+  equipment: z
+    .object({
+      primary: z
+        .object({
+          name: z.string(),
+          damage: z.string(),
+          range: z.string(),
+          traits: z.array(z.string()).optional(),
+        })
+        .optional(),
+      secondary: z
+        .object({
+          name: z.string(),
+          damage: z.string().optional(),
+          range: z.string().optional(),
+          traits: z.array(z.string()).optional(),
+        })
+        .optional(),
+      armor: z
+        .object({
+          name: z.string(),
+          feature: z.string().optional(),
+          thresholds: z
+            .object({
+              major: z.number(),
+              severe: z.number(),
+            })
+            .optional(),
+        })
+        .optional(),
+    })
+    .optional(),
+
+  // Core scores (6 stats)
+  coreScores: z
+    .object({
+      agility: z.number().optional(),
+      strength: z.number().optional(),
+      finesse: z.number().optional(),
+      instinct: z.number().optional(),
+      presence: z.number().optional(),
+      knowledge: z.number().optional(),
+    })
+    .optional(),
+
+  // Traits
+  traits: z
+    .record(
+      z.string(),
+      z.object({
+        value: z.number(),
+        bonus: z.number(),
+        marked: z.boolean(),
+      })
+    )
+    .optional(),
+
+  // Inventory
+  inventory: z
+    .array(
+      z.object({
+        name: z.string(),
+        quantity: z.number(),
+        tier: z.string().optional(),
+      })
+    )
+    .optional(),
+
+  // Vault cards
+  vaultCards: z.array(BattleCardSchema).optional(),
 });
 
 /**

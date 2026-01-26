@@ -39,7 +39,10 @@ import {
   useBattleRosterState,
 } from '@/components/battle-tracker/use-battle-tracker-state';
 import { useCampaignBattle } from '@/components/battle-tracker/use-campaign-battle';
-import { useCharacterRealtimeSync } from '@/components/battle-tracker/use-character-realtime';
+import {
+  useCharacterRealtimeSync,
+  useRefreshLinkedCharacter,
+} from '@/components/battle-tracker/use-character-realtime';
 import { DEFAULT_CHARACTER_DRAFT } from '@/components/battle-tracker/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -482,6 +485,32 @@ function CampaignBattlePage() {
     rosterState.characters,
     rosterActions.updateCharacter
   );
+
+  const refreshLinkedCharacter = useRefreshLinkedCharacter();
+  const refreshedCharacterIdsRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!hasLoadedInitialBattle) return;
+
+    rosterState.characters.forEach(character => {
+      if (!character.isLinkedCharacter || !character.sourceCharacterId) return;
+
+      const sourceId = character.sourceCharacterId;
+      if (refreshedCharacterIdsRef.current.has(sourceId)) return;
+
+      refreshedCharacterIdsRef.current.add(sourceId);
+      void refreshLinkedCharacter(
+        sourceId,
+        character.id,
+        rosterActions.updateCharacter
+      );
+    });
+  }, [
+    hasLoadedInitialBattle,
+    refreshLinkedCharacter,
+    rosterActions.updateCharacter,
+    rosterState.characters,
+  ]);
 
   // Edit dialog state
   const [editingAdversary, setEditingAdversary] =
