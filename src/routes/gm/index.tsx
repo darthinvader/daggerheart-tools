@@ -70,20 +70,19 @@ function GmDashboard() {
           </Card>
         </Link>
 
-        <Card className="h-full opacity-60">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Swords className="text-muted-foreground h-5 w-5" />
-              Battle Tracker
-              <span className="bg-muted rounded px-2 py-0.5 text-xs">
-                Coming Soon
-              </span>
-            </CardTitle>
-            <CardDescription>
-              Run combat encounters with adversaries and players
-            </CardDescription>
-          </CardHeader>
-        </Card>
+        <Link to="/gm/battle-tracker" className="block">
+          <Card className="hover:bg-accent/50 h-full cursor-pointer transition-colors">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Swords className="text-primary h-5 w-5" />
+                Battle Tracker
+              </CardTitle>
+              <CardDescription>
+                Run combat encounters with adversaries and players
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
       </div>
 
       {/* Features Overview */}

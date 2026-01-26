@@ -5,6 +5,7 @@ import { z } from 'zod';
 
 import { createCampaignFrameFromTemplate } from '@/lib/data/campaign-frames';
 import type {
+  BattleState,
   Campaign,
   CampaignFrame,
   CampaignLocation,
@@ -33,6 +34,7 @@ interface CampaignRow {
   locations: CampaignLocation[];
   quests: CampaignQuest[];
   story_threads: Campaign['storyThreads'];
+  battles: BattleState[];
   session_prep_checklist: Campaign['sessionPrepChecklist'];
   invite_code: string | null;
   status: Campaign['status'];
@@ -83,6 +85,7 @@ function rowToCampaign(row: CampaignRow): Campaign {
     locations: row.locations ?? [],
     quests: row.quests ?? [],
     storyThreads: row.story_threads ?? [],
+    battles: row.battles ?? [],
     sessionPrepChecklist: row.session_prep_checklist ?? [],
     inviteCode: row.invite_code ?? undefined,
     status: row.status,
@@ -125,6 +128,7 @@ function campaignToRow(
   if (campaign.quests !== undefined) row.quests = campaign.quests;
   if (campaign.storyThreads !== undefined)
     row.story_threads = campaign.storyThreads;
+  if (campaign.battles !== undefined) row.battles = campaign.battles;
   if (campaign.sessionPrepChecklist !== undefined)
     row.session_prep_checklist = campaign.sessionPrepChecklist;
   if (campaign.inviteCode !== undefined) row.invite_code = campaign.inviteCode;
@@ -823,4 +827,120 @@ export async function saveCampaign(
   }
 
   return rowToCampaign(data as CampaignRow);
+}
+
+// =====================================================================================
+// Battle CRUD operations
+// =====================================================================================
+
+function generateBattleId(): string {
+  return `battle-${crypto.randomUUID()}`;
+}
+
+/**
+ * Update the battles array for a campaign
+ */
+async function updateCampaignBattles(
+  campaignId: string,
+  battles: BattleState[]
+): Promise<void> {
+  const { error } = await supabase
+    .from('campaigns')
+    .update({ battles, updated_at: new Date().toISOString() })
+    .eq('id', campaignId)
+    .is('deleted_at', null);
+
+  if (error) {
+    console.error('Error updating campaign battles:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get all battles for a campaign
+ */
+export async function getCampaignBattles(
+  campaignId: string
+): Promise<BattleState[]> {
+  const campaign = await getCampaign(campaignId);
+  return campaign?.battles ?? [];
+}
+
+/**
+ * Get a single battle by ID
+ */
+export async function getBattle(
+  campaignId: string,
+  battleId: string
+): Promise<BattleState | undefined> {
+  const battles = await getCampaignBattles(campaignId);
+  return battles.find(b => b.id === battleId);
+}
+
+/**
+ * Create a new battle in a campaign
+ */
+export async function createBattle(
+  campaignId: string,
+  battle: Omit<BattleState, 'id' | 'campaignId' | 'createdAt' | 'updatedAt'>
+): Promise<BattleState> {
+  const campaign = await getCampaign(campaignId);
+  if (!campaign) throw new Error(`Campaign ${campaignId} not found`);
+
+  const now = new Date().toISOString();
+  const newBattle: BattleState = {
+    ...battle,
+    id: generateBattleId(),
+    campaignId,
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  const battles = [...(campaign.battles ?? []), newBattle];
+  await updateCampaignBattles(campaignId, battles);
+  return newBattle;
+}
+
+/**
+ * Update an existing battle
+ */
+export async function updateBattle(
+  campaignId: string,
+  battleId: string,
+  updates: Partial<Omit<BattleState, 'id' | 'campaignId' | 'createdAt'>>
+): Promise<BattleState | undefined> {
+  const campaign = await getCampaign(campaignId);
+  if (!campaign) return undefined;
+
+  const battles = campaign.battles ?? [];
+  const battleIndex = battles.findIndex(b => b.id === battleId);
+  if (battleIndex === -1) return undefined;
+
+  const now = new Date().toISOString();
+  battles[battleIndex] = {
+    ...battles[battleIndex],
+    ...updates,
+    updatedAt: now,
+  };
+
+  await updateCampaignBattles(campaignId, battles);
+  return battles[battleIndex];
+}
+
+/**
+ * Delete a battle
+ */
+export async function deleteBattle(
+  campaignId: string,
+  battleId: string
+): Promise<boolean> {
+  const campaign = await getCampaign(campaignId);
+  if (!campaign) return false;
+
+  const battles = campaign.battles ?? [];
+  const filtered = battles.filter(b => b.id !== battleId);
+  if (filtered.length === battles.length) return false;
+
+  await updateCampaignBattles(campaignId, filtered);
+  return true;
 }

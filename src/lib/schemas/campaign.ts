@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { BattleStateSchema } from './battle';
+
 // =====================================================================================
 // Campaign Frame Schemas
 // =====================================================================================
@@ -319,6 +321,7 @@ export const CampaignSchema = z.object({
   locations: z.array(CampaignLocationSchema).default([]),
   quests: z.array(CampaignQuestSchema).default([]),
   storyThreads: z.array(StoryThreadSchema).default([]),
+  battles: z.array(BattleStateSchema).default([]),
   sessionPrepChecklist: z
     .array(
       z.object({
@@ -378,3 +381,6 @@ export type CampaignLocation = z.infer<typeof CampaignLocationSchema>;
 export type CampaignQuest = z.infer<typeof CampaignQuestSchema>;
 export type StoryThread = z.infer<typeof StoryThreadSchema>;
 export type Campaign = z.infer<typeof CampaignSchema>;
+
+// Re-export battle types for convenience
+export type { BattleState } from './battle';

@@ -1,20 +1,26 @@
 /* eslint-disable max-lines */
 // GM Tools Panel - collection of GM helper tools
 
+import { Link } from '@tanstack/react-router';
 import {
   ArrowRight,
   Dice5,
+  ExternalLink,
   Flag,
   HelpCircle,
   Lightbulb,
   MapPin,
+  Pause,
+  Play,
   Plus,
+  Swords,
   Target,
   Trash2,
   User,
 } from 'lucide-react';
 import { useState } from 'react';
 
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -29,6 +35,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import type { BattleState } from '@/lib/schemas/battle';
 
 const RANDOM_NPC_NAMES = [
   'Aldric the Bold',
@@ -97,12 +104,14 @@ export interface ChecklistItem {
 
 interface GMToolsPanelProps {
   campaignId: string;
+  battles: BattleState[];
   onAddNPC: (name: string) => void | Promise<void>;
   onAddLocation: (name: string) => void | Promise<void>;
   onAddQuest: (title: string) => void | Promise<void>;
   onNavigateToTab: (tab: string) => void;
   checklistItems: ChecklistItem[];
   onChecklistChange: (items: ChecklistItem[]) => void;
+  onDeleteBattle: (battleId: string) => void | Promise<void>;
 }
 
 type RandomResultType = 'npc' | 'location' | 'quest';
@@ -382,14 +391,157 @@ function ChecklistCard({
   );
 }
 
+interface BattleTrackerCardProps {
+  campaignId: string;
+  battles: BattleState[];
+  onDeleteBattle: (battleId: string) => void | Promise<void>;
+}
+
+function BattleTrackerCard({
+  campaignId,
+  battles,
+  onDeleteBattle,
+}: BattleTrackerCardProps) {
+  const statusColors: Record<string, string> = {
+    planning:
+      'bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-500/30',
+    active:
+      'bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/30',
+    paused:
+      'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-500/30',
+    completed:
+      'bg-gray-500/20 text-gray-700 dark:text-gray-400 border-gray-500/30',
+  };
+
+  const statusIcons: Record<string, React.ReactNode> = {
+    planning: <Swords className="h-3 w-3" />,
+    active: <Play className="h-3 w-3" />,
+    paused: <Pause className="h-3 w-3" />,
+    completed: <Flag className="h-3 w-3" />,
+  };
+
+  return (
+    <Card className="md:col-span-2">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Swords className="h-4 w-4 text-red-500" />
+          Battle Tracker
+        </CardTitle>
+        <CardDescription>Manage encounters for your campaign</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <Link
+          to="/gm/campaigns/$id/battle"
+          params={{ id: campaignId }}
+          search={{ tab: 'gm-tools' }}
+          className="block"
+        >
+          <Button className="w-full gap-2">
+            <Plus className="h-4 w-4" />
+            New Combat Encounter
+          </Button>
+        </Link>
+
+        {battles.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+              Saved Encounters ({battles.length})
+            </p>
+            <div className="max-h-[200px] space-y-2 overflow-y-auto pr-1">
+              {battles.map(battle => (
+                <div
+                  key={battle.id}
+                  className="group hover:bg-muted/50 flex items-center justify-between rounded-lg border p-2 transition-colors"
+                >
+                  <Link
+                    to="/gm/campaigns/$id/battle"
+                    params={{ id: campaignId }}
+                    search={{ tab: 'gm-tools', battleId: battle.id }}
+                    className="min-w-0 flex-1"
+                  >
+                    <div className="flex items-center gap-2">
+                      <p className="truncate text-sm font-medium">
+                        {battle.name}
+                      </p>
+                      <Badge
+                        variant="outline"
+                        className={`shrink-0 text-xs ${statusColors[battle.status]}`}
+                      >
+                        {statusIcons[battle.status]}
+                        <span className="ml-1 capitalize">{battle.status}</span>
+                      </Badge>
+                    </div>
+                    <div className="text-muted-foreground mt-0.5 flex items-center gap-3 text-xs">
+                      <span>{battle.characters.length} PCs</span>
+                      <span>·</span>
+                      <span>{battle.adversaries.length} Adversaries</span>
+                      {battle.environments.length > 0 && (
+                        <>
+                          <span>·</span>
+                          <span>{battle.environments.length} Env</span>
+                        </>
+                      )}
+                    </div>
+                  </Link>
+                  <div className="ml-2 flex shrink-0 items-center gap-1">
+                    <Link
+                      to="/gm/campaigns/$id/battle"
+                      params={{ id: campaignId }}
+                      search={{ tab: 'gm-tools', battleId: battle.id }}
+                    >
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Open Battle</TooltipContent>
+                      </Tooltip>
+                    </Link>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7 opacity-0 transition-opacity group-hover:opacity-100"
+                          onClick={() => onDeleteBattle(battle.id)}
+                        >
+                          <Trash2 className="text-destructive h-3 w-3" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Delete Battle</TooltipContent>
+                    </Tooltip>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {battles.length === 0 && (
+          <p className="text-muted-foreground py-2 text-center text-sm">
+            No saved encounters yet. Start a new combat to track your battles!
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export function GMToolsPanel({
-  campaignId: _campaignId,
+  campaignId,
+  battles,
   onAddNPC,
   onAddLocation,
   onAddQuest,
   onNavigateToTab,
   checklistItems,
   onChecklistChange,
+  onDeleteBattle,
 }: GMToolsPanelProps) {
   const [randomResult, setRandomResult] = useState<RandomResult | null>(null);
   const [improv, setImprov] = useState<string>('');
@@ -441,6 +593,11 @@ export function GMToolsPanel({
 
   return (
     <div className="grid gap-6 md:grid-cols-2">
+      <BattleTrackerCard
+        campaignId={campaignId}
+        battles={battles}
+        onDeleteBattle={onDeleteBattle}
+      />
       <RandomGeneratorsCard
         randomResult={randomResult}
         adding={adding}

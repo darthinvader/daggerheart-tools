@@ -35,6 +35,7 @@ import {
   addLocation,
   addNPC,
   addQuest,
+  deleteBattle,
   getCampaign,
   updateCampaign,
   updateCampaignFrame,
@@ -124,6 +125,7 @@ type CampaignTabsProps = {
   onAddLocation: (name: string) => void | Promise<void>;
   onAddQuest: (title: string) => void | Promise<void>;
   onChecklistChange: (items: Campaign['sessionPrepChecklist']) => void;
+  onDeleteBattle: (battleId: string) => void | Promise<void>;
 };
 
 function CampaignLoadingState() {
@@ -243,6 +245,15 @@ function useCampaignDetailState(id: string) {
     []
   );
 
+  const handleDeleteBattle = useCallback(
+    async (battleId: string) => {
+      if (!campaign) return;
+      await deleteBattle(campaign.id, battleId);
+      await loadCampaign();
+    },
+    [campaign, loadCampaign]
+  );
+
   return {
     campaign,
     loading,
@@ -253,6 +264,7 @@ function useCampaignDetailState(id: string) {
     handleSave,
     handleNameChange,
     handleChecklistChange,
+    handleDeleteBattle,
     handleAddNPCFromGenerator,
     handleAddLocationFromGenerator,
     handleAddQuestFromGenerator,
@@ -276,6 +288,7 @@ function CampaignTabs({
   onAddLocation,
   onAddQuest,
   onChecklistChange,
+  onDeleteBattle,
 }: CampaignTabsProps) {
   return (
     <Tabs value={tab} onValueChange={setActiveTab}>
@@ -348,12 +361,14 @@ function CampaignTabs({
       />
       <GMToolsTabContent
         campaignId={campaign.id}
+        battles={campaign.battles ?? []}
         sessionPrepChecklist={campaign.sessionPrepChecklist}
         onAddNPC={onAddNPC}
         onAddLocation={onAddLocation}
         onAddQuest={onAddQuest}
         onNavigateToTab={setActiveTab}
         onChecklistChange={onChecklistChange}
+        onDeleteBattle={onDeleteBattle}
       />
       <SessionZeroTabContent frame={frame} updateFrame={updateFrame} />
       <PlayersTabContent
@@ -394,6 +409,7 @@ function CampaignDetailPage() {
     handleSave,
     handleNameChange,
     handleChecklistChange,
+    handleDeleteBattle,
     handleAddNPCFromGenerator,
     handleAddLocationFromGenerator,
     handleAddQuestFromGenerator,
@@ -475,6 +491,7 @@ function CampaignDetailPage() {
         onAddLocation={handleAddLocationFromGenerator}
         onAddQuest={handleAddQuestFromGenerator}
         onChecklistChange={handleChecklistChange}
+        onDeleteBattle={handleDeleteBattle}
       />
     </div>
   );

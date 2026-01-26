@@ -28,6 +28,7 @@ import {
   CAMPAIGN_THEME_OPTIONS,
   CAMPAIGN_TONE_OPTIONS,
 } from '@/lib/data/campaign-frames';
+import type { BattleState } from '@/lib/schemas/battle';
 import type {
   Campaign,
   CampaignFrame,
@@ -425,27 +426,32 @@ const DEFAULT_CHECKLIST_ITEMS: ChecklistItem[] = [
 
 interface GMToolsTabProps {
   campaignId: string;
+  battles: BattleState[];
   sessionPrepChecklist: ChecklistItem[] | undefined;
   onAddNPC: (name: string) => void | Promise<void>;
   onAddLocation: (name: string) => void | Promise<void>;
   onAddQuest: (title: string) => void | Promise<void>;
   onNavigateToTab: (tab: string) => void;
   onChecklistChange: (items: ChecklistItem[]) => void;
+  onDeleteBattle: (battleId: string) => void | Promise<void>;
 }
 
 export function GMToolsTabContent({
   campaignId,
+  battles,
   sessionPrepChecklist,
   onAddNPC,
   onAddLocation,
   onAddQuest,
   onNavigateToTab,
   onChecklistChange,
+  onDeleteBattle,
 }: GMToolsTabProps) {
   return (
     <TabsContent value="gm-tools" className="space-y-6">
       <GMToolsPanel
         campaignId={campaignId}
+        battles={battles}
         onAddNPC={onAddNPC}
         onAddLocation={onAddLocation}
         onAddQuest={onAddQuest}
@@ -456,6 +462,7 @@ export function GMToolsTabContent({
             : DEFAULT_CHECKLIST_ITEMS
         }
         onChecklistChange={onChecklistChange}
+        onDeleteBattle={onDeleteBattle}
       />
     </TabsContent>
   );
