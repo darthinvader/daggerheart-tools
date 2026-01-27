@@ -1,28 +1,19 @@
 import {
   BookOpen,
-  ChevronDown,
-  ChevronUp,
-  Crosshair,
+  Check,
   Filter,
-  Heart,
-  Plus,
+  PlusCircle,
   Search,
-  Shield,
-  Skull,
-  Swords,
+  Trash2,
   X,
-  Zap,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
+import { AdversarySelectCard } from '@/components/battle-tracker/adversary-card-shared';
+import { AdversaryDetailPanel } from '@/components/battle-tracker/adversary-detail-panel';
+import { CustomAdversaryBuilder } from '@/components/battle-tracker/custom-adversary-builder';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
 import {
   Dialog,
   DialogContent,
@@ -39,13 +30,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import type { Adversary } from '@/lib/schemas/adversaries';
+import { cn } from '@/lib/utils';
 
 const TIER_OPTIONS = ['All', '1', '2', '3', '4'] as const;
 const ROLE_OPTIONS = [
@@ -61,193 +47,6 @@ const ROLE_OPTIONS = [
   'Standard',
   'Support',
 ] as const;
-
-// ============== Style Constants ==============
-
-const TIER_COLORS: Record<string, string> = {
-  '1': 'bg-green-500/20 text-green-700 dark:text-green-400',
-  '2': 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400',
-  '3': 'bg-orange-500/20 text-orange-700 dark:text-orange-400',
-  '4': 'bg-red-500/20 text-red-700 dark:text-red-400',
-};
-
-const ROLE_ICONS: Record<string, string> = {
-  Bruiser: '💪',
-  Horde: '👥',
-  Leader: '👑',
-  Minion: '🐀',
-  Ranged: '🎯',
-  Skulk: '🥷',
-  Social: '💬',
-  Solo: '⭐',
-  Standard: '⚔️',
-  Support: '🛡️',
-};
-
-const FEATURE_TYPE_COLORS: Record<string, string> = {
-  Passive: 'bg-gray-500/20 text-gray-700 dark:text-gray-300',
-  Action: 'bg-green-500/20 text-green-700 dark:text-green-400',
-  Reaction: 'bg-blue-500/20 text-blue-700 dark:text-blue-400',
-  Feature: 'bg-purple-500/20 text-purple-700 dark:text-purple-400',
-};
-
-// ============== Helper Components ==============
-
-function AdversaryBadge({ adversary }: { adversary: Adversary }) {
-  const thresholdDisplay =
-    typeof adversary.thresholds === 'string'
-      ? adversary.thresholds
-      : `${adversary.thresholds.major}/${adversary.thresholds.severe}${adversary.thresholds.massive ? `/${adversary.thresholds.massive}` : ''}`;
-
-  return (
-    <div className="mt-1 flex flex-wrap gap-1">
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Badge className={`text-xs ${TIER_COLORS[adversary.tier] ?? ''}`}>
-            T{adversary.tier}
-          </Badge>
-        </TooltipTrigger>
-        <TooltipContent>Tier {adversary.tier}</TooltipContent>
-      </Tooltip>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Badge variant="outline" className="text-xs">
-            <Crosshair className="mr-1 size-3" />
-            {adversary.difficulty}
-          </Badge>
-        </TooltipTrigger>
-        <TooltipContent>Difficulty to hit</TooltipContent>
-      </Tooltip>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Badge
-            variant="outline"
-            className="text-xs text-red-600 dark:text-red-400"
-          >
-            <Heart className="mr-1 size-3" />
-            {adversary.hp}
-          </Badge>
-        </TooltipTrigger>
-        <TooltipContent>Hit Points</TooltipContent>
-      </Tooltip>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Badge
-            variant="outline"
-            className="text-xs text-purple-600 dark:text-purple-400"
-          >
-            <Zap className="mr-1 size-3" />
-            {adversary.stress}
-          </Badge>
-        </TooltipTrigger>
-        <TooltipContent>Stress</TooltipContent>
-      </Tooltip>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Badge
-            variant="outline"
-            className="text-xs text-amber-600 dark:text-amber-400"
-          >
-            <Shield className="mr-1 size-3" />
-            {thresholdDisplay}
-          </Badge>
-        </TooltipTrigger>
-        <TooltipContent>Damage Thresholds (Major/Severe)</TooltipContent>
-      </Tooltip>
-    </div>
-  );
-}
-
-function AdversaryAttackPanel({ attack }: { attack: Adversary['attack'] }) {
-  return (
-    <div className="rounded-md border border-red-500/20 bg-red-500/10 p-2">
-      <p className="flex items-center gap-1 text-xs font-medium text-red-700 dark:text-red-400">
-        <Swords className="size-3" /> Attack
-      </p>
-      <p className="text-foreground mt-1 text-sm font-medium">{attack.name}</p>
-      <p className="text-muted-foreground text-xs">
-        {attack.modifier} · {attack.range} · {attack.damage}
-      </p>
-    </div>
-  );
-}
-
-function AdversaryThresholdsPanel({
-  thresholds,
-}: {
-  thresholds: Adversary['thresholds'];
-}) {
-  return (
-    <div className="rounded-md border border-blue-500/20 bg-blue-500/10 p-2">
-      <p className="flex items-center gap-1 text-xs font-medium text-blue-700 dark:text-blue-400">
-        <Shield className="size-3" /> Damage Thresholds
-      </p>
-      <p className="text-foreground mt-1 text-sm font-medium">
-        {typeof thresholds === 'string' ? (
-          thresholds
-        ) : (
-          <>
-            Major:{' '}
-            <span className="text-yellow-600 dark:text-yellow-400">
-              {thresholds.major}
-            </span>
-            {' / '}Severe:{' '}
-            <span className="text-red-600 dark:text-red-400">
-              {thresholds.severe}
-            </span>
-            {thresholds.massive && (
-              <>
-                {' '}
-                / Massive:{' '}
-                <span className="text-purple-600 dark:text-purple-400">
-                  {thresholds.massive}
-                </span>
-              </>
-            )}
-          </>
-        )}
-      </p>
-    </div>
-  );
-}
-
-type AdversaryFeature =
-  | string
-  | { name: string; type?: string; description?: string };
-
-function getFeatureType(f: AdversaryFeature): string {
-  if (typeof f === 'string') {
-    if (f.includes('Passive')) return 'Passive';
-    if (f.includes('Action')) return 'Action';
-    if (f.includes('Reaction')) return 'Reaction';
-    return 'Feature';
-  }
-  return f.type ?? 'Feature';
-}
-
-function AdversaryFeatureItem({ feature }: { feature: AdversaryFeature }) {
-  const featureName =
-    typeof feature === 'string' ? feature.split(' - ')[0] : feature.name;
-  const featureDesc =
-    typeof feature === 'string' ? feature : feature.description;
-  const featureType = getFeatureType(feature);
-
-  return (
-    <li className="bg-background/50 rounded-md border p-2">
-      <div className="mb-1 flex items-center gap-2">
-        <Badge
-          className={`text-xs ${FEATURE_TYPE_COLORS[featureType] ?? FEATURE_TYPE_COLORS.Feature}`}
-        >
-          {featureType}
-        </Badge>
-        <span className="text-sm font-medium">{featureName}</span>
-      </div>
-      <p className="text-muted-foreground text-xs leading-relaxed">
-        {featureDesc}
-      </p>
-    </li>
-  );
-}
 
 const GM_COMBAT_TIPS = [
   {
@@ -296,9 +95,24 @@ export function AddAdversaryDialogEnhanced({
   const [showFilters, setShowFilters] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  // Selection state: Map of adversary name → quantity to add
+  const [selections, setSelections] = useState<Map<string, number>>(new Map());
+  // Detail panel state
+  const [viewingAdversary, setViewingAdversary] = useState<Adversary | null>(
+    null
+  );
+  // Custom builder state
+  const [showCustomBuilder, setShowCustomBuilder] = useState(false);
+  // Custom adversaries added during this session
+  const [customAdversaries, setCustomAdversaries] = useState<Adversary[]>([]);
+
+  // Combine SRD adversaries with custom ones
+  const allAdversaries = useMemo(() => {
+    return [...customAdversaries, ...adversaries];
+  }, [adversaries, customAdversaries]);
 
   const filtered = useMemo(() => {
-    return adversaries.filter(adv => {
+    return allAdversaries.filter(adv => {
       const matchesSearch =
         search === '' ||
         adv.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -307,7 +121,7 @@ export function AddAdversaryDialogEnhanced({
       const matchesRole = roleFilter === 'All' || adv.role === roleFilter;
       return matchesSearch && matchesTier && matchesRole;
     });
-  }, [adversaries, search, tierFilter, roleFilter]);
+  }, [allAdversaries, search, tierFilter, roleFilter]);
 
   const activeFilters =
     (tierFilter !== 'All' ? 1 : 0) + (roleFilter !== 'All' ? 1 : 0);
@@ -318,21 +132,101 @@ export function AddAdversaryDialogEnhanced({
     setSearch('');
   };
 
+  const updateSelection = useCallback((name: string, delta: number) => {
+    setSelections(prev => {
+      const next = new Map(prev);
+      const current = next.get(name) ?? 0;
+      const newCount = current + delta;
+      if (newCount <= 0) {
+        next.delete(name);
+      } else {
+        next.set(name, newCount);
+      }
+      return next;
+    });
+  }, []);
+
+  const removeSelection = useCallback((name: string) => {
+    setSelections(prev => {
+      const next = new Map(prev);
+      next.delete(name);
+      return next;
+    });
+  }, []);
+
+  const clearAllSelections = useCallback(() => {
+    setSelections(new Map());
+  }, []);
+
+  const totalSelected = useMemo(() => {
+    let total = 0;
+    selections.forEach(count => {
+      total += count;
+    });
+    return total;
+  }, [selections]);
+
+  const handleAddSelected = useCallback(() => {
+    selections.forEach((count, name) => {
+      const adv = allAdversaries.find(a => a.name === name);
+      if (adv) {
+        for (let i = 0; i < count; i++) {
+          onAdd(adv);
+        }
+      }
+    });
+    setSelections(new Map());
+    onOpenChange(false);
+  }, [selections, allAdversaries, onAdd, onOpenChange]);
+
+  const handleOpenChange = useCallback(
+    (open: boolean) => {
+      if (!open) {
+        setSelections(new Map());
+        setViewingAdversary(null);
+      }
+      onOpenChange(open);
+    },
+    [onOpenChange]
+  );
+
+  const handleAddCustomAdversary = useCallback((adversary: Adversary) => {
+    setCustomAdversaries(prev => [adversary, ...prev]);
+    // Auto-select the custom adversary
+    setSelections(prev => {
+      const next = new Map(prev);
+      next.set(adversary.name, 1);
+      return next;
+    });
+    setShowCustomBuilder(false);
+  }, []);
+
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[90vh] max-w-7xl flex-col gap-0 p-0">
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogContent className="flex max-h-[90vh] max-w-[95vw] flex-col gap-0 p-0">
         <DialogHeader className="border-b px-6 py-4">
           <div className="flex items-center justify-between">
-            <DialogTitle className="text-xl">Add Adversary</DialogTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowHelp(!showHelp)}
-              className="gap-1.5"
-            >
-              <BookOpen className="size-4" />
-              {showHelp ? 'Hide' : 'GM'} Help
-            </Button>
+            <DialogTitle className="text-xl">Add Adversaries</DialogTitle>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowCustomBuilder(true)}
+                className="gap-1.5"
+              >
+                <PlusCircle className="size-4" />
+                Custom
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowHelp(!showHelp)}
+                className="gap-1.5"
+              >
+                <BookOpen className="size-4" />
+                {showHelp ? 'Hide' : 'GM'} Help
+              </Button>
+            </div>
           </div>
         </DialogHeader>
 
@@ -413,18 +307,41 @@ export function AddAdversaryDialogEnhanced({
                 <p className="text-muted-foreground mb-3 text-sm">
                   {filtered.length} adversar
                   {filtered.length === 1 ? 'y' : 'ies'} found
+                  {totalSelected > 0 && (
+                    <span className="text-primary ml-2 font-medium">
+                      · {totalSelected} selected
+                    </span>
+                  )}
                 </p>
-                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <div
+                  className={cn(
+                    'grid gap-3 sm:grid-cols-2',
+                    viewingAdversary ? 'lg:grid-cols-2' : 'lg:grid-cols-3'
+                  )}
+                >
                   {filtered.map(adv => (
-                    <AdversaryResultCard
+                    <div
                       key={adv.name}
-                      adversary={adv}
-                      isExpanded={expandedId === adv.name}
-                      onToggle={() =>
-                        setExpandedId(expandedId === adv.name ? null : adv.name)
-                      }
-                      onAdd={() => onAdd(adv)}
-                    />
+                      onClick={() => setViewingAdversary(adv)}
+                      className={cn(
+                        'cursor-pointer rounded-lg transition-all',
+                        viewingAdversary?.name === adv.name &&
+                          'ring-primary ring-2'
+                      )}
+                    >
+                      <AdversarySelectCard
+                        adversary={adv}
+                        isExpanded={expandedId === adv.name}
+                        selectedCount={selections.get(adv.name) ?? 0}
+                        onToggleExpand={() =>
+                          setExpandedId(
+                            expandedId === adv.name ? null : adv.name
+                          )
+                        }
+                        onIncrement={() => updateSelection(adv.name, 1)}
+                        onDecrement={() => updateSelection(adv.name, -1)}
+                      />
+                    </div>
                   ))}
                 </div>
                 {filtered.length === 0 && (
@@ -434,10 +351,65 @@ export function AddAdversaryDialogEnhanced({
                 )}
               </div>
             </ScrollArea>
+
+            {/* Selection Panel */}
+            {totalSelected > 0 && (
+              <div className="bg-muted/50 border-t p-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-muted-foreground text-sm font-medium">
+                    Selected:
+                  </span>
+                  <div className="flex flex-1 flex-wrap gap-2">
+                    {Array.from(selections.entries()).map(([name, count]) => (
+                      <Badge
+                        key={name}
+                        variant="secondary"
+                        className="gap-1.5 py-1 pr-1 pl-2"
+                      >
+                        <span>
+                          {name} ×{count}
+                        </span>
+                        <button
+                          onClick={() => removeSelection(name)}
+                          className="hover:bg-muted rounded p-0.5"
+                        >
+                          <X className="size-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearAllSelections}
+                    >
+                      <Trash2 className="mr-1 size-3" />
+                      Clear
+                    </Button>
+                    <Button size="sm" onClick={handleAddSelected}>
+                      <Check className="mr-1 size-4" />
+                      Add {totalSelected} Adversar
+                      {totalSelected === 1 ? 'y' : 'ies'}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
+          {/* Adversary Detail Panel */}
+          {viewingAdversary && (
+            <AdversaryDetailPanel
+              adversary={viewingAdversary}
+              onClose={() => setViewingAdversary(null)}
+              onAdd={() => updateSelection(viewingAdversary.name, 1)}
+              canAdd
+            />
+          )}
+
           {/* Help Sidebar */}
-          {showHelp && (
+          {showHelp && !viewingAdversary && (
             <div className="hidden w-80 flex-col border-l md:flex">
               <div className="bg-muted/30 border-b px-4 py-3">
                 <h3 className="font-semibold">Combat Quick Reference</h3>
@@ -461,105 +433,12 @@ export function AddAdversaryDialogEnhanced({
           )}
         </div>
       </DialogContent>
+
+      <CustomAdversaryBuilder
+        isOpen={showCustomBuilder}
+        onOpenChange={setShowCustomBuilder}
+        onSave={handleAddCustomAdversary}
+      />
     </Dialog>
-  );
-}
-
-function AdversaryResultCard({
-  adversary,
-  isExpanded,
-  onToggle,
-  onAdd,
-}: {
-  adversary: Adversary;
-  isExpanded: boolean;
-  onToggle: () => void;
-  onAdd: () => void;
-}) {
-  return (
-    <Card className="overflow-hidden transition-shadow hover:shadow-md">
-      <CardContent className="p-0">
-        <Collapsible open={isExpanded} onOpenChange={onToggle}>
-          <div className="flex items-start gap-2 p-3">
-            <CollapsibleTrigger asChild>
-              <button className="flex min-w-0 flex-1 items-center gap-3 text-left">
-                <div className="min-w-0 flex-1">
-                  <div className="flex min-w-0 items-center gap-2">
-                    <span className="shrink-0 text-lg" title={adversary.role}>
-                      {ROLE_ICONS[adversary.role] ?? '⚔️'}
-                    </span>
-                    <p className="truncate text-sm font-semibold">
-                      {adversary.name}
-                    </p>
-                  </div>
-                  <AdversaryBadge adversary={adversary} />
-                </div>
-                {isExpanded ? (
-                  <ChevronUp className="text-muted-foreground size-4 shrink-0" />
-                ) : (
-                  <ChevronDown className="text-muted-foreground size-4 shrink-0" />
-                )}
-              </button>
-            </CollapsibleTrigger>
-            <Button size="icon" onClick={onAdd} className="size-8 shrink-0">
-              <Plus className="size-4" />
-            </Button>
-          </div>
-          <CollapsibleContent>
-            <Separator />
-            <div className="bg-muted/30 space-y-3 p-3 pt-3">
-              <p className="text-muted-foreground text-sm">
-                {adversary.description}
-              </p>
-
-              {adversary.motivesAndTactics && (
-                <div className="rounded-md border border-amber-500/20 bg-amber-500/10 p-2">
-                  <p className="flex items-center gap-1 text-xs font-medium text-amber-700 dark:text-amber-400">
-                    <Skull className="size-3" /> Motives & Tactics
-                  </p>
-                  <p className="text-muted-foreground mt-1 text-xs">
-                    {adversary.motivesAndTactics}
-                  </p>
-                </div>
-              )}
-
-              <div className="grid gap-2 sm:grid-cols-2">
-                <AdversaryAttackPanel attack={adversary.attack} />
-                <AdversaryThresholdsPanel thresholds={adversary.thresholds} />
-              </div>
-
-              {adversary.experiences && adversary.experiences.length > 0 && (
-                <div>
-                  <p className="mb-1 text-xs font-medium">Experiences</p>
-                  <div className="flex flex-wrap gap-1">
-                    {adversary.experiences.map((exp, i) => (
-                      <Badge key={i} variant="secondary" className="text-xs">
-                        {typeof exp === 'string'
-                          ? exp
-                          : `${exp.name} +${exp.bonus}`}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {adversary.features.length > 0 && (
-                <div>
-                  <p className="mb-2 flex items-center gap-1 text-xs font-medium">
-                    <Zap className="size-3" /> Features (
-                    {adversary.features.length})
-                  </p>
-                  <ul className="space-y-2">
-                    {adversary.features.map((f, i) => (
-                      <AdversaryFeatureItem key={i} feature={f} />
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-      </CardContent>
-    </Card>
   );
 }

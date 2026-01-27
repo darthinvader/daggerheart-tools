@@ -11,6 +11,7 @@ import {
   Square,
   Swords,
   User,
+  Wand2,
 } from 'lucide-react';
 import type { MutableRefObject } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -23,6 +24,7 @@ import {
   EditEnvironmentDialog,
 } from '@/components/battle-tracker/edit-dialogs';
 import { AddEnvironmentDialogEnhanced } from '@/components/battle-tracker/environment-dialog-enhanced';
+import { FightBuilderWizard } from '@/components/battle-tracker/fight-builder-wizard';
 import { GMResourcesBar } from '@/components/battle-tracker/gm-resources-bar';
 import {
   AdversaryCard,
@@ -58,6 +60,7 @@ import {
   getCampaign,
   updateBattle,
 } from '@/features/campaigns/campaign-storage';
+import type { Adversary } from '@/lib/schemas/adversaries';
 import type { BattleState } from '@/lib/schemas/battle';
 import type { Campaign } from '@/lib/schemas/campaign';
 
@@ -257,6 +260,8 @@ function BattleDialogs({
   existingCharacterIds,
   selectedAdversary,
   selectedEnvironment,
+  isFightBuilderOpen,
+  currentCharacterCount,
   onAddCampaignCharacter,
   onAddManualCharacter,
   onAddAdversary,
@@ -265,6 +270,8 @@ function BattleDialogs({
   onSaveEnvironment,
   onCloseAdversaryEdit,
   onCloseEnvironmentEdit,
+  onCloseFightBuilder,
+  onAddFromWizard,
 }: {
   dialogState: ReturnType<typeof useBattleDialogState>['dialogState'];
   dialogActions: ReturnType<typeof useBattleDialogState>['dialogActions'];
@@ -272,6 +279,8 @@ function BattleDialogs({
   existingCharacterIds: string[];
   selectedAdversary: AdversaryTracker | null;
   selectedEnvironment: EnvironmentTracker | null;
+  isFightBuilderOpen: boolean;
+  currentCharacterCount: number;
   onAddCampaignCharacter: (tracker: CharacterTracker) => void;
   onAddManualCharacter: () => void;
   onAddAdversary: (
@@ -288,6 +297,10 @@ function BattleDialogs({
   onSaveEnvironment: (updates: Partial<EnvironmentTracker>) => void;
   onCloseAdversaryEdit: () => void;
   onCloseEnvironmentEdit: () => void;
+  onCloseFightBuilder: () => void;
+  onAddFromWizard: (
+    adversaries: { adversary: Adversary; count: number }[]
+  ) => void;
 }) {
   return (
     <>
@@ -328,6 +341,13 @@ function BattleDialogs({
         isOpen={selectedEnvironment !== null}
         onOpenChange={open => !open && onCloseEnvironmentEdit()}
         onSave={onSaveEnvironment}
+      />
+
+      <FightBuilderWizard
+        isOpen={isFightBuilderOpen}
+        onOpenChange={open => !open && onCloseFightBuilder()}
+        onAddAdversaries={onAddFromWizard}
+        currentCharacterCount={currentCharacterCount}
       />
     </>
   );
@@ -516,6 +536,7 @@ function CampaignBattlePage() {
     useState<AdversaryTracker | null>(null);
   const [editingEnvironment, setEditingEnvironment] =
     useState<EnvironmentTracker | null>(null);
+  const [isFightBuilderOpen, setIsFightBuilderOpen] = useState(false);
 
   const savedBattleIdsRef = useSavedBattleIds(campaign);
   const campaignBattleRef = useRef<ReturnType<typeof useCampaignBattle> | null>(
@@ -630,6 +651,7 @@ function CampaignBattlePage() {
         onSave={handleManualSave}
         onAddCharacter={() => dialogActions.setIsAddCharacterOpen(true)}
         onAddAdversary={() => dialogActions.setIsAddAdversaryOpen(true)}
+        onOpenFightBuilder={() => setIsFightBuilderOpen(true)}
       />
 
       <GMResourcesBar
@@ -661,6 +683,8 @@ function CampaignBattlePage() {
         existingCharacterIds={existingCharacterIds}
         selectedAdversary={editingAdversary}
         selectedEnvironment={editingEnvironment}
+        isFightBuilderOpen={isFightBuilderOpen}
+        currentCharacterCount={rosterState.characters.length}
         onAddCampaignCharacter={handleAddCampaignCharacter}
         onAddManualCharacter={handleAddCharacter}
         onAddAdversary={handleAddAdversary}
@@ -669,6 +693,14 @@ function CampaignBattlePage() {
         onSaveEnvironment={handleSaveEnvironment}
         onCloseAdversaryEdit={() => setEditingAdversary(null)}
         onCloseEnvironmentEdit={() => setEditingEnvironment(null)}
+        onCloseFightBuilder={() => setIsFightBuilderOpen(false)}
+        onAddFromWizard={adversaries => {
+          for (const { adversary, count } of adversaries) {
+            for (let i = 0; i < count; i++) {
+              handleAddAdversary(adversary);
+            }
+          }
+        }}
       />
     </div>
   );
@@ -852,6 +884,7 @@ interface CampaignBattleHeaderProps {
   onSave: () => void;
   onAddCharacter: () => void;
   onAddAdversary: () => void;
+  onOpenFightBuilder: () => void;
 }
 
 function CampaignBattleHeader({
@@ -867,6 +900,7 @@ function CampaignBattleHeader({
   onSave,
   onAddCharacter,
   onAddAdversary,
+  onOpenFightBuilder,
 }: CampaignBattleHeaderProps) {
   const isAutoSaveEnabled = status === 'active' || status === 'paused';
 
@@ -960,6 +994,9 @@ function CampaignBattleHeader({
             </Button>
             <Button size="sm" variant="outline" onClick={onAddAdversary}>
               <Swords className="mr-1.5 size-4" /> Adversary
+            </Button>
+            <Button size="sm" onClick={onOpenFightBuilder} className="gap-1">
+              <Wand2 className="size-4" /> Fight Builder
             </Button>
           </div>
         </div>

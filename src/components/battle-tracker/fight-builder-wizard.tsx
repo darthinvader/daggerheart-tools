@@ -6,6 +6,7 @@ import {
   HelpCircle,
   Minus,
   Plus,
+  PlusCircle,
   Scale,
   Sparkles,
   Swords,
@@ -15,6 +16,12 @@ import {
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
+import {
+  AdversarySelectCard,
+  ROLE_POINT_COSTS,
+} from '@/components/battle-tracker/adversary-card-shared';
+import { AdversaryDetailPanel } from '@/components/battle-tracker/adversary-detail-panel';
+import { CustomAdversaryBuilder } from '@/components/battle-tracker/custom-adversary-builder';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -45,21 +52,8 @@ import type { Adversary } from '@/lib/schemas/adversaries';
 import { cn } from '@/lib/utils';
 
 // =====================================================================================
-// Role Point Costs (from Daggerheart SRD)
+// Difficulty Modifiers
 // =====================================================================================
-
-const ROLE_POINT_COSTS: Record<string, number> = {
-  Solo: 4,
-  Leader: 3,
-  Bruiser: 2,
-  Standard: 2,
-  Support: 2,
-  Ranged: 2,
-  Skulk: 2,
-  Social: 2,
-  Horde: 1,
-  Minion: 1,
-};
 
 const DIFFICULTY_MODIFIERS: Record<
   string,
@@ -357,81 +351,6 @@ function BattlePointsCard({
   );
 }
 
-interface AdversarySelectionCardProps {
-  adversary: Adversary;
-  selected: SelectedAdversary | undefined;
-  remainingPoints: number;
-  onAdd: () => void;
-  onRemove: () => void;
-}
-
-function AdversarySelectionCard({
-  adversary,
-  selected,
-  remainingPoints,
-  onAdd,
-  onRemove,
-}: AdversarySelectionCardProps) {
-  const cost = ROLE_POINT_COSTS[adversary.role] ?? 2;
-  const canAfford = remainingPoints >= cost;
-
-  return (
-    <Card
-      className={cn(
-        'cursor-pointer transition-all hover:shadow-md',
-        selected && 'ring-2 ring-amber-400',
-        !canAfford && !selected && 'opacity-50'
-      )}
-      onClick={() => canAfford && onAdd()}
-    >
-      <CardContent className="p-3">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0 flex-1">
-            <p className="truncate font-medium">{adversary.name}</p>
-            <p className="text-muted-foreground text-xs">
-              {adversary.role} · D{adversary.difficulty}
-            </p>
-          </div>
-          <Badge
-            variant="outline"
-            className={cn(
-              'shrink-0',
-              cost >= 3 && 'border-red-400 text-red-500',
-              cost === 2 && 'border-amber-400 text-amber-500',
-              cost <= 1 && 'border-emerald-400 text-emerald-500'
-            )}
-          >
-            {cost}pt
-          </Badge>
-        </div>
-        <div className="text-muted-foreground mt-2 flex gap-2 text-xs">
-          <span>HP {adversary.hp}</span>
-          <span>·</span>
-          <span>Stress {adversary.stress}</span>
-        </div>
-        {selected && (
-          <div className="mt-2 flex items-center justify-between rounded bg-amber-500/20 px-2 py-1">
-            <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
-              ×{selected.count} selected
-            </span>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="size-5"
-              onClick={e => {
-                e.stopPropagation();
-                onRemove();
-              }}
-            >
-              <Minus className="size-3" />
-            </Button>
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
 function getSelectedCount(selectedAdversaries: SelectedAdversary[]): number {
   return selectedAdversaries.reduce((sum, entry) => sum + entry.count, 0);
 }
@@ -699,30 +618,50 @@ function AdversaryListGrid({
   filteredAdversaries,
   selectedAdversaries,
   remainingPoints,
+  viewingAdversary,
   onAdd,
   onRemove,
+  onView,
 }: {
   filteredAdversaries: Adversary[];
   selectedAdversaries: SelectedAdversary[];
   remainingPoints: number;
+  viewingAdversary: Adversary | null;
   onAdd: (adversary: Adversary) => void;
   onRemove: (name: string) => void;
+  onView: (adversary: Adversary) => void;
 }) {
   return (
     <ScrollArea className="min-h-0 flex-1">
-      <div className="grid gap-2 p-4 sm:grid-cols-2 lg:grid-cols-3">
-        {filteredAdversaries.map(adv => (
-          <AdversarySelectionCard
-            key={adv.name}
-            adversary={adv}
-            selected={selectedAdversaries.find(
-              s => s.adversary.name === adv.name
-            )}
-            remainingPoints={remainingPoints}
-            onAdd={() => onAdd(adv)}
-            onRemove={() => onRemove(adv.name)}
-          />
-        ))}
+      <div className="grid gap-2 p-4 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
+        {filteredAdversaries.map(adv => {
+          const selected = selectedAdversaries.find(
+            s => s.adversary.name === adv.name
+          );
+          const cost = ROLE_POINT_COSTS[adv.role] ?? 2;
+          const canAfford =
+            remainingPoints >= cost || (selected?.count ?? 0) > 0;
+          const isViewing = viewingAdversary?.name === adv.name;
+          return (
+            <div
+              key={adv.name}
+              className={cn(
+                'cursor-pointer rounded-lg transition-all',
+                isViewing && 'ring-primary ring-2 ring-offset-2'
+              )}
+              onClick={() => onView(adv)}
+            >
+              <AdversarySelectCard
+                adversary={adv}
+                selectedCount={selected?.count ?? 0}
+                canAfford={canAfford}
+                showExpandedDetails={false}
+                onIncrement={() => onAdd(adv)}
+                onDecrement={() => onRemove(adv.name)}
+              />
+            </div>
+          );
+        })}
       </div>
     </ScrollArea>
   );
@@ -801,6 +740,10 @@ export function FightBuilderWizard({
   >([]);
   const [search, setSearch] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(true);
+  const [viewingAdversary, setViewingAdversary] = useState<Adversary | null>(
+    null
+  );
+  const [showCustomBuilder, setShowCustomBuilder] = useState(false);
 
   // Calculations
   const baseBattlePoints = 3 * pcCount + 2;
@@ -864,22 +807,43 @@ export function FightBuilderWizard({
     setShowSuggestions(true);
   };
 
+  const handleAddCustomAdversary = (adversary: Adversary) => {
+    addAdversary(adversary);
+    setShowCustomBuilder(false);
+  };
+
+  // Calculate if we can afford the viewing adversary
+  const canAffordViewing = viewingAdversary
+    ? remainingPoints >= (ROLE_POINT_COSTS[viewingAdversary.role] ?? 2)
+    : false;
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[90vh] max-w-7xl flex-col gap-0 p-0">
+      <DialogContent className="flex max-h-[90vh] max-w-[95vw] flex-col gap-0 p-0">
         <DialogHeader className="border-b bg-gradient-to-r from-amber-500/10 to-orange-500/10 px-6 py-4">
-          <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-full bg-amber-500/20">
-              <Wand2 className="size-5 text-amber-500" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-full bg-amber-500/20">
+                <Wand2 className="size-5 text-amber-500" />
+              </div>
+              <div>
+                <DialogTitle className="text-xl">
+                  Fight Builder Wizard
+                </DialogTitle>
+                <p className="text-muted-foreground text-sm">
+                  Build balanced encounters using Battle Points
+                </p>
+              </div>
             </div>
-            <div>
-              <DialogTitle className="text-xl">
-                Fight Builder Wizard
-              </DialogTitle>
-              <p className="text-muted-foreground text-sm">
-                Build balanced encounters using Battle Points
-              </p>
-            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={() => setShowCustomBuilder(true)}
+            >
+              <PlusCircle className="size-4" />
+              Custom Adversary
+            </Button>
           </div>
         </DialogHeader>
 
@@ -921,10 +885,20 @@ export function FightBuilderWizard({
               filteredAdversaries={filteredAdversaries}
               selectedAdversaries={selectedAdversaries}
               remainingPoints={remainingPoints}
+              viewingAdversary={viewingAdversary}
               onAdd={addAdversary}
               onRemove={removeAdversary}
+              onView={setViewingAdversary}
             />
           </div>
+
+          {/* Detail Panel */}
+          <AdversaryDetailPanel
+            adversary={viewingAdversary}
+            onClose={() => setViewingAdversary(null)}
+            onAdd={addAdversary}
+            canAdd={canAffordViewing}
+          />
         </div>
 
         <WizardFooter
@@ -938,6 +912,13 @@ export function FightBuilderWizard({
           disableConfirm={selectedAdversaries.length === 0}
         />
       </DialogContent>
+
+      {/* Custom Adversary Builder */}
+      <CustomAdversaryBuilder
+        isOpen={showCustomBuilder}
+        onOpenChange={setShowCustomBuilder}
+        onSave={handleAddCustomAdversary}
+      />
     </Dialog>
   );
 }
