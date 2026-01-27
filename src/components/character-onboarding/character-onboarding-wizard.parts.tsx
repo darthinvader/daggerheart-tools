@@ -1,4 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
+import { Check, Circle } from 'lucide-react';
 import type { ChangeEvent, MutableRefObject, ReactNode } from 'react';
 import {
   type Dispatch,
@@ -8,7 +9,6 @@ import {
   useRef,
   useState,
 } from 'react';
-
 import { AncestrySelector } from '@/components/ancestry-selector';
 import { ClassSelector } from '@/components/class-selector';
 import { CommunitySelector } from '@/components/community-selector';
@@ -25,7 +25,6 @@ import type { DemoHandlers, DemoState } from '@/components/demo/demo-types';
 import { EquipmentDisplay } from '@/components/equipment';
 import { ExperiencesCreationEditor } from '@/components/experiences';
 import { IdentityForm } from '@/components/identity-editor';
-import { InventoryDisplay } from '@/components/inventory';
 import { LoadoutSelector } from '@/components/loadout-selector';
 import { TraitAllocationEditor } from '@/components/traits';
 import { Badge } from '@/components/ui/badge';
@@ -37,6 +36,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Select,
   SelectContent,
@@ -44,12 +44,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
 import {
   type ClassDraft,
   type ClassSelection,
   DEFAULT_CLASS_DRAFT,
 } from '@/lib/schemas/class-selection';
+import { cn } from '@/lib/utils';
 
 import {
   getFirstIncompleteStepId,
@@ -349,19 +349,11 @@ function EquipmentStep({
   handlers: DemoHandlers;
 }) {
   return (
-    <div className="space-y-6">
-      <EquipmentDisplay
-        equipment={state.equipment}
-        onChange={handlers.setEquipment}
-        allowedTiers={['1']}
-      />
-      <Separator />
-      <InventoryDisplay
-        inventory={state.inventory}
-        onChange={handlers.setInventory}
-        allowedTiers={['1']}
-      />
-    </div>
+    <EquipmentDisplay
+      equipment={state.equipment}
+      onChange={handlers.setEquipment}
+      allowedTiers={['1']}
+    />
   );
 }
 
@@ -533,31 +525,81 @@ export function WizardBody({
   );
 }
 
+export function WizardSidebar({
+  steps,
+  stepIndex,
+  completion,
+  onGoToStep,
+}: {
+  steps: WizardStep[];
+  stepIndex: number;
+  completion: Record<OnboardingStepId, boolean>;
+  onGoToStep: (index: number) => void;
+}) {
+  return (
+    <ScrollArea className="bg-muted/30 hidden w-64 border-l md:block">
+      <div className="space-y-1 p-4">
+        <h3 className="text-muted-foreground mb-3 text-sm font-semibold">
+          Progress
+        </h3>
+        {steps.map((step, index) => {
+          const isComplete = completion[step.id];
+          const isCurrent = index === stepIndex;
+
+          return (
+            <button
+              key={step.id}
+              type="button"
+              onClick={() => onGoToStep(index)}
+              className={cn(
+                'flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors',
+                isCurrent && 'bg-primary/10 text-primary font-medium',
+                !isCurrent && 'hover:bg-muted'
+              )}
+            >
+              {isComplete ? (
+                <Check className="h-4 w-4 shrink-0 text-green-500" />
+              ) : (
+                <Circle className="text-muted-foreground h-4 w-4 shrink-0" />
+              )}
+              <span className="truncate">{step.title}</span>
+            </button>
+          );
+        })}
+      </div>
+    </ScrollArea>
+  );
+}
+
 export function WizardFooter({
   stepIndex,
   stepError,
   isLastStep,
   canProceed,
+  allComplete,
   onBack,
   onSkipWizard,
   onSkipStep,
   onNext,
+  onFinish,
 }: {
   stepIndex: number;
   stepError: string | null;
   isLastStep: boolean;
   canProceed: boolean;
+  allComplete: boolean;
   onBack: () => void;
   onSkipWizard: () => void;
   onSkipStep: () => void;
   onNext: () => void;
+  onFinish: () => void;
 }) {
   return (
     <DialogFooter className="border-t p-4">
       <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
           <Button variant="ghost" onClick={onSkipWizard}>
-            Skip Wizard
+            Skip Setup
           </Button>
         </div>
         <div className="text-destructive text-sm">{stepError ?? ''}</div>
@@ -567,12 +609,22 @@ export function WizardFooter({
               Back
             </Button>
           )}
-          <Button variant="outline" onClick={onSkipStep}>
-            Skip Step
-          </Button>
-          <Button onClick={onNext} disabled={!canProceed}>
-            {isLastStep ? 'Finish' : 'Continue'}
-          </Button>
+          {!isLastStep && (
+            <Button variant="outline" onClick={onSkipStep}>
+              Skip Step
+            </Button>
+          )}
+          {!isLastStep && (
+            <Button onClick={onNext} disabled={!canProceed}>
+              Continue
+            </Button>
+          )}
+          {isLastStep && !allComplete && (
+            <Button onClick={onNext} disabled={!canProceed}>
+              Mark Complete
+            </Button>
+          )}
+          {allComplete && <Button onClick={onFinish}>Apply Character</Button>}
         </div>
       </div>
     </DialogFooter>
@@ -735,15 +787,26 @@ export function useWizardState({
 
   const handleSkipStep = useCallback(() => {
     if (isLastStep) {
-      onFinish();
       return;
     }
     setManualStepIndex(Math.min(steps.length - 1, stepIndex + 1));
-  }, [isLastStep, onFinish, stepIndex, steps.length]);
+  }, [isLastStep, stepIndex, steps.length]);
+
+  const goToStep = useCallback(
+    (index: number) => {
+      setManualStepIndex(Math.max(0, Math.min(steps.length - 1, index)));
+    },
+    [steps.length]
+  );
 
   const resetStepIndex = useCallback(() => {
     setManualStepIndex(null);
   }, []);
+
+  const allComplete = useMemo(
+    () => steps.every(step => completion[step.id]),
+    [steps, completion]
+  );
 
   return {
     completion,
@@ -753,9 +816,11 @@ export function useWizardState({
     isLastStep,
     canProceed,
     steps,
+    allComplete,
     handleBack,
     handleNext,
     handleSkipStep,
+    goToStep,
     resetStepIndex,
   };
 }

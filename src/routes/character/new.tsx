@@ -1,11 +1,13 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { ArrowLeft, Check, type LucideIcon } from 'lucide-react';
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { ArrowLeft, Check, LogIn, type LucideIcon } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
 import { ClassSelector } from '@/components/class-selector';
 import { LoadoutSelector } from '@/components/loadout-selector';
+import { useAuth } from '@/components/providers';
 import { ReviewStep } from '@/components/shared/review-step';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { createCharacter, createDefaultCharacter } from '@/lib/api/characters';
 import { characterQueryKeys } from '@/lib/api/query-client';
@@ -90,6 +92,7 @@ function StepIndicator({ currentStep }: { currentStep: CreationStep }) {
 }
 
 function NewCharacter() {
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [step, setStep] = useState<CreationStep>('class');
@@ -180,6 +183,26 @@ function NewCharacter() {
           Build your hero step by step.
         </p>
       </div>
+
+      {!isAuthLoading && !isAuthenticated && (
+        <Alert className="mb-6 border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950">
+          <LogIn className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+          <AlertTitle className="text-amber-800 dark:text-amber-200">
+            Account Required
+          </AlertTitle>
+          <AlertDescription className="text-amber-700 dark:text-amber-300">
+            You need to{' '}
+            <Link
+              to="/login"
+              className="font-medium underline hover:no-underline"
+            >
+              sign in
+            </Link>{' '}
+            to create and save characters. Characters created without an account
+            cannot be saved.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <StepIndicator currentStep={step} />
 

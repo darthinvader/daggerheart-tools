@@ -1,6 +1,7 @@
 import { Plus, Sparkles, X, Zap } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
+import { CONDITION_SUGGESTIONS } from '@/components/identity-editor/trait-suggestions';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +23,76 @@ interface ConditionsDisplayProps {
   readOnly?: boolean;
 }
 
+function ConditionInput({
+  conditions,
+  onAdd,
+  onClose,
+}: {
+  conditions: ConditionsState;
+  onAdd: (condition: string) => void;
+  onClose: () => void;
+}) {
+  const [newCondition, setNewCondition] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(true);
+
+  const filteredSuggestions = CONDITION_SUGGESTIONS.filter(
+    s =>
+      s.toLowerCase().includes(newCondition.toLowerCase()) &&
+      !conditions.items.some(item => item.toLowerCase() === s.toLowerCase())
+  );
+
+  const handleAdd = (name?: string) => {
+    const conditionName = name ?? newCondition;
+    if (!conditionName.trim()) return;
+    const trimmed = conditionName.trim();
+    if (conditions.items.includes(trimmed)) return;
+    onAdd(trimmed);
+    setNewCondition('');
+    onClose();
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex gap-2">
+        <Input
+          placeholder="Condition..."
+          value={newCondition}
+          onChange={e => {
+            setNewCondition(e.target.value);
+            setShowSuggestions(true);
+          }}
+          onFocus={() => setShowSuggestions(true)}
+          onKeyDown={e => e.key === 'Enter' && handleAdd()}
+          className="h-8 text-sm"
+          autoFocus
+        />
+        <Button
+          size="sm"
+          onClick={() => handleAdd()}
+          disabled={!newCondition.trim()}
+          className="h-8"
+        >
+          Add
+        </Button>
+      </div>
+      {showSuggestions && filteredSuggestions.length > 0 && (
+        <div className="max-h-48 overflow-auto rounded-md border">
+          {filteredSuggestions.map(suggestion => (
+            <button
+              key={suggestion}
+              type="button"
+              className="hover:bg-muted w-full px-3 py-1 text-left text-sm"
+              onClick={() => handleAdd(suggestion)}
+            >
+              {suggestion}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ConditionsDetailedDisplay({
   conditions,
   onAdd,
@@ -31,17 +102,7 @@ function ConditionsDetailedDisplay({
   onAdd?: (condition: string) => void;
   onRemove?: (idx: number) => void;
 }) {
-  const [newCondition, setNewCondition] = useState('');
   const [popoverOpen, setPopoverOpen] = useState(false);
-
-  const handleAdd = useCallback(() => {
-    if (!newCondition.trim() || !onAdd) return;
-    const trimmed = newCondition.trim();
-    if (conditions.items.includes(trimmed)) return;
-    onAdd(trimmed);
-    setNewCondition('');
-    setPopoverOpen(false);
-  }, [newCondition, conditions.items, onAdd]);
 
   if (conditions.items.length === 0) {
     return (
@@ -59,24 +120,12 @@ function ConditionsDetailedDisplay({
                 Add Condition
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-64 p-2">
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Condition..."
-                  value={newCondition}
-                  onChange={e => setNewCondition(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleAdd()}
-                  className="h-8 text-sm"
-                />
-                <Button
-                  size="sm"
-                  onClick={handleAdd}
-                  disabled={!newCondition.trim()}
-                  className="h-8"
-                >
-                  Add
-                </Button>
-              </div>
+            <PopoverContent className="w-72 p-2">
+              <ConditionInput
+                conditions={conditions}
+                onAdd={onAdd}
+                onClose={() => setPopoverOpen(false)}
+              />
             </PopoverContent>
           </Popover>
         )}
@@ -113,24 +162,12 @@ function ConditionsDetailedDisplay({
               Add
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-64 p-2" align="start">
-            <div className="flex gap-2">
-              <Input
-                placeholder="Condition..."
-                value={newCondition}
-                onChange={e => setNewCondition(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleAdd()}
-                className="h-8 text-sm"
-              />
-              <Button
-                size="sm"
-                onClick={handleAdd}
-                disabled={!newCondition.trim()}
-                className="h-8"
-              >
-                Add
-              </Button>
-            </div>
+          <PopoverContent className="w-72 p-2" align="start">
+            <ConditionInput
+              conditions={conditions}
+              onAdd={onAdd}
+              onClose={() => setPopoverOpen(false)}
+            />
           </PopoverContent>
         </Popover>
       )}

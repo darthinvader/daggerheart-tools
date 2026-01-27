@@ -1,8 +1,17 @@
 // Campaigns list page with inline campaign card components
 
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { ChevronDown, FolderOpen, Plus, RotateCcw, Trash2 } from 'lucide-react';
+import {
+  ChevronDown,
+  FolderOpen,
+  LogIn,
+  Plus,
+  RotateCcw,
+  Trash2,
+} from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
+import { useAuth } from '@/components/providers';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -300,6 +309,7 @@ export const Route = createFileRoute('/gm/campaigns/')({
 });
 
 function CampaignsList() {
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [trashedCampaigns, setTrashedCampaigns] = useState<TrashedCampaign[]>(
     []
@@ -406,13 +416,32 @@ function CampaignsList() {
             Manage your campaign frames and settings
           </p>
         </div>
-        <Button asChild>
+        <Button asChild disabled={!isAuthenticated}>
           <Link to="/gm/campaigns/new">
             <Plus className="mr-2 h-4 w-4" />
             New Campaign
           </Link>
         </Button>
       </div>
+
+      {!isAuthLoading && !isAuthenticated && (
+        <Alert className="mb-6 border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950">
+          <LogIn className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+          <AlertTitle className="text-amber-800 dark:text-amber-200">
+            Account Required
+          </AlertTitle>
+          <AlertDescription className="text-amber-700 dark:text-amber-300">
+            You need to{' '}
+            <Link
+              to="/login"
+              className="font-medium underline hover:no-underline"
+            >
+              sign in
+            </Link>{' '}
+            to create and manage campaigns.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <CampaignGrid
         campaigns={campaigns}

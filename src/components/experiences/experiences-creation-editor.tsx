@@ -1,6 +1,7 @@
 import { Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
+import { EXPERIENCE_SUGGESTIONS } from '@/components/identity-editor/trait-suggestions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn, generateId } from '@/lib/utils';
@@ -19,15 +20,27 @@ export function ExperiencesCreationEditor({
   className,
 }: ExperiencesCreationEditorProps) {
   const [newName, setNewName] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const items = experiences?.items ?? [];
 
-  const addExperience = () => {
-    if (!newName.trim()) return;
+  const filteredSuggestions = EXPERIENCE_SUGGESTIONS.filter(
+    s =>
+      s.toLowerCase().includes(newName.toLowerCase()) &&
+      !items.some(item => item.name.toLowerCase() === s.toLowerCase())
+  );
+
+  const addExperience = (name?: string) => {
+    const experienceName = name ?? newName;
+    if (!experienceName.trim()) return;
     if (items.length >= 2) return;
     onChange({
-      items: [...items, { id: generateId(), name: newName.trim(), value: 2 }],
+      items: [
+        ...items,
+        { id: generateId(), name: experienceName.trim(), value: 2 },
+      ],
     });
     setNewName('');
+    setShowSuggestions(false);
   };
 
   const updateExperience = (id: string, name: string) => {
@@ -48,15 +61,36 @@ export function ExperiencesCreationEditor({
 
   return (
     <div className={cn('space-y-4', className)}>
-      <div className="flex gap-2">
-        <Input
-          placeholder="Experience name..."
-          value={newName}
-          onChange={e => setNewName(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && addExperience()}
-        />
+      <div className="relative flex gap-2">
+        <div className="relative flex-1">
+          <Input
+            placeholder="Experience name..."
+            value={newName}
+            onChange={e => {
+              setNewName(e.target.value);
+              setShowSuggestions(true);
+            }}
+            onFocus={() => setShowSuggestions(true)}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+            onKeyDown={e => e.key === 'Enter' && addExperience()}
+          />
+          {showSuggestions && filteredSuggestions.length > 0 && (
+            <div className="bg-popover absolute z-10 mt-1 max-h-96 w-full overflow-auto rounded-md border shadow-md">
+              {filteredSuggestions.map(suggestion => (
+                <button
+                  key={suggestion}
+                  type="button"
+                  className="hover:bg-muted w-full px-3 py-1 text-left text-sm"
+                  onMouseDown={() => addExperience(suggestion)}
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
         <Button
-          onClick={addExperience}
+          onClick={() => addExperience()}
           disabled={!newName.trim() || items.length >= 2}
         >
           <Plus className="mr-1 size-4" />

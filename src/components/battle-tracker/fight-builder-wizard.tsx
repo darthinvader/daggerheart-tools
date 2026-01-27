@@ -383,7 +383,7 @@ function WizardSidebar({
   isOverBudget: boolean;
 }) {
   return (
-    <div className="bg-muted/30 w-80 shrink-0 border-r p-4">
+    <div className="bg-muted/30 w-80 shrink-0 overflow-y-auto border-r p-4">
       <div className="space-y-6">
         <div className="space-y-3">
           <Label className="flex items-center gap-2 text-sm font-semibold">
@@ -828,7 +828,7 @@ export function FightBuilderWizard({
               </div>
               <div>
                 <DialogTitle className="text-xl">
-                  Fight Builder Wizard
+                  Fight Builder Setup
                 </DialogTitle>
                 <p className="text-muted-foreground text-sm">
                   Build balanced encounters using Battle Points
@@ -847,7 +847,7 @@ export function FightBuilderWizard({
           </div>
         </DialogHeader>
 
-        <div className="flex flex-1 overflow-hidden">
+        <div className="flex min-h-0 flex-1 overflow-hidden">
           <WizardSidebar
             pcCount={pcCount}
             onPcCountChange={setPcCount}
@@ -863,7 +863,7 @@ export function FightBuilderWizard({
             isOverBudget={isOverBudget}
           />
 
-          <div className="flex flex-1 flex-col overflow-hidden">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
             <AdversarySearchBar
               search={search}
               onSearchChange={setSearch}

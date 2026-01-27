@@ -1067,60 +1067,6 @@ export function AdversaryCard({
         features={effectiveFeatures}
         hasOverride={hasFeaturesOverride}
       />
-
-      <QuickDamageButtons adversary={adversary} onChange={onChange} />
-    </div>
-  );
-}
-
-function QuickDamageButtons({
-  adversary,
-  onChange,
-}: {
-  adversary: AdversaryTracker;
-  onChange: (id: string, fn: (a: AdversaryTracker) => AdversaryTracker) => void;
-}) {
-  return (
-    <div className="mt-2 flex gap-1">
-      <Button
-        size="sm"
-        variant="outline"
-        className="h-7 flex-1 text-xs"
-        onClick={() =>
-          onChange(adversary.id, a => ({
-            ...a,
-            hp: { ...a.hp, current: Math.max(0, a.hp.current - 1) },
-          }))
-        }
-      >
-        -1 HP
-      </Button>
-      <Button
-        size="sm"
-        variant="outline"
-        className="h-7 flex-1 text-xs"
-        onClick={() =>
-          onChange(adversary.id, a => ({
-            ...a,
-            hp: { ...a.hp, current: Math.max(0, a.hp.current - 5) },
-          }))
-        }
-      >
-        -5 HP
-      </Button>
-      <Button
-        size="sm"
-        variant="outline"
-        className="h-7 flex-1 text-xs"
-        onClick={() =>
-          onChange(adversary.id, a => ({
-            ...a,
-            stress: { ...a.stress, current: Math.max(0, a.stress.current - 1) },
-          }))
-        }
-      >
-        -1 Str
-      </Button>
     </div>
   );
 }

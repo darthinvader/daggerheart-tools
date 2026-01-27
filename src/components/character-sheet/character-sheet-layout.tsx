@@ -73,6 +73,7 @@ export function CharacterSheetLayout({
         />
         <CharacterSheetHeader
           characterName={state.identity.name || 'New Character'}
+          characterTitle={state.identity.calling}
           level={state.progression.currentLevel}
           readOnly={readOnly}
           isSaving={isSaving}
@@ -170,12 +171,14 @@ function CharacterOnboardingSection({
 
 function CharacterSheetHeader({
   characterName,
+  characterTitle,
   level,
   readOnly,
   isSaving,
   lastSaved,
 }: {
   characterName: string;
+  characterTitle?: string;
   level: number;
   readOnly: boolean;
   isSaving: boolean;
@@ -191,9 +194,19 @@ function CharacterSheetHeader({
           </Link>
         </Button>
         <div>
-          <h1 className="text-2xl font-bold sm:text-3xl">
-            {characterName || 'Untitled Character'}
-          </h1>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-2xl font-bold sm:text-3xl">
+              {characterName || 'Untitled Character'}
+            </h1>
+            {characterTitle && (
+              <Badge
+                variant="outline"
+                className="border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-900/30"
+              >
+                {characterTitle}
+              </Badge>
+            )}
+          </div>
           <p className="text-muted-foreground text-sm">
             Level {level} Character
           </p>

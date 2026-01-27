@@ -4,6 +4,9 @@ import { FormField } from '@/components/shared/form-fields';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 
+import { SelectableTraitField } from './selectable-trait-field';
+import { CALLING_SUGGESTIONS, PRONOUNS_SUGGESTIONS } from './trait-suggestions';
+
 interface BasicIdentitySectionProps {
   form: {
     Field: React.ComponentType<{
@@ -37,42 +40,24 @@ export function BasicIdentitySection({ form }: BasicIdentitySectionProps) {
           )}
         </form.Field>
 
-        <form.Field name="pronouns">
-          {(field: AnyFieldApi) => (
-            <FormField
-              label="Pronouns"
-              htmlFor="pronouns"
-              error={field.state.meta.errors.join(', ')}
-            >
-              <Input
-                id="pronouns"
-                placeholder="e.g., they/them, she/her, he/him"
-                value={field.state.value as string}
-                onChange={e => field.handleChange(e.target.value)}
-                onBlur={field.handleBlur}
-              />
-            </FormField>
-          )}
-        </form.Field>
+        <SelectableTraitField
+          form={form}
+          name="pronouns"
+          label="Pronouns"
+          htmlFor="pronouns"
+          placeholder="e.g., they/them, she/her, he/him"
+          suggestions={PRONOUNS_SUGGESTIONS}
+        />
       </div>
 
-      <form.Field name="calling">
-        {(field: AnyFieldApi) => (
-          <FormField
-            label="Calling"
-            htmlFor="calling"
-            error={field.state.meta.errors.join(', ')}
-          >
-            <Input
-              id="calling"
-              placeholder="Your character's calling or title"
-              value={field.state.value as string}
-              onChange={e => field.handleChange(e.target.value)}
-              onBlur={field.handleBlur}
-            />
-          </FormField>
-        )}
-      </form.Field>
+      <SelectableTraitField
+        form={form}
+        name="calling"
+        label="Calling"
+        htmlFor="calling"
+        placeholder="Your character's calling or title"
+        suggestions={CALLING_SUGGESTIONS}
+      />
 
       <form.Field name="description">
         {(field: AnyFieldApi) => (

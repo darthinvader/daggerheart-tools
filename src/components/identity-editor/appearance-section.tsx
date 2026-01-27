@@ -3,6 +3,16 @@ import type { AnyFieldApi } from '@tanstack/react-form';
 import { FormField } from '@/components/shared';
 import { Input } from '@/components/ui/input';
 
+import { SelectableTraitField } from './selectable-trait-field';
+import {
+  BODY_SUGGESTIONS,
+  CLOTHING_SUGGESTIONS,
+  EYE_SUGGESTIONS,
+  HAIR_SUGGESTIONS,
+  MANNERISM_SUGGESTIONS,
+  SKIN_SUGGESTIONS,
+} from './trait-suggestions';
+
 interface FormProps {
   Field: React.ComponentType<{
     name: string;
@@ -56,49 +66,55 @@ export function AppearanceSection({ form }: AppearanceSectionProps) {
       <h2 className="text-xl font-semibold">Physical Appearance</h2>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <TextField
+        <SelectableTraitField
           form={form}
           name="descriptionDetails.eyes"
           label="Eyes"
           htmlFor="eyes"
           placeholder="Eye color and appearance"
+          suggestions={EYE_SUGGESTIONS}
         />
-        <TextField
+        <SelectableTraitField
           form={form}
           name="descriptionDetails.hair"
           label="Hair"
           htmlFor="hair"
           placeholder="Hair style and color"
+          suggestions={HAIR_SUGGESTIONS}
         />
-        <TextField
+        <SelectableTraitField
           form={form}
           name="descriptionDetails.skin"
           label="Skin"
           htmlFor="skin"
           placeholder="Skin tone and features"
+          suggestions={SKIN_SUGGESTIONS}
         />
-        <TextField
+        <SelectableTraitField
           form={form}
           name="descriptionDetails.body"
           label="Body"
           htmlFor="body"
           placeholder="Build and stature"
+          suggestions={BODY_SUGGESTIONS}
         />
       </div>
 
-      <TextField
+      <SelectableTraitField
         form={form}
         name="descriptionDetails.clothing"
         label="Clothing"
         htmlFor="clothing"
         placeholder="Typical attire and style"
+        suggestions={CLOTHING_SUGGESTIONS}
       />
-      <TextField
+      <SelectableTraitField
         form={form}
         name="descriptionDetails.mannerisms"
         label="Mannerisms"
         htmlFor="mannerisms"
         placeholder="Distinctive habits or behaviors"
+        suggestions={MANNERISM_SUGGESTIONS}
       />
       <TextField
         form={form}

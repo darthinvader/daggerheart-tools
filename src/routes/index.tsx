@@ -220,13 +220,13 @@ const mainFeatures: FeatureCard[] = [
   {
     title: 'Character Builder',
     description:
-      'Create characters with an intuitive onboarding wizard. Mobile-friendly tabbed interface with auto-save.',
+      'Create characters with an intuitive onboarding setup. Mobile-friendly tabbed interface with auto-save.',
     icon: Users,
     borderColor: 'border-l-blue-500',
     to: '/character/new',
     badge: 'Start Here',
     features: [
-      { text: 'Guided creation wizard', to: '/character/new' },
+      { text: 'Guided creation setup', to: '/character/new' },
       { text: 'Quick View dashboard', to: '/character' },
       { text: 'Cloud sync & auto-save' },
       { text: 'Level-up progression', to: '/rules/downtime-advancement' },
@@ -641,7 +641,7 @@ function CTASection() {
           Ready to begin your adventure?
         </h2>
         <p className="text-muted-foreground mb-6 px-2 text-sm sm:mb-8 sm:text-base">
-          Create your first character in minutes with our guided wizard, or dive
+          Create your first character in minutes with our guided setup, or dive
           into the reference guides to prepare for your next session.
         </p>
         <div className="flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">

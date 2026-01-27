@@ -230,9 +230,9 @@ export function AddAdversaryDialogEnhanced({
           </div>
         </DialogHeader>
 
-        <div className="flex flex-1 overflow-hidden">
+        <div className="flex min-h-0 flex-1 overflow-hidden">
           {/* Main Content */}
-          <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
             {/* Search and Filters */}
             <div className="space-y-3 border-b p-4">
               <div className="flex items-center gap-2">
@@ -410,14 +410,14 @@ export function AddAdversaryDialogEnhanced({
 
           {/* Help Sidebar */}
           {showHelp && !viewingAdversary && (
-            <div className="hidden w-80 flex-col border-l md:flex">
-              <div className="bg-muted/30 border-b px-4 py-3">
+            <div className="hidden min-h-0 w-80 flex-col border-l md:flex">
+              <div className="bg-muted/30 shrink-0 border-b px-4 py-3">
                 <h3 className="font-semibold">Combat Quick Reference</h3>
                 <p className="text-muted-foreground text-xs">
                   Daggerheart GM tips
                 </p>
               </div>
-              <ScrollArea className="flex-1">
+              <ScrollArea className="min-h-0 flex-1">
                 <div className="space-y-3 p-4">
                   {GM_COMBAT_TIPS.map(tip => (
                     <div key={tip.title} className="space-y-1">

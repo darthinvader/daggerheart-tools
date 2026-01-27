@@ -1,11 +1,13 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { ArrowLeft, ArrowRight, Map } from 'lucide-react';
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { ArrowLeft, ArrowRight, LogIn, Map } from 'lucide-react';
 import { useState } from 'react';
 
 import {
   FrameCard,
   FramePreview,
 } from '@/components/campaign-detail/campaign-frame-components';
+import { useAuth } from '@/components/providers';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -18,6 +20,7 @@ export const Route = createFileRoute('/gm/campaigns/new')({
 });
 
 function NewCampaignPage() {
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const navigate = useNavigate();
   const [selectedFrameId, setSelectedFrameId] = useState<string | null>(null);
   const [campaignName, setCampaignName] = useState('');
@@ -27,7 +30,7 @@ function NewCampaignPage() {
   const selectedFrame = templates.find(f => f.id === selectedFrameId);
 
   const handleCreate = async () => {
-    if (!selectedFrameId) return;
+    if (!selectedFrameId || !isAuthenticated) return;
     setIsCreating(true);
     try {
       const campaign = await createCampaign(
@@ -62,6 +65,26 @@ function NewCampaignPage() {
           after creation.
         </p>
       </div>
+
+      {!isAuthLoading && !isAuthenticated && (
+        <Alert className="mb-6 border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950">
+          <LogIn className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+          <AlertTitle className="text-amber-800 dark:text-amber-200">
+            Account Required
+          </AlertTitle>
+          <AlertDescription className="text-amber-700 dark:text-amber-300">
+            You need to{' '}
+            <Link
+              to="/login"
+              className="font-medium underline hover:no-underline"
+            >
+              sign in
+            </Link>{' '}
+            to create and save campaigns. Campaigns created without an account
+            cannot be saved.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="space-y-4">
@@ -122,7 +145,7 @@ function NewCampaignPage() {
               className="mt-4 w-full"
               size="lg"
               onClick={handleCreate}
-              disabled={isCreating}
+              disabled={isCreating || !isAuthenticated}
             >
               {isCreating ? (
                 'Creating...'

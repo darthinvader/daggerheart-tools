@@ -1,7 +1,6 @@
 import { Link } from '@tanstack/react-router';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 
-import { isOnboardingComplete } from '@/components/character-onboarding';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -85,13 +84,10 @@ export function CharacterSheet({
     isHydrated,
   } = useCharacterSheetWithApi(characterId, { readOnly });
 
-  const onboardingComplete = useMemo(
-    () => isOnboardingComplete(state),
-    [state]
-  );
-
+  // Auto-open wizard if new character, but don't auto-close
+  // once opened - let the user explicitly finish or dismiss
   const shouldAutoOpenOnboarding =
-    isHydrated && isNewCharacter && !onboardingComplete && !isLevelUpOpen;
+    isHydrated && isNewCharacter && !isLevelUpOpen;
   const isOnboardingOpen = shouldAutoOpenOnboarding && !hasDismissedOnboarding;
 
   if (isLoading) {
