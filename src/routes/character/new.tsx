@@ -1,3 +1,4 @@
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { ArrowLeft, Check, type LucideIcon } from 'lucide-react';
 import { useCallback, useState } from 'react';
@@ -6,6 +7,8 @@ import { ClassSelector } from '@/components/class-selector';
 import { LoadoutSelector } from '@/components/loadout-selector';
 import { ReviewStep } from '@/components/shared/review-step';
 import { Button } from '@/components/ui/button';
+import { createCharacter, createDefaultCharacter } from '@/lib/api/characters';
+import { characterQueryKeys } from '@/lib/api/query-client';
 import { Scroll, Sparkles, Swords, Theater } from '@/lib/icons';
 import type { ClassSelection } from '@/lib/schemas/class-selection';
 import type { LoadoutSelection } from '@/lib/schemas/loadout';
@@ -88,11 +91,13 @@ function StepIndicator({ currentStep }: { currentStep: CreationStep }) {
 
 function NewCharacter() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [step, setStep] = useState<CreationStep>('class');
   const [classSelection, setClassSelection] = useState<ClassSelection | null>(
     null
   );
   const [loadout, setLoadout] = useState<LoadoutSelection | null>(null);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   const classDomains = classSelection?.domains ?? [];
 
@@ -114,15 +119,53 @@ function NewCharacter() {
     }
   }, [step]);
 
+  const createMutation = useMutation({
+    mutationFn: async () => {
+      if (!classSelection || !loadout) {
+        throw new Error('Character data is incomplete.');
+      }
+
+      const characterId = generateId();
+      const character = createDefaultCharacter(characterId);
+
+      character.classDraft = {
+        mode: classSelection.mode,
+        className: classSelection.className,
+        subclassName: classSelection.subclassName,
+        homebrewClass: classSelection.homebrewClass,
+      };
+
+      character.domains = {
+        loadout: loadout.activeCards,
+        vault: loadout.vaultCards,
+        creationComplete: loadout.creationComplete,
+      };
+
+      return createCharacter(character);
+    },
+    onSuccess: data => {
+      setCreateError(null);
+      void queryClient.invalidateQueries({
+        queryKey: characterQueryKeys.all,
+      });
+      navigate({
+        to: '/character/$characterId',
+        params: { characterId: data.id },
+        search: { tab: 'quick' },
+      });
+    },
+    onError: error => {
+      setCreateError(
+        error instanceof Error ? error.message : 'Failed to create character.'
+      );
+    },
+  });
+
   const handleCreateCharacter = useCallback(() => {
-    // TODO: Generate character ID and persist to storage
-    const characterId = generateId();
-    // TODO: Persist character data before navigating
-    void classSelection;
-    void loadout;
-    // Navigate to the character page
-    navigate({ to: '/character', search: { id: characterId } });
-  }, [classSelection, loadout, navigate]);
+    if (createMutation.isPending) return;
+    setCreateError(null);
+    createMutation.mutate();
+  }, [createMutation]);
 
   const stepInfo = STEP_INFO[step];
 
@@ -170,11 +213,19 @@ function NewCharacter() {
       )}
 
       {step === 'review' && classSelection && loadout && (
-        <ReviewStep
-          classSelection={classSelection}
-          loadout={loadout}
-          onCreateCharacter={handleCreateCharacter}
-        />
+        <div className="space-y-4">
+          {createError && (
+            <p className="text-destructive text-sm" role="alert">
+              {createError}
+            </p>
+          )}
+          <ReviewStep
+            classSelection={classSelection}
+            loadout={loadout}
+            onCreateCharacter={handleCreateCharacter}
+            isCreating={createMutation.isPending}
+          />
+        </div>
       )}
     </div>
   );

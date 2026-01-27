@@ -15,12 +15,14 @@ interface ReviewStepProps {
   classSelection: ClassSelection;
   loadout: LoadoutSelection;
   onCreateCharacter: () => void;
+  isCreating?: boolean;
 }
 
 export function ReviewStep({
   classSelection,
   loadout,
   onCreateCharacter,
+  isCreating = false,
 }: ReviewStepProps) {
   const classDomains = classSelection.domains;
 
@@ -96,9 +98,14 @@ export function ReviewStep({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button onClick={onCreateCharacter} size="lg" className="w-full">
+          <Button
+            onClick={onCreateCharacter}
+            size="lg"
+            className="w-full"
+            disabled={isCreating}
+          >
             <PartyPopper className="size-4" />
-            Create Character
+            {isCreating ? 'Creating...' : 'Create Character'}
           </Button>
         </CardContent>
       </Card>
