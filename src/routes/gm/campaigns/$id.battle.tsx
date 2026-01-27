@@ -63,8 +63,13 @@ import type { Campaign } from '@/lib/schemas/campaign';
 
 export const Route = createFileRoute('/gm/campaigns/$id/battle')({
   component: CampaignBattlePage,
-  validateSearch: (search: Record<string, unknown>): { battleId?: string } => {
-    return { battleId: search.battleId as string | undefined };
+  validateSearch: (
+    search: Record<string, unknown>
+  ): { battleId?: string; new?: boolean } => {
+    return {
+      battleId: search.battleId as string | undefined,
+      new: search.new === true || search.new === 'true',
+    };
   },
   loader: async ({ params }) => {
     const campaign = await getCampaign(params.id);
@@ -114,6 +119,7 @@ function useAutoSaveBattle({
 function useInitialBattleLoad({
   campaign,
   initialBattleId,
+  isNewBattle,
   campaignId,
   hasLoadedInitialBattle,
   setHasLoadedInitialBattle,
@@ -123,6 +129,7 @@ function useInitialBattleLoad({
 }: {
   campaign: Campaign | null;
   initialBattleId?: string;
+  isNewBattle?: boolean;
   campaignId: string;
   hasLoadedInitialBattle: boolean;
   setHasLoadedInitialBattle: (value: boolean) => void;
@@ -139,7 +146,8 @@ function useInitialBattleLoad({
       battleToLoad = campaign.battles?.find(b => b.id === initialBattleId);
     }
 
-    if (!battleToLoad) {
+    // Only auto-load active/paused battles if not explicitly creating a new one
+    if (!battleToLoad && !isNewBattle) {
       battleToLoad = campaign.battles?.find(
         b => b.status === 'active' || b.status === 'paused'
       );
@@ -168,6 +176,7 @@ function useInitialBattleLoad({
   }, [
     campaign,
     initialBattleId,
+    isNewBattle,
     hasLoadedInitialBattle,
     rosterActions,
     navigate,
@@ -206,6 +215,7 @@ function BattleRosterLayout({
               rosterState.spotlight?.id === char.id &&
               rosterState.spotlight.kind === 'character'
             }
+            useMassiveThreshold={rosterState.useMassiveThreshold}
             onSelect={() => rosterActions.handleSelect(char)}
             onRemove={() => rosterActions.handleRemove(char)}
             onSpotlight={() => rosterActions.handleSpotlight(char)}
@@ -232,6 +242,7 @@ function BattleRosterLayout({
               rosterState.spotlight?.id === adv.id &&
               rosterState.spotlight.kind === 'adversary'
             }
+            useMassiveThreshold={rosterState.useMassiveThreshold}
             onSelect={() => rosterActions.handleSelect(adv)}
             onRemove={() => rosterActions.handleRemove(adv)}
             onSpotlight={() => rosterActions.handleSpotlight(adv)}
@@ -358,17 +369,20 @@ async function createNewBattle({
   campaignId,
   state,
   savedBattleIdsRef,
+  justSavedBattleIdRef,
   campaignBattle,
   navigate,
 }: {
   campaignId: string;
   state: BattleState;
   savedBattleIdsRef: MutableRefObject<Set<string>>;
+  justSavedBattleIdRef: MutableRefObject<string | null>;
   campaignBattle: ReturnType<typeof useCampaignBattle>;
   navigate: ReturnType<typeof useNavigate>;
 }) {
   const created = await createBattle(campaignId, state);
   savedBattleIdsRef.current.add(created.id);
+  justSavedBattleIdRef.current = created.id;
   if (created.id !== state.id) {
     campaignBattle.setBattleId(created.id);
   }
@@ -459,7 +473,7 @@ function useBattleDialogHandlers({
 function CampaignBattlePage() {
   const { campaign: initialCampaign } = Route.useLoaderData();
   const { id: campaignId } = Route.useParams();
-  const { battleId: initialBattleId } = Route.useSearch();
+  const { battleId: initialBattleId, new: isNewBattle } = Route.useSearch();
   const navigate = useNavigate();
 
   const [campaign, setCampaign] = useState<Campaign | null>(
@@ -470,8 +484,17 @@ function CampaignBattlePage() {
   // Track if we've loaded the initial battle to prevent re-loading
   const [hasLoadedInitialBattle, setHasLoadedInitialBattle] = useState(false);
 
-  // Reset state when campaign or battleId changes from route
+  // Track when we saved a battle - don't reset state after our own save
+  const justSavedBattleIdRef = useRef<string | null>(null);
+
+  // Reset state when campaign changes from route (different campaign ID)
+  // Skip reset if we just saved a battle ourselves
   useEffect(() => {
+    if (justSavedBattleIdRef.current === initialBattleId) {
+      // We triggered this navigation after saving - don't reset
+      justSavedBattleIdRef.current = null;
+      return;
+    }
     setCampaign(initialCampaign ?? null);
     setHasLoadedInitialBattle(false);
   }, [initialCampaign, initialBattleId]);
@@ -541,6 +564,7 @@ function CampaignBattlePage() {
             campaignId,
             state,
             savedBattleIdsRef,
+            justSavedBattleIdRef,
             campaignBattle,
             navigate,
           });
@@ -562,6 +586,7 @@ function CampaignBattlePage() {
   useInitialBattleLoad({
     campaign,
     initialBattleId,
+    isNewBattle,
     campaignId,
     hasLoadedInitialBattle,
     setHasLoadedInitialBattle,

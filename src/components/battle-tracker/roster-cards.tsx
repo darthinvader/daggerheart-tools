@@ -252,13 +252,33 @@ function getEffectiveAdversaryThresholds(
   adversary: AdversaryTracker
 ): string | EffectiveThresholds {
   const source = adversary.source;
-  if (typeof source.thresholds === 'string') return source.thresholds;
-  if (!adversary.thresholdsOverride) return source.thresholds;
-  return {
-    major: adversary.thresholdsOverride.major ?? source.thresholds.major,
-    severe: adversary.thresholdsOverride.severe ?? source.thresholds.severe,
-    massive: adversary.thresholdsOverride.massive ?? source.thresholds.massive,
-  };
+
+  // Parse string thresholds (e.g., "8/15") into object with computed massive
+  if (typeof source.thresholds === 'string') {
+    const parts = source.thresholds.split('/').map(s => parseInt(s.trim(), 10));
+    if (parts.length >= 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+      const major = parts[0];
+      const severe = parts[1];
+      const massive = adversary.thresholdsOverride?.massive ?? severe * 2;
+      return {
+        major: adversary.thresholdsOverride?.major ?? major,
+        severe: adversary.thresholdsOverride?.severe ?? severe,
+        massive,
+      };
+    }
+    return source.thresholds; // Return unparseable string as-is
+  }
+
+  const major = adversary.thresholdsOverride?.major ?? source.thresholds.major;
+  const severe =
+    adversary.thresholdsOverride?.severe ?? source.thresholds.severe;
+  // Massive = 2 × severe if not explicitly set
+  const massive =
+    adversary.thresholdsOverride?.massive ??
+    source.thresholds.massive ??
+    (severe != null ? severe * 2 : null);
+
+  return { major, severe, massive };
 }
 
 function getEffectiveAdversaryFeatures(adversary: AdversaryTracker) {
@@ -508,7 +528,7 @@ function useAdversaryRollState({
     ? 0
     : typeof effectiveAttack.modifier === 'number'
       ? effectiveAttack.modifier
-      : parseInt(attackModStr.replace(/[^-\d]/g, '')) || 0;
+      : parseInt(attackModStr.replace(/[^−\-\d]/g, '').replace(/−/g, '-')) || 0;
 
   const {
     count: diceCount,
@@ -648,6 +668,9 @@ function AdversaryHeader({
   isSpotlight,
   effectiveDifficulty,
   hasDifficultyOverride,
+  effectiveThresholds,
+  hasThresholdsOverride,
+  useMassiveThreshold,
   onSelect,
   onSpotlight,
   onRemove,
@@ -657,11 +680,17 @@ function AdversaryHeader({
   isSpotlight: boolean;
   effectiveDifficulty: number;
   hasDifficultyOverride: boolean;
+  effectiveThresholds: string | EffectiveThresholds;
+  hasThresholdsOverride: boolean;
+  useMassiveThreshold?: boolean;
   onSelect: () => void;
   onSpotlight: () => void;
   onRemove: () => void;
   onEdit?: () => void;
 }) {
+  const formatThreshold = (value: number | null | undefined) => value ?? '—';
+  const isStringThresholds = typeof effectiveThresholds === 'string';
+
   return (
     <div className="mb-2 flex items-start justify-between gap-2">
       <button onClick={onSelect} className="min-w-0 flex-1 text-left">
@@ -695,6 +724,32 @@ function AdversaryHeader({
             <TooltipContent>
               Difficulty to hit
               {hasDifficultyOverride && ` (modified from ${source.difficulty})`}
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge
+                variant="outline"
+                className={cn(
+                  'h-5 border-orange-500/50 text-xs text-orange-600 dark:text-orange-400',
+                  hasThresholdsOverride && 'bg-blue-500/20'
+                )}
+              >
+                <Shield className="mr-0.5 size-3" />
+                {isStringThresholds
+                  ? effectiveThresholds
+                  : `${formatThreshold(effectiveThresholds.major)}/${formatThreshold(effectiveThresholds.severe)}${useMassiveThreshold && effectiveThresholds.massive != null ? `/${formatThreshold(effectiveThresholds.massive)}` : ''}`}
+                {hasThresholdsOverride && (
+                  <span className="ml-0.5 text-[10px]">*</span>
+                )}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>
+              Thresholds (Major / Severe
+              {useMassiveThreshold ? ' / Massive' : ''})
+              {hasThresholdsOverride && (
+                <span className="block text-xs text-blue-400">Modified</span>
+              )}
             </TooltipContent>
           </Tooltip>
         </div>
@@ -965,6 +1020,9 @@ export function AdversaryCard({
         isSpotlight={isSpotlight}
         effectiveDifficulty={effectiveDifficulty}
         hasDifficultyOverride={hasDifficultyOverride}
+        effectiveThresholds={effectiveThresholds}
+        hasThresholdsOverride={hasThresholdsOverride}
+        useMassiveThreshold={useMassiveThreshold}
         onSelect={onSelect}
         onSpotlight={onSpotlight}
         onRemove={onRemove}

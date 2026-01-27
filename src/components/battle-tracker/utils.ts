@@ -56,6 +56,31 @@ export function normalizeEnvironmentFeature(
 ): BattleEnvironmentFeature {
   const id = `feature-${index}`;
   if (typeof feature === 'string') {
+    // Parse feature string format: "Feature Name - Type: Description"
+    // or "Feature Name - Description"
+    const dashMatch = feature.match(/^([^-]+)\s*-\s*(.*)$/);
+    if (dashMatch) {
+      const name = dashMatch[1].trim();
+      const rest = dashMatch[2].trim();
+      // Check if the rest starts with a type like "Passive:", "Action:", "Reaction:"
+      const typeMatch = rest.match(/^(Passive|Action|Reaction):\s*(.*)$/i);
+      if (typeMatch) {
+        return {
+          id,
+          name,
+          description: typeMatch[2].trim(),
+          type: typeMatch[1],
+          active: false,
+        };
+      }
+      return {
+        id,
+        name,
+        description: rest,
+        active: false,
+      };
+    }
+    // Fallback: use the whole string as both name and description
     return {
       id,
       name: feature,
@@ -158,15 +183,19 @@ function convertWeapon(weapon?: CharacterRecord['equipment']['primaryWeapon']) {
     damage: formatWeaponDamage(weapon.damage),
     range: weapon.range ?? '',
     traits: weapon.trait ? [weapon.trait] : [],
+    features: weapon.features?.map(f => f.description).filter(Boolean) ?? [],
   };
 }
 
 // Helper: Convert armor to equipment detail
 function convertArmor(armor?: CharacterRecord['equipment']['armor']) {
   if (!armor) return undefined;
+  const allFeatures =
+    armor.features?.map(f => f.description).filter(Boolean) ?? [];
   return {
     name: armor.name,
-    feature: armor.features?.[0]?.description,
+    feature: allFeatures[0],
+    features: allFeatures,
     thresholds: armor.baseThresholds
       ? {
           major: armor.baseThresholds.major ?? 0,
@@ -196,6 +225,9 @@ function convertInventory(slots?: CharacterRecord['inventory']['slots']) {
       name: slot.item?.name ?? 'Unknown Item',
       quantity: slot.quantity ?? 1,
       tier: slot.item?.tier,
+      description: slot.item?.description,
+      category: slot.item?.category,
+      features: slot.item?.features,
     }));
 }
 

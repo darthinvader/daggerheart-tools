@@ -76,6 +76,7 @@ export function useCampaignBattle(
     spotlight: TrackerSelection | null;
     spotlightHistory: TrackerSelection[];
     fearPool: number;
+    useMassiveThreshold: boolean;
   },
   rosterActions: {
     setSpotlight: (selection: TrackerSelection | null) => void;
@@ -86,6 +87,7 @@ export function useCampaignBattle(
       React.SetStateAction<TrackerSelection[]>
     >;
     setFearPool: (value: number) => void;
+    setUseMassiveThreshold: (value: boolean) => void;
   },
   options: UseCampaignBattleOptions = {}
 ): CampaignBattleActions {
@@ -176,6 +178,7 @@ export function useCampaignBattle(
       spotlight: rosterState.spotlight,
       spotlightHistory: rosterState.spotlightHistory,
       fearPool: rosterState.fearPool,
+      useMassiveThreshold: rosterState.useMassiveThreshold,
       notes,
       status,
       createdAt: createdAtRef.current,
@@ -192,9 +195,14 @@ export function useCampaignBattle(
     rosterState.spotlight,
     rosterState.spotlightHistory,
     rosterState.fearPool,
+    rosterState.useMassiveThreshold,
+    rosterState.fearPool,
     notes,
     status,
   ]);
+
+  // Flag to skip the next dirty check (set after markClean or loadBattleState)
+  const skipNextDirtyCheckRef = useRef(false);
 
   // Load a battle state
   const loadBattleState = useCallback(
@@ -213,12 +221,17 @@ export function useCampaignBattle(
       // Fear pool
       rosterActions.setFearPool(state.fearPool);
 
+      // Massive threshold toggle
+      rosterActions.setUseMassiveThreshold(state.useMassiveThreshold ?? false);
+
       // Spotlight - always set, even if null
       rosterActions.setSpotlight(state.spotlight);
 
       // Spotlight history - always set, even if empty
       rosterActions.setSpotlightHistory(state.spotlightHistory ?? []);
 
+      // Skip the dirty check on next effect run and mark clean
+      skipNextDirtyCheckRef.current = true;
       setIsDirty(false);
     },
     [rosterActions]
@@ -250,19 +263,60 @@ export function useCampaignBattle(
     setIsDirty(true);
   }, []);
 
+  // Create a stable hash of roster state for comparison
+  const getRosterHash = useCallback(() => {
+    return JSON.stringify({
+      characters: rosterState.characters,
+      adversaries: rosterState.adversaries,
+      environments: rosterState.environments,
+      spotlight: rosterState.spotlight,
+      spotlightHistory: rosterState.spotlightHistory,
+      fearPool: rosterState.fearPool,
+      useMassiveThreshold: rosterState.useMassiveThreshold,
+    });
+  }, [
+    rosterState.characters,
+    rosterState.adversaries,
+    rosterState.environments,
+    rosterState.spotlight,
+    rosterState.spotlightHistory,
+    rosterState.fearPool,
+    rosterState.useMassiveThreshold,
+  ]);
+
+  // Track the hash of the roster when last marked clean
+  const cleanRosterHashRef = useRef<string>('');
+  const prevRosterHashRef = useRef<string>('');
+
   const markClean = useCallback(() => {
     setIsDirty(false);
+    // Tell the effect to update the clean hash on next run instead of marking dirty
+    skipNextDirtyCheckRef.current = true;
   }, []);
 
-  // Mark dirty when roster changes
-  const prevRosterRef = useRef(rosterState);
+  // Mark dirty when roster content actually changes from clean state
+  const currentHash = getRosterHash();
   /* eslint-disable react-hooks/set-state-in-effect -- Tracking roster changes to mark dirty is a valid pattern */
   useEffect(() => {
-    if (prevRosterRef.current !== rosterState) {
-      setIsDirty(true);
-      prevRosterRef.current = rosterState;
+    // If we were told to skip, just update the clean baseline
+    if (skipNextDirtyCheckRef.current) {
+      skipNextDirtyCheckRef.current = false;
+      cleanRosterHashRef.current = currentHash;
+      prevRosterHashRef.current = currentHash;
+      return;
     }
-  }, [rosterState]);
+
+    // Skip if hash hasn't changed from previous
+    if (prevRosterHashRef.current === currentHash) {
+      return;
+    }
+    prevRosterHashRef.current = currentHash;
+
+    // Only mark dirty if content differs from clean state
+    if (cleanRosterHashRef.current !== currentHash) {
+      setIsDirty(true);
+    }
+  }, [currentHash]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   // Auto-save debounced callback - only when battle is active or paused

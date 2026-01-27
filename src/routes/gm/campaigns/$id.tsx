@@ -196,21 +196,28 @@ function useCampaignLoader(id: string) {
 function useGmToolsTabReload(
   tab: TabValue,
   loading: boolean,
+  hasChildRoute: boolean,
   reloadCampaignData: () => Promise<void>
 ) {
   const prevTabRef = useRef<TabValue | null>(null);
+  const wasChildRouteRef = useRef(false);
 
   useEffect(() => {
-    if (
+    const comingFromOtherTab =
       tab === 'gm-tools' &&
       prevTabRef.current !== null &&
-      prevTabRef.current !== 'gm-tools' &&
-      !loading
-    ) {
+      prevTabRef.current !== 'gm-tools';
+
+    const comingBackFromChildRoute =
+      tab === 'gm-tools' && !hasChildRoute && wasChildRouteRef.current;
+
+    if ((comingFromOtherTab || comingBackFromChildRoute) && !loading) {
       void reloadCampaignData();
     }
+
     prevTabRef.current = tab;
-  }, [tab, loading, reloadCampaignData]);
+    wasChildRouteRef.current = hasChildRoute;
+  }, [tab, loading, hasChildRoute, reloadCampaignData]);
 }
 
 function useCampaignAutoSave(
@@ -264,12 +271,16 @@ function useGeneratorHandler<TValue>(
   );
 }
 
-function useCampaignDetailState(id: string, tab: TabValue) {
+function useCampaignDetailState(
+  id: string,
+  tab: TabValue,
+  hasChildRoute: boolean
+) {
   const { campaign, setCampaign, loading, reloadCampaignData } =
     useCampaignLoader(id);
   const [saving, setSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
-  useGmToolsTabReload(tab, loading, reloadCampaignData);
+  useGmToolsTabReload(tab, loading, hasChildRoute, reloadCampaignData);
 
   const updateFrame = useCallback(
     (updates: Partial<CampaignFrame>) => {
@@ -529,7 +540,7 @@ function CampaignDetailPage() {
     handleAddNPCFromGenerator,
     handleAddLocationFromGenerator,
     handleAddQuestFromGenerator,
-  } = useCampaignDetailState(id, tab);
+  } = useCampaignDetailState(id, tab, hasChildRoute);
 
   const setActiveTab = useCallback(
     (newTab: string) => {

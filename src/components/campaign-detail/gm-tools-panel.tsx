@@ -432,7 +432,7 @@ function BattleTrackerCard({
         <Link
           to="/gm/campaigns/$id/battle"
           params={{ id: campaignId }}
-          search={{ tab: 'gm-tools' }}
+          search={{ tab: 'gm-tools', new: true }}
           className="block"
         >
           <Button className="w-full gap-2">

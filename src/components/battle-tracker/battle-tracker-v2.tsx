@@ -123,6 +123,7 @@ function BattleTrackerLayout({
                 rosterState.spotlight?.id === char.id &&
                 rosterState.spotlight.kind === 'character'
               }
+              useMassiveThreshold={rosterState.useMassiveThreshold}
               onSelect={() => rosterActions.handleSelect(char)}
               onRemove={() => rosterActions.handleRemove(char)}
               onSpotlight={() => rosterActions.handleSpotlight(char)}
@@ -149,6 +150,7 @@ function BattleTrackerLayout({
                 rosterState.spotlight?.id === adv.id &&
                 rosterState.spotlight.kind === 'adversary'
               }
+              useMassiveThreshold={rosterState.useMassiveThreshold}
               onSelect={() => rosterActions.handleSelect(adv)}
               onRemove={() => rosterActions.handleRemove(adv)}
               onSpotlight={() => rosterActions.handleSpotlight(adv)}

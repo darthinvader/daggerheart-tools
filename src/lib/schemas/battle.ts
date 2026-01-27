@@ -100,6 +100,7 @@ export const BattleCharacterSchema = z.object({
           damage: z.string(),
           range: z.string(),
           traits: z.array(z.string()).optional(),
+          features: z.array(z.string()).optional(),
         })
         .optional(),
       secondary: z
@@ -108,12 +109,14 @@ export const BattleCharacterSchema = z.object({
           damage: z.string().optional(),
           range: z.string().optional(),
           traits: z.array(z.string()).optional(),
+          features: z.array(z.string()).optional(),
         })
         .optional(),
       armor: z
         .object({
           name: z.string(),
           feature: z.string().optional(),
+          features: z.array(z.string()).optional(),
           thresholds: z
             .object({
               major: z.number(),
@@ -276,6 +279,7 @@ export const BattleStateSchema = z.object({
   spotlight: BattleSelectionSchema.nullable().default(null),
   spotlightHistory: z.array(BattleSelectionSchema).default([]),
   fearPool: z.number().default(0),
+  useMassiveThreshold: z.boolean().default(false),
   notes: z.string().default(''),
   status: z
     .enum(['planning', 'active', 'paused', 'completed'])

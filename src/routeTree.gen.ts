@@ -35,7 +35,6 @@ import { Route as ReferencesClassesRouteImport } from './routes/references/class
 import { Route as ReferencesAncestriesRouteImport } from './routes/references/ancestries'
 import { Route as ReferencesAdversariesRouteImport } from './routes/references/adversaries'
 import { Route as GmCampaignsRouteImport } from './routes/gm/campaigns'
-import { Route as GmBattleTrackerRouteImport } from './routes/gm/battle-tracker'
 import { Route as CharacterNewRouteImport } from './routes/character/new'
 import { Route as CharacterCharacterIdRouteImport } from './routes/character/$characterId'
 import { Route as CampaignsJoinRouteImport } from './routes/campaigns/join'
@@ -177,11 +176,6 @@ const GmCampaignsRoute = GmCampaignsRouteImport.update({
   path: '/campaigns',
   getParentRoute: () => GmRoute,
 } as any)
-const GmBattleTrackerRoute = GmBattleTrackerRouteImport.update({
-  id: '/battle-tracker',
-  path: '/battle-tracker',
-  getParentRoute: () => GmRoute,
-} as any)
 const CharacterNewRoute = CharacterNewRouteImport.update({
   id: '/new',
   path: '/new',
@@ -234,7 +228,6 @@ export interface FileRoutesByFullPath {
   '/campaigns/join': typeof CampaignsJoinRoute
   '/character/$characterId': typeof CharacterCharacterIdRoute
   '/character/new': typeof CharacterNewRoute
-  '/gm/battle-tracker': typeof GmBattleTrackerRoute
   '/gm/campaigns': typeof GmCampaignsRouteWithChildren
   '/references/adversaries': typeof ReferencesAdversariesRoute
   '/references/ancestries': typeof ReferencesAncestriesRoute
@@ -267,7 +260,6 @@ export interface FileRoutesByTo {
   '/campaigns/join': typeof CampaignsJoinRoute
   '/character/$characterId': typeof CharacterCharacterIdRoute
   '/character/new': typeof CharacterNewRoute
-  '/gm/battle-tracker': typeof GmBattleTrackerRoute
   '/references/adversaries': typeof ReferencesAdversariesRoute
   '/references/ancestries': typeof ReferencesAncestriesRoute
   '/references/classes': typeof ReferencesClassesRoute
@@ -304,7 +296,6 @@ export interface FileRoutesById {
   '/campaigns/join': typeof CampaignsJoinRoute
   '/character/$characterId': typeof CharacterCharacterIdRoute
   '/character/new': typeof CharacterNewRoute
-  '/gm/battle-tracker': typeof GmBattleTrackerRoute
   '/gm/campaigns': typeof GmCampaignsRouteWithChildren
   '/references/adversaries': typeof ReferencesAdversariesRoute
   '/references/ancestries': typeof ReferencesAncestriesRoute
@@ -343,7 +334,6 @@ export interface FileRouteTypes {
     | '/campaigns/join'
     | '/character/$characterId'
     | '/character/new'
-    | '/gm/battle-tracker'
     | '/gm/campaigns'
     | '/references/adversaries'
     | '/references/ancestries'
@@ -376,7 +366,6 @@ export interface FileRouteTypes {
     | '/campaigns/join'
     | '/character/$characterId'
     | '/character/new'
-    | '/gm/battle-tracker'
     | '/references/adversaries'
     | '/references/ancestries'
     | '/references/classes'
@@ -412,7 +401,6 @@ export interface FileRouteTypes {
     | '/campaigns/join'
     | '/character/$characterId'
     | '/character/new'
-    | '/gm/battle-tracker'
     | '/gm/campaigns'
     | '/references/adversaries'
     | '/references/ancestries'
@@ -634,13 +622,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GmCampaignsRouteImport
       parentRoute: typeof GmRoute
     }
-    '/gm/battle-tracker': {
-      id: '/gm/battle-tracker'
-      path: '/battle-tracker'
-      fullPath: '/gm/battle-tracker'
-      preLoaderRoute: typeof GmBattleTrackerRouteImport
-      parentRoute: typeof GmRoute
-    }
     '/character/new': {
       id: '/character/new'
       path: '/new'
@@ -747,13 +728,11 @@ const GmCampaignsRouteWithChildren = GmCampaignsRoute._addFileChildren(
 )
 
 interface GmRouteChildren {
-  GmBattleTrackerRoute: typeof GmBattleTrackerRoute
   GmCampaignsRoute: typeof GmCampaignsRouteWithChildren
   GmIndexRoute: typeof GmIndexRoute
 }
 
 const GmRouteChildren: GmRouteChildren = {
-  GmBattleTrackerRoute: GmBattleTrackerRoute,
   GmCampaignsRoute: GmCampaignsRouteWithChildren,
   GmIndexRoute: GmIndexRoute,
 }

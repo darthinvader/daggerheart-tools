@@ -54,15 +54,15 @@ function GmDashboard() {
           </Card>
         </Link>
 
-        <Link to="/gm/battle-tracker" className="block">
+        <Link to="/gm/campaigns" className="block">
           <Card className="hover:bg-accent/50 h-full cursor-pointer transition-colors">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Swords className="text-primary h-5 w-5" />
-                Battle Tracker
+                Combat Encounter
               </CardTitle>
               <CardDescription>
-                Run combat encounters with adversaries and players
+                Run combat encounters from your campaigns with auto-save
               </CardDescription>
             </CardHeader>
           </Card>

@@ -180,6 +180,7 @@ type WeaponSummary =
       damage?: string;
       range?: string;
       traits?: string[];
+      features?: string[];
     }
   | undefined;
 
@@ -191,8 +192,10 @@ function WeaponCard({
   label: string;
 }) {
   if (!weapon) return null;
-  return (
-    <div className="bg-muted/30 rounded-md border p-2">
+  const hasFeatures = weapon.features && weapon.features.length > 0;
+
+  const cardContent = (
+    <div className="bg-muted/30 hover:bg-muted/50 rounded-md border p-2 transition-colors">
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium">{weapon.name}</span>
         <Badge variant="outline" className="text-xs">
@@ -212,7 +215,33 @@ function WeaponCard({
           ))}
         </div>
       )}
+      {hasFeatures && (
+        <div className="text-muted-foreground mt-1 text-xs italic">
+          Hover for features
+        </div>
+      )}
     </div>
+  );
+
+  if (!hasFeatures) return cardContent;
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="cursor-help">{cardContent}</div>
+        </TooltipTrigger>
+        <TooltipContent side="left" className="max-w-xs">
+          <div className="space-y-1">
+            {weapon.features!.map((feature, idx) => (
+              <p key={idx} className="text-sm">
+                {feature}
+              </p>
+            ))}
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
 
@@ -222,8 +251,12 @@ function ArmorCard({
   armor: NonNullable<CharacterTracker['equipment']>['armor'];
 }) {
   if (!armor) return null;
-  return (
-    <div className="bg-muted/30 rounded-md border p-2">
+  const featuresToShow =
+    armor.features ?? (armor.feature ? [armor.feature] : []);
+  const hasFeatures = featuresToShow.length > 0;
+
+  const cardContent = (
+    <div className="bg-muted/30 hover:bg-muted/50 rounded-md border p-2 transition-colors">
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium">{armor.name}</span>
         <Badge
@@ -233,15 +266,38 @@ function ArmorCard({
           Armor
         </Badge>
       </div>
-      {armor.feature && (
-        <p className="text-muted-foreground mt-1 text-xs">{armor.feature}</p>
-      )}
       {armor.thresholds && (
         <div className="text-muted-foreground mt-1 text-xs">
           Thresholds: {armor.thresholds.major}/{armor.thresholds.severe}
         </div>
       )}
+      {hasFeatures && (
+        <div className="text-muted-foreground mt-1 text-xs italic">
+          Hover for features
+        </div>
+      )}
     </div>
+  );
+
+  if (!hasFeatures) return cardContent;
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="cursor-help">{cardContent}</div>
+        </TooltipTrigger>
+        <TooltipContent side="left" className="max-w-xs">
+          <div className="space-y-1">
+            {featuresToShow.map((feature, idx) => (
+              <p key={idx} className="text-sm">
+                {feature}
+              </p>
+            ))}
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
 
@@ -426,11 +482,17 @@ type AdversaryThresholdsValue =
 function AdversaryThresholdsDisplay({
   thresholds,
   isModified,
+  useMassiveThreshold,
 }: {
   thresholds: AdversaryThresholdsValue;
   isModified: boolean;
+  useMassiveThreshold?: boolean;
 }) {
   const formatValue = (value: number | null | undefined) => value ?? '—';
+  const showMassive =
+    useMassiveThreshold &&
+    typeof thresholds !== 'string' &&
+    thresholds.massive != null;
   return (
     <div className="space-y-2 rounded-lg border-2 border-amber-500/20 bg-linear-to-r from-amber-500/5 to-yellow-500/5 p-3">
       <div className="flex items-center gap-2">
@@ -475,7 +537,7 @@ function AdversaryThresholdsDisplay({
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-          {thresholds.massive != null && (
+          {showMassive && (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -485,6 +547,7 @@ function AdversaryThresholdsDisplay({
                 </TooltipTrigger>
                 <TooltipContent>
                   Damage ≥ {formatValue(thresholds.massive)} = Massive result
+                  (mark 4 HP)
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -603,7 +666,13 @@ export function SelectedItemDetails({
     );
   }
   if (item.kind === 'adversary') {
-    return <AdversaryDetails item={item} onChange={onAdversaryChange} />;
+    return (
+      <AdversaryDetails
+        item={item}
+        useMassiveThreshold={useMassiveThreshold}
+        onChange={onAdversaryChange}
+      />
+    );
   }
   return <EnvironmentDetails item={item} onChange={onEnvironmentChange} />;
 }
@@ -899,7 +968,30 @@ function CharacterMassiveThresholdNotice({
           Massive Threshold Active
         </p>
         <p className="text-muted-foreground text-xs">
-          {thresholds.massive}+ damage = instant death
+          {thresholds.massive}+ damage = mark 4 HP
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function AdversaryMassiveThresholdNotice({
+  massiveThreshold,
+  useMassiveThreshold,
+}: {
+  massiveThreshold?: number | null;
+  useMassiveThreshold?: boolean;
+}) {
+  if (!useMassiveThreshold || massiveThreshold == null) return null;
+  return (
+    <div className="flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 p-2">
+      <Target className="size-4 text-red-500" />
+      <div>
+        <p className="text-sm font-medium text-red-600 dark:text-red-400">
+          Massive Threshold Active
+        </p>
+        <p className="text-muted-foreground text-xs">
+          {massiveThreshold}+ damage = mark 4 HP
         </p>
       </div>
     </div>
@@ -1038,17 +1130,49 @@ function CharacterInventorySection({
       <div className="bg-muted/30 rounded-md border p-2">
         <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm">
           {inventory.map((invItem, index) => (
-            <span
-              key={`${invItem.name}-${index}`}
-              className="text-muted-foreground"
-            >
-              {invItem.name}
-              {invItem.quantity > 1 && (
-                <span className="text-foreground ml-0.5 font-medium">
-                  ×{invItem.quantity}
-                </span>
-              )}
-            </span>
+            <TooltipProvider key={`${invItem.name}-${index}`}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="text-muted-foreground hover:text-foreground cursor-help transition-colors">
+                    {invItem.name}
+                    {invItem.quantity > 1 && (
+                      <span className="text-foreground ml-0.5 font-medium">
+                        ×{invItem.quantity}
+                      </span>
+                    )}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="left" className="max-w-xs">
+                  <p className="font-medium">{invItem.name}</p>
+                  <p className="text-muted-foreground text-xs">
+                    {[
+                      invItem.category,
+                      invItem.tier ? `Tier ${invItem.tier}` : null,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ') || 'Item'}
+                    {invItem.quantity > 1 && ` · Qty: ${invItem.quantity}`}
+                  </p>
+                  {invItem.description && (
+                    <p className="mt-1 text-sm">{invItem.description}</p>
+                  )}
+                  {invItem.features && invItem.features.length > 0 && (
+                    <div className="mt-2 space-y-1 border-t pt-2">
+                      {invItem.features.map((feature, idx) => (
+                        <div key={idx}>
+                          <p className="text-xs font-semibold">
+                            {feature.name}
+                          </p>
+                          <p className="text-muted-foreground text-xs">
+                            {feature.description}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           ))}
         </div>
       </div>
@@ -1099,9 +1223,11 @@ function CharacterDetails({
 
 function AdversaryDetails({
   item,
+  useMassiveThreshold,
   onChange,
 }: {
   item: AdversaryTracker;
+  useMassiveThreshold?: boolean;
   onChange: (id: string, fn: (a: AdversaryTracker) => AdversaryTracker) => void;
 }) {
   const {
@@ -1111,6 +1237,12 @@ function AdversaryDetails({
     effectiveDifficulty,
     hasModifications,
   } = getAdversaryEffectiveValues(item);
+
+  // Get massive threshold value for display
+  const massiveThreshold =
+    typeof effectiveThresholds === 'string'
+      ? null
+      : effectiveThresholds.massive;
 
   return (
     <div className="space-y-4">
@@ -1128,6 +1260,11 @@ function AdversaryDetails({
       <AdversaryThresholdsDisplay
         thresholds={effectiveThresholds}
         isModified={!!item.thresholdsOverride}
+        useMassiveThreshold={useMassiveThreshold}
+      />
+      <AdversaryMassiveThresholdNotice
+        massiveThreshold={massiveThreshold}
+        useMassiveThreshold={useMassiveThreshold}
       />
       <AdversaryFeatureList
         features={effectiveFeatures}
@@ -1144,7 +1281,9 @@ function AdversaryDetails({
 
 function normalizeAttackModifier(value: string | number) {
   if (typeof value === 'number') return value;
-  const parsed = Number.parseInt(value, 10);
+  // Handle unicode minus sign (U+2212) and regular hyphen-minus
+  const normalized = value.replace(/−/g, '-');
+  const parsed = Number.parseInt(normalized, 10);
   return Number.isNaN(parsed) ? 0 : parsed;
 }
 
@@ -1172,13 +1311,34 @@ function getEffectiveAdversaryAttack(item: AdversaryTracker) {
 function getEffectiveAdversaryThresholds(
   item: AdversaryTracker
 ): AdversaryThresholdsValue {
-  if (typeof item.source.thresholds === 'string') return item.source.thresholds;
-  if (!item.thresholdsOverride) return item.source.thresholds;
-  return {
-    major: item.thresholdsOverride.major ?? item.source.thresholds.major,
-    severe: item.thresholdsOverride.severe ?? item.source.thresholds.severe,
-    massive: item.thresholdsOverride.massive ?? item.source.thresholds.massive,
-  };
+  // Parse string thresholds (e.g., "8/15") into object with computed massive
+  if (typeof item.source.thresholds === 'string') {
+    const parts = item.source.thresholds
+      .split('/')
+      .map(s => parseInt(s.trim(), 10));
+    if (parts.length >= 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+      const major = parts[0];
+      const severe = parts[1];
+      const massive = item.thresholdsOverride?.massive ?? severe * 2;
+      return {
+        major: item.thresholdsOverride?.major ?? major,
+        severe: item.thresholdsOverride?.severe ?? severe,
+        massive,
+      };
+    }
+    return item.source.thresholds; // Return unparseable string as-is
+  }
+
+  const major = item.thresholdsOverride?.major ?? item.source.thresholds.major;
+  const severe =
+    item.thresholdsOverride?.severe ?? item.source.thresholds.severe;
+  // Massive = 2 × severe if not explicitly set
+  const massive =
+    item.thresholdsOverride?.massive ??
+    item.source.thresholds.massive ??
+    (severe != null ? severe * 2 : null);
+
+  return { major, severe, massive };
 }
 
 function getEffectiveAdversaryFeatures(item: AdversaryTracker) {
@@ -1211,7 +1371,7 @@ function AdversaryHeaderSection({
     <div className="flex items-start gap-3">
       <div
         className={cn(
-          'rounded-full p-2 text-lg',
+          'flex size-10 items-center justify-center rounded-full text-lg',
           TIER_COLORS[item.source.tier] ?? 'bg-muted'
         )}
       >

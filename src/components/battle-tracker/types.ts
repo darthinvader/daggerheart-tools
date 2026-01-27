@@ -80,16 +80,19 @@ export type CharacterTracker = {
       damage: string;
       range: string;
       traits?: string[];
+      features?: string[];
     };
     secondary?: {
       name: string;
       damage?: string;
       range?: string;
       traits?: string[];
+      features?: string[];
     };
     armor?: {
       name: string;
       feature?: string;
+      features?: string[];
       thresholds?: { major: number; severe: number };
     };
   };
@@ -108,7 +111,14 @@ export type CharacterTracker = {
   traits?: Record<string, { value: number; bonus: number; marked: boolean }>;
 
   // Inventory items (stash)
-  inventory?: Array<{ name: string; quantity: number; tier?: string }>;
+  inventory?: Array<{
+    name: string;
+    quantity: number;
+    tier?: string;
+    description?: string;
+    category?: string;
+    features?: Array<{ name: string; description: string }>;
+  }>;
 
   // Vault cards (stored domain cards)
   vaultCards?: BattleCard[];
