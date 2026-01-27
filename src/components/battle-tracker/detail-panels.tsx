@@ -3,6 +3,7 @@ import {
   BookOpen,
   Coins,
   Crosshair,
+  Dna,
   Heart,
   ScrollText,
   Shield,
@@ -25,6 +26,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  deriveFeatureUnlocks,
+  getUnlockedFeatures,
+} from '@/features/characters/logic/features';
+import { getAncestryByName, getCommunityByName } from '@/lib/schemas/identity';
 import { cn } from '@/lib/utils';
 
 import type {
@@ -117,7 +123,9 @@ function PrimaryStat({
               borderClass
             )}
           >
-            <div className="mx-auto mb-1 size-4">{icon}</div>
+            <div className="mx-auto mb-1 flex size-4 items-center justify-center [&>svg]:size-4 [&>svg]:shrink-0">
+              {icon}
+            </div>
             <p className={cn('text-2xl font-bold', colorClass)}>{value}</p>
             <p className="text-muted-foreground text-xs">
               {label} / {max}
@@ -159,7 +167,9 @@ function SecondaryStat({
               bgClass
             )}
           >
-            <div className="mx-auto mb-0.5 size-3.5">{icon}</div>
+            <div className="mx-auto mb-0.5 flex size-3.5 items-center justify-center [&>svg]:size-3.5 [&>svg]:shrink-0">
+              {icon}
+            </div>
             <p className={cn('text-lg font-bold', colorClass)}>{value}</p>
             <p className="text-muted-foreground text-[10px]">{label}</p>
           </div>
@@ -374,7 +384,7 @@ function AdversaryStatGrid({ hp, stress }: AdversaryStatGridProps) {
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="cursor-help rounded-lg border-2 border-purple-500/30 bg-gradient-to-b from-purple-500/10 to-purple-500/5 p-3 text-center">
+            <div className="cursor-help rounded-lg border-2 border-purple-500/30 bg-linear-to-b from-purple-500/10 to-purple-500/5 p-3 text-center">
               <Zap className="mx-auto mb-1 size-4 text-purple-500" />
               <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                 {stress.current}
@@ -719,7 +729,7 @@ function CharacterIdentityHeader({ item }: { item: CharacterTracker }) {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white">
+              <Badge className="bg-linear-to-r from-amber-500 to-orange-500 text-white">
                 Lv {item.level}
               </Badge>
             </TooltipTrigger>
@@ -731,6 +741,169 @@ function CharacterIdentityHeader({ item }: { item: CharacterTracker }) {
           </Tooltip>
         </TooltipProvider>
       )}
+    </div>
+  );
+}
+
+type FeatureBadge = {
+  name: string;
+  description: string;
+  enabled?: boolean;
+  unlockLevel?: number;
+  source?: 'class' | 'subclass' | 'ancestry' | 'community';
+};
+
+function buildAncestryFeatures(ancestryName?: string): FeatureBadge[] {
+  if (!ancestryName) return [];
+  const ancestry = getAncestryByName(ancestryName);
+  if (!ancestry) return [];
+  return [
+    {
+      name: ancestry.primaryFeature.name,
+      description: ancestry.primaryFeature.description,
+      source: 'ancestry',
+      enabled: true,
+    },
+    {
+      name: ancestry.secondaryFeature.name,
+      description: ancestry.secondaryFeature.description,
+      source: 'ancestry',
+      enabled: true,
+    },
+  ].filter(feature => feature.name.trim().length > 0);
+}
+
+function buildCommunityFeatures(communityName?: string): FeatureBadge[] {
+  if (!communityName) return [];
+  const community = getCommunityByName(communityName);
+  if (!community) return [];
+  return [
+    {
+      name: community.feature.name,
+      description: community.feature.description,
+      source: 'community',
+      enabled: true,
+    },
+  ].filter(feature => feature.name.trim().length > 0);
+}
+
+function buildClassFeatures(item: CharacterTracker): FeatureBadge[] {
+  if (!item.className) return [];
+  const subclassName = item.subclassName ?? '';
+  const all = deriveFeatureUnlocks(item.className, subclassName);
+  const { current, future } = getUnlockedFeatures(all, item.level ?? 1);
+  const toBadge = (
+    feature: (typeof all)[number],
+    enabled: boolean
+  ): FeatureBadge => ({
+    name: feature.name,
+    description: feature.description,
+    source: feature.source,
+    enabled,
+    unlockLevel: feature.level,
+  });
+  return [
+    ...current.map(feature => toBadge(feature, true)),
+    ...future.map(feature => toBadge(feature, false)),
+  ];
+}
+
+function FeatureBadges({ features }: { features: FeatureBadge[] }) {
+  if (features.length === 0) return null;
+  return (
+    <div className="flex flex-wrap gap-1">
+      {features.map(feature => (
+        <TooltipProvider key={`${feature.source ?? 'feature'}-${feature.name}`}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge
+                variant="outline"
+                className={cn(
+                  'cursor-help text-[10px] leading-none',
+                  feature.enabled
+                    ? 'border-emerald-500/40 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
+                    : 'border-muted-foreground/30 text-muted-foreground'
+                )}
+              >
+                {feature.name}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs">
+              <div className="space-y-1">
+                <p className="text-sm font-semibold">{feature.name}</p>
+                <p className="text-muted-foreground text-xs">
+                  {feature.description}
+                </p>
+                {feature.unlockLevel !== undefined && (
+                  <p className="text-muted-foreground text-[10px]">
+                    {feature.enabled
+                      ? `Enabled (level ${feature.unlockLevel})`
+                      : `Unlocks at level ${feature.unlockLevel}`}
+                  </p>
+                )}
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      ))}
+    </div>
+  );
+}
+
+function CharacterHeritageClassSection({ item }: { item: CharacterTracker }) {
+  const ancestryFeatures = buildAncestryFeatures(item.ancestry);
+  const communityFeatures = buildCommunityFeatures(item.community);
+  const classFeatures = buildClassFeatures(item);
+
+  if (
+    !item.ancestry &&
+    !item.community &&
+    !item.className &&
+    ancestryFeatures.length === 0 &&
+    communityFeatures.length === 0 &&
+    classFeatures.length === 0
+  ) {
+    return null;
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <ScrollText className="text-muted-foreground size-4" />
+        <h4 className="text-sm font-medium">Heritage & Class</h4>
+      </div>
+      <div className="space-y-2">
+        {item.ancestry && (
+          <div className="rounded-md border p-2">
+            <div className="mb-1 flex items-center gap-2">
+              <Dna className="size-3 text-cyan-500" />
+              <span className="text-xs font-semibold">{item.ancestry}</span>
+            </div>
+            <FeatureBadges features={ancestryFeatures} />
+          </div>
+        )}
+        {item.community && (
+          <div className="rounded-md border p-2">
+            <div className="mb-1 flex items-center gap-2">
+              <Users className="size-3 text-emerald-500" />
+              <span className="text-xs font-semibold">{item.community}</span>
+            </div>
+            <FeatureBadges features={communityFeatures} />
+          </div>
+        )}
+        {item.className && (
+          <div className="rounded-md border p-2">
+            <div className="mb-1 flex items-center gap-2">
+              <BookOpen className="size-3 text-amber-500" />
+              <span className="text-xs font-semibold">
+                {item.className}
+                {item.subclassName && ` · ${item.subclassName}`}
+              </span>
+            </div>
+            <FeatureBadges features={classFeatures} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -1195,6 +1368,7 @@ function CharacterDetails({
     <div className="space-y-4">
       <CharacterLinkedNotice isLinked={isLinked} />
       <CharacterIdentityHeader item={item} />
+      <CharacterHeritageClassSection item={item} />
       <CharacterPrimaryStatsGrid item={item} />
       <CharacterSecondaryStatsGrid
         item={item}
@@ -1514,7 +1688,7 @@ function EnvironmentDescription({ description }: { description: string }) {
 
 function EnvironmentImpulses({ impulses }: { impulses: string[] }) {
   return (
-    <div className="space-y-2 rounded-lg border-2 border-amber-500/20 bg-gradient-to-r from-amber-500/5 to-yellow-500/5 p-3">
+    <div className="space-y-2 rounded-lg border-2 border-amber-500/20 bg-linear-to-r from-amber-500/5 to-yellow-500/5 p-3">
       <div className="flex items-center gap-2">
         <Zap className="size-4 text-amber-500" />
         <span className="font-semibold text-amber-600 dark:text-amber-400">
@@ -1560,7 +1734,7 @@ function EnvironmentFeaturesList({
   ) => void;
 }) {
   return (
-    <div className="space-y-2 rounded-lg border-2 border-emerald-500/20 bg-gradient-to-r from-emerald-500/5 to-teal-500/5 p-3">
+    <div className="space-y-2 rounded-lg border-2 border-emerald-500/20 bg-linear-to-r from-emerald-500/5 to-teal-500/5 p-3">
       <div className="flex items-center gap-2">
         <Sparkles className="size-4 text-emerald-500" />
         <span className="font-semibold text-emerald-600 dark:text-emerald-400">

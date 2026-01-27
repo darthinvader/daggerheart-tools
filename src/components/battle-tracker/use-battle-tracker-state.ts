@@ -1,4 +1,10 @@
-import { type Dispatch, type SetStateAction, useMemo, useState } from 'react';
+import {
+  type Dispatch,
+  type SetStateAction,
+  useCallback,
+  useMemo,
+  useState,
+} from 'react';
 
 import { ADVERSARIES } from '@/lib/data/adversaries';
 import { ENVIRONMENTS } from '@/lib/data/environments';
@@ -117,7 +123,8 @@ function removeRosterItem(
   setAdversaries: Dispatch<SetStateAction<AdversaryTracker[]>>,
   setEnvironments: Dispatch<SetStateAction<EnvironmentTracker[]>>,
   setSelection: Dispatch<SetStateAction<TrackerSelection | null>>,
-  setSpotlight: Dispatch<SetStateAction<TrackerSelection | null>>
+  setSpotlight: Dispatch<SetStateAction<TrackerSelection | null>>,
+  setSpotlightHistory: Dispatch<SetStateAction<TrackerSelection[]>>
 ) {
   if (item.kind === 'character') {
     setCharacters(prev => prev.filter(entry => entry.id !== item.id));
@@ -134,6 +141,9 @@ function removeRosterItem(
   if (spotlight?.id === item.id && spotlight.kind === item.kind) {
     setSpotlight(null);
   }
+  setSpotlightHistory(prev =>
+    prev.filter(entry => !(entry.kind === item.kind && entry.id === item.id))
+  );
 }
 
 export function useBattleRosterState() {
@@ -147,12 +157,16 @@ export function useBattleRosterState() {
   );
   const [fearPool, setFearPool] = useState(0); // GM Fear pool
   const [useMassiveThreshold, setUseMassiveThreshold] = useState(false); // Global massive threshold toggle
+  const [rosterVersion, setRosterVersion] = useState(0);
   const [activeRosterTab, setActiveRosterTab] = useState<
     'characters' | 'adversaries' | 'environments'
   >('characters');
   const [activeDetailTab, setActiveDetailTab] = useState<'quick' | 'details'>(
     'quick'
   );
+  const bumpRosterVersion = useCallback(() => {
+    setRosterVersion(prev => prev + 1);
+  }, []);
   const selectedItem = useMemo(() => {
     return resolveSelectedItem(
       selection,
@@ -168,6 +182,7 @@ export function useBattleRosterState() {
     const next = { kind: item.kind, id: item.id } as TrackerSelection;
     setSpotlight(next);
     setSpotlightHistory(prev => updateSpotlightHistory(prev, next));
+    bumpRosterVersion();
   };
   const handleRemove = (item: TrackerItem) => {
     removeRosterItem(
@@ -178,40 +193,48 @@ export function useBattleRosterState() {
       setAdversaries,
       setEnvironments,
       setSelection,
-      setSpotlight
+      setSpotlight,
+      setSpotlightHistory
     );
+    bumpRosterVersion();
   };
   const addCharacter = (draft: NewCharacterDraft) => {
     const entry = createCharacterEntry(draft);
     if (!entry) return null;
     addEntry(entry, setCharacters, setSelection);
+    bumpRosterVersion();
     return entry.id;
   };
   const addAdversary = (adversary: Adversary) => {
     const entry = createAdversaryEntry(adversary);
     addEntry(entry, setAdversaries, setSelection);
+    bumpRosterVersion();
   };
   const addEnvironment = (environment: Environment) => {
     const entry = createEnvironmentEntry(environment);
     addEntry(entry, setEnvironments, setSelection);
+    bumpRosterVersion();
   };
   const updateCharacter = (
     id: string,
     updater: (prev: CharacterTracker) => CharacterTracker
   ) => {
     updateEntryById(id, updater, setCharacters);
+    bumpRosterVersion();
   };
   const updateAdversary = (
     id: string,
     updater: (prev: AdversaryTracker) => AdversaryTracker
   ) => {
     updateEntryById(id, updater, setAdversaries);
+    bumpRosterVersion();
   };
   const updateEnvironment = (
     id: string,
     updater: (prev: EnvironmentTracker) => EnvironmentTracker
   ) => {
     updateEntryById(id, updater, setEnvironments);
+    bumpRosterVersion();
   };
 
   return {
@@ -224,6 +247,7 @@ export function useBattleRosterState() {
       spotlightHistory,
       fearPool,
       useMassiveThreshold,
+      rosterVersion,
       activeRosterTab,
       activeDetailTab,
       selectedItem,
@@ -231,9 +255,18 @@ export function useBattleRosterState() {
     rosterActions: {
       setActiveRosterTab,
       setActiveDetailTab,
-      setSpotlight,
-      setFearPool,
-      setUseMassiveThreshold,
+      setSpotlight: (value: TrackerSelection | null) => {
+        setSpotlight(value);
+        bumpRosterVersion();
+      },
+      setFearPool: (value: number) => {
+        setFearPool(value);
+        bumpRosterVersion();
+      },
+      setUseMassiveThreshold: (value: boolean) => {
+        setUseMassiveThreshold(value);
+        bumpRosterVersion();
+      },
       handleSelect,
       handleSpotlight,
       handleRemove,
@@ -244,10 +277,22 @@ export function useBattleRosterState() {
       updateAdversary,
       updateEnvironment,
       // Bulk setters for loading battle state
-      setCharacters,
-      setAdversaries,
-      setEnvironments,
-      setSpotlightHistory,
+      setCharacters: (value: SetStateAction<CharacterTracker[]>) => {
+        setCharacters(value);
+        bumpRosterVersion();
+      },
+      setAdversaries: (value: SetStateAction<AdversaryTracker[]>) => {
+        setAdversaries(value);
+        bumpRosterVersion();
+      },
+      setEnvironments: (value: SetStateAction<EnvironmentTracker[]>) => {
+        setEnvironments(value);
+        bumpRosterVersion();
+      },
+      setSpotlightHistory: (value: SetStateAction<TrackerSelection[]>) => {
+        setSpotlightHistory(value);
+        bumpRosterVersion();
+      },
     },
   };
 }

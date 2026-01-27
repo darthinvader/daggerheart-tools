@@ -91,31 +91,6 @@ function useSavedBattleIds(campaign: Campaign | null) {
   return savedBattleIdsRef;
 }
 
-function useAutoSaveBattle({
-  campaignBattle,
-  handleStateChange,
-}: {
-  campaignBattle: ReturnType<typeof useCampaignBattle>;
-  handleStateChange: (state: BattleState) => void;
-}) {
-  useEffect(() => {
-    if (
-      campaignBattle.isDirty &&
-      (campaignBattle.status === 'active' || campaignBattle.status === 'paused')
-    ) {
-      const timeoutId = setTimeout(() => {
-        void handleStateChange(campaignBattle.toBattleState());
-      }, 3000);
-      return () => clearTimeout(timeoutId);
-    }
-  }, [
-    campaignBattle.isDirty,
-    campaignBattle.status,
-    campaignBattle,
-    handleStateChange,
-  ]);
-}
-
 function useInitialBattleLoad({
   campaign,
   initialBattleId,
@@ -125,6 +100,7 @@ function useInitialBattleLoad({
   setHasLoadedInitialBattle,
   rosterActions,
   loadBattleState,
+  resetBattle,
   navigate,
 }: {
   campaign: Campaign | null;
@@ -135,6 +111,7 @@ function useInitialBattleLoad({
   setHasLoadedInitialBattle: (value: boolean) => void;
   rosterActions: ReturnType<typeof useBattleRosterState>['rosterActions'];
   loadBattleState: (state: BattleState) => void;
+  resetBattle: () => void;
   navigate: ReturnType<typeof useNavigate>;
 }) {
   useEffect(() => {
@@ -170,6 +147,8 @@ function useInitialBattleLoad({
       rosterActions.setSpotlightHistory([]);
       rosterActions.setSpotlight(null);
       rosterActions.setFearPool(0);
+      rosterActions.setUseMassiveThreshold(false);
+      resetBattle();
     }
 
     setHasLoadedInitialBattle(true);
@@ -182,6 +161,7 @@ function useInitialBattleLoad({
     navigate,
     campaignId,
     loadBattleState,
+    resetBattle,
     setHasLoadedInitialBattle,
   ]);
 }
@@ -370,28 +350,24 @@ async function createNewBattle({
   state,
   savedBattleIdsRef,
   justSavedBattleIdRef,
-  campaignBattle,
   navigate,
 }: {
   campaignId: string;
   state: BattleState;
   savedBattleIdsRef: MutableRefObject<Set<string>>;
   justSavedBattleIdRef: MutableRefObject<string | null>;
-  campaignBattle: ReturnType<typeof useCampaignBattle>;
   navigate: ReturnType<typeof useNavigate>;
-}) {
+}): Promise<string> {
   const created = await createBattle(campaignId, state);
   savedBattleIdsRef.current.add(created.id);
   justSavedBattleIdRef.current = created.id;
-  if (created.id !== state.id) {
-    campaignBattle.setBattleId(created.id);
-  }
   void navigate({
     to: '/gm/campaigns/$id/battle',
     params: { id: campaignId },
     search: { battleId: created.id, tab: 'gm-tools' },
     replace: true,
   });
+  return created.id;
 }
 
 function useBattleDialogHandlers({
@@ -542,13 +518,9 @@ function CampaignBattlePage() {
     useState<EnvironmentTracker | null>(null);
 
   const savedBattleIdsRef = useSavedBattleIds(campaign);
-
-  // Campaign battle integration
-  const campaignBattle = useCampaignBattle(rosterState, rosterActions, {
-    campaignId,
-    battleId: initialBattleId,
-    autoSaveDebounceMs: 3000,
-  });
+  const campaignBattleRef = useRef<ReturnType<typeof useCampaignBattle> | null>(
+    null
+  );
 
   // Handle save - use the hook's battleId to determine create vs update
   const handleStateChange = useCallback(
@@ -560,17 +532,19 @@ function CampaignBattlePage() {
         if (battleExists) {
           await saveExistingBattle(campaignId, state);
         } else {
-          await createNewBattle({
+          const createdId = await createNewBattle({
             campaignId,
             state,
             savedBattleIdsRef,
             justSavedBattleIdRef,
-            campaignBattle,
             navigate,
           });
+          if (createdId !== state.id) {
+            campaignBattleRef.current?.setBattleId(createdId);
+          }
         }
         // Mark as clean after successful save
-        campaignBattle.markClean();
+        campaignBattleRef.current?.markClean();
         await refreshCampaignState(campaignId, setCampaign);
       } catch (error) {
         console.error('Failed to save battle:', error);
@@ -578,10 +552,17 @@ function CampaignBattlePage() {
         setIsSaving(false);
       }
     },
-    [campaignId, campaignBattle, navigate, savedBattleIdsRef]
+    [campaignId, navigate, savedBattleIdsRef]
   );
 
-  useAutoSaveBattle({ campaignBattle, handleStateChange });
+  // Campaign battle integration
+  const campaignBattle = useCampaignBattle(rosterState, rosterActions, {
+    campaignId,
+    battleId: initialBattleId,
+    autoSaveDebounceMs: 3000,
+    onStateChange: handleStateChange,
+  });
+  campaignBattleRef.current = campaignBattle;
 
   useInitialBattleLoad({
     campaign,
@@ -592,6 +573,7 @@ function CampaignBattlePage() {
     setHasLoadedInitialBattle,
     rosterActions,
     loadBattleState: campaignBattle.loadBattleState,
+    resetBattle: campaignBattle.resetBattle,
     navigate,
   });
 

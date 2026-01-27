@@ -77,9 +77,9 @@ export function DetailSidebar({
 
   return (
     <Card className="border-muted-foreground/20 flex h-[calc(100vh-200px)] min-h-125 flex-col border-2">
-      <CardHeader className="from-muted/50 to-background flex-none border-b bg-gradient-to-r py-3">
+      <CardHeader className="from-muted/50 to-background flex-none border-b bg-linear-to-r py-3">
         <div className="flex items-center gap-2">
-          <Info className="text-primary size-4" />
+          <Info className="text-primary size-4 shrink-0 self-center" />
           <CardTitle className="text-base">Details</CardTitle>
         </div>
         <CardDescription>
@@ -135,16 +135,18 @@ function SpotlightSection({
   onSelect: (s: TrackerSelection) => void;
 }) {
   const kindIcons: Record<string, React.ReactNode> = {
-    character: <User className="size-3 text-blue-500" />,
-    adversary: <Swords className="size-3 text-red-500" />,
-    environment: <TreePine className="size-3 text-emerald-500" />,
+    character: <User className="size-3 shrink-0 self-center text-blue-500" />,
+    adversary: <Swords className="size-3 shrink-0 self-center text-red-500" />,
+    environment: (
+      <TreePine className="size-3 shrink-0 self-center text-emerald-500" />
+    ),
   };
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Sparkles className="size-4 text-amber-500" />
+          <Sparkles className="size-4 shrink-0 self-center text-amber-500" />
           <span className="text-sm font-semibold">Spotlight</span>
         </div>
         {spotlight && (
@@ -159,7 +161,7 @@ function SpotlightSection({
         )}
       </div>
       {spotlight ? (
-        <div className="rounded-lg border-2 border-amber-400/50 bg-gradient-to-r from-amber-500/10 to-yellow-500/10 p-3">
+        <div className="rounded-lg border-2 border-amber-400/50 bg-linear-to-r from-amber-500/10 to-yellow-500/10 p-3">
           <div className="flex items-center gap-2">
             {kindIcons[spotlight.kind]}
             <span className="font-semibold text-amber-700 dark:text-amber-400">
@@ -181,7 +183,7 @@ function SpotlightSection({
       {spotlightHistory.length > 0 && (
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <History className="text-muted-foreground size-3" />
+            <History className="text-muted-foreground size-3 shrink-0 self-center" />
             <span className="text-muted-foreground text-xs">History</span>
           </div>
           <div className="flex flex-wrap gap-1">
@@ -191,7 +193,7 @@ function SpotlightSection({
                   <TooltipTrigger asChild>
                     <Badge
                       variant="outline"
-                      className="hover:bg-accent flex cursor-pointer items-center gap-1 text-xs"
+                      className="hover:bg-accent flex cursor-pointer items-center gap-1 text-xs leading-none"
                       onClick={() => onSelect(s)}
                     >
                       {kindIcons[s.kind]}

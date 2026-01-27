@@ -14,10 +14,11 @@ import {
   type MouseEvent,
   type ReactNode,
   useCallback,
-  useEffect,
+  useRef,
   useState,
 } from 'react';
 
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -50,6 +51,7 @@ export function EditableSessions({
   onSessionsChange,
 }: EditableSessionsProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const sortedSessions = [...sessions].sort(
     (a, b) => b.sessionNumber - a.sessionNumber
@@ -61,35 +63,60 @@ export function EditableSessions({
       : 1;
 
   const handleAddSession = async () => {
-    await addSession(campaignId, {
-      sessionNumber: nextSessionNumber,
-      title: `Session ${nextSessionNumber}`,
-      date: new Date().toISOString().split('T')[0],
-      summary: '',
-      highlights: [],
-      playerNotes: [],
-      npcsInvolved: [],
-      locations: [],
-      questProgress: '',
-    });
-    onSessionsChange();
+    try {
+      setError(null);
+      await addSession(campaignId, {
+        sessionNumber: nextSessionNumber,
+        title: `Session ${nextSessionNumber}`,
+        date: new Date().toISOString().split('T')[0],
+        summary: '',
+        highlights: [],
+        playerNotes: [],
+        npcsInvolved: [],
+        locations: [],
+        questProgress: '',
+      });
+      onSessionsChange();
+    } catch (err) {
+      console.error('Failed to add session:', err);
+      setError(err instanceof Error ? err.message : 'Failed to add session');
+    }
   };
 
   const handleUpdateSession = async (
     sessionId: string,
     updates: Partial<Omit<SessionNote, 'id' | 'createdAt' | 'updatedAt'>>
   ) => {
-    await updateSession(campaignId, sessionId, updates);
-    onSessionsChange();
+    if (Object.keys(updates).length === 0) return;
+    try {
+      setError(null);
+      await updateSession(campaignId, sessionId, updates);
+      onSessionsChange();
+    } catch (err) {
+      console.error('Failed to update session:', err);
+      setError(err instanceof Error ? err.message : 'Failed to update session');
+    }
   };
 
   const handleDeleteSession = async (sessionId: string) => {
-    await deleteSession(campaignId, sessionId);
-    onSessionsChange();
+    try {
+      setError(null);
+      await deleteSession(campaignId, sessionId);
+      onSessionsChange();
+    } catch (err) {
+      console.error('Failed to delete session:', err);
+      setError(err instanceof Error ? err.message : 'Failed to delete session');
+    }
   };
 
   return (
     <div className="space-y-4">
+      {error && (
+        <Alert variant="destructive">
+          <AlertTitle>Session update failed</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
       <Button onClick={handleAddSession} className="w-full">
         <Plus className="mr-2 h-4 w-4" />
         Add Session {nextSessionNumber}
@@ -108,7 +135,7 @@ export function EditableSessions({
       ) : (
         sortedSessions.map(session => (
           <SessionCard
-            key={session.id}
+            key={`${session.id}-${session.updatedAt}`}
             session={session}
             npcs={npcs}
             isExpanded={expandedId === session.id}
@@ -172,6 +199,26 @@ function toggleNpcInvolvedList(items: string[], npcId: string) {
   return items.includes(npcId)
     ? items.filter(id => id !== npcId)
     : [...items, npcId];
+}
+
+function getSessionTextUpdates(
+  current: SessionNote,
+  base: SessionNote
+): Partial<Omit<SessionNote, 'id' | 'createdAt' | 'updatedAt'>> {
+  const updates: Partial<Omit<SessionNote, 'id' | 'createdAt' | 'updatedAt'>> =
+    {};
+
+  if (current.title !== base.title) {
+    updates.title = current.title;
+  }
+  if (current.summary !== base.summary) {
+    updates.summary = current.summary;
+  }
+  if (current.questProgress !== base.questProgress) {
+    updates.questProgress = current.questProgress;
+  }
+
+  return updates;
 }
 
 interface SessionHeaderProps {
@@ -406,13 +453,12 @@ function SessionCard({
   const [localSession, setLocalSession] = useState(session);
   const [highlightInput, setHighlightInput] = useState('');
   const [locationInput, setLocationInput] = useState('');
-
-  useEffect(() => {
-    setLocalSession(session);
-  }, [session]);
+  const baseSessionRef = useRef(session);
 
   const handleBlur = useCallback(() => {
-    onUpdate(localSession);
+    const updates = getSessionTextUpdates(localSession, baseSessionRef.current);
+    if (Object.keys(updates).length === 0) return;
+    onUpdate(updates);
   }, [localSession, onUpdate]);
 
   const handleTextChange = useCallback(

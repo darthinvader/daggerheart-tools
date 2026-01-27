@@ -58,6 +58,8 @@ interface CampaignBattleActions {
   isDirty: boolean;
   /** Mark the battle as clean (no unsaved changes) */
   markClean: () => void;
+  /** Reset battle metadata to defaults */
+  resetBattle: () => void;
 }
 
 // =====================================================================================
@@ -77,6 +79,7 @@ export function useCampaignBattle(
     spotlightHistory: TrackerSelection[];
     fearPool: number;
     useMassiveThreshold: boolean;
+    rosterVersion: number;
   },
   rosterActions: {
     setSpotlight: (selection: TrackerSelection | null) => void;
@@ -196,7 +199,6 @@ export function useCampaignBattle(
     rosterState.spotlightHistory,
     rosterState.fearPool,
     rosterState.useMassiveThreshold,
-    rosterState.fearPool,
     notes,
     status,
   ]);
@@ -251,7 +253,15 @@ export function useCampaignBattle(
   const endBattle = useCallback(() => {
     setStatus('completed');
     setIsDirty(true);
-  }, []);
+    if (onStateChange) {
+      const state = toBattleState();
+      void onStateChange({
+        ...state,
+        status: 'completed',
+        updatedAt: new Date().toISOString(),
+      });
+    }
+  }, [onStateChange, toBattleState]);
 
   const setBattleName = useCallback((newName: string) => {
     setName(newName);
@@ -263,30 +273,19 @@ export function useCampaignBattle(
     setIsDirty(true);
   }, []);
 
-  // Create a stable hash of roster state for comparison
-  const getRosterHash = useCallback(() => {
-    return JSON.stringify({
-      characters: rosterState.characters,
-      adversaries: rosterState.adversaries,
-      environments: rosterState.environments,
-      spotlight: rosterState.spotlight,
-      spotlightHistory: rosterState.spotlightHistory,
-      fearPool: rosterState.fearPool,
-      useMassiveThreshold: rosterState.useMassiveThreshold,
-    });
-  }, [
-    rosterState.characters,
-    rosterState.adversaries,
-    rosterState.environments,
-    rosterState.spotlight,
-    rosterState.spotlightHistory,
-    rosterState.fearPool,
-    rosterState.useMassiveThreshold,
-  ]);
+  const resetBattle = useCallback(() => {
+    setBattleId(`battle-${crypto.randomUUID()}`);
+    setName('New Battle');
+    setNotes('');
+    setStatus('planning');
+    createdAtRef.current = new Date().toISOString();
+    skipNextDirtyCheckRef.current = true;
+    setIsDirty(false);
+  }, []);
 
-  // Track the hash of the roster when last marked clean
-  const cleanRosterHashRef = useRef<string>('');
-  const prevRosterHashRef = useRef<string>('');
+  // Track roster version when last marked clean
+  const cleanRosterVersionRef = useRef<number>(0);
+  const prevRosterVersionRef = useRef<number>(rosterState.rosterVersion);
 
   const markClean = useCallback(() => {
     setIsDirty(false);
@@ -295,28 +294,28 @@ export function useCampaignBattle(
   }, []);
 
   // Mark dirty when roster content actually changes from clean state
-  const currentHash = getRosterHash();
+  const currentVersion = rosterState.rosterVersion;
   /* eslint-disable react-hooks/set-state-in-effect -- Tracking roster changes to mark dirty is a valid pattern */
   useEffect(() => {
     // If we were told to skip, just update the clean baseline
     if (skipNextDirtyCheckRef.current) {
       skipNextDirtyCheckRef.current = false;
-      cleanRosterHashRef.current = currentHash;
-      prevRosterHashRef.current = currentHash;
+      cleanRosterVersionRef.current = currentVersion;
+      prevRosterVersionRef.current = currentVersion;
       return;
     }
 
-    // Skip if hash hasn't changed from previous
-    if (prevRosterHashRef.current === currentHash) {
+    // Skip if version hasn't changed from previous
+    if (prevRosterVersionRef.current === currentVersion) {
       return;
     }
-    prevRosterHashRef.current = currentHash;
+    prevRosterVersionRef.current = currentVersion;
 
     // Only mark dirty if content differs from clean state
-    if (cleanRosterHashRef.current !== currentHash) {
+    if (cleanRosterVersionRef.current !== currentVersion) {
       setIsDirty(true);
     }
-  }, [currentHash]);
+  }, [currentVersion]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   // Auto-save debounced callback - only when battle is active or paused
@@ -353,6 +352,7 @@ export function useCampaignBattle(
       setBattleNotes,
       setBattleId,
       markClean,
+      resetBattle,
       status,
       name,
       notes,
@@ -369,6 +369,7 @@ export function useCampaignBattle(
       setBattleNotes,
       setBattleId,
       markClean,
+      resetBattle,
       status,
       name,
       notes,
