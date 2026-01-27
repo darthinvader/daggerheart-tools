@@ -133,13 +133,10 @@ export function useItemSelection(maxTotalSlots: number = Infinity) {
 
   const reset = useCallback(() => setTempSelected(new Map()), []);
 
-  const getItemsArray = (): AnyItem[] => {
-    const items: AnyItem[] = [];
-    tempSelected.forEach(({ item, quantity }) => {
-      for (let i = 0; i < quantity; i++) items.push(item);
-    });
-    return items;
-  };
+  const getItemsArray = (): AnyItem[] =>
+    Array.from(tempSelected.values()).flatMap(({ item, quantity }) =>
+      Array.from({ length: quantity }, () => item)
+    );
 
   return {
     tempSelected,

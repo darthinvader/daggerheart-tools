@@ -71,8 +71,12 @@ export function useUpdateCharacterMutation() {
       return updateCharacter(id, updates);
     },
     onSuccess: data => {
-      void queryClient.invalidateQueries({ queryKey: characterQueryKeys.all });
-      void queryClient.setQueryData(characterQueryKeys.detail(data.id), data);
+      // Set the detail cache directly with the fresh response data
+      queryClient.setQueryData(characterQueryKeys.detail(data.id), data);
+      // Invalidate the list to refetch summaries (can't derive from detail response)
+      void queryClient.invalidateQueries({
+        queryKey: characterQueryKeys.list(),
+      });
     },
   });
 }

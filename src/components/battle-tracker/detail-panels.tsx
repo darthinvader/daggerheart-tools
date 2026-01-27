@@ -750,41 +750,43 @@ type FeatureBadge = {
   description: string;
   enabled?: boolean;
   unlockLevel?: number;
-  source?: 'class' | 'subclass' | 'ancestry' | 'community';
+  source?: 'class' | 'subclass' | 'ancestry' | 'community' | 'custom';
 };
 
 function buildAncestryFeatures(ancestryName?: string): FeatureBadge[] {
   if (!ancestryName) return [];
   const ancestry = getAncestryByName(ancestryName);
   if (!ancestry) return [];
-  return [
+  const badges: FeatureBadge[] = [
     {
       name: ancestry.primaryFeature.name,
       description: ancestry.primaryFeature.description,
-      source: 'ancestry',
+      source: 'ancestry' as const,
       enabled: true,
     },
     {
       name: ancestry.secondaryFeature.name,
       description: ancestry.secondaryFeature.description,
-      source: 'ancestry',
+      source: 'ancestry' as const,
       enabled: true,
     },
-  ].filter(feature => feature.name.trim().length > 0);
+  ];
+  return badges.filter(feature => feature.name.trim().length > 0);
 }
 
 function buildCommunityFeatures(communityName?: string): FeatureBadge[] {
   if (!communityName) return [];
   const community = getCommunityByName(communityName);
   if (!community) return [];
-  return [
+  const badges: FeatureBadge[] = [
     {
       name: community.feature.name,
       description: community.feature.description,
-      source: 'community',
+      source: 'community' as const,
       enabled: true,
     },
-  ].filter(feature => feature.name.trim().length > 0);
+  ];
+  return badges.filter(feature => feature.name.trim().length > 0);
 }
 
 function buildClassFeatures(item: CharacterTracker): FeatureBadge[] {

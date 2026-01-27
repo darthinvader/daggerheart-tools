@@ -57,7 +57,7 @@ export function QuickThresholdsInfo({
         />
         {thresholds.enableCritical && thresholds.values.critical && (
           <div className="flex items-center gap-1">
-            <span className="text-xs text-red-500">Critical</span>
+            <span className="text-xs text-red-500">Massive</span>
             <span className="font-bold text-red-500">
               {thresholds.values.critical}+
             </span>

@@ -52,7 +52,7 @@ export function useThresholdsEditor({
     setDraftSettings(settings);
   }, [settings]);
 
-  const handleMinorChange = useCallback((value: number) => {
+  const handleMajorChange = useCallback((value: number) => {
     setDraftSettings(prev => ({
       ...prev,
       values: { ...prev.values, major: value },
@@ -66,7 +66,7 @@ export function useThresholdsEditor({
     }));
   }, []);
 
-  const handleMajorChange = useCallback((value: number) => {
+  const handleMassiveDamageChange = useCallback((value: number) => {
     setDraftSettings(prev => ({
       ...prev,
       values: { ...prev.values, critical: value },
@@ -92,14 +92,14 @@ export function useThresholdsEditor({
     [hasAutoContext, autoThresholds]
   );
 
-  const handleAutoMajorChange = useCallback((value: boolean) => {
+  const handleAutoMassiveDamageChange = useCallback((value: boolean) => {
     setDraftSettings(prev => ({
       ...prev,
       autoMajor: value,
     }));
   }, []);
 
-  const handleShowMajorChange = useCallback((value: boolean) => {
+  const handleShowMassiveDamageChange = useCallback((value: boolean) => {
     setDraftSettings(prev => ({
       ...prev,
       enableCritical: value,
@@ -110,7 +110,7 @@ export function useThresholdsEditor({
     ? autoThresholds.severe
     : draftSettings.values.severe;
 
-  const effectiveCritical =
+  const effectiveMassiveDamage =
     (draftSettings.autoMajor ?? true)
       ? effectiveSevere * 2
       : (draftSettings.values.critical ?? effectiveSevere * 2);
@@ -122,7 +122,7 @@ export function useThresholdsEditor({
     ? autoThresholds.severe
     : settings.values.severe;
 
-  const displayCritical =
+  const displayMassiveDamage =
     (settings.autoMajor ?? true)
       ? displaySevere * 2
       : (settings.values.critical ?? displaySevere * 2);
@@ -134,18 +134,18 @@ export function useThresholdsEditor({
     hasAutoContext,
     isAutoFromArmor,
     isDraftAutoFromArmor,
-    effectiveCritical,
+    effectiveMassiveDamage,
     displayMajor,
     displaySevere,
-    displayCritical,
+    displayMassiveDamage,
     handleEditToggle,
     handleSave,
     handleCancel,
-    handleMinorChange,
-    handleSevereChange,
     handleMajorChange,
+    handleSevereChange,
+    handleMassiveDamageChange,
     handleAutoChange,
-    handleAutoMajorChange,
-    handleShowMajorChange,
+    handleAutoMassiveDamageChange,
+    handleShowMassiveDamageChange,
   };
 }

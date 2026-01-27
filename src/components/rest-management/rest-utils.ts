@@ -9,10 +9,10 @@ export function calculateShortRestEffects(
   hopeSpent: number
 ): RestEffects {
   // Each Hope spent recovers 1d6 HP
-  let hpRecovered = 0;
-  for (let i = 0; i < hopeSpent; i++) {
-    hpRecovered += rollD6();
-  }
+  const hpRecovered = Array.from({ length: hopeSpent }, rollD6).reduce(
+    (sum, roll) => sum + roll,
+    0
+  );
 
   // Cap recovery at max HP
   const actualHpRecovered = Math.min(

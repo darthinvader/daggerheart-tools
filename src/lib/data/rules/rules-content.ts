@@ -273,7 +273,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
           'Thresholds come from armor and increase by level.',
         ],
         math: [
-          'Damage thresholds: Minor < Major, Major ≤ damage < Severe, Severe ≤ damage.',
+          'Damage thresholds: Major < Severe, damage below Major = 1 HP, Major ≤ damage < Severe = 2 HP, Severe ≤ damage = 3 HP.',
         ],
         tags: [
           {
@@ -282,7 +282,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
           },
           {
             label: 'Thresholds',
-            description: 'Minor/Major/Severe damage thresholds from armor.',
+            description: 'Major/Severe damage thresholds from armor.',
           },
         ],
       },
@@ -644,8 +644,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
           },
           {
             label: 'Thresholds',
-            description:
-              'Minor/Major/Severe thresholds decide HP lost per hit.',
+            description: 'Major/Severe thresholds decide HP lost per hit.',
           },
         ],
       },
@@ -761,7 +760,7 @@ export const RULES_PAGES: Record<string, RulesPage> = {
         iconKey: 'thresholds',
         summary: 'Armor mitigates damage through thresholds and armor slots.',
         bullets: [
-          'Compare damage to Minor/Major/Severe thresholds.',
+          'Compare damage to Major/Severe thresholds.',
           'Spend armor slots to reduce incoming damage.',
           'Higher level increases your thresholds.',
         ],

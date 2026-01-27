@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 
-import { type CharacterRecord, fetchCharacter } from '@/lib/api/characters';
+import { fetchCharacter } from '@/lib/api/characters';
 import { characterQueryKeys } from '@/lib/api/query-client';
 import { supabase } from '@/lib/supabase';
 
@@ -229,54 +229,4 @@ export function useRefreshLinkedCharacter() {
     },
     [queryClient]
   );
-}
-
-/**
- * Convert a snake_case database row to a CharacterRecord.
- * This is kept as a fallback but we prefer using fetchCharacter for validated data.
- */
-export function mapDbRowToCharacterRecord(
-  row: Record<string, unknown>
-): CharacterRecord | null {
-  try {
-    return {
-      id: row.id as string,
-      userId: row.user_id as string | null,
-      isNewCharacter: row.is_new_character as boolean,
-      identity: row.identity as CharacterRecord['identity'],
-      classDraft: row.class_draft as CharacterRecord['classDraft'],
-      domains: row.domains as CharacterRecord['domains'],
-      equipment: row.equipment as CharacterRecord['equipment'],
-      inventory: row.inventory as CharacterRecord['inventory'],
-      progression: row.progression as CharacterRecord['progression'],
-      resources: row.resources as CharacterRecord['resources'],
-      coreScores: row.core_scores as CharacterRecord['coreScores'],
-      traits: row.traits as CharacterRecord['traits'],
-      conditions: row.conditions as CharacterRecord['conditions'],
-      features: row.features as CharacterRecord['features'],
-      customFeatures: row.custom_features as CharacterRecord['customFeatures'],
-      thresholds: row.thresholds as CharacterRecord['thresholds'],
-      leveling: row.leveling as CharacterRecord['leveling'],
-      experience: row.experience as number,
-      experiences: row.experiences as CharacterRecord['experiences'],
-      companion: row.companion as CharacterRecord['companion'],
-      companionEnabled: row.companion_enabled as boolean,
-      scars: row.scars as CharacterRecord['scars'],
-      extraHopeSlots: row.extra_hope_slots as number,
-      companionHopeFilled: row.companion_hope_filled as boolean,
-      countdowns: row.countdowns as CharacterRecord['countdowns'],
-      sessions: row.sessions as CharacterRecord['sessions'],
-      currentSessionId: row.current_session_id as string | null,
-      notes: row.notes as CharacterRecord['notes'],
-      downtimeActivities:
-        row.downtime_activities as CharacterRecord['downtimeActivities'],
-      quickView: row.quick_view as CharacterRecord['quickView'],
-      deletedAt: row.deleted_at as string | null,
-      createdAt: row.created_at as string,
-      updatedAt: row.updated_at as string,
-    };
-  } catch {
-    console.error('Failed to map DB row to CharacterRecord:', row);
-    return null;
-  }
 }

@@ -1,7 +1,7 @@
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import { cn } from '@/lib/utils';
 
-export type ThresholdKind = 'minor' | 'severe' | 'major';
+export type ThresholdKind = 'major' | 'severe' | 'massiveDamage';
 
 interface ThresholdChipProps {
   kind: ThresholdKind;
@@ -13,13 +13,12 @@ const CHIP_CONFIG: Record<
   ThresholdKind,
   { label: string; abbr: string; color: string; description: string }
 > = {
-  minor: {
-    label: 'Minor',
+  major: {
+    label: 'Major',
     abbr: 'M',
     color:
       'bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/40',
-    description:
-      'Minor damage. Bruises and scratches that sting but heal quickly.',
+    description: 'Major damage. Significant hits that require attention.',
   },
   severe: {
     label: 'Severe',
@@ -29,11 +28,11 @@ const CHIP_CONFIG: Record<
     description:
       'Severe damage. Wounds that leave lasting marks and require rest.',
   },
-  major: {
-    label: 'Major',
+  massiveDamage: {
+    label: 'Massive Damage',
     abbr: 'MD',
     color: 'bg-red-500/20 text-red-700 dark:text-red-400 border-red-500/40',
-    description: 'Major damage. Critical injuries that threaten your life.',
+    description: 'Massive damage. Critical injuries that threaten your life.',
   },
 };
 

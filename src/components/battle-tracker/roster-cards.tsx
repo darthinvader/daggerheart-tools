@@ -12,7 +12,7 @@ import {
   X,
   Zap,
 } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -562,6 +562,18 @@ function useAdversaryRollState({
       : null
   );
 
+  // Refs to store interval IDs for cleanup
+  const attackIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const damageIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Cleanup intervals on unmount
+  useEffect(() => {
+    return () => {
+      if (attackIntervalRef.current) clearInterval(attackIntervalRef.current);
+      if (damageIntervalRef.current) clearInterval(damageIntervalRef.current);
+    };
+  }, []);
+
   const rollModDice = useCallback((): { value: number; str: string } => {
     if (!attackModDice) {
       return {
@@ -581,11 +593,14 @@ function useAdversaryRollState({
   }, [attackModDice, attackMod, attackModStr]);
 
   const rollDamageAction = useCallback(() => {
+    // Clear any existing interval
+    if (damageIntervalRef.current) clearInterval(damageIntervalRef.current);
+
     setIsDamageRolling(true);
     setDamageRoll(null);
 
     let count = 0;
-    const interval = setInterval(() => {
+    damageIntervalRef.current = setInterval(() => {
       const tempRolls = rollDice(diceCount, diceSides);
       const tempTotal = tempRolls.reduce((a, b) => a + b, 0) + damageBonus;
       setDamageRoll({
@@ -596,7 +611,8 @@ function useAdversaryRollState({
       });
       count++;
       if (count >= 6) {
-        clearInterval(interval);
+        clearInterval(damageIntervalRef.current!);
+        damageIntervalRef.current = null;
         const finalRolls = rollDice(diceCount, diceSides);
         const finalTotal = finalRolls.reduce((a, b) => a + b, 0) + damageBonus;
         setDamageRoll({
@@ -620,11 +636,14 @@ function useAdversaryRollState({
   }, [diceCount, diceSides, damageBonus, diceFormula, adversary.id, onChange]);
 
   const rollAttackAction = useCallback(() => {
+    // Clear any existing interval
+    if (attackIntervalRef.current) clearInterval(attackIntervalRef.current);
+
     setIsRolling(true);
     setAttackRoll(null);
 
     let count = 0;
-    const interval = setInterval(() => {
+    attackIntervalRef.current = setInterval(() => {
       const tempRoll = Math.floor(Math.random() * 20) + 1;
       const tempMod = rollModDice();
       setAttackRoll({
@@ -634,7 +653,8 @@ function useAdversaryRollState({
       });
       count++;
       if (count >= 6) {
-        clearInterval(interval);
+        clearInterval(attackIntervalRef.current!);
+        attackIntervalRef.current = null;
         const finalRoll = Math.floor(Math.random() * 20) + 1;
         const finalMod = rollModDice();
         const result = {

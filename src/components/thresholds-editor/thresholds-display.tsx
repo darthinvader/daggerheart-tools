@@ -4,22 +4,22 @@ import { cn } from '@/lib/utils';
 import { ThresholdChip } from './threshold-chip';
 
 interface ThresholdsDisplayProps {
-  minor: number;
+  major: number;
   severe: number;
-  major?: number;
-  showMajor?: boolean;
+  massiveDamage?: number;
+  showMassiveDamage?: boolean;
   className?: string;
 }
 
 export function ThresholdsDisplay({
-  minor,
-  severe,
   major,
-  showMajor = false,
+  severe,
+  massiveDamage,
+  showMassiveDamage = false,
   className,
 }: ThresholdsDisplayProps) {
-  const effectiveMajor = major ?? severe * 2;
-  const displayMajor = showMajor && effectiveMajor > 0;
+  const effectiveMassiveDamage = massiveDamage ?? severe * 2;
+  const displayMassiveDamage = showMassiveDamage && effectiveMassiveDamage > 0;
 
   return (
     <div className={cn('flex flex-col gap-2', className)}>
@@ -28,15 +28,15 @@ export function ThresholdsDisplay({
       </div>
 
       <div className="flex items-center gap-1">
-        <SmartTooltip content="Damage below Minor threshold - take 1 damage.">
+        <SmartTooltip content="Damage below Major threshold - take 1 damage.">
           <span className="text-muted-foreground bg-muted inline-flex size-6 cursor-help items-center justify-center rounded border font-mono text-xs">
             1
           </span>
         </SmartTooltip>
 
-        <ThresholdChip kind="minor" value={minor} />
+        <ThresholdChip kind="major" value={major} />
 
-        <SmartTooltip content="Damage at or above Minor but below Severe - take 2 damage.">
+        <SmartTooltip content="Damage at or above Major but below Severe - take 2 damage.">
           <span className="text-muted-foreground bg-muted inline-flex size-6 cursor-help items-center justify-center rounded border font-mono text-xs">
             2
           </span>
@@ -46,8 +46,8 @@ export function ThresholdsDisplay({
 
         <SmartTooltip
           content={
-            displayMajor
-              ? 'Damage at or above Severe but below Major - take 3 damage.'
+            displayMassiveDamage
+              ? 'Damage at or above Severe but below Massive Damage - take 3 damage.'
               : 'Damage at or above Severe threshold - take 3 damage.'
           }
         >
@@ -56,10 +56,13 @@ export function ThresholdsDisplay({
           </span>
         </SmartTooltip>
 
-        {displayMajor && (
+        {displayMassiveDamage && (
           <>
-            <ThresholdChip kind="major" value={effectiveMajor} />
-            <SmartTooltip content="Damage at or above Major threshold - take 4 damage.">
+            <ThresholdChip
+              kind="massiveDamage"
+              value={effectiveMassiveDamage}
+            />
+            <SmartTooltip content="Damage at or above Massive Damage threshold - take 4 damage.">
               <span className="text-muted-foreground bg-muted inline-flex size-6 cursor-help items-center justify-center rounded border font-mono text-xs">
                 4
               </span>
@@ -72,14 +75,14 @@ export function ThresholdsDisplay({
         <li>
           Below or equal to{' '}
           <strong className="text-amber-600 dark:text-amber-400">
-            {minor - 1}
+            {major - 1}
           </strong>{' '}
           → 1 damage
         </li>
         <li>
           Above{' '}
           <strong className="text-amber-600 dark:text-amber-400">
-            {minor - 1}
+            {major - 1}
           </strong>{' '}
           and below or equal to{' '}
           <strong className="text-orange-600 dark:text-orange-400">
@@ -87,7 +90,7 @@ export function ThresholdsDisplay({
           </strong>{' '}
           → 2 damage
         </li>
-        {displayMajor ? (
+        {displayMassiveDamage ? (
           <>
             <li>
               Above{' '}
@@ -96,14 +99,14 @@ export function ThresholdsDisplay({
               </strong>{' '}
               and below or equal to{' '}
               <strong className="text-red-600 dark:text-red-400">
-                {effectiveMajor - 1}
+                {effectiveMassiveDamage - 1}
               </strong>{' '}
               → 3 damage
             </li>
             <li>
               Above or equal to{' '}
               <strong className="text-red-600 dark:text-red-400">
-                {effectiveMajor}
+                {effectiveMassiveDamage}
               </strong>{' '}
               → 4 damage
             </li>

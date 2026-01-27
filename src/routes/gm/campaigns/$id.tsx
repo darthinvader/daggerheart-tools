@@ -226,6 +226,13 @@ function useCampaignAutoSave(
   saving: boolean
 ) {
   const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isMountedRef = useRef(true);
+  const performSaveRef = useRef(performSave);
+
+  // Keep a stable reference for cleanup
+  useEffect(() => {
+    performSaveRef.current = performSave;
+  });
 
   useEffect(() => {
     if (!hasChanges || saving) return;
@@ -235,7 +242,11 @@ function useCampaignAutoSave(
     }
 
     autoSaveTimeoutRef.current = setTimeout(() => {
-      void performSave();
+      performSaveRef.current().catch(error => {
+        if (isMountedRef.current) {
+          console.error('[CampaignAutoSave] Failed to save:', error);
+        }
+      });
     }, 2000);
 
     return () => {
@@ -243,7 +254,22 @@ function useCampaignAutoSave(
         clearTimeout(autoSaveTimeoutRef.current);
       }
     };
-  }, [hasChanges, saving, performSave]);
+  }, [hasChanges, saving]);
+
+  // Cleanup: flush pending save on unmount
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+        // Trigger save immediately on unmount if there were pending changes
+        performSaveRef.current().catch(() => {
+          // Silently ignore errors on unmount
+        });
+      }
+    };
+  }, []);
 
   const handleSave = useCallback(async () => {
     if (autoSaveTimeoutRef.current) {

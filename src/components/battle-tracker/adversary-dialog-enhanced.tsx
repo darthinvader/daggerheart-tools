@@ -273,7 +273,7 @@ const GM_COMBAT_TIPS = [
   {
     title: 'Thresholds',
     content:
-      'Compare damage to Minor/Major/Severe. Spend armor slots to reduce severity. Higher tiers = tougher foes.',
+      'Compare damage to Major/Severe. Spend armor slots to reduce severity. Higher tiers = tougher foes.',
   },
 ];
 

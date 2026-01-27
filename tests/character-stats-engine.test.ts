@@ -197,16 +197,17 @@ describe('Character Stats Engine', () => {
   // ===== Proficiency Calculation =====
   describe('calculateProficiency', () => {
     it('should calculate proficiency with no equipment modifier', () => {
+      // SRD: At Level 1, your Proficiency is 1
       const result = calculateProficiency(DEFAULT_EQUIPMENT_MODIFIERS);
-      expect(result.total).toBe(2); // base 2 + 0
-      expect(result.base).toBe(2);
+      expect(result.total).toBe(1); // base 1 + 0
+      expect(result.base).toBe(1);
       expect(result.equipmentModifier).toBe(0);
     });
 
     it('should apply equipment modifier', () => {
       const equipMods = createEquipmentModifiers({ proficiency: 1 });
       const result = calculateProficiency(equipMods);
-      expect(result.total).toBe(3); // 2 + 1
+      expect(result.total).toBe(2); // 1 + 1
       expect(result.equipmentModifier).toBe(1);
     });
 
@@ -220,6 +221,7 @@ describe('Character Stats Engine', () => {
   // ===== Thresholds Calculation =====
   describe('calculateThresholds', () => {
     it('should calculate thresholds at level 1', () => {
+      // SRD: you always add their current level to their damage thresholds
       const armorInput: ArmorInput = {
         ...DEFAULT_ARMOR_INPUT,
         baseThresholds: { major: 6, severe: 9 },
@@ -231,11 +233,13 @@ describe('Character Stats Engine', () => {
         DEFAULT_EQUIPMENT_MODIFIERS
       );
 
-      expect(result.major.total).toBe(6);
-      expect(result.severe.total).toBe(9);
+      // base + level: 6+1=7, 9+1=10
+      expect(result.major.total).toBe(7);
+      expect(result.severe.total).toBe(10);
     });
 
     it('should add level bonus to all thresholds', () => {
+      // SRD: you always add their current level to their damage thresholds
       const armorInput: ArmorInput = {
         ...DEFAULT_ARMOR_INPUT,
         baseThresholds: { major: 6, severe: 9 },
@@ -247,12 +251,12 @@ describe('Character Stats Engine', () => {
         DEFAULT_EQUIPMENT_MODIFIERS
       );
 
-      // Level 5 = +4 to each threshold
-      expect(result.major.total).toBe(10); // 6 + 4
-      expect(result.severe.total).toBe(13); // 9 + 4
+      // Level 5 = +5 to each threshold
+      expect(result.major.total).toBe(11); // 6 + 5
+      expect(result.severe.total).toBe(14); // 9 + 5
 
-      expect(result.major.levelBonus).toBe(4);
-      expect(result.severe.levelBonus).toBe(4);
+      expect(result.major.levelBonus).toBe(5);
+      expect(result.severe.levelBonus).toBe(5);
     });
 
     it('should apply equipment modifiers correctly', () => {
@@ -271,8 +275,9 @@ describe('Character Stats Engine', () => {
         equipMods
       );
 
-      expect(result.major.total).toBe(8); // 6 + 0 + 2
-      expect(result.severe.total).toBe(12); // 9 + 0 + 3
+      // base + level + equip: 6+1+2=9, 9+1+3=13
+      expect(result.major.total).toBe(9);
+      expect(result.severe.total).toBe(13);
 
       expect(result.major.equipmentModifier).toBe(2);
       expect(result.severe.equipmentModifier).toBe(3);
@@ -418,7 +423,8 @@ describe('Character Stats Engine', () => {
       expect(result.hp.total).toBe(6);
       expect(result.evasion.total).toBe(10);
       expect(result.armorScore.total).toBe(0);
-      expect(result.proficiency.total).toBe(2);
+      // SRD: At Level 1, your Proficiency is 1
+      expect(result.proficiency.total).toBe(1);
     });
 
     it('should handle complex inputs with all modifiers', () => {
@@ -461,14 +467,14 @@ describe('Character Stats Engine', () => {
       // Armor Score: 6 + 0 = 6
       expect(result.armorScore.total).toBe(6);
 
-      // Proficiency: 2 + 0 = 2
-      expect(result.proficiency.total).toBe(2);
+      // SRD: Proficiency starts at 1
+      expect(result.proficiency.total).toBe(1);
 
-      // Thresholds: base + (level-1) + equipMod
-      // Major: 8 + 4 + 0 = 12
-      // Severe: 12 + 4 - 1 = 15
-      expect(result.thresholds.major.total).toBe(12);
-      expect(result.thresholds.severe.total).toBe(15);
+      // Thresholds: base + level + equipMod (SRD: add full level)
+      // Major: 8 + 5 + 0 = 13
+      // Severe: 12 + 5 - 1 = 16
+      expect(result.thresholds.major.total).toBe(13);
+      expect(result.thresholds.severe.total).toBe(16);
 
       // Traits - Agility includes armor modifier
       // Agility: 1 + 0 + (-1) + 0 = 0
@@ -495,7 +501,8 @@ describe('Character Stats Engine', () => {
       expect(totals.hp).toBe(6);
       expect(totals.evasion).toBe(10);
       expect(totals.armorScore).toBe(0);
-      expect(totals.proficiency).toBe(2);
+      // SRD: At Level 1, your Proficiency is 1
+      expect(totals.proficiency).toBe(1);
     });
   });
 

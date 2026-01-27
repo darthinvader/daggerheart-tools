@@ -12,7 +12,7 @@ import {
   X,
   Zap,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -42,21 +42,33 @@ const ENVIRONMENT_TYPE_ICONS: Record<string, string> = {
 function useGmDieRoll() {
   const [gmDieResult, setGmDieResult] = useState<number | null>(null);
   const [isRolling, setIsRolling] = useState(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const rollGmDie = () => {
+  // Cleanup interval on unmount
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, []);
+
+  const rollGmDie = useCallback(() => {
+    // Clear any existing interval
+    if (intervalRef.current) clearInterval(intervalRef.current);
+
     setIsRolling(true);
     setGmDieResult(null);
     let count = 0;
-    const interval = setInterval(() => {
+    intervalRef.current = setInterval(() => {
       setGmDieResult(Math.floor(Math.random() * 20) + 1);
       count++;
       if (count >= 8) {
-        clearInterval(interval);
+        clearInterval(intervalRef.current!);
+        intervalRef.current = null;
         setGmDieResult(Math.floor(Math.random() * 20) + 1);
         setIsRolling(false);
       }
     }, 80);
-  };
+  }, []);
 
   return { gmDieResult, isRolling, rollGmDie };
 }

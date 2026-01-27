@@ -23,7 +23,7 @@ export function ThresholdsPreview({
       </div>
       {enableCritical && critical !== undefined && (
         <div>
-          <span className="text-muted-foreground">Critical:</span>{' '}
+          <span className="text-muted-foreground">Massive Damage:</span>{' '}
           <span className="font-medium">{critical}+</span>
         </div>
       )}

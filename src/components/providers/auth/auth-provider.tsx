@@ -22,11 +22,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
-      setSession(initialSession);
-      setUser(initialSession?.user ?? null);
-      setIsLoading(false);
-    });
+    supabase.auth
+      .getSession()
+      .then(({ data: { session: initialSession } }) => {
+        setSession(initialSession);
+        setUser(initialSession?.user ?? null);
+        setIsLoading(false);
+      })
+      .catch(error => {
+        console.error('Failed to get auth session:', error);
+        setIsLoading(false);
+      });
 
     // Listen for auth changes
     const {

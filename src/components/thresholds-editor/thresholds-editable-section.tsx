@@ -50,19 +50,19 @@ export function ThresholdsEditableSection({
     hasAutoContext,
     isAutoFromArmor,
     isDraftAutoFromArmor,
-    effectiveCritical,
+    effectiveMassiveDamage,
     displayMajor,
     displaySevere,
-    displayCritical,
+    displayMassiveDamage,
     handleEditToggle,
     handleSave,
     handleCancel,
-    handleMinorChange,
-    handleSevereChange,
     handleMajorChange,
+    handleSevereChange,
+    handleMassiveDamageChange,
     handleAutoChange,
-    handleAutoMajorChange,
-    handleShowMajorChange,
+    handleAutoMassiveDamageChange,
+    handleShowMassiveDamageChange,
   } = useThresholdsEditor({ settings, onChange, autoContext });
 
   const hasSettings = settings !== null;
@@ -82,7 +82,7 @@ export function ThresholdsEditableSection({
       editDescription="Set damage thresholds to determine how much damage marks HP."
       editContent={
         <ThresholdsEditor
-          minor={
+          major={
             isDraftAutoFromArmor
               ? autoThresholds.major
               : draftSettings.values.major
@@ -92,16 +92,16 @@ export function ThresholdsEditableSection({
               ? autoThresholds.severe
               : draftSettings.values.severe
           }
-          major={effectiveCritical}
+          massiveDamage={effectiveMassiveDamage}
           autoCalculate={draftSettings.auto ?? true}
-          autoCalculateMajor={draftSettings.autoMajor ?? true}
-          showMajor={draftSettings.enableCritical}
-          onMinorChange={handleMinorChange}
-          onSevereChange={handleSevereChange}
+          autoCalculateMassiveDamage={draftSettings.autoMajor ?? true}
+          showMassiveDamage={draftSettings.enableCritical}
           onMajorChange={handleMajorChange}
+          onSevereChange={handleSevereChange}
+          onMassiveDamageChange={handleMassiveDamageChange}
           onAutoCalculateChange={handleAutoChange}
-          onAutoCalculateMajorChange={handleAutoMajorChange}
-          onShowMajorChange={handleShowMajorChange}
+          onAutoCalculateMassiveDamageChange={handleAutoMassiveDamageChange}
+          onShowMassiveDamageChange={handleShowMassiveDamageChange}
           baseHp={baseHp}
           autoLabel={hasAutoContext ? 'Auto from Armor' : undefined}
           autoTooltip={
@@ -120,10 +120,10 @@ export function ThresholdsEditableSection({
             </p>
           )}
           <ThresholdsDisplay
-            minor={displayMajor}
+            major={displayMajor}
             severe={displaySevere}
-            major={displayCritical}
-            showMajor={settings.enableCritical}
+            massiveDamage={displayMassiveDamage}
+            showMassiveDamage={settings.enableCritical}
           />
         </div>
       ) : (

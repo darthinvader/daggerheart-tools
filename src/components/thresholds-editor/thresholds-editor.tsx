@@ -6,18 +6,18 @@ import { ThresholdsDisplay } from './thresholds-display';
 import { useThresholdsEditorState } from './use-thresholds-editor-state';
 
 interface ThresholdsEditorProps {
-  minor: number;
+  major: number;
   severe: number;
-  major?: number;
+  massiveDamage?: number;
   autoCalculate?: boolean;
-  autoCalculateMajor?: boolean;
-  showMajor?: boolean;
-  onMinorChange?: (value: number) => void;
-  onSevereChange?: (value: number) => void;
+  autoCalculateMassiveDamage?: boolean;
+  showMassiveDamage?: boolean;
   onMajorChange?: (value: number) => void;
+  onSevereChange?: (value: number) => void;
+  onMassiveDamageChange?: (value: number) => void;
   onAutoCalculateChange?: (value: boolean) => void;
-  onAutoCalculateMajorChange?: (value: boolean) => void;
-  onShowMajorChange?: (value: boolean) => void;
+  onAutoCalculateMassiveDamageChange?: (value: boolean) => void;
+  onShowMassiveDamageChange?: (value: boolean) => void;
   baseHp?: number;
   className?: string;
   /** Custom label for the auto-calculate checkbox */
@@ -27,68 +27,68 @@ interface ThresholdsEditorProps {
 }
 
 export function ThresholdsEditor({
-  minor,
-  severe,
   major,
+  severe,
+  massiveDamage,
   autoCalculate = true,
-  autoCalculateMajor = true,
-  showMajor = false,
-  onMinorChange,
-  onSevereChange,
+  autoCalculateMassiveDamage = true,
+  showMassiveDamage = false,
   onMajorChange,
+  onSevereChange,
+  onMassiveDamageChange,
   onAutoCalculateChange,
-  onAutoCalculateMajorChange,
-  onShowMajorChange,
+  onAutoCalculateMassiveDamageChange,
+  onShowMassiveDamageChange,
   baseHp = 6,
   className,
   autoLabel = 'Auto-calculate',
-  autoTooltip = 'Automatically calculate thresholds based on your base HP. Minor = HP ÷ 6, Severe = HP ÷ 3, Major = Severe × 2.',
+  autoTooltip = 'Automatically calculate thresholds based on your base HP. Major = HP ÷ 6, Severe = HP ÷ 3, Massive Damage = Severe × 2.',
 }: ThresholdsEditorProps) {
   const {
     ids,
-    localMinor,
-    localSevere,
     localMajor,
-    effectiveMinor,
-    effectiveSevere,
+    localSevere,
+    localMassiveDamage,
     effectiveMajor,
+    effectiveSevere,
+    effectiveMassiveDamage,
     validationError,
     autoCalculate: isAutoCalculate,
-    autoCalculateMajor: isAutoCalculateMajor,
-    showMajor: isShowMajor,
-    handleMinorChange,
+    autoCalculateMassiveDamage: isAutoCalculateMassiveDamage,
+    showMassiveDamage: isShowMassiveDamage,
+    handleMajorChange,
     handleSevereChange,
-    handleMajorInputChange,
+    handleMassiveDamageInputChange,
     handleAutoToggle,
-    handleShowMajorToggle,
-    handleAutoMajorToggle,
+    handleShowMassiveDamageToggle,
+    handleAutoMassiveDamageToggle,
   } = useThresholdsEditorState(
     {
-      minor,
-      severe,
       major,
+      severe,
+      massiveDamage,
       autoCalculate,
-      autoCalculateMajor,
-      showMajor,
+      autoCalculateMassiveDamage,
+      showMassiveDamage,
       baseHp,
     },
     {
-      onMinorChange,
-      onSevereChange,
       onMajorChange,
+      onSevereChange,
+      onMassiveDamageChange,
       onAutoCalculateChange,
-      onAutoCalculateMajorChange,
-      onShowMajorChange,
+      onAutoCalculateMassiveDamageChange,
+      onShowMassiveDamageChange,
     }
   );
 
   return (
     <div className={cn('flex flex-col gap-4', className)}>
       <ThresholdsDisplay
-        minor={effectiveMinor}
-        severe={effectiveSevere}
         major={effectiveMajor}
-        showMajor={isShowMajor}
+        severe={effectiveSevere}
+        massiveDamage={effectiveMassiveDamage}
+        showMassiveDamage={isShowMassiveDamage}
       />
 
       <div className="flex flex-wrap items-center gap-4">
@@ -101,20 +101,20 @@ export function ThresholdsEditor({
         />
 
         <ThresholdCheckbox
-          id={ids.major}
-          checked={isShowMajor}
-          onCheckedChange={handleShowMajorToggle}
-          label="Enable Major Damage"
-          tooltip="Toggle the Major Damage threshold (optional 4th tier). When enabled, extremely high damage deals even more HP loss."
+          id={ids.massiveDamage}
+          checked={isShowMassiveDamage}
+          onCheckedChange={handleShowMassiveDamageToggle}
+          label="Enable Massive Damage"
+          tooltip="Toggle the Massive Damage threshold (optional 4th tier). When enabled, extremely high damage deals even more HP loss."
         />
 
-        {isShowMajor && !isAutoCalculate && (
+        {isShowMassiveDamage && !isAutoCalculate && (
           <ThresholdCheckbox
-            id={ids.autoMajor}
-            checked={isAutoCalculateMajor}
-            onCheckedChange={handleAutoMajorToggle}
-            label="Auto-calculate Major"
-            tooltip="Automatically set Major = Severe × 2. Disable to enter a custom Major threshold."
+            id={ids.autoMassiveDamage}
+            checked={isAutoCalculateMassiveDamage}
+            onCheckedChange={handleAutoMassiveDamageToggle}
+            label="Auto-calculate Massive Damage"
+            tooltip="Automatically set Massive Damage = Severe × 2. Disable to enter a custom Massive Damage threshold."
           />
         )}
       </div>
@@ -122,16 +122,16 @@ export function ThresholdsEditor({
       {!isAutoCalculate && (
         <CustomThresholdsForm
           ids={ids}
-          localMinor={localMinor}
-          localSevere={localSevere}
           localMajor={localMajor}
-          effectiveMajor={effectiveMajor}
-          isShowMajor={isShowMajor}
-          isAutoCalculateMajor={isAutoCalculateMajor}
+          localSevere={localSevere}
+          localMassiveDamage={localMassiveDamage}
+          effectiveMassiveDamage={effectiveMassiveDamage}
+          isShowMassiveDamage={isShowMassiveDamage}
+          isAutoCalculateMassiveDamage={isAutoCalculateMassiveDamage}
           validationError={validationError}
-          handleMinorChange={handleMinorChange}
+          handleMajorChange={handleMajorChange}
           handleSevereChange={handleSevereChange}
-          handleMajorInputChange={handleMajorInputChange}
+          handleMassiveDamageInputChange={handleMassiveDamageInputChange}
         />
       )}
     </div>

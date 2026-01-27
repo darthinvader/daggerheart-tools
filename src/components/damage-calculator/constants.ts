@@ -33,7 +33,7 @@ export const SEVERITY_LEVELS = [
     bg: 'bg-red-500/10',
   },
   {
-    name: 'Critical',
+    name: 'Massive Damage',
     threshold: 'critical',
     color: 'text-purple-500',
     bg: 'bg-purple-500/10',

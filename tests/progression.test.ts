@@ -11,9 +11,22 @@ import {
 
 describe('progression helpers', () => {
   it('computes thresholds correctly', () => {
-    expect(getThresholds(20)).toEqual({ major: 5, severe: 10 });
-    expect(getThresholds(1)).toEqual({ major: 0, severe: 0 });
-    expect(getThresholds(0)).toEqual({ major: 0, severe: 0 });
+    // SRD rule: thresholds = base + level
+    // Base thresholds: major: 6, severe: 9 at level 1 => 6+1=7, 9+1=10
+    expect(getThresholds({ major: 6, severe: 9 }, 1)).toEqual({
+      major: 7,
+      severe: 10,
+    });
+    // At level 5: 6+5=11, 9+5=14
+    expect(getThresholds({ major: 6, severe: 9 }, 5)).toEqual({
+      major: 11,
+      severe: 14,
+    });
+    // With zero base at level 1: 0+1=1, 0+1=1
+    expect(getThresholds({ major: 0, severe: 0 }, 1)).toEqual({
+      major: 1,
+      severe: 1,
+    });
   });
 
   it('maps level to tier', () => {

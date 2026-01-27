@@ -9,10 +9,13 @@ type Severity = 'minor' | 'major' | 'severe' | 'critical';
 
 /**
  * Classify incoming damage value against thresholds and return HP to lose.
- * - damage 1 to (but not including) major threshold = 1 HP (Minor)
- * - damage from major to (but not including) severe = 2 HP (Major)
- * - damage >= severe = 3 HP (Severe)
- * - If critical is enabled: damage >= critical threshold = 4 HP (Critical)
+ * Thresholds are: Major, Severe, (and optionally Massive Damage/Critical)
+ * Outcomes/Severity names are: Minor (1 HP), Major (2 HP), Severe (3 HP), Massive/Critical (4 HP)
+ *
+ * - damage below Major threshold = 1 HP (Minor outcome)
+ * - damage from Major to (but not including) Severe = 2 HP (Major outcome)
+ * - damage >= Severe = 3 HP (Severe outcome)
+ * - If Massive Damage enabled: damage >= Massive Damage threshold = 4 HP (Critical outcome)
  */
 function classifyDamageToHp(
   damage: number,

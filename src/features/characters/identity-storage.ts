@@ -10,8 +10,6 @@ import {
   CommunityNameSchema,
   NameDescriptionSchema,
 } from '@/lib/schemas/core';
-import { characterKeys as keys, storage } from '@/lib/storage';
-
 // Identity
 // Details to support richer ancestry/community editing: mixed and homebrew options
 // Use NameDescriptionSchema with min(1) validation for features
@@ -81,9 +79,3 @@ export const DEFAULT_IDENTITY: IdentityDraft = {
   description: '',
   calling: '',
 };
-export function readIdentityFromStorage(id: string): IdentityDraft {
-  return storage.read(keys.identity(id), DEFAULT_IDENTITY, IdentityDraftSchema);
-}
-export function writeIdentityToStorage(id: string, value: IdentityDraft) {
-  storage.write(keys.identity(id), value);
-}

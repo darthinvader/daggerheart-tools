@@ -1,9 +1,9 @@
 import { useCallback } from 'react';
 
 interface AutoThresholds {
-  minor: number;
-  severe: number;
   major: number;
+  severe: number;
+  massiveDamage: number;
 }
 
 function validateThresholdInput(value: string): number | null {
@@ -17,40 +17,40 @@ function validateThresholdInput(value: string): number | null {
 interface UseThresholdHandlersProps {
   autoThresholds: AutoThresholds;
   effectiveSevere: number;
-  setLocalMinor: (v: string) => void;
-  setLocalSevere: (v: string) => void;
   setLocalMajor: (v: string) => void;
-  onMinorChange?: (value: number) => void;
-  onSevereChange?: (value: number) => void;
+  setLocalSevere: (v: string) => void;
+  setLocalMassiveDamage: (v: string) => void;
   onMajorChange?: (value: number) => void;
+  onSevereChange?: (value: number) => void;
+  onMassiveDamageChange?: (value: number) => void;
   onAutoCalculateChange?: (value: boolean) => void;
-  onAutoCalculateMajorChange?: (value: boolean) => void;
-  onShowMajorChange?: (value: boolean) => void;
+  onAutoCalculateMassiveDamageChange?: (value: boolean) => void;
+  onShowMassiveDamageChange?: (value: boolean) => void;
 }
 
 export function useThresholdHandlers(props: UseThresholdHandlersProps) {
   const {
     autoThresholds,
     effectiveSevere,
-    setLocalMinor,
-    setLocalSevere,
     setLocalMajor,
-    onMinorChange,
-    onSevereChange,
+    setLocalSevere,
+    setLocalMassiveDamage,
     onMajorChange,
+    onSevereChange,
+    onMassiveDamageChange,
     onAutoCalculateChange,
-    onAutoCalculateMajorChange,
-    onShowMajorChange,
+    onAutoCalculateMassiveDamageChange,
+    onShowMassiveDamageChange,
   } = props;
 
-  const handleMinorChange = useCallback(
+  const handleMajorChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const raw = e.target.value;
-      setLocalMinor(raw);
+      setLocalMajor(raw);
       const parsed = validateThresholdInput(raw);
-      if (parsed !== null) onMinorChange?.(parsed);
+      if (parsed !== null) onMajorChange?.(parsed);
     },
-    [onMinorChange, setLocalMinor]
+    [onMajorChange, setLocalMajor]
   );
 
   const handleSevereChange = useCallback(
@@ -63,14 +63,14 @@ export function useThresholdHandlers(props: UseThresholdHandlersProps) {
     [onSevereChange, setLocalSevere]
   );
 
-  const handleMajorInputChange = useCallback(
+  const handleMassiveDamageInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const raw = e.target.value;
-      setLocalMajor(raw);
+      setLocalMassiveDamage(raw);
       const parsed = validateThresholdInput(raw);
-      if (parsed !== null) onMajorChange?.(parsed);
+      if (parsed !== null) onMassiveDamageChange?.(parsed);
     },
-    [onMajorChange, setLocalMajor]
+    [onMassiveDamageChange, setLocalMassiveDamage]
   );
 
   const handleAutoToggle = useCallback(
@@ -78,53 +78,58 @@ export function useThresholdHandlers(props: UseThresholdHandlersProps) {
       if (checked === 'indeterminate') return;
       onAutoCalculateChange?.(checked);
       if (checked) {
-        setLocalMinor(String(autoThresholds.minor));
-        setLocalSevere(String(autoThresholds.severe));
         setLocalMajor(String(autoThresholds.major));
-        onMinorChange?.(autoThresholds.minor);
-        onSevereChange?.(autoThresholds.severe);
+        setLocalSevere(String(autoThresholds.severe));
+        setLocalMassiveDamage(String(autoThresholds.massiveDamage));
         onMajorChange?.(autoThresholds.major);
+        onSevereChange?.(autoThresholds.severe);
+        onMassiveDamageChange?.(autoThresholds.massiveDamage);
       }
     },
     [
       onAutoCalculateChange,
-      onMinorChange,
-      onSevereChange,
       onMajorChange,
+      onSevereChange,
+      onMassiveDamageChange,
       autoThresholds,
-      setLocalMinor,
-      setLocalSevere,
       setLocalMajor,
+      setLocalSevere,
+      setLocalMassiveDamage,
     ]
   );
 
-  const handleShowMajorToggle = useCallback(
+  const handleShowMassiveDamageToggle = useCallback(
     (checked: boolean | 'indeterminate') => {
       if (checked === 'indeterminate') return;
-      onShowMajorChange?.(checked);
+      onShowMassiveDamageChange?.(checked);
     },
-    [onShowMajorChange]
+    [onShowMassiveDamageChange]
   );
 
-  const handleAutoMajorToggle = useCallback(
+  const handleAutoMassiveDamageToggle = useCallback(
     (checked: boolean | 'indeterminate') => {
       if (checked === 'indeterminate') return;
-      onAutoCalculateMajorChange?.(checked);
+      onAutoCalculateMassiveDamageChange?.(checked);
       if (checked) {
-        const newMajor = effectiveSevere * 2;
-        setLocalMajor(String(newMajor));
-        onMajorChange?.(newMajor);
+        const newMassiveDamage = effectiveSevere * 2;
+        setLocalMassiveDamage(String(newMassiveDamage));
+        onMassiveDamageChange?.(newMassiveDamage);
       }
     },
-    [onAutoCalculateMajorChange, onMajorChange, effectiveSevere, setLocalMajor]
+    [
+      onAutoCalculateMassiveDamageChange,
+      onMassiveDamageChange,
+      effectiveSevere,
+      setLocalMassiveDamage,
+    ]
   );
 
   return {
-    handleMinorChange,
+    handleMajorChange,
     handleSevereChange,
-    handleMajorInputChange,
+    handleMassiveDamageInputChange,
     handleAutoToggle,
-    handleShowMajorToggle,
-    handleAutoMajorToggle,
+    handleShowMassiveDamageToggle,
+    handleAutoMassiveDamageToggle,
   };
 }

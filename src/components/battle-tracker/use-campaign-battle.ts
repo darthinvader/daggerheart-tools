@@ -23,8 +23,8 @@ interface UseCampaignBattleOptions {
   battleId?: string;
   /** Optional session ID for tracking which session the battle occurred in */
   sessionId?: string;
-  /** Callback when battle state changes (for manual save implementations) */
-  onStateChange?: (state: BattleState) => void;
+  /** Callback when battle state changes (for manual save implementations). Call markClean() on success. */
+  onStateChange?: (state: BattleState) => void | Promise<void>;
   /** Auto-save debounce interval in ms (default: 2000) */
   autoSaveDebounceMs?: number;
 }
@@ -330,8 +330,8 @@ export function useCampaignBattle(
     }
 
     saveTimeoutRef.current = setTimeout(() => {
-      onStateChange(toBattleState());
-      setIsDirty(false);
+      // Fire and forget - caller is responsible for calling markClean() on success
+      void onStateChange(toBattleState());
     }, autoSaveDebounceMs);
 
     return () => {

@@ -21,6 +21,3 @@ export function readEquipmentFromStorage(id: string): EquipmentDraft {
     return fallback;
   }
 }
-export function writeEquipmentToStorage(id: string, value: EquipmentDraft) {
-  storage.write(keys.equipment(id), value);
-}

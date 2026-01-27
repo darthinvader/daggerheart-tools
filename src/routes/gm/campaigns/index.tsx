@@ -311,47 +311,80 @@ function CampaignsList() {
   const [showEmptyTrashConfirm, setShowEmptyTrashConfirm] = useState(false);
   const [trashOpen, setTrashOpen] = useState(false);
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (signal?: AbortSignal) => {
     setLoading(true);
-    const [campaignsData, trashData] = await Promise.all([
-      listCampaigns(),
-      listTrashedCampaigns(),
-    ]);
-    setCampaigns(campaignsData);
-    setTrashedCampaigns(trashData);
-    setLoading(false);
+    try {
+      const [campaignsData, trashData] = await Promise.all([
+        listCampaigns(),
+        listTrashedCampaigns(),
+      ]);
+      // Check if aborted before updating state
+      if (signal?.aborted) return;
+      setCampaigns(campaignsData);
+      setTrashedCampaigns(trashData);
+    } catch (error) {
+      if (signal?.aborted) return;
+      console.error('Failed to load campaigns:', error);
+    } finally {
+      if (!signal?.aborted) {
+        setLoading(false);
+      }
+    }
   }, []);
 
   useEffect(() => {
+    const controller = new AbortController();
     const timeoutId = window.setTimeout(() => {
-      void loadData();
+      void loadData(controller.signal);
     }, 0);
-    return () => window.clearTimeout(timeoutId);
+    return () => {
+      window.clearTimeout(timeoutId);
+      controller.abort();
+    };
   }, [loadData]);
 
   async function handleDelete() {
     if (!deleteTarget) return;
-    await deleteCampaign(deleteTarget.id);
-    setDeleteTarget(null);
-    await loadData();
+    try {
+      await deleteCampaign(deleteTarget.id);
+      setDeleteTarget(null);
+      await loadData();
+    } catch (error) {
+      console.error('Failed to delete campaign:', error);
+      setDeleteTarget(null);
+    }
   }
 
   async function handleRestore(id: string) {
-    await restoreCampaign(id);
-    await loadData();
+    try {
+      await restoreCampaign(id);
+      await loadData();
+    } catch (error) {
+      console.error('Failed to restore campaign:', error);
+    }
   }
 
   async function handlePermanentDelete() {
     if (!permanentDeleteTarget) return;
-    await permanentlyDeleteCampaign(permanentDeleteTarget.id);
-    setPermanentDeleteTarget(null);
-    await loadData();
+    try {
+      await permanentlyDeleteCampaign(permanentDeleteTarget.id);
+      setPermanentDeleteTarget(null);
+      await loadData();
+    } catch (error) {
+      console.error('Failed to permanently delete campaign:', error);
+      setPermanentDeleteTarget(null);
+    }
   }
 
   async function handleEmptyTrash() {
-    await emptyTrash();
-    setShowEmptyTrashConfirm(false);
-    await loadData();
+    try {
+      await emptyTrash();
+      setShowEmptyTrashConfirm(false);
+      await loadData();
+    } catch (error) {
+      console.error('Failed to empty trash:', error);
+      setShowEmptyTrashConfirm(false);
+    }
   }
 
   if (loading) {

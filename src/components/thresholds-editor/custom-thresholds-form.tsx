@@ -44,35 +44,37 @@ export function ThresholdInput({
 
 interface CustomThresholdsFormProps {
   ids: {
-    minorInput: string;
-    severeInput: string;
     majorInput: string;
+    severeInput: string;
+    massiveDamageInput: string;
     error: string;
   };
-  localMinor: string;
-  localSevere: string;
   localMajor: string;
-  effectiveMajor: number;
-  isShowMajor: boolean;
-  isAutoCalculateMajor: boolean;
+  localSevere: string;
+  localMassiveDamage: string;
+  effectiveMassiveDamage: number;
+  isShowMassiveDamage: boolean;
+  isAutoCalculateMassiveDamage: boolean;
   validationError: string | null;
-  handleMinorChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleMajorChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleSevereChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  handleMajorInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleMassiveDamageInputChange: (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => void;
 }
 
 export function CustomThresholdsForm({
   ids,
-  localMinor,
-  localSevere,
   localMajor,
-  effectiveMajor,
-  isShowMajor,
-  isAutoCalculateMajor,
+  localSevere,
+  localMassiveDamage,
+  effectiveMassiveDamage,
+  isShowMassiveDamage,
+  isAutoCalculateMassiveDamage,
   validationError,
-  handleMinorChange,
+  handleMajorChange,
   handleSevereChange,
-  handleMajorInputChange,
+  handleMassiveDamageInputChange,
 }: CustomThresholdsFormProps) {
   const errorId = validationError ? ids.error : undefined;
 
@@ -84,10 +86,10 @@ export function CustomThresholdsForm({
 
       <div className="grid gap-4 sm:grid-cols-3">
         <ThresholdInput
-          id={ids.minorInput}
-          label="Minor"
-          value={localMinor}
-          onChange={handleMinorChange}
+          id={ids.majorInput}
+          label="Major"
+          value={localMajor}
+          onChange={handleMajorChange}
           colorClass="text-amber-700 dark:text-amber-400"
           errorId={errorId}
         />
@@ -101,15 +103,19 @@ export function CustomThresholdsForm({
           errorId={errorId}
         />
 
-        {isShowMajor && (
+        {isShowMassiveDamage && (
           <ThresholdInput
-            id={ids.majorInput}
-            label="Major"
-            value={isAutoCalculateMajor ? effectiveMajor : localMajor}
-            onChange={handleMajorInputChange}
+            id={ids.massiveDamageInput}
+            label="Massive Damage"
+            value={
+              isAutoCalculateMassiveDamage
+                ? effectiveMassiveDamage
+                : localMassiveDamage
+            }
+            onChange={handleMassiveDamageInputChange}
             colorClass="text-red-700 dark:text-red-400"
-            disabled={isAutoCalculateMajor}
-            suffix={isAutoCalculateMajor ? '(auto)' : undefined}
+            disabled={isAutoCalculateMassiveDamage}
+            suffix={isAutoCalculateMassiveDamage ? '(auto)' : undefined}
             errorId={errorId}
           />
         )}

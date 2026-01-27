@@ -183,7 +183,10 @@ function convertWeapon(weapon?: CharacterRecord['equipment']['primaryWeapon']) {
     damage: formatWeaponDamage(weapon.damage),
     range: weapon.range ?? '',
     traits: weapon.trait ? [weapon.trait] : [],
-    features: weapon.features?.map(f => f.description).filter(Boolean) ?? [],
+    features:
+      weapon.features
+        ?.map((f: { description?: string }) => f.description)
+        .filter(Boolean) ?? [],
   };
 }
 
@@ -191,7 +194,9 @@ function convertWeapon(weapon?: CharacterRecord['equipment']['primaryWeapon']) {
 function convertArmor(armor?: CharacterRecord['equipment']['armor']) {
   if (!armor) return undefined;
   const allFeatures =
-    armor.features?.map(f => f.description).filter(Boolean) ?? [];
+    armor.features
+      ?.map((f: { description?: string }) => f.description)
+      .filter(Boolean) ?? [];
   return {
     name: armor.name,
     feature: allFeatures[0],

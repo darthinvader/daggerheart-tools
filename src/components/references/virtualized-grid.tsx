@@ -67,13 +67,13 @@ export function VirtualizedGrid<T>({
   const columnCount = useColumnCount(columns);
 
   // Split items into rows based on column count
-  const rows = React.useMemo(() => {
-    const result: T[][] = [];
-    for (let i = 0; i < items.length; i += columnCount) {
-      result.push(items.slice(i, i + columnCount));
-    }
-    return result;
-  }, [items, columnCount]);
+  const rows = React.useMemo(
+    () =>
+      Array.from({ length: Math.ceil(items.length / columnCount) }, (_, i) =>
+        items.slice(i * columnCount, (i + 1) * columnCount)
+      ),
+    [items, columnCount]
+  );
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Virtual known limitation
   const virtualizer = useVirtualizer({

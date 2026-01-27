@@ -33,6 +33,7 @@ export function normalizeDomainLoadout(domainsDraft: DomainsDraft) {
 export function useWarmupModules(tasks: Array<() => Promise<unknown>>) {
   React.useEffect(() => {
     let disposer: undefined | (() => void);
+    let isMounted = true;
     const start = async () => {
       const { prefetchOnIdle } = await import('@/features/characters/prefetch');
       return prefetchOnIdle(() => {
@@ -42,9 +43,17 @@ export function useWarmupModules(tasks: Array<() => Promise<unknown>>) {
     };
     const promise = start();
     promise.then(fn => {
-      if (typeof fn === 'function') disposer = fn;
+      if (typeof fn === 'function') {
+        if (isMounted) {
+          disposer = fn;
+        } else {
+          // Already unmounted, clean up immediately
+          fn();
+        }
+      }
     });
     return () => {
+      isMounted = false;
       if (disposer) disposer();
     };
   }, [tasks]);
