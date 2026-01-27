@@ -12,7 +12,6 @@ import {
 
 // Per RAW (page 24): The following domains are included in this book:
 // Arcana, Blade, Bone, Codex, Grace, Midnight, Sage, Splendor, and Valor
-// Additional domains (Chaos, Moon, Sun, Blood, Fate) are homebrew/expansion content
 export const DomainNameEnum = z.enum([
   'Arcana',
   'Blade',
@@ -25,20 +24,8 @@ export const DomainNameEnum = z.enum([
   'Valor',
 ]);
 
-// Homebrew domain names for expansion content
-export const HomebrewDomainNameEnum = z.enum([
-  'Chaos',
-  'Moon',
-  'Sun',
-  'Blood',
-  'Fate',
-]);
-
-// Combined list of all known domain names (standard + homebrew)
-export const ALL_KNOWN_DOMAINS = [
-  ...DomainNameEnum.options,
-  ...HomebrewDomainNameEnum.options,
-] as const;
+// Combined list of all known domain names (standard)
+export const ALL_KNOWN_DOMAINS = [...DomainNameEnum.options] as const;
 
 export const CharacterTraitEnum = z.enum([
   'Agility',

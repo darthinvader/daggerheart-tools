@@ -189,11 +189,6 @@ export const DomainIcons: Record<string, LucideIcon> = {
   Sage: GraduationCap,
   Splendor: Crown,
   Valor: Flame,
-  Chaos: Wind,
-  Moon,
-  Sun,
-  Blood: Droplet,
-  Fate: Dice5,
 } as const;
 
 // ============================================================================

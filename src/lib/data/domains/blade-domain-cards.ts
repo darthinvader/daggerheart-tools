@@ -27,7 +27,7 @@ export const BLADE_DOMAIN_CARDS: DomainCard[] = [
     description: `When you make a successful attack against a target within Very Close range, you can spend a Hope to use the attack against all other targets within Very Close range. All additional adversaries you succeed against with this ability take half damage.`,
   },
   {
-    name: "A SOLDIER'S BOND",
+    name: 'A SOLDIER’S BOND',
     level: 2,
     domain: 'Blade',
     type: 'Ability',
@@ -77,7 +77,7 @@ When you deal damage, you can mark a Stress to use the maximum result of one of 
     description: `While you are wearing armor, gain a +2 bonus to your damage thresholds.`,
   },
   {
-    name: "CHAMPION'S EDGE",
+    name: 'CHAMPION’S EDGE',
     level: 5,
     domain: 'Blade',
     type: 'Ability',
@@ -167,7 +167,7 @@ While Frenzied, you can't use Armor Slots, and you gain a +10 bonus to your dama
 Additionally, when you deal enough damage to defeat an enemy, gain a Hope or clear a Stress.`,
   },
   {
-    name: "REAPER'S STRIKE",
+    name: 'REAPER’S STRIKE',
     level: 9,
     domain: 'Blade',
     type: 'Ability',

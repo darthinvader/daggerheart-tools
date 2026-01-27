@@ -24,11 +24,6 @@ export const DOMAIN_COLORS: Record<string, string> = {
   Sage: 'text-teal-500',
   Splendor: 'text-yellow-400',
   Valor: 'text-red-500',
-  Chaos: 'text-fuchsia-500',
-  Moon: 'text-blue-300',
-  Sun: 'text-orange-400',
-  Blood: 'text-rose-600',
-  Fate: 'text-emerald-400',
 };
 
 export const DOMAIN_BG_COLORS: Record<string, string> = {
@@ -41,11 +36,6 @@ export const DOMAIN_BG_COLORS: Record<string, string> = {
   Sage: 'bg-teal-500/10 border-teal-500/30',
   Splendor: 'bg-yellow-400/10 border-yellow-400/30',
   Valor: 'bg-red-500/10 border-red-500/30',
-  Chaos: 'bg-fuchsia-500/10 border-fuchsia-500/30',
-  Moon: 'bg-blue-300/10 border-blue-300/30',
-  Sun: 'bg-orange-400/10 border-orange-400/30',
-  Blood: 'bg-rose-600/10 border-rose-600/30',
-  Fate: 'bg-emerald-400/10 border-emerald-400/30',
 };
 
 // Card type colors (per RAW page 26: abilities, spells, and grimoires)

@@ -20,13 +20,6 @@ export * from './sage-domain-cards';
 export * from './splendor-domain-cards';
 export * from './valor-domain-cards';
 
-// Empty arrays for domains that don't have cards listed in the SRD yet
-export const CHAOS_DOMAIN_CARDS: DomainCard[] = [];
-export const MOON_DOMAIN_CARDS: DomainCard[] = [];
-export const SUN_DOMAIN_CARDS: DomainCard[] = [];
-export const BLOOD_DOMAIN_CARDS: DomainCard[] = [];
-export const FATE_DOMAIN_CARDS: DomainCard[] = [];
-
 // Domain card lookup map
 export const DOMAIN_CARDS_MAP: Record<string, DomainCard[]> = {
   Arcana: ARCANA_DOMAIN_CARDS,
@@ -38,11 +31,6 @@ export const DOMAIN_CARDS_MAP: Record<string, DomainCard[]> = {
   Sage: SAGE_DOMAIN_CARDS,
   Splendor: SPLENDOR_DOMAIN_CARDS,
   Valor: VALOR_DOMAIN_CARDS,
-  Chaos: CHAOS_DOMAIN_CARDS,
-  Moon: MOON_DOMAIN_CARDS,
-  Sun: SUN_DOMAIN_CARDS,
-  Blood: BLOOD_DOMAIN_CARDS,
-  Fate: FATE_DOMAIN_CARDS,
 };
 
 // All domain names with cards

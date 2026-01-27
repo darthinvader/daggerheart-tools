@@ -99,7 +99,7 @@ const referenceCategories: ReferenceCategory[] = [
     icon: Users,
     iconColor: 'text-green-600 dark:text-green-400',
     bgColor: 'bg-green-500/10 group-hover:bg-green-500/20',
-    count: '21',
+    count: '9',
   },
   {
     to: '/references/domain-cards',
@@ -110,7 +110,7 @@ const referenceCategories: ReferenceCategory[] = [
     icon: Sparkles,
     iconColor: 'text-violet-600 dark:text-violet-400',
     bgColor: 'bg-violet-500/10 group-hover:bg-violet-500/20',
-    count: '200+',
+    count: '189',
   },
   {
     to: '/references/inventory',

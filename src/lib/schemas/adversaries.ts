@@ -50,7 +50,7 @@ export const AdversarySchema = z.object({
   tier: AdversaryTierSchema,
   role: AdversaryRoleSchema,
   description: z.string(),
-  motivesAndTactics: z.string(),
+  motivesAndTactics: z.string().optional(),
   difficulty: z.number(),
   thresholds: AdversaryThresholdsSchema,
   hp: z.number(),

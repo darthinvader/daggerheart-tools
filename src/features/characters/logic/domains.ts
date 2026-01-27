@@ -65,7 +65,7 @@ export function groupByDomain(cards: DomainCard[]) {
 }
 
 // Shared limits for loadout sizing
-export const STARTING_LOADOUT_LIMIT = 3;
+export const STARTING_LOADOUT_LIMIT = 2;
 export const SOFT_LOADOUT_LIMIT = 6;
 
 export function getMaxAllowed(

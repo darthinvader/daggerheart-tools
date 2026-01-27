@@ -17,7 +17,7 @@ export const SAGE_DOMAIN_CARDS: DomainCard[] = [
 When you encounter creatures you've tracked in this way, gain a +1 bonus to your Evasion against them.`,
   },
   {
-    name: "NATURE'S TONGUE",
+    name: 'NATURE’S TONGUE',
     level: 1,
     domain: 'Sage',
     type: 'Ability',
