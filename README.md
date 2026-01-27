@@ -1,120 +1,244 @@
-# Daggerheart Tools (React + TypeScript + Vite)
+# Daggerheart Tools
 
-Web-based mobile-first toolkit for the Daggerheart TTRPG. Built with React 19, TypeScript, Vite, Tailwind, and TanStack Router. This README highlights routes, mobile editing patterns, deployment, and troubleshooting.
+The complete companion web app for **Daggerheart**, the collaborative fantasy TTRPG by Darrington Press. Build characters, run campaigns, track battles, and browse the full SRD—all from your phone or desktop.
 
-## Character Routes & Flow
+Built with React 19, TypeScript, Vite, Tailwind, TanStack Router, and Supabase.
 
-- `/characters`  Characters hub (index/list)
-- `/characters/new`  Generates a UUID and redirects to `/characters/$id`
-- `/characters/$id`  Canonical per-character sheet route (all editing happens here)
+---
 
-Editing model on mobile:
+## ✨ Features
 
-- Each section (Identity, Class, Traits, Resources, Domains, Equipment, Inventory) opens a bottom Drawer for edits
-- Drawers use 100dvh and include safe-area padding so Save/Cancel remain tappable
-- Pressing the browser Back button while a drawer is open will close the drawer first (history interception)
+### 🎭 Character Builder
 
-Persistence (localStorage, per character id):
+Create and manage your Daggerheart characters with a guided, mobile-first experience.
 
-- `dh:characters:{id}:identity:v1`
-- `dh:characters:{id}:resources:v1`
-- `dh:characters:{id}:traits:v1`
-- `dh:characters:{id}:class:v1`
+- **Guided Onboarding** — Step-by-step character creation with ancestry, community, class, and subclass selection
+- **Quick View Dashboard** — See your entire character at a glance: stats, abilities, and resources
+- **Cloud Sync** — Auto-save with Supabase authentication; access characters from any device
+- **Level-Up Progression** — Track experience and advance through tiers with proper domain card unlocks
 
-Current limitations and notes:
+### ⚔️ Combat Tools
 
-- Domains: Loadout capacity UI shows a read-only "Recall used" summary; final budget rules are pending (no count-based cap enforced)
-- Equipment Items: Items are edited via the Inventory drawer only; the Equipment drawer does not include an Items tab
-- Accessibility: Dialogs auto-provide an sr-only description; Drawers provide description via an internal scaffold; some test runs may log non-blocking a11y warnings
+Handle the heat of battle with precision.
 
-## Expanding the ESLint configuration
+- **Damage Calculator** — Calculate incoming damage with armor reduction and threshold tracking
+- **HP/Stress Thresholds** — Visual threshold bars with major/severe tracking
+- **Armor Slot Management** — Track armor sacrifice and slot recovery
+- **Conditions & Status Effects** — Apply and track all Daggerheart conditions
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 🏕️ Session Management
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+Track your adventures between sessions.
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+- **Rest System** — Short rests, long rests, and respite with automatic HP, stress, and hope recovery
+- **Downtime Moves** — Execute downtime activities with proper resource tracking
+- **Session Notes** — Log adventures with timestamped session entries
+- **Countdown Tracker** — Track campaign countdowns and narrative timers
+- **Death Move Resolution** — Handle death moves with dramatic outcomes and scar tracking
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
-```
+### 🐺 Companion System
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+For Beastmasters and animal companions.
 
-```js
-// eslint.config.js
-import reactDom from 'eslint-plugin-react-dom';
-import reactX from 'eslint-plugin-react-x';
+- **Companion Stat Blocks** — Full stat tracking for animal companions
+- **Training Progression** — Advance companion abilities over time
+- **Companion Stress** — Track companion stress and actions separately
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
-```
+### 🎒 Equipment & Inventory
 
-## Deployment (Vercel)
+Organize your entire loadout.
 
-This project is a client-side rendered SPA using Vite + TanStack Router. To make it work on Vercel:
+- **Weapons & Armor** — Browse and equip gear by tier
+- **Domain Card Deck** — Manage your domain cards with recall cost tracking
+- **Gold & Resources** — Track currency and consumables
+- **Inventory Organization** — Categorized item storage with search
 
-1. Ensure a `vercel.json` exists at the repo root (already added) with a rewrite sending all routes to `/index.html` so client routing works.
-2. In Vercel project settings set:
-   - Build Command: `pnpm build`
-   - Install Command: `pnpm install --frozen-lockfile`
-   - Output Directory: `dist`
-3. Environment: Use Node 18+ (Vercel default is fine). No serverless functions are required.
-4. If you see a 404 on deep links (e.g. refreshing a nested route), confirm the rewrite rule is active (Deployment > View Build Output should show `vercel.json`).
-5. If build fails:
-   - Check that `pnpm` is the package manager (Vercel auto-detects via lockfile)
-   - Inspect logs for TypeScript errors from `tsc -b` (the build script runs type checking first). If needed you can temporarily adjust build script to `vite build` to confirm it's a type issue.
-6. After deploy, test both the root path and a nested character route directly via address bar.
+### 📖 Reference Database
 
-Common issues & fixes:
+Browse the complete Daggerheart SRD with powerful search and filtering.
 
-- Blank page + console error about failing to load chunk: Clear browser cache after a deployment that changes chunk names (Vite hashing) or disable aggressive CDN caching.
-- 404 on refresh of nested route: Missing SPA rewrite — ensure `vercel.json` is present in the deployed commit.
-- Build times out: Remove optional analysis plugins (don't set `ANALYZE=true`).
+- **Equipment** (100+ items) — Weapons, armor, and combat wheelchairs
+- **Classes** (9) — All classes with subclasses, features, and progression
+- **Ancestries** (17) — Unique traits and characteristics
+- **Communities** (9) — Backgrounds, bonds, and community features
+- **Domain Cards** (189) — Searchable by domain, tier, and keyword
+- **Inventory Items** (80+) — Consumables, relics, and crafting recipes
+- **Adversaries** — Roles, tiers, and traits for encounter building
+- **Environments** — Scene tags and hazards for world-building
 
-Local production preview:
+### 📜 Rules Guide
 
-```bash
+Friendly rule breakdowns for quick reference.
+
+- **Core Mechanics** — Action rolls, hope, fear, and the duality dice system
+- **Combat** — Turn order, attacks, reactions, and damage
+- **Character Creation** — Step-by-step creation guide
+- **Downtime & Advancement** — Respite, experience, and leveling
+- **GM Guide** — Running sessions, adversary design, and campaign pacing
+- **Campaign Frames** — Pre-built campaign structures and themes
+- **Adversaries & Environments** — Building encounters and scenes
+
+---
+
+## 🎲 GM Tools
+
+A complete suite for Game Masters to run Daggerheart campaigns.
+
+### 📁 Campaign Management
+
+Create and manage full campaigns with persistent storage.
+
+- **Campaign Frames** — Start with pre-built frames (Witherwild, Five Banners, etc.) or create custom campaigns
+- **Campaign Overview** — Track pitch, themes, tones, and distinctions
+- **Session Zero** — Built-in discussion questions for session zero prep
+- **Session Tracking** — Log sessions with notes, summaries, and highlights
+
+### 🗺️ World Building
+
+Bring your world to life with structured content management.
+
+- **NPCs** — Create and track non-player characters with motivations, secrets, and connections
+- **Locations** — Build a world map with connected locations and points of interest
+- **Quests** — Manage quest hooks, objectives, and consequences
+- **Campaign Mechanics** — Define custom rules and principles for your campaign
+
+### ⚔️ Battle Tracker
+
+Run combat encounters with real-time updates.
+
+- **Roster Management** — Add player characters, adversaries, and environments to the battlefield
+- **Adversary Builder** — Create custom adversaries or select from the SRD
+- **Fight Builder Wizard** — Quickly set up balanced encounters
+- **GM Resources Bar** — Track Fear and action tokens in real-time
+- **Auto-Save** — Battles persist automatically to your campaign
+- **Spotlight History** — Track turn order and spotlight progression
+
+### 👥 Player Features _(Coming Soon)_
+
+- **Invite Players** — Share campaign links with your party
+- **Character Integration** — View and track player character sheets
+- **Party Resources** — Manage shared inventory and resources
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- pnpm
+
+### Installation
+
+`ash
+
+# Clone the repository
+
+git clone https://github.com/darthinvader/daggerheart-tools.git
+cd daggerheart-tools
+
+# Install dependencies
+
+pnpm install
+
+# Start development server
+
+pnpm dev
+`
+
+### Available Scripts
+
+| Command           | Description                         |
+| ----------------- | ----------------------------------- |
+| `pnpm dev`        | Start development server            |
+| `pnpm build`      | Type-check and build for production |
+| `pnpm preview`    | Preview production build locally    |
+| `pnpm test`       | Run test suite                      |
+| `pnpm lint`       | Run ESLint                          |
+| `pnpm type-check` | Run TypeScript type checking        |
+
+---
+
+## 📱 Mobile-First Design
+
+Daggerheart Tools is built mobile-first with responsive design:
+
+- **Bottom Drawers** — Edit sections in full-height drawers with safe-area padding
+- **Touch-Friendly** — Large tap targets and swipe gestures
+- **Offline-Ready** — Local storage backup when offline
+- **PWA Support** — Install as an app on mobile devices
+
+---
+
+## 🏗️ Tech Stack
+
+- **React 19** — Latest React with concurrent features
+- **TypeScript** — Full type safety
+- **Vite** — Lightning-fast development and builds
+- **TanStack Router** — Type-safe file-based routing
+- **Tailwind CSS v4** — Utility-first styling
+- **shadcn/ui** — Beautiful, accessible components
+- **Supabase** — Authentication and cloud storage
+- **Radix UI** — Accessible primitives
+
+---
+
+## 🌐 Deployment
+
+This project is deployed as a client-side SPA on Vercel.
+
+### Vercel Configuration
+
+1. Build Command: `pnpm build`
+2. Install Command: `pnpm install --frozen-lockfile`
+3. Output Directory: `dist`
+
+The `vercel.json` handles SPA routing by rewriting all routes to `/index.html`.
+
+### Local Production Preview
+
+`ash
 pnpm build
 pnpm preview --host
-```
+`
 
-Then open the LAN URL to verify before pushing.
+---
+
+## 📂 Project Structure
+
+`src/
+├── components/          # React components organized by feature
+│   ├── battle-tracker/  # GM battle tracking components
+│   ├── campaign-detail/ # Campaign management views
+│   ├── character-sheet/ # Character sheet components
+│   ├── references/      # SRD reference browsers
+│   └── ui/              # Shared UI primitives
+├── features/            # Feature-specific logic
+├── hooks/               # Custom React hooks
+├── lib/                 # Data schemas and utilities
+├── routes/              # TanStack Router file-based routes
+│   ├── character/       # Character routes
+│   ├── gm/              # GM tools routes
+│   ├── references/      # Reference database routes
+│   └── rules/           # Rules guide routes
+└── utils/               # Utility functions`
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit issues and pull requests.
+
+---
+
+## 📄 License
+
+This project is a fan-made tool for Daggerheart. Daggerheart is a trademark of Darrington Press. This project is not affiliated with or endorsed by Darrington Press or Critical Role.
+
+---
+
+## 🔗 Links
+
+- [Live App](https://daggerheart-tools.vercel.app)
+- [Daggerheart Official](https://darringtonpress.com/daggerheart/)
+- [Daggerheart SRD](https://darringtonpress.com/daggerheart-srd/)

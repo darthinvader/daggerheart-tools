@@ -5,12 +5,12 @@ import type { LucideIcon } from 'lucide-react';
 import {
   ArrowRight,
   Backpack,
-  BedDouble,
   BookOpen,
   Calculator,
   ChevronRight,
   Dices,
   ExternalLink,
+  FolderOpen,
   Heart,
   Leaf,
   PawPrint,
@@ -23,6 +23,7 @@ import {
   Timer,
   Users,
   UsersRound,
+  Wand2,
   Zap,
 } from 'lucide-react';
 
@@ -173,20 +174,20 @@ const featureHighlights: FeatureHighlight[] = [
     to: '/character',
   },
   {
-    title: 'Rest & Recovery',
+    title: 'GM Tools',
     description:
-      'Short rests, long rests, and respite with automatic HP, stress, and hope recovery.',
-    icon: BedDouble,
-    iconColor: 'text-blue-500',
-    to: '/character',
+      'Run campaigns with battle tracker, NPCs, locations, quests, and session management.',
+    icon: Wand2,
+    iconColor: 'text-emerald-500',
+    to: '/gm',
   },
   {
-    title: 'Session Tracker',
+    title: 'Battle Tracker',
     description:
-      'Log adventures, track downtime activities, and record campaign progress.',
-    icon: Timer,
-    iconColor: 'text-purple-500',
-    to: '/character',
+      'Run combat encounters with adversary rosters, fear tracking, and auto-save.',
+    icon: Swords,
+    iconColor: 'text-rose-500',
+    to: '/gm',
   },
   {
     title: 'Companions',
@@ -301,6 +302,35 @@ const mainFeatures: FeatureCard[] = [
       { text: 'Adversaries & environments', to: '/references/adversaries' },
       { text: 'Illustrated rules guide', to: '/rules' },
       { text: 'Quick-reference lookups', to: '/references' },
+    ],
+  },
+  {
+    title: 'GM Tools',
+    description:
+      'Run full campaigns with battle tracking, world-building, and session management.',
+    icon: Wand2,
+    borderColor: 'border-l-emerald-500',
+    to: '/gm',
+    badge: 'New',
+    features: [
+      { text: 'Campaign frames & setup', to: '/gm/campaigns/new' },
+      { text: 'Battle tracker', to: '/gm' },
+      { text: 'NPCs, locations & quests', to: '/gm' },
+      { text: 'Session notes & prep', to: '/gm' },
+    ],
+  },
+  {
+    title: 'Campaign Management',
+    description:
+      'Create campaigns with pre-built frames, track sessions, and build your world.',
+    icon: FolderOpen,
+    borderColor: 'border-l-cyan-500',
+    to: '/gm/campaigns',
+    features: [
+      { text: 'Campaign frame templates', to: '/gm/campaigns/new' },
+      { text: 'Session zero questions', to: '/gm' },
+      { text: 'World-building tools', to: '/gm' },
+      { text: 'Quest & NPC tracking', to: '/gm' },
     ],
   },
 ];
@@ -441,8 +471,8 @@ function HeroSection() {
               Daggerheart
             </span>
           </SmartTooltip>
-          . Build characters, calculate damage, track sessions, manage
-          companions, and browse the full SRD—all from your phone or desktop.
+          . Build characters, run campaigns, track battles, and browse the full
+          SRD—all from your phone or desktop.
         </p>
 
         <div className="flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
@@ -463,14 +493,21 @@ function HeroSection() {
             variant="outline"
             className="group gap-2"
           >
-            <Link to="/character">
-              <Users className="h-4 w-4 sm:h-5 sm:w-5" />
-              View Characters
+            <Link to="/gm">
+              <Wand2 className="h-4 w-4 sm:h-5 sm:w-5" />
+              GM Tools
             </Link>
           </Button>
         </div>
 
         <div className="mt-4 flex items-center justify-center gap-4 sm:gap-6">
+          <Link
+            to="/character"
+            className="text-muted-foreground hover:text-primary flex items-center gap-1 text-xs transition-colors sm:text-sm"
+          >
+            <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            Characters
+          </Link>
           <Link
             to="/rules"
             className="text-muted-foreground hover:text-primary flex items-center gap-1 text-xs transition-colors sm:text-sm"
@@ -506,7 +543,7 @@ function MainFeaturesSection() {
             Everything you need
           </h2>
           <p className="text-muted-foreground mx-auto max-w-2xl px-2 text-sm sm:text-base">
-            A complete toolkit for players and GMs.
+            A complete toolkit for players and Game Masters.
           </p>
         </div>
 
@@ -628,6 +665,74 @@ function RulesQuickAccessSection() {
   );
 }
 
+function GMToolsSection() {
+  return (
+    <section className="px-4 py-16">
+      <div className="mx-auto max-w-4xl">
+        <Link to="/gm" className="group block">
+          <Card className="group-hover:border-primary/50 group-focus-visible:ring-ring overflow-hidden transition-all duration-200 group-focus-visible:ring-2 hover:shadow-xl">
+            <div className="h-2 bg-linear-to-r from-emerald-500 via-teal-500 to-cyan-500" />
+            <CardContent className="flex flex-col items-center gap-4 px-4 py-5 sm:flex-row sm:justify-between sm:gap-6 sm:px-6 sm:py-8">
+              <div className="flex flex-col items-center gap-3 sm:flex-row sm:gap-4">
+                <div className="rounded-lg bg-emerald-500/10 p-3 transition-transform group-hover:scale-110 sm:rounded-xl sm:p-4">
+                  <Wand2 className="h-6 w-6 text-emerald-600 sm:h-8 sm:w-8 dark:text-emerald-400" />
+                </div>
+                <div className="text-center sm:text-left">
+                  <div className="flex items-center justify-center gap-2 sm:justify-start">
+                    <h3 className="group-hover:text-primary text-lg font-semibold transition-colors sm:text-xl">
+                      GM Tools
+                    </h3>
+                    <Badge className="px-1.5 py-0 text-[9px] sm:px-2 sm:py-0.5 sm:text-[10px]">
+                      New
+                    </Badge>
+                  </div>
+                  <p className="text-muted-foreground mt-0.5 text-xs sm:mt-1 sm:text-sm">
+                    Run campaigns with battle tracking, world-building, and
+                    session management
+                  </p>
+                  <div className="mt-2 flex flex-wrap justify-center gap-1.5 sm:justify-start sm:gap-2">
+                    <Badge
+                      variant="secondary"
+                      className="px-1.5 py-0 text-[9px] sm:px-2 sm:py-0.5 sm:text-[10px]"
+                    >
+                      Campaigns
+                    </Badge>
+                    <Badge
+                      variant="secondary"
+                      className="px-1.5 py-0 text-[9px] sm:px-2 sm:py-0.5 sm:text-[10px]"
+                    >
+                      Battle Tracker
+                    </Badge>
+                    <Badge
+                      variant="secondary"
+                      className="px-1.5 py-0 text-[9px] sm:px-2 sm:py-0.5 sm:text-[10px]"
+                    >
+                      NPCs
+                    </Badge>
+                    <Badge
+                      variant="secondary"
+                      className="px-1.5 py-0 text-[9px] sm:px-2 sm:py-0.5 sm:text-[10px]"
+                    >
+                      Sessions
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+              <Button
+                size="sm"
+                className="group/btn sm:size-default shrink-0 gap-2"
+              >
+                Open GM Tools
+                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/btn:translate-x-1 sm:h-4 sm:w-4" />
+              </Button>
+            </CardContent>
+          </Card>
+        </Link>
+      </div>
+    </section>
+  );
+}
+
 function CTASection() {
   return (
     <section className="relative px-4 py-12 text-center sm:py-20">
@@ -641,8 +746,8 @@ function CTASection() {
           Ready to begin your adventure?
         </h2>
         <p className="text-muted-foreground mb-6 px-2 text-sm sm:mb-8 sm:text-base">
-          Create your first character in minutes with our guided setup, or dive
-          into the reference guides to prepare for your next session.
+          Create your first character in minutes with our guided setup, start a
+          campaign as GM, or dive into the reference guides.
         </p>
         <div className="flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
           <Button
@@ -662,9 +767,9 @@ function CTASection() {
             variant="outline"
             className="group gap-2"
           >
-            <Link to="/references">
-              <BookOpen className="h-4 w-4 sm:h-5 sm:w-5" />
-              References
+            <Link to="/gm">
+              <Wand2 className="h-4 w-4 sm:h-5 sm:w-5" />
+              GM Tools
             </Link>
           </Button>
         </div>
@@ -712,6 +817,7 @@ function Index() {
     <div className="flex min-h-[calc(100vh-4rem)] flex-col">
       <HeroSection />
       <MainFeaturesSection />
+      <GMToolsSection />
       <ReferenceGuideSection />
       <RulesQuickAccessSection />
       <CTASection />
