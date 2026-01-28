@@ -194,7 +194,7 @@ function useAutoUpdateScores({
 
 export function IdentityProgressionGrid({ state, handlers }: TabProps) {
   return (
-    <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
+    <div className="grid gap-3 sm:gap-4 sm:gap-6 md:grid-cols-2">
       <IdentityDisplay
         identity={state.identity}
         onChange={handlers.setIdentity}
@@ -210,7 +210,7 @@ export function IdentityProgressionGrid({ state, handlers }: TabProps) {
 
 export function AncestryClassGrid({ state, handlers }: TabProps) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+    <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 sm:gap-6 lg:grid-cols-3">
       <AncestryDisplay
         selection={state.ancestry}
         onChange={handlers.setAncestry}
@@ -304,7 +304,7 @@ export function TraitsScoresGrid({ state, handlers, isHydrated }: TabProps) {
   );
 
   return (
-    <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
+    <div className="grid gap-3 sm:gap-4 sm:gap-6 md:grid-cols-2">
       <TraitsDisplay
         traits={state.traits}
         onChange={handlers.setTraits}
@@ -425,7 +425,7 @@ export function HopeScoresThresholdsGrid({
   });
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+    <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 sm:gap-6 lg:grid-cols-3">
       <HopeWithScarsDisplay
         state={state.hopeWithScars}
         onChange={handlers.setHopeWithScars}
@@ -448,7 +448,7 @@ export function HopeScoresThresholdsGrid({
 
 export function GoldConditionsGrid({ state, handlers }: TabProps) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 sm:gap-6">
+    <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 sm:gap-6">
       <GoldDisplay gold={state.gold} onChange={handlers.setGold} />
       <ConditionsDisplay
         conditions={state.conditions}
@@ -460,7 +460,7 @@ export function GoldConditionsGrid({ state, handlers }: TabProps) {
 
 export function ExperiencesEquipmentGrid({ state, handlers }: TabProps) {
   return (
-    <div className="grid gap-4 sm:gap-6 md:grid-cols-3">
+    <div className="grid gap-3 sm:gap-4 sm:gap-6 md:grid-cols-3">
       <ExperiencesDisplay
         experiences={state.experiences}
         onChange={handlers.setExperiences}

@@ -30,14 +30,16 @@ function GoldDenomination({
   onChange,
 }: GoldDenominationProps) {
   return (
-    <div className="flex flex-col items-center gap-1">
+    <div className="flex flex-col items-center gap-0.5 sm:gap-1">
       <span className="text-muted-foreground">{icon}</span>
       {onChange ? (
         <NumberControl value={value} onChange={onChange} min={0} size="sm" />
       ) : (
-        <span className="font-bold">{value}</span>
+        <span className="text-sm font-bold sm:text-base">{value}</span>
       )}
-      <span className="text-muted-foreground text-xs">{label}</span>
+      <span className="text-muted-foreground text-[10px] sm:text-xs">
+        {label}
+      </span>
     </div>
   );
 }
@@ -57,11 +59,11 @@ export function QuickGoldInfo({
   return (
     <div
       className={cn(
-        'bg-card flex flex-wrap items-center justify-center gap-4 rounded-lg border p-3',
+        'bg-card flex flex-wrap items-center justify-center gap-2 rounded-lg border p-2 sm:gap-4 sm:p-3',
         className
       )}
     >
-      <Coins className="size-5" />
+      <Coins className="size-4 sm:size-5" />
       {gold.showCoins && (
         <GoldDenomination
           label="Coins"

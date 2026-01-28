@@ -45,7 +45,7 @@ export function QuickViewTab({ state, handlers }: QuickViewTabProps) {
     !isMobile || quickView.sections[id];
 
   return (
-    <div className="space-y-3 pt-4">
+    <div className="space-y-2 pt-3 sm:space-y-3 sm:pt-4">
       <QuickViewPrimarySections
         state={state}
         handlers={handlers}

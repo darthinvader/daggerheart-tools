@@ -44,12 +44,12 @@ export function QuickTraitsInfo({
   className,
 }: QuickTraitsInfoProps) {
   return (
-    <div className={cn('bg-card rounded-lg border p-3', className)}>
-      <div className="mb-2 flex items-center gap-2">
-        <BarChart3 className="size-5" />
-        <span className="font-semibold">Traits</span>
+    <div className={cn('bg-card rounded-lg border p-2 sm:p-3', className)}>
+      <div className="mb-1.5 flex items-center gap-2 sm:mb-2">
+        <BarChart3 className="size-4 sm:size-5" />
+        <span className="text-sm font-semibold sm:text-base">Traits</span>
       </div>
-      <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+      <div className="grid grid-cols-3 gap-1 sm:grid-cols-6 sm:gap-2">
         {TRAIT_CONFIG.map(({ name, icon: Icon }) => {
           const trait = traits[name as keyof TraitsState];
           const equipMod = equipmentModifiers?.[name as CharacterTrait] ?? 0;
@@ -62,15 +62,19 @@ export function QuickTraitsInfo({
             <div
               key={name}
               className={cn(
-                'flex flex-col items-center rounded border p-2',
+                'flex flex-col items-center rounded border p-1 sm:p-2',
                 trait.marked && 'bg-primary/10 border-primary/30'
               )}
             >
-              <Icon className="size-4" />
-              <span className="text-muted-foreground text-xs">{name}</span>
-              <span className="text-primary text-lg font-bold">{modifier}</span>
+              <Icon className="size-3 sm:size-4" />
+              <span className="text-muted-foreground text-[10px] sm:text-xs">
+                {name}
+              </span>
+              <span className="text-primary text-base font-bold sm:text-lg">
+                {modifier}
+              </span>
               {hasBonus && (
-                <span className="text-muted-foreground text-xs">
+                <span className="text-muted-foreground text-[9px] sm:text-xs">
                   ({trait.value}
                   {trait.bonus >= 0 ? '+' : ''}
                   {trait.bonus}

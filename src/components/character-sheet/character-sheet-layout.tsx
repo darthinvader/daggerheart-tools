@@ -15,7 +15,7 @@ import { LevelUpModal } from '@/components/level-up';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
-import { Backpack, BarChart3, Dice5, User } from '@/lib/icons';
+import { Backpack, BarChart3, Dice5, Swords, User, Zap } from '@/lib/icons';
 import { cn } from '@/lib/utils';
 
 import { ResponsiveTabsList } from './responsive-tabs';
@@ -237,7 +237,7 @@ function CharacterSheetTabs({
   state: CharacterSheetState;
 }) {
   const primaryTabs = [
-    { value: 'quick', label: '⚡ Quick' },
+    { value: 'quick', label: 'Quick', icon: <Zap className="size-4" /> },
     {
       value: 'overview',
       label: 'Overview',
@@ -247,7 +247,7 @@ function CharacterSheetTabs({
 
   const secondaryTabs = [
     { value: 'identity', label: 'Identity', icon: <User className="size-4" /> },
-    { value: 'combat', label: '⚔️ Combat' },
+    { value: 'combat', label: 'Combat', icon: <Swords className="size-4" /> },
     { value: 'items', label: 'Items', icon: <Backpack className="size-4" /> },
     { value: 'session', label: 'Session', icon: <Dice5 className="size-4" /> },
   ];

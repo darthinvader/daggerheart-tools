@@ -45,11 +45,11 @@ export function QuickHopeInfo({
   }, [state, onChange, bonusHopeSlots, companionHopeFilled]);
 
   return (
-    <div className={cn('bg-card rounded-lg border p-3', className)}>
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <Sparkles className="size-5" />
-          <span className="text-muted-foreground text-sm">Hope</span>
+    <div className={cn('bg-card rounded-lg border p-2 sm:p-3', className)}>
+      <div className="flex items-center justify-between gap-2 sm:gap-4">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <Sparkles className="size-4 sm:size-5" />
+          <span className="text-muted-foreground text-xs sm:text-sm">Hope</span>
         </div>
         <div className="flex items-center gap-2">
           {onChange ? (

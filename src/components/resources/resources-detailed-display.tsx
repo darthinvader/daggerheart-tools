@@ -34,31 +34,33 @@ function QuickResourceCard({
       onChange?.(resourceKey, resource.current + 1);
   };
   return (
-    <div className="flex flex-col items-center rounded-lg border p-3">
-      <Icon className="size-6" />
-      <span className="text-muted-foreground text-xs">{label}</span>
-      <span className={cn('text-xl font-bold', color)}>
+    <div className="flex flex-col items-center rounded-lg border p-2 sm:p-3">
+      <Icon className="size-4 sm:size-6" />
+      <span className="text-muted-foreground text-[10px] sm:text-xs">
+        {label}
+      </span>
+      <span className={cn('text-base font-bold sm:text-xl', color)}>
         {resource.current}/{resource.max}
       </span>
       {!readOnly && onChange && (
-        <div className="mt-2 flex items-center gap-1">
+        <div className="mt-1 flex items-center gap-0.5 sm:mt-2 sm:gap-1">
           <Button
             variant="outline"
             size="icon"
-            className="size-7"
+            className="size-6 sm:size-7"
             onClick={handleDecrement}
             disabled={resource.current <= 0}
           >
-            <Minus className="size-3" />
+            <Minus className="size-2.5 sm:size-3" />
           </Button>
           <Button
             variant="outline"
             size="icon"
-            className="size-7"
+            className="size-6 sm:size-7"
             onClick={handleIncrement}
             disabled={resource.current >= resource.max}
           >
-            <Plus className="size-3" />
+            <Plus className="size-2.5 sm:size-3" />
           </Button>
         </div>
       )}
@@ -82,7 +84,7 @@ export function ResourcesDetailedDisplay({
   );
 
   return (
-    <div className="grid grid-cols-3 gap-4">
+    <div className="grid grid-cols-3 gap-2 sm:gap-4">
       {displayableResources.map(({ key, label, icon, color }) => (
         <QuickResourceCard
           key={key}

@@ -43,10 +43,12 @@ function Vital({
   colorClass = 'text-foreground',
 }: VitalProps) {
   return (
-    <div className="flex flex-col items-center gap-1">
-      <span className="text-muted-foreground text-xs">{label}</span>
-      <div className="flex items-center gap-1">
-        <Icon className="size-4" />
+    <div className="flex flex-col items-center gap-0.5 sm:gap-1">
+      <span className="text-muted-foreground text-[10px] sm:text-xs">
+        {label}
+      </span>
+      <div className="flex items-center gap-0.5 sm:gap-1">
+        <Icon className="size-3 sm:size-4" />
         {onChange ? (
           <NumberControl
             value={current}
@@ -56,9 +58,13 @@ function Vital({
             size="sm"
           />
         ) : (
-          <span className={cn('font-bold', colorClass)}>{current}</span>
+          <span className={cn('text-sm font-bold sm:text-base', colorClass)}>
+            {current}
+          </span>
         )}
-        <span className="text-muted-foreground text-xs">/ {max}</span>
+        <span className="text-muted-foreground text-[10px] sm:text-xs">
+          / {max}
+        </span>
       </div>
     </div>
   );
@@ -128,8 +134,8 @@ export function QuickVitalsInfo({
   }, [hopeState, onHopeChange, bonusHopeSlots, companionHopeFilled]);
 
   return (
-    <div className={cn('bg-card rounded-lg border p-3', className)}>
-      <div className="flex flex-wrap items-center justify-center gap-4">
+    <div className={cn('bg-card rounded-lg border p-2 sm:p-3', className)}>
+      <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4">
         {/* HP */}
         <Vital
           label="HP"
@@ -145,7 +151,7 @@ export function QuickVitalsInfo({
                 : 'text-green-500'
           }
         />
-        <div className="bg-border hidden h-8 w-px sm:block" />
+        <div className="bg-border hidden h-6 w-px sm:block sm:h-8" />
 
         {/* Armor */}
         <Vital
@@ -156,7 +162,7 @@ export function QuickVitalsInfo({
           onChange={onResourcesChange ? handleArmorChange : undefined}
           colorClass="text-blue-400"
         />
-        <div className="bg-border hidden h-8 w-px sm:block" />
+        <div className="bg-border hidden h-6 w-px sm:block sm:h-8" />
 
         {/* Stress */}
         <Vital
@@ -167,7 +173,7 @@ export function QuickVitalsInfo({
           onChange={onResourcesChange ? handleStressChange : undefined}
           colorClass="text-purple-400"
         />
-        <div className="bg-border hidden h-8 w-px sm:block" />
+        <div className="bg-border hidden h-6 w-px sm:block sm:h-8" />
 
         {/* Hope */}
         <Vital

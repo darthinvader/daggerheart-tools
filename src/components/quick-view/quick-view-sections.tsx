@@ -71,7 +71,7 @@ export function QuickViewPrimarySections({
         />
       </QuickSection>
 
-      <div className="grid items-stretch gap-3 sm:grid-cols-2">
+      <div className="grid items-stretch gap-2 sm:grid-cols-2 sm:gap-3">
         <QuickSection
           id="coreScores"
           label="Core Scores"
@@ -102,7 +102,7 @@ export function QuickViewIdentitySections({
   onToggle,
 }: Omit<SectionProps, 'handlers'>) {
   return (
-    <div className="grid items-stretch gap-3 sm:grid-cols-3">
+    <div className="grid items-stretch gap-2 sm:grid-cols-3 sm:gap-3">
       <QuickSection
         id="ancestry"
         label="Ancestry"
@@ -147,7 +147,7 @@ export function QuickViewStatusSections({
 }: SectionProps & { hasCompanion: boolean }) {
   return (
     <>
-      <div className="grid items-stretch gap-3 sm:grid-cols-2">
+      <div className="grid items-stretch gap-2 sm:grid-cols-2 sm:gap-3">
         <QuickSection
           id="gold"
           label="Gold"
@@ -171,7 +171,7 @@ export function QuickViewStatusSections({
         </QuickSection>
       </div>
 
-      <div className="grid items-stretch gap-3 sm:grid-cols-2">
+      <div className="grid items-stretch gap-2 sm:grid-cols-2 sm:gap-3">
         {hasCompanion && (
           <QuickSection
             id="companion"

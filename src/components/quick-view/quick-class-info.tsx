@@ -149,10 +149,12 @@ export function QuickClassInfo({
 }: QuickClassInfoProps) {
   if (!selection) {
     return (
-      <div className={cn('bg-card rounded-lg border p-3', className)}>
-        <div className="flex items-center gap-2">
-          <Sword className="size-5" />
-          <span className="text-muted-foreground">No class selected</span>
+      <div className={cn('bg-card rounded-lg border p-2 sm:p-3', className)}>
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <Sword className="size-4 sm:size-5" />
+          <span className="text-muted-foreground text-sm sm:text-base">
+            No class selected
+          </span>
         </div>
       </div>
     );
@@ -168,28 +170,33 @@ export function QuickClassInfo({
   ];
 
   return (
-    <div className={cn('bg-card rounded-lg border p-3', className)}>
+    <div className={cn('bg-card rounded-lg border p-2 sm:p-3', className)}>
       {/* Class header - show all classes for multiclass */}
-      <div className="mb-2 flex flex-wrap items-center gap-2">
+      <div className="mb-1.5 flex flex-wrap items-center gap-1.5 sm:mb-2 sm:gap-2">
         {isMulticlass && (
           <Badge
             variant="secondary"
-            className="flex items-center gap-1 text-xs"
+            className="flex items-center gap-0.5 text-[10px] sm:gap-1 sm:text-xs"
           >
-            <Blend className="size-3" /> Multiclass
+            <Blend className="size-2.5 sm:size-3" /> Multiclass
           </Badge>
         )}
         {classPairs.map(pair => {
           const colorClass = CLASS_COLORS[pair.className] ?? 'text-foreground';
           const ClassIcon = ClassIcons[pair.className] ?? Sword;
           return (
-            <div key={pair.className} className="flex items-center gap-1">
-              <ClassIcon size={20} className={colorClass} />
-              <span className={cn('font-semibold', colorClass)}>
+            <div
+              key={pair.className}
+              className="flex items-center gap-0.5 sm:gap-1"
+            >
+              <ClassIcon size={16} className={cn('sm:size-5', colorClass)} />
+              <span
+                className={cn('text-sm font-semibold sm:text-base', colorClass)}
+              >
                 {pair.className}
               </span>
               {pair.subclassName && (
-                <span className="text-muted-foreground text-sm">
+                <span className="text-muted-foreground text-xs sm:text-sm">
                   ({pair.subclassName})
                 </span>
               )}
@@ -200,16 +207,17 @@ export function QuickClassInfo({
 
       {/* Domains */}
       {selection.domains.length > 0 && (
-        <div className="mb-2 flex flex-wrap gap-1">
+        <div className="mb-1.5 flex flex-wrap gap-0.5 sm:mb-2 sm:gap-1">
           {selection.domains.map(domain => {
             const DomainIcon = DomainIcons[domain] ?? Scroll;
             return (
               <Badge
                 key={domain}
                 variant="outline"
-                className="flex items-center gap-1 px-2 py-0.5 text-xs"
+                className="flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] sm:gap-1 sm:px-2 sm:text-xs"
               >
-                <DomainIcon size={12} className="inline-block" /> {domain}
+                <DomainIcon size={10} className="inline-block sm:size-3" />{' '}
+                {domain}
               </Badge>
             );
           })}
@@ -218,18 +226,18 @@ export function QuickClassInfo({
 
       {/* Features list */}
       {features.length > 0 && (
-        <div className="space-y-1 text-sm">
+        <div className="space-y-0.5 text-xs sm:space-y-1 sm:text-sm">
           {features.map((f, i) => (
             <ExpandableFeature
               key={`${f.sourceClass}-${f.name}-${i}`}
               feature={f}
               icon={
                 f.type === 'hope' ? (
-                  <Sparkles className="size-3" />
+                  <Sparkles className="size-2.5 sm:size-3" />
                 ) : f.type === 'subclass' ? (
-                  <Square className="size-3" />
+                  <Square className="size-2.5 sm:size-3" />
                 ) : (
-                  <ChevronRight className="size-3" />
+                  <ChevronRight className="size-2.5 sm:size-3" />
                 )
               }
               label={isMulticlass ? f.sourceClass : undefined}

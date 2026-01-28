@@ -488,15 +488,21 @@ export function WizardHeader({
   isComplete: boolean;
 }) {
   return (
-    <DialogHeader className="border-b p-6">
-      <div className="flex flex-wrap items-center gap-2">
-        <DialogTitle>New Character Setup</DialogTitle>
-        <Badge variant="secondary">
+    <DialogHeader className="border-b p-3 sm:p-6">
+      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+        <DialogTitle className="text-base sm:text-lg">
+          New Character Setup
+        </DialogTitle>
+        <Badge variant="secondary" className="text-xs">
           Step {stepIndex + 1} of {totalSteps}
         </Badge>
-        {isComplete && <Badge variant="default">Completed</Badge>}
+        {isComplete && (
+          <Badge variant="default" className="text-xs">
+            Completed
+          </Badge>
+        )}
       </div>
-      <DialogDescription className="mt-2">
+      <DialogDescription className="mt-1 text-xs sm:mt-2 sm:text-sm">
         {currentStep.description}
       </DialogDescription>
     </DialogHeader>
@@ -511,11 +517,13 @@ export function WizardBody({
   isComplete: boolean;
 }) {
   return (
-    <div className="min-h-0 overflow-y-auto p-6">
-      <div className="mb-4 space-y-1">
-        <h2 className="text-lg font-semibold">{currentStep.title}</h2>
+    <div className="min-h-0 overflow-y-auto p-3 sm:p-6">
+      <div className="mb-3 space-y-0.5 sm:mb-4 sm:space-y-1">
+        <h2 className="text-base font-semibold sm:text-lg">
+          {currentStep.title}
+        </h2>
         {!isComplete && currentStep.id !== 'identity' && (
-          <p className="text-muted-foreground text-sm">
+          <p className="text-muted-foreground text-xs sm:text-sm">
             This step is required before finishing.
           </p>
         )}
@@ -537,7 +545,7 @@ export function WizardSidebar({
   onGoToStep: (index: number) => void;
 }) {
   return (
-    <ScrollArea className="bg-muted/30 hidden w-64 border-l md:block">
+    <ScrollArea className="bg-muted/30 hidden w-80 border-l md:block">
       <div className="space-y-1 p-4">
         <h3 className="text-muted-foreground mb-3 text-sm font-semibold">
           Progress
@@ -595,36 +603,67 @@ export function WizardFooter({
   onFinish: () => void;
 }) {
   return (
-    <DialogFooter className="border-t p-4">
-      <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" onClick={onSkipWizard}>
+    <DialogFooter className="border-t p-2 sm:p-4">
+      <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+        <div className="flex items-center gap-1 sm:gap-2">
+          <Button
+            variant="ghost"
+            onClick={onSkipWizard}
+            size="sm"
+            className="text-xs sm:text-sm"
+          >
             Skip Setup
           </Button>
         </div>
-        <div className="text-destructive text-sm">{stepError ?? ''}</div>
-        <div className="flex items-center gap-2">
+        <div className="text-destructive text-xs sm:text-sm">
+          {stepError ?? ''}
+        </div>
+        <div className="flex flex-wrap items-center justify-end gap-1 sm:gap-2">
           {stepIndex > 0 && (
-            <Button variant="outline" onClick={onBack}>
+            <Button
+              variant="outline"
+              onClick={onBack}
+              size="sm"
+              className="text-xs sm:text-sm"
+            >
               Back
             </Button>
           )}
           {!isLastStep && (
-            <Button variant="outline" onClick={onSkipStep}>
+            <Button
+              variant="outline"
+              onClick={onSkipStep}
+              size="sm"
+              className="text-xs sm:text-sm"
+            >
               Skip Step
             </Button>
           )}
           {!isLastStep && (
-            <Button onClick={onNext} disabled={!canProceed}>
+            <Button
+              onClick={onNext}
+              disabled={!canProceed}
+              size="sm"
+              className="text-xs sm:text-sm"
+            >
               Continue
             </Button>
           )}
           {isLastStep && !allComplete && (
-            <Button onClick={onNext} disabled={!canProceed}>
+            <Button
+              onClick={onNext}
+              disabled={!canProceed}
+              size="sm"
+              className="text-xs sm:text-sm"
+            >
               Mark Complete
             </Button>
           )}
-          {allComplete && <Button onClick={onFinish}>Apply Character</Button>}
+          {allComplete && (
+            <Button onClick={onFinish} size="sm" className="text-xs sm:text-sm">
+              Apply Character
+            </Button>
+          )}
         </div>
       </div>
     </DialogFooter>

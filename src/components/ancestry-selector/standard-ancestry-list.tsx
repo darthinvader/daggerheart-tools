@@ -6,7 +6,6 @@ import type { Ancestry } from '@/lib/schemas/identity';
 import { ANCESTRIES } from '@/lib/schemas/identity';
 
 import { AncestryCard } from './ancestry-card';
-import { AncestryDetail } from './ancestry-detail';
 
 interface StandardAncestryListProps {
   selectedAncestry: Ancestry | null;
@@ -40,44 +39,24 @@ export function StandardAncestryList({
         placeholder="Search ancestries..."
       />
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <ScrollArea className="h-125 pr-4">
-          <div className="space-y-2">
-            {filteredAncestries.length === 0 ? (
-              <p className="text-muted-foreground py-8 text-center">
-                No ancestries found matching "{search}"
-              </p>
-            ) : (
-              filteredAncestries.map(ancestry => (
-                <AncestryCard
-                  key={ancestry.name}
-                  ancestry={ancestry}
-                  isSelected={selectedAncestry?.name === ancestry.name}
-                  onSelect={onSelect}
-                />
-              ))
-            )}
-          </div>
-        </ScrollArea>
-
-        <div className="hidden h-125 lg:block">
-          {selectedAncestry ? (
-            <ScrollArea className="h-full">
-              <AncestryDetail ancestry={selectedAncestry} />
-            </ScrollArea>
+      <ScrollArea className="h-125 pr-4">
+        <div className="space-y-2">
+          {filteredAncestries.length === 0 ? (
+            <p className="text-muted-foreground py-8 text-center">
+              No ancestries found matching "{search}"
+            </p>
           ) : (
-            <div className="text-muted-foreground bg-muted/20 flex h-full items-center justify-center rounded-lg border">
-              <p>Select an ancestry to view details</p>
-            </div>
+            filteredAncestries.map(ancestry => (
+              <AncestryCard
+                key={ancestry.name}
+                ancestry={ancestry}
+                isSelected={selectedAncestry?.name === ancestry.name}
+                onSelect={onSelect}
+              />
+            ))
           )}
         </div>
-      </div>
-
-      {selectedAncestry && (
-        <div className="lg:hidden">
-          <AncestryDetail ancestry={selectedAncestry} />
-        </div>
-      )}
+      </ScrollArea>
     </div>
   );
 }

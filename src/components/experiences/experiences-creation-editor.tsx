@@ -60,7 +60,7 @@ export function ExperiencesCreationEditor({
   };
 
   return (
-    <div className={cn('space-y-4', className)}>
+    <div className={cn('min-h-[400px] space-y-4', className)}>
       <div className="relative flex gap-2">
         <div className="relative flex-1">
           <Input

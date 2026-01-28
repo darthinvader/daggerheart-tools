@@ -18,12 +18,12 @@ export function QuickExperiencesInfo({
   }
 
   return (
-    <div className={cn('bg-card rounded-lg border p-3', className)}>
-      <div className="mb-2 flex items-center gap-2">
-        <Library className="size-5" />
-        <span className="font-semibold">Experiences</span>
+    <div className={cn('bg-card rounded-lg border p-2 sm:p-3', className)}>
+      <div className="mb-1.5 flex items-center gap-1.5 sm:mb-2 sm:gap-2">
+        <Library className="size-4 sm:size-5" />
+        <span className="text-sm font-semibold sm:text-base">Experiences</span>
       </div>
-      <div className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-1.5 text-xs sm:grid-cols-3 sm:gap-2 sm:text-sm">
         {items.map(exp => (
           <div
             key={exp.id}

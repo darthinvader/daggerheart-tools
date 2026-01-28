@@ -68,7 +68,7 @@ export function OverviewTab({ state, handlers, isHydrated }: TabProps) {
   });
 
   return (
-    <div className="space-y-6 pt-4">
+    <div className="space-y-4 pt-3 sm:space-y-6 sm:pt-4">
       <DeathMoveModal
         isOpen={state.deathState.deathMovePending}
         onClose={() =>
@@ -118,7 +118,7 @@ export function OverviewTab({ state, handlers, isHydrated }: TabProps) {
         onChange={handlers.setInventory}
       />
 
-      <div className="grid gap-4 sm:gap-6 md:h-112 md:grid-cols-2">
+      <div className="grid gap-3 sm:gap-4 sm:gap-6 md:h-112 md:grid-cols-2">
         <DowntimeMoves
           activities={state.downtimeActivities}
           onChange={handlers.setDowntimeActivities}
@@ -131,7 +131,7 @@ export function OverviewTab({ state, handlers, isHydrated }: TabProps) {
 
       <RestGrid state={state} onRest={handleRest} />
 
-      <div className="grid gap-4 sm:gap-6 md:h-112 md:grid-cols-2">
+      <div className="grid gap-3 sm:gap-4 sm:gap-6 md:h-112 md:grid-cols-2">
         <SessionTracker
           sessions={state.sessions}
           currentSessionId={state.currentSessionId}

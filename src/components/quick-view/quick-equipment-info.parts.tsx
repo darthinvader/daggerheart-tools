@@ -146,18 +146,18 @@ function WeaponCard({ weapon }: { weapon: WeaponSummary }) {
   const hasFeatures = weapon.features.length > 0;
 
   return (
-    <div className="rounded border p-2">
+    <div className="rounded border p-1.5 sm:p-2">
       <button
         type="button"
         onClick={() => hasFeatures && setExpanded(!expanded)}
         className={cn(
-          'flex w-full items-center justify-between gap-2 text-left',
+          'flex w-full items-center justify-between gap-1 text-left sm:gap-2',
           hasFeatures && 'cursor-pointer hover:opacity-80'
         )}
         disabled={!hasFeatures}
       >
-        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
-          <span className="flex shrink-0 items-center gap-1 font-medium">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-1 gap-y-0.5 sm:gap-x-2 sm:gap-y-1">
+          <span className="flex shrink-0 items-center gap-0.5 text-sm font-medium sm:gap-1 sm:text-base">
             {hasFeatures && (
               <span className="text-muted-foreground">
                 {expanded ? (
@@ -167,15 +167,15 @@ function WeaponCard({ weapon }: { weapon: WeaponSummary }) {
                 )}
               </span>
             )}
-            <TypeIcon className="size-4" /> {weapon.name}
+            <TypeIcon className="size-3 sm:size-4" /> {weapon.name}
           </span>
-          <span className="text-muted-foreground flex shrink-0 items-center gap-1 text-xs">
-            <Target className="size-3" /> {weapon.damage} ·{' '}
-            <Ruler className="size-3" /> {weapon.range} ·{' '}
-            <Hand className="size-3" /> {weapon.burden}
+          <span className="text-muted-foreground flex shrink-0 items-center gap-0.5 text-[10px] sm:gap-1 sm:text-xs">
+            <Target className="size-2.5 sm:size-3" /> {weapon.damage} ·{' '}
+            <Ruler className="size-2.5 sm:size-3" /> {weapon.range} ·{' '}
+            <Hand className="size-2.5 sm:size-3" /> {weapon.burden}
           </span>
         </div>
-        <Badge variant="outline" className="shrink-0 text-xs">
+        <Badge variant="outline" className="shrink-0 text-[10px] sm:text-xs">
           {weapon.type}
           {weapon.frameType && ` (${weapon.frameType})`}
         </Badge>
@@ -207,18 +207,18 @@ function ArmorCard({ armor }: { armor: ArmorSummary }) {
       : '';
 
   return (
-    <div className="rounded border p-2">
+    <div className="rounded border p-1.5 sm:p-2">
       <button
         type="button"
         onClick={() => hasFeatures && setExpanded(!expanded)}
         className={cn(
-          'flex w-full items-center justify-between gap-2 text-left',
+          'flex w-full items-center justify-between gap-1 text-left sm:gap-2',
           hasFeatures && 'cursor-pointer hover:opacity-80'
         )}
         disabled={!hasFeatures}
       >
-        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
-          <span className="flex shrink-0 items-center gap-1 font-medium">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-1 gap-y-0.5 sm:gap-x-2 sm:gap-y-1">
+          <span className="flex shrink-0 items-center gap-0.5 text-sm font-medium sm:gap-1 sm:text-base">
             {hasFeatures && (
               <span className="text-muted-foreground">
                 {expanded ? (
@@ -228,20 +228,20 @@ function ArmorCard({ armor }: { armor: ArmorSummary }) {
                 )}
               </span>
             )}
-            <Shield className="size-4" /> {armor.name}
+            <Shield className="size-3 sm:size-4" /> {armor.name}
           </span>
-          <span className="text-muted-foreground flex shrink-0 items-center gap-1 text-xs">
+          <span className="text-muted-foreground flex shrink-0 flex-wrap items-center gap-0.5 text-[10px] sm:gap-1 sm:text-xs">
             Score: {armor.score} · Major: {armor.major}+ · Severe:{' '}
             {armor.severe}+
             {armor.evasionMod !== 0 && (
               <>
-                · <Footprints className="size-3" />
+                · <Footprints className="size-2.5 sm:size-3" />
                 {evasionStr}
               </>
             )}
           </span>
         </div>
-        <Badge variant="outline" className="shrink-0 text-xs">
+        <Badge variant="outline" className="shrink-0 text-[10px] sm:text-xs">
           Armor
         </Badge>
       </button>
@@ -338,12 +338,12 @@ export function QuickEquipmentInfo({
   }
 
   return (
-    <div className={cn('bg-card rounded-lg border p-3', className)}>
-      <div className="mb-2 flex items-center gap-2">
-        <Shield className="size-5" />
-        <span className="font-semibold">Equipment</span>
+    <div className={cn('bg-card rounded-lg border p-2 sm:p-3', className)}>
+      <div className="mb-1.5 flex items-center gap-2 sm:mb-2">
+        <Shield className="size-4 sm:size-5" />
+        <span className="text-sm font-semibold sm:text-base">Equipment</span>
       </div>
-      <div className="grid gap-2 sm:grid-cols-2">
+      <div className="grid gap-1.5 sm:grid-cols-2 sm:gap-2">
         {weapons.map((w, i) => (
           <WeaponCard key={i} weapon={w} />
         ))}

@@ -29,7 +29,7 @@ function CardMiniDisplay({ card }: { card: DomainCardLite }) {
   return (
     <div
       className={cn(
-        'rounded border p-2',
+        'rounded border p-1.5 sm:p-2',
         domainBg,
         hasDescription && 'cursor-pointer hover:opacity-90'
       )}
@@ -44,36 +44,36 @@ function CardMiniDisplay({ card }: { card: DomainCardLite }) {
         }
       }}
     >
-      <div className="mb-1 flex items-center justify-between gap-2">
+      <div className="mb-0.5 flex items-center justify-between gap-1 sm:mb-1 sm:gap-2">
         <button
           type="button"
           onClick={event => {
             event.stopPropagation();
             toggleExpanded();
           }}
-          className="flex items-center gap-1 text-left text-sm font-medium hover:opacity-80"
+          className="flex items-center gap-0.5 text-left text-xs font-medium hover:opacity-80 sm:gap-1 sm:text-sm"
         >
           {card.description && (
             <span className="text-muted-foreground shrink-0">
               {expanded ? (
-                <ChevronDown className="h-3 w-3" />
+                <ChevronDown className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
               ) : (
-                <ChevronRight className="h-3 w-3" />
+                <ChevronRight className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
               )}
             </span>
           )}
-          <DomainIcon size={14} className="shrink-0" />
+          <DomainIcon size={12} className="shrink-0 sm:size-[14px]" />
           <span className="truncate">{card.name}</span>
         </button>
         <div
-          className="flex shrink-0 items-center gap-1 text-xs"
+          className="flex shrink-0 items-center gap-0.5 text-[10px] sm:gap-1 sm:text-xs"
           onClick={event => event.stopPropagation()}
         >
           <CardCostBadges costs={costs} compact />
         </div>
       </div>
       {card.description && expanded && (
-        <p className="text-muted-foreground mt-1 text-xs whitespace-pre-line">
+        <p className="text-muted-foreground mt-0.5 text-[10px] whitespace-pre-line sm:mt-1 sm:text-xs">
           {card.description}
         </p>
       )}
@@ -101,22 +101,24 @@ export function QuickLoadoutInfo({
   }
 
   return (
-    <div className={cn('bg-card rounded-lg border p-3', className)}>
-      <div className="mb-2 flex items-center gap-2">
-        <Scroll className="size-5" />
-        <span className="font-semibold">Domain Loadout</span>
-        <span className="text-muted-foreground text-xs">
+    <div className={cn('bg-card rounded-lg border p-2 sm:p-3', className)}>
+      <div className="mb-1.5 flex items-center gap-1.5 sm:mb-2 sm:gap-2">
+        <Scroll className="size-4 sm:size-5" />
+        <span className="text-sm font-semibold sm:text-base">
+          Domain Loadout
+        </span>
+        <span className="text-muted-foreground text-[10px] sm:text-xs">
           ({activeCards.length} active, {vaultCards.length} vault)
         </span>
       </div>
 
       {/* Active cards */}
       {activeCards.length > 0 && (
-        <div className="space-y-2">
-          <h4 className="text-muted-foreground text-xs font-medium uppercase">
+        <div className="space-y-1 sm:space-y-2">
+          <h4 className="text-muted-foreground text-[10px] font-medium uppercase sm:text-xs">
             Active
           </h4>
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid gap-1.5 sm:grid-cols-2 sm:gap-2">
             {activeCards.map((card, i) => (
               <CardMiniDisplay key={i} card={card} />
             ))}
@@ -126,11 +128,11 @@ export function QuickLoadoutInfo({
 
       {/* Vault cards */}
       {vaultCards.length > 0 && (
-        <div className="mt-3 space-y-2">
-          <h4 className="text-muted-foreground text-xs font-medium uppercase">
+        <div className="mt-2 space-y-1 sm:mt-3 sm:space-y-2">
+          <h4 className="text-muted-foreground text-[10px] font-medium uppercase sm:text-xs">
             Vault
           </h4>
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid gap-1.5 sm:grid-cols-2 sm:gap-2">
             {vaultCards.map((card, i) => (
               <CardMiniDisplay key={i} card={card} />
             ))}

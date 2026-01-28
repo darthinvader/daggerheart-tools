@@ -54,7 +54,7 @@ export function CharacterOnboardingWizard({
       }}
     >
       <DialogContent
-        className="grid max-h-[90vh] w-[98vw] max-w-5xl grid-cols-1 grid-rows-[auto_1fr_auto] gap-0 overflow-hidden p-0 sm:max-w-5xl md:grid-cols-[1fr_auto]"
+        className="grid max-h-[95vh] w-[98vw] max-w-[98vw] grid-cols-1 grid-rows-[auto_1fr_auto] gap-0 overflow-hidden p-0 sm:max-h-[90vh] sm:max-w-[95vw] md:grid-cols-[1fr_auto] lg:max-w-[1400px]"
         onInteractOutside={e => e.preventDefault()}
       >
         <WizardHeader

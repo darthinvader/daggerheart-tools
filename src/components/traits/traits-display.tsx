@@ -51,7 +51,7 @@ function TraitsDetailedDisplay({
   equipmentModifiers?: TraitEquipmentModifiers;
 }) {
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-4">
       {TRAIT_NAMES.map(name => {
         const trait = traits[name];
         const equipMod = equipmentModifiers?.[name] ?? 0;
@@ -62,19 +62,21 @@ function TraitsDetailedDisplay({
           <div
             key={name}
             className={cn(
-              'flex flex-col items-center rounded-lg border p-3 transition-colors',
+              'flex flex-col items-center rounded-lg border p-2 transition-colors sm:p-3',
               trait.marked && 'border-primary bg-primary/10'
             )}
           >
-            <span className="text-muted-foreground text-sm">{name}</span>
-            <span className="text-2xl font-bold">
+            <span className="text-muted-foreground text-xs sm:text-sm">
+              {name}
+            </span>
+            <span className="text-xl font-bold sm:text-2xl">
               {sign}
               {total}
             </span>
             {equipMod !== 0 && (
               <span
                 className={cn(
-                  'mt-1 text-xs font-medium',
+                  'mt-0.5 text-[10px] font-medium sm:mt-1 sm:text-xs',
                   equipMod > 0 ? 'text-green-600' : 'text-red-600'
                 )}
               >
@@ -83,7 +85,7 @@ function TraitsDetailedDisplay({
               </span>
             )}
             {trait.marked && (
-              <span className="text-primary mt-1 text-xs font-medium">
+              <span className="text-primary mt-0.5 text-[10px] font-medium sm:mt-1 sm:text-xs">
                 Marked
               </span>
             )}

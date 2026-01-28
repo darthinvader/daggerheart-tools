@@ -1,5 +1,7 @@
 'use client';
 
+import type { ReactNode } from 'react';
+
 import {
   Select,
   SelectContent,
@@ -14,6 +16,7 @@ import { cn } from '@/lib/utils';
 interface TabDefinition {
   value: string;
   label: string;
+  icon?: ReactNode;
 }
 
 interface ResponsiveTabsListProps {
@@ -51,13 +54,23 @@ export function ResponsiveTabsList({
         <Select value={value} onValueChange={onValueChange}>
           <SelectTrigger className="h-10 w-full text-sm font-medium">
             <SelectValue placeholder="Select tab...">
-              {activeTab ? activeTab.label : 'Select tab...'}
+              {activeTab ? (
+                <span className="flex items-center gap-2">
+                  {activeTab.icon}
+                  {activeTab.label}
+                </span>
+              ) : (
+                'Select tab...'
+              )}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {allTabs.map(tab => (
               <SelectItem key={tab.value} value={tab.value}>
-                {tab.label}
+                <span className="flex items-center gap-2">
+                  {tab.icon}
+                  {tab.label}
+                </span>
               </SelectItem>
             ))}
           </SelectContent>
@@ -76,7 +89,10 @@ export function ResponsiveTabsList({
     >
       {allTabs.map(tab => (
         <TabsTrigger key={tab.value} value={tab.value}>
-          {tab.label}
+          <span className="flex items-center gap-1.5">
+            {tab.icon}
+            {tab.label}
+          </span>
         </TabsTrigger>
       ))}
     </TabsList>

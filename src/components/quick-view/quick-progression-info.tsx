@@ -15,20 +15,26 @@ export function QuickProgressionInfo({
   return (
     <div
       className={cn(
-        'bg-card flex items-center gap-4 rounded-lg border p-3',
+        'bg-card flex items-center gap-2 rounded-lg border p-2 sm:gap-4 sm:p-3',
         className
       )}
     >
-      <BarChart3 className="size-5" />
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <span className="text-muted-foreground text-sm">Level</span>
-          <span className="text-lg font-bold">{progression.currentLevel}</span>
+      <BarChart3 className="size-4 sm:size-5" />
+      <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <span className="text-muted-foreground text-xs sm:text-sm">
+            Level
+          </span>
+          <span className="text-base font-bold sm:text-lg">
+            {progression.currentLevel}
+          </span>
         </div>
-        <div className="bg-border h-4 w-px" />
-        <div className="flex items-center gap-2">
-          <span className="text-muted-foreground text-sm">Tier</span>
-          <span className="text-lg font-bold">{progression.currentTier}</span>
+        <div className="bg-border h-3 w-px sm:h-4" />
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <span className="text-muted-foreground text-xs sm:text-sm">Tier</span>
+          <span className="text-base font-bold sm:text-lg">
+            {progression.currentTier}
+          </span>
         </div>
       </div>
     </div>

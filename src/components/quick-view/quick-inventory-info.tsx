@@ -26,24 +26,26 @@ function QuantityControl({
   canDecrease,
 }: QuantityControlProps) {
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-0.5 sm:gap-1">
       <Button
         variant="ghost"
         size="sm"
-        className="h-6 w-6 p-0"
+        className="h-5 w-5 p-0 sm:h-6 sm:w-6"
         onClick={onDecrease}
         disabled={!canDecrease}
       >
-        <Minus className="size-3" />
+        <Minus className="size-2.5 sm:size-3" />
       </Button>
-      <span className="w-5 text-center text-sm font-medium">{quantity}</span>
+      <span className="w-4 text-center text-xs font-medium sm:w-5 sm:text-sm">
+        {quantity}
+      </span>
       <Button
         variant="ghost"
         size="sm"
-        className="h-6 w-6 p-0"
+        className="h-5 w-5 p-0 sm:h-6 sm:w-6"
         onClick={onIncrease}
       >
-        <Plus className="size-3" />
+        <Plus className="size-2.5 sm:size-3" />
       </Button>
     </div>
   );
@@ -85,11 +87,11 @@ export function QuickInventoryInfo({
   }
 
   return (
-    <div className={cn('bg-card rounded-lg border p-3', className)}>
-      <div className="mb-2 flex items-center gap-2">
-        <Backpack className="size-5" />
-        <span className="font-semibold">Inventory</span>
-        <span className="text-muted-foreground text-xs">
+    <div className={cn('bg-card rounded-lg border p-2 sm:p-3', className)}>
+      <div className="mb-1.5 flex items-center gap-1.5 sm:mb-2 sm:gap-2">
+        <Backpack className="size-4 sm:size-5" />
+        <span className="text-sm font-semibold sm:text-base">Inventory</span>
+        <span className="text-muted-foreground text-[10px] sm:text-xs">
           ({items.length} items)
         </span>
       </div>
@@ -122,13 +124,13 @@ function InventoryItemRow({
   const hasFeatures = entry.item.features && entry.item.features.length > 0;
 
   return (
-    <div className="rounded border px-2 py-1">
+    <div className="rounded border px-1.5 py-1 sm:px-2">
       <div className="flex items-center justify-between">
         <button
           type="button"
           onClick={() => hasFeatures && setExpanded(!expanded)}
           className={cn(
-            'flex min-w-0 flex-1 items-center gap-1 text-left',
+            'flex min-w-0 flex-1 items-center gap-0.5 text-left sm:gap-1',
             hasFeatures && 'cursor-pointer hover:opacity-80'
           )}
           disabled={!hasFeatures}
@@ -136,17 +138,17 @@ function InventoryItemRow({
           {hasFeatures && (
             <span className="text-muted-foreground shrink-0">
               {expanded ? (
-                <ChevronDown className="h-3 w-3" />
+                <ChevronDown className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
               ) : (
-                <ChevronRight className="h-3 w-3" />
+                <ChevronRight className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
               )}
             </span>
           )}
-          <span className="truncate text-sm font-medium">
+          <span className="truncate text-xs font-medium sm:text-sm">
             {entry.item.name}
           </span>
           {hasFeatures && !expanded && (
-            <span className="text-muted-foreground ml-1 text-xs">
+            <span className="text-muted-foreground ml-0.5 text-[10px] sm:ml-1 sm:text-xs">
               ({entry.item.features!.length} features)
             </span>
           )}

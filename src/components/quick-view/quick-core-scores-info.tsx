@@ -20,18 +20,24 @@ export function QuickCoreScoresInfo({
   return (
     <div
       className={cn(
-        'bg-card flex items-center justify-center gap-6 rounded-lg border p-3',
+        'bg-card flex items-center justify-center gap-4 rounded-lg border p-2 sm:gap-6 sm:p-3',
         className
       )}
     >
       <div className="flex flex-col items-center">
-        <span className="text-muted-foreground text-xs">Evasion</span>
-        <span className="text-xl font-bold">{scores.evasion}</span>
+        <span className="text-muted-foreground text-[10px] sm:text-xs">
+          Evasion
+        </span>
+        <span className="text-lg font-bold sm:text-xl">{scores.evasion}</span>
       </div>
-      <div className="bg-border h-8 w-px" />
+      <div className="bg-border h-6 w-px sm:h-8" />
       <div className="flex flex-col items-center">
-        <span className="text-muted-foreground text-xs">Proficiency</span>
-        <span className="text-xl font-bold">+{scores.proficiency}</span>
+        <span className="text-muted-foreground text-[10px] sm:text-xs">
+          Proficiency
+        </span>
+        <span className="text-lg font-bold sm:text-xl">
+          +{scores.proficiency}
+        </span>
       </div>
     </div>
   );

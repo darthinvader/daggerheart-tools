@@ -38,29 +38,31 @@ export function QuickCompanionInfo({
   return (
     <div
       className={cn(
-        'bg-card rounded-lg border p-3',
+        'bg-card rounded-lg border p-2 sm:p-3',
         isOutOfScene && 'opacity-60',
         className
       )}
     >
-      <div className="mb-2 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <PawPrint className="size-5" />
-          <span className="font-semibold">{companion.name || 'Companion'}</span>
+      <div className="mb-1.5 flex items-center justify-between sm:mb-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <PawPrint className="size-4 sm:size-5" />
+          <span className="text-sm font-semibold sm:text-base">
+            {companion.name || 'Companion'}
+          </span>
           {companion.type && (
-            <span className="text-muted-foreground text-sm">
+            <span className="text-muted-foreground text-xs sm:text-sm">
               ({companion.type})
             </span>
           )}
         </div>
         {isOutOfScene && (
-          <Badge variant="destructive" className="text-xs">
+          <Badge variant="destructive" className="text-[10px] sm:text-xs">
             Out of Scene
           </Badge>
         )}
       </div>
 
-      <div className="flex flex-wrap items-center gap-4 text-sm">
+      <div className="flex flex-wrap items-center gap-2 text-xs sm:gap-4 sm:text-sm">
         {/* Stats */}
         <div className="flex items-center gap-1">
           <span className="text-muted-foreground">Evasion:</span>
@@ -94,11 +96,15 @@ export function QuickCompanionInfo({
 
       {/* Experiences */}
       {companion.experiences.filter(e => e.name).length > 0 && (
-        <div className="mt-2 flex flex-wrap gap-1">
+        <div className="mt-1.5 flex flex-wrap gap-1 sm:mt-2">
           {companion.experiences
             .filter(e => e.name)
             .map((exp, i) => (
-              <Badge key={i} variant="outline" className="text-xs">
+              <Badge
+                key={i}
+                variant="outline"
+                className="text-[10px] sm:text-xs"
+              >
                 {exp.name} +{exp.bonus}
               </Badge>
             ))}
