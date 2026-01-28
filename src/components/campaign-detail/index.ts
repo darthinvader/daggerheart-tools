@@ -5,6 +5,7 @@ export { EditableMechanics } from './editable-mechanics';
 export { EditablePrinciples } from './editable-principles';
 export { EditableQuestions } from './editable-questions';
 export { type ChecklistItem, GMToolsPanel } from './gm-tools-panel';
+export { HomebrewTabContent } from './homebrew-tab-content';
 export { EditableLocations } from './location-components';
 export { EditableNPCs } from './npc-components';
 export { EditableQuests } from './quest-components';

@@ -6,6 +6,7 @@ import {
   useState,
 } from 'react';
 
+import { useCampaignHomebrewContent } from '@/features/homebrew';
 import { ADVERSARIES } from '@/lib/data/adversaries';
 import { ENVIRONMENTS } from '@/lib/data/environments';
 import type { Adversary } from '@/lib/schemas/adversaries';
@@ -297,7 +298,7 @@ export function useBattleRosterState() {
   };
 }
 
-export function useBattleDialogState() {
+export function useBattleDialogState(campaignId?: string) {
   const [isAddCharacterOpen, setIsAddCharacterOpen] = useState(false);
   const [isAddAdversaryOpen, setIsAddAdversaryOpen] = useState(false);
   const [isAddEnvironmentOpen, setIsAddEnvironmentOpen] = useState(false);
@@ -305,27 +306,64 @@ export function useBattleDialogState() {
   const [adversarySearch, setAdversarySearch] = useState('');
   const [environmentSearch, setEnvironmentSearch] = useState('');
 
+  // Get homebrew content for this campaign
+  const { data: homebrewResult } = useCampaignHomebrewContent(campaignId);
+  const homebrewItems = homebrewResult?.items;
+  const homebrewContent = useMemo(() => homebrewItems ?? [], [homebrewItems]);
+
+  // Extract homebrew adversaries and environments
+  const homebrewAdversaries = useMemo(() => {
+    return homebrewContent
+      .filter(c => c.contentType === 'adversary')
+      .map(c => ({
+        ...(c.content as Adversary),
+        name: `${c.name} (Homebrew)`,
+        _isHomebrew: true,
+        _homebrewId: c.id,
+      })) as Adversary[];
+  }, [homebrewContent]);
+
+  const homebrewEnvironments = useMemo(() => {
+    return homebrewContent
+      .filter(c => c.contentType === 'environment')
+      .map(c => ({
+        ...(c.content as Environment),
+        name: `${c.name} (Homebrew)`,
+        _isHomebrew: true,
+        _homebrewId: c.id,
+      })) as Environment[];
+  }, [homebrewContent]);
+
+  // Combine SRD with homebrew content
+  const allAdversaries = useMemo(() => {
+    return [...homebrewAdversaries, ...ADVERSARIES];
+  }, [homebrewAdversaries]);
+
+  const allEnvironments = useMemo(() => {
+    return [...homebrewEnvironments, ...ENVIRONMENTS];
+  }, [homebrewEnvironments]);
+
   const filteredAdversaries = useMemo(() => {
     const query = adversarySearch.trim().toLowerCase();
-    if (!query) return ADVERSARIES;
-    return ADVERSARIES.filter(adversary =>
+    if (!query) return allAdversaries;
+    return allAdversaries.filter(adversary =>
       [adversary.name, adversary.role, adversary.tier]
         .join(' ')
         .toLowerCase()
         .includes(query)
     );
-  }, [adversarySearch]);
+  }, [adversarySearch, allAdversaries]);
 
   const filteredEnvironments = useMemo(() => {
     const query = environmentSearch.trim().toLowerCase();
-    if (!query) return ENVIRONMENTS;
-    return ENVIRONMENTS.filter(environment =>
+    if (!query) return allEnvironments;
+    return allEnvironments.filter(environment =>
       [environment.name, environment.type, environment.tier]
         .join(' ')
         .toLowerCase()
         .includes(query)
     );
-  }, [environmentSearch]);
+  }, [environmentSearch, allEnvironments]);
 
   return {
     dialogState: {

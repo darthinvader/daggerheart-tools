@@ -266,26 +266,35 @@ function CompanionStep({
 function AncestryStep({
   state,
   handlers,
+  campaignId,
 }: {
   state: DemoState;
   handlers: DemoHandlers;
+  campaignId?: string;
 }) {
   return (
-    <AncestrySelector value={state.ancestry} onChange={handlers.setAncestry} />
+    <AncestrySelector
+      value={state.ancestry}
+      onChange={handlers.setAncestry}
+      campaignId={campaignId}
+    />
   );
 }
 
 function CommunityStep({
   state,
   handlers,
+  campaignId,
 }: {
   state: DemoState;
   handlers: DemoHandlers;
+  campaignId?: string;
 }) {
   return (
     <CommunitySelector
       value={state.community}
       onChange={handlers.setCommunity}
+      campaignId={campaignId}
     />
   );
 }
@@ -360,9 +369,11 @@ function EquipmentStep({
 function DomainsStep({
   state,
   handlers,
+  campaignId,
 }: {
   state: DemoState;
   handlers: DemoHandlers;
+  campaignId?: string;
 }) {
   return (
     <LoadoutSelector
@@ -371,6 +382,7 @@ function DomainsStep({
       classDomains={state.classSelection?.domains ?? ['Arcana', 'Codex']}
       tier={state.progression.currentTier}
       hideHeader
+      campaignId={campaignId}
     />
   );
 }
@@ -383,6 +395,7 @@ export function buildWizardSteps({
   classCompleteRef,
   setClassCanProceed,
   identityFormRef,
+  campaignId,
 }: {
   classDraft: ClassDraft;
   handlers: DemoHandlers;
@@ -393,6 +406,7 @@ export function buildWizardSteps({
   } | null>;
   setClassCanProceed: Dispatch<SetStateAction<boolean>>;
   identityFormRef: MutableRefObject<{ submit: () => void } | null>;
+  campaignId?: string;
 }): WizardStep[] {
   const baseSteps: WizardStep[] = [
     {
@@ -420,14 +434,26 @@ export function buildWizardSteps({
       title: 'Choose Ancestry',
       description:
         'Select your ancestry or craft a mixed or homebrew heritage.',
-      content: <AncestryStep state={state} handlers={handlers} />,
+      content: (
+        <AncestryStep
+          state={state}
+          handlers={handlers}
+          campaignId={campaignId}
+        />
+      ),
     },
     {
       id: 'community',
       title: 'Choose Community',
       description:
-        'Select the community that shaped your character’s upbringing.',
-      content: <CommunityStep state={state} handlers={handlers} />,
+        "Select the community that shaped your character's upbringing.",
+      content: (
+        <CommunityStep
+          state={state}
+          handlers={handlers}
+          campaignId={campaignId}
+        />
+      ),
     },
     {
       id: 'traits',
@@ -467,7 +493,13 @@ export function buildWizardSteps({
       title: 'Choose Domain Cards',
       description:
         'Select at least two level 1 domain cards from your class domains.',
-      content: <DomainsStep state={state} handlers={handlers} />,
+      content: (
+        <DomainsStep
+          state={state}
+          handlers={handlers}
+          campaignId={campaignId}
+        />
+      ),
     },
   ];
 
@@ -707,10 +739,12 @@ export function useWizardState({
   state,
   handlers,
   onFinish,
+  campaignId,
 }: {
   state: DemoState;
   handlers: DemoHandlers;
   onFinish: () => void;
+  campaignId?: string;
 }) {
   const classCompleteRef = useRef<{
     complete: () => ClassSelection | null;
@@ -755,6 +789,7 @@ export function useWizardState({
         classCompleteRef,
         setClassCanProceed,
         isBeastbound,
+        campaignId,
       }),
     [
       classDraft,
@@ -764,6 +799,7 @@ export function useWizardState({
       classCompleteRef,
       setClassCanProceed,
       isBeastbound,
+      campaignId,
     ]
   );
 

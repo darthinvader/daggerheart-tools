@@ -16,10 +16,15 @@ import { StandardAncestryList } from './standard-ancestry-list';
 interface AncestrySelectorProps {
   value?: AncestrySelection;
   onChange?: (selection: AncestrySelection) => void;
+  campaignId?: string;
 }
 
 // eslint-disable-next-line complexity
-export function AncestrySelector({ value, onChange }: AncestrySelectorProps) {
+export function AncestrySelector({
+  value,
+  onChange,
+  campaignId,
+}: AncestrySelectorProps) {
   const [mode, setMode] = useState<AncestryMode>(value?.mode ?? 'standard');
 
   const [standardSelection, setStandardSelection] = useState<Ancestry | null>(
@@ -80,6 +85,7 @@ export function AncestrySelector({ value, onChange }: AncestrySelectorProps) {
         <StandardAncestryList
           selectedAncestry={activeStandardSelection}
           onSelect={handleStandardSelect}
+          campaignId={campaignId}
         />
       )}
 

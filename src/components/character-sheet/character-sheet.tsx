@@ -3,6 +3,7 @@ import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useCharacterCampaign } from '@/features/campaigns/use-campaign-query';
 
 import { CharacterSheetLayout } from './character-sheet-layout';
 import { useCharacterSheetWithApi } from './use-character-sheet-api';
@@ -84,6 +85,10 @@ export function CharacterSheet({
     isHydrated,
   } = useCharacterSheetWithApi(characterId, { readOnly });
 
+  // Fetch the campaign this character belongs to (if any)
+  const { data: campaign } = useCharacterCampaign(characterId);
+  const campaignId = campaign?.id;
+
   // Auto-open wizard if new character, but don't auto-close
   // once opened - let the user explicitly finish or dismiss
   const shouldAutoOpenOnboarding =
@@ -125,6 +130,7 @@ export function CharacterSheet({
       currentExperiencesForModal={currentExperiencesForModal}
       currentTraitsForModal={currentTraitsForModal}
       ownedCardNames={ownedCardNames}
+      campaignId={campaignId}
     />
   );
 }

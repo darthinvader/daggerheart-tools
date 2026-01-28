@@ -12,11 +12,13 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as RulesRouteImport } from './routes/rules'
 import { Route as ReferencesRouteImport } from './routes/references'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as HomebrewRouteImport } from './routes/homebrew'
 import { Route as GmRouteImport } from './routes/gm'
 import { Route as CharacterRouteImport } from './routes/character'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RulesIndexRouteImport } from './routes/rules/index'
 import { Route as ReferencesIndexRouteImport } from './routes/references/index'
+import { Route as HomebrewIndexRouteImport } from './routes/homebrew/index'
 import { Route as GmIndexRouteImport } from './routes/gm/index'
 import { Route as CharacterIndexRouteImport } from './routes/character/index'
 import { Route as RulesGmGuideRouteImport } from './routes/rules/gm-guide'
@@ -34,6 +36,8 @@ import { Route as ReferencesCommunitiesRouteImport } from './routes/references/c
 import { Route as ReferencesClassesRouteImport } from './routes/references/classes'
 import { Route as ReferencesAncestriesRouteImport } from './routes/references/ancestries'
 import { Route as ReferencesAdversariesRouteImport } from './routes/references/adversaries'
+import { Route as HomebrewNewRouteImport } from './routes/homebrew/new'
+import { Route as HomebrewBrowseRouteImport } from './routes/homebrew/browse'
 import { Route as GmCampaignsRouteImport } from './routes/gm/campaigns'
 import { Route as CharacterNewRouteImport } from './routes/character/new'
 import { Route as CharacterCharacterIdRouteImport } from './routes/character/$characterId'
@@ -57,6 +61,11 @@ const ReferencesRoute = ReferencesRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HomebrewRoute = HomebrewRouteImport.update({
+  id: '/homebrew',
+  path: '/homebrew',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GmRoute = GmRouteImport.update({
@@ -83,6 +92,11 @@ const ReferencesIndexRoute = ReferencesIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => ReferencesRoute,
+} as any)
+const HomebrewIndexRoute = HomebrewIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => HomebrewRoute,
 } as any)
 const GmIndexRoute = GmIndexRouteImport.update({
   id: '/',
@@ -171,6 +185,16 @@ const ReferencesAdversariesRoute = ReferencesAdversariesRouteImport.update({
   path: '/adversaries',
   getParentRoute: () => ReferencesRoute,
 } as any)
+const HomebrewNewRoute = HomebrewNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => HomebrewRoute,
+} as any)
+const HomebrewBrowseRoute = HomebrewBrowseRouteImport.update({
+  id: '/browse',
+  path: '/browse',
+  getParentRoute: () => HomebrewRoute,
+} as any)
 const GmCampaignsRoute = GmCampaignsRouteImport.update({
   id: '/campaigns',
   path: '/campaigns',
@@ -222,6 +246,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/character': typeof CharacterRouteWithChildren
   '/gm': typeof GmRouteWithChildren
+  '/homebrew': typeof HomebrewRouteWithChildren
   '/login': typeof LoginRoute
   '/references': typeof ReferencesRouteWithChildren
   '/rules': typeof RulesRouteWithChildren
@@ -229,6 +254,8 @@ export interface FileRoutesByFullPath {
   '/character/$characterId': typeof CharacterCharacterIdRoute
   '/character/new': typeof CharacterNewRoute
   '/gm/campaigns': typeof GmCampaignsRouteWithChildren
+  '/homebrew/browse': typeof HomebrewBrowseRoute
+  '/homebrew/new': typeof HomebrewNewRoute
   '/references/adversaries': typeof ReferencesAdversariesRoute
   '/references/ancestries': typeof ReferencesAncestriesRoute
   '/references/classes': typeof ReferencesClassesRoute
@@ -246,6 +273,7 @@ export interface FileRoutesByFullPath {
   '/rules/gm-guide': typeof RulesGmGuideRoute
   '/character/': typeof CharacterIndexRoute
   '/gm/': typeof GmIndexRoute
+  '/homebrew/': typeof HomebrewIndexRoute
   '/references/': typeof ReferencesIndexRoute
   '/rules/': typeof RulesIndexRoute
   '/character/view/$characterId': typeof CharacterViewCharacterIdRoute
@@ -260,6 +288,8 @@ export interface FileRoutesByTo {
   '/campaigns/join': typeof CampaignsJoinRoute
   '/character/$characterId': typeof CharacterCharacterIdRoute
   '/character/new': typeof CharacterNewRoute
+  '/homebrew/browse': typeof HomebrewBrowseRoute
+  '/homebrew/new': typeof HomebrewNewRoute
   '/references/adversaries': typeof ReferencesAdversariesRoute
   '/references/ancestries': typeof ReferencesAncestriesRoute
   '/references/classes': typeof ReferencesClassesRoute
@@ -277,6 +307,7 @@ export interface FileRoutesByTo {
   '/rules/gm-guide': typeof RulesGmGuideRoute
   '/character': typeof CharacterIndexRoute
   '/gm': typeof GmIndexRoute
+  '/homebrew': typeof HomebrewIndexRoute
   '/references': typeof ReferencesIndexRoute
   '/rules': typeof RulesIndexRoute
   '/character/view/$characterId': typeof CharacterViewCharacterIdRoute
@@ -290,6 +321,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/character': typeof CharacterRouteWithChildren
   '/gm': typeof GmRouteWithChildren
+  '/homebrew': typeof HomebrewRouteWithChildren
   '/login': typeof LoginRoute
   '/references': typeof ReferencesRouteWithChildren
   '/rules': typeof RulesRouteWithChildren
@@ -297,6 +329,8 @@ export interface FileRoutesById {
   '/character/$characterId': typeof CharacterCharacterIdRoute
   '/character/new': typeof CharacterNewRoute
   '/gm/campaigns': typeof GmCampaignsRouteWithChildren
+  '/homebrew/browse': typeof HomebrewBrowseRoute
+  '/homebrew/new': typeof HomebrewNewRoute
   '/references/adversaries': typeof ReferencesAdversariesRoute
   '/references/ancestries': typeof ReferencesAncestriesRoute
   '/references/classes': typeof ReferencesClassesRoute
@@ -314,6 +348,7 @@ export interface FileRoutesById {
   '/rules/gm-guide': typeof RulesGmGuideRoute
   '/character/': typeof CharacterIndexRoute
   '/gm/': typeof GmIndexRoute
+  '/homebrew/': typeof HomebrewIndexRoute
   '/references/': typeof ReferencesIndexRoute
   '/rules/': typeof RulesIndexRoute
   '/character/view/$characterId': typeof CharacterViewCharacterIdRoute
@@ -328,6 +363,7 @@ export interface FileRouteTypes {
     | '/'
     | '/character'
     | '/gm'
+    | '/homebrew'
     | '/login'
     | '/references'
     | '/rules'
@@ -335,6 +371,8 @@ export interface FileRouteTypes {
     | '/character/$characterId'
     | '/character/new'
     | '/gm/campaigns'
+    | '/homebrew/browse'
+    | '/homebrew/new'
     | '/references/adversaries'
     | '/references/ancestries'
     | '/references/classes'
@@ -352,6 +390,7 @@ export interface FileRouteTypes {
     | '/rules/gm-guide'
     | '/character/'
     | '/gm/'
+    | '/homebrew/'
     | '/references/'
     | '/rules/'
     | '/character/view/$characterId'
@@ -366,6 +405,8 @@ export interface FileRouteTypes {
     | '/campaigns/join'
     | '/character/$characterId'
     | '/character/new'
+    | '/homebrew/browse'
+    | '/homebrew/new'
     | '/references/adversaries'
     | '/references/ancestries'
     | '/references/classes'
@@ -383,6 +424,7 @@ export interface FileRouteTypes {
     | '/rules/gm-guide'
     | '/character'
     | '/gm'
+    | '/homebrew'
     | '/references'
     | '/rules'
     | '/character/view/$characterId'
@@ -395,6 +437,7 @@ export interface FileRouteTypes {
     | '/'
     | '/character'
     | '/gm'
+    | '/homebrew'
     | '/login'
     | '/references'
     | '/rules'
@@ -402,6 +445,8 @@ export interface FileRouteTypes {
     | '/character/$characterId'
     | '/character/new'
     | '/gm/campaigns'
+    | '/homebrew/browse'
+    | '/homebrew/new'
     | '/references/adversaries'
     | '/references/ancestries'
     | '/references/classes'
@@ -419,6 +464,7 @@ export interface FileRouteTypes {
     | '/rules/gm-guide'
     | '/character/'
     | '/gm/'
+    | '/homebrew/'
     | '/references/'
     | '/rules/'
     | '/character/view/$characterId'
@@ -432,6 +478,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CharacterRoute: typeof CharacterRouteWithChildren
   GmRoute: typeof GmRouteWithChildren
+  HomebrewRoute: typeof HomebrewRouteWithChildren
   LoginRoute: typeof LoginRoute
   ReferencesRoute: typeof ReferencesRouteWithChildren
   RulesRoute: typeof RulesRouteWithChildren
@@ -459,6 +506,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/homebrew': {
+      id: '/homebrew'
+      path: '/homebrew'
+      fullPath: '/homebrew'
+      preLoaderRoute: typeof HomebrewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/gm': {
@@ -495,6 +549,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/references/'
       preLoaderRoute: typeof ReferencesIndexRouteImport
       parentRoute: typeof ReferencesRoute
+    }
+    '/homebrew/': {
+      id: '/homebrew/'
+      path: '/'
+      fullPath: '/homebrew/'
+      preLoaderRoute: typeof HomebrewIndexRouteImport
+      parentRoute: typeof HomebrewRoute
     }
     '/gm/': {
       id: '/gm/'
@@ -614,6 +675,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/references/adversaries'
       preLoaderRoute: typeof ReferencesAdversariesRouteImport
       parentRoute: typeof ReferencesRoute
+    }
+    '/homebrew/new': {
+      id: '/homebrew/new'
+      path: '/new'
+      fullPath: '/homebrew/new'
+      preLoaderRoute: typeof HomebrewNewRouteImport
+      parentRoute: typeof HomebrewRoute
+    }
+    '/homebrew/browse': {
+      id: '/homebrew/browse'
+      path: '/browse'
+      fullPath: '/homebrew/browse'
+      preLoaderRoute: typeof HomebrewBrowseRouteImport
+      parentRoute: typeof HomebrewRoute
     }
     '/gm/campaigns': {
       id: '/gm/campaigns'
@@ -739,6 +814,22 @@ const GmRouteChildren: GmRouteChildren = {
 
 const GmRouteWithChildren = GmRoute._addFileChildren(GmRouteChildren)
 
+interface HomebrewRouteChildren {
+  HomebrewBrowseRoute: typeof HomebrewBrowseRoute
+  HomebrewNewRoute: typeof HomebrewNewRoute
+  HomebrewIndexRoute: typeof HomebrewIndexRoute
+}
+
+const HomebrewRouteChildren: HomebrewRouteChildren = {
+  HomebrewBrowseRoute: HomebrewBrowseRoute,
+  HomebrewNewRoute: HomebrewNewRoute,
+  HomebrewIndexRoute: HomebrewIndexRoute,
+}
+
+const HomebrewRouteWithChildren = HomebrewRoute._addFileChildren(
+  HomebrewRouteChildren,
+)
+
 interface ReferencesRouteChildren {
   ReferencesAdversariesRoute: typeof ReferencesAdversariesRoute
   ReferencesAncestriesRoute: typeof ReferencesAncestriesRoute
@@ -795,6 +886,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CharacterRoute: CharacterRouteWithChildren,
   GmRoute: GmRouteWithChildren,
+  HomebrewRoute: HomebrewRouteWithChildren,
   LoginRoute: LoginRoute,
   ReferencesRoute: ReferencesRouteWithChildren,
   RulesRoute: RulesRouteWithChildren,

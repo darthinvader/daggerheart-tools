@@ -1,9 +1,11 @@
 import {
   Backpack,
+  Beaker,
   Compass,
   Crown,
   Dice5,
   FolderOpen,
+  Globe,
   Home,
   Map,
   Plus,
@@ -152,6 +154,27 @@ export const defaultNavLinks: NavLink[] = [
       {
         to: '/gm/campaigns/new',
         label: 'New Campaign',
+        icon: <Plus className="size-4" />,
+      },
+    ],
+  },
+  {
+    to: '/homebrew',
+    label: 'Homebrew',
+    children: [
+      {
+        to: '/homebrew/',
+        label: 'My Homebrew',
+        icon: <Beaker className="size-4" />,
+      },
+      {
+        to: '/homebrew/browse',
+        label: 'Browse Public',
+        icon: <Globe className="size-4" />,
+      },
+      {
+        to: '/homebrew/new',
+        label: 'Create New',
         icon: <Plus className="size-4" />,
       },
     ],

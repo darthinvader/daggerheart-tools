@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import type { DomainCard } from '@/lib/schemas/domains';
 import type { LoadoutRules, LoadoutSelection } from '@/lib/schemas/loadout';
 import { getLoadoutRulesForTier } from '@/lib/schemas/loadout';
 
@@ -21,6 +22,7 @@ interface UseLoadoutStateProps {
   onComplete?: (selection: LoadoutSelection) => void;
   classDomains: string[];
   tier: string;
+  campaignHomebrewCards?: DomainCard[];
 }
 
 export function useLoadoutState({
@@ -29,6 +31,7 @@ export function useLoadoutState({
   onComplete,
   classDomains,
   tier,
+  campaignHomebrewCards = [],
 }: UseLoadoutStateProps) {
   const baseRules: LoadoutRules = getLoadoutRulesForTier(tier);
   const {
@@ -89,9 +92,17 @@ export function useLoadoutState({
         classDomains,
         effectiveMaxCardLevel,
         selectedDomains,
-        homebrewCards
+        homebrewCards,
+        campaignHomebrewCards
       ),
-    [mode, classDomains, effectiveMaxCardLevel, selectedDomains, homebrewCards]
+    [
+      mode,
+      classDomains,
+      effectiveMaxCardLevel,
+      selectedDomains,
+      homebrewCards,
+      campaignHomebrewCards,
+    ]
   );
 
   const domainModeHandlers = useDomainModeHandlers({

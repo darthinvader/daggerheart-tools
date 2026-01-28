@@ -39,6 +39,7 @@ interface CharacterSheetLayoutProps {
   currentTraitsForModal: { name: string; marked: boolean }[];
   currentExperiencesForModal: { id: string; name: string; value: number }[];
   ownedCardNames: string[];
+  campaignId?: string;
 }
 
 export function CharacterSheetLayout({
@@ -59,6 +60,7 @@ export function CharacterSheetLayout({
   currentTraitsForModal,
   currentExperiencesForModal,
   ownedCardNames,
+  campaignId,
 }: CharacterSheetLayoutProps) {
   return (
     <div className="container mx-auto px-4 py-4 sm:py-8">
@@ -70,6 +72,7 @@ export function CharacterSheetLayout({
           setIsNewCharacter={setIsNewCharacter}
           state={state}
           handlers={handlers}
+          campaignId={campaignId}
         />
         <CharacterSheetHeader
           characterName={state.identity.name || 'New Character'}
@@ -142,6 +145,7 @@ function CharacterOnboardingSection({
   setIsNewCharacter,
   state,
   handlers,
+  campaignId,
 }: {
   isOpen: boolean;
   readOnly: boolean;
@@ -149,6 +153,7 @@ function CharacterOnboardingSection({
   setIsNewCharacter: (value: boolean) => void;
   state: CharacterSheetState;
   handlers: CharacterSheetHandlers;
+  campaignId?: string;
 }) {
   if (readOnly) return null;
 
@@ -165,6 +170,7 @@ function CharacterOnboardingSection({
       onFinish={handleSkip}
       state={state}
       handlers={handlers}
+      campaignId={campaignId}
     />
   );
 }

@@ -241,6 +241,33 @@ export async function getCampaign(id: string): Promise<Campaign | undefined> {
 }
 
 /**
+ * Find the campaign that contains a specific character
+ * Returns the first campaign found (characters should only belong to one campaign)
+ */
+export async function getCampaignForCharacter(
+  characterId: string
+): Promise<Campaign | undefined> {
+  // Query campaigns where the players array contains this characterId
+  const { data, error } = await supabase
+    .from('campaigns')
+    .select('*')
+    .is('deleted_at', null)
+    .contains('players', [{ characterId }]);
+
+  if (error) {
+    console.error('Error finding campaign for character:', error);
+    throw error;
+  }
+
+  if (!data || data.length === 0) {
+    return undefined;
+  }
+
+  // Return the first matching campaign
+  return rowToCampaign(data[0] as CampaignRow);
+}
+
+/**
  * Create a new campaign from a template
  */
 export async function createCampaign(

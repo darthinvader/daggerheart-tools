@@ -1,7 +1,9 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
+import { useHomebrewForCharacter } from '@/features/homebrew/use-homebrew-query';
 import { Package, Scroll, Zap } from '@/lib/icons';
 import type { DomainCard } from '@/lib/schemas/domains';
+import type { HomebrewDomainCard as HomebrewDomainCardContent } from '@/lib/schemas/homebrew';
 import type {
   HomebrewDomainCard,
   LoadoutSelection,
@@ -12,6 +14,7 @@ import { DomainFilter } from './domain-filter';
 import { HomebrewCardForm } from './homebrew-card-form';
 import { HomebrewFromCardModal } from './homebrew-from-card-modal';
 import { LoadoutModeTabs } from './loadout-mode-tabs';
+import { campaignHomebrewToDomainCard } from './loadout-utils';
 import { useLoadoutState } from './use-loadout-state';
 
 interface LoadoutSelectorProps {
@@ -21,6 +24,7 @@ interface LoadoutSelectorProps {
   classDomains: string[];
   tier?: string;
   hideHeader?: boolean;
+  campaignId?: string;
 }
 
 export function LoadoutSelector({
@@ -30,13 +34,29 @@ export function LoadoutSelector({
   classDomains,
   tier = '1',
   hideHeader = false,
+  campaignId,
 }: LoadoutSelectorProps) {
+  // Fetch campaign homebrew domain cards
+  const { data: campaignHomebrew } = useHomebrewForCharacter(
+    'domain_card',
+    campaignId
+  );
+
+  // Convert campaign homebrew to DomainCard format
+  const campaignHomebrewCards = useMemo(() => {
+    if (!campaignHomebrew || campaignHomebrew.length === 0) return [];
+    return campaignHomebrew
+      .filter(h => h.contentType === 'domain_card')
+      .map(h => campaignHomebrewToDomainCard(h as HomebrewDomainCardContent));
+  }, [campaignHomebrew]);
+
   const state = useLoadoutState({
     value,
     onChange,
     onComplete,
     classDomains,
     tier,
+    campaignHomebrewCards,
   });
 
   const [homebrewEditCard, setHomebrewEditCard] = useState<DomainCard | null>(

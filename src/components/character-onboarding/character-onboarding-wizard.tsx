@@ -16,6 +16,7 @@ interface CharacterOnboardingWizardProps {
   onFinish: () => void;
   state: DemoState;
   handlers: DemoHandlers;
+  campaignId?: string;
 }
 
 export function CharacterOnboardingWizard({
@@ -25,6 +26,7 @@ export function CharacterOnboardingWizard({
   onFinish,
   state,
   handlers,
+  campaignId,
 }: CharacterOnboardingWizardProps) {
   const {
     completion,
@@ -40,7 +42,7 @@ export function CharacterOnboardingWizard({
     handleSkipStep,
     goToStep,
     resetStepIndex,
-  } = useWizardState({ state, handlers, onFinish });
+  } = useWizardState({ state, handlers, onFinish, campaignId });
 
   return (
     <Dialog

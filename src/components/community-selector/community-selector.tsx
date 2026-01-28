@@ -14,9 +14,14 @@ import { StandardCommunityList } from './standard-community-list';
 interface CommunitySelectorProps {
   value?: CommunitySelection;
   onChange?: (selection: CommunitySelection) => void;
+  campaignId?: string;
 }
 
-export function CommunitySelector({ value, onChange }: CommunitySelectorProps) {
+export function CommunitySelector({
+  value,
+  onChange,
+  campaignId,
+}: CommunitySelectorProps) {
   const [mode, setMode] = useState<CommunityMode>(value?.mode ?? 'standard');
 
   const [standardSelection, setStandardSelection] = useState<Community | null>(
@@ -64,6 +69,7 @@ export function CommunitySelector({ value, onChange }: CommunitySelectorProps) {
         <StandardCommunityList
           selectedCommunity={activeStandardSelection}
           onSelect={handleStandardSelect}
+          campaignId={campaignId}
         />
       )}
 

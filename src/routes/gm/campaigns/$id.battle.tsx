@@ -497,7 +497,7 @@ function CampaignBattlePage() {
 
   // Core roster state
   const { rosterState, rosterActions } = useBattleRosterState();
-  const { dialogState, dialogActions } = useBattleDialogState();
+  const { dialogState, dialogActions } = useBattleDialogState(campaignId);
 
   // Subscribe to realtime character updates from players
   useCharacterRealtimeSync(

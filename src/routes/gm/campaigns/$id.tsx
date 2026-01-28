@@ -7,6 +7,7 @@ import {
   useNavigate,
 } from '@tanstack/react-router';
 import {
+  Beaker,
   BookOpen,
   Lightbulb,
   Map,
@@ -24,6 +25,7 @@ import {
   CampaignHeader,
   CharactersTabContent,
   GMToolsTabContent,
+  HomebrewTabContent,
   LocationsTabContent,
   MechanicsTabContent,
   OverviewTabContent,
@@ -57,6 +59,7 @@ const validTabs = [
   'quests',
   'session-zero',
   'gm-tools',
+  'homebrew',
   'players',
 ] as const;
 
@@ -471,6 +474,10 @@ function CampaignTabs({
           <Lightbulb className="mr-2 h-4 w-4" />
           GM Tools
         </TabsTrigger>
+        <TabsTrigger value="homebrew">
+          <Beaker className="mr-2 h-4 w-4" />
+          Homebrew
+        </TabsTrigger>
         <TabsTrigger value="players">
           <Users className="mr-2 h-4 w-4" />
           Players
@@ -513,6 +520,7 @@ function CampaignTabs({
         onDeleteBattle={onDeleteBattle}
       />
       <SessionZeroTabContent frame={frame} updateFrame={updateFrame} />
+      <HomebrewTabContent campaignId={campaign.id} />
       <PlayersTabContent
         campaign={campaign}
         inviteLink={inviteLink}
