@@ -179,11 +179,9 @@ export async function updateHomebrewContent(
  * Soft delete a homebrew content item
  */
 export async function deleteHomebrewContent(id: string): Promise<boolean> {
-  const { error } = await supabase
-    .from('homebrew_content')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('id', id)
-    .is('deleted_at', null);
+  const { error } = await supabase.rpc('soft_delete_homebrew', {
+    target_id: id,
+  });
 
   if (error) {
     console.error('Error deleting homebrew content:', error);

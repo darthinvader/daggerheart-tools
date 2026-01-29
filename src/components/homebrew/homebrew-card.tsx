@@ -42,6 +42,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import type {
   HomebrewContent,
   HomebrewContentType,
@@ -230,7 +235,7 @@ export function HomebrewCard({
                   <Pencil className="mr-2 size-4" /> Edit
                 </DropdownMenuItem>
               )}
-              {onFork && !isOwner && (
+              {onFork && (
                 <DropdownMenuItem onClick={onFork}>
                   <Copy className="mr-2 size-4" /> Fork (Copy)
                 </DropdownMenuItem>
@@ -243,12 +248,28 @@ export function HomebrewCard({
               {isOwner && onDelete && (
                 <>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={onDelete}
-                    className="text-destructive focus:text-destructive"
-                  >
-                    <Trash2 className="mr-2 size-4" /> Delete
-                  </DropdownMenuItem>
+                  {content.visibility === 'public' ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <DropdownMenuItem
+                          disabled
+                          className="text-muted-foreground cursor-not-allowed"
+                        >
+                          <Trash2 className="mr-2 size-4" /> Delete
+                        </DropdownMenuItem>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Make this private before deleting</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  ) : (
+                    <DropdownMenuItem
+                      onClick={onDelete}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <Trash2 className="mr-2 size-4" /> Delete
+                    </DropdownMenuItem>
+                  )}
                 </>
               )}
             </DropdownMenuContent>

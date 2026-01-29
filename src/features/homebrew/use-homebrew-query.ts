@@ -32,6 +32,7 @@ import {
   deleteHomebrewContent,
   forkHomebrewContent,
   getHomebrewContent,
+  getHomebrewContentBatch,
   getHomebrewForCharacter,
   getMyHomebrewStats,
   getOrCreateQuicklist,
@@ -73,6 +74,7 @@ export const homebrewKeys = {
     [...homebrewKeys.lists(), 'forCharacter', contentType, campaignId] as const,
   details: () => [...homebrewKeys.all, 'detail'] as const,
   detail: (id: string) => [...homebrewKeys.details(), id] as const,
+  batch: (ids: string[]) => [...homebrewKeys.all, 'batch', ids] as const,
   stats: () => [...homebrewKeys.all, 'stats'] as const,
   stars: () => [...homebrewKeys.all, 'stars'] as const,
   myStars: (ids?: string[]) => [...homebrewKeys.stars(), ids ?? []] as const,
@@ -99,6 +101,18 @@ export function useHomebrewContent(id: string | undefined) {
     queryFn: () => (id ? getHomebrewContent(id) : undefined),
     enabled: !!id,
     staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+}
+
+/**
+ * Get multiple homebrew items by ID
+ */
+export function useHomebrewContentBatch(ids: string[], enabled = true) {
+  return useQuery({
+    queryKey: homebrewKeys.batch(ids),
+    queryFn: () => getHomebrewContentBatch(ids),
+    enabled: enabled && ids.length > 0,
+    staleTime: 1000 * 60,
   });
 }
 

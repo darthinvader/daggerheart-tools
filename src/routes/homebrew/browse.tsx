@@ -144,7 +144,8 @@ function BrowseHomebrew() {
         navigate({ to: '/login' });
         return;
       }
-      await forkMutation.mutateAsync(item.id);
+      const sourceId = item.forkedFrom ?? item.id;
+      await forkMutation.mutateAsync(sourceId);
       navigate({ to: '/homebrew' });
     },
     [user, navigate, forkMutation]

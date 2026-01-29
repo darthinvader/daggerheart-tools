@@ -7,13 +7,14 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import {
   Beaker,
   BookOpen,
+  Folder,
   GitFork,
   Globe,
   Home,
   Layers,
   Loader2,
   Lock,
-  Map,
+  Map as MapIcon,
   Package,
   Plus,
   Shield,
@@ -37,8 +38,11 @@ import {
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
+  useCollectionItems,
   useCreateHomebrewContent,
   useDeleteHomebrewContent,
+  useHomebrewCollections,
+  useHomebrewContentBatch,
   useMyHomebrewContentInfinite,
   useMyHomebrewStats,
   useStarredHomebrewContent,
@@ -66,7 +70,7 @@ export const CONTENT_TYPE_CONFIG: Record<
     label: 'Adversary',
   },
   environment: {
-    icon: Map,
+    icon: MapIcon,
     color: 'text-emerald-500',
     bgColor: 'bg-emerald-500/10',
     label: 'Environment',
@@ -137,6 +141,53 @@ function HomebrewDashboard() {
   const createMutation = useCreateHomebrewContent();
   const updateMutation = useUpdateHomebrewContent();
   const deleteMutation = useDeleteHomebrewContent();
+
+  const { data: collections = [], isLoading: isCollectionsLoading } =
+    useHomebrewCollections();
+  const visibleCollections = useMemo(
+    () => collections.filter(collection => !collection.isQuicklist),
+    [collections]
+  );
+  const [selectedCollectionId, setSelectedCollectionId] = useState<
+    string | null
+  >(null);
+
+  // Derive effective selected ID: use state if valid, otherwise default to first
+  const effectiveCollectionId = useMemo(() => {
+    if (
+      selectedCollectionId &&
+      visibleCollections.some(c => c.id === selectedCollectionId)
+    ) {
+      return selectedCollectionId;
+    }
+    return visibleCollections[0]?.id ?? null;
+  }, [selectedCollectionId, visibleCollections]);
+
+  const selectedCollection = useMemo(
+    () =>
+      visibleCollections.find(
+        collection => collection.id === effectiveCollectionId
+      ) ?? null,
+    [visibleCollections, effectiveCollectionId]
+  );
+
+  const { data: collectionItems = [], isLoading: isCollectionItemsLoading } =
+    useCollectionItems(effectiveCollectionId ?? undefined);
+  const collectionItemIds = useMemo(
+    () => collectionItems.map(item => item.homebrewId),
+    [collectionItems]
+  );
+  const {
+    data: collectionContent = [],
+    isLoading: isCollectionContentLoading,
+  } = useHomebrewContentBatch(collectionItemIds, !!effectiveCollectionId);
+  const orderedCollectionContent = useMemo(() => {
+    if (collectionItemIds.length === 0) return [];
+    const contentMap = new Map(collectionContent.map(item => [item.id, item]));
+    return collectionItemIds
+      .map(id => contentMap.get(id))
+      .filter((item): item is HomebrewContent => Boolean(item));
+  }, [collectionItemIds, collectionContent]);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedType, setSelectedType] =
@@ -336,6 +387,10 @@ function HomebrewDashboard() {
             <Users className="size-4 text-purple-500" />
             <span className="hidden sm:inline">Campaign</span>
           </TabsTrigger>
+          <TabsTrigger value="collections" className="gap-2">
+            <Folder className="size-4 text-blue-500" />
+            <span className="hidden sm:inline">Collections</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="all">
@@ -405,6 +460,101 @@ function HomebrewDashboard() {
             showCreateButton={false}
             emptyMessage="No campaign-only homebrew content."
           />
+        </TabsContent>
+
+        <TabsContent value="collections">
+          {isCollectionsLoading ? (
+            <div className="text-muted-foreground flex h-48 items-center justify-center">
+              Loading collections...
+            </div>
+          ) : visibleCollections.length === 0 ? (
+            <div className="flex h-48 flex-col items-center justify-center gap-3 text-center">
+              <div className="bg-muted flex size-16 items-center justify-center rounded-full">
+                <Folder className="text-muted-foreground size-8" />
+              </div>
+              <p className="text-muted-foreground">
+                You don&apos;t have any collections yet. Use &quot;Add to
+                Collection&quot; on a homebrew item to create one.
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Your Collections</CardTitle>
+                  <CardDescription>
+                    Pick a collection to view its items.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {visibleCollections.map(collection => (
+                    <Button
+                      key={collection.id}
+                      variant={
+                        collection.id === effectiveCollectionId
+                          ? 'secondary'
+                          : 'ghost'
+                      }
+                      className="w-full justify-start"
+                      onClick={() => setSelectedCollectionId(collection.id)}
+                    >
+                      <div className="flex flex-col items-start text-left">
+                        <span className="text-sm font-medium">
+                          {collection.name}
+                        </span>
+                        {collection.description && (
+                          <span className="text-muted-foreground text-xs">
+                            {collection.description}
+                          </span>
+                        )}
+                      </div>
+                    </Button>
+                  ))}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">
+                    {selectedCollection?.name ?? 'Collection'}
+                  </CardTitle>
+                  {selectedCollection?.description && (
+                    <CardDescription>
+                      {selectedCollection.description}
+                    </CardDescription>
+                  )}
+                </CardHeader>
+                <CardContent>
+                  {isCollectionItemsLoading || isCollectionContentLoading ? (
+                    <div className="text-muted-foreground flex h-48 items-center justify-center">
+                      Loading collection items...
+                    </div>
+                  ) : orderedCollectionContent.length === 0 ? (
+                    <div className="flex h-48 flex-col items-center justify-center gap-3 text-center">
+                      <div className="bg-muted flex size-16 items-center justify-center rounded-full">
+                        <Package className="text-muted-foreground size-8" />
+                      </div>
+                      <p className="text-muted-foreground">
+                        This collection doesn&apos;t have any items yet.
+                      </p>
+                    </div>
+                  ) : (
+                    <HomebrewList
+                      items={orderedCollectionContent}
+                      isLoading={false}
+                      currentUserId={user.id}
+                      onView={handleEdit}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                      onCreate={handleCreate}
+                      showCreateButton={false}
+                      emptyMessage="No items in this collection."
+                    />
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </TabsContent>
       </Tabs>
 
