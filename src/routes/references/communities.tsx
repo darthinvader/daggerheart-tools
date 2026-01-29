@@ -30,6 +30,11 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { COMMUNITIES } from '@/lib/data/characters/communities';
 import { Home } from '@/lib/icons';
@@ -190,12 +195,19 @@ function CommunityCard({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Common Traits */}
-        <div>
-          <h4 className="text-muted-foreground mb-2 text-sm font-semibold">
-            Common Traits
-          </h4>
-          <div className="flex flex-wrap gap-1.5">
+        <div className="bg-card rounded-lg border p-3">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-emerald-700 uppercase dark:text-emerald-300">
+                <Home className="size-3" />
+                Common Traits
+              </div>
+            </TooltipTrigger>
+            <TooltipContent sideOffset={6}>
+              Typical traits and cultural hallmarks.
+            </TooltipContent>
+          </Tooltip>
+          <div className="mt-2 flex flex-wrap gap-1.5">
             {community.commonTraits.map((trait, idx) => (
               <Badge
                 key={idx}
@@ -208,16 +220,20 @@ function CommunityCard({
           </div>
         </div>
 
-        {/* Community Feature */}
-        <div className={`rounded-lg p-4 ${accent.bg} border ${accent.border}`}>
-          <div className="mb-2 flex items-center gap-2">
-            <Badge
-              className={`${accent.bg} ${accent.text} border ${accent.border}`}
-            >
-              Feature
-            </Badge>
-            <h4 className="font-semibold">{community.feature.name}</h4>
-          </div>
+        <div className={`rounded-lg border p-4 ${accent.bg} ${accent.border}`}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div
+                className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase ${accent.bg} ${accent.text} ${accent.border}`}
+              >
+                Community Feature
+              </div>
+            </TooltipTrigger>
+            <TooltipContent sideOffset={6}>
+              Signature feature for this community.
+            </TooltipContent>
+          </Tooltip>
+          <h4 className="mt-2 font-semibold">{community.feature.name}</h4>
           <p className="text-muted-foreground line-clamp-3 text-sm">
             {community.feature.description}
           </p>
@@ -235,15 +251,37 @@ function CommunityDetail({ community }: { community: Community }) {
     <div className="space-y-6">
       {/* Header */}
       <div className={`-mx-4 -mt-4 bg-linear-to-r p-6 ${gradient}`}>
-        <h2 className="text-3xl font-bold text-white">{community.name}</h2>
+        <div className="rounded-xl bg-black/25 p-4">
+          <h2 className="text-2xl font-semibold text-white drop-shadow">
+            <Home className="mr-2 inline-block size-6" />
+            {community.name}
+          </h2>
+        </div>
       </div>
 
-      <p className="text-muted-foreground">{community.description}</p>
+      <div className="bg-card rounded-lg border p-4">
+        <div className="inline-flex items-center gap-1 rounded-full border border-rose-500/30 bg-rose-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-rose-700 uppercase dark:text-rose-300">
+          Overview
+        </div>
+        <p className="text-muted-foreground mt-2 text-sm">
+          {community.description}
+        </p>
+      </div>
 
       {/* Common Traits */}
-      <div>
-        <h4 className="mb-2 font-semibold">Common Traits</h4>
-        <div className="flex flex-wrap gap-2">
+      <div className="bg-card rounded-lg border p-4">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-emerald-700 uppercase dark:text-emerald-300">
+              <Home className="size-3" />
+              Common Traits
+            </div>
+          </TooltipTrigger>
+          <TooltipContent sideOffset={6}>
+            Typical traits and cultural hallmarks.
+          </TooltipContent>
+        </Tooltip>
+        <div className="mt-2 flex flex-wrap gap-2">
           {community.commonTraits.map((trait, idx) => (
             <Badge
               key={idx}
@@ -257,15 +295,20 @@ function CommunityDetail({ community }: { community: Community }) {
       </div>
 
       {/* Community Feature */}
-      <div className={`rounded-lg p-4 ${accent.bg} border ${accent.border}`}>
-        <div className="mb-2 flex items-center gap-2">
-          <Badge
-            className={`${accent.bg} ${accent.text} border ${accent.border}`}
-          >
-            Community Feature
-          </Badge>
-        </div>
-        <h4 className="mb-2 font-semibold">{community.feature.name}</h4>
+      <div className={`rounded-lg border p-4 ${accent.bg} ${accent.border}`}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div
+              className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase ${accent.bg} ${accent.text} ${accent.border}`}
+            >
+              Community Feature
+            </div>
+          </TooltipTrigger>
+          <TooltipContent sideOffset={6}>
+            Signature feature for this community.
+          </TooltipContent>
+        </Tooltip>
+        <h4 className="mt-2 mb-2 font-semibold">{community.feature.name}</h4>
         <p className="text-muted-foreground text-sm">
           {community.feature.description}
         </p>
@@ -334,25 +377,48 @@ function CommunitiesHeader({
   onClearSearch,
 }: CommunitiesHeaderProps) {
   return (
-    <div className="bg-background shrink-0 border-b p-4">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="bg-linear-to-r from-green-500 to-emerald-600 bg-clip-text text-2xl font-bold text-transparent">
-            <Home className="mr-2 inline-block size-6" />
-            Communities
-          </h1>
-          <ResultsCounter
-            filtered={filteredCount}
-            total={totalCount}
-            label="communities"
-          />
+    <div className="bg-background shrink-0 border-b px-4 py-3">
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 text-lg font-semibold">
+              <Home className="size-4 text-green-500" />
+              <span className="bg-linear-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent">
+                Communities
+              </span>
+            </div>
+            <ResultsCounter
+              filtered={filteredCount}
+              total={totalCount}
+              label="communities"
+            />
+          </div>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2">
+
+        <div className="bg-muted/30 sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3">
+          <div className="relative min-w-[200px] flex-1">
+            <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+            <Input
+              placeholder="Search communities..."
+              value={search}
+              onChange={e => onSearchChange(e.target.value)}
+              className="h-9 pr-9 pl-9"
+            />
+            {search && (
+              <button
+                onClick={onClearSearch}
+                className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
+              >
+                <X className="size-4" />
+              </button>
+            )}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
             <select
               value={sortBy}
               onChange={e => onSortByChange(e.target.value as CommunitySortKey)}
-              className="bg-background h-9 rounded-md border px-2 text-sm"
+              className="bg-background h-8 rounded-md border px-2 text-sm"
             >
               <option value="name">Name</option>
               <option value="feature">Feature</option>
@@ -360,7 +426,7 @@ function CommunitiesHeader({
             <Button
               variant="ghost"
               size="icon"
-              className="size-9"
+              className="size-8"
               onClick={() =>
                 onSortDirChange(sortDir === 'asc' ? 'desc' : 'asc')
               }
@@ -374,23 +440,6 @@ function CommunitiesHeader({
                 <ArrowDown className="size-4" />
               )}
             </Button>
-          </div>
-          <div className="relative w-full sm:w-64">
-            <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-            <Input
-              placeholder="Search communities..."
-              value={search}
-              onChange={e => onSearchChange(e.target.value)}
-              className="pr-9 pl-9"
-            />
-            {search && (
-              <button
-                onClick={onClearSearch}
-                className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
-              >
-                <X className="size-4" />
-              </button>
-            )}
           </div>
         </div>
       </div>

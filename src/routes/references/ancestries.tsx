@@ -30,6 +30,11 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ANCESTRIES } from '@/lib/data/characters/ancestries';
 import { Users } from '@/lib/icons';
@@ -121,15 +126,27 @@ function AncestryCard({
         <div className="flex items-start justify-between gap-3">
           <CardTitle className="text-2xl">{ancestry.name}</CardTitle>
           <div className="flex shrink-0 flex-col gap-1 text-right">
-            <Badge variant="outline" className="text-xs">
-              {ancestry.heightRange}
-            </Badge>
-            <Badge
-              variant="outline"
-              className="bg-blue-500/10 text-xs text-blue-700 dark:text-blue-400"
-            >
-              {ancestry.lifespan}
-            </Badge>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge variant="outline" className="text-xs">
+                  {ancestry.heightRange}
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent sideOffset={6}>
+                Typical height range.
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge
+                  variant="outline"
+                  className="bg-blue-500/10 text-xs text-blue-700 dark:text-blue-400"
+                >
+                  {ancestry.lifespan}
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent sideOffset={6}>Typical lifespan.</TooltipContent>
+            </Tooltip>
           </div>
         </div>
         <CardDescription className="mt-2 text-sm leading-relaxed">
@@ -137,12 +154,19 @@ function AncestryCard({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Physical Characteristics */}
-        <div>
-          <h4 className="text-muted-foreground mb-2 text-sm font-semibold">
-            Physical Characteristics
-          </h4>
-          <div className="flex flex-wrap gap-1.5">
+        <div className="bg-card rounded-lg border p-3">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-emerald-700 uppercase dark:text-emerald-300">
+                <Users className="size-3" />
+                Physical Traits
+              </div>
+            </TooltipTrigger>
+            <TooltipContent sideOffset={6}>
+              Common physical characteristics.
+            </TooltipContent>
+          </Tooltip>
+          <div className="mt-2 flex flex-wrap gap-1.5">
             {ancestry.physicalCharacteristics.map((char, idx) => (
               <Badge
                 key={idx}
@@ -155,31 +179,40 @@ function AncestryCard({
           </div>
         </div>
 
-        {/* Features */}
         <div className="space-y-3">
           <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3">
-            <div className="mb-1 flex items-center gap-2">
-              <Badge className="border-amber-500/40 bg-amber-500/20 text-xs text-amber-700 dark:text-amber-400">
-                Primary
-              </Badge>
-              <span className="text-sm font-semibold">
-                {ancestry.primaryFeature.name}
-              </span>
-            </div>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/20 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-amber-700 uppercase dark:text-amber-300">
+                  Primary Feature
+                </div>
+              </TooltipTrigger>
+              <TooltipContent sideOffset={6}>
+                Signature primary feature.
+              </TooltipContent>
+            </Tooltip>
+            <p className="mt-2 text-sm font-semibold">
+              {ancestry.primaryFeature.name}
+            </p>
             <p className="text-muted-foreground line-clamp-2 text-xs">
               {ancestry.primaryFeature.description}
             </p>
           </div>
 
           <div className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 p-3">
-            <div className="mb-1 flex items-center gap-2">
-              <Badge className="border-cyan-500/40 bg-cyan-500/20 text-xs text-cyan-700 dark:text-cyan-400">
-                Secondary
-              </Badge>
-              <span className="text-sm font-semibold">
-                {ancestry.secondaryFeature.name}
-              </span>
-            </div>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="inline-flex items-center gap-1 rounded-full border border-cyan-500/30 bg-cyan-500/20 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-cyan-700 uppercase dark:text-cyan-300">
+                  Secondary Feature
+                </div>
+              </TooltipTrigger>
+              <TooltipContent sideOffset={6}>
+                Supporting secondary feature.
+              </TooltipContent>
+            </Tooltip>
+            <p className="mt-2 text-sm font-semibold">
+              {ancestry.secondaryFeature.name}
+            </p>
             <p className="text-muted-foreground line-clamp-2 text-xs">
               {ancestry.secondaryFeature.description}
             </p>
@@ -197,23 +230,57 @@ function AncestryDetail({ ancestry }: { ancestry: Ancestry }) {
     <div className="space-y-6">
       {/* Header */}
       <div className={`-mx-4 -mt-4 bg-linear-to-r p-6 ${gradient}`}>
-        <h2 className="text-3xl font-bold text-white">{ancestry.name}</h2>
-        <div className="mt-2 flex gap-2">
-          <Badge className="border-white/30 bg-white/20 text-white">
-            {ancestry.heightRange}
-          </Badge>
-          <Badge className="border-white/30 bg-white/20 text-white">
-            {ancestry.lifespan}
-          </Badge>
+        <div className="rounded-xl bg-black/25 p-4">
+          <h2 className="text-2xl font-semibold text-white drop-shadow">
+            <Users className="mr-2 inline-block size-6" />
+            {ancestry.name}
+          </h2>
+          <div className="mt-2 flex gap-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge className="border-slate-900/40 bg-slate-900/80 text-white">
+                  {ancestry.heightRange}
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent sideOffset={6}>
+                Typical height range.
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge className="border-slate-900/40 bg-slate-900/80 text-white">
+                  {ancestry.lifespan}
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent sideOffset={6}>Typical lifespan.</TooltipContent>
+            </Tooltip>
+          </div>
         </div>
       </div>
 
-      <p className="text-muted-foreground">{ancestry.description}</p>
+      <div className="bg-card rounded-lg border p-4">
+        <div className="inline-flex items-center gap-1 rounded-full border border-rose-500/30 bg-rose-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-rose-700 uppercase dark:text-rose-300">
+          Overview
+        </div>
+        <p className="text-muted-foreground mt-2 text-sm">
+          {ancestry.description}
+        </p>
+      </div>
 
       {/* Physical Characteristics */}
-      <div>
-        <h4 className="mb-2 font-semibold">Physical Characteristics</h4>
-        <div className="flex flex-wrap gap-2">
+      <div className="bg-card rounded-lg border p-4">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-emerald-700 uppercase dark:text-emerald-300">
+              <Users className="size-3" />
+              Physical Characteristics
+            </div>
+          </TooltipTrigger>
+          <TooltipContent sideOffset={6}>
+            Common physical traits.
+          </TooltipContent>
+        </Tooltip>
+        <div className="mt-2 flex flex-wrap gap-2">
           {ancestry.physicalCharacteristics.map((char, idx) => (
             <Badge key={idx} variant="outline" className="bg-muted/50">
               {char}
@@ -224,12 +291,19 @@ function AncestryDetail({ ancestry }: { ancestry: Ancestry }) {
 
       {/* Primary Feature */}
       <div className="rounded-lg border border-amber-500/30 bg-linear-to-br from-amber-500/10 to-orange-500/10 p-4">
-        <div className="mb-2 flex items-center gap-2">
-          <Badge className="border-amber-500/40 bg-amber-500/20 text-amber-700 dark:text-amber-400">
-            Primary Feature
-          </Badge>
-        </div>
-        <h4 className="mb-2 font-semibold">{ancestry.primaryFeature.name}</h4>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/20 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-amber-700 uppercase dark:text-amber-300">
+              Primary Feature
+            </div>
+          </TooltipTrigger>
+          <TooltipContent sideOffset={6}>
+            Signature primary feature.
+          </TooltipContent>
+        </Tooltip>
+        <h4 className="mt-2 mb-2 font-semibold">
+          {ancestry.primaryFeature.name}
+        </h4>
         <p className="text-muted-foreground text-sm">
           {ancestry.primaryFeature.description}
         </p>
@@ -237,12 +311,19 @@ function AncestryDetail({ ancestry }: { ancestry: Ancestry }) {
 
       {/* Secondary Feature */}
       <div className="rounded-lg border border-cyan-500/30 bg-linear-to-br from-cyan-500/10 to-blue-500/10 p-4">
-        <div className="mb-2 flex items-center gap-2">
-          <Badge className="border-cyan-500/40 bg-cyan-500/20 text-cyan-700 dark:text-cyan-400">
-            Secondary Feature
-          </Badge>
-        </div>
-        <h4 className="mb-2 font-semibold">{ancestry.secondaryFeature.name}</h4>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="inline-flex items-center gap-1 rounded-full border border-cyan-500/30 bg-cyan-500/20 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-cyan-700 uppercase dark:text-cyan-300">
+              Secondary Feature
+            </div>
+          </TooltipTrigger>
+          <TooltipContent sideOffset={6}>
+            Supporting secondary feature.
+          </TooltipContent>
+        </Tooltip>
+        <h4 className="mt-2 mb-2 font-semibold">
+          {ancestry.secondaryFeature.name}
+        </h4>
         <p className="text-muted-foreground text-sm">
           {ancestry.secondaryFeature.description}
         </p>
@@ -311,25 +392,48 @@ function AncestriesHeader({
   onClearSearch,
 }: AncestriesHeaderProps) {
   return (
-    <div className="bg-background shrink-0 border-b p-4">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="bg-linear-to-r from-teal-500 to-cyan-600 bg-clip-text text-2xl font-bold text-transparent">
-            <Users className="mr-2 inline-block size-6" />
-            Ancestries
-          </h1>
-          <ResultsCounter
-            filtered={filteredCount}
-            total={totalCount}
-            label="ancestries"
-          />
+    <div className="bg-background shrink-0 border-b px-4 py-3">
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 text-lg font-semibold">
+              <Users className="size-4 text-teal-500" />
+              <span className="bg-linear-to-r from-teal-500 to-cyan-600 bg-clip-text text-transparent">
+                Ancestries
+              </span>
+            </div>
+            <ResultsCounter
+              filtered={filteredCount}
+              total={totalCount}
+              label="ancestries"
+            />
+          </div>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2">
+
+        <div className="bg-muted/30 sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3">
+          <div className="relative min-w-[200px] flex-1">
+            <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+            <Input
+              placeholder="Search ancestries..."
+              value={search}
+              onChange={e => onSearchChange(e.target.value)}
+              className="h-9 pr-9 pl-9"
+            />
+            {search && (
+              <button
+                onClick={onClearSearch}
+                className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
+              >
+                <X className="size-4" />
+              </button>
+            )}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
             <select
               value={sortBy}
               onChange={e => onSortByChange(e.target.value as AncestrySortKey)}
-              className="bg-background h-9 rounded-md border px-2 text-sm"
+              className="bg-background h-8 rounded-md border px-2 text-sm"
             >
               <option value="name">Name</option>
               <option value="primary">Primary Feature</option>
@@ -338,7 +442,7 @@ function AncestriesHeader({
             <Button
               variant="ghost"
               size="icon"
-              className="size-9"
+              className="size-8"
               onClick={() =>
                 onSortDirChange(sortDir === 'asc' ? 'desc' : 'asc')
               }
@@ -352,23 +456,6 @@ function AncestriesHeader({
                 <ArrowDown className="size-4" />
               )}
             </Button>
-          </div>
-          <div className="relative w-full sm:w-64">
-            <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-            <Input
-              placeholder="Search ancestries..."
-              value={search}
-              onChange={e => onSearchChange(e.target.value)}
-              className="pr-9 pl-9"
-            />
-            {search && (
-              <button
-                onClick={onClearSearch}
-                className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
-              >
-                <X className="size-4" />
-              </button>
-            )}
           </div>
         </div>
       </div>
@@ -400,7 +487,7 @@ function AncestriesGrid({
     );
   }
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
       {items.map(ancestry => (
         <AncestryCard
           key={ancestry.name}

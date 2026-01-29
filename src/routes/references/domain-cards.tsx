@@ -1,7 +1,16 @@
 // Domain cards reference page with page-specific detail components
 
 import { createFileRoute } from '@tanstack/react-router';
-import { Grid3X3, List } from 'lucide-react';
+import {
+  ArrowDown,
+  ArrowUp,
+  ChevronDown,
+  ChevronRight,
+  Grid3X3,
+  List,
+  Search,
+  X,
+} from 'lucide-react';
 import * as React from 'react';
 import { useMemo } from 'react';
 
@@ -19,7 +28,6 @@ import {
   ReferencePageSkeleton,
   ResultsCounter,
   SortableTableHead,
-  SortControl,
   useCompare,
   useDeferredItems,
   useDeferredLoad,
@@ -29,6 +37,11 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import {
   Sheet,
   SheetContent,
@@ -44,6 +57,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ALL_DOMAIN_NAMES, getAllDomainCards } from '@/lib/data/domains';
 import { AlertTriangle, Sparkle, Sparkles, Zap } from '@/lib/icons';
@@ -250,32 +268,54 @@ function DomainCardCard({
     >
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
-          <CardTitle className="truncate text-base leading-tight">
+          <CardTitle
+            className="line-clamp-2 text-base leading-tight"
+            title={card.name}
+          >
             {card.name}
           </CardTitle>
-          <div className="flex shrink-0 items-center gap-1">
-            <CompareToggleButton
-              item={{ id: cardId, name: card.name, data: card }}
-              size="sm"
-            />
-            <Badge className={`${levelColors[card.level] ?? 'bg-gray-500/20'}`}>
-              Lvl {card.level}
-            </Badge>
-          </div>
+          <CompareToggleButton
+            item={{ id: cardId, name: card.name, data: card }}
+            size="sm"
+          />
         </div>
-        <div className="mt-2 flex flex-wrap gap-1">
-          <Badge variant="outline" className={cardTypeColors[card.type]}>
-            {card.type}
-          </Badge>
-          <Badge
-            variant="outline"
-            className={`${domainColor.bg} ${domainColor.text} ${domainColor.border}`}
-          >
-            {card.domain}
-          </Badge>
+        {/* All badges on one line */}
+        <div className="mt-2 flex flex-wrap items-center gap-1">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge
+                className={`cursor-help py-0 text-xs ${levelColors[card.level] ?? 'bg-gray-500/20'}`}
+              >
+                Lvl {card.level}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>Card level requirement</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge
+                variant="outline"
+                className={`cursor-help py-0 text-xs ${cardTypeColors[card.type]}`}
+              >
+                {card.type}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>Card type: {card.type}</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge
+                variant="outline"
+                className={`cursor-help py-0 text-xs ${domainColor.bg} ${domainColor.text} ${domainColor.border}`}
+              >
+                {card.domain}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>Domain: {card.domain}</TooltipContent>
+          </Tooltip>
         </div>
-        {/* Costs row - always visible */}
-        <div className="mt-2">
+        {/* Costs row with separator */}
+        <div className="border-muted mt-2 border-t pt-2">
           <CardCostBadges costs={costs} compact />
         </div>
       </CardHeader>
@@ -316,22 +356,42 @@ function DomainCardTableRow({
         </div>
       </TableCell>
       <TableCell>
-        <Badge
-          variant="outline"
-          className={`${domainColor.bg} ${domainColor.text} ${domainColor.border}`}
-        >
-          {card.domain}
-        </Badge>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge
+              variant="outline"
+              className={`cursor-help ${domainColor.bg} ${domainColor.text} ${domainColor.border}`}
+            >
+              {card.domain}
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent>Domain: {card.domain}</TooltipContent>
+        </Tooltip>
       </TableCell>
       <TableCell>
-        <Badge variant="outline" className={cardTypeColors[card.type]}>
-          {card.type}
-        </Badge>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge
+              variant="outline"
+              className={`cursor-help ${cardTypeColors[card.type]}`}
+            >
+              {card.type}
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent>Card type: {card.type}</TooltipContent>
+        </Tooltip>
       </TableCell>
       <TableCell>
-        <Badge className={levelColors[card.level] ?? 'bg-gray-500/20'}>
-          {card.level}
-        </Badge>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge
+              className={`cursor-help ${levelColors[card.level] ?? 'bg-gray-500/20'}`}
+            >
+              {card.level}
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent>Level {card.level} requirement</TooltipContent>
+        </Tooltip>
       </TableCell>
       <TableCell>
         <CardCostBadges costs={costs} compact />
@@ -349,66 +409,120 @@ function CardDetail({ card }: { card: DomainCard }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge className={levelColors[card.level] ?? 'bg-gray-500/20'}>
-          Level {card.level}
-        </Badge>
-        <Badge variant="outline" className={cardTypeColors[card.type]}>
-          {card.type}
-        </Badge>
-        <Badge
-          variant="outline"
-          className={`${domainColor.bg} ${domainColor.text} ${domainColor.border}`}
-        >
-          {card.domain}
-        </Badge>
-      </div>
-
-      {/* Costs section - always visible */}
-      <div className="flex flex-wrap gap-3">
-        <div className="min-w-24 flex-1 rounded-lg border border-rose-500/30 bg-rose-500/10 p-3">
-          <div className="text-muted-foreground text-xs">Recall Cost</div>
-          <div className="text-lg font-bold text-rose-700 dark:text-rose-400">
-            <Zap className="mr-1 inline-block size-4" />
-            {costs.recallCost === 0 ? 'Free' : costs.recallCost}
+      {/* Gradient header with title and badges */}
+      <div className={`-mx-4 -mt-4 bg-linear-to-r p-6 ${domainColor.gradient}`}>
+        <div className="rounded-xl bg-black/25 p-4">
+          <h2 className="text-xl font-bold text-white drop-shadow">
+            {card.name}
+          </h2>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge className="cursor-help border-slate-900/40 bg-slate-900/80 text-white">
+                  Level {card.level}
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                Character level requirement to use this card
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge className="cursor-help border-slate-900/40 bg-slate-900/80 text-white">
+                  {card.type}
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>Card type: {card.type}</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge className="cursor-help border-slate-900/40 bg-slate-900/80 text-white">
+                  {card.domain}
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>Domain: {card.domain}</TooltipContent>
+            </Tooltip>
           </div>
         </div>
-        {hopeCosts.length > 0 && (
-          <div className="min-w-24 flex-1 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3">
-            <div className="text-muted-foreground text-xs">
-              Activation (Hope)
-            </div>
-            <div className="text-lg font-bold text-amber-700 dark:text-amber-400">
-              <Sparkle className="mr-1 inline-block size-4" />
-              {hopeCosts
-                .map(c => (c.amount === 'any' ? 'X' : c.amount))
-                .join(' + ')}
-            </div>
-          </div>
-        )}
-        {stressCosts.length > 0 && (
-          <div className="min-w-24 flex-1 rounded-lg border border-purple-500/30 bg-purple-500/10 p-3">
-            <div className="text-muted-foreground text-xs">
-              Activation (Stress)
-            </div>
-            <div className="text-lg font-bold text-purple-700 dark:text-purple-400">
-              <AlertTriangle className="mr-1 inline-block size-4" />
-              {stressCosts.reduce(
-                (sum, c) => sum + (c.amount === 'any' ? 0 : c.amount),
-                0
-              )}
-            </div>
-          </div>
-        )}
-        {costs.recallCost === 0 && !hasActivationCosts && (
-          <div className="min-w-24 flex-1 rounded-lg border border-dashed p-3">
-            <div className="text-muted-foreground text-xs">Activation</div>
-            <div className="text-muted-foreground text-lg font-bold">Free</div>
-          </div>
-        )}
       </div>
 
-      <div className="bg-muted/50 rounded-lg border p-4">
+      {/* Costs section with better styling */}
+      <div className="bg-card rounded-lg border p-3">
+        <h4 className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
+          Costs
+        </h4>
+        <div className="flex flex-wrap gap-3">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="min-w-24 flex-1 cursor-help rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 transition-colors hover:bg-rose-500/20">
+                <div className="text-muted-foreground text-xs">Recall Cost</div>
+                <div className="text-lg font-bold text-rose-700 dark:text-rose-400">
+                  <Zap className="mr-1 inline-block size-4" />
+                  {costs.recallCost === 0 ? 'Free' : costs.recallCost}
+                </div>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              Stress cost to recall this card from your loadout
+            </TooltipContent>
+          </Tooltip>
+          {hopeCosts.length > 0 && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="min-w-24 flex-1 cursor-help rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 transition-colors hover:bg-amber-500/20">
+                  <div className="text-muted-foreground text-xs">
+                    Activation (Hope)
+                  </div>
+                  <div className="text-lg font-bold text-amber-700 dark:text-amber-400">
+                    <Sparkle className="mr-1 inline-block size-4" />
+                    {hopeCosts
+                      .map(c => (c.amount === 'any' ? 'X' : c.amount))
+                      .join(' + ')}
+                  </div>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                Hope cost to activate this card's effect
+              </TooltipContent>
+            </Tooltip>
+          )}
+          {stressCosts.length > 0 && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="min-w-24 flex-1 cursor-help rounded-lg border border-purple-500/30 bg-purple-500/10 p-3 transition-colors hover:bg-purple-500/20">
+                  <div className="text-muted-foreground text-xs">
+                    Activation (Stress)
+                  </div>
+                  <div className="text-lg font-bold text-purple-700 dark:text-purple-400">
+                    <AlertTriangle className="mr-1 inline-block size-4" />
+                    {stressCosts.reduce(
+                      (sum, c) => sum + (c.amount === 'any' ? 0 : c.amount),
+                      0
+                    )}
+                  </div>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                Stress cost to activate this card's effect
+              </TooltipContent>
+            </Tooltip>
+          )}
+          {costs.recallCost === 0 && !hasActivationCosts && (
+            <div className="min-w-24 flex-1 rounded-lg border border-dashed p-3">
+              <div className="text-muted-foreground text-xs">Activation</div>
+              <div className="text-muted-foreground text-lg font-bold">
+                Free
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Description section */}
+      <div className="bg-card rounded-lg border p-3">
+        <h4 className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
+          Description
+        </h4>
         <p className="text-sm leading-relaxed whitespace-pre-line">
           {card.description}
         </p>
@@ -476,12 +590,6 @@ type DomainCardsHeaderProps = {
   onClearFilters: ReturnType<typeof useFilterState>['onClearFilters'];
   filteredCount: number;
   totalCount: number;
-  sortBy: DomainCardSortKey;
-  sortDir: 'asc' | 'desc';
-  onSortByChange: (value: DomainCardSortKey) => void;
-  onSortDirChange: (value: 'asc' | 'desc') => void;
-  viewMode: 'grid' | 'table';
-  onViewModeChange: (value: 'grid' | 'table') => void;
 };
 
 function DomainCardsHeader({
@@ -493,69 +601,36 @@ function DomainCardsHeader({
   onClearFilters,
   filteredCount,
   totalCount,
-  sortBy,
-  sortDir,
-  onSortByChange,
-  onSortDirChange,
-  viewMode,
-  onViewModeChange,
 }: DomainCardsHeaderProps) {
   return (
-    <div className="bg-background shrink-0 border-b p-4">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="bg-linear-to-r from-violet-500 to-purple-600 bg-clip-text text-2xl font-bold text-transparent">
-            <Sparkles className="mr-2 inline-block size-6" />
-            Domain Cards
-          </h1>
+    <div className="bg-background shrink-0 border-b px-4 py-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 text-lg font-semibold">
+            <Sparkles className="size-4 text-violet-500" />
+            <span className="bg-linear-to-r from-violet-500 to-purple-600 bg-clip-text text-transparent">
+              Domain Cards
+            </span>
+          </div>
           <ResultsCounter
             filtered={filteredCount}
             total={totalCount}
             label="cards"
           />
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {isMobile && (
-            <ReferenceFilter
-              filterGroups={filterGroups}
-              filterState={filterState}
-              onSearchChange={onSearchChange}
-              onFilterChange={onFilterChange}
-              onClearFilters={onClearFilters}
-              resultCount={filteredCount}
-              totalCount={totalCount}
-              searchPlaceholder="Search domain cards..."
-            />
-          )}
-
-          <SortControl
-            options={[
-              { value: 'name', label: 'Name' },
-              { value: 'domain', label: 'Domain' },
-              { value: 'type', label: 'Type' },
-              { value: 'level', label: 'Level' },
-            ]}
-            value={sortBy}
-            onChange={v => onSortByChange(v as DomainCardSortKey)}
-            direction={sortDir}
-            onDirectionChange={onSortDirChange}
+        {/* Mobile filter button only */}
+        {isMobile && (
+          <ReferenceFilter
+            filterGroups={filterGroups}
+            filterState={filterState}
+            onSearchChange={onSearchChange}
+            onFilterChange={onFilterChange}
+            onClearFilters={onClearFilters}
+            resultCount={filteredCount}
+            totalCount={totalCount}
+            searchPlaceholder="Search domain cards..."
           />
-
-          {!isMobile && (
-            <ToggleGroup
-              type="single"
-              value={viewMode}
-              onValueChange={v => v && onViewModeChange(v as 'grid' | 'table')}
-            >
-              <ToggleGroupItem value="grid" aria-label="Grid view">
-                <Grid3X3 className="size-4" />
-              </ToggleGroupItem>
-              <ToggleGroupItem value="table" aria-label="Table view">
-                <List className="size-4" />
-              </ToggleGroupItem>
-            </ToggleGroup>
-          )}
-        </div>
+        )}
       </div>
     </div>
   );
@@ -564,33 +639,239 @@ function DomainCardsHeader({
 function DomainCardsGridSections({
   domainEntries,
   onSelectCard,
+  filterState,
+  onSearchChange,
+  sortBy,
+  sortDir,
+  onSortByChange,
+  onSortDirChange,
+  viewMode,
+  onViewModeChange,
+  isMobile,
 }: {
   domainEntries: Array<[string, DomainCard[]]>;
   onSelectCard: (card: DomainCard) => void;
+  filterState: ReturnType<typeof useFilterState>['filterState'];
+  onSearchChange: (search: string) => void;
+  sortBy: DomainCardSortKey;
+  sortDir: 'asc' | 'desc';
+  onSortByChange: (value: DomainCardSortKey) => void;
+  onSortDirChange: (value: 'asc' | 'desc') => void;
+  viewMode: 'grid' | 'table';
+  onViewModeChange: (value: 'grid' | 'table') => void;
+  isMobile: boolean;
 }) {
+  const [expandedDomains, setExpandedDomains] = React.useState<
+    Record<string, boolean>
+  >(() => Object.fromEntries(domainEntries.map(([domain]) => [domain, true])));
+
+  const toggleDomain = (domain: string) => {
+    setExpandedDomains(prev => ({ ...prev, [domain]: !prev[domain] }));
+  };
+
+  const expandAll = () => {
+    setExpandedDomains(
+      Object.fromEntries(domainEntries.map(([domain]) => [domain, true]))
+    );
+  };
+
+  const collapseAll = () => {
+    setExpandedDomains(
+      Object.fromEntries(domainEntries.map(([domain]) => [domain, false]))
+    );
+  };
+
+  const allExpanded = Object.values(expandedDomains).every(Boolean);
+  const allCollapsed = Object.values(expandedDomains).every(v => !v);
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
+      {/* Toolbar with search, sort, view, and expand/collapse controls */}
+      <div className="bg-muted/30 sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3">
+        {/* Left side: Search */}
+        {!isMobile && (
+          <div className="relative max-w-xs min-w-[200px] flex-1">
+            <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Search domain cards..."
+              value={filterState.search}
+              onChange={e => onSearchChange(e.target.value)}
+              className="bg-background h-9 w-full rounded-md border pr-8 pl-9 text-sm transition-colors outline-none focus:ring-2 focus:ring-violet-500/30"
+            />
+            {filterState.search && (
+              <button
+                onClick={() => onSearchChange('')}
+                className="text-muted-foreground hover:text-foreground absolute top-1/2 right-2 -translate-y-1/2 transition-colors"
+                aria-label="Clear search"
+              >
+                <X className="size-4" />
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Right side: Sort, View, Expand/Collapse */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Sort controls */}
+          <div className="flex items-center gap-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <select
+                  value={sortBy}
+                  onChange={e =>
+                    onSortByChange(e.target.value as DomainCardSortKey)
+                  }
+                  className="bg-background h-8 cursor-pointer rounded-md border px-2 text-sm"
+                >
+                  <option value="name">Name</option>
+                  <option value="domain">Domain</option>
+                  <option value="type">Type</option>
+                  <option value="level">Level</option>
+                </select>
+              </TooltipTrigger>
+              <TooltipContent>Sort by</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-8"
+                  onClick={() =>
+                    onSortDirChange(sortDir === 'asc' ? 'desc' : 'asc')
+                  }
+                >
+                  {sortDir === 'asc' ? (
+                    <ArrowUp className="size-4" />
+                  ) : (
+                    <ArrowDown className="size-4" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {sortDir === 'asc' ? 'Ascending' : 'Descending'}
+              </TooltipContent>
+            </Tooltip>
+          </div>
+
+          {/* Divider */}
+          <div className="bg-border h-6 w-px" />
+
+          {/* View mode toggle */}
+          {!isMobile && (
+            <>
+              <ToggleGroup
+                type="single"
+                value={viewMode}
+                onValueChange={v =>
+                  v && onViewModeChange(v as 'grid' | 'table')
+                }
+                className="gap-0"
+              >
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <ToggleGroupItem
+                      value="grid"
+                      aria-label="Grid view"
+                      className="size-8 rounded-r-none"
+                    >
+                      <Grid3X3 className="size-4" />
+                    </ToggleGroupItem>
+                  </TooltipTrigger>
+                  <TooltipContent>Grid view</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <ToggleGroupItem
+                      value="table"
+                      aria-label="Table view"
+                      className="size-8 rounded-l-none"
+                    >
+                      <List className="size-4" />
+                    </ToggleGroupItem>
+                  </TooltipTrigger>
+                  <TooltipContent>Table view</TooltipContent>
+                </Tooltip>
+              </ToggleGroup>
+
+              {/* Divider */}
+              <div className="bg-border h-6 w-px" />
+            </>
+          )}
+
+          {/* Expand/Collapse controls */}
+          <div className="flex items-center gap-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={expandAll}
+                  disabled={allExpanded}
+                  className="h-8 px-2 text-xs"
+                >
+                  Expand
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Expand all domains</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={collapseAll}
+                  disabled={allCollapsed}
+                  className="h-8 px-2 text-xs"
+                >
+                  Collapse
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Collapse all domains</TooltipContent>
+            </Tooltip>
+          </div>
+        </div>
+      </div>
+
       {domainEntries.map(([domain, cards]) => {
         const domainColor = domainColors[domain] ?? defaultDomainColor;
+        const isExpanded = expandedDomains[domain] ?? true;
+
         return (
-          <section key={domain}>
-            <h2 className="bg-background/95 sticky top-0 z-10 -mx-4 mb-4 flex items-center gap-2 px-4 py-2 text-xl font-semibold backdrop-blur">
-              <span
-                className={`inline-block h-3 w-3 rounded-full bg-linear-to-r ${domainColor.gradient}`}
-              />
-              {domain}
-              <Badge variant="outline">{cards.length}</Badge>
-            </h2>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {cards.map(card => (
-                <DomainCardCard
-                  key={`${card.domain}-${card.name}`}
-                  card={card}
-                  onClick={() => onSelectCard(card)}
-                />
-              ))}
-            </div>
-          </section>
+          <Collapsible
+            key={domain}
+            open={isExpanded}
+            onOpenChange={() => toggleDomain(domain)}
+          >
+            <CollapsibleTrigger asChild>
+              <button className="hover:bg-muted/50 bg-card flex w-full items-center justify-between rounded-lg border p-3 transition-colors">
+                <div className="flex items-center gap-3">
+                  <span
+                    className={`inline-block h-3 w-3 rounded-full bg-linear-to-r ${domainColor.gradient}`}
+                  />
+                  <h2 className="text-lg font-semibold">{domain}</h2>
+                  <Badge variant="secondary">{cards.length}</Badge>
+                </div>
+                {isExpanded ? (
+                  <ChevronDown className="text-muted-foreground size-5" />
+                ) : (
+                  <ChevronRight className="text-muted-foreground size-5" />
+                )}
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-4">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {cards.map(card => (
+                  <DomainCardCard
+                    key={`${card.domain}-${card.name}`}
+                    card={card}
+                    onClick={() => onSelectCard(card)}
+                  />
+                ))}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
         );
       })}
     </div>
@@ -692,7 +973,7 @@ function DomainCardDetailSheet({
       >
         {selectedCard && (
           <>
-            <SheetHeader className="shrink-0 border-b p-4">
+            <SheetHeader className="bg-background shrink-0 border-b p-4">
               <SheetTitle className="flex items-center justify-between gap-2">
                 <span className="truncate">{selectedCard.name}</span>
                 <div className="flex shrink-0 items-center gap-2">
@@ -750,7 +1031,6 @@ type DomainCardsLayoutProps = {
   viewMode: 'grid' | 'table';
   onViewModeChange: (value: 'grid' | 'table') => void;
   scrollRef: React.RefObject<HTMLDivElement | null>;
-  isFiltering: boolean;
   sortedDomainEntries: Array<[string, DomainCard[]]>;
   onSelectCard: (card: DomainCard) => void;
   selectedCard: DomainCard | null;
@@ -775,7 +1055,6 @@ function DomainCardsLayout({
   viewMode,
   onViewModeChange,
   scrollRef,
-  isFiltering,
   sortedDomainEntries,
   onSelectCard,
   selectedCard,
@@ -797,6 +1076,7 @@ function DomainCardsLayout({
           resultCount={filteredCards.length}
           totalCount={totalCount}
           searchPlaceholder="Search domain cards..."
+          hideSearch
         />
       )}
 
@@ -810,30 +1090,26 @@ function DomainCardsLayout({
           onClearFilters={onClearFilters}
           filteredCount={filteredCards.length}
           totalCount={totalCount}
-          sortBy={sortBy}
-          sortDir={sortDir}
-          onSortByChange={onSortByChange}
-          onSortDirChange={onSortDirChange}
-          viewMode={viewMode}
-          onViewModeChange={onViewModeChange}
         />
 
         <div
           ref={scrollRef}
           className="relative min-h-0 flex-1 overflow-y-auto"
         >
-          {isFiltering && (
-            <div className="bg-background/60 absolute inset-0 z-10 flex items-start justify-center pt-20 backdrop-blur-[1px]">
-              <div className="bg-background rounded-lg border p-4 shadow-lg">
-                <div className="border-primary h-6 w-6 animate-spin rounded-full border-2 border-t-transparent" />
-              </div>
-            </div>
-          )}
           <div className="p-4">
             {viewMode === 'grid' ? (
               <DomainCardsGridSections
                 domainEntries={sortedDomainEntries}
                 onSelectCard={onSelectCard}
+                filterState={filterState}
+                onSearchChange={onSearchChange}
+                sortBy={sortBy}
+                sortDir={sortDir}
+                onSortByChange={onSortByChange}
+                onSortDirChange={onSortDirChange}
+                viewMode={viewMode}
+                onViewModeChange={onViewModeChange}
+                isMobile={isMobile}
               />
             ) : (
               <DomainCardsTableView
@@ -917,8 +1193,7 @@ function DomainCardsReferencePage() {
   }, [allCards, filterState, sortBy, sortDir]);
 
   // Use deferred rendering for smooth filtering on mobile
-  const { deferredItems: deferredCards, isPending: isFiltering } =
-    useDeferredItems(filteredCards);
+  const { deferredItems: deferredCards } = useDeferredItems(filteredCards);
 
   // Group by domain for sectioned display
   const groupedCards = React.useMemo(
@@ -930,9 +1205,13 @@ function DomainCardsReferencePage() {
     [groupedCards]
   );
 
+  const displayOrderedCards = React.useMemo(() => {
+    return sortedDomainEntries.flatMap(([, cards]) => cards);
+  }, [sortedDomainEntries]);
+
   // Keyboard navigation
   useKeyboardNavigation({
-    items: deferredCards,
+    items: viewMode === 'grid' ? displayOrderedCards : deferredCards,
     selectedItem: selectedCard,
     onSelect: setSelectedCard,
     onClose: () => setSelectedCard(null),
@@ -959,7 +1238,6 @@ function DomainCardsReferencePage() {
       viewMode={viewMode}
       onViewModeChange={setViewMode}
       scrollRef={scrollRef}
-      isFiltering={isFiltering}
       sortedDomainEntries={sortedDomainEntries}
       onSelectCard={setSelectedCard}
       selectedCard={selectedCard}

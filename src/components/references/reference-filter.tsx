@@ -136,7 +136,7 @@ function FilterContent({
     <div className="flex h-full flex-col">
       {/* Search - conditionally rendered */}
       {!hideSearch && (
-        <div className="shrink-0 border-b p-3">
+        <div className="bg-muted/30 shrink-0 border-b p-3">
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="relative">

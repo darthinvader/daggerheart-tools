@@ -1,7 +1,16 @@
 // Inventory reference page with page-specific detail components
 
 import { createFileRoute } from '@tanstack/react-router';
-import { ArrowDown, ArrowUp, Grid3X3, List } from 'lucide-react';
+import {
+  ArrowDown,
+  ArrowUp,
+  ChevronDown,
+  ChevronRight,
+  Grid3X3,
+  List,
+  Search,
+  X,
+} from 'lucide-react';
 import * as React from 'react';
 
 import {
@@ -21,16 +30,16 @@ import {
   useDeferredItems,
   useDeferredLoad,
   useFilterState,
+  useKeyboardNavigation,
 } from '@/components/references';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import {
   Sheet,
   SheetContent,
@@ -45,6 +54,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
   ALL_ARMOR_MODIFICATIONS,
@@ -278,41 +292,57 @@ function ItemCard({
       className={`hover:border-primary/50 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg ${inCompare ? 'ring-primary ring-2' : ''}`}
       onClick={onClick}
     >
-      <div className={`h-2 bg-linear-to-r ${gradient}`} />
+      <div className={`h-1 bg-linear-to-r ${gradient}`} />
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
-          <CardTitle className="text-base leading-tight">
+          <CardTitle
+            className="line-clamp-2 text-base leading-tight"
+            title={item.data.name}
+          >
             {item.data.name}
           </CardTitle>
-          <div className="flex shrink-0 items-center gap-1">
-            <CompareToggleButton
-              item={{ id: itemId, name: item.data.name, data: item }}
-              size="sm"
-            />
-            <Badge
-              className={`${rarityColor.bg} ${rarityColor.text} ${rarityColor.border}`}
-            >
-              {item.data.rarity}
-            </Badge>
-          </div>
+          <CompareToggleButton
+            item={{ id: itemId, name: item.data.name, data: item }}
+            size="sm"
+          />
         </div>
-        <CardDescription className="text-xs">
-          {categoryLabels[item.type]}
-        </CardDescription>
+        {/* All badges on one line */}
+        <div className="mt-2 flex flex-wrap items-center gap-1">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge variant="outline" className="cursor-help py-0 text-xs">
+                {categoryLabels[item.type]}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>Item category</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge
+                className={`cursor-help py-0 text-xs ${rarityColor.bg} ${rarityColor.text} ${rarityColor.border}`}
+              >
+                {item.data.rarity}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>Item rarity</TooltipContent>
+          </Tooltip>
+        </div>
       </CardHeader>
       <CardContent className="pt-0">
-        {'features' in item.data &&
-          Array.isArray(item.data.features) &&
-          item.data.features.length > 0 && (
+        <div className="border-muted border-t pt-2">
+          {'features' in item.data &&
+            Array.isArray(item.data.features) &&
+            item.data.features.length > 0 && (
+              <p className="text-muted-foreground line-clamp-2 text-xs">
+                {item.data.features[0].description}
+              </p>
+            )}
+          {'effect' in item.data && typeof item.data.effect === 'string' && (
             <p className="text-muted-foreground line-clamp-2 text-xs">
-              {item.data.features[0].description}
+              {item.data.effect}
             </p>
           )}
-        {'effect' in item.data && typeof item.data.effect === 'string' && (
-          <p className="text-muted-foreground line-clamp-2 text-xs">
-            {item.data.effect}
-          </p>
-        )}
+        </div>
       </CardContent>
     </Card>
   );
@@ -344,13 +374,27 @@ function ItemTableRow({
           {item.data.name}
         </div>
       </TableCell>
-      <TableCell>{categoryLabels[item.type]}</TableCell>
       <TableCell>
-        <Badge
-          className={`${rarityColor.bg} ${rarityColor.text} ${rarityColor.border}`}
-        >
-          {item.data.rarity}
-        </Badge>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge variant="outline" className="cursor-help">
+              {categoryLabels[item.type]}
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent>Item category</TooltipContent>
+        </Tooltip>
+      </TableCell>
+      <TableCell>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge
+              className={`cursor-help ${rarityColor.bg} ${rarityColor.text} ${rarityColor.border}`}
+            >
+              {item.data.rarity}
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent>Item rarity</TooltipContent>
+        </Tooltip>
       </TableCell>
     </TableRow>
   );
@@ -361,15 +405,19 @@ function ItemDetail({ item }: { item: InventoryItem }) {
 
   return (
     <div className="space-y-4">
-      <div className={`-mx-4 -mt-4 bg-linear-to-r p-4 ${gradient}`}>
-        <h2 className="text-xl font-bold text-white">{item.data.name}</h2>
-        <div className="mt-2 flex gap-2">
-          <Badge className="border-white/30 bg-white/20 text-white">
-            {categoryLabels[item.type]}
-          </Badge>
-          <Badge className="border-white/30 bg-white/20 text-white">
-            {item.data.rarity}
-          </Badge>
+      <div className={`-mx-4 -mt-4 bg-linear-to-r p-6 ${gradient}`}>
+        <div className="rounded-xl bg-black/25 p-4">
+          <h2 className="text-xl font-bold text-white drop-shadow">
+            {item.data.name}
+          </h2>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Badge className="border-slate-900/40 bg-slate-900/80 text-white">
+              {categoryLabels[item.type]}
+            </Badge>
+            <Badge className="border-slate-900/40 bg-slate-900/80 text-white">
+              {item.data.rarity}
+            </Badge>
+          </div>
         </div>
       </div>
 
@@ -654,12 +702,6 @@ type InventoryHeaderProps = {
   onClearFilters: ReturnType<typeof useFilterState>['onClearFilters'];
   filteredCount: number;
   totalCount: number;
-  sortBy: InventorySortKey;
-  sortDir: 'asc' | 'desc';
-  onSortByChange: (value: InventorySortKey) => void;
-  onSortDirChange: (value: 'asc' | 'desc') => void;
-  viewMode: 'grid' | 'table';
-  onViewModeChange: (value: 'grid' | 'table') => void;
 };
 
 function InventoryHeader({
@@ -671,83 +713,36 @@ function InventoryHeader({
   onClearFilters,
   filteredCount,
   totalCount,
-  sortBy,
-  sortDir,
-  onSortByChange,
-  onSortDirChange,
-  viewMode,
-  onViewModeChange,
 }: InventoryHeaderProps) {
   return (
-    <div className="bg-background shrink-0 border-b p-4">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="bg-linear-to-r from-cyan-500 to-blue-600 bg-clip-text text-2xl font-bold text-transparent">
-            <Backpack className="mr-2 inline-block size-6" />
-            Inventory Items
-          </h1>
+    <div className="bg-background shrink-0 border-b px-4 py-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 text-lg font-semibold">
+            <Backpack className="size-4 text-cyan-500" />
+            <span className="bg-linear-to-r from-cyan-500 to-blue-600 bg-clip-text text-transparent">
+              Inventory Items
+            </span>
+          </div>
           <ResultsCounter
             filtered={filteredCount}
             total={totalCount}
             label="items"
           />
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {isMobile && (
-            <ReferenceFilter
-              filterGroups={filterGroups}
-              filterState={filterState}
-              onSearchChange={onSearchChange}
-              onFilterChange={onFilterChange}
-              onClearFilters={onClearFilters}
-              resultCount={filteredCount}
-              totalCount={totalCount}
-              searchPlaceholder="Search inventory..."
-            />
-          )}
-          <div className="flex items-center gap-2">
-            <select
-              value={sortBy}
-              onChange={e => onSortByChange(e.target.value as InventorySortKey)}
-              className="bg-background h-9 rounded-md border px-2 text-sm"
-            >
-              <option value="name">Name</option>
-              <option value="type">Type</option>
-              <option value="rarity">Rarity</option>
-            </select>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-9"
-              onClick={() =>
-                onSortDirChange(sortDir === 'asc' ? 'desc' : 'asc')
-              }
-              aria-label={
-                sortDir === 'asc' ? 'Sort descending' : 'Sort ascending'
-              }
-            >
-              {sortDir === 'asc' ? (
-                <ArrowUp className="size-4" />
-              ) : (
-                <ArrowDown className="size-4" />
-              )}
-            </Button>
-          </div>
-          {!isMobile && (
-            <ToggleGroup
-              type="single"
-              value={viewMode}
-              onValueChange={v => v && onViewModeChange(v as 'grid' | 'table')}
-            >
-              <ToggleGroupItem value="grid" aria-label="Grid view">
-                <Grid3X3 className="size-4" />
-              </ToggleGroupItem>
-              <ToggleGroupItem value="table" aria-label="Table view">
-                <List className="size-4" />
-              </ToggleGroupItem>
-            </ToggleGroup>
-          )}
-        </div>
+        {/* Mobile filter button only */}
+        {isMobile && (
+          <ReferenceFilter
+            filterGroups={filterGroups}
+            filterState={filterState}
+            onSearchChange={onSearchChange}
+            onFilterChange={onFilterChange}
+            onClearFilters={onClearFilters}
+            resultCount={filteredCount}
+            totalCount={totalCount}
+            searchPlaceholder="Search inventory..."
+          />
+        )}
       </div>
     </div>
   );
@@ -756,27 +751,234 @@ function InventoryHeader({
 function InventoryGridSections({
   groupedItems,
   onSelectItem,
+  filterState,
+  onSearchChange,
+  sortBy,
+  sortDir,
+  onSortByChange,
+  onSortDirChange,
+  viewMode,
+  onViewModeChange,
+  isMobile,
 }: {
   groupedItems: Record<string, InventoryItem[]>;
   onSelectItem: (item: InventoryItem) => void;
+  filterState: ReturnType<typeof useFilterState>['filterState'];
+  onSearchChange: (search: string) => void;
+  sortBy: InventorySortKey;
+  sortDir: 'asc' | 'desc';
+  onSortByChange: (value: InventorySortKey) => void;
+  onSortDirChange: (value: 'asc' | 'desc') => void;
+  viewMode: 'grid' | 'table';
+  onViewModeChange: (value: 'grid' | 'table') => void;
+  isMobile: boolean;
 }) {
+  const visibleCategories = categoryOrder.filter(
+    category => groupedItems[category]?.length > 0
+  );
+  const [expandedCategories, setExpandedCategories] = React.useState<
+    Record<string, boolean>
+  >(() => Object.fromEntries(visibleCategories.map(k => [k, true])));
+
+  const toggleCategory = (category: string) => {
+    setExpandedCategories(prev => ({ ...prev, [category]: !prev[category] }));
+  };
+
+  const expandAll = () => {
+    setExpandedCategories(
+      Object.fromEntries(visibleCategories.map(k => [k, true]))
+    );
+  };
+
+  const collapseAll = () => {
+    setExpandedCategories(
+      Object.fromEntries(visibleCategories.map(k => [k, false]))
+    );
+  };
+
+  const allExpanded = visibleCategories.every(k => expandedCategories[k]);
+  const allCollapsed = visibleCategories.every(k => !expandedCategories[k]);
+
   return (
-    <div className="space-y-8">
-      {categoryOrder
-        .filter(category => groupedItems[category]?.length > 0)
-        .map(category => {
-          const items = groupedItems[category];
-          const gradient =
-            categoryGradients[category] ?? 'from-gray-500 to-slate-600';
-          return (
-            <section key={category}>
-              <h2 className="bg-background/95 sticky top-0 z-10 -mx-4 mb-4 flex items-center gap-2 px-4 py-2 text-xl font-semibold backdrop-blur">
-                <span
-                  className={`inline-block h-3 w-3 rounded-full bg-linear-to-r ${gradient}`}
-                />
-                {categoryLabels[category]}s
-                <Badge variant="outline">{items.length}</Badge>
-              </h2>
+    <div className="space-y-4">
+      {/* Toolbar with search, sort, view, and expand/collapse controls */}
+      <div className="bg-muted/30 sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3">
+        {/* Left side: Search */}
+        {!isMobile && (
+          <div className="relative max-w-xs min-w-[200px] flex-1">
+            <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Search inventory..."
+              value={filterState.search}
+              onChange={e => onSearchChange(e.target.value)}
+              className="bg-background h-9 w-full rounded-md border pr-8 pl-9 text-sm transition-colors outline-none focus:ring-2 focus:ring-cyan-500/30"
+            />
+            {filterState.search && (
+              <button
+                onClick={() => onSearchChange('')}
+                className="text-muted-foreground hover:text-foreground absolute top-1/2 right-2 -translate-y-1/2 transition-colors"
+                aria-label="Clear search"
+              >
+                <X className="size-4" />
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Right side: Sort, View, Expand/Collapse */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Sort controls */}
+          <div className="flex items-center gap-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <select
+                  value={sortBy}
+                  onChange={e =>
+                    onSortByChange(e.target.value as InventorySortKey)
+                  }
+                  className="bg-background h-8 cursor-pointer rounded-md border px-2 text-sm"
+                >
+                  <option value="name">Name</option>
+                  <option value="type">Type</option>
+                  <option value="rarity">Rarity</option>
+                </select>
+              </TooltipTrigger>
+              <TooltipContent>Sort by</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-8"
+                  onClick={() =>
+                    onSortDirChange(sortDir === 'asc' ? 'desc' : 'asc')
+                  }
+                >
+                  {sortDir === 'asc' ? (
+                    <ArrowUp className="size-4" />
+                  ) : (
+                    <ArrowDown className="size-4" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {sortDir === 'asc' ? 'Ascending' : 'Descending'}
+              </TooltipContent>
+            </Tooltip>
+          </div>
+
+          {/* Divider */}
+          <div className="bg-border h-6 w-px" />
+
+          {/* View mode toggle */}
+          {!isMobile && (
+            <>
+              <ToggleGroup
+                type="single"
+                value={viewMode}
+                onValueChange={v =>
+                  v && onViewModeChange(v as 'grid' | 'table')
+                }
+                className="gap-0"
+              >
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <ToggleGroupItem
+                      value="grid"
+                      aria-label="Grid view"
+                      className="size-8 rounded-r-none"
+                    >
+                      <Grid3X3 className="size-4" />
+                    </ToggleGroupItem>
+                  </TooltipTrigger>
+                  <TooltipContent>Grid view</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <ToggleGroupItem
+                      value="table"
+                      aria-label="Table view"
+                      className="size-8 rounded-l-none"
+                    >
+                      <List className="size-4" />
+                    </ToggleGroupItem>
+                  </TooltipTrigger>
+                  <TooltipContent>Table view</TooltipContent>
+                </Tooltip>
+              </ToggleGroup>
+
+              {/* Divider */}
+              <div className="bg-border h-6 w-px" />
+            </>
+          )}
+
+          {/* Expand/Collapse controls */}
+          <div className="flex items-center gap-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={expandAll}
+                  disabled={allExpanded}
+                  className="h-8 px-2 text-xs"
+                >
+                  Expand
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Expand all categories</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={collapseAll}
+                  disabled={allCollapsed}
+                  className="h-8 px-2 text-xs"
+                >
+                  Collapse
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Collapse all categories</TooltipContent>
+            </Tooltip>
+          </div>
+        </div>
+      </div>
+
+      {visibleCategories.map(category => {
+        const items = groupedItems[category];
+        const gradient =
+          categoryGradients[category] ?? 'from-gray-500 to-slate-600';
+        const isExpanded = expandedCategories[category] ?? true;
+
+        return (
+          <Collapsible
+            key={category}
+            open={isExpanded}
+            onOpenChange={() => toggleCategory(category)}
+          >
+            <CollapsibleTrigger asChild>
+              <button className="hover:bg-muted/50 bg-card flex w-full items-center justify-between rounded-lg border p-3 transition-colors">
+                <div className="flex items-center gap-3">
+                  <span
+                    className={`inline-block h-3 w-3 rounded-full bg-linear-to-r ${gradient}`}
+                  />
+                  <h2 className="text-lg font-semibold">
+                    {categoryLabels[category]}s
+                  </h2>
+                  <Badge variant="secondary">{items.length}</Badge>
+                </div>
+                {isExpanded ? (
+                  <ChevronDown className="text-muted-foreground size-5" />
+                ) : (
+                  <ChevronRight className="text-muted-foreground size-5" />
+                )}
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-4">
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {items.map((item, idx) => (
                   <ItemCard
@@ -786,9 +988,10 @@ function InventoryGridSections({
                   />
                 ))}
               </div>
-            </section>
-          );
-        })}
+            </CollapsibleContent>
+          </Collapsible>
+        );
+      })}
     </div>
   );
 }
@@ -937,7 +1140,6 @@ type InventoryLayoutProps = {
   viewMode: 'grid' | 'table';
   onViewModeChange: (value: 'grid' | 'table') => void;
   scrollRef: React.RefObject<HTMLDivElement | null>;
-  isFiltering: boolean;
   groupedItems: Record<string, InventoryItem[]>;
   onSelectItem: (item: InventoryItem) => void;
   selectedItem: InventoryItem | null;
@@ -962,7 +1164,6 @@ function InventoryLayout({
   viewMode,
   onViewModeChange,
   scrollRef,
-  isFiltering,
   groupedItems,
   onSelectItem,
   selectedItem,
@@ -985,6 +1186,7 @@ function InventoryLayout({
           resultCount={filteredItems.length}
           totalCount={totalCount}
           searchPlaceholder="Search inventory..."
+          hideSearch
         />
       )}
 
@@ -998,30 +1200,26 @@ function InventoryLayout({
           onClearFilters={onClearFilters}
           filteredCount={filteredItems.length}
           totalCount={totalCount}
-          sortBy={sortBy}
-          sortDir={sortDir}
-          onSortByChange={onSortByChange}
-          onSortDirChange={onSortDirChange}
-          viewMode={viewMode}
-          onViewModeChange={onViewModeChange}
         />
 
         <div
           ref={scrollRef}
           className="relative min-h-0 flex-1 overflow-y-auto"
         >
-          {isFiltering && (
-            <div className="bg-background/60 absolute inset-0 z-10 flex items-start justify-center pt-20 backdrop-blur-[1px]">
-              <div className="bg-background rounded-lg border p-4 shadow-lg">
-                <div className="border-primary h-6 w-6 animate-spin rounded-full border-2 border-t-transparent" />
-              </div>
-            </div>
-          )}
           <div className="p-4">
             {viewMode === 'grid' ? (
               <InventoryGridSections
                 groupedItems={groupedItems}
                 onSelectItem={onSelectItem}
+                filterState={filterState}
+                onSearchChange={onSearchChange}
+                sortBy={sortBy}
+                sortDir={sortDir}
+                onSortByChange={onSortByChange}
+                onSortDirChange={onSortDirChange}
+                viewMode={viewMode}
+                onViewModeChange={onViewModeChange}
+                isMobile={isMobile}
               />
             ) : (
               <InventoryTableView
@@ -1089,13 +1287,27 @@ function InventoryReferencePage() {
   }, [allItems, filterState, sortBy, sortDir]);
 
   // Use deferred rendering for smooth filtering on mobile
-  const { deferredItems, isPending: isFiltering } =
-    useDeferredItems(filteredItems);
+  const { deferredItems } = useDeferredItems(filteredItems);
 
   const groupedItems = React.useMemo(
     () => groupInventoryItems(deferredItems),
     [deferredItems]
   );
+
+  // Build display-ordered items for keyboard navigation (matching grid display order)
+  const displayOrderedItems = React.useMemo(() => {
+    return categoryOrder
+      .filter(category => groupedItems[category]?.length > 0)
+      .flatMap(category => groupedItems[category]);
+  }, [groupedItems]);
+
+  // Keyboard navigation
+  useKeyboardNavigation({
+    items: viewMode === 'grid' ? displayOrderedItems : deferredItems,
+    selectedItem,
+    onSelect: setSelectedItem,
+    onClose: () => setSelectedItem(null),
+  });
 
   const handleSortClick = React.useCallback(
     (column: InventorySortKey) => {
@@ -1129,7 +1341,6 @@ function InventoryReferencePage() {
       viewMode={viewMode}
       onViewModeChange={setViewMode}
       scrollRef={scrollRef}
-      isFiltering={isFiltering}
       groupedItems={groupedItems}
       onSelectItem={setSelectedItem}
       selectedItem={selectedItem}

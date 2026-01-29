@@ -126,6 +126,20 @@ const damageTypeColors: Record<string, string> = {
   mag: 'bg-violet-500/10 text-violet-700 dark:text-violet-400 border-violet-500/30',
 };
 
+const equipmentTypeGradients: Record<EquipmentItem['type'], string> = {
+  primary: 'from-red-500 to-rose-600',
+  secondary: 'from-blue-500 to-sky-600',
+  armor: 'from-slate-500 to-zinc-600',
+  wheelchair: 'from-purple-500 to-violet-600',
+};
+
+const equipmentTypeLabels: Record<EquipmentItem['type'], string> = {
+  primary: 'Primary Weapon',
+  secondary: 'Secondary Weapon',
+  armor: 'Armor',
+  wheelchair: 'Combat Wheelchair',
+};
+
 function formatDamage(damage: PrimaryWeapon['damage']): string {
   const { count, diceType, modifier, type } = damage;
   const modStr =
@@ -822,6 +836,56 @@ function CollapsibleFeatureList({
   );
 }
 
+// Detail panel header with gradient background
+function ItemDetailHeader({
+  type,
+  name,
+  tier,
+  secondaryBadge,
+}: {
+  type: EquipmentItem['type'];
+  name: string;
+  tier: string;
+  secondaryBadge: string;
+}) {
+  const gradient = equipmentTypeGradients[type];
+  const typeLabel = equipmentTypeLabels[type];
+
+  return (
+    <div className={`-mx-4 -mt-4 bg-linear-to-r p-6 ${gradient}`}>
+      <div className="rounded-xl bg-black/25 p-4">
+        <h2 className="text-xl font-bold text-white drop-shadow">{name}</h2>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge className="cursor-help border-slate-900/40 bg-slate-900/80 text-white">
+                {typeLabel}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>Equipment category</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge className="cursor-help border-slate-900/40 bg-slate-900/80 text-white">
+                Tier {tier}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>Equipment tier level</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge className="cursor-help border-slate-900/40 bg-slate-900/80 text-white">
+                {secondaryBadge}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>Type specification</TooltipContent>
+          </Tooltip>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Detail panel content
 function ItemDetail({ item }: { item: EquipmentItem }) {
   const { type, data } = item;
@@ -831,29 +895,12 @@ function ItemDetail({ item }: { item: EquipmentItem }) {
     const isStandard = 'isStandard' in armor && armor.isStandard;
     return (
       <div className="space-y-4">
-        {/* Type badges */}
-        <div className="flex items-center gap-2">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Badge className={`cursor-help ${tierColors[armor.tier]}`}>
-                Tier {armor.tier}
-              </Badge>
-            </TooltipTrigger>
-            <TooltipContent>Equipment tier level</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Badge variant="outline" className="cursor-help">
-                {armor.armorType} {isStandard ? '(Standard)' : '(Special)'}
-              </Badge>
-            </TooltipTrigger>
-            <TooltipContent>
-              {isStandard
-                ? 'Standard armor without special features'
-                : 'Special armor with unique properties'}
-            </TooltipContent>
-          </Tooltip>
-        </div>
+        <ItemDetailHeader
+          type={type}
+          name={armor.name}
+          tier={armor.tier}
+          secondaryBadge={`${armor.armorType} ${isStandard ? '(Standard)' : '(Special)'}`}
+        />
 
         {/* Core stats section */}
         <div className="bg-card rounded-lg border p-3">
@@ -935,25 +982,12 @@ function ItemDetail({ item }: { item: EquipmentItem }) {
     const wheelchair = data as CombatWheelchair;
     return (
       <div className="space-y-4">
-        {/* Type badges */}
-        <div className="flex flex-wrap items-center gap-2">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Badge className={`cursor-help ${tierColors[wheelchair.tier]}`}>
-                Tier {wheelchair.tier}
-              </Badge>
-            </TooltipTrigger>
-            <TooltipContent>Equipment tier level</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Badge className="cursor-help border-cyan-500/30 bg-cyan-500/10 text-cyan-700 dark:text-cyan-400">
-                {wheelchair.frameType}
-              </Badge>
-            </TooltipTrigger>
-            <TooltipContent>Wheelchair frame type</TooltipContent>
-          </Tooltip>
-        </div>
+        <ItemDetailHeader
+          type={type}
+          name={wheelchair.name}
+          tier={wheelchair.tier}
+          secondaryBadge={wheelchair.frameType}
+        />
 
         {/* Combat properties */}
         <div className="bg-card rounded-lg border p-3">
@@ -1022,29 +1056,12 @@ function ItemDetail({ item }: { item: EquipmentItem }) {
   const weapon = data as PrimaryWeapon | SecondaryWeapon;
   return (
     <div className="space-y-4">
-      {/* Type badges */}
-      <div className="flex items-center gap-2">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Badge className={`cursor-help ${tierColors[weapon.tier]}`}>
-              Tier {weapon.tier}
-            </Badge>
-          </TooltipTrigger>
-          <TooltipContent>Equipment tier level</TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Badge variant="outline" className="cursor-help capitalize">
-              {type} Weapon
-            </Badge>
-          </TooltipTrigger>
-          <TooltipContent>
-            {type === 'primary'
-              ? 'Primary weapon - main combat tool'
-              : 'Secondary weapon - backup or off-hand'}
-          </TooltipContent>
-        </Tooltip>
-      </div>
+      <ItemDetailHeader
+        type={type}
+        name={weapon.name}
+        tier={weapon.tier}
+        secondaryBadge={weapon.trait}
+      />
 
       {/* Combat properties */}
       <div className="bg-card rounded-lg border p-3">
