@@ -277,90 +277,32 @@ function AdversariesHeader({
   onClearSearch,
 }: AdversariesHeaderProps) {
   return (
-    <div className="shrink-0 border-b bg-linear-to-r from-fuchsia-500/10 via-red-500/10 to-orange-500/10 p-4">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="bg-linear-to-r from-fuchsia-500 via-red-500 to-orange-500 bg-clip-text text-2xl font-bold text-transparent">
-            <Skull className="mr-2 inline-block size-6" />
-            Adversaries Reference
-          </h1>
-          <ResultsCounter
-            filtered={filteredCount}
-            total={totalCount}
-            label="adversaries"
-          />
+    <div className="bg-background shrink-0 border-b px-4 py-3">
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 text-lg font-semibold">
+              <Skull className="size-4 text-red-500" />
+              <span className="bg-linear-to-r from-red-500 to-rose-600 bg-clip-text text-transparent">
+                Adversaries Reference
+              </span>
+            </div>
+            <ResultsCounter
+              filtered={filteredCount}
+              total={totalCount}
+              label="adversaries"
+            />
+          </div>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2">
-            <select
-              value={tierFilter}
-              onChange={e =>
-                onTierFilterChange(e.target.value as Adversary['tier'] | 'all')
-              }
-              className="bg-background h-9 rounded-md border px-2 text-sm"
-              aria-label="Filter by tier"
-            >
-              <option value="all">All tiers</option>
-              {tierOrder.map(tier => (
-                <option key={tier} value={tier}>
-                  {tierLabels[tier]} Tier {tier}
-                </option>
-              ))}
-            </select>
-            <select
-              value={roleFilter}
-              onChange={e =>
-                onRoleFilterChange(e.target.value as Adversary['role'] | 'all')
-              }
-              className="bg-background h-9 rounded-md border px-2 text-sm"
-              aria-label="Filter by role"
-            >
-              <option value="all">All roles</option>
-              {Object.keys(roleColors)
-                .sort((a, b) => a.localeCompare(b))
-                .map(role => (
-                  <option key={role} value={role}>
-                    {roleLabels[role] ?? '●'} {role}
-                  </option>
-                ))}
-            </select>
-          </div>
-          <div className="flex items-center gap-2">
-            <select
-              value={sortBy}
-              onChange={e => onSortByChange(e.target.value as AdversarySortKey)}
-              className="bg-background h-9 rounded-md border px-2 text-sm"
-              aria-label="Sort adversaries"
-            >
-              <option value="name">Name</option>
-              <option value="tier">Tier</option>
-              <option value="role">Role</option>
-            </select>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-9"
-              onClick={() =>
-                onSortDirChange(sortDir === 'asc' ? 'desc' : 'asc')
-              }
-              aria-label={
-                sortDir === 'asc' ? 'Sort descending' : 'Sort ascending'
-              }
-            >
-              {sortDir === 'asc' ? (
-                <ArrowUp className="size-4" />
-              ) : (
-                <ArrowDown className="size-4" />
-              )}
-            </Button>
-          </div>
-          <div className="relative w-full sm:w-64">
+
+        <div className="bg-muted/30 sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3">
+          <div className="relative min-w-[200px] flex-1">
             <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
             <Input
               placeholder="Search adversaries..."
               value={search}
               onChange={e => onSearchChange(e.target.value)}
-              className="pr-9 pl-9"
+              className="h-9 pr-9 pl-9"
             />
             {search && (
               <button
@@ -371,6 +313,81 @@ function AdversariesHeader({
                 <X className="size-4" />
               </button>
             )}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-2">
+              <select
+                value={tierFilter}
+                onChange={e =>
+                  onTierFilterChange(
+                    e.target.value as Adversary['tier'] | 'all'
+                  )
+                }
+                className="bg-background h-8 rounded-md border px-2 text-sm"
+                aria-label="Filter by tier"
+              >
+                <option value="all">All tiers</option>
+                {tierOrder.map(tier => (
+                  <option key={tier} value={tier}>
+                    {tierLabels[tier]} Tier {tier}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={roleFilter}
+                onChange={e =>
+                  onRoleFilterChange(
+                    e.target.value as Adversary['role'] | 'all'
+                  )
+                }
+                className="bg-background h-8 rounded-md border px-2 text-sm"
+                aria-label="Filter by role"
+              >
+                <option value="all">All roles</option>
+                {Object.keys(roleColors)
+                  .sort((a, b) => a.localeCompare(b))
+                  .map(role => (
+                    <option key={role} value={role}>
+                      {roleLabels[role] ?? '●'} {role}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            <div className="bg-border h-6 w-px" />
+
+            <div className="flex items-center gap-1">
+              <select
+                value={sortBy}
+                onChange={e =>
+                  onSortByChange(e.target.value as AdversarySortKey)
+                }
+                className="bg-background h-8 rounded-md border px-2 text-sm"
+                aria-label="Sort adversaries"
+              >
+                <option value="name">Name</option>
+                <option value="tier">Tier</option>
+                <option value="role">Role</option>
+              </select>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-8"
+                onClick={() =>
+                  onSortDirChange(sortDir === 'asc' ? 'desc' : 'asc')
+                }
+                aria-label={
+                  sortDir === 'asc' ? 'Sort descending' : 'Sort ascending'
+                }
+              >
+                {sortDir === 'asc' ? (
+                  <ArrowUp className="size-4" />
+                ) : (
+                  <ArrowDown className="size-4" />
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -506,11 +523,11 @@ function AdversaryCard({
       className="hover:border-primary/50 group h-full cursor-pointer overflow-hidden transition-all hover:scale-[1.01] hover:shadow-xl"
       onClick={onClick}
     >
-      <div className="h-2 bg-linear-to-r from-fuchsia-500 via-red-500 to-orange-500" />
-      <CardHeader className={compact ? 'pb-2' : undefined}>
+      <div className="h-1 bg-linear-to-r from-red-500 via-rose-500 to-orange-500" />
+      <CardHeader className={compact ? 'pb-2' : 'pb-3'}>
         <div className="flex flex-wrap items-center gap-2">
-          <CardTitle className={compact ? 'text-lg' : 'text-2xl'}>
-            <Skull className="mr-2 inline-block size-5" />
+          <CardTitle className={compact ? 'text-base' : 'text-xl'}>
+            <Skull className="mr-2 inline-block size-4" />
             {adversary.name}
           </CardTitle>
           <Badge variant="outline" className={`text-xs ${tierBadge}`}>
@@ -527,14 +544,41 @@ function AdversaryCard({
             </TooltipContent>
           </Tooltip>
         </div>
-        <CardDescription
-          className={`text-muted-foreground ${compact ? 'line-clamp-2 text-xs' : 'mt-2 text-sm'}`}
-        >
-          {adversary.description}
-        </CardDescription>
       </CardHeader>
-      <CardContent className={compact ? 'space-y-2 pt-0' : 'space-y-4'}>
-        <div className="text-muted-foreground grid grid-cols-2 gap-2 text-xs">
+      <CardContent className={compact ? 'space-y-3 pt-0' : 'space-y-4'}>
+        <div className="bg-card space-y-2 rounded-lg border p-3">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center gap-2 text-[10px] font-semibold tracking-wide uppercase">
+                <span className="inline-flex items-center gap-1 rounded-full border border-rose-500/30 bg-rose-500/10 px-2 py-0.5 text-rose-700 dark:text-rose-300">
+                  <Skull className="size-3" />
+                  Overview
+                </span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent sideOffset={6}>
+              Quick summary of the adversary.
+            </TooltipContent>
+          </Tooltip>
+          <CardDescription className={compact ? 'text-xs' : 'text-sm'}>
+            {adversary.description}
+          </CardDescription>
+        </div>
+
+        <div className="bg-muted/40 text-muted-foreground grid grid-cols-2 gap-2 rounded-lg border p-3 text-xs">
+          <div className="col-span-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-emerald-700 uppercase dark:text-emerald-300">
+                  <Target className="size-3" />
+                  Core Stats
+                </div>
+              </TooltipTrigger>
+              <TooltipContent sideOffset={6}>
+                Core combat stats and thresholds.
+              </TooltipContent>
+            </Tooltip>
+          </div>
           <div>
             <TooltipLabel
               label="Difficulty"
@@ -572,29 +616,90 @@ function AdversaryCard({
             {adversary.stress}
           </div>
         </div>
-        <div className="text-xs">
-          <TooltipLabel
-            label="ATK"
-            labelIcon={Swords}
-            tooltip="Attack modifier, name, range, and damage type (phy/mag)."
-            className="font-semibold"
-          />{' '}
-          {adversary.attack.modifier} {adversary.attack.name} ·{' '}
-          {adversary.attack.range} · {adversary.attack.damage}
+
+        <div className="bg-card space-y-2 rounded-lg border p-3 text-xs">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="inline-flex items-center gap-1 rounded-full border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-red-700 uppercase dark:text-red-300">
+                <Swords className="size-3" />
+                Attack
+              </div>
+            </TooltipTrigger>
+            <TooltipContent sideOffset={6}>
+              Attack modifier, name, range, and damage.
+            </TooltipContent>
+          </Tooltip>
+          <div className="text-muted-foreground text-[10px] font-semibold tracking-wide uppercase">
+            Attack Profile
+          </div>
+          <div className="text-xs">
+            <span className="text-foreground font-semibold">
+              {adversary.attack.modifier} {adversary.attack.name}
+            </span>
+            <span className="text-muted-foreground"> · </span>
+            <span>{adversary.attack.range}</span>
+            <span className="text-muted-foreground"> · </span>
+            <span>{adversary.attack.damage}</span>
+          </div>
         </div>
-        {!compact && adversary.features.length > 0 && (
-          <div className="text-muted-foreground space-y-1 text-xs">
-            <TooltipLabel
-              label="Features"
-              labelIcon={Sparkles}
-              tooltip="Special actions, reactions, or passive abilities for this adversary."
-              className="font-semibold"
-            />
-            <ul className="list-disc space-y-1 pl-4">
-              {adversary.features.slice(0, 3).map((feature, idx) => (
-                <li key={idx} className="line-clamp-2">
-                  {formatFeature(feature)}
-                </li>
+
+        <div className="bg-card space-y-2 rounded-lg border p-3">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="inline-flex items-center gap-1 rounded-full border border-blue-500/30 bg-blue-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-blue-700 uppercase dark:text-blue-300">
+                <Compass className="size-3" />
+                Behavior
+              </div>
+            </TooltipTrigger>
+            <TooltipContent sideOffset={6}>
+              How this adversary behaves in encounters.
+            </TooltipContent>
+          </Tooltip>
+          <div className="text-muted-foreground text-[10px] font-semibold tracking-wide uppercase">
+            Motives & Tactics
+          </div>
+          <p className="text-muted-foreground text-xs">
+            {adversary.motivesAndTactics}
+          </p>
+        </div>
+
+        {adversary.experiences.length > 0 && (
+          <div className="bg-card space-y-2 rounded-lg border p-3 text-xs">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="inline-flex items-center gap-1 rounded-full border border-violet-500/30 bg-violet-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-violet-700 uppercase dark:text-violet-300">
+                  <Brain className="size-3" />
+                  Experiences
+                </div>
+              </TooltipTrigger>
+              <TooltipContent sideOffset={6}>
+                Training or background bonuses.
+              </TooltipContent>
+            </Tooltip>
+            <ul className="text-muted-foreground list-disc space-y-1 pl-4">
+              {adversary.experiences.map((experience, idx) => (
+                <li key={idx}>{formatExperience(experience)}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {adversary.features.length > 0 && (
+          <div className="bg-card space-y-2 rounded-lg border p-3 text-xs">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-amber-700 uppercase dark:text-amber-300">
+                  <Sparkles className="size-3" />
+                  Features
+                </div>
+              </TooltipTrigger>
+              <TooltipContent sideOffset={6}>
+                Special actions, reactions, or passives.
+              </TooltipContent>
+            </Tooltip>
+            <ul className="text-muted-foreground list-disc space-y-1 pl-4">
+              {adversary.features.map((feature, idx) => (
+                <li key={idx}>{formatFeature(feature)}</li>
               ))}
             </ul>
           </div>
@@ -605,11 +710,10 @@ function AdversaryCard({
 }
 
 function AdversaryDetailHeader({ adversary }: { adversary: AdversaryItem }) {
-  const tierBadge = tierColors[adversary.tier] ?? defaultBadgeColor;
   return (
-    <div className="-mx-4 -mt-4 bg-linear-to-r from-fuchsia-500 via-red-500 to-orange-500 p-6">
-      <h2 className="text-3xl font-bold text-white">
-        <Skull className="mr-2 inline-block size-8" />
+    <div className="-mx-4 -mt-4 bg-linear-to-r from-red-500 via-rose-500 to-orange-500 p-6">
+      <h2 className="text-2xl font-semibold text-white">
+        <Skull className="mr-2 inline-block size-7" />
         {adversary.name}
       </h2>
       <div className="mt-3 flex flex-wrap gap-2">
@@ -628,9 +732,6 @@ function AdversaryDetailHeader({ adversary }: { adversary: AdversaryItem }) {
             {getRoleDescription(adversary.role)}
           </TooltipContent>
         </Tooltip>
-        <Badge className="border-white/30 bg-white/20 text-white">
-          {tierBadge}
-        </Badge>
       </div>
     </div>
   );
@@ -638,7 +739,20 @@ function AdversaryDetailHeader({ adversary }: { adversary: AdversaryItem }) {
 
 function AdversaryStatsGrid({ adversary }: { adversary: AdversaryItem }) {
   return (
-    <div className="grid grid-cols-2 gap-4 text-sm">
+    <div className="bg-card grid grid-cols-2 gap-4 rounded-lg border p-4 text-sm">
+      <div className="col-span-2">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-emerald-700 uppercase dark:text-emerald-300">
+              <Target className="size-3" />
+              Core Stats
+            </div>
+          </TooltipTrigger>
+          <TooltipContent sideOffset={6}>
+            Core combat stats and thresholds.
+          </TooltipContent>
+        </Tooltip>
+      </div>
       <div>
         <TooltipLabel
           label="Difficulty"
@@ -680,13 +794,20 @@ function AdversaryStatsGrid({ adversary }: { adversary: AdversaryItem }) {
 }
 
 function AdversaryAttackPanel({ adversary }: { adversary: AdversaryItem }) {
-  const tierBadge = tierColors[adversary.tier] ?? defaultBadgeColor;
   return (
     <div className="rounded-lg border border-red-500/30 bg-linear-to-r from-red-500/10 to-rose-500/10 p-4">
       <div className="mb-2 flex items-center gap-2">
-        <Badge className={`border-red-500/40 ${tierBadge}`}>
-          <Swords className="mr-1 size-3" /> Attack
-        </Badge>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="inline-flex items-center gap-1 rounded-full border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-red-700 uppercase dark:text-red-300">
+              <Swords className="size-3" />
+              Attack
+            </div>
+          </TooltipTrigger>
+          <TooltipContent sideOffset={6}>
+            Attack modifier, name, range, and damage.
+          </TooltipContent>
+        </Tooltip>
       </div>
       <p className="text-sm">
         <TooltipLabel
@@ -705,15 +826,20 @@ function AdversaryAttackPanel({ adversary }: { adversary: AdversaryItem }) {
 function AdversaryExperiences({ adversary }: { adversary: AdversaryItem }) {
   if (adversary.experiences.length === 0) return null;
   return (
-    <div>
-      <h4 className="mb-2 font-semibold">
-        <TooltipLabel
-          label="Experiences"
-          labelIcon={Brain}
-          tooltip="Training or background bonuses that add to rolls."
-          className="font-semibold"
-        />
-      </h4>
+    <div className="bg-card rounded-lg border p-4">
+      <div className="mb-3">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="inline-flex items-center gap-1 rounded-full border border-violet-500/30 bg-violet-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-violet-700 uppercase dark:text-violet-300">
+              <Brain className="size-3" />
+              Experiences
+            </div>
+          </TooltipTrigger>
+          <TooltipContent sideOffset={6}>
+            Training or background bonuses that add to rolls.
+          </TooltipContent>
+        </Tooltip>
+      </div>
       <ul className="text-muted-foreground list-disc space-y-2 pl-5 text-sm">
         {adversary.experiences.map((experience, idx) => (
           <li key={idx}>{formatExperience(experience)}</li>
@@ -726,15 +852,20 @@ function AdversaryExperiences({ adversary }: { adversary: AdversaryItem }) {
 function AdversaryFeatures({ adversary }: { adversary: AdversaryItem }) {
   if (adversary.features.length === 0) return null;
   return (
-    <div>
-      <h4 className="mb-2 font-semibold">
-        <TooltipLabel
-          label="Features"
-          labelIcon={Sparkles}
-          tooltip="Special actions, reactions, or passive abilities for this adversary."
-          className="font-semibold"
-        />
-      </h4>
+    <div className="bg-card rounded-lg border p-4">
+      <div className="mb-3">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-amber-700 uppercase dark:text-amber-300">
+              <Sparkles className="size-3" />
+              Features
+            </div>
+          </TooltipTrigger>
+          <TooltipContent sideOffset={6}>
+            Special actions, reactions, or passive abilities.
+          </TooltipContent>
+        </Tooltip>
+      </div>
       <ul className="text-muted-foreground list-disc space-y-2 pl-5 text-sm">
         {adversary.features.map((feature, idx) => (
           <li key={idx}>{formatFeature(feature)}</li>
@@ -771,17 +902,30 @@ function AdversaryDetail({ adversary }: { adversary: AdversaryItem }) {
     <div className="space-y-6">
       <AdversaryDetailHeader adversary={adversary} />
 
-      <p className="text-muted-foreground">{adversary.description}</p>
+      <div className="bg-card space-y-2 rounded-lg border p-4">
+        <div className="mb-1">
+          <div className="inline-flex items-center gap-1 rounded-full border border-rose-500/30 bg-rose-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-rose-700 uppercase dark:text-rose-300">
+            <Skull className="size-3" />
+            Overview
+          </div>
+        </div>
+        <p className="text-muted-foreground text-sm">{adversary.description}</p>
+      </div>
 
-      <div>
-        <h4 className="mb-2 font-semibold">
-          <TooltipLabel
-            label="Motives & Tactics"
-            labelIcon={Compass}
-            tooltip="Guidance for how this adversary behaves and prioritizes targets."
-            className="font-semibold"
-          />
-        </h4>
+      <div className="bg-card space-y-2 rounded-lg border p-4">
+        <div className="mb-1">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="inline-flex items-center gap-1 rounded-full border border-blue-500/30 bg-blue-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-blue-700 uppercase dark:text-blue-300">
+                <Compass className="size-3" />
+                Motives & Tactics
+              </div>
+            </TooltipTrigger>
+            <TooltipContent sideOffset={6}>
+              Guidance for how this adversary behaves and prioritizes targets.
+            </TooltipContent>
+          </Tooltip>
+        </div>
         <p className="text-muted-foreground text-sm">
           {adversary.motivesAndTactics}
         </p>
