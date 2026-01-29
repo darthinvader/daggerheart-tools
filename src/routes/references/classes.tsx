@@ -1,7 +1,14 @@
 // Classes reference page with page-specific detail components
 
 import { createFileRoute } from '@tanstack/react-router';
-import { ArrowLeft, ChevronDown, ChevronRight, Search, X } from 'lucide-react';
+import {
+  ArrowLeft,
+  ChevronDown,
+  ChevronRight,
+  type LucideIcon,
+  Search,
+  X,
+} from 'lucide-react';
 import * as React from 'react';
 
 import {
@@ -36,13 +43,27 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
   ALL_CLASSES,
   type GameClass,
   type GameSubclass,
 } from '@/lib/data/classes';
-import { Shield } from '@/lib/icons';
+import {
+  Backpack,
+  HelpCircle,
+  Layers,
+  Link2,
+  Shield,
+  Sparkles,
+  Star,
+  Target,
+} from '@/lib/icons';
 import { cn } from '@/lib/utils';
 
 export const Route = createFileRoute('/references/classes')({
@@ -98,6 +119,37 @@ const featureBorderColors: Record<string, string> = {
   active: '#f59e0b',
 };
 
+type SectionLabelProps = {
+  label: string;
+  tooltip: string;
+  icon: LucideIcon;
+  className?: string;
+};
+
+function SectionLabel({
+  label,
+  tooltip,
+  icon: Icon,
+  className,
+}: SectionLabelProps) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <div
+          className={cn(
+            'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase',
+            className
+          )}
+        >
+          <Icon className="size-3" />
+          {label}
+        </div>
+      </TooltipTrigger>
+      <TooltipContent sideOffset={6}>{tooltip}</TooltipContent>
+    </Tooltip>
+  );
+}
+
 interface ClassOutlineProps {
   classes: readonly GameClass[];
   selectedClass: string | null;
@@ -129,6 +181,7 @@ function ClassOutline({
             <button
               onClick={() => onSearchChange('')}
               className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
+              aria-label="Clear search"
             >
               <X className="size-4" />
             </button>
@@ -272,55 +325,101 @@ function ClassDetail({ gameClass }: { gameClass: GameClass }) {
     <div className="space-y-6">
       {/* Header */}
       <div className={`-mx-4 -mt-4 bg-linear-to-r p-6 ${gradient}`}>
-        <h2 className="text-3xl font-bold text-white">{gameClass.name}</h2>
-        <p className="mt-2 text-white/80">{gameClass.description}</p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {gameClass.domains.map(domain => (
-            <Badge
-              key={domain}
-              className="border-white/30 bg-white/20 text-white"
-            >
-              {domain}
-            </Badge>
-          ))}
+        <div className="rounded-xl bg-black/35 p-4">
+          <h2 className="text-2xl font-semibold text-white drop-shadow">
+            <Shield className="mr-2 inline-block size-6" />
+            {gameClass.name}
+          </h2>
+          <p className="mt-2 text-white/85">{gameClass.description}</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {gameClass.domains.map(domain => (
+              <Badge
+                key={domain}
+                className="border-slate-900/40 bg-slate-900/80 text-white"
+              >
+                {domain}
+              </Badge>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Base Stats */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4">
-          <div className="text-muted-foreground text-sm">Hit Points</div>
-          <div className="text-2xl font-bold text-red-600 dark:text-red-400">
-            {gameClass.startingHitPoints}
-          </div>
+      <div className="bg-card rounded-lg border p-4">
+        <div className="mb-3">
+          <SectionLabel
+            label="Base Stats"
+            tooltip="Starting hit points and evasion for a new character."
+            icon={Target}
+            className="border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+          />
         </div>
-        <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-4">
-          <div className="text-muted-foreground text-sm">Evasion</div>
-          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-            {gameClass.startingEvasion}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="text-muted-foreground text-sm">Hit Points</div>
+              </TooltipTrigger>
+              <TooltipContent sideOffset={6}>
+                Starting HP before level-ups and gear.
+              </TooltipContent>
+            </Tooltip>
+            <div className="text-2xl font-bold text-red-600 dark:text-red-400">
+              {gameClass.startingHitPoints}
+            </div>
+          </div>
+          <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-4">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="text-muted-foreground text-sm">Evasion</div>
+              </TooltipTrigger>
+              <TooltipContent sideOffset={6}>
+                Base target number to avoid hits.
+              </TooltipContent>
+            </Tooltip>
+            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+              {gameClass.startingEvasion}
+            </div>
           </div>
         </div>
       </div>
 
       {/* Hope Feature */}
-      <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-4">
-        <div className="mb-2 flex items-center justify-between">
-          <h4 className="font-semibold text-yellow-700 dark:text-yellow-400">
-            {gameClass.hopeFeature.name}
-          </h4>
-          <Badge className="bg-yellow-500/20 text-yellow-700 dark:text-yellow-400">
-            {gameClass.hopeFeature.hopeCost} Hope
-          </Badge>
+      <div className="bg-card rounded-lg border p-4">
+        <div className="mb-3">
+          <SectionLabel
+            label="Hope Feature"
+            tooltip="Signature feature powered by spending Hope."
+            icon={Sparkles}
+            className="border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300"
+          />
         </div>
-        <p className="text-muted-foreground text-sm">
-          {gameClass.hopeFeature.description}
-        </p>
+        <div className="bg-muted/50 rounded-lg p-3">
+          <div className="mb-1 flex items-center justify-between gap-3">
+            <span className="font-semibold text-yellow-700 dark:text-yellow-300">
+              {gameClass.hopeFeature.name}
+            </span>
+            <Badge className="border-yellow-500/30 bg-yellow-500/15 text-yellow-700 dark:text-yellow-300">
+              {gameClass.hopeFeature.hopeCost} Hope
+            </Badge>
+          </div>
+          <p className="text-muted-foreground text-sm">
+            {gameClass.hopeFeature.description}
+          </p>
+        </div>
       </div>
 
       {/* Class Features */}
       {gameClass.classFeatures.length > 0 && (
-        <div>
-          <h4 className="mb-3 font-semibold">Class Features</h4>
+        <div className="bg-card rounded-lg border p-4">
+          <div className="mb-3">
+            <SectionLabel
+              label="Class Features"
+              tooltip="Foundation, specialization, and mastery features unique to this class."
+              icon={Star}
+              className="border-violet-500/30 bg-violet-500/10 text-violet-700 dark:text-violet-300"
+            />
+          </div>
           <div className="space-y-2">
             {gameClass.classFeatures.map((feature, idx) => (
               <div key={idx} className="bg-muted/50 rounded-lg p-3">
@@ -341,8 +440,15 @@ function ClassDetail({ gameClass }: { gameClass: GameClass }) {
 
       {/* Class Items */}
       {gameClass.classItems.length > 0 && (
-        <div>
-          <h4 className="mb-2 font-semibold">Class Items</h4>
+        <div className="bg-card rounded-lg border p-4">
+          <div className="mb-3">
+            <SectionLabel
+              label="Class Items"
+              tooltip="Starting equipment or signature items for this class."
+              icon={Backpack}
+              className="border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300"
+            />
+          </div>
           <ul className="text-muted-foreground list-inside list-disc text-sm">
             {gameClass.classItems.map((item, idx) => (
               <li key={idx}>{item}</li>
@@ -352,11 +458,16 @@ function ClassDetail({ gameClass }: { gameClass: GameClass }) {
       )}
 
       {/* Subclasses */}
-      <div>
-        <h4 className="mb-4 flex items-center gap-2 text-xl font-semibold">
-          Subclasses
+      <div className="bg-card rounded-lg border p-4">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <SectionLabel
+            label="Subclasses"
+            tooltip="Specializations that add features and flavor."
+            icon={Layers}
+            className="border-indigo-500/30 bg-indigo-500/10 text-indigo-700 dark:text-indigo-300"
+          />
           <Badge variant="outline">{gameClass.subclasses.length}</Badge>
-        </h4>
+        </div>
         <div className="space-y-4">
           {gameClass.subclasses.map(subclass => (
             <SubclassCard key={subclass.name} subclass={subclass} />
@@ -366,8 +477,15 @@ function ClassDetail({ gameClass }: { gameClass: GameClass }) {
 
       {/* Background Questions */}
       {gameClass.backgroundQuestions.length > 0 && (
-        <div>
-          <h4 className="mb-2 font-semibold">Background Questions</h4>
+        <div className="bg-card rounded-lg border p-4">
+          <div className="mb-3">
+            <SectionLabel
+              label="Background Questions"
+              tooltip="Prompts to ground your character's backstory."
+              icon={HelpCircle}
+              className="border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300"
+            />
+          </div>
           <ul className="text-muted-foreground list-inside list-decimal space-y-1 text-sm">
             {gameClass.backgroundQuestions.map((q, idx) => (
               <li key={idx}>{q}</li>
@@ -378,8 +496,15 @@ function ClassDetail({ gameClass }: { gameClass: GameClass }) {
 
       {/* Connections */}
       {gameClass.connections.length > 0 && (
-        <div>
-          <h4 className="mb-2 font-semibold">Connections</h4>
+        <div className="bg-card rounded-lg border p-4">
+          <div className="mb-3">
+            <SectionLabel
+              label="Connections"
+              tooltip="Relationship prompts and bonds tied to this class."
+              icon={Link2}
+              className="border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300"
+            />
+          </div>
           <ul className="text-muted-foreground list-inside list-disc space-y-1 text-sm">
             {gameClass.connections.map((c, idx) => (
               <li key={idx}>{c}</li>
@@ -420,52 +545,65 @@ function ClassCard({
   const gradient =
     classGradients[gameClass.name] ?? 'from-gray-500 to-slate-600';
   return (
-    <Card
-      className="cursor-pointer transition-all hover:scale-[1.01] hover:shadow-lg"
-      onClick={() => onSelect(gameClass.name)}
-    >
-      <div className={`h-2 bg-linear-to-r ${gradient}`} />
-      <CardHeader>
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1 space-y-2">
-            <CardTitle className="flex items-center gap-2 text-2xl">
-              {gameClass.name}
-              <ChevronRight className="size-5 opacity-50" />
-            </CardTitle>
-            <CardDescription>{gameClass.description}</CardDescription>
-          </div>
-        </div>
-        <div className="mt-3 flex flex-wrap gap-2">
-          {gameClass.domains.map(domain => (
-            <Badge key={domain} className={domainColors[domain] ?? 'bg-muted'}>
-              {domain}
-            </Badge>
-          ))}
-        </div>
-      </CardHeader>
-      <CardContent className="pt-0">
-        <div className="text-muted-foreground flex gap-4 text-sm">
-          <span>
-            <span className="text-foreground font-medium">
-              {gameClass.startingHitPoints}
-            </span>{' '}
-            HP
-          </span>
-          <span>
-            <span className="text-foreground font-medium">
-              {gameClass.startingEvasion}
-            </span>{' '}
-            Evasion
-          </span>
-          <span>
-            <span className="text-foreground font-medium">
-              {gameClass.subclasses.length}
-            </span>{' '}
-            Subclasses
-          </span>
-        </div>
-      </CardContent>
-    </Card>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Card
+          className="group hover:border-primary/50 h-full cursor-pointer overflow-hidden transition-all hover:scale-[1.01] hover:shadow-xl"
+          onClick={() => onSelect(gameClass.name)}
+        >
+          <div className={`h-1 bg-linear-to-r ${gradient}`} />
+          <CardHeader className="pb-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 space-y-2">
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <Shield className="text-muted-foreground size-4" />
+                  {gameClass.name}
+                  <ChevronRight className="text-muted-foreground size-4 opacity-70" />
+                </CardTitle>
+                <CardDescription className="text-sm">
+                  {gameClass.description}
+                </CardDescription>
+              </div>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {gameClass.domains.map(domain => (
+                <Badge
+                  key={domain}
+                  className={domainColors[domain] ?? 'bg-muted'}
+                >
+                  {domain}
+                </Badge>
+              ))}
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="bg-muted/40 text-muted-foreground grid grid-cols-3 gap-2 rounded-lg border p-3 text-xs">
+              <div>
+                <span className="text-foreground font-semibold">
+                  {gameClass.startingHitPoints}
+                </span>{' '}
+                HP
+              </div>
+              <div>
+                <span className="text-foreground font-semibold">
+                  {gameClass.startingEvasion}
+                </span>{' '}
+                Evasion
+              </div>
+              <div>
+                <span className="text-foreground font-semibold">
+                  {gameClass.subclasses.length}
+                </span>{' '}
+                Subclasses
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </TooltipTrigger>
+      <TooltipContent sideOffset={6}>
+        View class details, subclasses, and signature features.
+      </TooltipContent>
+    </Tooltip>
   );
 }
 
@@ -493,39 +631,43 @@ function ClassesHeader({
   onSelectClass,
 }: ClassesHeaderProps) {
   return (
-    <div className="bg-background shrink-0 border-b p-4">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="bg-linear-to-r from-purple-500 to-indigo-600 bg-clip-text text-2xl font-bold text-transparent">
-            <Shield className="mr-2 inline-block size-6" />
-            Classes & Subclasses
-          </h1>
-          <ResultsCounter
-            filtered={filteredCount}
-            total={totalCount}
-            label="classes"
-            suffix={` with ${subclassCount} subclasses`}
-          />
+    <div className="bg-background shrink-0 border-b px-4 py-3">
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 text-lg font-semibold">
+              <Shield className="size-4 text-purple-500" />
+              <span className="bg-linear-to-r from-purple-500 to-indigo-600 bg-clip-text text-transparent">
+                Classes & Subclasses
+              </span>
+            </div>
+            <ResultsCounter
+              filtered={filteredCount}
+              total={totalCount}
+              label="classes"
+              suffix={` with ${subclassCount} subclasses`}
+            />
+          </div>
+          {isMobile && (
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Search className="mr-2 size-4" />
+                  Browse Classes
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-72 p-0">
+                <ClassOutline
+                  classes={classes}
+                  selectedClass={selectedClass}
+                  onSelectClass={onSelectClass}
+                  search={search}
+                  onSearchChange={onSearchChange}
+                />
+              </SheetContent>
+            </Sheet>
+          )}
         </div>
-        {isMobile && (
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Search className="mr-2 size-4" />
-                Browse Classes
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-72 p-0">
-              <ClassOutline
-                classes={classes}
-                selectedClass={selectedClass}
-                onSelectClass={onSelectClass}
-                search={search}
-                onSearchChange={onSearchChange}
-              />
-            </SheetContent>
-          </Sheet>
-        )}
       </div>
     </div>
   );
@@ -560,7 +702,7 @@ function ClassesContent({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
       {classes.map(gameClass => (
         <ClassCard
           key={gameClass.name}
