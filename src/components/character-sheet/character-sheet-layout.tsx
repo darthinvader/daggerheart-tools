@@ -201,9 +201,9 @@ function CharacterSheetHeader({
         </Button>
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-bold sm:text-3xl">
+            <span className="text-lg font-bold sm:text-xl">
               {characterName || 'Untitled Character'}
-            </h1>
+            </span>
             {characterTitle && (
               <Badge
                 variant="outline"
