@@ -153,12 +153,14 @@ function getQuestObjectiveCounts(objectives: QuestObjective[]) {
 interface EditableQuestsProps {
   quests: CampaignQuest[];
   campaignId: string;
+  onSaveStart: () => void;
   onQuestsChange: () => void;
 }
 
 export function EditableQuests({
   quests,
   campaignId,
+  onSaveStart,
   onQuestsChange,
 }: EditableQuestsProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -184,6 +186,7 @@ export function EditableQuests({
   });
 
   const handleAddQuest = async () => {
+    onSaveStart();
     await addQuest(campaignId, {
       title: 'New Quest',
       type: 'side',
@@ -207,11 +210,13 @@ export function EditableQuests({
     questId: string,
     updates: Partial<Omit<CampaignQuest, 'id' | 'createdAt' | 'updatedAt'>>
   ) => {
+    onSaveStart();
     await updateQuest(campaignId, questId, updates);
     onQuestsChange();
   };
 
   const handleDeleteQuest = async (questId: string) => {
+    onSaveStart();
     await deleteQuest(campaignId, questId);
     onQuestsChange();
   };

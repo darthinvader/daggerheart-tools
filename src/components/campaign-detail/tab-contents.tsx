@@ -282,6 +282,7 @@ interface SessionsTabProps {
   sessions: SessionNote[];
   npcs: CampaignNPC[];
   campaignId: string;
+  onSaveStart: () => void;
   onSessionsChange: () => void | Promise<void>;
 }
 
@@ -289,6 +290,7 @@ export function SessionsTabContent({
   sessions,
   npcs,
   campaignId,
+  onSaveStart,
   onSessionsChange,
 }: SessionsTabProps) {
   return (
@@ -305,6 +307,7 @@ export function SessionsTabContent({
             sessions={sessions}
             npcs={npcs}
             campaignId={campaignId}
+            onSaveStart={onSaveStart}
             onSessionsChange={onSessionsChange}
           />
         </CardContent>
@@ -316,12 +319,14 @@ export function SessionsTabContent({
 interface CharactersTabProps {
   npcs: CampaignNPC[];
   campaignId: string;
+  onSaveStart: () => void;
   onNPCsChange: () => void | Promise<void>;
 }
 
 export function CharactersTabContent({
   npcs,
   campaignId,
+  onSaveStart,
   onNPCsChange,
 }: CharactersTabProps) {
   return (
@@ -337,6 +342,7 @@ export function CharactersTabContent({
           <EditableNPCs
             npcs={npcs}
             campaignId={campaignId}
+            onSaveStart={onSaveStart}
             onNPCsChange={onNPCsChange}
           />
         </CardContent>
@@ -348,12 +354,14 @@ export function CharactersTabContent({
 interface LocationsTabProps {
   locations: Campaign['locations'];
   campaignId: string;
+  onSaveStart: () => void;
   onLocationsChange: () => void | Promise<void>;
 }
 
 export function LocationsTabContent({
   locations,
   campaignId,
+  onSaveStart,
   onLocationsChange,
 }: LocationsTabProps) {
   return (
@@ -369,6 +377,7 @@ export function LocationsTabContent({
           <EditableLocations
             locations={locations ?? []}
             campaignId={campaignId}
+            onSaveStart={onSaveStart}
             onLocationsChange={onLocationsChange}
           />
         </CardContent>
@@ -380,12 +389,14 @@ export function LocationsTabContent({
 interface QuestsTabProps {
   quests: Campaign['quests'];
   campaignId: string;
+  onSaveStart: () => void;
   onQuestsChange: () => void | Promise<void>;
 }
 
 export function QuestsTabContent({
   quests,
   campaignId,
+  onSaveStart,
   onQuestsChange,
 }: QuestsTabProps) {
   return (
@@ -401,6 +412,7 @@ export function QuestsTabContent({
           <EditableQuests
             quests={quests ?? []}
             campaignId={campaignId}
+            onSaveStart={onSaveStart}
             onQuestsChange={onQuestsChange}
           />
         </CardContent>

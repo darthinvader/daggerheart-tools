@@ -79,12 +79,14 @@ interface NPCCardContentProps {
 interface EditableNPCsProps {
   npcs: CampaignNPC[];
   campaignId: string;
+  onSaveStart: () => void;
   onNPCsChange: () => void;
 }
 
 export function EditableNPCs({
   npcs,
   campaignId,
+  onSaveStart,
   onNPCsChange,
 }: EditableNPCsProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -101,6 +103,7 @@ export function EditableNPCs({
   );
 
   const handleAddNPC = async () => {
+    onSaveStart();
     await addNPC(campaignId, {
       name: 'New Character',
       title: '',
@@ -123,11 +126,13 @@ export function EditableNPCs({
     npcId: string,
     updates: Partial<Omit<CampaignNPC, 'id' | 'createdAt' | 'updatedAt'>>
   ) => {
+    onSaveStart();
     await updateNPC(campaignId, npcId, updates);
     onNPCsChange();
   };
 
   const handleDeleteNPC = async (npcId: string) => {
+    onSaveStart();
     await deleteNPC(campaignId, npcId);
     onNPCsChange();
   };

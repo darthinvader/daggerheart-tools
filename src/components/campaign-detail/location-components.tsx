@@ -92,12 +92,14 @@ const LOCATION_TYPE_OPTIONS: Array<{
 interface EditableLocationsProps {
   locations: CampaignLocation[];
   campaignId: string;
+  onSaveStart: () => void;
   onLocationsChange: () => void;
 }
 
 export function EditableLocations({
   locations,
   campaignId,
+  onSaveStart,
   onLocationsChange,
 }: EditableLocationsProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -114,6 +116,7 @@ export function EditableLocations({
   );
 
   const handleAddLocation = async () => {
+    onSaveStart();
     await addLocation(campaignId, {
       name: 'New Location',
       type: 'other',
@@ -134,11 +137,13 @@ export function EditableLocations({
     locationId: string,
     updates: Partial<Omit<CampaignLocation, 'id' | 'createdAt' | 'updatedAt'>>
   ) => {
+    onSaveStart();
     await updateLocation(campaignId, locationId, updates);
     onLocationsChange();
   };
 
   const handleDeleteLocation = async (locationId: string) => {
+    onSaveStart();
     await deleteLocation(campaignId, locationId);
     onLocationsChange();
   };

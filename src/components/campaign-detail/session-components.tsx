@@ -41,6 +41,7 @@ interface EditableSessionsProps {
   sessions: SessionNote[];
   npcs: CampaignNPC[];
   campaignId: string;
+  onSaveStart: () => void;
   onSessionsChange: () => void;
 }
 
@@ -48,6 +49,7 @@ export function EditableSessions({
   sessions,
   npcs,
   campaignId,
+  onSaveStart,
   onSessionsChange,
 }: EditableSessionsProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -65,6 +67,7 @@ export function EditableSessions({
   const handleAddSession = async () => {
     try {
       setError(null);
+      onSaveStart();
       await addSession(campaignId, {
         sessionNumber: nextSessionNumber,
         title: `Session ${nextSessionNumber}`,
@@ -90,6 +93,7 @@ export function EditableSessions({
     if (Object.keys(updates).length === 0) return;
     try {
       setError(null);
+      onSaveStart();
       await updateSession(campaignId, sessionId, updates);
       onSessionsChange();
     } catch (err) {
@@ -101,6 +105,7 @@ export function EditableSessions({
   const handleDeleteSession = async (sessionId: string) => {
     try {
       setError(null);
+      onSaveStart();
       await deleteSession(campaignId, sessionId);
       onSessionsChange();
     } catch (err) {

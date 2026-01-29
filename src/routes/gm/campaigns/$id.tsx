@@ -125,6 +125,7 @@ type CampaignTabsProps = {
   inviteLink: string;
   onCopyInviteCode: () => void;
   onCopyInviteLink: () => void;
+  onSaveStart: () => void;
   onSessionsChange: () => void;
   onNPCsChange: () => void;
   onLocationsChange: () => void;
@@ -308,6 +309,7 @@ function useCampaignDetailState(
   const { campaign, setCampaign, loading, reloadCampaignData } =
     useCampaignLoader(id);
   const [saving, setSaving] = useState(false);
+  const [directSaving, setDirectSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   useGmToolsTabReload(tab, loading, hasChildRoute, reloadCampaignData);
 
@@ -389,14 +391,35 @@ function useCampaignDetailState(
   const handleDeleteBattle = useCallback(
     async (battleId: string) => {
       if (!campaign) return;
-      await deleteBattle(campaign.id, battleId);
-      await reloadCampaignData();
+      setDirectSaving(true);
+      try {
+        await deleteBattle(campaign.id, battleId);
+        await reloadCampaignData();
+      } finally {
+        setDirectSaving(false);
+      }
     },
     [campaign, reloadCampaignData]
   );
 
-  // Compute save status
-  const saveStatus = saving ? 'saving' : hasChanges ? 'unsaved' : 'saved';
+  // Wrapper for direct-save operations (sessions, npcs, locations, quests)
+  // markSaving is called before the storage operation starts
+  const markSaving = useCallback(() => {
+    setDirectSaving(true);
+  }, []);
+
+  // Called after the storage operation completes to reload data and clear saving state
+  const handleDirectSaveChange = useCallback(async () => {
+    try {
+      await reloadCampaignData();
+    } finally {
+      setDirectSaving(false);
+    }
+  }, [reloadCampaignData]);
+
+  // Compute save status - directSaving takes precedence for immediate feedback
+  const saveStatus =
+    saving || directSaving ? 'saving' : hasChanges ? 'unsaved' : 'saved';
 
   return {
     campaign,
@@ -413,6 +436,8 @@ function useCampaignDetailState(
     handleAddNPCFromGenerator,
     handleAddLocationFromGenerator,
     handleAddQuestFromGenerator,
+    handleDirectSaveChange,
+    markSaving,
   };
 }
 
@@ -425,6 +450,7 @@ function CampaignTabs({
   inviteLink,
   onCopyInviteCode,
   onCopyInviteLink,
+  onSaveStart,
   onSessionsChange,
   onNPCsChange,
   onLocationsChange,
@@ -491,21 +517,25 @@ function CampaignTabs({
         sessions={campaign.sessions ?? []}
         npcs={campaign.npcs ?? []}
         campaignId={campaign.id}
+        onSaveStart={onSaveStart}
         onSessionsChange={onSessionsChange}
       />
       <CharactersTabContent
         npcs={campaign.npcs ?? []}
         campaignId={campaign.id}
+        onSaveStart={onSaveStart}
         onNPCsChange={onNPCsChange}
       />
       <LocationsTabContent
         locations={campaign.locations}
         campaignId={campaign.id}
+        onSaveStart={onSaveStart}
         onLocationsChange={onLocationsChange}
       />
       <QuestsTabContent
         quests={campaign.quests}
         campaignId={campaign.id}
+        onSaveStart={onSaveStart}
         onQuestsChange={onQuestsChange}
       />
       <GMToolsTabContent
@@ -565,7 +595,6 @@ function CampaignDetailPage() {
     saving,
     hasChanges,
     saveStatus,
-    reloadCampaignData,
     updateFrame,
     handleSave,
     handleNameChange,
@@ -574,6 +603,8 @@ function CampaignDetailPage() {
     handleAddNPCFromGenerator,
     handleAddLocationFromGenerator,
     handleAddQuestFromGenerator,
+    handleDirectSaveChange,
+    markSaving,
   } = useCampaignDetailState(id, tab, hasChildRoute);
 
   const setActiveTab = useCallback(
@@ -653,10 +684,11 @@ function CampaignDetailPage() {
         inviteLink={inviteLink}
         onCopyInviteCode={copyInviteCode}
         onCopyInviteLink={copyInviteLink}
-        onSessionsChange={reloadCampaignData}
-        onNPCsChange={reloadCampaignData}
-        onLocationsChange={reloadCampaignData}
-        onQuestsChange={reloadCampaignData}
+        onSaveStart={markSaving}
+        onSessionsChange={handleDirectSaveChange}
+        onNPCsChange={handleDirectSaveChange}
+        onLocationsChange={handleDirectSaveChange}
+        onQuestsChange={handleDirectSaveChange}
         onAddNPC={handleAddNPCFromGenerator}
         onAddLocation={handleAddLocationFromGenerator}
         onAddQuest={handleAddQuestFromGenerator}
