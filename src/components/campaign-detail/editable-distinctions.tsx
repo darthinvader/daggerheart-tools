@@ -15,11 +15,13 @@ import type { CampaignDistinction } from '@/lib/schemas/campaign';
 interface EditableDistinctionsProps {
   distinctions: CampaignDistinction[];
   onChange: (distinctions: CampaignDistinction[]) => void;
+  onBlur?: () => void;
 }
 
 export function EditableDistinctions({
   distinctions,
   onChange,
+  onBlur,
 }: EditableDistinctionsProps) {
   const addDistinction = () => {
     onChange([
@@ -83,6 +85,7 @@ export function EditableDistinctions({
                         title: e.target.value,
                       })
                     }
+                    onBlur={onBlur}
                     className="mt-1"
                   />
                 </div>
@@ -95,6 +98,7 @@ export function EditableDistinctions({
                         description: e.target.value,
                       })
                     }
+                    onBlur={onBlur}
                     rows={3}
                     className="mt-1"
                   />

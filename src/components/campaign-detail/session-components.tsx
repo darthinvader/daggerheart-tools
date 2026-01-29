@@ -35,6 +35,7 @@ import {
   deleteSession,
   updateSession,
 } from '@/features/campaigns/campaign-storage';
+import { useAutoSave } from '@/hooks/use-auto-save';
 import type { CampaignNPC, SessionNote } from '@/lib/schemas/campaign';
 
 interface EditableSessionsProps {
@@ -42,6 +43,7 @@ interface EditableSessionsProps {
   npcs: CampaignNPC[];
   campaignId: string;
   onSaveStart: () => void;
+  onPendingChange: () => void;
   onSessionsChange: () => void;
 }
 
@@ -50,6 +52,7 @@ export function EditableSessions({
   npcs,
   campaignId,
   onSaveStart,
+  onPendingChange,
   onSessionsChange,
 }: EditableSessionsProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -149,6 +152,8 @@ export function EditableSessions({
             }
             onUpdate={updates => handleUpdateSession(session.id, updates)}
             onDelete={() => handleDeleteSession(session.id)}
+            onSaveStart={onSaveStart}
+            onPendingChange={onPendingChange}
           />
         ))
       )}
@@ -165,6 +170,8 @@ interface SessionCardProps {
     updates: Partial<Omit<SessionNote, 'id' | 'createdAt' | 'updatedAt'>>
   ) => void;
   onDelete: () => void;
+  onSaveStart: () => void;
+  onPendingChange: () => void;
 }
 type SessionTextFieldKey = 'title' | 'summary' | 'questProgress';
 
@@ -204,26 +211,6 @@ function toggleNpcInvolvedList(items: string[], npcId: string) {
   return items.includes(npcId)
     ? items.filter(id => id !== npcId)
     : [...items, npcId];
-}
-
-function getSessionTextUpdates(
-  current: SessionNote,
-  base: SessionNote
-): Partial<Omit<SessionNote, 'id' | 'createdAt' | 'updatedAt'>> {
-  const updates: Partial<Omit<SessionNote, 'id' | 'createdAt' | 'updatedAt'>> =
-    {};
-
-  if (current.title !== base.title) {
-    updates.title = current.title;
-  }
-  if (current.summary !== base.summary) {
-    updates.summary = current.summary;
-  }
-  if (current.questProgress !== base.questProgress) {
-    updates.questProgress = current.questProgress;
-  }
-
-  return updates;
 }
 
 interface SessionHeaderProps {
@@ -454,31 +441,78 @@ function SessionCard({
   onToggle,
   onUpdate,
   onDelete,
+  onSaveStart,
+  onPendingChange,
 }: SessionCardProps) {
   const [localSession, setLocalSession] = useState(session);
   const [highlightInput, setHighlightInput] = useState('');
   const [locationInput, setLocationInput] = useState('');
   const baseSessionRef = useRef(session);
 
+  // Compute updates by comparing local to base
+  const getUpdates = useCallback((current: SessionNote) => {
+    const base = baseSessionRef.current;
+    const updates: Partial<
+      Omit<SessionNote, 'id' | 'createdAt' | 'updatedAt'>
+    > = {};
+
+    if (current.title !== base.title) updates.title = current.title;
+    if (current.summary !== base.summary) updates.summary = current.summary;
+    if (current.questProgress !== base.questProgress)
+      updates.questProgress = current.questProgress;
+    if (current.date !== base.date) updates.date = current.date;
+    if (
+      JSON.stringify(current.highlights) !== JSON.stringify(base.highlights)
+    ) {
+      updates.highlights = current.highlights;
+    }
+    if (JSON.stringify(current.locations) !== JSON.stringify(base.locations)) {
+      updates.locations = current.locations;
+    }
+    if (
+      JSON.stringify(current.npcsInvolved) !== JSON.stringify(base.npcsInvolved)
+    ) {
+      updates.npcsInvolved = current.npcsInvolved;
+    }
+
+    return updates;
+  }, []);
+
+  const { scheduleAutoSave, flush } = useAutoSave({
+    onSave: async (data: SessionNote) => {
+      const updates = getUpdates(data);
+      if (Object.keys(updates).length === 0) return;
+      baseSessionRef.current = { ...baseSessionRef.current, ...updates };
+      await onUpdate(updates);
+    },
+    onSaveStart,
+    onPendingChange,
+  });
+
   const handleBlur = useCallback(() => {
-    const updates = getSessionTextUpdates(localSession, baseSessionRef.current);
-    if (Object.keys(updates).length === 0) return;
-    onUpdate(updates);
-  }, [localSession, onUpdate]);
+    flush();
+  }, [flush]);
 
   const handleTextChange = useCallback(
     (field: SessionTextFieldKey, value: string) => {
-      setLocalSession(current => ({ ...current, [field]: value }));
+      setLocalSession(current => {
+        const updated = { ...current, [field]: value };
+        scheduleAutoSave(updated);
+        return updated;
+      });
     },
-    []
+    [scheduleAutoSave]
   );
 
   const handleDateChange = useCallback(
     (value: string) => {
-      setLocalSession(current => ({ ...current, date: value }));
-      onUpdate({ date: value });
+      setLocalSession(current => {
+        const updated = { ...current, date: value };
+        scheduleAutoSave(updated);
+        return updated;
+      });
     },
-    [onUpdate]
+    [scheduleAutoSave]
   );
 
   const addHighlight = useCallback(() => {
@@ -486,18 +520,24 @@ function SessionCard({
     if (!result.added) {
       return;
     }
-    setLocalSession(current => ({ ...current, highlights: result.items }));
-    onUpdate({ highlights: result.items });
+    setLocalSession(current => {
+      const updated = { ...current, highlights: result.items };
+      scheduleAutoSave(updated);
+      return updated;
+    });
     setHighlightInput('');
-  }, [highlightInput, localSession.highlights, onUpdate]);
+  }, [highlightInput, localSession.highlights, scheduleAutoSave]);
 
   const removeHighlight = useCallback(
     (index: number) => {
       const newHighlights = removeItemAtIndex(localSession.highlights, index);
-      setLocalSession(current => ({ ...current, highlights: newHighlights }));
-      onUpdate({ highlights: newHighlights });
+      setLocalSession(current => {
+        const updated = { ...current, highlights: newHighlights };
+        scheduleAutoSave(updated);
+        return updated;
+      });
     },
-    [localSession.highlights, onUpdate]
+    [localSession.highlights, scheduleAutoSave]
   );
 
   const addLocation = useCallback(() => {
@@ -505,18 +545,24 @@ function SessionCard({
     if (!result.added) {
       return;
     }
-    setLocalSession(current => ({ ...current, locations: result.items }));
-    onUpdate({ locations: result.items });
+    setLocalSession(current => {
+      const updated = { ...current, locations: result.items };
+      scheduleAutoSave(updated);
+      return updated;
+    });
     setLocationInput('');
-  }, [localSession.locations, locationInput, onUpdate]);
+  }, [localSession.locations, locationInput, scheduleAutoSave]);
 
   const removeLocation = useCallback(
     (index: number) => {
       const newLocations = removeItemAtIndex(localSession.locations, index);
-      setLocalSession(current => ({ ...current, locations: newLocations }));
-      onUpdate({ locations: newLocations });
+      setLocalSession(current => {
+        const updated = { ...current, locations: newLocations };
+        scheduleAutoSave(updated);
+        return updated;
+      });
     },
-    [localSession.locations, onUpdate]
+    [localSession.locations, scheduleAutoSave]
   );
 
   const toggleNpcInvolved = useCallback(
@@ -525,13 +571,13 @@ function SessionCard({
         localSession.npcsInvolved,
         npcId
       );
-      setLocalSession(current => ({
-        ...current,
-        npcsInvolved: newNpcsInvolved,
-      }));
-      onUpdate({ npcsInvolved: newNpcsInvolved });
+      setLocalSession(current => {
+        const updated = { ...current, npcsInvolved: newNpcsInvolved };
+        scheduleAutoSave(updated);
+        return updated;
+      });
     },
-    [localSession.npcsInvolved, onUpdate]
+    [localSession.npcsInvolved, scheduleAutoSave]
   );
 
   return (

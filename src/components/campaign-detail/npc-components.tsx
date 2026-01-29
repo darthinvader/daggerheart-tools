@@ -1,7 +1,7 @@
 // NPC components - EditableNPCs and NPCCard are tightly coupled
 
 import { ChevronDown, Map, Plus, Trash2, User, X } from 'lucide-react';
-import { type MouseEvent, useCallback, useEffect, useState } from 'react';
+import { type MouseEvent, useCallback, useRef, useState } from 'react';
 
 import {
   AlertDialog,
@@ -36,6 +36,7 @@ import {
   deleteNPC,
   updateNPC,
 } from '@/features/campaigns/campaign-storage';
+import { useAutoSave } from '@/hooks/use-auto-save';
 import type { CampaignNPC } from '@/lib/schemas/campaign';
 
 const NPC_STATUS_OPTIONS = [
@@ -80,6 +81,7 @@ interface EditableNPCsProps {
   npcs: CampaignNPC[];
   campaignId: string;
   onSaveStart: () => void;
+  onPendingChange: () => void;
   onNPCsChange: () => void;
 }
 
@@ -87,6 +89,7 @@ export function EditableNPCs({
   npcs,
   campaignId,
   onSaveStart,
+  onPendingChange,
   onNPCsChange,
 }: EditableNPCsProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -186,6 +189,8 @@ export function EditableNPCs({
             }
             onUpdate={updates => handleUpdateNPC(npc.id, updates)}
             onDelete={() => handleDeleteNPC(npc.id)}
+            onSaveStart={onSaveStart}
+            onPendingChange={onPendingChange}
           />
         ))
       )}
@@ -202,6 +207,8 @@ interface NPCCardProps {
     updates: Partial<Omit<CampaignNPC, 'id' | 'createdAt' | 'updatedAt'>>
   ) => void;
   onDelete: () => void;
+  onSaveStart: () => void;
+  onPendingChange: () => void;
 }
 
 interface NPCHeaderProps {
@@ -432,33 +439,91 @@ function NPCCard({
   onToggle,
   onUpdate,
   onDelete,
+  onSaveStart,
+  onPendingChange,
 }: NPCCardProps) {
   const [localNPC, setLocalNPC] = useState(npc);
   const [tagInput, setTagInput] = useState('');
   const [locationInput, setLocationInput] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const baseNPCRef = useRef(npc);
+  const prevNPCIdRef = useRef(npc.id);
 
-  useEffect(() => {
+  // Sync local state when prop changes (render-phase sync)
+  // This is a documented React pattern: https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+  // eslint-disable-next-line react-hooks/refs
+  if (prevNPCIdRef.current !== npc.id) {
+    // eslint-disable-next-line react-hooks/refs
+    prevNPCIdRef.current = npc.id;
     setLocalNPC(npc);
-  }, [npc]);
+    // eslint-disable-next-line react-hooks/refs
+    baseNPCRef.current = npc;
+  }
+
+  // Compute updates by comparing local to base
+  const getUpdates = useCallback((current: CampaignNPC) => {
+    const base = baseNPCRef.current;
+    const updates: Partial<
+      Omit<CampaignNPC, 'id' | 'createdAt' | 'updatedAt'>
+    > = {};
+
+    if (current.name !== base.name) updates.name = current.name;
+    if (current.title !== base.title) updates.title = current.title;
+    if (current.faction !== base.faction) updates.faction = current.faction;
+    if (current.description !== base.description)
+      updates.description = current.description;
+    if (current.personality !== base.personality)
+      updates.personality = current.personality;
+    if (current.motivation !== base.motivation)
+      updates.motivation = current.motivation;
+    if (current.secrets !== base.secrets) updates.secrets = current.secrets;
+    if (current.notes !== base.notes) updates.notes = current.notes;
+    if (current.status !== base.status) updates.status = current.status;
+    if (JSON.stringify(current.tags) !== JSON.stringify(base.tags)) {
+      updates.tags = current.tags;
+    }
+    if (JSON.stringify(current.locations) !== JSON.stringify(base.locations)) {
+      updates.locations = current.locations;
+    }
+
+    return updates;
+  }, []);
+
+  const { scheduleAutoSave, flush } = useAutoSave({
+    onSave: async (data: CampaignNPC) => {
+      const updates = getUpdates(data);
+      if (Object.keys(updates).length === 0) return;
+      baseNPCRef.current = { ...baseNPCRef.current, ...updates };
+      await onUpdate(updates);
+    },
+    onSaveStart,
+    onPendingChange,
+  });
 
   const handleBlur = useCallback(() => {
-    onUpdate(localNPC);
-  }, [localNPC, onUpdate]);
+    flush();
+  }, [flush]);
 
   const handleTextChange = useCallback(
     (field: NPCTextFieldKey, value: string) => {
-      setLocalNPC(current => ({ ...current, [field]: value }));
+      setLocalNPC(current => {
+        const updated = { ...current, [field]: value };
+        scheduleAutoSave(updated);
+        return updated;
+      });
     },
-    []
+    [scheduleAutoSave]
   );
 
   const handleStatusChange = useCallback(
     (value: CampaignNPC['status']) => {
-      setLocalNPC(current => ({ ...current, status: value }));
-      onUpdate({ status: value });
+      setLocalNPC(current => {
+        const updated = { ...current, status: value };
+        scheduleAutoSave(updated);
+        return updated;
+      });
     },
-    [onUpdate]
+    [scheduleAutoSave]
   );
 
   const addTag = useCallback(() => {
@@ -467,18 +532,24 @@ function NPCCard({
       return;
     }
     const newTags = [...localNPC.tags, trimmed];
-    setLocalNPC(current => ({ ...current, tags: newTags }));
-    onUpdate({ tags: newTags });
+    setLocalNPC(current => {
+      const updated = { ...current, tags: newTags };
+      scheduleAutoSave(updated);
+      return updated;
+    });
     setTagInput('');
-  }, [localNPC.tags, tagInput, onUpdate]);
+  }, [localNPC.tags, tagInput, scheduleAutoSave]);
 
   const removeTag = useCallback(
     (tag: string) => {
       const newTags = localNPC.tags.filter(item => item !== tag);
-      setLocalNPC(current => ({ ...current, tags: newTags }));
-      onUpdate({ tags: newTags });
+      setLocalNPC(current => {
+        const updated = { ...current, tags: newTags };
+        scheduleAutoSave(updated);
+        return updated;
+      });
     },
-    [localNPC.tags, onUpdate]
+    [localNPC.tags, scheduleAutoSave]
   );
 
   const addLocation = useCallback(() => {
@@ -487,20 +558,26 @@ function NPCCard({
       return;
     }
     const newLocations = [...localNPC.locations, trimmed];
-    setLocalNPC(current => ({ ...current, locations: newLocations }));
-    onUpdate({ locations: newLocations });
+    setLocalNPC(current => {
+      const updated = { ...current, locations: newLocations };
+      scheduleAutoSave(updated);
+      return updated;
+    });
     setLocationInput('');
-  }, [localNPC.locations, locationInput, onUpdate]);
+  }, [localNPC.locations, locationInput, scheduleAutoSave]);
 
   const removeLocation = useCallback(
     (locationValue: string) => {
       const newLocations = localNPC.locations.filter(
         item => item !== locationValue
       );
-      setLocalNPC(current => ({ ...current, locations: newLocations }));
-      onUpdate({ locations: newLocations });
+      setLocalNPC(current => {
+        const updated = { ...current, locations: newLocations };
+        scheduleAutoSave(updated);
+        return updated;
+      });
     },
-    [localNPC.locations, onUpdate]
+    [localNPC.locations, scheduleAutoSave]
   );
 
   return (

@@ -11,7 +11,7 @@ import {
   TreePine,
   X,
 } from 'lucide-react';
-import { type ReactNode, useCallback, useEffect, useState } from 'react';
+import { type ReactNode, useCallback, useRef, useState } from 'react';
 
 import {
   AlertDialog,
@@ -46,6 +46,7 @@ import {
   deleteLocation,
   updateLocation,
 } from '@/features/campaigns/campaign-storage';
+import { useAutoSave } from '@/hooks/use-auto-save';
 import type { CampaignLocation } from '@/lib/schemas/campaign';
 
 type LocationIcon = (props: { className?: string }) => ReactNode;
@@ -93,6 +94,7 @@ interface EditableLocationsProps {
   locations: CampaignLocation[];
   campaignId: string;
   onSaveStart: () => void;
+  onPendingChange: () => void;
   onLocationsChange: () => void;
 }
 
@@ -100,6 +102,7 @@ export function EditableLocations({
   locations,
   campaignId,
   onSaveStart,
+  onPendingChange,
   onLocationsChange,
 }: EditableLocationsProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -197,6 +200,8 @@ export function EditableLocations({
             }
             onUpdate={updates => handleUpdateLocation(location.id, updates)}
             onDelete={() => handleDeleteLocation(location.id)}
+            onSaveStart={onSaveStart}
+            onPendingChange={onPendingChange}
           />
         ))
       )}
@@ -212,6 +217,8 @@ interface LocationCardProps {
     updates: Partial<Omit<CampaignLocation, 'id' | 'createdAt' | 'updatedAt'>>
   ) => void;
   onDelete: () => void;
+  onSaveStart: () => void;
+  onPendingChange: () => void;
 }
 
 type LocationTextFieldKey =
@@ -241,35 +248,93 @@ interface LocationCardContentProps {
 
 function useLocationCardState(
   location: CampaignLocation,
-  onUpdate: LocationCardProps['onUpdate']
+  onUpdate: LocationCardProps['onUpdate'],
+  onSaveStart: () => void,
+  onPendingChange: () => void
 ) {
   const [localLocation, setLocalLocation] = useState(location);
   const [tagInput, setTagInput] = useState('');
   const [poiName, setPoiName] = useState('');
   const [poiDesc, setPoiDesc] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const baseLocationRef = useRef(location);
+  const prevLocationIdRef = useRef(location.id);
 
-  useEffect(() => {
+  // Sync local state when prop changes (render-phase sync)
+  // This is a documented React pattern: https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+  // eslint-disable-next-line react-hooks/refs
+  if (prevLocationIdRef.current !== location.id) {
+    // eslint-disable-next-line react-hooks/refs
+    prevLocationIdRef.current = location.id;
     setLocalLocation(location);
-  }, [location]);
+    // eslint-disable-next-line react-hooks/refs
+    baseLocationRef.current = location;
+  }
+
+  // Compute updates by comparing local to base
+  const getUpdates = useCallback((current: CampaignLocation) => {
+    const base = baseLocationRef.current;
+    const updates: Partial<
+      Omit<CampaignLocation, 'id' | 'createdAt' | 'updatedAt'>
+    > = {};
+
+    if (current.name !== base.name) updates.name = current.name;
+    if (current.description !== base.description)
+      updates.description = current.description;
+    if (current.currentState !== base.currentState)
+      updates.currentState = current.currentState;
+    if (current.history !== base.history) updates.history = current.history;
+    if (current.secrets !== base.secrets) updates.secrets = current.secrets;
+    if (current.notes !== base.notes) updates.notes = current.notes;
+    if (current.type !== base.type) updates.type = current.type;
+    if (JSON.stringify(current.tags) !== JSON.stringify(base.tags)) {
+      updates.tags = current.tags;
+    }
+    if (
+      JSON.stringify(current.pointsOfInterest) !==
+      JSON.stringify(base.pointsOfInterest)
+    ) {
+      updates.pointsOfInterest = current.pointsOfInterest;
+    }
+
+    return updates;
+  }, []);
+
+  const { scheduleAutoSave, flush } = useAutoSave({
+    onSave: async (data: CampaignLocation) => {
+      const updates = getUpdates(data);
+      if (Object.keys(updates).length === 0) return;
+      baseLocationRef.current = { ...baseLocationRef.current, ...updates };
+      await onUpdate(updates);
+    },
+    onSaveStart,
+    onPendingChange,
+  });
 
   const handleBlur = useCallback(() => {
-    onUpdate(localLocation);
-  }, [localLocation, onUpdate]);
+    flush();
+  }, [flush]);
 
   const handleTextChange = useCallback(
     (field: LocationTextFieldKey, value: string) => {
-      setLocalLocation(current => ({ ...current, [field]: value }));
+      setLocalLocation(current => {
+        const updated = { ...current, [field]: value };
+        scheduleAutoSave(updated);
+        return updated;
+      });
     },
-    []
+    [scheduleAutoSave]
   );
 
   const handleTypeChange = useCallback(
     (value: CampaignLocation['type']) => {
-      setLocalLocation(current => ({ ...current, type: value }));
-      onUpdate({ type: value });
+      setLocalLocation(current => {
+        const updated = { ...current, type: value };
+        scheduleAutoSave(updated);
+        return updated;
+      });
     },
-    [onUpdate]
+    [scheduleAutoSave]
   );
 
   const addTag = useCallback(() => {
@@ -278,18 +343,24 @@ function useLocationCardState(
       return;
     }
     const newTags = [...localLocation.tags, trimmed];
-    setLocalLocation(current => ({ ...current, tags: newTags }));
-    onUpdate({ tags: newTags });
+    setLocalLocation(current => {
+      const updated = { ...current, tags: newTags };
+      scheduleAutoSave(updated);
+      return updated;
+    });
     setTagInput('');
-  }, [localLocation.tags, onUpdate, tagInput]);
+  }, [localLocation.tags, tagInput, scheduleAutoSave]);
 
   const removeTag = useCallback(
     (tag: string) => {
       const newTags = localLocation.tags.filter(item => item !== tag);
-      setLocalLocation(current => ({ ...current, tags: newTags }));
-      onUpdate({ tags: newTags });
+      setLocalLocation(current => {
+        const updated = { ...current, tags: newTags };
+        scheduleAutoSave(updated);
+        return updated;
+      });
     },
-    [localLocation.tags, onUpdate]
+    [localLocation.tags, scheduleAutoSave]
   );
 
   const addPOI = useCallback(() => {
@@ -301,21 +372,27 @@ function useLocationCardState(
       ...localLocation.pointsOfInterest,
       { name: trimmedName, description: poiDesc.trim() },
     ];
-    setLocalLocation(current => ({ ...current, pointsOfInterest: newPOIs }));
-    onUpdate({ pointsOfInterest: newPOIs });
+    setLocalLocation(current => {
+      const updated = { ...current, pointsOfInterest: newPOIs };
+      scheduleAutoSave(updated);
+      return updated;
+    });
     setPoiName('');
     setPoiDesc('');
-  }, [localLocation.pointsOfInterest, onUpdate, poiDesc, poiName]);
+  }, [localLocation.pointsOfInterest, poiDesc, poiName, scheduleAutoSave]);
 
   const removePOI = useCallback(
     (index: number) => {
       const newPOIs = localLocation.pointsOfInterest.filter(
         (_, currentIndex) => currentIndex !== index
       );
-      setLocalLocation(current => ({ ...current, pointsOfInterest: newPOIs }));
-      onUpdate({ pointsOfInterest: newPOIs });
+      setLocalLocation(current => {
+        const updated = { ...current, pointsOfInterest: newPOIs };
+        scheduleAutoSave(updated);
+        return updated;
+      });
     },
-    [localLocation.pointsOfInterest, onUpdate]
+    [localLocation.pointsOfInterest, scheduleAutoSave]
   );
 
   return {
@@ -629,6 +706,8 @@ function LocationCard({
   onToggle,
   onUpdate,
   onDelete,
+  onSaveStart,
+  onPendingChange,
 }: LocationCardProps) {
   const {
     localLocation,
@@ -647,7 +726,7 @@ function LocationCard({
     removeTag,
     addPOI,
     removePOI,
-  } = useLocationCardState(location, onUpdate);
+  } = useLocationCardState(location, onUpdate, onSaveStart, onPendingChange);
 
   return (
     <Collapsible open={isExpanded} onOpenChange={onToggle}>

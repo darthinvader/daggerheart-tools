@@ -15,6 +15,7 @@ import type { CampaignMechanic } from '@/lib/schemas/campaign';
 interface EditableMechanicsProps {
   mechanics: CampaignMechanic[];
   onChange: (mechanics: CampaignMechanic[]) => void;
+  onBlur?: () => void;
 }
 
 interface MechanicCardProps {
@@ -24,6 +25,7 @@ interface MechanicCardProps {
   onAddRule: () => void;
   onUpdateRule: (index: number, value: string) => void;
   onRemoveRule: (index: number) => void;
+  onBlur?: () => void;
 }
 
 function MechanicCard({
@@ -33,6 +35,7 @@ function MechanicCard({
   onAddRule,
   onUpdateRule,
   onRemoveRule,
+  onBlur,
 }: MechanicCardProps) {
   return (
     <Collapsible defaultOpen={!mechanic.description}>
@@ -66,6 +69,7 @@ function MechanicCard({
               <Input
                 value={mechanic.name}
                 onChange={e => onUpdate({ name: e.target.value })}
+                onBlur={onBlur}
                 className="mt-1"
               />
             </div>
@@ -74,6 +78,7 @@ function MechanicCard({
               <Textarea
                 value={mechanic.description}
                 onChange={e => onUpdate({ description: e.target.value })}
+                onBlur={onBlur}
                 rows={2}
                 className="mt-1"
               />
@@ -86,6 +91,7 @@ function MechanicCard({
                     <Input
                       value={rule}
                       onChange={e => onUpdateRule(index, e.target.value)}
+                      onBlur={onBlur}
                       placeholder={`Rule ${index + 1}`}
                     />
                     <Button
@@ -114,6 +120,7 @@ function MechanicCard({
 export function EditableMechanics({
   mechanics,
   onChange,
+  onBlur,
 }: EditableMechanicsProps) {
   const addMechanic = () => {
     onChange([
@@ -171,6 +178,7 @@ export function EditableMechanics({
           onAddRule={() => addRule(mechanic.id)}
           onUpdateRule={(index, value) => updateRule(mechanic.id, index, value)}
           onRemoveRule={index => removeRule(mechanic.id, index)}
+          onBlur={onBlur}
         />
       ))}
       <Button variant="outline" onClick={addMechanic} className="w-full">

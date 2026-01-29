@@ -7,11 +7,13 @@ import type { SessionZeroQuestion } from '@/lib/schemas/campaign';
 interface EditableQuestionsProps {
   questions: SessionZeroQuestion[];
   onChange: (questions: SessionZeroQuestion[]) => void;
+  onBlur?: () => void;
 }
 
 export function EditableQuestions({
   questions,
   onChange,
+  onBlur,
 }: EditableQuestionsProps) {
   const addQuestion = () => {
     onChange([
@@ -45,6 +47,7 @@ export function EditableQuestions({
               onChange={e =>
                 updateQuestion(question.id, { question: e.target.value })
               }
+              onBlur={onBlur}
               placeholder={`Question ${index + 1}`}
               rows={2}
             />

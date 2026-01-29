@@ -10,7 +10,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
-import { type ReactNode, useCallback, useEffect, useState } from 'react';
+import { type ReactNode, useCallback, useRef, useState } from 'react';
 
 import {
   AlertDialog,
@@ -45,6 +45,7 @@ import {
   deleteQuest,
   updateQuest,
 } from '@/features/campaigns/campaign-storage';
+import { useAutoSave } from '@/hooks/use-auto-save';
 import type { CampaignQuest } from '@/lib/schemas/campaign';
 
 const QUEST_TYPE_COLORS = {
@@ -154,6 +155,7 @@ interface EditableQuestsProps {
   quests: CampaignQuest[];
   campaignId: string;
   onSaveStart: () => void;
+  onPendingChange: () => void;
   onQuestsChange: () => void;
 }
 
@@ -161,6 +163,7 @@ export function EditableQuests({
   quests,
   campaignId,
   onSaveStart,
+  onPendingChange,
   onQuestsChange,
 }: EditableQuestsProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -284,6 +287,8 @@ export function EditableQuests({
             }
             onUpdate={updates => handleUpdateQuest(quest.id, updates)}
             onDelete={() => handleDeleteQuest(quest.id)}
+            onSaveStart={onSaveStart}
+            onPendingChange={onPendingChange}
           />
         ))
       )}
@@ -299,6 +304,8 @@ interface QuestCardProps {
     updates: Partial<Omit<CampaignQuest, 'id' | 'createdAt' | 'updatedAt'>>
   ) => void;
   onDelete: () => void;
+  onSaveStart: () => void;
+  onPendingChange: () => void;
 }
 
 interface QuestHeaderProps {
@@ -543,48 +550,113 @@ function QuestCard({
   onToggle,
   onUpdate,
   onDelete,
+  onSaveStart,
+  onPendingChange,
 }: QuestCardProps) {
   const [localQuest, setLocalQuest] = useState(quest);
   const [newObjective, setNewObjective] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const baseQuestRef = useRef(quest);
+  const prevQuestIdRef = useRef(quest.id);
 
-  useEffect(() => {
+  // Sync local state when prop changes (render-phase sync)
+  // This is a documented React pattern: https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+  // eslint-disable-next-line react-hooks/refs
+  if (prevQuestIdRef.current !== quest.id) {
+    // eslint-disable-next-line react-hooks/refs
+    prevQuestIdRef.current = quest.id;
     setLocalQuest(quest);
-  }, [quest]);
+    // eslint-disable-next-line react-hooks/refs
+    baseQuestRef.current = quest;
+  }
+
+  // Compute updates by comparing local to base
+  const getUpdates = useCallback((current: CampaignQuest) => {
+    const base = baseQuestRef.current;
+    const updates: Partial<
+      Omit<CampaignQuest, 'id' | 'createdAt' | 'updatedAt'>
+    > = {};
+
+    if (current.title !== base.title) updates.title = current.title;
+    if (current.description !== base.description)
+      updates.description = current.description;
+    if (current.giver !== base.giver) updates.giver = current.giver;
+    if (current.location !== base.location) updates.location = current.location;
+    if (current.rewards !== base.rewards) updates.rewards = current.rewards;
+    if (current.foreshadowing !== base.foreshadowing)
+      updates.foreshadowing = current.foreshadowing;
+    if (current.consequences !== base.consequences)
+      updates.consequences = current.consequences;
+    if (current.notes !== base.notes) updates.notes = current.notes;
+    if (current.type !== base.type) updates.type = current.type;
+    if (current.status !== base.status) updates.status = current.status;
+    if (current.priority !== base.priority) updates.priority = current.priority;
+    if (
+      JSON.stringify(current.objectives) !== JSON.stringify(base.objectives)
+    ) {
+      updates.objectives = current.objectives;
+    }
+
+    return updates;
+  }, []);
+
+  const { scheduleAutoSave, flush } = useAutoSave({
+    onSave: async (data: CampaignQuest) => {
+      const updates = getUpdates(data);
+      if (Object.keys(updates).length === 0) return;
+      baseQuestRef.current = { ...baseQuestRef.current, ...updates };
+      await onUpdate(updates);
+    },
+    onSaveStart,
+    onPendingChange,
+  });
 
   const handleBlur = useCallback(() => {
-    onUpdate(localQuest);
-  }, [localQuest, onUpdate]);
+    flush();
+  }, [flush]);
 
   const handleTextChange = useCallback(
     (field: QuestTextFieldKey, value: string) => {
-      setLocalQuest(current => ({ ...current, [field]: value }));
+      setLocalQuest(current => {
+        const updated = { ...current, [field]: value };
+        scheduleAutoSave(updated);
+        return updated;
+      });
     },
-    []
+    [scheduleAutoSave]
   );
 
   const handleTypeChange = useCallback(
     (value: CampaignQuest['type']) => {
-      setLocalQuest(current => ({ ...current, type: value }));
-      onUpdate({ type: value });
+      setLocalQuest(current => {
+        const updated = { ...current, type: value };
+        scheduleAutoSave(updated);
+        return updated;
+      });
     },
-    [onUpdate]
+    [scheduleAutoSave]
   );
 
   const handleStatusChange = useCallback(
     (value: CampaignQuest['status']) => {
-      setLocalQuest(current => ({ ...current, status: value }));
-      onUpdate({ status: value });
+      setLocalQuest(current => {
+        const updated = { ...current, status: value };
+        scheduleAutoSave(updated);
+        return updated;
+      });
     },
-    [onUpdate]
+    [scheduleAutoSave]
   );
 
   const handlePriorityChange = useCallback(
     (value: CampaignQuest['priority']) => {
-      setLocalQuest(current => ({ ...current, priority: value }));
-      onUpdate({ priority: value });
+      setLocalQuest(current => {
+        const updated = { ...current, priority: value };
+        scheduleAutoSave(updated);
+        return updated;
+      });
     },
-    [onUpdate]
+    [scheduleAutoSave]
   );
 
   const addObjective = useCallback(() => {
@@ -592,27 +664,36 @@ function QuestCard({
     if (!result.added) {
       return;
     }
-    setLocalQuest(current => ({ ...current, objectives: result.objectives }));
-    onUpdate({ objectives: result.objectives });
+    setLocalQuest(current => {
+      const updated = { ...current, objectives: result.objectives };
+      scheduleAutoSave(updated);
+      return updated;
+    });
     setNewObjective('');
-  }, [localQuest.objectives, newObjective, onUpdate]);
+  }, [localQuest.objectives, newObjective, scheduleAutoSave]);
 
   const toggleObjective = useCallback(
     (id: string) => {
       const newObjectives = toggleQuestObjective(localQuest.objectives, id);
-      setLocalQuest(current => ({ ...current, objectives: newObjectives }));
-      onUpdate({ objectives: newObjectives });
+      setLocalQuest(current => {
+        const updated = { ...current, objectives: newObjectives };
+        scheduleAutoSave(updated);
+        return updated;
+      });
     },
-    [localQuest.objectives, onUpdate]
+    [localQuest.objectives, scheduleAutoSave]
   );
 
   const removeObjective = useCallback(
     (id: string) => {
       const newObjectives = removeQuestObjective(localQuest.objectives, id);
-      setLocalQuest(current => ({ ...current, objectives: newObjectives }));
-      onUpdate({ objectives: newObjectives });
+      setLocalQuest(current => {
+        const updated = { ...current, objectives: newObjectives };
+        scheduleAutoSave(updated);
+        return updated;
+      });
     },
-    [localQuest.objectives, onUpdate]
+    [localQuest.objectives, scheduleAutoSave]
   );
 
   const { completedCount, totalCount } = getQuestObjectiveCounts(

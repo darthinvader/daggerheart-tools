@@ -121,11 +121,13 @@ type CampaignTabsProps = {
   setActiveTab: (value: string) => void;
   frame: CampaignFrame;
   updateFrame: (updates: Partial<CampaignFrame>) => void;
+  onFrameBlur: () => void;
   campaign: Campaign;
   inviteLink: string;
   onCopyInviteCode: () => void;
   onCopyInviteLink: () => void;
   onSaveStart: () => void;
+  onPendingChange: () => void;
   onSessionsChange: () => void;
   onNPCsChange: () => void;
   onLocationsChange: () => void;
@@ -226,7 +228,7 @@ function useGmToolsTabReload(
 
 function useCampaignAutoSave(
   performSave: () => Promise<void>,
-  hasChanges: boolean,
+  changeVersion: number,
   saving: boolean
 ) {
   const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -239,7 +241,7 @@ function useCampaignAutoSave(
   });
 
   useEffect(() => {
-    if (!hasChanges || saving) return;
+    if (changeVersion === 0 || saving) return;
 
     if (autoSaveTimeoutRef.current) {
       clearTimeout(autoSaveTimeoutRef.current);
@@ -251,14 +253,14 @@ function useCampaignAutoSave(
           console.error('[CampaignAutoSave] Failed to save:', error);
         }
       });
-    }, 2000);
+    }, 1000);
 
     return () => {
       if (autoSaveTimeoutRef.current) {
         clearTimeout(autoSaveTimeoutRef.current);
       }
     };
-  }, [hasChanges, saving]);
+  }, [changeVersion, saving]);
 
   // Cleanup: flush pending save on unmount
   useEffect(() => {
@@ -310,7 +312,9 @@ function useCampaignDetailState(
     useCampaignLoader(id);
   const [saving, setSaving] = useState(false);
   const [directSaving, setDirectSaving] = useState(false);
-  const [hasChanges, setHasChanges] = useState(false);
+  const [subformPendingChanges, setSubformPendingChanges] = useState(false);
+  const [changeVersion, setChangeVersion] = useState(0);
+  const hasChanges = changeVersion > 0;
   useGmToolsTabReload(tab, loading, hasChildRoute, reloadCampaignData);
 
   const updateFrame = useCallback(
@@ -319,11 +323,11 @@ function useCampaignDetailState(
         if (!current) {
           return current;
         }
-        setHasChanges(true);
+        setChangeVersion(v => v + 1);
         return { ...current, frame: { ...current.frame, ...updates } };
       });
     },
-    [setCampaign, setHasChanges]
+    [setCampaign]
   );
 
   // Perform the actual save
@@ -333,13 +337,17 @@ function useCampaignDetailState(
     try {
       await updateCampaign(id, { name: campaign.name });
       await updateCampaignFrame(id, campaign.frame);
-      setHasChanges(false);
+      setChangeVersion(0);
     } finally {
       setSaving(false);
     }
   }, [campaign, id, saving]);
 
-  const { handleSave } = useCampaignAutoSave(performSave, hasChanges, saving);
+  const { handleSave } = useCampaignAutoSave(
+    performSave,
+    changeVersion,
+    saving
+  );
 
   const handleAddNPCFromGenerator = useGeneratorHandler(
     campaign,
@@ -368,11 +376,11 @@ function useCampaignDetailState(
         if (!current) {
           return current;
         }
-        setHasChanges(true);
+        setChangeVersion(v => v + 1);
         return { ...current, name: value };
       });
     },
-    [setCampaign, setHasChanges]
+    [setCampaign]
   );
 
   const handleChecklistChange = useCallback(
@@ -381,11 +389,11 @@ function useCampaignDetailState(
         if (!current) {
           return current;
         }
-        setHasChanges(true);
+        setChangeVersion(v => v + 1);
         return { ...current, sessionPrepChecklist: items };
       });
     },
-    [setCampaign, setHasChanges]
+    [setCampaign]
   );
 
   const handleDeleteBattle = useCallback(
@@ -402,10 +410,14 @@ function useCampaignDetailState(
     [campaign, reloadCampaignData]
   );
 
-  // Wrapper for direct-save operations (sessions, npcs, locations, quests)
   // markSaving is called before the storage operation starts
   const markSaving = useCallback(() => {
     setDirectSaving(true);
+  }, []);
+
+  // markPendingChange is called when a subform has unsaved changes
+  const markPendingChange = useCallback(() => {
+    setSubformPendingChanges(true);
   }, []);
 
   // Called after the storage operation completes to reload data and clear saving state
@@ -414,12 +426,17 @@ function useCampaignDetailState(
       await reloadCampaignData();
     } finally {
       setDirectSaving(false);
+      setSubformPendingChanges(false);
     }
   }, [reloadCampaignData]);
 
   // Compute save status - directSaving takes precedence for immediate feedback
   const saveStatus =
-    saving || directSaving ? 'saving' : hasChanges ? 'unsaved' : 'saved';
+    saving || directSaving
+      ? 'saving'
+      : hasChanges || subformPendingChanges
+        ? 'unsaved'
+        : 'saved';
 
   return {
     campaign,
@@ -438,6 +455,7 @@ function useCampaignDetailState(
     handleAddQuestFromGenerator,
     handleDirectSaveChange,
     markSaving,
+    markPendingChange,
   };
 }
 
@@ -446,11 +464,13 @@ function CampaignTabs({
   setActiveTab,
   frame,
   updateFrame,
+  onFrameBlur,
   campaign,
   inviteLink,
   onCopyInviteCode,
   onCopyInviteLink,
   onSaveStart,
+  onPendingChange,
   onSessionsChange,
   onNPCsChange,
   onLocationsChange,
@@ -510,32 +530,48 @@ function CampaignTabs({
         </TabsTrigger>
       </TabsList>
 
-      <OverviewTabContent frame={frame} updateFrame={updateFrame} />
-      <WorldTabContent frame={frame} updateFrame={updateFrame} />
-      <MechanicsTabContent frame={frame} updateFrame={updateFrame} />
+      <OverviewTabContent
+        frame={frame}
+        updateFrame={updateFrame}
+        onBlur={onFrameBlur}
+      />
+      <WorldTabContent
+        frame={frame}
+        updateFrame={updateFrame}
+        onBlur={onFrameBlur}
+      />
+      <MechanicsTabContent
+        frame={frame}
+        updateFrame={updateFrame}
+        onBlur={onFrameBlur}
+      />
       <SessionsTabContent
         sessions={campaign.sessions ?? []}
         npcs={campaign.npcs ?? []}
         campaignId={campaign.id}
         onSaveStart={onSaveStart}
+        onPendingChange={onPendingChange}
         onSessionsChange={onSessionsChange}
       />
       <CharactersTabContent
         npcs={campaign.npcs ?? []}
         campaignId={campaign.id}
         onSaveStart={onSaveStart}
+        onPendingChange={onPendingChange}
         onNPCsChange={onNPCsChange}
       />
       <LocationsTabContent
         locations={campaign.locations}
         campaignId={campaign.id}
         onSaveStart={onSaveStart}
+        onPendingChange={onPendingChange}
         onLocationsChange={onLocationsChange}
       />
       <QuestsTabContent
         quests={campaign.quests}
         campaignId={campaign.id}
         onSaveStart={onSaveStart}
+        onPendingChange={onPendingChange}
         onQuestsChange={onQuestsChange}
       />
       <GMToolsTabContent
@@ -549,7 +585,11 @@ function CampaignTabs({
         onChecklistChange={onChecklistChange}
         onDeleteBattle={onDeleteBattle}
       />
-      <SessionZeroTabContent frame={frame} updateFrame={updateFrame} />
+      <SessionZeroTabContent
+        frame={frame}
+        updateFrame={updateFrame}
+        onBlur={onFrameBlur}
+      />
       <HomebrewTabContent campaignId={campaign.id} />
       <PlayersTabContent
         campaign={campaign}
@@ -605,6 +645,7 @@ function CampaignDetailPage() {
     handleAddQuestFromGenerator,
     handleDirectSaveChange,
     markSaving,
+    markPendingChange,
   } = useCampaignDetailState(id, tab, hasChildRoute);
 
   const setActiveTab = useCallback(
@@ -680,11 +721,13 @@ function CampaignDetailPage() {
         setActiveTab={setActiveTab}
         frame={frame}
         updateFrame={updateFrame}
+        onFrameBlur={handleSave}
         campaign={campaign}
         inviteLink={inviteLink}
         onCopyInviteCode={copyInviteCode}
         onCopyInviteLink={copyInviteLink}
         onSaveStart={markSaving}
+        onPendingChange={markPendingChange}
         onSessionsChange={handleDirectSaveChange}
         onNPCsChange={handleDirectSaveChange}
         onLocationsChange={handleDirectSaveChange}

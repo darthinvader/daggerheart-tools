@@ -53,9 +53,14 @@ import { TagInput } from './tag-input';
 interface OverviewTabProps {
   frame: CampaignFrame;
   updateFrame: (updates: Partial<CampaignFrame>) => void;
+  onBlur: () => void;
 }
 
-export function OverviewTabContent({ frame, updateFrame }: OverviewTabProps) {
+export function OverviewTabContent({
+  frame,
+  updateFrame,
+  onBlur,
+}: OverviewTabProps) {
   return (
     <TabsContent value="overview" className="space-y-6">
       <Card>
@@ -69,6 +74,7 @@ export function OverviewTabContent({ frame, updateFrame }: OverviewTabProps) {
           <Textarea
             value={frame.pitch}
             onChange={e => updateFrame({ pitch: e.target.value })}
+            onBlur={onBlur}
             rows={4}
             placeholder="Describe your campaign in a few sentences..."
           />
@@ -86,6 +92,7 @@ export function OverviewTabContent({ frame, updateFrame }: OverviewTabProps) {
           <TagInput
             tags={frame.toneAndFeel}
             onChange={tags => updateFrame({ toneAndFeel: tags })}
+            onBlur={onBlur}
             suggestions={CAMPAIGN_TONE_OPTIONS}
             placeholder="Add tone words..."
           />
@@ -103,6 +110,7 @@ export function OverviewTabContent({ frame, updateFrame }: OverviewTabProps) {
           <TagInput
             tags={frame.themes}
             onChange={tags => updateFrame({ themes: tags })}
+            onBlur={onBlur}
             suggestions={CAMPAIGN_THEME_OPTIONS}
             placeholder="Add themes..."
           />
@@ -120,6 +128,7 @@ export function OverviewTabContent({ frame, updateFrame }: OverviewTabProps) {
           <TagInput
             tags={frame.touchstones}
             onChange={tags => updateFrame({ touchstones: tags })}
+            onBlur={onBlur}
             placeholder="Add movies, books, games..."
           />
         </CardContent>
@@ -137,6 +146,7 @@ export function OverviewTabContent({ frame, updateFrame }: OverviewTabProps) {
           <Textarea
             value={frame.overview}
             onChange={e => updateFrame({ overview: e.target.value })}
+            onBlur={onBlur}
             rows={6}
             placeholder="Describe the setting, history, and current situation..."
           />
@@ -149,9 +159,10 @@ export function OverviewTabContent({ frame, updateFrame }: OverviewTabProps) {
 interface WorldTabProps {
   frame: CampaignFrame;
   updateFrame: (updates: Partial<CampaignFrame>) => void;
+  onBlur: () => void;
 }
 
-export function WorldTabContent({ frame, updateFrame }: WorldTabProps) {
+export function WorldTabContent({ frame, updateFrame, onBlur }: WorldTabProps) {
   return (
     <TabsContent value="world" className="space-y-6">
       <Card>
@@ -165,6 +176,7 @@ export function WorldTabContent({ frame, updateFrame }: WorldTabProps) {
           <EditableDistinctions
             distinctions={frame.distinctions}
             onChange={distinctions => updateFrame({ distinctions })}
+            onBlur={onBlur}
           />
         </CardContent>
       </Card>
@@ -191,6 +203,7 @@ export function WorldTabContent({ frame, updateFrame }: WorldTabProps) {
                   },
                 })
               }
+              onBlur={onBlur}
               placeholder="The Call to Adventure"
               className="mt-1"
             />
@@ -209,6 +222,7 @@ export function WorldTabContent({ frame, updateFrame }: WorldTabProps) {
                   },
                 })
               }
+              onBlur={onBlur}
               rows={4}
               placeholder="Describe the event that brings the party together..."
               className="mt-1"
@@ -229,6 +243,7 @@ export function WorldTabContent({ frame, updateFrame }: WorldTabProps) {
             <EditablePrinciples
               principles={frame.playerPrinciples}
               onChange={playerPrinciples => updateFrame({ playerPrinciples })}
+              onBlur={onBlur}
               target="player"
             />
           </CardContent>
@@ -243,6 +258,7 @@ export function WorldTabContent({ frame, updateFrame }: WorldTabProps) {
             <EditablePrinciples
               principles={frame.gmPrinciples}
               onChange={gmPrinciples => updateFrame({ gmPrinciples })}
+              onBlur={onBlur}
               target="gm"
             />
           </CardContent>
@@ -255,9 +271,14 @@ export function WorldTabContent({ frame, updateFrame }: WorldTabProps) {
 interface MechanicsTabProps {
   frame: CampaignFrame;
   updateFrame: (updates: Partial<CampaignFrame>) => void;
+  onBlur: () => void;
 }
 
-export function MechanicsTabContent({ frame, updateFrame }: MechanicsTabProps) {
+export function MechanicsTabContent({
+  frame,
+  updateFrame,
+  onBlur,
+}: MechanicsTabProps) {
   return (
     <TabsContent value="mechanics" className="space-y-6">
       <Card>
@@ -271,6 +292,7 @@ export function MechanicsTabContent({ frame, updateFrame }: MechanicsTabProps) {
           <EditableMechanics
             mechanics={frame.mechanics}
             onChange={mechanics => updateFrame({ mechanics })}
+            onBlur={onBlur}
           />
         </CardContent>
       </Card>
@@ -283,6 +305,7 @@ interface SessionsTabProps {
   npcs: CampaignNPC[];
   campaignId: string;
   onSaveStart: () => void;
+  onPendingChange: () => void;
   onSessionsChange: () => void | Promise<void>;
 }
 
@@ -291,6 +314,7 @@ export function SessionsTabContent({
   npcs,
   campaignId,
   onSaveStart,
+  onPendingChange,
   onSessionsChange,
 }: SessionsTabProps) {
   return (
@@ -308,6 +332,7 @@ export function SessionsTabContent({
             npcs={npcs}
             campaignId={campaignId}
             onSaveStart={onSaveStart}
+            onPendingChange={onPendingChange}
             onSessionsChange={onSessionsChange}
           />
         </CardContent>
@@ -320,6 +345,7 @@ interface CharactersTabProps {
   npcs: CampaignNPC[];
   campaignId: string;
   onSaveStart: () => void;
+  onPendingChange: () => void;
   onNPCsChange: () => void | Promise<void>;
 }
 
@@ -327,6 +353,7 @@ export function CharactersTabContent({
   npcs,
   campaignId,
   onSaveStart,
+  onPendingChange,
   onNPCsChange,
 }: CharactersTabProps) {
   return (
@@ -343,6 +370,7 @@ export function CharactersTabContent({
             npcs={npcs}
             campaignId={campaignId}
             onSaveStart={onSaveStart}
+            onPendingChange={onPendingChange}
             onNPCsChange={onNPCsChange}
           />
         </CardContent>
@@ -355,6 +383,7 @@ interface LocationsTabProps {
   locations: Campaign['locations'];
   campaignId: string;
   onSaveStart: () => void;
+  onPendingChange: () => void;
   onLocationsChange: () => void | Promise<void>;
 }
 
@@ -362,6 +391,7 @@ export function LocationsTabContent({
   locations,
   campaignId,
   onSaveStart,
+  onPendingChange,
   onLocationsChange,
 }: LocationsTabProps) {
   return (
@@ -378,6 +408,7 @@ export function LocationsTabContent({
             locations={locations ?? []}
             campaignId={campaignId}
             onSaveStart={onSaveStart}
+            onPendingChange={onPendingChange}
             onLocationsChange={onLocationsChange}
           />
         </CardContent>
@@ -390,6 +421,7 @@ interface QuestsTabProps {
   quests: Campaign['quests'];
   campaignId: string;
   onSaveStart: () => void;
+  onPendingChange: () => void;
   onQuestsChange: () => void | Promise<void>;
 }
 
@@ -397,6 +429,7 @@ export function QuestsTabContent({
   quests,
   campaignId,
   onSaveStart,
+  onPendingChange,
   onQuestsChange,
 }: QuestsTabProps) {
   return (
@@ -413,6 +446,7 @@ export function QuestsTabContent({
             quests={quests ?? []}
             campaignId={campaignId}
             onSaveStart={onSaveStart}
+            onPendingChange={onPendingChange}
             onQuestsChange={onQuestsChange}
           />
         </CardContent>
@@ -486,11 +520,13 @@ export function GMToolsTabContent({
 interface SessionZeroTabProps {
   frame: CampaignFrame;
   updateFrame: (updates: Partial<CampaignFrame>) => void;
+  onBlur: () => void;
 }
 
 export function SessionZeroTabContent({
   frame,
   updateFrame,
+  onBlur,
 }: SessionZeroTabProps) {
   return (
     <TabsContent value="session-zero" className="space-y-6">
@@ -507,6 +543,7 @@ export function SessionZeroTabContent({
             onChange={sessionZeroQuestions =>
               updateFrame({ sessionZeroQuestions })
             }
+            onBlur={onBlur}
           />
         </CardContent>
       </Card>

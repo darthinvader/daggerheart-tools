@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 interface TagInputProps {
   tags: string[];
   onChange: (tags: string[]) => void;
+  onBlur?: () => void;
   suggestions?: readonly string[];
   placeholder?: string;
 }
@@ -14,6 +15,7 @@ interface TagInputProps {
 export function TagInput({
   tags,
   onChange,
+  onBlur,
   suggestions,
   placeholder,
 }: TagInputProps) {
@@ -62,7 +64,10 @@ export function TagInput({
             setShowSuggestions(true);
           }}
           onFocus={() => setShowSuggestions(true)}
-          onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+          onBlur={() => {
+            setTimeout(() => setShowSuggestions(false), 200);
+            onBlur?.();
+          }}
           onKeyDown={e => {
             if (e.key === 'Enter' && input.trim()) {
               e.preventDefault();

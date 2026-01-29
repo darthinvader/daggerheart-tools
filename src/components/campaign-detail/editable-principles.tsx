@@ -10,12 +10,14 @@ import type { CampaignPrinciple } from '@/lib/schemas/campaign';
 interface EditablePrinciplesProps {
   principles: CampaignPrinciple[];
   onChange: (principles: CampaignPrinciple[]) => void;
+  onBlur?: () => void;
   target: 'player' | 'gm';
 }
 
 export function EditablePrinciples({
   principles,
   onChange,
+  onBlur,
   target,
 }: EditablePrinciplesProps) {
   const addPrinciple = () => {
@@ -51,6 +53,7 @@ export function EditablePrinciples({
                   onChange={e =>
                     updatePrinciple(principle.id, { title: e.target.value })
                   }
+                  onBlur={onBlur}
                   className="mt-1"
                 />
               </div>
@@ -70,6 +73,7 @@ export function EditablePrinciples({
                 onChange={e =>
                   updatePrinciple(principle.id, { description: e.target.value })
                 }
+                onBlur={onBlur}
                 rows={2}
                 className="mt-1"
               />
