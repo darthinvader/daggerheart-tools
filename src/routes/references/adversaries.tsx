@@ -711,27 +711,29 @@ function AdversaryCard({
 
 function AdversaryDetailHeader({ adversary }: { adversary: AdversaryItem }) {
   return (
-    <div className="-mx-4 -mt-4 bg-linear-to-r from-red-500 via-rose-500 to-orange-500 p-6">
-      <h2 className="text-2xl font-semibold text-white">
-        <Skull className="mr-2 inline-block size-7" />
-        {adversary.name}
-      </h2>
-      <div className="mt-3 flex flex-wrap gap-2">
-        <Badge className="border-white/30 bg-white/20 text-white">
-          <TierIcon tier={adversary.tier} className="mr-1 size-4" /> Tier{' '}
-          {adversary.tier}
-        </Badge>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Badge className="border-white/30 bg-white/20 text-white">
-              <RoleIcon role={adversary.role} className="mr-1 size-4" />{' '}
-              {adversary.role}
-            </Badge>
-          </TooltipTrigger>
-          <TooltipContent sideOffset={6}>
-            {getRoleDescription(adversary.role)}
-          </TooltipContent>
-        </Tooltip>
+    <div className="-mx-4 -mt-4 bg-linear-to-r from-red-600 via-rose-600 to-orange-600 p-6">
+      <div className="rounded-xl bg-black/25 p-4">
+        <h2 className="text-2xl font-semibold text-white drop-shadow">
+          <Skull className="mr-2 inline-block size-7" />
+          {adversary.name}
+        </h2>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Badge className="border-slate-900/40 bg-slate-900/80 text-white">
+            <TierIcon tier={adversary.tier} className="mr-1 size-4" /> Tier{' '}
+            {adversary.tier}
+          </Badge>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge className="border-slate-900/40 bg-slate-900/80 text-white">
+                <RoleIcon role={adversary.role} className="mr-1 size-4" />{' '}
+                {adversary.role}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent sideOffset={6}>
+              {getRoleDescription(adversary.role)}
+            </TooltipContent>
+          </Tooltip>
+        </div>
       </div>
     </div>
   );
