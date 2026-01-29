@@ -38,9 +38,12 @@ export function SelectableTraitField({
         const currentValue = (field.state.value as string) ?? '';
         const displayValue = inputValue || currentValue;
 
-        const filteredSuggestions = suggestions.filter(s =>
-          s.toLowerCase().includes(displayValue.toLowerCase())
-        );
+        // Show all suggestions when field is empty/focused, otherwise filter
+        const filteredSuggestions = displayValue.trim()
+          ? suggestions.filter(s =>
+              s.toLowerCase().includes(displayValue.toLowerCase())
+            )
+          : [...suggestions];
 
         const handleSelect = (suggestion: string) => {
           field.handleChange(suggestion);
@@ -78,7 +81,7 @@ export function SelectableTraitField({
                     'bg-popover absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-md border shadow-md'
                   )}
                 >
-                  {filteredSuggestions.slice(0, 8).map(suggestion => (
+                  {filteredSuggestions.map(suggestion => (
                     <button
                       key={suggestion}
                       type="button"
