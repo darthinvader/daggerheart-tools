@@ -9,6 +9,9 @@ import {
   ChevronRight,
   Grid3X3,
   List,
+  Search,
+  Sword,
+  X,
 } from 'lucide-react';
 import * as React from 'react';
 
@@ -29,6 +32,7 @@ import {
   useDeferredItems,
   useDeferredLoad,
   useFilterState,
+  useKeyboardNavigation,
 } from '@/components/references';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -59,6 +63,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
   ALL_ARMOR,
@@ -66,7 +75,6 @@ import {
   ALL_PRIMARY_WEAPONS,
   ALL_SECONDARY_WEAPONS,
 } from '@/lib/data/equipment';
-import { Swords } from '@/lib/icons';
 import type {
   CombatWheelchair,
   PrimaryWeapon,
@@ -143,25 +151,105 @@ function parseFeatureModifier(description: string): {
 /** Get all feature modifiers from an equipment item */
 function getFeatureModifiers(
   features: Array<{ name: string; description: string }> | undefined
-): Array<{ name: string; modifier: string; isPositive: boolean }> {
+): Array<{
+  name: string;
+  modifier: string;
+  isPositive: boolean;
+  description: string;
+}> {
   if (!features) return [];
   return features
     .map(f => {
       const parsed = parseFeatureModifier(f.description);
       if (!parsed) return null;
-      return { name: f.name, ...parsed };
+      return { name: f.name, description: f.description, ...parsed };
     })
     .filter(Boolean) as Array<{
     name: string;
     modifier: string;
     isPositive: boolean;
+    description: string;
   }>;
+}
+
+function getNonModifierFeatures(
+  features: Array<{ name: string; description: string }> | undefined
+): FeatureSummary[] {
+  if (!features) return [];
+  const seen = new Set<string>();
+  return features
+    .filter(feature => !parseFeatureModifier(feature.description))
+    .filter(feature => {
+      const key = feature.name.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .map(feature => ({
+      name: feature.name,
+      description: feature.description,
+    }));
+}
+
+type FeatureSummary = {
+  name: string;
+  description: string;
+};
+
+function EquipmentFeatureChips({
+  features,
+  className,
+}: {
+  features: FeatureSummary[];
+  className?: string;
+}) {
+  if (features.length === 0) return null;
+  const visible = features.slice(0, 2);
+  const remaining = features.slice(2);
+
+  return (
+    <div className={className ?? 'flex flex-wrap gap-1'}>
+      {visible.map(feature => (
+        <Tooltip key={feature.name}>
+          <TooltipTrigger asChild>
+            <Badge variant="secondary" className="cursor-help py-0 text-xs">
+              {feature.name}
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="max-w-xs">
+            <p className="font-semibold">{feature.name}</p>
+            <p className="text-muted-foreground text-xs">
+              {feature.description}
+            </p>
+          </TooltipContent>
+        </Tooltip>
+      ))}
+      {remaining.length > 0 && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge variant="outline" className="cursor-help py-0 text-xs">
+              +{remaining.length}
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="max-w-xs">
+            <p className="font-semibold">More features</p>
+            <ul className="text-muted-foreground mt-1 list-disc pl-4 text-xs">
+              {remaining.map(feature => (
+                <li key={feature.name}>{feature.name}</li>
+              ))}
+            </ul>
+          </TooltipContent>
+        </Tooltip>
+      )}
+    </div>
+  );
 }
 
 type FeatureModifier = {
   name: string;
   modifier: string;
   isPositive: boolean;
+  description: string;
 };
 
 function EquipmentFeatureBadges({
@@ -175,17 +263,26 @@ function EquipmentFeatureBadges({
   return (
     <div className={className ?? 'flex flex-wrap gap-1'}>
       {modifiers.map((modifier, idx) => (
-        <Badge
-          key={idx}
-          variant="outline"
-          className={
-            modifier.isPositive
-              ? 'border-green-500/50 bg-green-500/10 text-green-700 dark:text-green-400'
-              : 'border-red-500/50 bg-red-500/10 text-red-700 dark:text-red-400'
-          }
-        >
-          {modifier.modifier}
-        </Badge>
+        <Tooltip key={idx}>
+          <TooltipTrigger asChild>
+            <Badge
+              variant="outline"
+              className={`cursor-help ${
+                modifier.isPositive
+                  ? 'border-green-500/50 bg-green-500/10 text-green-700 dark:text-green-400'
+                  : 'border-red-500/50 bg-red-500/10 text-red-700 dark:text-red-400'
+              }`}
+            >
+              {modifier.modifier}
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="max-w-xs">
+            <p className="font-semibold">{modifier.name}</p>
+            <p className="text-muted-foreground text-xs">
+              {modifier.description}
+            </p>
+          </TooltipContent>
+        </Tooltip>
       ))}
     </div>
   );
@@ -198,26 +295,70 @@ function EquipmentWeaponSummary({
   data: PrimaryWeapon | SecondaryWeapon | CombatWheelchair;
   modifiers: FeatureModifier[];
 }) {
+  const featureChips = getNonModifierFeatures(data.features);
+
   return (
-    <>
+    <div className="space-y-2">
+      {/* Main stats section */}
       <div className="flex flex-wrap gap-1">
-        <Badge variant="outline" className={traitColors[data.trait]}>
-          {data.trait}
-        </Badge>
-        <Badge variant="outline" className={damageTypeColors[data.damage.type]}>
-          {formatDamage(data.damage)}
-        </Badge>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge
+              variant="outline"
+              className={`cursor-help ${traitColors[data.trait]}`}
+            >
+              {data.trait}
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent side="top">Attack trait: {data.trait}</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge
+              variant="outline"
+              className={`cursor-help ${damageTypeColors[data.damage.type]}`}
+            >
+              {formatDamage(data.damage)}
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            {data.damage.type === 'phy' ? 'Physical' : 'Magic'} damage
+          </TooltipContent>
+        </Tooltip>
       </div>
-      <div className="flex flex-wrap gap-1 text-xs">
-        <Badge variant="secondary" className="py-0 text-xs">
-          {data.range}
-        </Badge>
-        <Badge variant="secondary" className="py-0 text-xs">
-          {data.burden}
-        </Badge>
+
+      {/* Range & burden section with separator */}
+      <div className="border-muted flex flex-wrap gap-1 border-t pt-2">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge variant="secondary" className="cursor-help py-0 text-xs">
+              {data.range}
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent side="top">Weapon range</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge variant="secondary" className="cursor-help py-0 text-xs">
+              {data.burden}
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent side="top">Burden/Encumbrance</TooltipContent>
+        </Tooltip>
       </div>
-      <EquipmentFeatureBadges modifiers={modifiers} />
-    </>
+
+      {/* Feature modifiers with separator if present */}
+      {modifiers.length > 0 && (
+        <div className="border-muted border-t pt-2">
+          <EquipmentFeatureBadges modifiers={modifiers} />
+        </div>
+      )}
+      {featureChips.length > 0 && (
+        <div className="border-muted border-t pt-2">
+          <EquipmentFeatureChips features={featureChips} />
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -228,37 +369,73 @@ function EquipmentArmorSummary({
   data: StandardArmor | SpecialArmor;
   modifiers: FeatureModifier[];
 }) {
+  const featureChips = getNonModifierFeatures(data.features);
+
   return (
-    <>
+    <div className="space-y-2">
+      {/* Armor & Evasion stats */}
       <div className="grid grid-cols-2 gap-2 text-sm">
-        <div className="bg-muted/50 rounded p-2 text-center">
-          <div className="text-muted-foreground text-xs">Armor</div>
-          <div className="font-bold">{data.baseScore}</div>
-        </div>
-        <div className="bg-muted/50 rounded p-2 text-center">
-          <div className="text-muted-foreground text-xs">Evasion</div>
-          <div className="font-bold">
-            {data.evasionModifier >= 0 ? '+' : ''}
-            {data.evasionModifier}
-          </div>
-        </div>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="bg-muted/50 hover:bg-muted/70 cursor-help rounded p-2 text-center transition-colors">
+              <div className="text-muted-foreground text-xs">Armor</div>
+              <div className="font-bold">{data.baseScore}</div>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="top">Base armor score</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="bg-muted/50 hover:bg-muted/70 cursor-help rounded p-2 text-center transition-colors">
+              <div className="text-muted-foreground text-xs">Evasion</div>
+              <div className="font-bold">
+                {data.evasionModifier >= 0 ? '+' : ''}
+                {data.evasionModifier}
+              </div>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="top">Evasion modifier</TooltipContent>
+        </Tooltip>
       </div>
-      <div className="flex gap-1.5 text-xs">
-        <Badge
-          variant="outline"
-          className="border-amber-500/30 bg-amber-500/10 py-0 text-amber-700 dark:text-amber-400"
-        >
-          Major {data.baseThresholds.major}+
-        </Badge>
-        <Badge
-          variant="outline"
-          className="border-red-500/30 bg-red-500/10 py-0 text-red-700 dark:text-red-400"
-        >
-          Severe {data.baseThresholds.severe}+
-        </Badge>
+
+      {/* Thresholds with separator */}
+      <div className="border-muted flex gap-1.5 border-t pt-2 text-xs">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge
+              variant="outline"
+              className="cursor-help border-amber-500/30 bg-amber-500/10 py-0 text-amber-700 dark:text-amber-400"
+            >
+              Major {data.baseThresholds.major}+
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent side="top">Major damage threshold</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge
+              variant="outline"
+              className="cursor-help border-red-500/30 bg-red-500/10 py-0 text-red-700 dark:text-red-400"
+            >
+              Severe {data.baseThresholds.severe}+
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent side="top">Severe damage threshold</TooltipContent>
+        </Tooltip>
       </div>
-      <EquipmentFeatureBadges modifiers={modifiers} />
-    </>
+
+      {/* Feature modifiers with separator if present */}
+      {modifiers.length > 0 && (
+        <div className="border-muted border-t pt-2">
+          <EquipmentFeatureBadges modifiers={modifiers} />
+        </div>
+      )}
+      {featureChips.length > 0 && (
+        <div className="border-muted border-t pt-2">
+          <EquipmentFeatureChips features={featureChips} />
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -442,7 +619,10 @@ function EquipmentCard({
       <div className={`h-1 ${tierDotColors[data.tier]}`} />
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
-          <CardTitle className="truncate text-base leading-tight">
+          <CardTitle
+            className="line-clamp-2 text-base leading-tight"
+            title={data.name}
+          >
             {data.name}
           </CardTitle>
           <div className="flex shrink-0 items-center gap-1">
@@ -651,40 +831,99 @@ function ItemDetail({ item }: { item: EquipmentItem }) {
     const isStandard = 'isStandard' in armor && armor.isStandard;
     return (
       <div className="space-y-4">
+        {/* Type badges */}
         <div className="flex items-center gap-2">
-          <Badge className={tierColors[armor.tier]}>Tier {armor.tier}</Badge>
-          <Badge variant="outline">
-            {armor.armorType} {isStandard ? '(Standard)' : '(Special)'}
-          </Badge>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge className={`cursor-help ${tierColors[armor.tier]}`}>
+                Tier {armor.tier}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>Equipment tier level</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge variant="outline" className="cursor-help">
+                {armor.armorType} {isStandard ? '(Standard)' : '(Special)'}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>
+              {isStandard
+                ? 'Standard armor without special features'
+                : 'Special armor with unique properties'}
+            </TooltipContent>
+          </Tooltip>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-muted/50 rounded-lg p-3">
-            <div className="text-muted-foreground text-sm">Armor Score</div>
-            <div className="text-2xl font-bold">{armor.baseScore}</div>
-          </div>
-          <div className="bg-muted/50 rounded-lg p-3">
-            <div className="text-muted-foreground text-sm">Evasion</div>
-            <div className="text-2xl font-bold">
-              {armor.evasionModifier >= 0 ? '+' : ''}
-              {armor.evasionModifier}
-            </div>
+        {/* Core stats section */}
+        <div className="bg-card rounded-lg border p-3">
+          <h4 className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
+            Core Stats
+          </h4>
+          <div className="grid grid-cols-2 gap-3">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="bg-muted/50 hover:bg-muted/70 cursor-help rounded-lg p-3 text-center transition-colors">
+                  <div className="text-muted-foreground text-xs">
+                    Armor Score
+                  </div>
+                  <div className="text-2xl font-bold">{armor.baseScore}</div>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                Base armor score - reduces incoming damage
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="bg-muted/50 hover:bg-muted/70 cursor-help rounded-lg p-3 text-center transition-colors">
+                  <div className="text-muted-foreground text-xs">Evasion</div>
+                  <div className="text-2xl font-bold">
+                    {armor.evasionModifier >= 0 ? '+' : ''}
+                    {armor.evasionModifier}
+                  </div>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                Evasion modifier - affects your ability to dodge attacks
+              </TooltipContent>
+            </Tooltip>
           </div>
         </div>
 
-        <div className="flex gap-2">
-          <Badge
-            variant="outline"
-            className="bg-amber-500/10 text-amber-700 dark:text-amber-400"
-          >
-            Major: {armor.baseThresholds.major}+
-          </Badge>
-          <Badge
-            variant="outline"
-            className="bg-red-500/10 text-red-700 dark:text-red-400"
-          >
-            Severe: {armor.baseThresholds.severe}+
-          </Badge>
+        {/* Damage thresholds */}
+        <div className="bg-card rounded-lg border p-3">
+          <h4 className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
+            Damage Thresholds
+          </h4>
+          <div className="flex gap-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge
+                  variant="outline"
+                  className="cursor-help bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                >
+                  Major: {armor.baseThresholds.major}+
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                Damage at or above this value counts as Major damage
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge
+                  variant="outline"
+                  className="cursor-help bg-red-500/10 text-red-700 dark:text-red-400"
+                >
+                  Severe: {armor.baseThresholds.severe}+
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                Damage at or above this value counts as Severe damage
+              </TooltipContent>
+            </Tooltip>
+          </div>
         </div>
 
         <CollapsibleFeatureList features={armor.features ?? []} />
@@ -696,30 +935,82 @@ function ItemDetail({ item }: { item: EquipmentItem }) {
     const wheelchair = data as CombatWheelchair;
     return (
       <div className="space-y-4">
+        {/* Type badges */}
         <div className="flex flex-wrap items-center gap-2">
-          <Badge className={tierColors[wheelchair.tier]}>
-            Tier {wheelchair.tier}
-          </Badge>
-          <Badge className="border-cyan-500/30 bg-cyan-500/10 text-cyan-700 dark:text-cyan-400">
-            {wheelchair.frameType}
-          </Badge>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge className={`cursor-help ${tierColors[wheelchair.tier]}`}>
+                Tier {wheelchair.tier}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>Equipment tier level</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge className="cursor-help border-cyan-500/30 bg-cyan-500/10 text-cyan-700 dark:text-cyan-400">
+                {wheelchair.frameType}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>Wheelchair frame type</TooltipContent>
+          </Tooltip>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <Badge variant="outline" className={traitColors[wheelchair.trait]}>
-            {wheelchair.trait}
-          </Badge>
-          <Badge variant="outline">{wheelchair.range}</Badge>
-          <Badge variant="outline">{wheelchair.burden}</Badge>
-        </div>
-
-        <div className="bg-muted/50 rounded-lg p-3">
-          <div className="text-muted-foreground text-sm">Damage</div>
-          <div className="text-xl font-bold">
-            <Badge className={damageTypeColors[wheelchair.damage.type]}>
-              {formatDamage(wheelchair.damage)}
-            </Badge>
+        {/* Combat properties */}
+        <div className="bg-card rounded-lg border p-3">
+          <h4 className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
+            Combat Properties
+          </h4>
+          <div className="flex flex-wrap gap-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge
+                  variant="outline"
+                  className={`cursor-help ${traitColors[wheelchair.trait]}`}
+                >
+                  {wheelchair.trait}
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                Attack trait used with this weapon
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge variant="outline" className="cursor-help">
+                  {wheelchair.range}
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>Weapon range</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge variant="outline" className="cursor-help">
+                  {wheelchair.burden}
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>Burden/Encumbrance level</TooltipContent>
+            </Tooltip>
           </div>
+        </div>
+
+        {/* Damage section */}
+        <div className="bg-card rounded-lg border p-3">
+          <h4 className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
+            Damage
+          </h4>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge
+                className={`cursor-help text-base ${damageTypeColors[wheelchair.damage.type]}`}
+              >
+                {formatDamage(wheelchair.damage)}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>
+              {wheelchair.damage.type === 'phy' ? 'Physical' : 'Magic'} damage
+              type
+            </TooltipContent>
+          </Tooltip>
         </div>
 
         <CollapsibleFeatureList features={wheelchair.features ?? []} />
@@ -731,28 +1022,83 @@ function ItemDetail({ item }: { item: EquipmentItem }) {
   const weapon = data as PrimaryWeapon | SecondaryWeapon;
   return (
     <div className="space-y-4">
+      {/* Type badges */}
       <div className="flex items-center gap-2">
-        <Badge className={tierColors[weapon.tier]}>Tier {weapon.tier}</Badge>
-        <Badge variant="outline" className="capitalize">
-          {type} Weapon
-        </Badge>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge className={`cursor-help ${tierColors[weapon.tier]}`}>
+              Tier {weapon.tier}
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent>Equipment tier level</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge variant="outline" className="cursor-help capitalize">
+              {type} Weapon
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent>
+            {type === 'primary'
+              ? 'Primary weapon - main combat tool'
+              : 'Secondary weapon - backup or off-hand'}
+          </TooltipContent>
+        </Tooltip>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        <Badge variant="outline" className={traitColors[weapon.trait]}>
-          {weapon.trait}
-        </Badge>
-        <Badge variant="outline">{weapon.range}</Badge>
-        <Badge variant="outline">{weapon.burden}</Badge>
-      </div>
-
-      <div className="bg-muted/50 rounded-lg p-3">
-        <div className="text-muted-foreground text-sm">Damage</div>
-        <div className="text-xl font-bold">
-          <Badge className={damageTypeColors[weapon.damage.type]}>
-            {formatDamage(weapon.damage)}
-          </Badge>
+      {/* Combat properties */}
+      <div className="bg-card rounded-lg border p-3">
+        <h4 className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
+          Combat Properties
+        </h4>
+        <div className="flex flex-wrap gap-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge
+                variant="outline"
+                className={`cursor-help ${traitColors[weapon.trait]}`}
+              >
+                {weapon.trait}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>Attack trait used with this weapon</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge variant="outline" className="cursor-help">
+                {weapon.range}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>Weapon range</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge variant="outline" className="cursor-help">
+                {weapon.burden}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>Burden/Encumbrance level</TooltipContent>
+          </Tooltip>
         </div>
+      </div>
+
+      {/* Damage section */}
+      <div className="bg-card rounded-lg border p-3">
+        <h4 className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
+          Damage
+        </h4>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge
+              className={`cursor-help text-base ${damageTypeColors[weapon.damage.type]}`}
+            >
+              {formatDamage(weapon.damage)}
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent>
+            {weapon.damage.type === 'phy' ? 'Physical' : 'Magic'} damage type
+          </TooltipContent>
+        </Tooltip>
       </div>
 
       <CollapsibleFeatureList features={weapon.features ?? []} />
@@ -837,22 +1183,6 @@ function getSortedTierEntries(groups: Record<string, EquipmentItem[]>) {
   return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
 }
 
-type EquipmentHeaderProps = {
-  isMobile: boolean;
-  filterState: ReturnType<typeof useFilterState>['filterState'];
-  onSearchChange: ReturnType<typeof useFilterState>['onSearchChange'];
-  onFilterChange: ReturnType<typeof useFilterState>['onFilterChange'];
-  onClearFilters: ReturnType<typeof useFilterState>['onClearFilters'];
-  filteredCount: number;
-  totalCount: number;
-  sortBy: EquipmentSortKey;
-  sortDir: 'asc' | 'desc';
-  onSortByChange: (value: EquipmentSortKey) => void;
-  onSortDirChange: (value: 'asc' | 'desc') => void;
-  viewMode: 'grid' | 'table';
-  onViewModeChange: (value: 'grid' | 'table') => void;
-};
-
 function EquipmentHeader({
   isMobile,
   filterState,
@@ -861,84 +1191,44 @@ function EquipmentHeader({
   onClearFilters,
   filteredCount,
   totalCount,
-  sortBy,
-  sortDir,
-  onSortByChange,
-  onSortDirChange,
-  viewMode,
-  onViewModeChange,
-}: EquipmentHeaderProps) {
+}: {
+  isMobile: boolean;
+  filterState: ReturnType<typeof useFilterState>['filterState'];
+  onSearchChange: ReturnType<typeof useFilterState>['onSearchChange'];
+  onFilterChange: ReturnType<typeof useFilterState>['onFilterChange'];
+  onClearFilters: ReturnType<typeof useFilterState>['onClearFilters'];
+  filteredCount: number;
+  totalCount: number;
+}) {
   return (
-    <div className="bg-background shrink-0 border-b p-4">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="bg-linear-to-r from-amber-500 to-orange-600 bg-clip-text text-2xl font-bold text-transparent">
-            <Swords className="mr-2 inline-block size-6" />
-            Equipment Reference
-          </h1>
+    <div className="bg-background shrink-0 border-b px-4 py-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 text-lg font-semibold">
+            <Sword className="size-4 text-amber-500" />
+            <span className="bg-linear-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent">
+              Equipment Reference
+            </span>
+          </div>
           <ResultsCounter
             filtered={filteredCount}
             total={totalCount}
             label="items"
           />
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {isMobile && (
-            <ReferenceFilter
-              filterGroups={filterGroups}
-              filterState={filterState}
-              onSearchChange={onSearchChange}
-              onFilterChange={onFilterChange}
-              onClearFilters={onClearFilters}
-              resultCount={filteredCount}
-              totalCount={totalCount}
-              searchPlaceholder="Search equipment..."
-            />
-          )}
-          <div className="flex items-center gap-2">
-            <select
-              value={sortBy}
-              onChange={e => onSortByChange(e.target.value as EquipmentSortKey)}
-              className="bg-background h-9 rounded-md border px-2 text-sm"
-            >
-              <option value="name">Name</option>
-              <option value="tier">Tier</option>
-              <option value="type">Type</option>
-              <option value="trait">Trait</option>
-            </select>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-9"
-              onClick={() =>
-                onSortDirChange(sortDir === 'asc' ? 'desc' : 'asc')
-              }
-              aria-label={
-                sortDir === 'asc' ? 'Sort descending' : 'Sort ascending'
-              }
-            >
-              {sortDir === 'asc' ? (
-                <ArrowUp className="size-4" />
-              ) : (
-                <ArrowDown className="size-4" />
-              )}
-            </Button>
-          </div>
-          {!isMobile && (
-            <ToggleGroup
-              type="single"
-              value={viewMode}
-              onValueChange={v => v && onViewModeChange(v as 'grid' | 'table')}
-            >
-              <ToggleGroupItem value="grid" aria-label="Grid view">
-                <Grid3X3 className="size-4" />
-              </ToggleGroupItem>
-              <ToggleGroupItem value="table" aria-label="Table view">
-                <List className="size-4" />
-              </ToggleGroupItem>
-            </ToggleGroup>
-          )}
-        </div>
+        {/* Mobile filter button only */}
+        {isMobile && (
+          <ReferenceFilter
+            filterGroups={filterGroups}
+            filterState={filterState}
+            onSearchChange={onSearchChange}
+            onFilterChange={onFilterChange}
+            onClearFilters={onClearFilters}
+            resultCount={filteredCount}
+            totalCount={totalCount}
+            searchPlaceholder="Search equipment..."
+          />
+        )}
       </div>
     </div>
   );
@@ -947,44 +1237,253 @@ function EquipmentHeader({
 function EquipmentGridSections({
   groupedItems,
   onSelectItem,
+  filterState,
+  onSearchChange,
+  sortBy,
+  sortDir,
+  onSortByChange,
+  onSortDirChange,
+  viewMode,
+  onViewModeChange,
+  isMobile,
 }: {
   groupedItems: Record<string, EquipmentItem[]>;
   onSelectItem: (item: EquipmentItem) => void;
+  filterState: ReturnType<typeof useFilterState>['filterState'];
+  onSearchChange: (search: string) => void;
+  sortBy: EquipmentSortKey;
+  sortDir: 'asc' | 'desc';
+  onSortByChange: (value: EquipmentSortKey) => void;
+  onSortDirChange: (value: 'asc' | 'desc') => void;
+  viewMode: 'grid' | 'table';
+  onViewModeChange: (value: 'grid' | 'table') => void;
+  isMobile: boolean;
 }) {
+  const [expandedCategories, setExpandedCategories] = React.useState<
+    Record<string, boolean>
+  >(() => Object.fromEntries(Object.keys(groupedItems).map(k => [k, true])));
+
+  const toggleCategory = (category: string) => {
+    setExpandedCategories(prev => ({ ...prev, [category]: !prev[category] }));
+  };
+
+  const expandAll = () => {
+    setExpandedCategories(
+      Object.fromEntries(Object.keys(groupedItems).map(k => [k, true]))
+    );
+  };
+
+  const collapseAll = () => {
+    setExpandedCategories(
+      Object.fromEntries(Object.keys(groupedItems).map(k => [k, false]))
+    );
+  };
+
+  const allExpanded = Object.values(expandedCategories).every(Boolean);
+  const allCollapsed = Object.values(expandedCategories).every(v => !v);
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
+      {/* Toolbar with search, sort, view, and expand/collapse controls */}
+      <div className="bg-muted/30 sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3">
+        {/* Left side: Search */}
+        {!isMobile && (
+          <div className="relative max-w-xs min-w-[200px] flex-1">
+            <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Search equipment..."
+              value={filterState.search}
+              onChange={e => onSearchChange(e.target.value)}
+              className="bg-background h-9 w-full rounded-md border pr-8 pl-9 text-sm transition-colors outline-none focus:ring-2 focus:ring-amber-500/30"
+            />
+            {filterState.search && (
+              <button
+                onClick={() => onSearchChange('')}
+                className="text-muted-foreground hover:text-foreground absolute top-1/2 right-2 -translate-y-1/2 transition-colors"
+                aria-label="Clear search"
+              >
+                <X className="size-4" />
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Right side: Sort, View, Expand/Collapse */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Sort controls */}
+          <div className="flex items-center gap-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <select
+                  value={sortBy}
+                  onChange={e =>
+                    onSortByChange(e.target.value as EquipmentSortKey)
+                  }
+                  className="bg-background h-8 cursor-pointer rounded-md border px-2 text-sm"
+                >
+                  <option value="name">Name</option>
+                  <option value="tier">Tier</option>
+                  <option value="type">Type</option>
+                  <option value="trait">Trait</option>
+                </select>
+              </TooltipTrigger>
+              <TooltipContent>Sort by</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-8"
+                  onClick={() =>
+                    onSortDirChange(sortDir === 'asc' ? 'desc' : 'asc')
+                  }
+                >
+                  {sortDir === 'asc' ? (
+                    <ArrowUp className="size-4" />
+                  ) : (
+                    <ArrowDown className="size-4" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {sortDir === 'asc' ? 'Ascending' : 'Descending'}
+              </TooltipContent>
+            </Tooltip>
+          </div>
+
+          {/* Divider */}
+          <div className="bg-border h-6 w-px" />
+
+          {/* View mode toggle */}
+          {!isMobile && (
+            <>
+              <ToggleGroup
+                type="single"
+                value={viewMode}
+                onValueChange={v =>
+                  v && onViewModeChange(v as 'grid' | 'table')
+                }
+                className="gap-0"
+              >
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <ToggleGroupItem
+                      value="grid"
+                      aria-label="Grid view"
+                      className="size-8 rounded-r-none"
+                    >
+                      <Grid3X3 className="size-4" />
+                    </ToggleGroupItem>
+                  </TooltipTrigger>
+                  <TooltipContent>Grid view</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <ToggleGroupItem
+                      value="table"
+                      aria-label="Table view"
+                      className="size-8 rounded-l-none"
+                    >
+                      <List className="size-4" />
+                    </ToggleGroupItem>
+                  </TooltipTrigger>
+                  <TooltipContent>Table view</TooltipContent>
+                </Tooltip>
+              </ToggleGroup>
+
+              {/* Divider */}
+              <div className="bg-border h-6 w-px" />
+            </>
+          )}
+
+          {/* Expand/Collapse controls */}
+          <div className="flex items-center gap-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={expandAll}
+                  disabled={allExpanded}
+                  className="h-8 px-2 text-xs"
+                >
+                  Expand
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Expand all categories</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={collapseAll}
+                  disabled={allCollapsed}
+                  className="h-8 px-2 text-xs"
+                >
+                  Collapse
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Collapse all categories</TooltipContent>
+            </Tooltip>
+          </div>
+        </div>
+      </div>
+
       {Object.entries(groupedItems).map(([category, items]) => {
         if (items.length === 0) return null;
         const categoryLabel = getCategoryLabel(category);
         const byTier = groupItemsByTier(items);
+        const isExpanded = expandedCategories[category] ?? true;
+
         return (
-          <section key={category}>
-            <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold">
-              {categoryLabel}
-              <Badge variant="outline">{items.length}</Badge>
-            </h2>
-            <div className="space-y-6">
-              {getSortedTierEntries(byTier).map(([tier, tierItems]) => (
-                <div key={tier}>
-                  <h3 className="text-muted-foreground mb-3 flex items-center gap-2 text-sm font-medium">
-                    <span
-                      className={`inline-block h-2 w-2 rounded-full ${tierDotColors[tier]}`}
-                    />
-                    Tier {tier}
-                  </h3>
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {tierItems.map((item, idx) => (
-                      <EquipmentCard
-                        key={`${item.data.name}-${idx}`}
-                        item={item}
-                        onClick={() => onSelectItem(item)}
-                      />
-                    ))}
-                  </div>
+          <Collapsible
+            key={category}
+            open={isExpanded}
+            onOpenChange={() => toggleCategory(category)}
+          >
+            <CollapsibleTrigger asChild>
+              <button className="hover:bg-muted/50 bg-card flex w-full items-center justify-between rounded-lg border p-3 transition-colors">
+                <div className="flex items-center gap-3">
+                  <h2 className="text-lg font-semibold">{categoryLabel}</h2>
+                  <Badge variant="secondary">{items.length}</Badge>
                 </div>
-              ))}
-            </div>
-          </section>
+                {isExpanded ? (
+                  <ChevronDown className="text-muted-foreground size-5" />
+                ) : (
+                  <ChevronRight className="text-muted-foreground size-5" />
+                )}
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-4">
+              <div className="space-y-6">
+                {getSortedTierEntries(byTier).map(([tier, tierItems]) => (
+                  <div key={tier}>
+                    <h3 className="text-muted-foreground mb-3 flex items-center gap-2 text-sm font-medium">
+                      <span
+                        className={`inline-block h-2 w-2 rounded-full ${tierDotColors[tier]}`}
+                      />
+                      Tier {tier}
+                      <span className="text-muted-foreground/60">
+                        ({tierItems.length})
+                      </span>
+                    </h3>
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                      {tierItems.map((item, idx) => (
+                        <EquipmentCard
+                          key={`${item.data.name}-${idx}`}
+                          item={item}
+                          onClick={() => onSelectItem(item)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
         );
       })}
     </div>
@@ -1144,7 +1643,6 @@ type EquipmentLayoutProps = {
   viewMode: 'grid' | 'table';
   onViewModeChange: (value: 'grid' | 'table') => void;
   scrollRef: React.RefObject<HTMLDivElement | null>;
-  isFiltering: boolean;
   groupedItems: Record<string, EquipmentItem[]>;
   onSelectItem: (item: EquipmentItem) => void;
   selectedItem: EquipmentItem | null;
@@ -1168,7 +1666,6 @@ function EquipmentLayout({
   viewMode,
   onViewModeChange,
   scrollRef,
-  isFiltering,
   groupedItems,
   onSelectItem,
   selectedItem,
@@ -1191,6 +1688,7 @@ function EquipmentLayout({
           resultCount={filteredItems.length}
           totalCount={totalCount}
           searchPlaceholder="Search equipment..."
+          hideSearch
         />
       )}
 
@@ -1203,30 +1701,26 @@ function EquipmentLayout({
           onClearFilters={onClearFilters}
           filteredCount={filteredItems.length}
           totalCount={totalCount}
-          sortBy={sortBy}
-          sortDir={sortDir}
-          onSortByChange={onSortByChange}
-          onSortDirChange={onSortDirChange}
-          viewMode={viewMode}
-          onViewModeChange={onViewModeChange}
         />
 
         <div
           ref={scrollRef}
           className="relative min-h-0 flex-1 overflow-y-auto"
         >
-          {isFiltering && (
-            <div className="bg-background/60 absolute inset-0 z-10 flex items-start justify-center pt-20 backdrop-blur-[1px]">
-              <div className="bg-background rounded-lg border p-4 shadow-lg">
-                <div className="border-primary h-6 w-6 animate-spin rounded-full border-2 border-t-transparent" />
-              </div>
-            </div>
-          )}
           <div className="p-4">
             {viewMode === 'grid' ? (
               <EquipmentGridSections
                 groupedItems={groupedItems}
                 onSelectItem={onSelectItem}
+                filterState={filterState}
+                onSearchChange={onSearchChange}
+                sortBy={sortBy}
+                sortDir={sortDir}
+                onSortByChange={onSortByChange}
+                onSortDirChange={onSortDirChange}
+                viewMode={viewMode}
+                onViewModeChange={onViewModeChange}
+                isMobile={isMobile}
               />
             ) : (
               <EquipmentTableView
@@ -1289,8 +1783,37 @@ function EquipmentReferencePage() {
   }, [allItems, filterState, sortBy, sortDir]);
 
   // Use deferred rendering for smooth filtering on mobile
-  const { deferredItems, isPending: isFiltering } =
-    useDeferredItems(filteredItems);
+  const { deferredItems } = useDeferredItems(filteredItems);
+
+  const displayOrderedItems = React.useMemo(() => {
+    const groups = groupEquipmentItems(deferredItems);
+    const ordered: EquipmentItem[] = [];
+    const categoryOrder: Array<keyof typeof groups> = [
+      'primary',
+      'secondary',
+      'armor',
+      'wheelchair',
+    ];
+
+    for (const category of categoryOrder) {
+      const categoryItems = groups[category];
+      if (!categoryItems || categoryItems.length === 0) continue;
+      const byTier = groupItemsByTier(categoryItems);
+      for (const [, tierItems] of getSortedTierEntries(byTier)) {
+        ordered.push(...tierItems);
+      }
+    }
+
+    return ordered;
+  }, [deferredItems]);
+
+  // Enable keyboard navigation for detail panel
+  useKeyboardNavigation({
+    items: viewMode === 'grid' ? displayOrderedItems : deferredItems,
+    selectedItem,
+    onSelect: setSelectedItem,
+    onClose: () => setSelectedItem(null),
+  });
 
   const groupedItems = React.useMemo(
     () => groupEquipmentItems(deferredItems),
@@ -1328,7 +1851,6 @@ function EquipmentReferencePage() {
       viewMode={viewMode}
       onViewModeChange={setViewMode}
       scrollRef={scrollRef}
-      isFiltering={isFiltering}
       groupedItems={groupedItems}
       onSelectItem={setSelectedItem}
       selectedItem={selectedItem}

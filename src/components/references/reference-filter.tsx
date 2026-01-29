@@ -18,6 +18,11 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 
@@ -49,6 +54,7 @@ interface ReferenceFilterProps {
   resultCount: number;
   totalCount: number;
   searchPlaceholder?: string;
+  hideSearch?: boolean;
 }
 
 function FilterGroupComponent({
@@ -64,34 +70,44 @@ function FilterGroupComponent({
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <CollapsibleTrigger className="hover:text-primary flex w-full items-center justify-between py-2 text-sm font-medium">
+      <CollapsibleTrigger className="hover:text-primary hover:bg-muted/50 flex w-full items-center justify-between rounded-md px-2 py-1.5 text-sm font-medium transition-colors">
         <span>{group.label}</span>
         <ChevronDown
-          className={cn('size-4 transition-transform', isOpen && 'rotate-180')}
+          className={cn(
+            'size-3.5 transition-transform',
+            isOpen && 'rotate-180'
+          )}
         />
       </CollapsibleTrigger>
       <CollapsibleContent>
-        <div className="space-y-2 pb-3">
+        <div className="space-y-1.5 px-2 pt-1 pb-3">
           {group.options.map(option => {
             const isChecked = selectedValues.has(option.value);
             return (
-              <label
-                key={option.value}
-                className="hover:text-primary flex cursor-pointer items-center gap-2 text-sm"
-              >
-                <Checkbox
-                  checked={isChecked}
-                  onCheckedChange={checked =>
-                    onFilterChange(option.value, checked === true)
-                  }
-                />
-                <span className="flex-1">{option.label}</span>
-                {option.count !== undefined && (
-                  <Badge variant="outline" className="px-1.5 py-0 text-xs">
-                    {option.count}
-                  </Badge>
-                )}
-              </label>
+              <Tooltip key={option.value}>
+                <TooltipTrigger asChild>
+                  <label className="hover:text-primary hover:bg-muted/30 flex cursor-pointer items-center gap-2 rounded px-1.5 py-1 text-sm transition-colors">
+                    <Checkbox
+                      checked={isChecked}
+                      onCheckedChange={checked =>
+                        onFilterChange(option.value, checked === true)
+                      }
+                    />
+                    <span className="flex-1 truncate">{option.label}</span>
+                    {option.count !== undefined && (
+                      <Badge
+                        variant="secondary"
+                        className="px-1.5 py-0 text-xs"
+                      >
+                        {option.count}
+                      </Badge>
+                    )}
+                  </label>
+                </TooltipTrigger>
+                <TooltipContent side="right" className="text-xs">
+                  Filter by {option.label}
+                </TooltipContent>
+              </Tooltip>
             );
           })}
         </div>
@@ -109,6 +125,7 @@ function FilterContent({
   resultCount,
   totalCount,
   searchPlaceholder = 'Search...',
+  hideSearch = false,
 }: ReferenceFilterProps) {
   const activeFilterCount = Object.values(filterState.filters).reduce(
     (sum, set) => sum + set.size,
@@ -117,53 +134,71 @@ function FilterContent({
 
   return (
     <div className="flex h-full flex-col">
-      {/* Search */}
-      <div className="shrink-0 border-b p-4">
-        <div className="relative">
-          <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-          <Input
-            placeholder={searchPlaceholder}
-            value={filterState.search}
-            onChange={e => onSearchChange(e.target.value)}
-            className="pr-9 pl-9"
-          />
-          {filterState.search && (
-            <button
-              onClick={() => onSearchChange('')}
-              className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
-            >
-              <X className="size-4" />
-            </button>
-          )}
+      {/* Search - conditionally rendered */}
+      {!hideSearch && (
+        <div className="shrink-0 border-b p-3">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="relative">
+                <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+                <Input
+                  placeholder={searchPlaceholder}
+                  value={filterState.search}
+                  onChange={e => onSearchChange(e.target.value)}
+                  className="pr-9 pl-9"
+                />
+                {filterState.search && (
+                  <button
+                    onClick={() => onSearchChange('')}
+                    className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 transition-colors"
+                    aria-label="Clear search"
+                  >
+                    <X className="size-4" />
+                  </button>
+                )}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="right" className="text-xs">
+              Search by name
+            </TooltipContent>
+          </Tooltip>
         </div>
-      </div>
+      )}
 
       {/* Results count and clear */}
-      <div className="flex shrink-0 items-center justify-between border-b px-4 py-2 text-sm">
-        <span className="text-muted-foreground">
+      <div className="bg-muted/30 flex shrink-0 items-center justify-between border-b px-3 py-2 text-sm">
+        <span className="text-muted-foreground text-xs">
           {resultCount === totalCount ? (
             <>{totalCount} items</>
           ) : (
             <>
-              {resultCount} of {totalCount}
+              <span className="text-foreground font-medium">{resultCount}</span>{' '}
+              of {totalCount}
             </>
           )}
         </span>
         {activeFilterCount > 0 && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClearFilters}
-            className="h-auto px-2 py-1 text-xs"
-          >
-            Clear filters ({activeFilterCount})
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClearFilters}
+                className="h-auto px-2 py-1 text-xs"
+              >
+                Clear ({activeFilterCount})
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right" className="text-xs">
+              Clear all active filters
+            </TooltipContent>
+          </Tooltip>
         )}
       </div>
 
       {/* Filter groups - scrollable */}
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="space-y-1 p-4">
+        <div className="space-y-0.5 p-3">
           {filterGroups.map(group => (
             <FilterGroupComponent
               key={group.id}
@@ -224,7 +259,7 @@ export function ReferenceFilter(props: ReferenceFilterProps) {
   }
 
   return (
-    <aside className="bg-muted/30 flex w-80 shrink-0 flex-col border-r">
+    <aside className="bg-muted/20 flex w-72 shrink-0 flex-col border-r">
       <FilterContent {...props} />
     </aside>
   );
