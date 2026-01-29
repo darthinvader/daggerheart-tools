@@ -877,28 +877,6 @@ function AdversaryFeatures({ adversary }: { adversary: AdversaryItem }) {
   );
 }
 
-function AdversaryFooterBadges({ adversary }: { adversary: AdversaryItem }) {
-  const tierBadge = tierColors[adversary.tier] ?? defaultBadgeColor;
-  const roleBadge = roleColors[adversary.role] ?? defaultBadgeColor;
-  return (
-    <div className="flex flex-wrap gap-2">
-      <Badge variant="outline" className={`text-xs ${tierBadge}`}>
-        <TierIcon tier={adversary.tier} /> Tier {adversary.tier}
-      </Badge>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Badge variant="outline" className={`text-xs ${roleBadge}`}>
-            <RoleIcon role={adversary.role} /> {adversary.role}
-          </Badge>
-        </TooltipTrigger>
-        <TooltipContent sideOffset={6}>
-          {getRoleDescription(adversary.role)}
-        </TooltipContent>
-      </Tooltip>
-    </div>
-  );
-}
-
 function AdversaryDetail({ adversary }: { adversary: AdversaryItem }) {
   return (
     <div className="space-y-6">
@@ -940,8 +918,6 @@ function AdversaryDetail({ adversary }: { adversary: AdversaryItem }) {
       <AdversaryExperiences adversary={adversary} />
 
       <AdversaryFeatures adversary={adversary} />
-
-      <AdversaryFooterBadges adversary={adversary} />
     </div>
   );
 }

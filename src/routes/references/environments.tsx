@@ -47,10 +47,10 @@ import {
   EnvironmentTierIcons,
   EnvironmentTypeIcons,
   getIcon,
-  Mountain,
   Sparkles,
   Swords,
   Target,
+  TreePine,
 } from '@/lib/icons';
 import type { Environment } from '@/lib/schemas/environments';
 
@@ -253,94 +253,32 @@ function EnvironmentsHeader({
   onClearSearch,
 }: EnvironmentsHeaderProps) {
   return (
-    <div className="shrink-0 border-b bg-linear-to-r from-emerald-500/10 via-teal-500/10 to-sky-500/10 p-4">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="bg-linear-to-r from-emerald-500 via-teal-500 to-sky-500 bg-clip-text text-2xl font-bold text-transparent">
-            <Mountain className="mr-2 inline-block size-6" />
-            Environments Reference
-          </h1>
-          <ResultsCounter
-            filtered={filteredCount}
-            total={totalCount}
-            label="environments"
-          />
+    <div className="bg-background shrink-0 border-b px-4 py-3">
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 text-lg font-semibold">
+              <TreePine className="size-4 text-emerald-500" />
+              <span className="bg-linear-to-r from-emerald-500 via-teal-500 to-sky-500 bg-clip-text text-transparent">
+                Environments Reference
+              </span>
+            </div>
+            <ResultsCounter
+              filtered={filteredCount}
+              total={totalCount}
+              label="environments"
+            />
+          </div>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2">
-            <select
-              value={tierFilter}
-              onChange={e =>
-                onTierFilterChange(
-                  e.target.value as Environment['tier'] | 'all'
-                )
-              }
-              className="bg-background h-9 rounded-md border px-2 text-sm"
-              aria-label="Filter by tier"
-            >
-              <option value="all">All tiers</option>
-              {tierOrder.map(tier => (
-                <option key={tier} value={tier}>
-                  {tierLabels[tier]} Tier {tier}
-                </option>
-              ))}
-            </select>
-            <select
-              value={typeFilter}
-              onChange={e =>
-                onTypeFilterChange(
-                  e.target.value as Environment['type'] | 'all'
-                )
-              }
-              className="bg-background h-9 rounded-md border px-2 text-sm"
-              aria-label="Filter by type"
-            >
-              <option value="all">All types</option>
-              {typeOrder.map(type => (
-                <option key={type} value={type}>
-                  {typeLabels[type]} {type}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex items-center gap-2">
-            <select
-              value={sortBy}
-              onChange={e =>
-                onSortByChange(e.target.value as EnvironmentSortKey)
-              }
-              className="bg-background h-9 rounded-md border px-2 text-sm"
-              aria-label="Sort environments"
-            >
-              <option value="name">Name</option>
-              <option value="tier">Tier</option>
-              <option value="type">Type</option>
-            </select>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-9"
-              onClick={() =>
-                onSortDirChange(sortDir === 'asc' ? 'desc' : 'asc')
-              }
-              aria-label={
-                sortDir === 'asc' ? 'Sort descending' : 'Sort ascending'
-              }
-            >
-              {sortDir === 'asc' ? (
-                <ArrowUp className="size-4" />
-              ) : (
-                <ArrowDown className="size-4" />
-              )}
-            </Button>
-          </div>
-          <div className="relative w-full sm:w-64">
+
+        <div className="bg-muted/30 sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3">
+          <div className="relative min-w-50 flex-1">
             <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
             <Input
               placeholder="Search environments..."
               value={search}
               onChange={e => onSearchChange(e.target.value)}
-              className="pr-9 pl-9"
+              className="h-9 pr-9 pl-9"
             />
             {search && (
               <button
@@ -351,6 +289,79 @@ function EnvironmentsHeader({
                 <X className="size-4" />
               </button>
             )}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-2">
+              <select
+                value={tierFilter}
+                onChange={e =>
+                  onTierFilterChange(
+                    e.target.value as Environment['tier'] | 'all'
+                  )
+                }
+                className="bg-background h-8 rounded-md border px-2 text-sm"
+                aria-label="Filter by tier"
+              >
+                <option value="all">All tiers</option>
+                {tierOrder.map(tier => (
+                  <option key={tier} value={tier}>
+                    {tierLabels[tier]} Tier {tier}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={typeFilter}
+                onChange={e =>
+                  onTypeFilterChange(
+                    e.target.value as Environment['type'] | 'all'
+                  )
+                }
+                className="bg-background h-8 rounded-md border px-2 text-sm"
+                aria-label="Filter by type"
+              >
+                <option value="all">All types</option>
+                {typeOrder.map(type => (
+                  <option key={type} value={type}>
+                    {typeLabels[type]} {type}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="bg-border h-6 w-px" />
+
+            <div className="flex items-center gap-1">
+              <select
+                value={sortBy}
+                onChange={e =>
+                  onSortByChange(e.target.value as EnvironmentSortKey)
+                }
+                className="bg-background h-8 rounded-md border px-2 text-sm"
+                aria-label="Sort environments"
+              >
+                <option value="name">Name</option>
+                <option value="tier">Tier</option>
+                <option value="type">Type</option>
+              </select>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-8"
+                onClick={() =>
+                  onSortDirChange(sortDir === 'asc' ? 'desc' : 'asc')
+                }
+                aria-label={
+                  sortDir === 'asc' ? 'Sort descending' : 'Sort ascending'
+                }
+              >
+                {sortDir === 'asc' ? (
+                  <ArrowUp className="size-4" />
+                ) : (
+                  <ArrowDown className="size-4" />
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -470,11 +481,11 @@ function EnvironmentCard({
       className="hover:border-primary/50 group h-full cursor-pointer overflow-hidden transition-all hover:scale-[1.01] hover:shadow-xl"
       onClick={onClick}
     >
-      <div className="h-2 bg-linear-to-r from-emerald-500 via-teal-500 to-sky-500" />
-      <CardHeader className={compact ? 'pb-2' : undefined}>
+      <div className="h-1 bg-linear-to-r from-emerald-500 via-teal-500 to-sky-500" />
+      <CardHeader className={compact ? 'pb-2' : 'pb-3'}>
         <div className="flex flex-wrap items-center gap-2">
-          <CardTitle className={compact ? 'text-lg' : 'text-2xl'}>
-            <Mountain className="mr-2 inline-block size-5" />
+          <CardTitle className={compact ? 'text-base' : 'text-xl'}>
+            <TreePine className="mr-2 inline-block size-4" />
             {environment.name}
           </CardTitle>
           <Badge variant="outline" className={`text-xs ${tierBadge}`}>
@@ -491,14 +502,39 @@ function EnvironmentCard({
             </TooltipContent>
           </Tooltip>
         </div>
-        <CardDescription
-          className={`text-muted-foreground ${compact ? 'line-clamp-2 text-xs' : 'mt-2 text-sm'}`}
-        >
-          {environment.description}
-        </CardDescription>
       </CardHeader>
-      <CardContent className={compact ? 'space-y-2 pt-0' : 'space-y-4'}>
-        <div className="text-muted-foreground grid grid-cols-2 gap-2 text-xs">
+      <CardContent className={compact ? 'space-y-3 pt-0' : 'space-y-4'}>
+        <div className="bg-card space-y-2 rounded-lg border p-3">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-emerald-700 uppercase dark:text-emerald-300">
+                <TreePine className="size-3" />
+                Overview
+              </div>
+            </TooltipTrigger>
+            <TooltipContent sideOffset={6}>
+              Quick summary of the environment.
+            </TooltipContent>
+          </Tooltip>
+          <CardDescription className={compact ? 'text-xs' : 'text-sm'}>
+            {environment.description}
+          </CardDescription>
+        </div>
+
+        <div className="bg-muted/40 text-muted-foreground grid grid-cols-2 gap-2 rounded-lg border p-3 text-xs">
+          <div className="col-span-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="inline-flex items-center gap-1 rounded-full border border-sky-500/30 bg-sky-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-sky-700 uppercase dark:text-sky-300">
+                  <Target className="size-3" />
+                  Scene Stats
+                </div>
+              </TooltipTrigger>
+              <TooltipContent sideOffset={6}>
+                Core scene difficulty and counts.
+              </TooltipContent>
+            </Tooltip>
+          </div>
           <div>
             <TooltipLabel
               label="Difficulty"
@@ -517,21 +553,59 @@ function EnvironmentCard({
             />{' '}
             {environment.impulses.length}
           </div>
-        </div>
-        {!compact && environment.features.length > 0 && (
-          <div className="text-muted-foreground space-y-1 text-xs">
+          <div>
             <TooltipLabel
               label="Features"
               labelIcon={Sparkles}
               tooltip="Actions, reactions, or passive effects for the scene."
               className="font-semibold"
-            />
-            <ul className="list-disc space-y-1 pl-4">
-              {environment.features.slice(0, 3).map((feature, idx) => (
-                <li key={idx} className="line-clamp-2">
-                  {formatFeature(feature)}
-                </li>
-              ))}
+            />{' '}
+            {environment.features.length}
+          </div>
+        </div>
+
+        {environment.impulses.length > 0 && (
+          <div className="bg-card space-y-2 rounded-lg border p-3 text-xs">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-emerald-700 uppercase dark:text-emerald-300">
+                  <Brain className="size-3" />
+                  Impulses
+                </div>
+              </TooltipTrigger>
+              <TooltipContent sideOffset={6}>
+                Narrative goals or behaviors this environment drives.
+              </TooltipContent>
+            </Tooltip>
+            <ul className="text-muted-foreground list-disc space-y-1 pl-4">
+              {environment.impulses
+                .slice(0, compact ? 2 : 3)
+                .map((impulse, idx) => (
+                  <li key={idx}>{impulse}</li>
+                ))}
+            </ul>
+          </div>
+        )}
+
+        {environment.features.length > 0 && (
+          <div className="bg-card space-y-2 rounded-lg border p-3 text-xs">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-amber-700 uppercase dark:text-amber-300">
+                  <Sparkles className="size-3" />
+                  Features
+                </div>
+              </TooltipTrigger>
+              <TooltipContent sideOffset={6}>
+                Actions, reactions, or passive effects for the scene.
+              </TooltipContent>
+            </Tooltip>
+            <ul className="text-muted-foreground list-disc space-y-1 pl-4">
+              {environment.features
+                .slice(0, compact ? 2 : 3)
+                .map((feature, idx) => (
+                  <li key={idx}>{formatFeature(feature)}</li>
+                ))}
             </ul>
           </div>
         )}
@@ -541,84 +615,120 @@ function EnvironmentCard({
 }
 
 function EnvironmentDetail({ environment }: { environment: EnvironmentItem }) {
-  const tierBadge = tierColors[environment.tier] ?? defaultBadgeColor;
-  const typeBadge = typeColors[environment.type] ?? defaultBadgeColor;
-
   return (
     <div className="space-y-6">
-      <div className="-mx-4 -mt-4 bg-linear-to-r from-emerald-500 via-teal-500 to-sky-500 p-6">
-        <h2 className="text-3xl font-bold text-white">
-          <Mountain className="mr-2 inline-block size-8" />
-          {environment.name}
-        </h2>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <Badge className="border-white/30 bg-white/20 text-white">
-            <TierIcon tier={environment.tier} className="mr-1 size-4" /> Tier{' '}
-            {environment.tier}
-          </Badge>
+      <div className="-mx-4 -mt-4 bg-linear-to-r from-emerald-600 via-teal-600 to-sky-600 p-6">
+        <div className="rounded-xl bg-black/25 p-4">
+          <h2 className="text-2xl font-semibold text-white drop-shadow">
+            <TreePine className="mr-2 inline-block size-7" />
+            {environment.name}
+          </h2>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Badge className="border-slate-900/40 bg-slate-900/80 text-white">
+              <TierIcon tier={environment.tier} className="mr-1 size-4" /> Tier{' '}
+              {environment.tier}
+            </Badge>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge className="border-slate-900/40 bg-slate-900/80 text-white">
+                  <TypeIcon type={environment.type} className="mr-1 size-4" />{' '}
+                  {environment.type}
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent sideOffset={6}>
+                {getTypeDescription(environment.type)}
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-card space-y-2 rounded-lg border p-4">
+        <div className="mb-1">
+          <div className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-emerald-700 uppercase dark:text-emerald-300">
+            <TreePine className="size-3" />
+            Overview
+          </div>
+        </div>
+        <p className="text-muted-foreground text-sm">
+          {environment.description}
+        </p>
+      </div>
+
+      <div className="bg-card space-y-2 rounded-lg border p-4">
+        <div className="mb-1">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Badge className="border-white/30 bg-white/20 text-white">
-                <TypeIcon type={environment.type} className="mr-1 size-4" />{' '}
-                {environment.type}
-              </Badge>
+              <div className="inline-flex items-center gap-1 rounded-full border border-sky-500/30 bg-sky-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-sky-700 uppercase dark:text-sky-300">
+                <Target className="size-3" />
+                Scene Stats
+              </div>
             </TooltipTrigger>
             <TooltipContent sideOffset={6}>
-              {getTypeDescription(environment.type)}
+              Key scene difficulty and type.
             </TooltipContent>
           </Tooltip>
         </div>
-      </div>
-
-      <p className="text-muted-foreground">{environment.description}</p>
-
-      <div className="grid grid-cols-2 gap-4 text-sm">
-        <div>
-          <TooltipLabel
-            label="Difficulty"
-            labelIcon={Target}
-            tooltip="Target number to meet or beat in this environment."
-            className="font-semibold"
-          />{' '}
-          {formatDifficulty(environment.difficulty)}
-        </div>
-        <div>
-          <TooltipLabel
-            label="Type"
-            labelIcon={Compass}
-            tooltip="Scene style this environment supports most naturally."
-            className="font-semibold"
-          />{' '}
-          {environment.type}
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <TooltipLabel
+              label="Difficulty"
+              labelIcon={Target}
+              tooltip="Target number to meet or beat in this environment."
+              className="font-semibold"
+            />{' '}
+            {formatDifficulty(environment.difficulty)}
+          </div>
+          <div>
+            <TooltipLabel
+              label="Type"
+              labelIcon={Compass}
+              tooltip="Scene style this environment supports most naturally."
+              className="font-semibold"
+            />{' '}
+            {environment.type}
+          </div>
         </div>
       </div>
 
-      <div>
-        <h4 className="mb-2 font-semibold">
-          <TooltipLabel
-            label="Impulses"
-            labelIcon={Brain}
-            tooltip="Narrative goals or behaviors the environment pushes toward."
-            className="font-semibold"
-          />
-        </h4>
-        <ul className="text-muted-foreground list-disc space-y-2 pl-5 text-sm">
-          {environment.impulses.map((impulse, idx) => (
-            <li key={idx}>{impulse}</li>
-          ))}
-        </ul>
-      </div>
+      {environment.impulses.length > 0 && (
+        <div className="bg-card space-y-2 rounded-lg border p-4">
+          <div className="mb-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-emerald-700 uppercase dark:text-emerald-300">
+                  <Brain className="size-3" />
+                  Impulses
+                </div>
+              </TooltipTrigger>
+              <TooltipContent sideOffset={6}>
+                Narrative goals or behaviors the environment pushes toward.
+              </TooltipContent>
+            </Tooltip>
+          </div>
+          <ul className="text-muted-foreground list-disc space-y-2 pl-5 text-sm">
+            {environment.impulses.map((impulse, idx) => (
+              <li key={idx}>{impulse}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {environment.potentialAdversaries.length > 0 && (
-        <div>
-          <h4 className="mb-2 font-semibold">
-            <TooltipLabel
-              label="Potential Adversaries"
-              labelIcon={Swords}
-              tooltip="Common adversaries that appear in this environment."
-              className="font-semibold"
-            />
-          </h4>
+        <div className="bg-card space-y-2 rounded-lg border p-4">
+          <div className="mb-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="inline-flex items-center gap-1 rounded-full border border-rose-500/30 bg-rose-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-rose-700 uppercase dark:text-rose-300">
+                  <Swords className="size-3" />
+                  Potential Adversaries
+                </div>
+              </TooltipTrigger>
+              <TooltipContent sideOffset={6}>
+                Common adversaries that appear in this environment.
+              </TooltipContent>
+            </Tooltip>
+          </div>
           <ul className="text-muted-foreground list-disc space-y-2 pl-5 text-sm">
             {environment.potentialAdversaries.map((entry, idx) => (
               <li key={idx}>{entry}</li>
@@ -628,15 +738,20 @@ function EnvironmentDetail({ environment }: { environment: EnvironmentItem }) {
       )}
 
       {environment.features.length > 0 && (
-        <div>
-          <h4 className="mb-2 font-semibold">
-            <TooltipLabel
-              label="Features"
-              labelIcon={Sparkles}
-              tooltip="Actions, reactions, or passive effects for the scene."
-              className="font-semibold"
-            />
-          </h4>
+        <div className="bg-card space-y-2 rounded-lg border p-4">
+          <div className="mb-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-amber-700 uppercase dark:text-amber-300">
+                  <Sparkles className="size-3" />
+                  Features
+                </div>
+              </TooltipTrigger>
+              <TooltipContent sideOffset={6}>
+                Actions, reactions, or passive effects for the scene.
+              </TooltipContent>
+            </Tooltip>
+          </div>
           <ul className="text-muted-foreground list-disc space-y-2 pl-5 text-sm">
             {environment.features.map((feature, idx) => (
               <li key={idx}>{formatFeature(feature)}</li>
@@ -644,22 +759,6 @@ function EnvironmentDetail({ environment }: { environment: EnvironmentItem }) {
           </ul>
         </div>
       )}
-
-      <div className="flex flex-wrap gap-2">
-        <Badge variant="outline" className={`text-xs ${tierBadge}`}>
-          <TierIcon tier={environment.tier} /> Tier {environment.tier}
-        </Badge>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Badge variant="outline" className={`text-xs ${typeBadge}`}>
-              <TypeIcon type={environment.type} /> {environment.type}
-            </Badge>
-          </TooltipTrigger>
-          <TooltipContent sideOffset={6}>
-            {getTypeDescription(environment.type)}
-          </TooltipContent>
-        </Tooltip>
-      </div>
     </div>
   );
 }
