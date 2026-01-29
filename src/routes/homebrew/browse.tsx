@@ -228,7 +228,7 @@ function BrowseHomebrew() {
               value={sortBy}
               onValueChange={v => setSortBy(v as typeof sortBy)}
             >
-              <SelectTrigger className="w-full sm:w-40">
+              <SelectTrigger className="w-full sm:w-52">
                 <SortAsc className="mr-2 size-4" />
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>

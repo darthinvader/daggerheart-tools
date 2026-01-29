@@ -305,7 +305,7 @@ export function HomebrewList({
             value={sortBy}
             onValueChange={v => setSortBy(v as SortOption)}
           >
-            <SelectTrigger className="w-32">
+            <SelectTrigger className="w-48">
               <SortAsc className="mr-2 size-4" />
               <SelectValue />
             </SelectTrigger>
