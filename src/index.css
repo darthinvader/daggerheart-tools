@@ -175,6 +175,12 @@ h1 {
   }
 }
 
+/* Tab active state - high specificity to ensure visibility */
+[data-slot='tabs-trigger'][data-state='active'] {
+  background-color: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+}
+
 @layer utilities {
   /* Two-line clamp utility for wrapping long names without breaking layout */
   .line-clamp-2 {

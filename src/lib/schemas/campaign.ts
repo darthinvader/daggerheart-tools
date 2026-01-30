@@ -124,6 +124,21 @@ export const CampaignFrameSchema = z.object({
 });
 
 // =====================================================================================
+// Session NPC Involvement - Tracks NPC participation in sessions with metadata
+// =====================================================================================
+
+export const SessionNPCInvolvementSchema = z.object({
+  id: z.string(),
+  npcId: z.string(),
+  npcName: z.string().optional(), // Denormalized for display
+  role: z.string().default(''),
+  actionsTaken: z.string().default(''),
+  notes: z.string().default(''),
+  locationIds: z.array(z.string()).default([]), // Where the NPC was during the session
+  questIds: z.array(z.string()).default([]), // Quests the NPC was involved in
+});
+
+// =====================================================================================
 // Session Notes - Track what happened each session
 // =====================================================================================
 
@@ -131,9 +146,9 @@ export const SessionNoteSchema = z.object({
   id: z.string(),
   sessionNumber: z.number().min(1),
   title: z.string().default(''),
-  date: z.string().optional(), // When the session was played
+  date: z.string().optional(), // When the session was played (date_played)
   summary: z.string().default(''), // GM's summary of events
-  highlights: z.array(z.string()).default([]), // Key moments
+  keyHighlights: z.array(z.string()).default([]), // Key moments (renamed from highlights)
   playerNotes: z
     .array(
       z.object({
@@ -144,11 +159,52 @@ export const SessionNoteSchema = z.object({
       })
     )
     .default([]),
-  npcsInvolved: z.array(z.string()).default([]), // NPC IDs
-  locations: z.array(z.string()).default([]), // Location names
-  questProgress: z.string().default(''), // Notes on quest/story progress
+  // NPCs Involved with full metadata (double-linked with NPC's session appearances)
+  npcsInvolved: z.array(SessionNPCInvolvementSchema).default([]),
+  // Legacy fields for backwards compatibility
+  npcsInvolvedIds: z.array(z.string()).default([]), // NPC IDs (legacy)
+  npcsInvolvedCustom: z.array(z.string()).default([]), // Custom NPC labels (legacy)
+  // Locations visited
+  locationIds: z.array(z.string()).default([]), // Location IDs
+  locationsCustom: z.array(z.string()).default([]), // Custom location labels (legacy)
+  // Quests involved
+  questIds: z.array(z.string()).default([]), // Quest IDs
+  questsInvolvedCustom: z.array(z.string()).default([]), // Custom quest labels (legacy)
+  // Organizations mentioned
+  organizationIds: z.array(z.string()).default([]),
+  // Legacy
+  questProgress: z.string().default(''), // Notes on quest/story progress (legacy)
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
+});
+
+// =====================================================================================
+// NPC Session Appearance - Tracks NPC's appearance in sessions (reverse link)
+// =====================================================================================
+
+export const NPCSessionAppearanceSchema = z.object({
+  sessionId: z.string(),
+  sessionNumber: z.number().optional(),
+  sessionTitle: z.string().optional(),
+  role: z.string().default(''),
+  actionsTaken: z.string().default(''),
+  notes: z.string().default(''),
+  locationIds: z.array(z.string()).default([]),
+  questIds: z.array(z.string()).default([]),
+});
+
+// =====================================================================================
+// NPC Quest Appearance - Tracks NPC's involvement in quests
+// =====================================================================================
+
+export const NPCQuestAppearanceSchema = z.object({
+  questId: z.string(),
+  questTitle: z.string().optional(),
+  role: z.string().default(''),
+  actionsTaken: z.string().default(''),
+  notes: z.string().default(''),
+  locationIds: z.array(z.string()).default([]),
+  sessionIds: z.array(z.string()).default([]),
 });
 
 // =====================================================================================
@@ -158,11 +214,30 @@ export const SessionNoteSchema = z.object({
 export const CampaignNPCSchema = z.object({
   id: z.string(),
   name: z.string().min(1),
-  title: z.string().default(''), // e.g., "The Merchant Prince", "Village Elder"
+  titleRole: z.string().default(''), // e.g., "The Merchant Prince", "Village Elder" (renamed from title)
+  status: z
+    .enum(['active', 'deceased', 'missing', 'retired'])
+    .default('active'),
   description: z.string().default(''), // Physical appearance, mannerisms
   personality: z.string().default(''), // How they act, their quirks
   motivation: z.string().default(''), // What drives them
+  backgroundHistory: z.string().default(''), // Background/History (renamed)
   secrets: z.string().default(''), // Hidden info only GM knows
+
+  // Organization/Faction links
+  faction: z.string().default(''), // Legacy field
+  organizationIds: z.array(z.string()).default([]), // Link to organizations
+
+  // Location links
+  locationIds: z.array(z.string()).default([]),
+
+  // NPC Relationships
+  allyNpcIds: z.array(z.string()).default([]),
+  enemyNpcIds: z.array(z.string()).default([]),
+  allyOrganizationIds: z.array(z.string()).default([]),
+  enemyOrganizationIds: z.array(z.string()).default([]),
+
+  // Legacy connections field
   connections: z
     .array(
       z.object({
@@ -172,24 +247,28 @@ export const CampaignNPCSchema = z.object({
       })
     )
     .default([]),
-  locations: z.array(z.string()).default([]), // Where they can be found
-  status: z
-    .enum(['active', 'deceased', 'missing', 'retired'])
-    .default('active'),
-  faction: z.string().default(''), // Which group they belong to
-  notes: z.string().default(''), // Free-form notes
-  sessionAppearances: z
-    .array(
-      z.object({
-        sessionId: z.string(),
-        sessionNumber: z.number(),
-        summary: z.string(), // What they did this session
-      })
-    )
-    .default([]),
+
+  // Session and Quest appearances
+  sessionAppearances: z.array(NPCSessionAppearanceSchema).default([]),
+  questAppearances: z.array(NPCQuestAppearanceSchema).default([]),
+
+  // Metadata
   tags: z.array(z.string()).default([]), // For filtering/organizing
+  notes: z.string().default(''), // Free-form notes (renamed from notes)
+
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
+});
+
+// =====================================================================================
+// Point of Interest - For location sub-elements
+// =====================================================================================
+
+export const PointOfInterestSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string().default(''),
+  significance: z.string().default(''),
 });
 
 // =====================================================================================
@@ -213,23 +292,75 @@ export const CampaignLocationSchema = z.object({
     ])
     .default('other'),
   description: z.string().default(''), // What the place looks like
-  history: z.string().default(''), // Background and lore
-  secrets: z.string().default(''), // Hidden info only GM knows
   currentState: z.string().default(''), // What's happening there now
+  historyLore: z.string().default(''), // Background and lore (renamed from history)
+  secrets: z.string().default(''), // Hidden info only GM knows
+
+  // Points of Interest
+  pointsOfInterest: z.array(PointOfInterestSchema).default([]),
+
+  // Connected locations
   connectedLocations: z.array(z.string()).default([]), // IDs of connected places
-  npcsPresent: z.array(z.string()).default([]), // NPC IDs found here
-  pointsOfInterest: z
+
+  // NPC links
+  npcIds: z.array(z.string()).default([]), // NPC IDs found here
+  npcsPresentCustom: z.array(z.string()).default([]), // Custom NPC labels (legacy)
+
+  // Organization links
+  organizationIds: z.array(z.string()).default([]),
+
+  // Quest links
+  questIds: z.array(z.string()).default([]), // Quest IDs
+  questsAvailableCustom: z.array(z.string()).default([]), // Custom quest labels (legacy)
+
+  // Session appearances
+  sessionAppearances: z
     .array(
       z.object({
-        name: z.string(),
-        description: z.string(),
+        sessionId: z.string().optional(),
+        sessionNumber: z.number().optional(),
+        sessionTitle: z.string().optional(),
+        notes: z.string().default(''),
       })
     )
     .default([]),
+
+  // Metadata
   tags: z.array(z.string()).default([]),
   notes: z.string().default(''),
+
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
+});
+
+// =====================================================================================
+// Quest NPC Involvement - Tracks NPC participation in quests with metadata
+// =====================================================================================
+
+export const QuestNPCInvolvementSchema = z.object({
+  id: z.string(),
+  npcId: z.string(),
+  npcName: z.string().optional(), // Denormalized for display
+  role: z.string().default(''),
+  actionsTaken: z.string().default(''),
+  notes: z.string().default(''),
+  locationIds: z.array(z.string()).default([]),
+  sessionIds: z.array(z.string()).default([]),
+});
+
+// =====================================================================================
+// Quest Character (PC) Involvement - Tracks PC participation in quests with metadata
+// =====================================================================================
+
+export const QuestCharacterInvolvementSchema = z.object({
+  id: z.string(),
+  characterId: z.string(),
+  characterName: z.string().optional(), // Denormalized for display
+  role: z.string().default(''),
+  actionsTaken: z.string().default(''),
+  notes: z.string().default(''),
+  locationIds: z.array(z.string()).default([]),
+  sessionIds: z.array(z.string()).default([]),
 });
 
 // =====================================================================================
@@ -239,13 +370,16 @@ export const CampaignLocationSchema = z.object({
 export const CampaignQuestSchema = z.object({
   id: z.string(),
   title: z.string().min(1),
-  type: z
-    .enum(['main', 'side', 'personal', 'faction', 'rumor', 'hook'])
-    .default('side'),
   status: z
     .enum(['available', 'active', 'completed', 'failed', 'abandoned'])
     .default('available'),
+  type: z
+    .enum(['main', 'side', 'personal', 'faction', 'rumor', 'hook'])
+    .default('side'),
+  priority: z.enum(['low', 'medium', 'high', 'urgent']).default('medium'),
   description: z.string().default(''), // What the quest is about
+
+  // Objectives (multiple)
   objectives: z
     .array(
       z.object({
@@ -255,17 +389,51 @@ export const CampaignQuestSchema = z.object({
       })
     )
     .default([]),
-  rewards: z.string().default(''), // What they get for completing
-  giver: z.string().default(''), // NPC who gave the quest (ID or name)
-  location: z.string().default(''), // Where the quest takes place (ID or name)
-  relatedNpcs: z.array(z.string()).default([]), // NPCs involved
-  notes: z.string().default(''), // GM notes
+
+  // Rewards (multiple)
+  rewards: z.array(z.string()).default([]),
+
+  // Story elements
   foreshadowing: z.string().default(''), // Hints to drop before revealing
   consequences: z.string().default(''), // What happens if they fail or ignore
-  priority: z.enum(['low', 'medium', 'high', 'urgent']).default('medium'),
-  sessionIntroduced: z.number().optional(), // When players learned of it
-  sessionCompleted: z.number().optional(), // When they finished it
+  notes: z.string().default(''), // GM notes
+
+  // NPCs Involved with full metadata
+  npcsInvolved: z.array(QuestNPCInvolvementSchema).default([]),
+
+  // Characters (PCs) Involved with full metadata
+  charactersInvolved: z.array(QuestCharacterInvolvementSchema).default([]),
+
+  // Location links
+  locationIds: z.array(z.string()).default([]),
+
+  // Organization links
+  organizationIds: z.array(z.string()).default([]),
+
+  // Session links
+  sessionIds: z.array(z.string()).default([]),
+
+  // Legacy fields for backwards compatibility
+  giver: z.string().default(''), // NPC who gave the quest (legacy)
+  location: z.string().default(''), // Where the quest takes place (legacy)
+  relatedNpcs: z.array(z.string()).default([]), // NPCs involved (legacy)
+  relatedNpcsCustom: z.array(z.string()).default([]), // Custom NPC labels (legacy)
+  relatedLocations: z.array(z.string()).default([]), // Location IDs (legacy)
+  relatedLocationsCustom: z.array(z.string()).default([]), // Custom location labels (legacy)
+  sessionAppearances: z
+    .array(
+      z.object({
+        sessionId: z.string().optional(),
+        sessionNumber: z.number().optional(),
+        sessionTitle: z.string().optional(),
+        notes: z.string().default(''),
+      })
+    )
+    .default([]),
+  sessionIntroduced: z.number().optional(), // When players learned of it (legacy)
+  sessionCompleted: z.number().optional(), // When they finished it (legacy)
   tags: z.array(z.string()).default([]),
+
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
 });
@@ -298,6 +466,61 @@ export const StoryThreadSchema = z.object({
 });
 
 // =====================================================================================
+// Campaign Organizations - Factions, Guilds, and other groups
+// =====================================================================================
+
+export const CampaignOrganizationSchema = z.object({
+  id: z.string(),
+  name: z.string().min(1),
+  type: z
+    .enum([
+      'guild',
+      'faction',
+      'government',
+      'religious',
+      'criminal',
+      'mercenary',
+      'merchant',
+      'secret',
+      'other',
+    ])
+    .default('other'),
+  description: z.string().default(''),
+  goalsObjectives: z.string().default(''),
+  secrets: z.string().default(''),
+
+  // Key Members (NPC links)
+  keyMemberIds: z.array(z.string()).default([]),
+
+  // Ally/Enemy NPCs
+  allyNpcIds: z.array(z.string()).default([]),
+  enemyNpcIds: z.array(z.string()).default([]),
+
+  // Ally/Enemy Organizations
+  allyOrganizationIds: z.array(z.string()).default([]),
+  enemyOrganizationIds: z.array(z.string()).default([]),
+
+  // Headquarters (single location)
+  headquartersId: z.string().optional(),
+
+  // Notable Activities (Quest links)
+  questIds: z.array(z.string()).default([]),
+
+  // Location links
+  locationIds: z.array(z.string()).default([]),
+
+  // Session appearances
+  sessionIds: z.array(z.string()).default([]),
+
+  // Metadata
+  tags: z.array(z.string()).default([]),
+  notes: z.string().default(''),
+
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
+// =====================================================================================
 // Campaign (GM's instance of a frame with players)
 // =====================================================================================
 
@@ -320,6 +543,7 @@ export const CampaignSchema = z.object({
   npcs: z.array(CampaignNPCSchema).default([]),
   locations: z.array(CampaignLocationSchema).default([]),
   quests: z.array(CampaignQuestSchema).default([]),
+  organizations: z.array(CampaignOrganizationSchema).default([]),
   storyThreads: z.array(StoryThreadSchema).default([]),
   battles: z.array(BattleStateSchema).default([]),
   sessionPrepChecklist: z
@@ -376,9 +600,18 @@ export type IncitingIncident = z.infer<typeof IncitingIncidentSchema>;
 export type CampaignFrame = z.infer<typeof CampaignFrameSchema>;
 export type CampaignPlayer = z.infer<typeof CampaignPlayerSchema>;
 export type SessionNote = z.infer<typeof SessionNoteSchema>;
+export type SessionNPCInvolvement = z.infer<typeof SessionNPCInvolvementSchema>;
+export type NPCSessionAppearance = z.infer<typeof NPCSessionAppearanceSchema>;
+export type NPCQuestAppearance = z.infer<typeof NPCQuestAppearanceSchema>;
 export type CampaignNPC = z.infer<typeof CampaignNPCSchema>;
+export type PointOfInterest = z.infer<typeof PointOfInterestSchema>;
 export type CampaignLocation = z.infer<typeof CampaignLocationSchema>;
+export type QuestNPCInvolvement = z.infer<typeof QuestNPCInvolvementSchema>;
+export type QuestCharacterInvolvement = z.infer<
+  typeof QuestCharacterInvolvementSchema
+>;
 export type CampaignQuest = z.infer<typeof CampaignQuestSchema>;
+export type CampaignOrganization = z.infer<typeof CampaignOrganizationSchema>;
 export type StoryThread = z.infer<typeof StoryThreadSchema>;
 export type Campaign = z.infer<typeof CampaignSchema>;
 

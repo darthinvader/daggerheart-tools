@@ -34,8 +34,11 @@ import type { BattleState } from '@/lib/schemas/battle';
 import type {
   Campaign,
   CampaignFrame,
+  CampaignLocation,
   CampaignNPC,
+  CampaignOrganization,
   CampaignPlayer,
+  CampaignQuest,
   SessionNote,
 } from '@/lib/schemas/campaign';
 
@@ -44,10 +47,11 @@ import { EditableMechanics } from './editable-mechanics';
 import { EditablePrinciples } from './editable-principles';
 import { EditableQuestions } from './editable-questions';
 import { type ChecklistItem, GMToolsPanel } from './gm-tools-panel';
-import { EditableLocations } from './location-components';
-import { EditableNPCs } from './npc-components';
-import { EditableQuests } from './quest-components';
-import { EditableSessions } from './session-components';
+import { EditableLocations } from './location-components-new';
+import { EditableNPCs } from './npc-components-new';
+import { EditableOrganizations } from './organization-components-new';
+import { EditableQuests } from './quest-components-new';
+import { EditableSessions } from './session-components-new';
 import { TagInput } from './tag-input';
 
 interface OverviewTabProps {
@@ -303,19 +307,33 @@ export function MechanicsTabContent({
 interface SessionsTabProps {
   sessions: SessionNote[];
   npcs: CampaignNPC[];
+  locations: CampaignLocation[];
+  quests: CampaignQuest[];
+  organizations: CampaignOrganization[];
   campaignId: string;
   onSaveStart: () => void;
   onPendingChange: () => void;
   onSessionsChange: () => void | Promise<void>;
+  onNPCsChange?: () => void | Promise<void>;
+  onLocationsChange?: () => void | Promise<void>;
+  onQuestsChange?: () => void | Promise<void>;
+  onOrganizationsChange?: () => void | Promise<void>;
 }
 
 export function SessionsTabContent({
   sessions,
   npcs,
+  locations,
+  quests,
+  organizations,
   campaignId,
   onSaveStart,
   onPendingChange,
   onSessionsChange,
+  onNPCsChange,
+  onLocationsChange,
+  onQuestsChange,
+  onOrganizationsChange,
 }: SessionsTabProps) {
   return (
     <TabsContent value="sessions" className="space-y-6">
@@ -330,10 +348,17 @@ export function SessionsTabContent({
           <EditableSessions
             sessions={sessions}
             npcs={npcs}
+            locations={locations}
+            quests={quests}
+            organizations={organizations}
             campaignId={campaignId}
             onSaveStart={onSaveStart}
             onPendingChange={onPendingChange}
             onSessionsChange={onSessionsChange}
+            onNPCsChange={onNPCsChange}
+            onLocationsChange={onLocationsChange}
+            onQuestsChange={onQuestsChange}
+            onOrganizationsChange={onOrganizationsChange}
           />
         </CardContent>
       </Card>
@@ -343,18 +368,30 @@ export function SessionsTabContent({
 
 interface CharactersTabProps {
   npcs: CampaignNPC[];
+  locations: CampaignLocation[];
+  quests: CampaignQuest[];
+  sessions: SessionNote[];
+  organizations: CampaignOrganization[];
   campaignId: string;
   onSaveStart: () => void;
   onPendingChange: () => void;
   onNPCsChange: () => void | Promise<void>;
+  onLocationsChange?: () => void | Promise<void>;
+  onOrganizationsChange?: () => void | Promise<void>;
 }
 
 export function CharactersTabContent({
   npcs,
+  locations,
+  quests,
+  sessions,
+  organizations,
   campaignId,
   onSaveStart,
   onPendingChange,
   onNPCsChange,
+  onLocationsChange,
+  onOrganizationsChange,
 }: CharactersTabProps) {
   return (
     <TabsContent value="characters" className="space-y-6">
@@ -368,10 +405,16 @@ export function CharactersTabContent({
         <CardContent>
           <EditableNPCs
             npcs={npcs}
+            locations={locations}
+            quests={quests}
+            sessions={sessions}
+            organizations={organizations}
             campaignId={campaignId}
             onSaveStart={onSaveStart}
             onPendingChange={onPendingChange}
             onNPCsChange={onNPCsChange}
+            onLocationsChange={onLocationsChange}
+            onOrganizationsChange={onOrganizationsChange}
           />
         </CardContent>
       </Card>
@@ -381,18 +424,32 @@ export function CharactersTabContent({
 
 interface LocationsTabProps {
   locations: Campaign['locations'];
+  npcs: CampaignNPC[];
+  quests: CampaignQuest[];
+  sessions: SessionNote[];
+  organizations: CampaignOrganization[];
   campaignId: string;
   onSaveStart: () => void;
   onPendingChange: () => void;
   onLocationsChange: () => void | Promise<void>;
+  onNPCsChange?: () => void | Promise<void>;
+  onQuestsChange?: () => void | Promise<void>;
+  onOrganizationsChange?: () => void | Promise<void>;
 }
 
 export function LocationsTabContent({
   locations,
+  npcs,
+  quests,
+  sessions,
+  organizations,
   campaignId,
   onSaveStart,
   onPendingChange,
   onLocationsChange,
+  onNPCsChange,
+  onQuestsChange,
+  onOrganizationsChange,
 }: LocationsTabProps) {
   return (
     <TabsContent value="locations" className="space-y-6">
@@ -406,10 +463,17 @@ export function LocationsTabContent({
         <CardContent>
           <EditableLocations
             locations={locations ?? []}
+            npcs={npcs}
+            quests={quests}
+            sessions={sessions}
+            organizations={organizations}
             campaignId={campaignId}
             onSaveStart={onSaveStart}
             onPendingChange={onPendingChange}
             onLocationsChange={onLocationsChange}
+            onNPCsChange={onNPCsChange}
+            onQuestsChange={onQuestsChange}
+            onOrganizationsChange={onOrganizationsChange}
           />
         </CardContent>
       </Card>
@@ -419,18 +483,32 @@ export function LocationsTabContent({
 
 interface QuestsTabProps {
   quests: Campaign['quests'];
+  npcs: CampaignNPC[];
+  locations: CampaignLocation[];
+  sessions: SessionNote[];
+  organizations: CampaignOrganization[];
   campaignId: string;
   onSaveStart: () => void;
   onPendingChange: () => void;
   onQuestsChange: () => void | Promise<void>;
+  onNPCsChange?: () => void | Promise<void>;
+  onLocationsChange?: () => void | Promise<void>;
+  onOrganizationsChange?: () => void | Promise<void>;
 }
 
 export function QuestsTabContent({
   quests,
+  npcs,
+  locations,
+  sessions,
+  organizations,
   campaignId,
   onSaveStart,
   onPendingChange,
   onQuestsChange,
+  onNPCsChange,
+  onLocationsChange,
+  onOrganizationsChange,
 }: QuestsTabProps) {
   return (
     <TabsContent value="quests" className="space-y-6">
@@ -444,9 +522,72 @@ export function QuestsTabContent({
         <CardContent>
           <EditableQuests
             quests={quests ?? []}
+            npcs={npcs}
+            locations={locations}
+            sessions={sessions}
+            organizations={organizations}
             campaignId={campaignId}
             onSaveStart={onSaveStart}
             onPendingChange={onPendingChange}
+            onQuestsChange={onQuestsChange}
+            onNPCsChange={onNPCsChange}
+            onLocationsChange={onLocationsChange}
+            onOrganizationsChange={onOrganizationsChange}
+          />
+        </CardContent>
+      </Card>
+    </TabsContent>
+  );
+}
+
+interface OrganizationsTabProps {
+  organizations: CampaignOrganization[];
+  npcs: CampaignNPC[];
+  locations: CampaignLocation[];
+  quests: CampaignQuest[];
+  campaignId: string;
+  onSaveStart: () => void;
+  onPendingChange: () => void;
+  onOrganizationsChange: () => void | Promise<void>;
+  onNPCsChange?: () => void | Promise<void>;
+  onLocationsChange?: () => void | Promise<void>;
+  onQuestsChange?: () => void | Promise<void>;
+}
+
+export function OrganizationsTabContent({
+  organizations,
+  npcs,
+  locations,
+  quests,
+  campaignId,
+  onSaveStart,
+  onPendingChange,
+  onOrganizationsChange,
+  onNPCsChange,
+  onLocationsChange,
+  onQuestsChange,
+}: OrganizationsTabProps) {
+  return (
+    <TabsContent value="organizations" className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Organizations & Factions</CardTitle>
+          <CardDescription>
+            Guilds, factions, governments, and other groups in your world
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <EditableOrganizations
+            organizations={organizations ?? []}
+            npcs={npcs}
+            locations={locations}
+            quests={quests}
+            campaignId={campaignId}
+            onSaveStart={onSaveStart}
+            onPendingChange={onPendingChange}
+            onOrganizationsChange={onOrganizationsChange}
+            onNPCsChange={onNPCsChange}
+            onLocationsChange={onLocationsChange}
             onQuestsChange={onQuestsChange}
           />
         </CardContent>

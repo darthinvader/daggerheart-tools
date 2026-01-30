@@ -9,6 +9,7 @@ import {
 import {
   Beaker,
   BookOpen,
+  Building2,
   Lightbulb,
   Map,
   MapPin,
@@ -28,6 +29,7 @@ import {
   HomebrewTabContent,
   LocationsTabContent,
   MechanicsTabContent,
+  OrganizationsTabContent,
   OverviewTabContent,
   PlayersTabContent,
   QuestsTabContent,
@@ -57,6 +59,7 @@ const validTabs = [
   'characters',
   'locations',
   'quests',
+  'organizations',
   'session-zero',
   'gm-tools',
   'homebrew',
@@ -71,17 +74,24 @@ type AddQuestInput = Parameters<typeof addQuest>[1];
 
 const buildNPCPayload = (name: string): AddNPCInput => ({
   name,
-  title: '',
+  titleRole: '',
   description: '',
   personality: '',
   motivation: '',
+  backgroundHistory: '',
   secrets: '',
   connections: [],
-  locations: [],
+  locationIds: [],
+  organizationIds: [],
+  allyNpcIds: [],
+  enemyNpcIds: [],
+  allyOrganizationIds: [],
+  enemyOrganizationIds: [],
   status: 'active',
   faction: '',
   notes: '',
   sessionAppearances: [],
+  questAppearances: [],
   tags: [],
 });
 
@@ -89,11 +99,16 @@ const buildLocationPayload = (name: string): AddLocationInput => ({
   name,
   type: 'other',
   description: '',
-  history: '',
+  historyLore: '',
   secrets: '',
   currentState: '',
   connectedLocations: [],
-  npcsPresent: [],
+  npcIds: [],
+  npcsPresentCustom: [],
+  organizationIds: [],
+  questIds: [],
+  questsAvailableCustom: [],
+  sessionAppearances: [],
   pointsOfInterest: [],
   tags: [],
   notes: '',
@@ -105,10 +120,19 @@ const buildQuestPayload = (title: string): AddQuestInput => ({
   status: 'available',
   description: '',
   objectives: [],
-  rewards: '',
+  rewards: [],
   giver: '',
   location: '',
+  npcsInvolved: [],
+  charactersInvolved: [],
+  locationIds: [],
+  organizationIds: [],
+  sessionIds: [],
   relatedNpcs: [],
+  relatedNpcsCustom: [],
+  relatedLocations: [],
+  relatedLocationsCustom: [],
+  sessionAppearances: [],
   notes: '',
   foreshadowing: '',
   consequences: '',
@@ -132,6 +156,7 @@ type CampaignTabsProps = {
   onNPCsChange: () => void;
   onLocationsChange: () => void;
   onQuestsChange: () => void;
+  onOrganizationsChange: () => void;
   onAddNPC: (name: string) => void | Promise<void>;
   onAddLocation: (name: string) => void | Promise<void>;
   onAddQuest: (title: string) => void | Promise<void>;
@@ -141,7 +166,7 @@ type CampaignTabsProps = {
 
 function CampaignLoadingState() {
   return (
-    <div className="container mx-auto max-w-7xl p-4">
+    <div className="mx-auto w-full max-w-[1800px] px-4 py-4">
       <div className="bg-muted h-64 animate-pulse rounded-lg" />
     </div>
   );
@@ -149,7 +174,7 @@ function CampaignLoadingState() {
 
 function CampaignNotFoundState({ onBack }: { onBack: () => void }) {
   return (
-    <div className="container mx-auto max-w-7xl p-4">
+    <div className="mx-auto w-full max-w-[1800px] px-4 py-4">
       <Card>
         <CardContent className="py-12 text-center">
           <p className="text-muted-foreground">Campaign not found</p>
@@ -475,6 +500,7 @@ function CampaignTabs({
   onNPCsChange,
   onLocationsChange,
   onQuestsChange,
+  onOrganizationsChange,
   onAddNPC,
   onAddLocation,
   onAddQuest,
@@ -483,50 +509,54 @@ function CampaignTabs({
 }: CampaignTabsProps) {
   return (
     <Tabs value={tab} onValueChange={setActiveTab}>
-      <TabsList className="mb-4 w-full flex-wrap justify-start">
+      <TabsList className="scrollbar-thin mb-4 h-auto w-full justify-start gap-0.5 overflow-x-auto overflow-y-hidden p-1">
         <TabsTrigger value="overview">
-          <Map className="mr-2 h-4 w-4" />
-          Overview
+          <Map className="h-4 w-4 text-sky-500" />
+          <span className="ml-2 hidden lg:inline">Overview</span>
         </TabsTrigger>
         <TabsTrigger value="world">
-          <BookOpen className="mr-2 h-4 w-4" />
-          World
+          <BookOpen className="h-4 w-4 text-emerald-500" />
+          <span className="ml-2 hidden lg:inline">World</span>
         </TabsTrigger>
         <TabsTrigger value="mechanics">
-          <Sparkles className="mr-2 h-4 w-4" />
-          Mechanics
+          <Sparkles className="h-4 w-4 text-violet-500" />
+          <span className="ml-2 hidden lg:inline">Mechanics</span>
         </TabsTrigger>
         <TabsTrigger value="sessions">
-          <Scroll className="mr-2 h-4 w-4" />
-          Sessions
+          <Scroll className="h-4 w-4 text-amber-500" />
+          <span className="ml-2 hidden lg:inline">Sessions</span>
         </TabsTrigger>
         <TabsTrigger value="characters">
-          <User className="mr-2 h-4 w-4" />
-          Characters
+          <User className="h-4 w-4 text-blue-500" />
+          <span className="ml-2 hidden lg:inline">NPCs</span>
         </TabsTrigger>
         <TabsTrigger value="locations">
-          <MapPin className="mr-2 h-4 w-4" />
-          Locations
+          <MapPin className="h-4 w-4 text-rose-500" />
+          <span className="ml-2 hidden lg:inline">Locations</span>
         </TabsTrigger>
         <TabsTrigger value="quests">
-          <Target className="mr-2 h-4 w-4" />
-          Quests
+          <Target className="h-4 w-4 text-orange-500" />
+          <span className="ml-2 hidden lg:inline">Quests</span>
+        </TabsTrigger>
+        <TabsTrigger value="organizations">
+          <Building2 className="h-4 w-4 text-indigo-500" />
+          <span className="ml-2 hidden lg:inline">Orgs</span>
         </TabsTrigger>
         <TabsTrigger value="session-zero">
-          <MessageSquare className="mr-2 h-4 w-4" />
-          Session Zero
+          <MessageSquare className="h-4 w-4 text-cyan-500" />
+          <span className="ml-2 hidden lg:inline">Session 0</span>
         </TabsTrigger>
         <TabsTrigger value="gm-tools">
-          <Lightbulb className="mr-2 h-4 w-4" />
-          GM Tools
+          <Lightbulb className="h-4 w-4 text-yellow-500" />
+          <span className="ml-2 hidden lg:inline">Tools</span>
         </TabsTrigger>
         <TabsTrigger value="homebrew">
-          <Beaker className="mr-2 h-4 w-4" />
-          Homebrew
+          <Beaker className="h-4 w-4 text-purple-500" />
+          <span className="ml-2 hidden lg:inline">Homebrew</span>
         </TabsTrigger>
         <TabsTrigger value="players">
-          <Users className="mr-2 h-4 w-4" />
-          Players
+          <Users className="h-4 w-4 text-green-500" />
+          <span className="ml-2 hidden lg:inline">Players</span>
         </TabsTrigger>
       </TabsList>
 
@@ -548,6 +578,9 @@ function CampaignTabs({
       <SessionsTabContent
         sessions={campaign.sessions ?? []}
         npcs={campaign.npcs ?? []}
+        locations={campaign.locations}
+        quests={campaign.quests}
+        organizations={campaign.organizations ?? []}
         campaignId={campaign.id}
         onSaveStart={onSaveStart}
         onPendingChange={onPendingChange}
@@ -555,6 +588,10 @@ function CampaignTabs({
       />
       <CharactersTabContent
         npcs={campaign.npcs ?? []}
+        locations={campaign.locations}
+        quests={campaign.quests}
+        sessions={campaign.sessions}
+        organizations={campaign.organizations ?? []}
         campaignId={campaign.id}
         onSaveStart={onSaveStart}
         onPendingChange={onPendingChange}
@@ -562,6 +599,10 @@ function CampaignTabs({
       />
       <LocationsTabContent
         locations={campaign.locations}
+        npcs={campaign.npcs ?? []}
+        quests={campaign.quests}
+        sessions={campaign.sessions}
+        organizations={campaign.organizations ?? []}
         campaignId={campaign.id}
         onSaveStart={onSaveStart}
         onPendingChange={onPendingChange}
@@ -569,9 +610,26 @@ function CampaignTabs({
       />
       <QuestsTabContent
         quests={campaign.quests}
+        npcs={campaign.npcs ?? []}
+        locations={campaign.locations}
+        sessions={campaign.sessions}
+        organizations={campaign.organizations ?? []}
         campaignId={campaign.id}
         onSaveStart={onSaveStart}
         onPendingChange={onPendingChange}
+        onQuestsChange={onQuestsChange}
+      />
+      <OrganizationsTabContent
+        organizations={campaign.organizations ?? []}
+        npcs={campaign.npcs ?? []}
+        locations={campaign.locations}
+        quests={campaign.quests}
+        campaignId={campaign.id}
+        onSaveStart={onSaveStart}
+        onPendingChange={onPendingChange}
+        onOrganizationsChange={onOrganizationsChange}
+        onNPCsChange={onNPCsChange}
+        onLocationsChange={onLocationsChange}
         onQuestsChange={onQuestsChange}
       />
       <GMToolsTabContent
@@ -702,7 +760,7 @@ function CampaignDetailPage() {
   const frame = campaign.frame;
 
   return (
-    <div className="container mx-auto max-w-7xl p-4">
+    <div className="mx-auto w-full max-w-[1800px] px-4 py-4">
       {/* Header */}
       <CampaignHeader
         campaign={campaign}
@@ -732,6 +790,7 @@ function CampaignDetailPage() {
         onNPCsChange={handleDirectSaveChange}
         onLocationsChange={handleDirectSaveChange}
         onQuestsChange={handleDirectSaveChange}
+        onOrganizationsChange={handleDirectSaveChange}
         onAddNPC={handleAddNPCFromGenerator}
         onAddLocation={handleAddLocationFromGenerator}
         onAddQuest={handleAddQuestFromGenerator}

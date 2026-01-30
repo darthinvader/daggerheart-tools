@@ -6,15 +6,32 @@ export { EditablePrinciples } from './editable-principles';
 export { EditableQuestions } from './editable-questions';
 export { type ChecklistItem, GMToolsPanel } from './gm-tools-panel';
 export { HomebrewTabContent } from './homebrew-tab-content';
-export { EditableLocations } from './location-components';
-export { EditableNPCs } from './npc-components';
-export { EditableQuests } from './quest-components';
-export { EditableSessions } from './session-components';
+
+// Enhanced entity components with modal-based entity selection
+export { EditableLocations } from './location-components-new';
+export { EditableNPCs } from './npc-components-new';
+export { EditableOrganizations } from './organization-components-new';
+export { EditableQuests } from './quest-components-new';
+export { EditableSessions } from './session-components-new';
+
+// Entity modals for reuse
+export {
+  EntityBadgeList,
+  LocationPickerModal,
+  NPCInvolvementEditorModal,
+  NPCPickerModal,
+  OrganizationPickerModal,
+  QuestPickerModal,
+  RemovableBadge,
+} from './entity-modals';
+export type { NPCPickerResult } from './entity-modals';
+
 export {
   CharactersTabContent,
   GMToolsTabContent,
   LocationsTabContent,
   MechanicsTabContent,
+  OrganizationsTabContent,
   OverviewTabContent,
   PlayersTabContent,
   QuestsTabContent,

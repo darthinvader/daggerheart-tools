@@ -39,11 +39,16 @@ export function CampaignHeader({
   return (
     <div className="mb-6 flex items-start justify-between">
       <div>
-        <Button variant="ghost" size="sm" className="mb-2" onClick={onBack}>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mb-2 -ml-3"
+          onClick={onBack}
+        >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Campaigns
         </Button>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 pl-1">
           <Input
             value={campaign.name}
             onChange={e => onNameChange(e.target.value)}

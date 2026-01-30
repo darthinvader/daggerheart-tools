@@ -3,12 +3,14 @@
 import { z } from 'zod';
 
 import { createCampaignFrameFromTemplate } from '@/lib/data/campaign-frames';
+import { BattleStateSchema } from '@/lib/schemas/battle';
 import type {
   BattleState,
   Campaign,
   CampaignFrame,
   CampaignLocation,
   CampaignNPC,
+  CampaignOrganization,
   CampaignQuest,
   SessionNote,
 } from '@/lib/schemas/campaign';
@@ -32,6 +34,7 @@ interface CampaignRow {
   npcs: CampaignNPC[];
   locations: CampaignLocation[];
   quests: CampaignQuest[];
+  organizations: CampaignOrganization[];
   story_threads: Campaign['storyThreads'];
   battles: BattleState[];
   session_prep_checklist: Campaign['sessionPrepChecklist'];
@@ -52,6 +55,16 @@ interface CampaignInvitePreviewRow {
   name: string;
   status: Campaign['status'];
   gm_id: string;
+}
+
+interface StandaloneBattleRow {
+  id: string;
+  owner_id: string;
+  name: string;
+  state: BattleState;
+  deleted_at: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 const CampaignInvitePreviewSchema = z.object({
@@ -83,6 +96,7 @@ function rowToCampaign(row: CampaignRow): Campaign {
     npcs: row.npcs ?? [],
     locations: row.locations ?? [],
     quests: row.quests ?? [],
+    organizations: row.organizations ?? [],
     storyThreads: row.story_threads ?? [],
     battles: row.battles ?? [],
     sessionPrepChecklist: row.session_prep_checklist ?? [],
@@ -125,6 +139,8 @@ function campaignToRow(
   if (campaign.npcs !== undefined) row.npcs = campaign.npcs;
   if (campaign.locations !== undefined) row.locations = campaign.locations;
   if (campaign.quests !== undefined) row.quests = campaign.quests;
+  if (campaign.organizations !== undefined)
+    row.organizations = campaign.organizations;
   if (campaign.storyThreads !== undefined)
     row.story_threads = campaign.storyThreads;
   if (campaign.battles !== undefined) row.battles = campaign.battles;
@@ -143,7 +159,7 @@ function campaignToRow(
 export function generateInviteCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   return Array.from(
-    { length: 6 },
+    { length: 12 },
     () => chars[Math.floor(Math.random() * chars.length)]
   ).join('');
 }
@@ -301,6 +317,7 @@ export async function createCampaign(
     npcs: [],
     locations: [],
     quests: [],
+    organizations: [],
     story_threads: [],
     invite_code: generateInviteCode(),
     status: 'draft',
@@ -477,9 +494,18 @@ async function updateCampaignSessions(
   campaignId: string,
   sessions: SessionNote[]
 ): Promise<void> {
+  const campaign = await getCampaign(campaignId);
+  if (!campaign) return;
+  const rebuilt = rebuildCampaignLinks({ ...campaign, sessions });
+
   const { error } = await supabase
     .from('campaigns')
-    .update({ sessions })
+    .update({
+      sessions,
+      npcs: rebuilt.npcs,
+      locations: rebuilt.locations,
+      quests: rebuilt.quests,
+    })
     .eq('id', campaignId)
     .is('deleted_at', null);
 
@@ -487,6 +513,114 @@ async function updateCampaignSessions(
     console.error('Error updating sessions:', error);
     throw error;
   }
+}
+
+function rebuildCampaignLinks(
+  campaign: Campaign
+): Pick<Campaign, 'npcs' | 'locations' | 'quests'> {
+  const sessions = campaign.sessions ?? [];
+  const quests = campaign.quests ?? [];
+  const npcs = campaign.npcs ?? [];
+  const locations = campaign.locations ?? [];
+
+  const updatedNPCs = npcs.map(npc => {
+    // Build session appearances from sessions that reference this NPC
+    const sessionAppearances = sessions
+      .filter(session =>
+        session.npcsInvolved?.some(inv => inv.npcId === npc.id)
+      )
+      .map(session => {
+        const involvement = session.npcsInvolved?.find(
+          inv => inv.npcId === npc.id
+        );
+        return {
+          sessionId: session.id,
+          sessionNumber: session.sessionNumber,
+          sessionTitle: session.title,
+          role: involvement?.role ?? '',
+          actionsTaken: involvement?.actionsTaken ?? '',
+          notes: involvement?.notes ?? '',
+          locationIds: involvement?.locationIds ?? [],
+          questIds: involvement?.questIds ?? [],
+        };
+      });
+
+    // Build quest appearances from quests that reference this NPC
+    const questAppearances = quests
+      .filter(quest => quest.npcsInvolved?.some(inv => inv.npcId === npc.id))
+      .map(quest => {
+        const involvement = quest.npcsInvolved?.find(
+          inv => inv.npcId === npc.id
+        );
+        return {
+          questId: quest.id,
+          questTitle: quest.title,
+          role: involvement?.role ?? '',
+          actionsTaken: involvement?.actionsTaken ?? '',
+          notes: involvement?.notes ?? '',
+          locationIds: involvement?.locationIds ?? [],
+          sessionIds: involvement?.sessionIds ?? [],
+        };
+      });
+
+    return {
+      ...npc,
+      sessionAppearances,
+      questAppearances,
+    };
+  });
+
+  const updatedLocations = locations.map(location => {
+    // Find NPCs linked to this location
+    const npcIds = npcs
+      .filter(npc => npc.locationIds?.includes(location.id))
+      .map(npc => npc.id);
+
+    // Find quests linked to this location
+    const questIds = quests
+      .filter(quest => quest.locationIds?.includes(location.id))
+      .map(quest => quest.id);
+
+    // Build session appearances
+    const sessionAppearances = sessions
+      .filter(session => session.locationIds?.includes(location.id))
+      .map(session => ({
+        sessionId: session.id,
+        sessionNumber: session.sessionNumber,
+        sessionTitle: session.title,
+        notes: '',
+      }));
+
+    return {
+      ...location,
+      npcIds,
+      questIds,
+      sessionAppearances,
+    };
+  });
+
+  const updatedQuests = quests.map(quest => {
+    // Build session appearances
+    const sessionAppearances = sessions
+      .filter(session => session.questIds?.includes(quest.id))
+      .map(session => ({
+        sessionId: session.id,
+        sessionNumber: session.sessionNumber,
+        sessionTitle: session.title,
+        notes: '',
+      }));
+
+    return {
+      ...quest,
+      sessionAppearances,
+    };
+  });
+
+  return {
+    npcs: updatedNPCs,
+    locations: updatedLocations,
+    quests: updatedQuests,
+  };
 }
 
 /**
@@ -564,22 +698,6 @@ function generateNpcId(): string {
   return `npc-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-async function updateCampaignNpcs(
-  campaignId: string,
-  npcs: CampaignNPC[]
-): Promise<void> {
-  const { error } = await supabase
-    .from('campaigns')
-    .update({ npcs })
-    .eq('id', campaignId)
-    .is('deleted_at', null);
-
-  if (error) {
-    console.error('Error updating npcs:', error);
-    throw error;
-  }
-}
-
 /**
  * Add a new NPC to a campaign
  */
@@ -599,7 +717,16 @@ export async function addNPC(
   };
 
   const npcs = [...(campaign.npcs ?? []), newNpc];
-  await updateCampaignNpcs(campaignId, npcs);
+  const rebuilt = rebuildCampaignLinks({ ...campaign, npcs });
+  await supabase
+    .from('campaigns')
+    .update({
+      npcs: rebuilt.npcs,
+      locations: rebuilt.locations,
+      quests: rebuilt.quests,
+    })
+    .eq('id', campaignId)
+    .is('deleted_at', null);
   return newNpc;
 }
 
@@ -625,7 +752,16 @@ export async function updateNPC(
     updatedAt: now,
   };
 
-  await updateCampaignNpcs(campaignId, npcs);
+  const rebuilt = rebuildCampaignLinks({ ...campaign, npcs });
+  await supabase
+    .from('campaigns')
+    .update({
+      npcs: rebuilt.npcs,
+      locations: rebuilt.locations,
+      quests: rebuilt.quests,
+    })
+    .eq('id', campaignId)
+    .is('deleted_at', null);
   return npcs[npcIndex];
 }
 
@@ -643,7 +779,16 @@ export async function deleteNPC(
   const filtered = npcs.filter(n => n.id !== npcId);
   if (filtered.length === npcs.length) return false;
 
-  await updateCampaignNpcs(campaignId, filtered);
+  const rebuilt = rebuildCampaignLinks({ ...campaign, npcs: filtered });
+  await supabase
+    .from('campaigns')
+    .update({
+      npcs: rebuilt.npcs,
+      locations: rebuilt.locations,
+      quests: rebuilt.quests,
+    })
+    .eq('id', campaignId)
+    .is('deleted_at', null);
   return true;
 }
 
@@ -653,22 +798,6 @@ export async function deleteNPC(
 
 function generateLocationId(): string {
   return `location-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
-async function updateCampaignLocations(
-  campaignId: string,
-  locations: CampaignLocation[]
-): Promise<void> {
-  const { error } = await supabase
-    .from('campaigns')
-    .update({ locations })
-    .eq('id', campaignId)
-    .is('deleted_at', null);
-
-  if (error) {
-    console.error('Error updating locations:', error);
-    throw error;
-  }
 }
 
 /**
@@ -690,7 +819,16 @@ export async function addLocation(
   };
 
   const locations = [...(campaign.locations ?? []), newLocation];
-  await updateCampaignLocations(campaignId, locations);
+  const rebuilt = rebuildCampaignLinks({ ...campaign, locations });
+  await supabase
+    .from('campaigns')
+    .update({
+      npcs: rebuilt.npcs,
+      locations: rebuilt.locations,
+      quests: rebuilt.quests,
+    })
+    .eq('id', campaignId)
+    .is('deleted_at', null);
   return newLocation;
 }
 
@@ -716,7 +854,16 @@ export async function updateLocation(
     updatedAt: now,
   };
 
-  await updateCampaignLocations(campaignId, locations);
+  const rebuilt = rebuildCampaignLinks({ ...campaign, locations });
+  await supabase
+    .from('campaigns')
+    .update({
+      npcs: rebuilt.npcs,
+      locations: rebuilt.locations,
+      quests: rebuilt.quests,
+    })
+    .eq('id', campaignId)
+    .is('deleted_at', null);
   return locations[locationIndex];
 }
 
@@ -734,7 +881,16 @@ export async function deleteLocation(
   const filtered = locations.filter(l => l.id !== locationId);
   if (filtered.length === locations.length) return false;
 
-  await updateCampaignLocations(campaignId, filtered);
+  const rebuilt = rebuildCampaignLinks({ ...campaign, locations: filtered });
+  await supabase
+    .from('campaigns')
+    .update({
+      npcs: rebuilt.npcs,
+      locations: rebuilt.locations,
+      quests: rebuilt.quests,
+    })
+    .eq('id', campaignId)
+    .is('deleted_at', null);
   return true;
 }
 
@@ -744,22 +900,6 @@ export async function deleteLocation(
 
 function generateQuestId(): string {
   return `quest-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
-async function updateCampaignQuests(
-  campaignId: string,
-  quests: CampaignQuest[]
-): Promise<void> {
-  const { error } = await supabase
-    .from('campaigns')
-    .update({ quests })
-    .eq('id', campaignId)
-    .is('deleted_at', null);
-
-  if (error) {
-    console.error('Error updating quests:', error);
-    throw error;
-  }
 }
 
 /**
@@ -781,7 +921,16 @@ export async function addQuest(
   };
 
   const quests = [...(campaign.quests ?? []), newQuest];
-  await updateCampaignQuests(campaignId, quests);
+  const rebuilt = rebuildCampaignLinks({ ...campaign, quests });
+  await supabase
+    .from('campaigns')
+    .update({
+      npcs: rebuilt.npcs,
+      locations: rebuilt.locations,
+      quests: rebuilt.quests,
+    })
+    .eq('id', campaignId)
+    .is('deleted_at', null);
   return newQuest;
 }
 
@@ -807,7 +956,16 @@ export async function updateQuest(
     updatedAt: now,
   };
 
-  await updateCampaignQuests(campaignId, quests);
+  const rebuilt = rebuildCampaignLinks({ ...campaign, quests });
+  await supabase
+    .from('campaigns')
+    .update({
+      npcs: rebuilt.npcs,
+      locations: rebuilt.locations,
+      quests: rebuilt.quests,
+    })
+    .eq('id', campaignId)
+    .is('deleted_at', null);
   return quests[questIndex];
 }
 
@@ -825,7 +983,16 @@ export async function deleteQuest(
   const filtered = quests.filter(q => q.id !== questId);
   if (filtered.length === quests.length) return false;
 
-  await updateCampaignQuests(campaignId, filtered);
+  const rebuilt = rebuildCampaignLinks({ ...campaign, quests: filtered });
+  await supabase
+    .from('campaigns')
+    .update({
+      npcs: rebuilt.npcs,
+      locations: rebuilt.locations,
+      quests: rebuilt.quests,
+    })
+    .eq('id', campaignId)
+    .is('deleted_at', null);
   return true;
 }
 
@@ -852,6 +1019,95 @@ export async function saveCampaign(
   }
 
   return rowToCampaign(data as CampaignRow);
+}
+
+// =====================================================================================
+// Organization CRUD
+// =====================================================================================
+
+function generateOrganizationId(): string {
+  return `org-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+/**
+ * Add a new organization to a campaign
+ */
+export async function addOrganization(
+  campaignId: string,
+  organization: Omit<CampaignOrganization, 'id' | 'createdAt' | 'updatedAt'>
+): Promise<CampaignOrganization | undefined> {
+  const campaign = await getCampaign(campaignId);
+  if (!campaign) return undefined;
+
+  const now = new Date().toISOString();
+  const newOrganization: CampaignOrganization = {
+    ...organization,
+    id: generateOrganizationId(),
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  const organizations = [...(campaign.organizations ?? []), newOrganization];
+  await supabase
+    .from('campaigns')
+    .update({ organizations })
+    .eq('id', campaignId)
+    .is('deleted_at', null);
+  return newOrganization;
+}
+
+/**
+ * Update an organization
+ */
+export async function updateOrganization(
+  campaignId: string,
+  organizationId: string,
+  updates: Partial<Omit<CampaignOrganization, 'id' | 'createdAt' | 'updatedAt'>>
+): Promise<CampaignOrganization | undefined> {
+  const campaign = await getCampaign(campaignId);
+  if (!campaign) return undefined;
+
+  const organizations = campaign.organizations ?? [];
+  const organizationIndex = organizations.findIndex(
+    o => o.id === organizationId
+  );
+  if (organizationIndex === -1) return undefined;
+
+  const now = new Date().toISOString();
+  organizations[organizationIndex] = {
+    ...organizations[organizationIndex],
+    ...updates,
+    updatedAt: now,
+  };
+
+  await supabase
+    .from('campaigns')
+    .update({ organizations })
+    .eq('id', campaignId)
+    .is('deleted_at', null);
+  return organizations[organizationIndex];
+}
+
+/**
+ * Delete an organization
+ */
+export async function deleteOrganization(
+  campaignId: string,
+  organizationId: string
+): Promise<boolean> {
+  const campaign = await getCampaign(campaignId);
+  if (!campaign) return false;
+
+  const organizations = campaign.organizations ?? [];
+  const filtered = organizations.filter(o => o.id !== organizationId);
+  if (filtered.length === organizations.length) return false;
+
+  await supabase
+    .from('campaigns')
+    .update({ organizations: filtered })
+    .eq('id', campaignId)
+    .is('deleted_at', null);
+  return true;
 }
 
 // =====================================================================================
@@ -967,5 +1223,165 @@ export async function deleteBattle(
   if (filtered.length === battles.length) return false;
 
   await updateCampaignBattles(campaignId, filtered);
+  return true;
+}
+
+// =====================================================================================
+// Standalone Battle Tracker CRUD (non-campaign)
+// =====================================================================================
+
+export interface StandaloneBattleSummary {
+  id: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function listStandaloneBattles(): Promise<
+  StandaloneBattleSummary[]
+> {
+  const { data, error } = await supabase
+    .from('standalone_battles')
+    .select('id,name,created_at,updated_at')
+    .is('deleted_at', null)
+    .order('updated_at', { ascending: false });
+
+  if (error) {
+    console.error('Error listing standalone battles:', error);
+    throw error;
+  }
+
+  return (data ?? []).map(row => ({
+    id: row.id as string,
+    name: row.name as string,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  }));
+}
+
+export async function getStandaloneBattle(
+  battleId: string
+): Promise<BattleState | undefined> {
+  const { data, error } = await supabase
+    .from('standalone_battles')
+    .select('id,name,state,created_at,updated_at')
+    .eq('id', battleId)
+    .is('deleted_at', null)
+    .single();
+
+  if (error) {
+    if (error.code === 'PGRST116') return undefined;
+    console.error('Error fetching standalone battle:', error);
+    throw error;
+  }
+
+  const rawState = (data as StandaloneBattleRow).state ?? {};
+  const parsed = BattleStateSchema.safeParse(rawState);
+  if (!parsed.success) {
+    console.error('Failed to parse standalone battle state:', parsed.error);
+    return undefined;
+  }
+
+  return {
+    ...parsed.data,
+    id: data.id as string,
+    name: data.name as string,
+    createdAt: data.created_at as string,
+    updatedAt: data.updated_at as string,
+  };
+}
+
+export async function createStandaloneBattle(
+  battle: Omit<BattleState, 'id' | 'createdAt' | 'updatedAt'>
+): Promise<BattleState> {
+  const now = new Date().toISOString();
+  const { data: authData, error: authError } = await supabase.auth.getUser();
+  if (authError || !authData.user) {
+    throw new Error('Must be logged in to create a battle');
+  }
+
+  const newBattle: BattleState = {
+    ...battle,
+    id: crypto.randomUUID(),
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  const { data, error } = await supabase
+    .from('standalone_battles')
+    .insert({
+      owner_id: authData.user.id,
+      name: newBattle.name,
+      state: newBattle,
+    })
+    .select('id,name,state,created_at,updated_at')
+    .single();
+
+  if (error) {
+    console.error('Error creating standalone battle:', error);
+    throw error;
+  }
+
+  return {
+    ...newBattle,
+    id: data.id as string,
+    name: data.name as string,
+    createdAt: data.created_at as string,
+    updatedAt: data.updated_at as string,
+  };
+}
+
+export async function updateStandaloneBattle(
+  battleId: string,
+  updates: BattleState
+): Promise<BattleState | undefined> {
+  const now = new Date().toISOString();
+  const { data, error } = await supabase
+    .from('standalone_battles')
+    .update({
+      name: updates.name,
+      state: { ...updates, updatedAt: now },
+    })
+    .eq('id', battleId)
+    .is('deleted_at', null)
+    .select('id,name,state,created_at,updated_at')
+    .single();
+
+  if (error) {
+    if (error.code === 'PGRST116') return undefined;
+    console.error('Error updating standalone battle:', error);
+    throw error;
+  }
+
+  const rawState = (data as StandaloneBattleRow).state ?? {};
+  const parsed = BattleStateSchema.safeParse(rawState);
+  if (!parsed.success) {
+    console.error('Failed to parse standalone battle state:', parsed.error);
+    return undefined;
+  }
+
+  return {
+    ...parsed.data,
+    id: data.id as string,
+    name: data.name as string,
+    createdAt: data.created_at as string,
+    updatedAt: data.updated_at as string,
+  };
+}
+
+export async function deleteStandaloneBattle(
+  battleId: string
+): Promise<boolean> {
+  const { error } = await supabase
+    .from('standalone_battles')
+    .update({ deleted_at: new Date().toISOString() })
+    .eq('id', battleId)
+    .is('deleted_at', null);
+
+  if (error) {
+    console.error('Error deleting standalone battle:', error);
+    throw error;
+  }
+
   return true;
 }

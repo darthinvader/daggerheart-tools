@@ -154,7 +154,9 @@ function InviteDetailsCard({
     <Card>
       <CardHeader>
         <CardTitle className="text-base">Invite Details</CardTitle>
-        <CardDescription>Use the code your GM shared with you.</CardDescription>
+        <CardDescription>
+          Use the 12-character code your GM shared with you.
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
@@ -167,7 +169,8 @@ function InviteDetailsCard({
             onChange={event =>
               onInviteCodeChange(event.target.value.toUpperCase())
             }
-            placeholder="ABC123"
+            placeholder="ABCDEFGHJKLM"
+            maxLength={12}
           />
         </div>
 

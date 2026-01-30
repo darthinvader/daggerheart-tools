@@ -14,8 +14,10 @@ import type { LevelUpResult } from '@/components/level-up';
 import { LevelUpModal } from '@/components/level-up';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Backpack, BarChart3, Dice5, Swords, User, Zap } from '@/lib/icons';
+import type { Campaign } from '@/lib/schemas/campaign';
 import { cn } from '@/lib/utils';
 
 import { ResponsiveTabsList } from './responsive-tabs';
@@ -40,6 +42,19 @@ interface CharacterSheetLayoutProps {
   currentExperiencesForModal: { id: string; name: string; value: number }[];
   ownedCardNames: string[];
   campaignId?: string;
+  campaignSummary: Array<{
+    id: string;
+    name: string;
+    status: Campaign['status'];
+    role?: Campaign['players'][number]['role'];
+  }>;
+  inviteCode: string;
+  onInviteCodeChange: (value: string) => void;
+  onJoinCampaign: () => void;
+  canJoinCampaign: boolean;
+  isJoiningCampaign: boolean;
+  joinCampaignError: Error | null;
+  joinCampaignSuccess: boolean;
 }
 
 export function CharacterSheetLayout({
@@ -61,6 +76,14 @@ export function CharacterSheetLayout({
   currentExperiencesForModal,
   ownedCardNames,
   campaignId,
+  campaignSummary,
+  inviteCode,
+  onInviteCodeChange,
+  onJoinCampaign,
+  canJoinCampaign,
+  isJoiningCampaign,
+  joinCampaignError,
+  joinCampaignSuccess,
 }: CharacterSheetLayoutProps) {
   return (
     <div className="container mx-auto px-4 py-4 sm:py-8">
@@ -81,6 +104,17 @@ export function CharacterSheetLayout({
           readOnly={readOnly}
           isSaving={isSaving}
           lastSaved={lastSaved}
+        />
+        <CharacterCampaignSection
+          campaigns={campaignSummary}
+          inviteCode={inviteCode}
+          onInviteCodeChange={onInviteCodeChange}
+          onJoinCampaign={onJoinCampaign}
+          canJoinCampaign={canJoinCampaign}
+          isJoiningCampaign={isJoiningCampaign}
+          joinCampaignError={joinCampaignError}
+          joinCampaignSuccess={joinCampaignSuccess}
+          readOnly={readOnly}
         />
         <CharacterSheetTabs
           activeTab={activeTab}
@@ -222,6 +256,93 @@ function CharacterSheetHeader({
         <Badge variant="outline">Read-only</Badge>
       ) : (
         <SaveIndicator isSaving={isSaving} lastSaved={lastSaved} />
+      )}
+    </div>
+  );
+}
+
+function CharacterCampaignSection({
+  campaigns,
+  inviteCode,
+  onInviteCodeChange,
+  onJoinCampaign,
+  canJoinCampaign,
+  isJoiningCampaign,
+  joinCampaignError,
+  joinCampaignSuccess,
+  readOnly,
+}: {
+  campaigns: Array<{
+    id: string;
+    name: string;
+    status: Campaign['status'];
+    role?: Campaign['players'][number]['role'];
+  }>;
+  inviteCode: string;
+  onInviteCodeChange: (value: string) => void;
+  onJoinCampaign: () => void;
+  canJoinCampaign: boolean;
+  isJoiningCampaign: boolean;
+  joinCampaignError: Error | null;
+  joinCampaignSuccess: boolean;
+  readOnly: boolean;
+}) {
+  return (
+    <div className="bg-muted/30 flex flex-wrap items-center gap-3 rounded-lg border px-3 py-2">
+      {/* Campaign badges */}
+      {campaigns.length === 0 ? (
+        <span className="text-muted-foreground text-sm">No campaign</span>
+      ) : (
+        campaigns.map(campaign => (
+          <div key={campaign.id} className="flex items-center gap-1.5">
+            <span className="text-sm font-medium">{campaign.name}</span>
+            <Badge variant="outline" className="h-5 px-1.5 text-xs capitalize">
+              {campaign.status}
+            </Badge>
+            {campaign.role && (
+              <Badge
+                variant="secondary"
+                className="h-5 px-1.5 text-xs capitalize"
+              >
+                {campaign.role}
+              </Badge>
+            )}
+          </div>
+        ))
+      )}
+
+      {/* Join campaign inline */}
+      {!readOnly && (
+        <>
+          <div className="bg-border h-4 w-px" />
+          <div className="flex items-center gap-1.5">
+            <Input
+              id="campaign-invite-code"
+              value={inviteCode}
+              onChange={event => onInviteCodeChange(event.target.value)}
+              placeholder="Invite code"
+              maxLength={12}
+              className="h-7 w-28 font-mono text-xs uppercase"
+            />
+            <Button
+              type="button"
+              size="sm"
+              className="h-7 px-2 text-xs"
+              onClick={onJoinCampaign}
+              disabled={!canJoinCampaign}
+            >
+              {isJoiningCampaign ? '...' : 'Join'}
+            </Button>
+          </div>
+        </>
+      )}
+
+      {joinCampaignError && (
+        <span className="text-destructive text-xs">Invalid code</span>
+      )}
+
+      {joinCampaignSuccess && (
+        <span className="text-xs text-green-600">Joined!</span>
       )}
     </div>
   );

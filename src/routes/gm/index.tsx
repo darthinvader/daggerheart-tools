@@ -54,7 +54,7 @@ function GmDashboard() {
           </Card>
         </Link>
 
-        <Link to="/gm/campaigns" className="block">
+        <Link to="/gm/battle-tracker" className="block">
           <Card className="hover:bg-accent/50 h-full cursor-pointer transition-colors">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
