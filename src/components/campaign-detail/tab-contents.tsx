@@ -2,7 +2,24 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { Copy, Users } from 'lucide-react';
+import {
+  BookOpen,
+  Building2,
+  Cog,
+  Copy,
+  FileText,
+  Globe,
+  HelpCircle,
+  Map,
+  MessageSquare,
+  Music,
+  Palette,
+  Scroll,
+  Sparkles,
+  Target,
+  Users,
+  Zap,
+} from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -25,6 +42,12 @@ import {
 } from '@/components/ui/table';
 import { TabsContent } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { fetchCharacter } from '@/lib/api/characters';
 import {
   CAMPAIGN_THEME_OPTIONS,
@@ -69,7 +92,23 @@ export function OverviewTabContent({
     <TabsContent value="overview" className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Campaign Pitch</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <MessageSquare className="h-4 w-4 text-blue-500" />
+            Campaign Pitch
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="text-muted-foreground h-4 w-4 cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent side="right" className="max-w-xs">
+                  <p>
+                    A compelling 2-3 sentence hook to present to players. Think
+                    movie trailer pitch!
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </CardTitle>
           <CardDescription>
             A brief introduction to present to your players
           </CardDescription>
@@ -87,7 +126,23 @@ export function OverviewTabContent({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Tone & Feel</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Palette className="h-4 w-4 text-purple-500" />
+            Tone & Feel
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="text-muted-foreground h-4 w-4 cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent side="right" className="max-w-xs">
+                  <p>
+                    Keywords like "gritty", "heroic", "mysterious", or
+                    "whimsical" that set the mood.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </CardTitle>
           <CardDescription>
             Words that describe the campaign's atmosphere
           </CardDescription>
@@ -105,7 +160,23 @@ export function OverviewTabContent({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Themes</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Target className="h-4 w-4 text-red-500" />
+            Themes
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="text-muted-foreground h-4 w-4 cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent side="right" className="max-w-xs">
+                  <p>
+                    Core ideas explored: redemption, sacrifice, found family,
+                    corruption, etc.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </CardTitle>
           <CardDescription>
             Central ideas and conflicts explored in the campaign
           </CardDescription>
@@ -123,7 +194,23 @@ export function OverviewTabContent({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Touchstones</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Music className="h-4 w-4 text-amber-500" />
+            Touchstones
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="text-muted-foreground h-4 w-4 cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent side="right" className="max-w-xs">
+                  <p>
+                    Movies, books, games, or shows that inspired this campaign.
+                    Helps players understand the vibe!
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </CardTitle>
           <CardDescription>
             Media references that inspired the campaign
           </CardDescription>
@@ -140,7 +227,23 @@ export function OverviewTabContent({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Overview</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Globe className="h-4 w-4 text-emerald-500" />
+            Overview
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="text-muted-foreground h-4 w-4 cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent side="right" className="max-w-xs">
+                  <p>
+                    The world state, recent history, and current events that
+                    players should know.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </CardTitle>
           <CardDescription>
             Background information to share with players before character
             creation
@@ -171,7 +274,23 @@ export function WorldTabContent({ frame, updateFrame, onBlur }: WorldTabProps) {
     <TabsContent value="world" className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Setting Distinctions</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Sparkles className="h-4 w-4 text-violet-500" />
+            Setting Distinctions
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="text-muted-foreground h-4 w-4 cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent side="right" className="max-w-xs">
+                  <p>
+                    What makes your world unique? Magic systems, technology,
+                    cultures, or cosmic forces that set it apart.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </CardTitle>
           <CardDescription>
             Unique elements that make your world special
           </CardDescription>
@@ -187,7 +306,23 @@ export function WorldTabContent({ frame, updateFrame, onBlur }: WorldTabProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Inciting Incident</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Zap className="h-4 w-4 text-yellow-500" />
+            Inciting Incident
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="text-muted-foreground h-4 w-4 cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent side="right" className="max-w-xs">
+                  <p>
+                    The catalyst that brings the party together and kicks off
+                    the adventure. What disrupts the status quo?
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </CardTitle>
           <CardDescription>
             The event that kicks off the campaign
           </CardDescription>
@@ -238,7 +373,23 @@ export function WorldTabContent({ frame, updateFrame, onBlur }: WorldTabProps) {
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Player Principles</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Users className="h-4 w-4 text-blue-500" />
+              Player Principles
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="text-muted-foreground h-4 w-4 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="max-w-xs">
+                    <p>
+                      Guidelines for players: how to engage with the world,
+                      collaborate, and embody the campaign's spirit.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </CardTitle>
             <CardDescription>
               Guidance for players during the campaign
             </CardDescription>
@@ -255,7 +406,23 @@ export function WorldTabContent({ frame, updateFrame, onBlur }: WorldTabProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">GM Principles</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <BookOpen className="h-4 w-4 text-orange-500" />
+              GM Principles
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="text-muted-foreground h-4 w-4 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="max-w-xs">
+                    <p>
+                      Reminders for yourself: pacing, tone, when to be generous
+                      or challenging, storytelling goals.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </CardTitle>
             <CardDescription>Guidance for running the campaign</CardDescription>
           </CardHeader>
           <CardContent>
@@ -287,7 +454,23 @@ export function MechanicsTabContent({
     <TabsContent value="mechanics" className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Custom Mechanics</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Cog className="h-4 w-4 text-slate-500" />
+            Custom Mechanics
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="text-muted-foreground h-4 w-4 cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent side="right" className="max-w-xs">
+                  <p>
+                    House rules, custom moves, or unique systems for this
+                    campaign. Keep players informed!
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </CardTitle>
           <CardDescription>
             Special rules unique to this campaign
           </CardDescription>
@@ -339,7 +522,23 @@ export function SessionsTabContent({
     <TabsContent value="sessions" className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Session Notes</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Scroll className="h-4 w-4 text-amber-500" />
+            Session Notes
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="text-muted-foreground h-4 w-4 cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent side="right" className="max-w-xs">
+                  <p>
+                    Record what happened each session: highlights, NPC
+                    interactions, quest progress, and memorable moments.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </CardTitle>
           <CardDescription>
             Track what happens each session, key moments, and story progress
           </CardDescription>
@@ -397,7 +596,23 @@ export function CharactersTabContent({
     <TabsContent value="characters" className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Campaign Characters</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Users className="h-4 w-4 text-indigo-500" />
+            Campaign Characters
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="text-muted-foreground h-4 w-4 cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent side="right" className="max-w-xs">
+                  <p>
+                    All NPCs in your world: allies, villains, shopkeepers,
+                    rulers. Track their motivations and secrets!
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </CardTitle>
           <CardDescription>
             NPCs, villains, allies, and other characters in your story
           </CardDescription>
@@ -455,7 +670,23 @@ export function LocationsTabContent({
     <TabsContent value="locations" className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Campaign Locations</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Map className="h-4 w-4 text-emerald-500" />
+            Campaign Locations
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="text-muted-foreground h-4 w-4 cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent side="right" className="max-w-xs">
+                  <p>
+                    Cities, dungeons, taverns, and landmarks. Add points of
+                    interest to make locations come alive!
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </CardTitle>
           <CardDescription>
             Cities, dungeons, and points of interest in your world
           </CardDescription>
@@ -514,7 +745,23 @@ export function QuestsTabContent({
     <TabsContent value="quests" className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Quests & Plot Hooks</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Target className="h-4 w-4 text-red-500" />
+            Quests & Plot Hooks
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="text-muted-foreground h-4 w-4 cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent side="right" className="max-w-xs">
+                  <p>
+                    Track main storylines, side quests, rumors, and plot hooks.
+                    Link NPCs and locations involved!
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </CardTitle>
           <CardDescription>
             Main quests, side quests, and story threads
           </CardDescription>
@@ -571,7 +818,23 @@ export function OrganizationsTabContent({
     <TabsContent value="organizations" className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Organizations & Factions</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Building2 className="h-4 w-4 text-purple-500" />
+            Organizations & Factions
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="text-muted-foreground h-4 w-4 cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent side="right" className="max-w-xs">
+                  <p>
+                    Guilds, governments, cults, and factions. Track their goals,
+                    resources, and relationships!
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </CardTitle>
           <CardDescription>
             Guilds, factions, governments, and other groups in your world
           </CardDescription>
@@ -673,7 +936,23 @@ export function SessionZeroTabContent({
     <TabsContent value="session-zero" className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Session Zero Questions</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <MessageSquare className="h-4 w-4 text-teal-500" />
+            Session Zero Questions
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="text-muted-foreground h-4 w-4 cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent side="right" className="max-w-xs">
+                  <p>
+                    Discussion prompts for session zero: safety tools,
+                    expectations, character connections, and boundaries.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </CardTitle>
           <CardDescription>
             Questions to ask your players during session zero
           </CardDescription>
@@ -711,7 +990,23 @@ export function PlayersTabContent({
     <TabsContent value="players" className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Invite Players</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <FileText className="h-4 w-4 text-blue-500" />
+            Invite Players
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="text-muted-foreground h-4 w-4 cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent side="right" className="max-w-xs">
+                  <p>
+                    Share the invite link or code with players. They can then
+                    select or create their character.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </CardTitle>
           <CardDescription>
             Share this link or invite code with your players so they can join
             and select a character.
@@ -758,7 +1053,10 @@ export function PlayersTabContent({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Players</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Users className="h-4 w-4 text-green-500" />
+            Players
+          </CardTitle>
           <CardDescription>
             Track who has joined and which character they selected.
           </CardDescription>

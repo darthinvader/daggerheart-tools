@@ -156,6 +156,11 @@ export const defaultNavLinks: NavLink[] = [
         label: 'New Campaign',
         icon: <Plus className="size-4" />,
       },
+      {
+        to: '/gm/saved-encounters',
+        label: 'Combat Encounters',
+        icon: <Swords className="size-4" />,
+      },
     ],
   },
   {

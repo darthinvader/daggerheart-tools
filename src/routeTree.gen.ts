@@ -38,6 +38,7 @@ import { Route as ReferencesAncestriesRouteImport } from './routes/references/an
 import { Route as ReferencesAdversariesRouteImport } from './routes/references/adversaries'
 import { Route as HomebrewNewRouteImport } from './routes/homebrew/new'
 import { Route as HomebrewBrowseRouteImport } from './routes/homebrew/browse'
+import { Route as GmSavedEncountersRouteImport } from './routes/gm/saved-encounters'
 import { Route as GmCampaignsRouteImport } from './routes/gm/campaigns'
 import { Route as GmBattleTrackerRouteImport } from './routes/gm/battle-tracker'
 import { Route as CharacterNewRouteImport } from './routes/character/new'
@@ -196,6 +197,11 @@ const HomebrewBrowseRoute = HomebrewBrowseRouteImport.update({
   path: '/browse',
   getParentRoute: () => HomebrewRoute,
 } as any)
+const GmSavedEncountersRoute = GmSavedEncountersRouteImport.update({
+  id: '/saved-encounters',
+  path: '/saved-encounters',
+  getParentRoute: () => GmRoute,
+} as any)
 const GmCampaignsRoute = GmCampaignsRouteImport.update({
   id: '/campaigns',
   path: '/campaigns',
@@ -261,6 +267,7 @@ export interface FileRoutesByFullPath {
   '/character/new': typeof CharacterNewRoute
   '/gm/battle-tracker': typeof GmBattleTrackerRoute
   '/gm/campaigns': typeof GmCampaignsRouteWithChildren
+  '/gm/saved-encounters': typeof GmSavedEncountersRoute
   '/homebrew/browse': typeof HomebrewBrowseRoute
   '/homebrew/new': typeof HomebrewNewRoute
   '/references/adversaries': typeof ReferencesAdversariesRoute
@@ -296,6 +303,7 @@ export interface FileRoutesByTo {
   '/character/$characterId': typeof CharacterCharacterIdRoute
   '/character/new': typeof CharacterNewRoute
   '/gm/battle-tracker': typeof GmBattleTrackerRoute
+  '/gm/saved-encounters': typeof GmSavedEncountersRoute
   '/homebrew/browse': typeof HomebrewBrowseRoute
   '/homebrew/new': typeof HomebrewNewRoute
   '/references/adversaries': typeof ReferencesAdversariesRoute
@@ -338,6 +346,7 @@ export interface FileRoutesById {
   '/character/new': typeof CharacterNewRoute
   '/gm/battle-tracker': typeof GmBattleTrackerRoute
   '/gm/campaigns': typeof GmCampaignsRouteWithChildren
+  '/gm/saved-encounters': typeof GmSavedEncountersRoute
   '/homebrew/browse': typeof HomebrewBrowseRoute
   '/homebrew/new': typeof HomebrewNewRoute
   '/references/adversaries': typeof ReferencesAdversariesRoute
@@ -381,6 +390,7 @@ export interface FileRouteTypes {
     | '/character/new'
     | '/gm/battle-tracker'
     | '/gm/campaigns'
+    | '/gm/saved-encounters'
     | '/homebrew/browse'
     | '/homebrew/new'
     | '/references/adversaries'
@@ -416,6 +426,7 @@ export interface FileRouteTypes {
     | '/character/$characterId'
     | '/character/new'
     | '/gm/battle-tracker'
+    | '/gm/saved-encounters'
     | '/homebrew/browse'
     | '/homebrew/new'
     | '/references/adversaries'
@@ -457,6 +468,7 @@ export interface FileRouteTypes {
     | '/character/new'
     | '/gm/battle-tracker'
     | '/gm/campaigns'
+    | '/gm/saved-encounters'
     | '/homebrew/browse'
     | '/homebrew/new'
     | '/references/adversaries'
@@ -702,6 +714,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomebrewBrowseRouteImport
       parentRoute: typeof HomebrewRoute
     }
+    '/gm/saved-encounters': {
+      id: '/gm/saved-encounters'
+      path: '/saved-encounters'
+      fullPath: '/gm/saved-encounters'
+      preLoaderRoute: typeof GmSavedEncountersRouteImport
+      parentRoute: typeof GmRoute
+    }
     '/gm/campaigns': {
       id: '/gm/campaigns'
       path: '/campaigns'
@@ -824,12 +843,14 @@ const GmCampaignsRouteWithChildren = GmCampaignsRoute._addFileChildren(
 interface GmRouteChildren {
   GmBattleTrackerRoute: typeof GmBattleTrackerRoute
   GmCampaignsRoute: typeof GmCampaignsRouteWithChildren
+  GmSavedEncountersRoute: typeof GmSavedEncountersRoute
   GmIndexRoute: typeof GmIndexRoute
 }
 
 const GmRouteChildren: GmRouteChildren = {
   GmBattleTrackerRoute: GmBattleTrackerRoute,
   GmCampaignsRoute: GmCampaignsRouteWithChildren,
+  GmSavedEncountersRoute: GmSavedEncountersRoute,
   GmIndexRoute: GmIndexRoute,
 }
 

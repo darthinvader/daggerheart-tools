@@ -1,7 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { createFileRoute } from '@tanstack/react-router';
-import { Plus, Save, Trash2 } from 'lucide-react';
+import { createFileRoute, Link, useSearch } from '@tanstack/react-router';
+import { ArrowLeft, Plus, Save } from 'lucide-react';
+import * as React from 'react';
 import { useMemo, useState } from 'react';
+import { z } from 'zod';
 
 import { AddCharacterDialog } from '@/components/battle-tracker/add-character-dialog';
 import { AddAdversaryDialogEnhanced } from '@/components/battle-tracker/adversary-dialog-enhanced';
@@ -40,22 +42,27 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
 import {
   createStandaloneBattle,
-  deleteStandaloneBattle,
   getStandaloneBattle,
-  listStandaloneBattles,
   updateStandaloneBattle,
 } from '@/features/campaigns/campaign-storage';
 import type { BattleState } from '@/lib/schemas/battle';
 
+const searchSchema = z.object({
+  battleId: z.string().optional(),
+});
+
 export const Route = createFileRoute('/gm/battle-tracker')({
   component: BattleTrackerPage,
+  validateSearch: search => searchSchema.parse(search),
 });
 
 function BattleTrackerPage() {
   const queryClient = useQueryClient();
+  const { battleId: initialBattleId } = useSearch({
+    from: '/gm/battle-tracker',
+  });
   const { rosterState, rosterActions } = useBattleRosterState();
   const { dialogState, dialogActions } = useBattleDialogState();
   const [editingAdversary, setEditingAdversary] =
@@ -65,6 +72,7 @@ function BattleTrackerPage() {
   const [isFightBuilderOpen, setIsFightBuilderOpen] = useState(false);
   const [battleName, setBattleName] = useState('Untitled Battle');
   const [activeBattleId, setActiveBattleId] = useState<string | null>(null);
+  const [hasLoadedInitial, setHasLoadedInitial] = useState(false);
 
   const conditionsToRecord = (
     conditions: ConditionsState | undefined
@@ -73,26 +81,33 @@ function BattleTrackerPage() {
     return Object.fromEntries(conditions.items.map(item => [item, true]));
   };
 
-  const { data: savedBattles = [] } = useQuery({
-    queryKey: ['standalone-battles'],
-    queryFn: listStandaloneBattles,
+  // Load initial battle if battleId is provided in search params
+  const { data: initialBattle } = useQuery({
+    queryKey: ['standalone-battle', initialBattleId],
+    queryFn: () =>
+      initialBattleId ? getStandaloneBattle(initialBattleId) : null,
+    enabled: !!initialBattleId && !hasLoadedInitial,
   });
 
-  const loadBattleMutation = useMutation({
-    mutationFn: getStandaloneBattle,
-    onSuccess: battle => {
-      if (!battle) return;
-      setActiveBattleId(battle.id);
-      setBattleName(battle.name);
-      rosterActions.setCharacters(battleCharactersToTrackers(battle));
-      rosterActions.setAdversaries(battleAdversariesToTrackers(battle));
-      rosterActions.setEnvironments(battleEnvironmentsToTrackers(battle));
-      rosterActions.setSpotlight(battle.spotlight ?? null);
-      rosterActions.setSpotlightHistory(battle.spotlightHistory ?? []);
-      rosterActions.setFearPool(battle.fearPool ?? 0);
-      rosterActions.setUseMassiveThreshold(battle.useMassiveThreshold ?? false);
-    },
-  });
+  // Load initial battle into state once fetched
+  React.useEffect(() => {
+    if (initialBattle && !hasLoadedInitial) {
+      setActiveBattleId(initialBattle.id);
+      setBattleName(initialBattle.name);
+      rosterActions.setCharacters(battleCharactersToTrackers(initialBattle));
+      rosterActions.setAdversaries(battleAdversariesToTrackers(initialBattle));
+      rosterActions.setEnvironments(
+        battleEnvironmentsToTrackers(initialBattle)
+      );
+      rosterActions.setSpotlight(initialBattle.spotlight ?? null);
+      rosterActions.setSpotlightHistory(initialBattle.spotlightHistory ?? []);
+      rosterActions.setFearPool(initialBattle.fearPool ?? 0);
+      rosterActions.setUseMassiveThreshold(
+        initialBattle.useMassiveThreshold ?? false
+      );
+      setHasLoadedInitial(true);
+    }
+  }, [initialBattle, hasLoadedInitial, rosterActions]);
 
   const saveBattleMutation = useMutation({
     mutationFn: async () => {
@@ -180,24 +195,6 @@ function BattleTrackerPage() {
     },
   });
 
-  const deleteBattleMutation = useMutation({
-    mutationFn: deleteStandaloneBattle,
-    onSuccess: (_, battleId) => {
-      if (battleId === activeBattleId) {
-        setActiveBattleId(null);
-        setBattleName('Untitled Battle');
-        rosterActions.setCharacters([]);
-        rosterActions.setAdversaries([]);
-        rosterActions.setEnvironments([]);
-        rosterActions.setSpotlight(null);
-        rosterActions.setSpotlightHistory([]);
-        rosterActions.setFearPool(0);
-        rosterActions.setUseMassiveThreshold(false);
-      }
-      void queryClient.invalidateQueries({ queryKey: ['standalone-battles'] });
-    },
-  });
-
   const handleAddCharacter = () => {
     const newId = rosterActions.addCharacter(dialogState.characterDraft);
     if (!newId) return;
@@ -256,12 +253,19 @@ function BattleTrackerPage() {
   return (
     <div className="container mx-auto max-w-7xl px-4 py-8">
       <div className="mb-6 space-y-2">
+        <Link
+          to="/gm/saved-encounters"
+          className="text-muted-foreground hover:text-foreground mb-2 inline-flex items-center gap-1 text-sm transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Saved Encounters
+        </Link>
         <h1 className="text-3xl font-bold">Battle Tracker</h1>
         <p className="text-muted-foreground text-sm">
           Run one-off encounters without linking to a campaign.
         </p>
       </div>
-      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+      <div className="space-y-6">
         <Card>
           <CardHeader className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -483,54 +487,6 @@ function BattleTrackerPage() {
               onAddAdversaries={handleAddFromWizard}
               currentCharacterCount={rosterState.characters.length}
             />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Saved Encounters</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {savedBattles.length === 0 ? (
-              <p className="text-muted-foreground text-sm">
-                No saved encounters yet.
-              </p>
-            ) : (
-              savedBattles.map(battle => (
-                <div
-                  key={battle.id}
-                  className="flex items-center justify-between gap-2 rounded-md border p-2"
-                >
-                  <div>
-                    <div className="text-sm font-medium">{battle.name}</div>
-                    <div className="text-muted-foreground text-xs">
-                      Updated {new Date(battle.updatedAt).toLocaleString()}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => loadBattleMutation.mutate(battle.id)}
-                    >
-                      Load
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => deleteBattleMutation.mutate(battle.id)}
-                    >
-                      <Trash2 className="text-destructive h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))
-            )}
-            <Separator />
-            <p className="text-muted-foreground text-xs">
-              Campaign battles are still managed from each campaign’s GM Tools
-              tab.
-            </p>
           </CardContent>
         </Card>
       </div>
