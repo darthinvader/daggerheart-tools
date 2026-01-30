@@ -251,7 +251,7 @@ function BattleTrackerPage() {
   );
 
   return (
-    <div className="container mx-auto max-w-7xl px-4 py-8">
+    <div className="container mx-auto px-4 py-8">
       <div className="mb-6 space-y-2">
         <Link
           to="/gm/saved-encounters"

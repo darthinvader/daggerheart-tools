@@ -399,26 +399,41 @@ function CampaignsList() {
 
   if (loading) {
     return (
-      <div className="container mx-auto max-w-7xl px-4 py-8">
-        <div className="flex h-64 items-center justify-center">
-          <p className="text-muted-foreground">Loading campaigns...</p>
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8 flex items-center gap-3">
+          <div className="bg-muted size-12 animate-pulse rounded-xl" />
+          <div className="space-y-2">
+            <div className="bg-muted h-8 w-40 animate-pulse rounded" />
+            <div className="bg-muted h-5 w-56 animate-pulse rounded" />
+          </div>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="bg-muted h-40 animate-pulse rounded-lg" />
+          ))}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto max-w-7xl px-4 py-8">
-      <div className="mb-8 flex items-center justify-between">
+    <div className="container mx-auto px-4 py-8">
+      {/* Header */}
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="mb-1 text-3xl font-bold">My Campaigns</h1>
-          <p className="text-muted-foreground">
+          <h1 className="mb-2 flex items-center gap-3 text-3xl font-bold sm:text-4xl">
+            <div className="flex size-12 items-center justify-center rounded-xl bg-blue-500/10">
+              <FolderOpen className="size-6 text-blue-500" />
+            </div>
+            My Campaigns
+          </h1>
+          <p className="text-muted-foreground text-lg">
             Manage your campaign frames and settings
           </p>
         </div>
-        <Button asChild disabled={!isAuthenticated}>
+        <Button asChild disabled={!isAuthenticated} size="lg">
           <Link to="/gm/campaigns/new">
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="mr-2 size-5" />
             New Campaign
           </Link>
         </Button>

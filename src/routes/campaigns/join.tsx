@@ -116,18 +116,21 @@ function useJoinCampaignState(code: string | undefined) {
 
 function JoinCampaignAuthCard() {
   return (
-    <div className="container mx-auto max-w-xl p-4">
+    <div className="container mx-auto max-w-xl px-4 py-8">
       <Card>
-        <CardHeader>
-          <CardTitle>Join a Campaign</CardTitle>
-          <CardDescription>
+        <CardHeader className="text-center">
+          <div className="bg-primary/10 mx-auto mb-4 flex size-14 items-center justify-center rounded-xl">
+            <Users className="text-primary size-7" />
+          </div>
+          <CardTitle className="text-2xl">Join a Campaign</CardTitle>
+          <CardDescription className="text-base">
             Sign in to accept an invite and attach one of your characters.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Button asChild className="w-full">
+          <Button asChild className="w-full" size="lg">
             <Link to="/login">
-              <LogIn className="mr-2 h-4 w-4" />
+              <LogIn className="mr-2 size-5" />
               Sign in to continue
             </Link>
           </Button>
@@ -299,14 +302,14 @@ function JoinCampaignPage() {
   }
 
   return (
-    <div className="container mx-auto max-w-2xl p-4">
-      <div className="mb-6 text-center">
-        <div className="bg-muted mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full">
-          <Users className="text-muted-foreground h-6 w-6" />
+    <div className="container mx-auto max-w-2xl px-4 py-8">
+      <div className="mb-8 text-center">
+        <div className="bg-primary/10 mx-auto mb-4 flex size-14 items-center justify-center rounded-xl">
+          <Users className="text-primary size-7" />
         </div>
-        <h1 className="text-2xl font-bold">Join a Campaign</h1>
-        <p className="text-muted-foreground text-sm">
-          Enter the invite code and choose which character to bring.
+        <h1 className="text-3xl font-bold">Join a Campaign</h1>
+        <p className="text-muted-foreground mt-2 text-lg">
+          Enter the invite code and choose which character to bring
         </p>
       </div>
 

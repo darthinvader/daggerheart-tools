@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { Plus, Trash2, User } from 'lucide-react';
+import { Plus, Trash2, User, Users } from 'lucide-react';
 
 import { useAuth } from '@/components/providers';
 import { Button } from '@/components/ui/button';
@@ -29,9 +29,9 @@ function EmptyState({
   isAuthenticated: boolean;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center py-16 text-center">
-      <div className="bg-muted mb-4 flex h-16 w-16 items-center justify-center rounded-full">
-        <User className="text-muted-foreground h-8 w-8" />
+    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center">
+      <div className="bg-primary/10 mb-4 flex size-16 items-center justify-center rounded-full">
+        <User className="text-primary size-8" />
       </div>
       <h2 className="mb-2 text-xl font-semibold">No Characters Yet</h2>
       {isAuthenticated ? (
@@ -40,7 +40,7 @@ function EmptyState({
             Create your first character to begin your adventure in Daggerheart.
           </p>
           <Button onClick={onCreateNew} size="lg">
-            <Plus className="mr-2 h-5 w-5" />
+            <Plus className="mr-2 size-5" />
             Create Your First Character
           </Button>
         </>
@@ -50,7 +50,7 @@ function EmptyState({
             You are not logged in. Sign in to create and save characters.
           </p>
           <Button size="lg" disabled>
-            <Plus className="mr-2 h-5 w-5" />
+            <Plus className="mr-2 size-5" />
             Create Your First Character
           </Button>
         </>
@@ -61,13 +61,17 @@ function EmptyState({
 
 function CharactersLoading() {
   return (
-    <div className="container mx-auto p-4">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Characters</h1>
+    <div className="container mx-auto px-4 py-8">
+      <div className="mb-8 flex items-center gap-3">
+        <div className="bg-muted size-12 animate-pulse rounded-xl" />
+        <div className="space-y-2">
+          <div className="bg-muted h-8 w-48 animate-pulse rounded" />
+          <div className="bg-muted h-5 w-64 animate-pulse rounded" />
+        </div>
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {[1, 2, 3].map(i => (
-          <div key={i} className="bg-muted h-32 animate-pulse rounded-lg" />
+          <div key={i} className="bg-muted h-40 animate-pulse rounded-lg" />
         ))}
       </div>
     </div>
@@ -82,9 +86,9 @@ function CharactersError({
   onRetry: () => void;
 }) {
   return (
-    <div className="container mx-auto p-4">
-      <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950">
-        <h2 className="mb-2 font-semibold text-red-800 dark:text-red-200">
+    <div className="container mx-auto px-4 py-8">
+      <div className="rounded-lg border border-red-200 bg-red-50 p-6 dark:border-red-900 dark:bg-red-950">
+        <h2 className="mb-2 text-lg font-semibold text-red-800 dark:text-red-200">
           Failed to load characters
         </h2>
         <p className="mb-4 text-sm text-red-600 dark:text-red-300">
@@ -140,29 +144,40 @@ function CharactersContent({
   );
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold">Characters</h1>
+    <div className="container mx-auto px-4 py-8">
+      {/* Header */}
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="mb-2 flex items-center gap-3 text-3xl font-bold sm:text-4xl">
+            <div className="bg-primary/10 flex size-12 items-center justify-center rounded-xl">
+              <Users className="text-primary size-6" />
+            </div>
+            My Characters
+          </h1>
+          <p className="text-muted-foreground text-lg">
+            Create and manage your Daggerheart characters
+          </p>
+        </div>
         {characters && characters.length > 0 && (
           <Button
             onClick={onCreateNew}
             disabled={isCreating || !isAuthenticated}
-            className="w-full sm:w-auto"
+            size="lg"
           >
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="mr-2 size-5" />
             {isCreating ? 'Creating...' : 'New Character'}
           </Button>
         )}
       </div>
 
       {!isAuthenticated && (
-        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
+        <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
           You are not logged in. Sign in to create and manage characters.
         </div>
       )}
 
       {isCreateError && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
           Failed to create character. {createErrorMessage}
         </div>
       )}
@@ -186,13 +201,14 @@ function CharactersContent({
       )}
 
       {deletedCharacters.length > 0 && (
-        <div className="mt-10 space-y-4">
+        <div className="mt-12 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <h2 className="text-muted-foreground text-lg font-semibold">
-                Recycling Bin
-              </h2>
-              <span className="text-muted-foreground text-xs">
+              <div className="bg-destructive/10 flex size-8 items-center justify-center rounded-lg">
+                <Trash2 className="text-destructive size-4" />
+              </div>
+              <h2 className="text-lg font-semibold">Recycling Bin</h2>
+              <span className="text-muted-foreground bg-muted rounded-full px-2 py-0.5 text-xs">
                 {deletedCharacters.length} deleted
               </span>
             </div>
@@ -202,7 +218,7 @@ function CharactersContent({
               onClick={onEmptyBin}
               disabled={isEmptyingBin || isPermanentlyDeleting}
             >
-              <Trash2 className="mr-1 h-4 w-4" />
+              <Trash2 className="mr-1 size-4" />
               {isEmptyingBin ? 'Emptying...' : 'Empty Bin'}
             </Button>
           </div>

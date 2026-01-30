@@ -152,14 +152,14 @@ export const defaultNavLinks: NavLink[] = [
         icon: <FolderOpen className="size-4" />,
       },
       {
-        to: '/gm/campaigns/new',
-        label: 'New Campaign',
-        icon: <Plus className="size-4" />,
-      },
-      {
         to: '/gm/saved-encounters',
         label: 'Combat Encounters',
         icon: <Swords className="size-4" />,
+      },
+      {
+        to: '/gm/campaigns/new',
+        label: 'New Campaign',
+        icon: <Plus className="size-4" />,
       },
     ],
   },

@@ -164,7 +164,7 @@ function CreateHomebrew() {
 
   if (!user) {
     return (
-      <div className="container mx-auto max-w-7xl px-4 py-8">
+      <div className="container mx-auto px-4 py-8">
         <Card className="border-dashed">
           <CardHeader className="text-center">
             <div className="bg-primary/10 mx-auto mb-4 flex size-16 items-center justify-center rounded-full">
@@ -186,7 +186,7 @@ function CreateHomebrew() {
   }
 
   return (
-    <div className="container mx-auto max-w-7xl px-4 py-8">
+    <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="mb-2 flex items-center gap-3 text-3xl font-bold sm:text-4xl">
           <div className="bg-primary/10 flex size-12 items-center justify-center rounded-xl">

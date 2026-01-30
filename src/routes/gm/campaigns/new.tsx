@@ -48,7 +48,7 @@ function NewCampaignPage() {
   };
 
   return (
-    <div className="container mx-auto max-w-7xl p-4">
+    <div className="container mx-auto px-4 py-8">
       <div className="mb-6">
         <Button
           variant="ghost"

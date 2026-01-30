@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { FolderOpen, FolderPlus, Swords, Users } from 'lucide-react';
+import { Crown, FolderOpen, FolderPlus, Swords, Users } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -14,9 +14,15 @@ export const Route = createFileRoute('/gm/')({
 
 function GmDashboard() {
   return (
-    <div className="container mx-auto max-w-7xl px-4 py-8">
+    <div className="container mx-auto px-4 py-8">
+      {/* Header */}
       <div className="mb-8">
-        <h1 className="mb-2 text-4xl font-bold">GM Tools</h1>
+        <h1 className="mb-2 flex items-center gap-3 text-3xl font-bold sm:text-4xl">
+          <div className="flex size-12 items-center justify-center rounded-xl bg-amber-500/10">
+            <Crown className="size-6 text-amber-500" />
+          </div>
+          GM Tools
+        </h1>
         <p className="text-muted-foreground text-lg">
           Manage your campaigns, track battles, and run your Daggerheart
           sessions
@@ -24,13 +30,15 @@ function GmDashboard() {
       </div>
 
       {/* Quick Actions */}
-      <h2 className="mb-4 text-2xl font-semibold">Quick Actions</h2>
+      <h2 className="mb-4 text-xl font-semibold">Quick Actions</h2>
       <div className="mb-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Link to="/gm/campaigns/new" className="block">
-          <Card className="hover:bg-accent/50 h-full cursor-pointer transition-colors">
+          <Card className="h-full cursor-pointer border-green-500/20 bg-linear-to-br from-green-500/5 to-green-500/10 transition-all hover:scale-[1.02] hover:shadow-md">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FolderPlus className="text-primary h-5 w-5" />
+              <CardTitle className="flex items-center gap-3">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-green-500/10">
+                  <FolderPlus className="size-5 text-green-500" />
+                </div>
                 New Campaign
               </CardTitle>
               <CardDescription>
@@ -41,10 +49,12 @@ function GmDashboard() {
         </Link>
 
         <Link to="/gm/campaigns" className="block">
-          <Card className="hover:bg-accent/50 h-full cursor-pointer transition-colors">
+          <Card className="h-full cursor-pointer border-blue-500/20 bg-linear-to-br from-blue-500/5 to-blue-500/10 transition-all hover:scale-[1.02] hover:shadow-md">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FolderOpen className="text-primary h-5 w-5" />
+              <CardTitle className="flex items-center gap-3">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-blue-500/10">
+                  <FolderOpen className="size-5 text-blue-500" />
+                </div>
                 My Campaigns
               </CardTitle>
               <CardDescription>
@@ -55,10 +65,12 @@ function GmDashboard() {
         </Link>
 
         <Link to="/gm/saved-encounters" className="block">
-          <Card className="hover:bg-accent/50 h-full cursor-pointer transition-colors">
+          <Card className="h-full cursor-pointer border-red-500/20 bg-linear-to-br from-red-500/5 to-red-500/10 transition-all hover:scale-[1.02] hover:shadow-md">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Swords className="text-primary h-5 w-5" />
+              <CardTitle className="flex items-center gap-3">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-red-500/10">
+                  <Swords className="size-5 text-red-500" />
+                </div>
                 Combat Encounters
               </CardTitle>
               <CardDescription>
@@ -71,11 +83,14 @@ function GmDashboard() {
       </div>
 
       {/* Features Overview */}
-      <h2 className="mb-4 text-2xl font-semibold">Features</h2>
+      <h2 className="mb-4 text-xl font-semibold">Features</h2>
       <div className="grid gap-4 md:grid-cols-2">
-        <Card>
+        <Card className="border-amber-500/20 bg-linear-to-br from-amber-500/5 to-amber-500/10">
           <CardHeader>
-            <CardTitle className="text-lg">Campaign Frames</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Crown className="size-5 text-amber-500" />
+              Campaign Frames
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="text-muted-foreground list-inside list-disc space-y-1 text-sm">
@@ -87,12 +102,12 @@ function GmDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-purple-500/20 bg-linear-to-br from-purple-500/5 to-purple-500/10">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
-              <Users className="h-4 w-4" />
+              <Users className="size-5 text-purple-500" />
               Player Management
-              <span className="bg-muted rounded px-2 py-0.5 text-xs">
+              <span className="rounded-full bg-purple-500/20 px-2 py-0.5 text-xs font-normal text-purple-600 dark:text-purple-400">
                 Coming Soon
               </span>
             </CardTitle>

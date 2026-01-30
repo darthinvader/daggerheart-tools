@@ -89,9 +89,15 @@ function SavedEncountersPage() {
   );
 
   return (
-    <div className="container mx-auto max-w-7xl px-4 py-8">
+    <div className="container mx-auto px-4 py-8">
+      {/* Header */}
       <div className="mb-8">
-        <h1 className="mb-2 text-4xl font-bold">Saved Encounters</h1>
+        <h1 className="mb-2 flex items-center gap-3 text-3xl font-bold sm:text-4xl">
+          <div className="flex size-12 items-center justify-center rounded-xl bg-red-500/10">
+            <Swords className="size-6 text-red-500" />
+          </div>
+          Combat Encounters
+        </h1>
         <p className="text-muted-foreground text-lg">
           Manage your combat encounters for one-off sessions or campaigns
         </p>
