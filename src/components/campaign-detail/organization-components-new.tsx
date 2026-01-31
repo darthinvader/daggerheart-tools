@@ -2,6 +2,7 @@
 
 import {
   Building2,
+  Calendar,
   ChevronDown,
   Crown,
   Eye,
@@ -1248,6 +1249,26 @@ function OrganizationCard({
                   </EntityBadgeList>
                 </div>
               </div>
+
+              {/* Session Appearances (Read-only) */}
+              {(localOrg.sessionIds ?? []).length > 0 && (
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2 text-xs">
+                    <Calendar className="h-3 w-3 text-blue-500" />
+                    Session Appearances
+                  </Label>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="outline" className="gap-1">
+                      <Calendar className="h-3 w-3" />
+                      {localOrg.sessionIds.length} session
+                      {localOrg.sessionIds.length !== 1 ? 's' : ''}
+                    </Badge>
+                  </div>
+                  <p className="text-muted-foreground text-xs">
+                    This organization appears in sessions where it was linked.
+                  </p>
+                </div>
+              )}
 
               <Separator />
 

@@ -505,6 +505,7 @@ async function updateCampaignSessions(
       npcs: rebuilt.npcs,
       locations: rebuilt.locations,
       quests: rebuilt.quests,
+      organizations: rebuilt.organizations,
     })
     .eq('id', campaignId)
     .is('deleted_at', null);
@@ -517,11 +518,12 @@ async function updateCampaignSessions(
 
 function rebuildCampaignLinks(
   campaign: Campaign
-): Pick<Campaign, 'npcs' | 'locations' | 'quests'> {
+): Pick<Campaign, 'npcs' | 'locations' | 'quests' | 'organizations'> {
   const sessions = campaign.sessions ?? [];
   const quests = campaign.quests ?? [];
   const npcs = campaign.npcs ?? [];
   const locations = campaign.locations ?? [];
+  const organizations = campaign.organizations ?? [];
 
   const updatedNPCs = npcs.map(npc => {
     // Build session appearances from sessions that reference this NPC
@@ -616,10 +618,23 @@ function rebuildCampaignLinks(
     };
   });
 
+  const updatedOrganizations = organizations.map(org => {
+    // Build sessionIds from sessions that reference this organization
+    const sessionIds = sessions
+      .filter(session => session.organizationIds?.includes(org.id))
+      .map(session => session.id);
+
+    return {
+      ...org,
+      sessionIds,
+    };
+  });
+
   return {
     npcs: updatedNPCs,
     locations: updatedLocations,
     quests: updatedQuests,
+    organizations: updatedOrganizations,
   };
 }
 

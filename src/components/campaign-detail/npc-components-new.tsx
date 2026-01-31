@@ -3,6 +3,7 @@
 import {
   Brain,
   Building2,
+  Calendar,
   ChevronDown,
   FileText,
   Heart,
@@ -13,6 +14,7 @@ import {
   Shield,
   Sparkles,
   Swords,
+  Target,
   Trash2,
   User,
   Users,
@@ -429,7 +431,7 @@ function NPCCard({
   npc,
   allNPCs,
   quests,
-  sessions: _sessions,
+  sessions,
   locations,
   organizations,
   isExpanded,
@@ -442,8 +444,6 @@ function NPCCard({
   onSaveStart,
   onPendingChange,
 }: NPCCardProps) {
-  // _sessions is available for future use
-  void _sessions;
   const [trackedId, setTrackedId] = useState(npc.id);
   const [localNPC, setLocalNPC] = useState(() => normalizeNPC(npc));
   const [baseNPC, setBaseNPC] = useState(() => normalizeNPC(npc));
@@ -1214,6 +1214,133 @@ function NPCCard({
               </div>
 
               <Separator />
+
+              {/* Session Appearances (Read-only) */}
+              {(localNPC.sessionAppearances ?? []).length > 0 && (
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2 text-xs">
+                    <Calendar className="h-3 w-3 text-blue-500" />
+                    Session Appearances
+                  </Label>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                    {(localNPC.sessionAppearances ?? []).map(appearance => (
+                      <Card key={appearance.sessionId} className="bg-muted/20">
+                        <CardContent className="p-2">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-3 w-3 flex-shrink-0 text-blue-500" />
+                            <div className="min-w-0 flex-1 truncate text-sm font-medium">
+                              S{appearance.sessionNumber}
+                              {appearance.sessionTitle &&
+                                `: ${appearance.sessionTitle}`}
+                            </div>
+                          </div>
+                          {appearance.role && (
+                            <Badge variant="secondary" className="mt-1 text-xs">
+                              {appearance.role}
+                            </Badge>
+                          )}
+                          {/* Linked entities inline */}
+                          {((appearance.locationIds ?? []).length > 0 ||
+                            (appearance.questIds ?? []).length > 0) && (
+                            <div className="mt-1 flex flex-wrap gap-1">
+                              {(appearance.locationIds ?? []).map(locId => (
+                                <Badge
+                                  key={locId}
+                                  variant="outline"
+                                  className="gap-0.5 px-1 py-0 text-[10px]"
+                                >
+                                  <Map className="h-2 w-2" />
+                                  {getLocationName(locId)}
+                                </Badge>
+                              ))}
+                              {(appearance.questIds ?? []).map(questId => {
+                                const quest = quests.find(
+                                  q => q.id === questId
+                                );
+                                return (
+                                  <Badge
+                                    key={questId}
+                                    variant="outline"
+                                    className="gap-0.5 px-1 py-0 text-[10px]"
+                                  >
+                                    <Scroll className="h-2 w-2" />
+                                    {quest?.title ?? 'Unknown'}
+                                  </Badge>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Quest Appearances (Read-only) */}
+              {(localNPC.questAppearances ?? []).length > 0 && (
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2 text-xs">
+                    <Target className="h-3 w-3 text-amber-500" />
+                    Quest Appearances
+                  </Label>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                    {(localNPC.questAppearances ?? []).map(appearance => (
+                      <Card key={appearance.questId} className="bg-muted/20">
+                        <CardContent className="p-2">
+                          <div className="flex items-center gap-2">
+                            <Target className="h-3 w-3 flex-shrink-0 text-amber-500" />
+                            <div className="min-w-0 flex-1 truncate text-sm font-medium">
+                              {appearance.questTitle ?? 'Unknown Quest'}
+                            </div>
+                          </div>
+                          {appearance.role && (
+                            <Badge variant="secondary" className="mt-1 text-xs">
+                              {appearance.role}
+                            </Badge>
+                          )}
+                          {/* Linked entities inline */}
+                          {((appearance.locationIds ?? []).length > 0 ||
+                            (appearance.sessionIds ?? []).length > 0) && (
+                            <div className="mt-1 flex flex-wrap gap-1">
+                              {(appearance.locationIds ?? []).map(locId => (
+                                <Badge
+                                  key={locId}
+                                  variant="outline"
+                                  className="gap-0.5 px-1 py-0 text-[10px]"
+                                >
+                                  <Map className="h-2 w-2" />
+                                  {getLocationName(locId)}
+                                </Badge>
+                              ))}
+                              {(appearance.sessionIds ?? []).map(
+                                (sessionId: string) => {
+                                  const foundSession = sessions.find(
+                                    (s: SessionNote) => s.id === sessionId
+                                  );
+                                  return (
+                                    <Badge
+                                      key={sessionId}
+                                      variant="outline"
+                                      className="gap-0.5 px-1 py-0 text-[10px]"
+                                    >
+                                      <Calendar className="h-2 w-2" />S
+                                      {foundSession?.sessionNumber ?? '?'}
+                                    </Badge>
+                                  );
+                                }
+                              )}
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {((localNPC.sessionAppearances ?? []).length > 0 ||
+                (localNPC.questAppearances ?? []).length > 0) && <Separator />}
 
               {/* Tags */}
               <div className="space-y-2">

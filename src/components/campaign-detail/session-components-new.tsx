@@ -905,41 +905,36 @@ function SessionCard({
                     this session.
                   </div>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
                     {(localSession.npcsInvolved ?? []).map(involvement => (
                       <Card key={involvement.id} className="bg-muted/30">
-                        <CardContent className="p-3">
-                          <div className="flex items-start justify-between gap-2">
+                        <CardContent className="p-2">
+                          <div className="flex items-start justify-between gap-1">
                             <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-2">
-                                <User className="h-4 w-4 flex-shrink-0" />
-                                <span className="font-medium">
+                              <div className="flex items-center gap-1">
+                                <User className="h-3 w-3 flex-shrink-0" />
+                                <span className="truncate text-sm font-medium">
                                   {involvement.npcName}
                                 </span>
                                 {involvement.role && (
                                   <Badge
                                     variant="secondary"
-                                    className="text-xs"
+                                    className="ml-1 px-1 py-0 text-[10px]"
                                   >
                                     {involvement.role}
                                   </Badge>
                                 )}
                               </div>
-                              {involvement.actionsTaken && (
-                                <p className="text-muted-foreground mt-1 text-sm">
-                                  {involvement.actionsTaken}
-                                </p>
-                              )}
                               {(involvement.locationIds?.length > 0 ||
                                 involvement.questIds?.length > 0) && (
-                                <div className="mt-2 flex flex-wrap gap-1">
+                                <div className="mt-1 flex flex-wrap gap-1">
                                   {involvement.locationIds?.map(locId => (
                                     <Badge
                                       key={locId}
                                       variant="outline"
-                                      className="text-xs"
+                                      className="gap-0.5 px-1 py-0 text-[10px]"
                                     >
-                                      <Map className="mr-1 h-3 w-3" />
+                                      <Map className="h-2 w-2" />
                                       {getLocationName(locId)}
                                     </Badge>
                                   ))}
@@ -947,23 +942,23 @@ function SessionCard({
                                     <Badge
                                       key={questId}
                                       variant="outline"
-                                      className="text-xs"
+                                      className="gap-0.5 px-1 py-0 text-[10px]"
                                     >
-                                      <Scroll className="mr-1 h-3 w-3" />
+                                      <Scroll className="h-2 w-2" />
                                       {getQuestTitle(questId)}
                                     </Badge>
                                   ))}
                                 </div>
                               )}
                             </div>
-                            <div className="flex gap-1">
+                            <div className="flex flex-shrink-0 gap-0.5">
                               <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      className="h-7 w-7"
+                                      className="h-6 w-6"
                                       onClick={() =>
                                         setEditingNpcInvolvement(involvement)
                                       }
@@ -982,7 +977,7 @@ function SessionCard({
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      className="text-destructive h-7 w-7"
+                                      className="text-destructive h-6 w-6"
                                       onClick={() =>
                                         handleRemoveNPC(involvement.id)
                                       }

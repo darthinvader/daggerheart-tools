@@ -3,6 +3,7 @@
 import {
   AlertCircle,
   Building2,
+  Calendar,
   CheckCircle2,
   ChevronDown,
   Circle,
@@ -1357,6 +1358,78 @@ function QuestCard({
                   />
                 </div>
               </div>
+
+              {/* Session Appearances (Read-only) */}
+              {(localQuest.sessionAppearances ?? []).length > 0 && (
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2 text-xs">
+                    <Calendar className="h-3 w-3 text-blue-500" />
+                    Session Appearances
+                  </Label>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                    {(localQuest.sessionAppearances ?? []).map(appearance => {
+                      const session = sessions.find(
+                        s => s.id === appearance.sessionId
+                      );
+                      const sessionNPCs = session?.npcsInvolved ?? [];
+                      const sessionLocationIds = session?.locationIds ?? [];
+                      return (
+                        <Card
+                          key={appearance.sessionId}
+                          className="bg-muted/20"
+                        >
+                          <CardContent className="p-2">
+                            <div className="flex items-center gap-2">
+                              <Calendar className="h-3 w-3 flex-shrink-0 text-blue-500" />
+                              <div className="min-w-0 flex-1 truncate text-sm font-medium">
+                                S{appearance.sessionNumber}
+                                {appearance.sessionTitle &&
+                                  `: ${appearance.sessionTitle}`}
+                              </div>
+                            </div>
+                            {/* NPCs and Locations inline */}
+                            {(sessionNPCs.length > 0 ||
+                              sessionLocationIds.length > 0) && (
+                              <div className="mt-1 flex flex-wrap gap-1">
+                                {sessionNPCs.map(npcInv => {
+                                  const npc = npcs.find(
+                                    n => n.id === npcInv.npcId
+                                  );
+                                  return (
+                                    <Badge
+                                      key={npcInv.id}
+                                      variant="outline"
+                                      className="gap-0.5 px-1 py-0 text-[10px]"
+                                    >
+                                      <User className="h-2 w-2" />
+                                      {npc?.name ?? npcInv.npcName ?? 'Unknown'}
+                                    </Badge>
+                                  );
+                                })}
+                                {sessionLocationIds.map(locId => {
+                                  const loc = locations.find(
+                                    l => l.id === locId
+                                  );
+                                  return (
+                                    <Badge
+                                      key={locId}
+                                      variant="outline"
+                                      className="gap-0.5 px-1 py-0 text-[10px]"
+                                    >
+                                      <Map className="h-2 w-2" />
+                                      {loc?.name ?? 'Unknown'}
+                                    </Badge>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               <Separator />
 

@@ -166,7 +166,7 @@ type CampaignTabsProps = {
 
 function CampaignLoadingState() {
   return (
-    <div className="mx-auto w-full max-w-[1800px] px-4 py-4">
+    <div className="container mx-auto px-4 py-4">
       <div className="bg-muted h-64 animate-pulse rounded-lg" />
     </div>
   );
@@ -174,7 +174,7 @@ function CampaignLoadingState() {
 
 function CampaignNotFoundState({ onBack }: { onBack: () => void }) {
   return (
-    <div className="mx-auto w-full max-w-[1800px] px-4 py-4">
+    <div className="container mx-auto px-4 py-4">
       <Card>
         <CardContent className="py-12 text-center">
           <p className="text-muted-foreground">Campaign not found</p>
@@ -760,7 +760,7 @@ function CampaignDetailPage() {
   const frame = campaign.frame;
 
   return (
-    <div className="mx-auto w-full max-w-[1800px] px-4 py-4">
+    <div className="container mx-auto px-4 py-4">
       {/* Header */}
       <CampaignHeader
         campaign={campaign}

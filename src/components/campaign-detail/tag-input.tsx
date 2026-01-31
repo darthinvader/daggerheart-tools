@@ -79,7 +79,7 @@ export function TagInput({
         />
         {showSuggestions && filteredSuggestions.length > 0 && (
           <div className="bg-popover absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-md border shadow-md">
-            {filteredSuggestions.slice(0, 8).map(suggestion => (
+            {filteredSuggestions.map(suggestion => (
               <button
                 key={suggestion}
                 type="button"

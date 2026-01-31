@@ -3,6 +3,7 @@
 import {
   Building,
   Building2,
+  Calendar,
   ChevronDown,
   History,
   Key,
@@ -71,6 +72,7 @@ import type {
   CampaignQuest,
   PointOfInterest,
   SessionNote,
+  SessionNPCInvolvement,
 } from '@/lib/schemas/campaign';
 
 import {
@@ -477,7 +479,7 @@ function LocationCard({
   location,
   npcs,
   quests,
-  sessions: _sessions,
+  sessions,
   organizations,
   isExpanded,
   onToggle,
@@ -489,8 +491,6 @@ function LocationCard({
   onSaveStart,
   onPendingChange,
 }: LocationCardProps) {
-  // _sessions available for future use
-  void _sessions;
   const [trackedId, setTrackedId] = useState(location.id);
   const [localLocation, setLocalLocation] = useState(() =>
     normalizeLocation(location)
@@ -1062,6 +1062,84 @@ function LocationCard({
                   </RemovableBadge>
                 ))}
               </EntityBadgeList>
+
+              {/* Session Appearances (Read-only) */}
+              {(localLocation.sessionAppearances ?? []).length > 0 && (
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2 text-xs">
+                    <Calendar className="h-3 w-3 text-blue-500" />
+                    Session Appearances
+                  </Label>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                    {(localLocation.sessionAppearances ?? []).map(
+                      appearance => {
+                        const session = sessions.find(
+                          s => s.id === appearance.sessionId
+                        );
+                        const sessionNPCs = session?.npcsInvolved ?? [];
+                        const sessionQuestIds = session?.questIds ?? [];
+                        return (
+                          <Card
+                            key={appearance.sessionId}
+                            className="bg-muted/20"
+                          >
+                            <CardContent className="p-2">
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-3 w-3 flex-shrink-0 text-blue-500" />
+                                <div className="min-w-0 flex-1 truncate text-sm font-medium">
+                                  S{appearance.sessionNumber}
+                                  {appearance.sessionTitle &&
+                                    `: ${appearance.sessionTitle}`}
+                                </div>
+                              </div>
+                              {/* NPCs and Quests inline */}
+                              {(sessionNPCs.length > 0 ||
+                                sessionQuestIds.length > 0) && (
+                                <div className="mt-1 flex flex-wrap gap-1">
+                                  {sessionNPCs.map(
+                                    (npcInv: SessionNPCInvolvement) => {
+                                      const npc = npcs.find(
+                                        n => n.id === npcInv.npcId
+                                      );
+                                      return (
+                                        <Badge
+                                          key={npcInv.id}
+                                          variant="outline"
+                                          className="gap-0.5 px-1 py-0 text-[10px]"
+                                        >
+                                          <User className="h-2 w-2" />
+                                          {npc?.name ??
+                                            npcInv.npcName ??
+                                            'Unknown'}
+                                        </Badge>
+                                      );
+                                    }
+                                  )}
+                                  {sessionQuestIds.map((questId: string) => {
+                                    const quest = quests.find(
+                                      q => q.id === questId
+                                    );
+                                    return (
+                                      <Badge
+                                        key={questId}
+                                        variant="outline"
+                                        className="gap-0.5 px-1 py-0 text-[10px]"
+                                      >
+                                        <Scroll className="h-2 w-2" />
+                                        {quest?.title ?? 'Unknown'}
+                                      </Badge>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </CardContent>
+                          </Card>
+                        );
+                      }
+                    )}
+                  </div>
+                </div>
+              )}
 
               <Separator />
 
