@@ -164,6 +164,10 @@ export type AdversaryTracker = {
     total: number;
     timestamp: number;
   };
+  /** Countdown tracker for adversary events */
+  countdown?: number;
+  /** Whether countdown is enabled (can be ticked down) */
+  countdownEnabled?: boolean;
 };
 
 export type EnvironmentFeatureEntry = {
@@ -181,6 +185,8 @@ export type EnvironmentTracker = {
   notes: string;
   features: EnvironmentFeatureEntry[];
   countdown?: number;
+  /** Whether countdown is enabled (can be ticked down) */
+  countdownEnabled?: boolean;
 };
 
 export type TrackerItem =

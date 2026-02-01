@@ -89,6 +89,7 @@ export function EditAdversaryDialog({
       thresholdsOverride,
       featuresOverride: state.features,
       notes: state.notes,
+      countdown: state.countdown,
     });
     onOpenChange(false);
   };

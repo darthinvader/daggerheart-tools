@@ -109,6 +109,7 @@ interface HomebrewListProps {
   items: HomebrewContent[];
   isLoading?: boolean;
   currentUserId?: string;
+  linkedItemIds?: Set<string>;
   onView?: (item: HomebrewContent) => void;
   onEdit?: (item: HomebrewContent) => void;
   onDelete?: (item: HomebrewContent) => void;
@@ -123,6 +124,7 @@ export function HomebrewList({
   items,
   isLoading = false,
   currentUserId,
+  linkedItemIds,
   onView,
   onEdit,
   onDelete,
@@ -380,6 +382,7 @@ export function HomebrewList({
               content={item}
               isOwner={item.ownerId === currentUserId}
               isStarred={starredSet.has(item.id)}
+              isLinkedToCampaign={linkedItemIds?.has(item.id) ?? false}
               onView={onView ? () => onView(item) : undefined}
               onEdit={onEdit ? () => onEdit(item) : undefined}
               onDelete={onDelete ? () => onDelete(item) : undefined}

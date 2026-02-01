@@ -6,17 +6,26 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import {
   Beaker,
+  BookOpen,
   Filter,
   GitFork,
   Globe,
   Loader2,
+  Plus,
   Search,
   SortAsc,
   Star,
+  Users,
+  X,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { HomebrewFormDialog, HomebrewList } from '@/components/homebrew';
+import {
+  HomebrewFormDialog,
+  HomebrewList,
+  HomebrewViewDialog,
+} from '@/components/homebrew';
+import { OfficialContentBrowser } from '@/components/homebrew/official-content-browser';
 import { useAuth } from '@/components/providers';
 import { Button } from '@/components/ui/button';
 import {
@@ -33,13 +42,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  useForkHomebrewContent,
+  useCreateHomebrewContent,
   usePublicHomebrewContentInfinite,
 } from '@/features/homebrew';
 import type {
   HomebrewContent,
   HomebrewContentType,
+  HomebrewVisibility,
 } from '@/lib/schemas/homebrew';
 
 import { CONTENT_TYPE_CONFIG } from './index';
@@ -78,6 +89,9 @@ function BrowseHomebrew() {
     'all'
   );
   const [sortBy, setSortBy] = useState<'recent' | 'forks' | 'name'>('recent');
+  const [showForkInfo, setShowForkInfo] = useState(() => {
+    return localStorage.getItem('hideForkInfo') !== 'true';
+  });
 
   // Map UI sort to API sort
   const sortOptions = useMemo(() => {
@@ -99,7 +113,12 @@ function BrowseHomebrew() {
       ...sortOptions,
     });
 
-  const forkMutation = useForkHomebrewContent();
+  const createMutation = useCreateHomebrewContent();
+
+  // State for creating new homebrew
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [createType, setCreateType] =
+    useState<HomebrewContentType>('adversary');
 
   // Flatten paginated results
   const pages = data?.pages;
@@ -139,188 +158,270 @@ function BrowseHomebrew() {
   }, []);
 
   const handleFork = useCallback(
-    async (item: HomebrewContent) => {
+    (item: HomebrewContent) => {
       if (!user) {
         navigate({ to: '/login' });
         return;
       }
       const sourceId = item.forkedFrom ?? item.id;
-      await forkMutation.mutateAsync(sourceId);
+      navigate({ to: '/homebrew/new', search: { forkFrom: sourceId } });
+    },
+    [user, navigate]
+  );
+
+  const handleCreate = useCallback(
+    (type: HomebrewContentType) => {
+      if (!user) {
+        navigate({ to: '/login' });
+        return;
+      }
+      setCreateType(type);
+      setIsCreateOpen(true);
+    },
+    [user, navigate]
+  );
+
+  const handleFormSubmit = useCallback(
+    async (payload: {
+      content: HomebrewContent['content'];
+      visibility: HomebrewVisibility;
+    }) => {
+      const typedFormData = payload.content as {
+        name: string;
+      } & HomebrewContent['content'];
+      await createMutation.mutateAsync({
+        contentType: createType,
+        content: typedFormData,
+        name: typedFormData.name,
+        description: '',
+        tags: [],
+        visibility: payload.visibility,
+        campaignLinks: [],
+      });
+      setIsCreateOpen(false);
       navigate({ to: '/homebrew' });
     },
-    [user, navigate, forkMutation]
+    [createType, createMutation, navigate]
   );
 
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="mb-2 flex items-center gap-3 text-3xl font-bold sm:text-4xl">
-          <div className="flex size-12 items-center justify-center rounded-xl bg-green-500/10">
-            <Globe className="size-6 text-green-500" />
-          </div>
-          Browse Community Homebrew
-        </h1>
-        <p className="text-muted-foreground text-lg">
-          Discover and fork community-created content for your campaigns
-        </p>
-      </div>
-
-      {/* Info Card */}
-      <Card className="mb-6 border-green-500/20 bg-linear-to-r from-green-500/5 to-green-500/10">
-        <CardHeader className="pb-4">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <GitFork className="size-5 text-green-500" />
-            How Forking Works
-          </CardTitle>
-          <CardDescription className="text-base">
-            When you fork homebrew content, you create your own editable copy
-            that you can customize and use in your campaigns. The original
-            creator gets credit and the fork count increases.
-          </CardDescription>
-        </CardHeader>
-      </Card>
-
-      {/* Filters */}
-      <Card className="mb-6">
-        <CardHeader className="pb-4">
-          <div className="flex flex-col gap-4 sm:flex-row">
-            {/* Search */}
-            <div className="relative flex-1">
-              <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-              <Input
-                placeholder="Search homebrew..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="mb-2 flex items-center gap-3 text-3xl font-bold sm:text-4xl">
+            <div className="flex size-12 items-center justify-center rounded-xl bg-green-500/10">
+              <Globe className="size-6 text-green-500" />
             </div>
-
-            {/* Type Filter */}
-            <Select
-              value={typeFilter}
-              onValueChange={v => setTypeFilter(v as typeof typeFilter)}
-            >
-              <SelectTrigger className="w-full sm:w-45">
-                <Filter className="mr-2 size-4" />
-                <SelectValue placeholder="Filter by type" />
-              </SelectTrigger>
-              <SelectContent>
-                {CONTENT_TYPES.map(type => {
-                  const config =
-                    type.value !== 'all'
-                      ? CONTENT_TYPE_CONFIG[type.value]
-                      : null;
-                  const Icon = config?.icon;
-                  return (
-                    <SelectItem key={type.value} value={type.value}>
-                      <div className="flex items-center gap-2">
-                        {Icon && <Icon className={`size-4 ${config.color}`} />}
-                        {type.label}
-                      </div>
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-
-            {/* Sort */}
-            <Select
-              value={sortBy}
-              onValueChange={v => setSortBy(v as typeof sortBy)}
-            >
-              <SelectTrigger className="w-full sm:w-52">
-                <SortAsc className="mr-2 size-4" />
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                {SORT_OPTIONS.map(option => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.value === 'forks' && (
-                      <Star className="mr-2 inline size-4" />
-                    )}
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardHeader>
-      </Card>
-
-      {/* Results info */}
-      <div className="text-muted-foreground mb-4 flex items-center gap-2">
-        <Beaker className="size-4" />
-        <span>
-          {totalCount > 0 ? (
-            <>
-              Showing {publicContent.length} of {totalCount} items
-            </>
-          ) : isLoading ? (
-            'Loading...'
-          ) : (
-            'No items found'
-          )}
-        </span>
-        {(searchQuery || typeFilter !== 'all') && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setSearchQuery('');
-              setTypeFilter('all');
-            }}
-          >
-            Clear filters
+            Browse Community Homebrew
+          </h1>
+          <p className="text-muted-foreground text-lg">
+            Discover and fork community-created content for your campaigns
+          </p>
+        </div>
+        {user && (
+          <Button size="lg" onClick={() => handleCreate('adversary')}>
+            <Plus className="mr-2 size-5" /> Create Public
           </Button>
         )}
       </div>
 
-      {/* Content List */}
-      <HomebrewList
-        items={publicContent}
-        isLoading={isLoading}
-        currentUserId={user?.id}
-        onView={handleView}
-        onFork={handleFork}
-        showCreateButton={false}
-        emptyMessage={
-          searchQuery || typeFilter !== 'all'
-            ? 'No homebrew content matches your filters.'
-            : 'No public homebrew content available yet. Be the first to share!'
-        }
+      {/* Info Card */}
+      {showForkInfo && (
+        <Card className="relative mb-6 border-green-500/20 bg-linear-to-r from-green-500/5 to-green-500/10">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-2 right-2 size-7"
+            onClick={() => {
+              setShowForkInfo(false);
+              localStorage.setItem('hideForkInfo', 'true');
+            }}
+          >
+            <X className="size-4" />
+          </Button>
+          <CardHeader className="pr-10 pb-4">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <GitFork className="size-5 text-green-500" />
+              How Forking Works
+            </CardTitle>
+            <CardDescription className="text-base">
+              When you fork homebrew content, you create your own editable copy
+              that you can customize and use in your campaigns. The original
+              creator gets credit and the fork count increases.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      )}
+
+      {/* Content Tabs */}
+      <Tabs defaultValue="community" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="community" className="gap-2">
+            <Users className="size-4 text-green-500" />
+            <span>Community</span>
+          </TabsTrigger>
+          <TabsTrigger value="official" className="gap-2">
+            <BookOpen className="size-4 text-indigo-500" />
+            <span>Official</span>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="community" className="space-y-4">
+          {/* Filters */}
+          <Card>
+            <CardHeader className="pb-4">
+              <div className="flex flex-col gap-4 sm:flex-row">
+                {/* Search */}
+                <div className="relative flex-1">
+                  <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+                  <Input
+                    placeholder="Search homebrew..."
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+
+                {/* Type Filter */}
+                <Select
+                  value={typeFilter}
+                  onValueChange={v => setTypeFilter(v as typeof typeFilter)}
+                >
+                  <SelectTrigger className="w-full sm:w-45">
+                    <Filter className="mr-2 size-4" />
+                    <SelectValue placeholder="Filter by type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CONTENT_TYPES.map(type => {
+                      const config =
+                        type.value !== 'all'
+                          ? CONTENT_TYPE_CONFIG[type.value]
+                          : null;
+                      const Icon = config?.icon;
+                      return (
+                        <SelectItem key={type.value} value={type.value}>
+                          <div className="flex items-center gap-2">
+                            {Icon && (
+                              <Icon className={`size-4 ${config.color}`} />
+                            )}
+                            {type.label}
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+
+                {/* Sort */}
+                <Select
+                  value={sortBy}
+                  onValueChange={v => setSortBy(v as typeof sortBy)}
+                >
+                  <SelectTrigger className="w-full sm:w-52">
+                    <SortAsc className="mr-2 size-4" />
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SORT_OPTIONS.map(option => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.value === 'forks' && (
+                          <Star className="mr-2 inline size-4" />
+                        )}
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardHeader>
+          </Card>
+
+          {/* Results info */}
+          <div className="text-muted-foreground flex items-center gap-2">
+            <Beaker className="size-4" />
+            <span>
+              {totalCount > 0 ? (
+                <>
+                  Showing {publicContent.length} of {totalCount} items
+                </>
+              ) : isLoading ? (
+                'Loading...'
+              ) : (
+                'No items found'
+              )}
+            </span>
+            {(searchQuery || typeFilter !== 'all') && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSearchQuery('');
+                  setTypeFilter('all');
+                }}
+              >
+                Clear filters
+              </Button>
+            )}
+          </div>
+
+          {/* Content List */}
+          <HomebrewList
+            items={publicContent}
+            isLoading={isLoading}
+            currentUserId={user?.id}
+            onView={handleView}
+            onFork={handleFork}
+            onCreate={user ? handleCreate : undefined}
+            showCreateButton={!!user}
+            emptyMessage={
+              searchQuery || typeFilter !== 'all'
+                ? 'No homebrew content matches your filters.'
+                : 'No public homebrew content available yet. Be the first to share!'
+            }
+          />
+
+          {/* Infinite scroll trigger */}
+          {hasNextPage && (
+            <div ref={loadMoreRef} className="flex justify-center py-8">
+              {isFetchingNextPage ? (
+                <div className="text-muted-foreground flex items-center gap-2">
+                  <Loader2 className="size-5 animate-spin" />
+                  Loading more...
+                </div>
+              ) : (
+                <Button variant="outline" onClick={() => fetchNextPage()}>
+                  Load More
+                </Button>
+              )}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="official">
+          <OfficialContentBrowser />
+        </TabsContent>
+      </Tabs>
+
+      {/* View Dialog (Read-only) */}
+      <HomebrewViewDialog
+        open={isViewOpen}
+        onOpenChange={setIsViewOpen}
+        content={viewingItem}
+        isOwner={viewingItem?.ownerId === user?.id}
+        onEdit={undefined}
+        onFork={viewingItem ? () => handleFork(viewingItem) : undefined}
       />
 
-      {/* Infinite scroll trigger */}
-      {hasNextPage && (
-        <div ref={loadMoreRef} className="flex justify-center py-8">
-          {isFetchingNextPage ? (
-            <div className="text-muted-foreground flex items-center gap-2">
-              <Loader2 className="size-5 animate-spin" />
-              Loading more...
-            </div>
-          ) : (
-            <Button variant="outline" onClick={() => fetchNextPage()}>
-              Load More
-            </Button>
-          )}
-        </div>
-      )}
-
-      {/* View Dialog */}
-      {viewingItem && (
-        <HomebrewFormDialog
-          open={isViewOpen}
-          onOpenChange={setIsViewOpen}
-          contentType={viewingItem.contentType}
-          initialData={viewingItem}
-          onSubmit={() => {
-            // View-only mode - close dialog
-            setIsViewOpen(false);
-          }}
-          isSubmitting={false}
-        />
-      )}
+      {/* Create Dialog - defaults to public */}
+      <HomebrewFormDialog
+        open={isCreateOpen}
+        onOpenChange={setIsCreateOpen}
+        contentType={createType}
+        onSubmit={handleFormSubmit}
+        isSubmitting={createMutation.isPending}
+        defaultVisibility="public"
+      />
     </div>
   );
 }

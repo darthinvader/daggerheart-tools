@@ -2,24 +2,25 @@
  * Homebrew Tab Content for Campaign Detail
  *
  * Displays and manages homebrew content linked to a campaign.
+ * Uses a tabbed interface similar to My Homebrew for browsing all user content.
  */
 import {
   Beaker,
-  BookOpen,
-  Home,
-  Layers,
+  Folder,
+  Globe,
   Link2,
-  Map,
-  Package,
+  Lock,
   Plus,
-  Shield,
-  Skull,
-  Sword,
-  Users,
+  Star,
+  X,
 } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
-import { HomebrewFormDialog, HomebrewList } from '@/components/homebrew';
+import {
+  HomebrewFormDialog,
+  HomebrewList,
+  HomebrewViewDialog,
+} from '@/components/homebrew';
 import { useAuth } from '@/components/providers';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -30,18 +31,21 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  TabsContent as InnerTabsContent,
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs';
 import { TabsContent } from '@/components/ui/tabs';
 import {
   useCampaignHomebrewContent,
+  useCollectionItems,
   useCreateHomebrewContent,
+  useHomebrewCollections,
+  useHomebrewContentBatch,
   useLinkHomebrewToCampaign,
   useMyHomebrewContent,
+  useStarredHomebrewContent,
   useUnlinkHomebrewFromCampaign,
   useUpdateHomebrewContent,
 } from '@/features/homebrew';
@@ -50,56 +54,81 @@ import type {
   HomebrewContentType,
   HomebrewVisibility,
 } from '@/lib/schemas/homebrew';
-import { getContentTypeLabel } from '@/lib/schemas/homebrew';
-
-// Content type icons and colors
-const CONTENT_TYPE_CONFIG: Record<
-  HomebrewContentType,
-  { icon: React.ElementType; color: string; bgColor: string }
-> = {
-  adversary: { icon: Skull, color: 'text-red-500', bgColor: 'bg-red-500/10' },
-  environment: {
-    icon: Map,
-    color: 'text-emerald-500',
-    bgColor: 'bg-emerald-500/10',
-  },
-  domain_card: {
-    icon: Layers,
-    color: 'text-purple-500',
-    bgColor: 'bg-purple-500/10',
-  },
-  class: { icon: Shield, color: 'text-blue-500', bgColor: 'bg-blue-500/10' },
-  subclass: {
-    icon: BookOpen,
-    color: 'text-indigo-500',
-    bgColor: 'bg-indigo-500/10',
-  },
-  ancestry: {
-    icon: Users,
-    color: 'text-amber-500',
-    bgColor: 'bg-amber-500/10',
-  },
-  community: { icon: Home, color: 'text-teal-500', bgColor: 'bg-teal-500/10' },
-  equipment: {
-    icon: Sword,
-    color: 'text-orange-500',
-    bgColor: 'bg-orange-500/10',
-  },
-  item: { icon: Package, color: 'text-cyan-500', bgColor: 'bg-cyan-500/10' },
-};
 
 interface HomebrewTabContentProps {
   campaignId: string;
 }
+
+type InnerTab =
+  | 'linked'
+  | 'all'
+  | 'public'
+  | 'private'
+  | 'quicklist'
+  | 'collections';
 
 export function HomebrewTabContent({ campaignId }: HomebrewTabContentProps) {
   const { user } = useAuth();
   const { data: campaignResult, isLoading: loadingCampaign } =
     useCampaignHomebrewContent(campaignId);
   const { data: myResult, isLoading: loadingMy } = useMyHomebrewContent();
+  const { data: starredData, isLoading: isStarredLoading } =
+    useStarredHomebrewContent();
+  const { data: collections = [], isLoading: isCollectionsLoading } =
+    useHomebrewCollections();
 
   const campaignHomebrew = campaignResult?.items ?? [];
   const myHomebrew = myResult?.items ?? [];
+  const starredItems = starredData?.items ?? [];
+
+  // Track which homebrew IDs are linked to this campaign
+  const linkedIds = useMemo(
+    () => new Set(campaignHomebrew.map(item => item.id)),
+    [campaignHomebrew]
+  );
+
+  // Visible collections (exclude quicklist)
+  const visibleCollections = useMemo(
+    () => collections.filter(collection => !collection.isQuicklist),
+    [collections]
+  );
+  const [selectedCollectionId, setSelectedCollectionId] = useState<
+    string | null
+  >(null);
+
+  // Derive effective selected collection ID
+  const effectiveCollectionId = useMemo(() => {
+    if (
+      selectedCollectionId &&
+      visibleCollections.some(c => c.id === selectedCollectionId)
+    ) {
+      return selectedCollectionId;
+    }
+    return visibleCollections[0]?.id ?? null;
+  }, [selectedCollectionId, visibleCollections]);
+
+  const selectedCollection = useMemo(
+    () => visibleCollections.find(c => c.id === effectiveCollectionId) ?? null,
+    [visibleCollections, effectiveCollectionId]
+  );
+
+  const { data: collectionItems = [], isLoading: isCollectionItemsLoading } =
+    useCollectionItems(effectiveCollectionId ?? undefined);
+  const collectionItemIds = useMemo(
+    () => collectionItems.map(item => item.homebrewId),
+    [collectionItems]
+  );
+  const {
+    data: collectionContent = [],
+    isLoading: isCollectionContentLoading,
+  } = useHomebrewContentBatch(collectionItemIds, !!effectiveCollectionId);
+  const orderedCollectionContent = useMemo(() => {
+    if (collectionItemIds.length === 0) return [];
+    const contentMap = new Map(collectionContent.map(item => [item.id, item]));
+    return collectionItemIds
+      .map(id => contentMap.get(id))
+      .filter((item): item is HomebrewContent => Boolean(item));
+  }, [collectionItemIds, collectionContent]);
 
   const createMutation = useCreateHomebrewContent();
   const updateMutation = useUpdateHomebrewContent();
@@ -107,62 +136,66 @@ export function HomebrewTabContent({ campaignId }: HomebrewTabContentProps) {
   const unlinkMutation = useUnlinkHomebrewFromCampaign();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
+  const [isViewOpen, setIsViewOpen] = useState(false);
+  const [viewingItem, setViewingItem] = useState<HomebrewContent | null>(null);
   const [selectedType, setSelectedType] =
     useState<HomebrewContentType>('adversary');
   const [editingItem, setEditingItem] = useState<HomebrewContent | null>(null);
+  const [innerTab, setInnerTab] = useState<InnerTab>('linked');
+  const [showCampaignInfo, setShowCampaignInfo] = useState(() => {
+    return localStorage.getItem('hideCampaignHomebrewInfo') !== 'true';
+  });
 
-  // Homebrew from my collection that's not already linked
-  const linkableHomebrew = myHomebrew.filter(
-    item => !campaignHomebrew.some(linked => linked.id === item.id)
-  );
-
-  const handleCreate = useCallback((type: HomebrewContentType) => {
+  const handleCreate = (type: HomebrewContentType) => {
     setSelectedType(type);
     setEditingItem(null);
     setIsFormOpen(true);
-  }, []);
+  };
 
-  const handleEdit = useCallback((item: HomebrewContent) => {
+  const handleView = (item: HomebrewContent) => {
+    setViewingItem(item);
+    setIsViewOpen(true);
+  };
+
+  const handleEdit = (item: HomebrewContent) => {
     setSelectedType(item.contentType);
     setEditingItem(item);
     setIsFormOpen(true);
-  }, []);
+    // Close view dialog if open
+    setIsViewOpen(false);
+  };
 
-  const handleFormSubmit = useCallback(
-    async (payload: {
-      content: HomebrewContent['content'];
-      visibility: HomebrewVisibility;
-    }) => {
-      const typedFormData = payload.content as {
-        name: string;
-      } & HomebrewContent['content'];
-      if (editingItem) {
-        await updateMutation.mutateAsync({
-          id: editingItem.id,
-          updates: {
-            content: typedFormData,
-            name: typedFormData.name,
-            visibility: payload.visibility,
-          },
-        });
-      } else {
-        // Create new and immediately link to campaign
-        await createMutation.mutateAsync({
-          contentType: selectedType,
+  const handleFormSubmit = async (payload: {
+    content: HomebrewContent['content'];
+    visibility: HomebrewVisibility;
+  }) => {
+    const typedFormData = payload.content as {
+      name: string;
+    } & HomebrewContent['content'];
+    if (editingItem) {
+      await updateMutation.mutateAsync({
+        id: editingItem.id,
+        updates: {
           content: typedFormData,
           name: typedFormData.name,
-          description: '',
-          tags: [],
           visibility: payload.visibility,
-          campaignLinks: [campaignId],
-        });
-      }
-      setIsFormOpen(false);
-      setEditingItem(null);
-    },
-    [editingItem, selectedType, campaignId, createMutation, updateMutation]
-  );
+        },
+      });
+    } else {
+      // Create new and immediately link to campaign
+      await createMutation.mutateAsync({
+        contentType: selectedType,
+        content: typedFormData,
+        name: typedFormData.name,
+        description: '',
+        tags: [],
+        visibility: payload.visibility,
+        campaignLinks: [campaignId],
+      });
+    }
+    setIsFormOpen(false);
+    setEditingItem(null);
+  };
 
   const handleLink = useCallback(
     async (item: HomebrewContent) => {
@@ -170,9 +203,8 @@ export function HomebrewTabContent({ campaignId }: HomebrewTabContentProps) {
         homebrewId: item.id,
         campaignId,
       });
-      setIsLinkDialogOpen(false);
     },
-    [campaignId, linkMutation, setIsLinkDialogOpen]
+    [campaignId, linkMutation]
   );
 
   const handleUnlink = useCallback(
@@ -187,6 +219,49 @@ export function HomebrewTabContent({ campaignId }: HomebrewTabContentProps) {
     [campaignId, unlinkMutation]
   );
 
+  // Helper to render a homebrew list for browsing tabs (not the Linked tab)
+  // Uses onLinkToCampaign for items not yet linked
+  const renderBrowseList = (
+    items: HomebrewContent[],
+    isLoading: boolean,
+    emptyMessage: string,
+    sourceList: HomebrewContent[]
+  ) => (
+    <HomebrewList
+      items={items.map(item => ({
+        ...item,
+        // Add visual indicator for linked items via tags
+        tags: linkedIds.has(item.id)
+          ? ['✓ Linked', ...(item.tags ?? [])]
+          : item.tags,
+      }))}
+      isLoading={isLoading}
+      currentUserId={user?.id}
+      linkedItemIds={linkedIds}
+      onView={item => {
+        const originalItem = sourceList.find(h => h.id === item.id);
+        if (originalItem) handleView(originalItem);
+      }}
+      onEdit={item => {
+        const originalItem = sourceList.find(h => h.id === item.id);
+        if (originalItem) handleEdit(originalItem);
+      }}
+      onLinkToCampaign={item => {
+        const originalItem = sourceList.find(h => h.id === item.id);
+        if (!originalItem) return;
+        // If already linked, unlink; otherwise link
+        if (linkedIds.has(item.id)) {
+          handleUnlink(originalItem);
+        } else {
+          handleLink(originalItem);
+        }
+      }}
+      onCreate={handleCreate}
+      showCreateButton
+      emptyMessage={emptyMessage}
+    />
+  );
+
   return (
     <TabsContent value="homebrew" className="space-y-6">
       {/* Header */}
@@ -197,46 +272,265 @@ export function HomebrewTabContent({ campaignId }: HomebrewTabContentProps) {
             Campaign Homebrew
           </h2>
           <p className="text-muted-foreground mt-1">
-            Custom content available to players in this campaign
+            Browse and link homebrew content to this campaign
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setIsLinkDialogOpen(true)}>
-            <Link2 className="mr-2 size-4" /> Link Existing
-          </Button>
-          <Button onClick={() => handleCreate('adversary')}>
-            <Plus className="mr-2 size-4" /> Create New
-          </Button>
-        </div>
+        <Button onClick={() => handleCreate('adversary')}>
+          <Plus className="mr-2 size-4" /> Create New
+        </Button>
       </div>
 
       {/* Info Card */}
-      <Card className="border-primary/20 from-primary/5 to-primary/10 bg-linear-to-r">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Beaker className="text-primary size-5" />
-            How Campaign Homebrew Works
-          </CardTitle>
-          <CardDescription className="text-sm">
-            Content linked to this campaign will be available to players when
-            building characters. Custom adversaries and environments can be used
-            in the battle tracker. Players will see homebrew options alongside
-            official content.
-          </CardDescription>
-        </CardHeader>
-      </Card>
+      {showCampaignInfo && (
+        <Card className="relative border-purple-500/20 bg-linear-to-r from-purple-500/5 to-purple-500/10">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-2 right-2 size-7"
+            onClick={() => {
+              setShowCampaignInfo(false);
+              localStorage.setItem('hideCampaignHomebrewInfo', 'true');
+            }}
+          >
+            <X className="size-4" />
+          </Button>
+          <CardHeader className="pr-10 pb-4">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Link2 className="size-5 text-purple-500" />
+              How Campaign Homebrew Works
+            </CardTitle>
+            <CardDescription className="text-base">
+              Content linked to this campaign will be available to players when
+              building characters. Custom adversaries and environments can be
+              used in the battle tracker. Players will see homebrew options
+              alongside official content.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      )}
 
-      {/* Linked Content */}
-      <HomebrewList
-        items={campaignHomebrew}
-        isLoading={loadingCampaign}
-        currentUserId={user?.id}
-        onView={handleEdit}
-        onEdit={handleEdit}
-        onDelete={handleUnlink}
-        onCreate={handleCreate}
-        showCreateButton
-        emptyMessage="No homebrew content linked to this campaign yet."
+      {/* Inner Tabs */}
+      <Tabs
+        value={innerTab}
+        onValueChange={v => setInnerTab(v as InnerTab)}
+        className="space-y-4"
+      >
+        <TabsList className="flex-wrap">
+          <TabsTrigger value="linked" className="gap-2">
+            <Link2 className="size-4 text-green-500" />
+            <span className="hidden sm:inline">Linked</span>
+            <Badge variant="secondary" className="ml-1 hidden lg:inline-flex">
+              {campaignHomebrew.length}
+            </Badge>
+          </TabsTrigger>
+          <TabsTrigger value="all" className="gap-2">
+            <Beaker className="size-4" />
+            <span className="hidden sm:inline">All</span>
+            <Badge variant="secondary" className="ml-1 hidden lg:inline-flex">
+              {myHomebrew.length}
+            </Badge>
+          </TabsTrigger>
+          <TabsTrigger value="public" className="gap-2">
+            <Globe className="size-4 text-green-500" />
+            <span className="hidden sm:inline">Public</span>
+          </TabsTrigger>
+          <TabsTrigger value="private" className="gap-2">
+            <Lock className="size-4 text-amber-500" />
+            <span className="hidden sm:inline">Private</span>
+          </TabsTrigger>
+          <TabsTrigger value="quicklist" className="gap-2">
+            <Star className="size-4 text-amber-500" />
+            <span className="hidden sm:inline">Quicklist</span>
+          </TabsTrigger>
+          <TabsTrigger value="collections" className="gap-2">
+            <Folder className="size-4 text-blue-500" />
+            <span className="hidden sm:inline">Collections</span>
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Linked Tab - Content already linked to campaign */}
+        <InnerTabsContent value="linked">
+          <HomebrewList
+            items={campaignHomebrew}
+            isLoading={loadingCampaign}
+            currentUserId={user?.id}
+            linkedItemIds={linkedIds}
+            onView={handleView}
+            onEdit={handleEdit}
+            onLinkToCampaign={handleUnlink}
+            onCreate={handleCreate}
+            showCreateButton
+            emptyMessage="No homebrew content linked to this campaign yet. Browse other tabs to find and link content."
+          />
+        </InnerTabsContent>
+
+        {/* All Tab - All user's homebrew with link indicator */}
+        <InnerTabsContent value="all">
+          <div className="mb-4">
+            <p className="text-muted-foreground text-sm">
+              All your homebrew content. Items with &quot;✓ Linked&quot; are
+              linked to this campaign. Use &quot;Link to Campaign&quot; to
+              toggle.
+            </p>
+          </div>
+          {renderBrowseList(
+            myHomebrew,
+            loadingMy,
+            "You haven't created any homebrew content yet.",
+            myHomebrew
+          )}
+        </InnerTabsContent>
+
+        {/* Public Tab */}
+        <InnerTabsContent value="public">
+          {renderBrowseList(
+            myHomebrew.filter(c => c.visibility === 'public'),
+            loadingMy,
+            'No public homebrew content.',
+            myHomebrew
+          )}
+        </InnerTabsContent>
+
+        {/* Private Tab */}
+        <InnerTabsContent value="private">
+          {renderBrowseList(
+            myHomebrew.filter(c => c.visibility === 'private'),
+            loadingMy,
+            'No private homebrew content.',
+            myHomebrew
+          )}
+        </InnerTabsContent>
+
+        {/* Quicklist Tab */}
+        <InnerTabsContent value="quicklist">
+          {renderBrowseList(
+            starredItems,
+            isStarredLoading,
+            'No items in your quicklist yet.',
+            starredItems
+          )}
+        </InnerTabsContent>
+
+        {/* Collections Tab */}
+        <InnerTabsContent value="collections">
+          {isCollectionsLoading ? (
+            <div className="text-muted-foreground flex h-48 items-center justify-center">
+              Loading collections...
+            </div>
+          ) : visibleCollections.length === 0 ? (
+            <div className="flex h-48 flex-col items-center justify-center gap-3 text-center">
+              <div className="bg-muted flex size-16 items-center justify-center rounded-full">
+                <Folder className="text-muted-foreground size-8" />
+              </div>
+              <p className="text-muted-foreground">
+                You don&apos;t have any collections yet.
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
+              {/* Collection Selector */}
+              <div className="bg-muted/50 space-y-2 rounded-lg p-4">
+                <h3 className="mb-3 text-sm font-medium">Your Collections</h3>
+                {visibleCollections.map(collection => (
+                  <Button
+                    key={collection.id}
+                    variant={
+                      collection.id === effectiveCollectionId
+                        ? 'secondary'
+                        : 'ghost'
+                    }
+                    className="w-full justify-start"
+                    onClick={() => setSelectedCollectionId(collection.id)}
+                  >
+                    <div className="flex flex-col items-start text-left">
+                      <span className="text-sm font-medium">
+                        {collection.name}
+                      </span>
+                      {collection.description && (
+                        <span className="text-muted-foreground text-xs">
+                          {collection.description}
+                        </span>
+                      )}
+                    </div>
+                  </Button>
+                ))}
+              </div>
+
+              {/* Collection Content */}
+              <div>
+                {selectedCollection && (
+                  <h3 className="mb-4 text-lg font-medium">
+                    {selectedCollection.name}
+                  </h3>
+                )}
+                {isCollectionItemsLoading || isCollectionContentLoading ? (
+                  <div className="text-muted-foreground flex h-48 items-center justify-center">
+                    Loading collection items...
+                  </div>
+                ) : orderedCollectionContent.length === 0 ? (
+                  <div className="flex h-48 flex-col items-center justify-center gap-3 text-center">
+                    <div className="bg-muted flex size-16 items-center justify-center rounded-full">
+                      <Beaker className="text-muted-foreground size-8" />
+                    </div>
+                    <p className="text-muted-foreground">
+                      This collection doesn&apos;t have any items yet.
+                    </p>
+                  </div>
+                ) : (
+                  <HomebrewList
+                    items={orderedCollectionContent.map(item => ({
+                      ...item,
+                      tags: linkedIds.has(item.id)
+                        ? ['✓ Linked', ...(item.tags ?? [])]
+                        : item.tags,
+                    }))}
+                    isLoading={false}
+                    currentUserId={user?.id}
+                    linkedItemIds={linkedIds}
+                    onView={item => {
+                      const originalItem = orderedCollectionContent.find(
+                        h => h.id === item.id
+                      );
+                      if (originalItem) handleView(originalItem);
+                    }}
+                    onEdit={item => {
+                      const originalItem = orderedCollectionContent.find(
+                        h => h.id === item.id
+                      );
+                      if (originalItem) handleEdit(originalItem);
+                    }}
+                    onLinkToCampaign={item => {
+                      const originalItem = orderedCollectionContent.find(
+                        h => h.id === item.id
+                      );
+                      if (!originalItem) return;
+                      if (linkedIds.has(item.id)) {
+                        handleUnlink(originalItem);
+                      } else {
+                        handleLink(originalItem);
+                      }
+                    }}
+                    onCreate={handleCreate}
+                    showCreateButton={false}
+                    emptyMessage="No items in this collection."
+                  />
+                )}
+              </div>
+            </div>
+          )}
+        </InnerTabsContent>
+      </Tabs>
+
+      {/* View Dialog (Read-only) */}
+      <HomebrewViewDialog
+        open={isViewOpen}
+        onOpenChange={setIsViewOpen}
+        content={viewingItem}
+        isOwner={viewingItem?.ownerId === user?.id}
+        onEdit={() => {
+          if (viewingItem) handleEdit(viewingItem);
+        }}
+        onFork={undefined}
       />
 
       {/* Create/Edit Dialog */}
@@ -249,76 +543,6 @@ export function HomebrewTabContent({ campaignId }: HomebrewTabContentProps) {
         isSubmitting={createMutation.isPending || updateMutation.isPending}
         defaultVisibility="campaign_only"
       />
-
-      {/* Link Existing Dialog */}
-      <Dialog open={isLinkDialogOpen} onOpenChange={setIsLinkDialogOpen}>
-        <DialogContent className="max-h-[80vh] max-w-3xl overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Link2 className="size-5" /> Link Existing Homebrew
-            </DialogTitle>
-            <DialogDescription>
-              Select homebrew from your collection to make it available in this
-              campaign.
-            </DialogDescription>
-          </DialogHeader>
-
-          {loadingMy ? (
-            <div className="text-muted-foreground py-8 text-center">
-              Loading...
-            </div>
-          ) : linkableHomebrew.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 py-8 text-center">
-              <div className="bg-muted flex size-16 items-center justify-center rounded-full">
-                <Beaker className="text-muted-foreground size-8" />
-              </div>
-              <p className="text-muted-foreground">
-                All your homebrew is already linked to this campaign, or you
-                haven&apos;t created any yet.
-              </p>
-            </div>
-          ) : (
-            <div className="grid gap-3 sm:grid-cols-2">
-              {linkableHomebrew.map(item => {
-                const config = CONTENT_TYPE_CONFIG[item.contentType];
-                const TypeIcon = config.icon;
-                return (
-                  <Card
-                    key={item.id}
-                    className={`cursor-pointer border-l-4 transition-all hover:shadow-md ${config.bgColor.replace('/10', '/5')} hover:${config.bgColor}`}
-                    style={{
-                      borderLeftColor: `var(--${config.color.replace('text-', '')})`,
-                    }}
-                    onClick={() => handleLink(item)}
-                  >
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`flex size-8 items-center justify-center rounded-lg ${config.bgColor}`}
-                        >
-                          <TypeIcon className={`size-4 ${config.color}`} />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <CardTitle className="truncate text-base">
-                            {item.name}
-                          </CardTitle>
-                          <Badge
-                            variant="secondary"
-                            className={`mt-1 gap-1 text-xs ${config.bgColor} ${config.color}`}
-                          >
-                            <TypeIcon className="size-3" />
-                            {getContentTypeLabel(item.contentType)}
-                          </Badge>
-                        </div>
-                      </div>
-                    </CardHeader>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </TabsContent>
   );
 }

@@ -210,6 +210,92 @@ export async function permanentlyDeleteHomebrewContent(
   return true;
 }
 
+/**
+ * Permanently delete all soft-deleted homebrew content for the current user
+ */
+export async function emptyRecycleBin(): Promise<boolean> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error('User not authenticated');
+  }
+
+  const { error } = await supabase
+    .from('homebrew_content')
+    .delete()
+    .eq('owner_id', user.id)
+    .not('deleted_at', 'is', null);
+
+  if (error) {
+    console.error('Error emptying recycle bin:', error);
+    throw error;
+  }
+
+  return true;
+}
+
+/**
+ * Restore a soft-deleted homebrew content item
+ */
+export async function restoreHomebrewContent(id: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('homebrew_content')
+    .update({ deleted_at: null })
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error restoring homebrew content:', error);
+    throw error;
+  }
+
+  return true;
+}
+
+/**
+ * List deleted homebrew content for the current user (recycle bin)
+ */
+export async function listDeletedHomebrewContent(
+  options: ListHomebrewOptions = {}
+): Promise<HomebrewListResult> {
+  const {
+    sortBy = 'updated_at',
+    sortOrder = 'desc',
+    limit = 50,
+    offset = 0,
+  } = options;
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return { items: [], total: 0, hasMore: false };
+  }
+
+  const { data, error, count } = await supabase
+    .from('homebrew_content')
+    .select('*', { count: 'exact' })
+    .eq('owner_id', user.id)
+    .not('deleted_at', 'is', null)
+    .order(sortBy, { ascending: sortOrder === 'asc' })
+    .range(offset, offset + limit - 1);
+
+  if (error) {
+    console.error('Error listing deleted homebrew content:', error);
+    throw error;
+  }
+
+  const items = (data ?? []).map(row =>
+    rowToHomebrewContent(row as HomebrewContentRow)
+  );
+
+  return {
+    items,
+    total: count ?? 0,
+    hasMore: (count ?? 0) > offset + (data?.length ?? 0),
+  };
+}
+
 // =====================================================================================
 // List Operations
 // =====================================================================================
@@ -644,6 +730,7 @@ export async function getMyHomebrewStats(): Promise<{
   forked: number;
   totalForks: number;
   totalViews: number;
+  totalCampaignLinks: number;
 }> {
   const {
     data: { user },
@@ -656,12 +743,15 @@ export async function getMyHomebrewStats(): Promise<{
       forked: 0,
       totalForks: 0,
       totalViews: 0,
+      totalCampaignLinks: 0,
     };
   }
 
   const { data, error } = await supabase
     .from('homebrew_content')
-    .select('content_type, visibility, forked_from, fork_count, view_count')
+    .select(
+      'content_type, visibility, forked_from, fork_count, view_count, campaign_links'
+    )
     .eq('owner_id', user.id)
     .is('deleted_at', null);
 
@@ -677,6 +767,7 @@ export async function getMyHomebrewStats(): Promise<{
     forked: 0,
     totalForks: 0,
     totalViews: 0,
+    totalCampaignLinks: 0,
   };
 
   for (const row of data) {
@@ -686,6 +777,8 @@ export async function getMyHomebrewStats(): Promise<{
     if (row.forked_from) stats.forked++;
     stats.totalForks += row.fork_count;
     stats.totalViews += row.view_count;
+    stats.totalCampaignLinks +=
+      (row.campaign_links as string[] | null)?.length ?? 0;
   }
 
   return stats;

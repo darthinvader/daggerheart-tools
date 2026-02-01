@@ -233,6 +233,8 @@ export const BattleAdversarySchema = z.object({
       timestamp: z.number(),
     })
     .optional(),
+  /** Countdown tracker for adversary events */
+  countdown: z.number().optional(),
 });
 
 /**

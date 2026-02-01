@@ -17,6 +17,7 @@ export type AdversaryEditorState = {
   stressMax: number;
   difficulty: number;
   notes: string;
+  countdown: number;
   attackName: string;
   attackModifier: string;
   attackRange: string;
@@ -37,6 +38,7 @@ export type AdversaryEditorActions = {
   setStressMax: (value: number) => void;
   setDifficulty: (value: number) => void;
   setNotes: (value: string) => void;
+  setCountdown: (value: number) => void;
   setAttackName: (value: string) => void;
   setAttackModifier: (value: string) => void;
   setAttackRange: (value: string) => void;
@@ -67,6 +69,7 @@ function getInitialState(
     difficulty:
       adversary?.difficultyOverride ?? adversary?.source.difficulty ?? 0,
     notes: adversary?.notes ?? '',
+    countdown: adversary?.countdown ?? 0,
     attackName: initialAttack.name,
     attackModifier: initialAttack.modifier,
     attackRange: initialAttack.range,
@@ -150,6 +153,7 @@ export function useAdversaryEditorState(
       setStressMax: value => setField('stressMax', value),
       setDifficulty: value => setField('difficulty', value),
       setNotes: value => setField('notes', value),
+      setCountdown: value => setField('countdown', value),
       setAttackName: value => setField('attackName', value),
       setAttackModifier: value => setField('attackModifier', value),
       setAttackRange: value => setField('attackRange', value),

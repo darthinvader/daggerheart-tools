@@ -1233,11 +1233,19 @@ function NPCCard({
                               {appearance.sessionTitle &&
                                 `: ${appearance.sessionTitle}`}
                             </div>
+                            {appearance.role && (
+                              <Badge
+                                variant="secondary"
+                                className="flex-shrink-0 px-1 py-0 text-[10px]"
+                              >
+                                {appearance.role}
+                              </Badge>
+                            )}
                           </div>
-                          {appearance.role && (
-                            <Badge variant="secondary" className="mt-1 text-xs">
-                              {appearance.role}
-                            </Badge>
+                          {appearance.actionsTaken && (
+                            <p className="text-muted-foreground mt-1 line-clamp-2 text-xs">
+                              {appearance.actionsTaken}
+                            </p>
                           )}
                           {/* Linked entities inline */}
                           {((appearance.locationIds ?? []).length > 0 ||
@@ -1293,11 +1301,19 @@ function NPCCard({
                             <div className="min-w-0 flex-1 truncate text-sm font-medium">
                               {appearance.questTitle ?? 'Unknown Quest'}
                             </div>
+                            {appearance.role && (
+                              <Badge
+                                variant="secondary"
+                                className="flex-shrink-0 px-1 py-0 text-[10px]"
+                              >
+                                {appearance.role}
+                              </Badge>
+                            )}
                           </div>
-                          {appearance.role && (
-                            <Badge variant="secondary" className="mt-1 text-xs">
-                              {appearance.role}
-                            </Badge>
+                          {appearance.actionsTaken && (
+                            <p className="text-muted-foreground mt-1 line-clamp-2 text-xs">
+                              {appearance.actionsTaken}
+                            </p>
                           )}
                           {/* Linked entities inline */}
                           {((appearance.locationIds ?? []).length > 0 ||

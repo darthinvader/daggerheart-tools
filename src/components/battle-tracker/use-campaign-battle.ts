@@ -170,6 +170,13 @@ export function useCampaignBattle(
         stress: a.stress,
         conditions: conditionsToRecord(a.conditions),
         notes: a.notes,
+        difficultyOverride: a.difficultyOverride,
+        attackOverride: a.attackOverride,
+        thresholdsOverride: a.thresholdsOverride,
+        featuresOverride: a.featuresOverride,
+        lastAttackRoll: a.lastAttackRoll,
+        lastDamageRoll: a.lastDamageRoll,
+        countdown: a.countdown,
       })),
       environments: rosterState.environments.map(e => ({
         id: e.id,
@@ -455,6 +462,13 @@ export function battleAdversariesToTrackers(
     stress: a.stress,
     conditions: recordToConditions(a.conditions),
     notes: a.notes,
+    difficultyOverride: a.difficultyOverride,
+    attackOverride: a.attackOverride,
+    thresholdsOverride: a.thresholdsOverride,
+    featuresOverride: a.featuresOverride,
+    lastAttackRoll: a.lastAttackRoll,
+    lastDamageRoll: a.lastDamageRoll,
+    countdown: a.countdown,
   }));
 }
 

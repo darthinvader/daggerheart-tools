@@ -86,11 +86,33 @@ function BattleTrackerLayout({
   onEditEnvironment: (environment: EnvironmentTracker) => void;
   onEditAdversary: (adversary: AdversaryTracker) => void;
 }) {
+  const handleReduceAllCountdowns = () => {
+    // Reduce all enabled environment countdowns
+    rosterState.environments.forEach(env => {
+      if (env.countdownEnabled && (env.countdown ?? 0) > 0) {
+        rosterActions.updateEnvironment(env.id, e => ({
+          ...e,
+          countdown: Math.max(0, (e.countdown ?? 0) - 1),
+        }));
+      }
+    });
+    // Reduce all enabled adversary countdowns
+    rosterState.adversaries.forEach(adv => {
+      if (adv.countdownEnabled && (adv.countdown ?? 0) > 0) {
+        rosterActions.updateAdversary(adv.id, a => ({
+          ...a,
+          countdown: Math.max(0, (a.countdown ?? 0) - 1),
+        }));
+      }
+    });
+  };
+
   return (
     <>
       <GMResourcesBar
         characterCount={rosterState.characters.length}
         environments={rosterState.environments}
+        adversaries={rosterState.adversaries}
         fearPool={rosterState.fearPool}
         selection={rosterState.selection}
         spotlight={rosterState.spotlight}
@@ -102,6 +124,9 @@ function BattleTrackerLayout({
         onRemoveEnvironment={rosterActions.handleRemove}
         onSpotlightEnvironment={rosterActions.handleSpotlight}
         onEditEnvironment={onEditEnvironment}
+        onEnvironmentChange={rosterActions.updateEnvironment}
+        onAdversaryChange={rosterActions.updateAdversary}
+        onReduceAllCountdowns={handleReduceAllCountdowns}
       />
 
       <div className="grid gap-6 xl:grid-cols-[1fr_1fr_minmax(320px,400px)]">

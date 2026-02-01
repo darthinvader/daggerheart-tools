@@ -1092,9 +1092,13 @@ function LocationCard({
                                     `: ${appearance.sessionTitle}`}
                                 </div>
                               </div>
-                              {/* NPCs and Quests inline */}
-                              {(sessionNPCs.length > 0 ||
-                                sessionQuestIds.length > 0) && (
+                              {appearance.notes && (
+                                <p className="text-muted-foreground mt-1 line-clamp-2 text-xs">
+                                  {appearance.notes}
+                                </p>
+                              )}
+                              {/* NPCs with roles */}
+                              {sessionNPCs.length > 0 && (
                                 <div className="mt-1 flex flex-wrap gap-1">
                                   {sessionNPCs.map(
                                     (npcInv: SessionNPCInvolvement) => {
@@ -1111,10 +1115,16 @@ function LocationCard({
                                           {npc?.name ??
                                             npcInv.npcName ??
                                             'Unknown'}
+                                          {npcInv.role && ` (${npcInv.role})`}
                                         </Badge>
                                       );
                                     }
                                   )}
+                                </div>
+                              )}
+                              {/* Quests */}
+                              {sessionQuestIds.length > 0 && (
+                                <div className="mt-1 flex flex-wrap gap-1">
                                   {sessionQuestIds.map((questId: string) => {
                                     const quest = quests.find(
                                       q => q.id === questId

@@ -1387,9 +1387,13 @@ function QuestCard({
                                   `: ${appearance.sessionTitle}`}
                               </div>
                             </div>
-                            {/* NPCs and Locations inline */}
-                            {(sessionNPCs.length > 0 ||
-                              sessionLocationIds.length > 0) && (
+                            {appearance.notes && (
+                              <p className="text-muted-foreground mt-1 line-clamp-2 text-xs">
+                                {appearance.notes}
+                              </p>
+                            )}
+                            {/* NPCs with roles */}
+                            {sessionNPCs.length > 0 && (
                               <div className="mt-1 flex flex-wrap gap-1">
                                 {sessionNPCs.map(npcInv => {
                                   const npc = npcs.find(
@@ -1403,9 +1407,15 @@ function QuestCard({
                                     >
                                       <User className="h-2 w-2" />
                                       {npc?.name ?? npcInv.npcName ?? 'Unknown'}
+                                      {npcInv.role && ` (${npcInv.role})`}
                                     </Badge>
                                   );
                                 })}
+                              </div>
+                            )}
+                            {/* Locations */}
+                            {sessionLocationIds.length > 0 && (
+                              <div className="mt-1 flex flex-wrap gap-1">
                                 {sessionLocationIds.map(locId => {
                                   const loc = locations.find(
                                     l => l.id === locId

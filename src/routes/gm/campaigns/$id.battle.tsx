@@ -657,6 +657,7 @@ function CampaignBattlePage() {
       <GMResourcesBar
         characterCount={rosterState.characters.length}
         environments={rosterState.environments}
+        adversaries={rosterState.adversaries}
         fearPool={rosterState.fearPool}
         selection={rosterState.selection}
         spotlight={rosterState.spotlight}
@@ -668,6 +669,26 @@ function CampaignBattlePage() {
         onRemoveEnvironment={rosterActions.handleRemove}
         onSpotlightEnvironment={rosterActions.handleSpotlight}
         onEditEnvironment={setEditingEnvironment}
+        onEnvironmentChange={rosterActions.updateEnvironment}
+        onAdversaryChange={rosterActions.updateAdversary}
+        onReduceAllCountdowns={() => {
+          rosterState.environments.forEach(env => {
+            if (env.countdownEnabled && (env.countdown ?? 0) > 0) {
+              rosterActions.updateEnvironment(env.id, e => ({
+                ...e,
+                countdown: Math.max(0, (e.countdown ?? 0) - 1),
+              }));
+            }
+          });
+          rosterState.adversaries.forEach(adv => {
+            if (adv.countdownEnabled && (adv.countdown ?? 0) > 0) {
+              rosterActions.updateAdversary(adv.id, a => ({
+                ...a,
+                countdown: Math.max(0, (a.countdown ?? 0) - 1),
+              }));
+            }
+          });
+        }}
       />
 
       <BattleRosterLayout

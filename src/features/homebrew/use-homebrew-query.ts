@@ -30,6 +30,7 @@ import {
   type CreateHomebrewContentInput,
   deleteHomebrewComment,
   deleteHomebrewContent,
+  emptyRecycleBin,
   forkHomebrewContent,
   getHomebrewContent,
   getHomebrewContentBatch,
@@ -40,6 +41,7 @@ import {
   linkHomebrewToCharacter,
   listCampaignHomebrewContent,
   listCollectionItems,
+  listDeletedHomebrewContent,
   listHomebrewComments,
   type ListHomebrewOptions,
   listMyHomebrewCollections,
@@ -47,8 +49,10 @@ import {
   listMyHomebrewStars,
   listPublicHomebrewContent,
   listStarredHomebrewContent,
+  permanentlyDeleteHomebrewContent,
   removeHomebrewFromCollection,
   removeHomebrewStar,
+  restoreHomebrewContent,
   unlinkHomebrewFromCampaign,
   unlinkHomebrewFromCharacter,
   updateHomebrewContent,
@@ -66,6 +70,7 @@ export const homebrewKeys = {
     [...homebrewKeys.lists(), options] as const,
   myContent: (options?: ListHomebrewOptions) =>
     [...homebrewKeys.lists(), 'my', options ?? {}] as const,
+  deletedContent: () => [...homebrewKeys.lists(), 'deleted'] as const,
   publicContent: (options?: ListHomebrewOptions) =>
     [...homebrewKeys.lists(), 'public', options ?? {}] as const,
   campaignContent: (campaignId: string, options?: ListHomebrewOptions) =>
@@ -382,7 +387,69 @@ export function useDeleteHomebrewContent() {
     onSuccess: (_, id) => {
       // Remove from cache
       queryClient.removeQueries({ queryKey: homebrewKeys.detail(id) });
+      // Invalidate lists (including deleted list)
+      queryClient.invalidateQueries({ queryKey: homebrewKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: homebrewKeys.stats() });
+    },
+  });
+}
+
+/**
+ * List deleted homebrew content (recycle bin)
+ */
+export function useDeletedHomebrewContent() {
+  return useQuery({
+    queryKey: homebrewKeys.deletedContent(),
+    queryFn: () => listDeletedHomebrewContent(),
+    staleTime: 1000 * 60 * 2, // 2 minutes
+  });
+}
+
+/**
+ * Restore a soft-deleted homebrew content item
+ */
+export function useRestoreHomebrewContent() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: restoreHomebrewContent,
+    onSuccess: (_, id) => {
       // Invalidate lists
+      queryClient.invalidateQueries({ queryKey: homebrewKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: homebrewKeys.stats() });
+      queryClient.invalidateQueries({ queryKey: homebrewKeys.detail(id) });
+    },
+  });
+}
+
+/**
+ * Permanently delete a homebrew content item
+ */
+export function usePermanentlyDeleteHomebrewContent() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: permanentlyDeleteHomebrewContent,
+    onSuccess: (_, id) => {
+      // Remove from cache
+      queryClient.removeQueries({ queryKey: homebrewKeys.detail(id) });
+      // Invalidate lists
+      queryClient.invalidateQueries({ queryKey: homebrewKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: homebrewKeys.stats() });
+    },
+  });
+}
+
+/**
+ * Empty the recycle bin (permanently delete all soft-deleted items)
+ */
+export function useEmptyRecycleBin() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: emptyRecycleBin,
+    onSuccess: () => {
+      // Invalidate all lists
       queryClient.invalidateQueries({ queryKey: homebrewKeys.lists() });
       queryClient.invalidateQueries({ queryKey: homebrewKeys.stats() });
     },

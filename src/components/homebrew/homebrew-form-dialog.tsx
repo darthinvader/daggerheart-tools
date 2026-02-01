@@ -126,6 +126,17 @@ function HomebrewFormDialogBody({
     initialData?.visibility ?? defaultVisibility
   );
 
+  // Filter visibility options: show campaign_only only when editing (has initialData)
+  const visibilityOptions = useMemo(() => {
+    if (initialData) {
+      return VISIBILITY_OPTIONS;
+    }
+    // When creating, exclude campaign_only option
+    return VISIBILITY_OPTIONS.filter(
+      option => option.value !== 'campaign_only'
+    );
+  }, [initialData]);
+
   const visibilityDescription = useMemo(() => {
     return (
       VISIBILITY_OPTIONS.find(option => option.value === visibility)
@@ -279,7 +290,7 @@ function HomebrewFormDialogBody({
                   <SelectValue placeholder="Select visibility" />
                 </SelectTrigger>
                 <SelectContent>
-                  {VISIBILITY_OPTIONS.map(option => {
+                  {visibilityOptions.map(option => {
                     const Icon = option.icon;
                     return (
                       <SelectItem key={option.value} value={option.value}>

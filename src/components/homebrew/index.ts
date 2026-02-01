@@ -23,3 +23,4 @@ export { HomebrewCollectionDialog } from './homebrew-collection-dialog';
 export { HomebrewComments } from './homebrew-comments';
 export { HomebrewFormDialog } from './homebrew-form-dialog';
 export { HomebrewList } from './homebrew-list';
+export { HomebrewViewDialog } from './homebrew-view-dialog';

@@ -149,6 +149,52 @@ export function AdversaryNotesEditor({
   );
 }
 
+export function AdversaryCountdownEditor({
+  countdown,
+  onCountdownChange,
+}: {
+  countdown: number;
+  onCountdownChange: (value: number) => void;
+}) {
+  const label =
+    countdown === 0
+      ? 'No countdown'
+      : countdown === 1
+        ? '1 tick remaining'
+        : `${countdown} ticks remaining`;
+
+  return (
+    <div className="space-y-2">
+      <Label className="text-sm font-medium">Countdown Timer</Label>
+      <div className="flex items-center gap-3">
+        <Button
+          size="icon"
+          variant="outline"
+          onClick={() => onCountdownChange(Math.max(0, countdown - 1))}
+        >
+          <Minus className="size-4" />
+        </Button>
+        <Input
+          type="number"
+          value={countdown}
+          onChange={event =>
+            onCountdownChange(Math.max(0, parseInt(event.target.value) || 0))
+          }
+          className="w-20 text-center"
+        />
+        <Button
+          size="icon"
+          variant="outline"
+          onClick={() => onCountdownChange(countdown + 1)}
+        >
+          <Plus className="size-4" />
+        </Button>
+        <span className="text-muted-foreground text-sm">{label}</span>
+      </div>
+    </div>
+  );
+}
+
 function StatEditor({
   label,
   current,

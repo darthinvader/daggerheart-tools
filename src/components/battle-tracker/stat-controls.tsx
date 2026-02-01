@@ -90,28 +90,71 @@ export function StatMini({
 
 interface CountdownControlProps {
   value: number;
+  enabled: boolean;
   onChange: (v: number) => void;
+  onEnabledChange: (enabled: boolean) => void;
 }
 
-export function CountdownControl({ value, onChange }: CountdownControlProps) {
+export function CountdownControl({
+  value,
+  enabled,
+  onChange,
+  onEnabledChange,
+}: CountdownControlProps) {
+  const isZero = value === 0 && enabled;
+
   return (
-    <div className="bg-muted/50 flex items-center gap-2 rounded border px-2 py-1">
-      <span className="text-muted-foreground text-xs">Countdown</span>
+    <div
+      className={cn(
+        'bg-muted/50 flex items-center gap-2 rounded border px-2 py-1 transition-all',
+        isZero && 'animate-pulse border-amber-500 bg-amber-500/20',
+        !enabled && 'opacity-50'
+      )}
+    >
+      <button
+        onClick={() => onEnabledChange(!enabled)}
+        className={cn(
+          'flex size-4 items-center justify-center rounded-sm border transition-colors',
+          enabled
+            ? 'border-primary bg-primary text-primary-foreground'
+            : 'border-muted-foreground'
+        )}
+        title={enabled ? 'Disable countdown' : 'Enable countdown'}
+      >
+        {enabled && <span className="text-[10px]">✓</span>}
+      </button>
+      <span
+        className={cn(
+          'text-xs',
+          enabled ? 'text-foreground' : 'text-muted-foreground'
+        )}
+      >
+        Countdown
+      </span>
       <div className="ml-auto flex items-center gap-1">
         <Button
           size="icon"
           variant="ghost"
           className="size-5"
           onClick={() => onChange(Math.max(0, value - 1))}
+          disabled={!enabled}
         >
           <Minus className="size-3" />
         </Button>
-        <span className="w-6 text-center text-sm font-medium">{value}</span>
+        <span
+          className={cn(
+            'w-6 text-center text-sm font-medium',
+            isZero && 'text-amber-500'
+          )}
+        >
+          {value}
+        </span>
         <Button
           size="icon"
           variant="ghost"
           className="size-5"
           onClick={() => onChange(value + 1)}
+          disabled={!enabled}
         >
           <Plus className="size-3" />
         </Button>

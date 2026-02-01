@@ -125,6 +125,46 @@ interface FeatureState {
   description: string;
 }
 
+/**
+ * Parse a string-format feature into name, type, and description.
+ * Handles formats like:
+ * - "Feature Name - Type: Description text"
+ * - "Feature Name - Description text"
+ * - "Feature Name (param) - Type: Description text"
+ */
+function parseStringFeature(str: string): {
+  name: string;
+  type: string;
+  description: string;
+} {
+  // Try to match "Name - Type: Description" pattern
+  const typeMatch = str.match(
+    /^([^-]+)\s*-\s*(Passive|Action|Reaction|Feature):\s*(.*)$/i
+  );
+  if (typeMatch) {
+    return {
+      name: typeMatch[1].trim(),
+      type:
+        typeMatch[2].charAt(0).toUpperCase() +
+        typeMatch[2].slice(1).toLowerCase(),
+      description: typeMatch[3].trim(),
+    };
+  }
+
+  // Try to match "Name - Description" pattern (no type)
+  const simpleMatch = str.match(/^([^-]+)\s*-\s*(.+)$/s);
+  if (simpleMatch) {
+    return {
+      name: simpleMatch[1].trim(),
+      type: 'Feature',
+      description: simpleMatch[2].trim(),
+    };
+  }
+
+  // Fallback: entire string is the name
+  return { name: str.trim(), type: 'Feature', description: '' };
+}
+
 export function AdversaryForm({
   initialData,
   onSubmit,
@@ -135,12 +175,18 @@ export function AdversaryForm({
     initialData ?? createDefaultAdversaryContent()
   );
   const [features, setFeatures] = useState<FeatureState[]>(
-    (initialData?.features ?? []).map((f, i) => ({
-      id: `feature-${i}`,
-      name: typeof f === 'string' ? f : f.name,
-      type: typeof f === 'string' ? 'Feature' : (f.type ?? 'Feature'),
-      description: typeof f === 'string' ? '' : f.description,
-    }))
+    (initialData?.features ?? []).map((f, i) => {
+      if (typeof f === 'string') {
+        const parsed = parseStringFeature(f);
+        return { id: `feature-${i}`, ...parsed };
+      }
+      return {
+        id: `feature-${i}`,
+        name: f.name,
+        type: f.type ?? 'Feature',
+        description: f.description,
+      };
+    })
   );
   const [experiences, setExperiences] = useState<string[]>(
     (initialData?.experiences ?? []).map(e =>

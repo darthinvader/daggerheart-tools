@@ -7,6 +7,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import {
   Beaker,
   BookOpen,
+  GitFork,
   Home,
   Layers,
   Map,
@@ -17,7 +18,7 @@ import {
   Sword,
   Users,
 } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { HomebrewFormDialog } from '@/components/homebrew';
 import { useAuth } from '@/components/providers';
@@ -28,7 +29,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useCreateHomebrewContent } from '@/features/homebrew';
+import {
+  useCreateHomebrewContent,
+  useHomebrewContent,
+} from '@/features/homebrew';
 import type {
   HomebrewContent,
   HomebrewContentType,
@@ -37,6 +41,12 @@ import type {
 
 export const Route = createFileRoute('/homebrew/new')({
   component: CreateHomebrew,
+  validateSearch: (search: Record<string, unknown>) => {
+    return {
+      forkFrom:
+        typeof search.forkFrom === 'string' ? search.forkFrom : undefined,
+    };
+  },
 });
 
 const CONTENT_TYPE_OPTIONS: {
@@ -124,17 +134,45 @@ const CONTENT_TYPE_OPTIONS: {
 function CreateHomebrew() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { forkFrom } = Route.useSearch();
   const createMutation = useCreateHomebrewContent();
 
-  const [selectedType, setSelectedType] = useState<HomebrewContentType | null>(
-    null
-  );
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  // Fetch the source content if forking
+  const { data: forkSource, isLoading: isForkSourceLoading } =
+    useHomebrewContent(forkFrom);
+
+  // User-selected type (null means use forkSource if available)
+  const [userSelectedType, setUserSelectedType] =
+    useState<HomebrewContentType | null>(null);
+  // Track if user has explicitly interacted with the form
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
+
+  // Derive effective selected type: user selection takes precedence, then forkSource
+  const selectedType = userSelectedType ?? forkSource?.contentType ?? null;
+  // Derive if form should be open: open if user interacted, or if forkSource loaded
+  const isFormOpen =
+    hasUserInteracted || (Boolean(forkSource) && selectedType !== null);
 
   const handleTypeSelect = useCallback((type: HomebrewContentType) => {
-    setSelectedType(type);
-    setIsFormOpen(true);
+    setUserSelectedType(type);
+    setHasUserInteracted(true);
   }, []);
+
+  const handleFormClose = useCallback(() => {
+    setHasUserInteracted(false);
+    setUserSelectedType(null);
+  }, []);
+
+  // Build initial data for form when forking
+  const forkInitialData = useMemo(() => {
+    if (!forkSource) return undefined;
+    return {
+      ...forkSource,
+      id: '', // Clear ID so it creates a new one
+      name: `${forkSource.name} (Fork)`,
+      forkedFrom: forkSource.forkedFrom ?? forkSource.id,
+    } as HomebrewContent;
+  }, [forkSource]);
 
   const handleFormSubmit = useCallback(
     async (payload: {
@@ -156,10 +194,11 @@ function CreateHomebrew() {
         visibility: payload.visibility,
         tags: [],
         campaignLinks: [],
+        forkedFrom: forkSource?.forkedFrom ?? forkSource?.id,
       });
       navigate({ to: '/homebrew' });
     },
-    [selectedType, user, createMutation, navigate]
+    [selectedType, user, createMutation, navigate, forkSource]
   );
 
   if (!user) {
@@ -185,53 +224,85 @@ function CreateHomebrew() {
     );
   }
 
+  // Show loading state when fetching fork source
+  if (forkFrom && isForkSourceLoading) {
+    return (
+      <div className="container mx-auto flex h-96 items-center justify-center px-4 py-8">
+        <div className="text-muted-foreground animate-pulse">
+          Loading content to fork...
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="mb-2 flex items-center gap-3 text-3xl font-bold sm:text-4xl">
-          <div className="bg-primary/10 flex size-12 items-center justify-center rounded-xl">
-            <Plus className="text-primary size-6" />
+          <div
+            className={`flex size-12 items-center justify-center rounded-xl ${forkSource ? 'bg-green-500/10' : 'bg-primary/10'}`}
+          >
+            {forkSource ? (
+              <GitFork className="size-6 text-green-500" />
+            ) : (
+              <Plus className="text-primary size-6" />
+            )}
           </div>
-          Create Homebrew
+          {forkSource ? 'Fork Homebrew' : 'Create Homebrew'}
         </h1>
         <p className="text-muted-foreground text-lg">
-          Choose a content type to start creating
+          {forkSource
+            ? `Create your own version of "${forkSource.name}"`
+            : 'Choose a content type to start creating'}
         </p>
       </div>
 
-      {/* Content Type Grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {CONTENT_TYPE_OPTIONS.map(
-          ({ type, label, description, icon: Icon, color, bgColor }) => (
-            <Card
-              key={type}
-              className={`cursor-pointer border-2 border-transparent transition-all hover:scale-[1.02] hover:shadow-md ${bgColor}`}
-              onClick={() => handleTypeSelect(type)}
-            >
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3">
-                  <div
-                    className={`flex size-10 items-center justify-center rounded-lg ${bgColor}`}
-                  >
-                    <Icon className={`size-5 ${color}`} />
-                  </div>
-                  {label}
-                </CardTitle>
-                <CardDescription className="mt-1">
-                  {description}
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          )
-        )}
-      </div>
+      {/* Content Type Grid - Only show if not forking */}
+      {!forkSource && (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {CONTENT_TYPE_OPTIONS.map(
+            ({ type, label, description, icon: Icon, color, bgColor }) => (
+              <Card
+                key={type}
+                className={`cursor-pointer border-2 border-transparent transition-all hover:scale-[1.02] hover:shadow-md ${bgColor}`}
+                onClick={() => handleTypeSelect(type)}
+              >
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-3">
+                    <div
+                      className={`flex size-10 items-center justify-center rounded-lg ${bgColor}`}
+                    >
+                      <Icon className={`size-5 ${color}`} />
+                    </div>
+                    {label}
+                  </CardTitle>
+                  <CardDescription className="mt-1">
+                    {description}
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            )
+          )}
+        </div>
+      )}
 
       {/* Form Dialog */}
       {selectedType && (
         <HomebrewFormDialog
           open={isFormOpen}
-          onOpenChange={setIsFormOpen}
+          onOpenChange={open => {
+            if (open) {
+              setHasUserInteracted(true);
+            } else {
+              handleFormClose();
+              // If closing and was forking, navigate back
+              if (forkSource) {
+                navigate({ to: '/homebrew/browse' });
+              }
+            }
+          }}
           contentType={selectedType}
+          initialData={forkInitialData}
           onSubmit={handleFormSubmit}
           isSubmitting={createMutation.isPending}
         />

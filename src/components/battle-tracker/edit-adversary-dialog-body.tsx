@@ -4,6 +4,7 @@ import { Separator } from '@/components/ui/separator';
 import { AdversaryFeaturesEditor } from './edit-adversary-dialog-features';
 import {
   AdversaryAttackEditor,
+  AdversaryCountdownEditor,
   AdversaryDifficultyEditor,
   AdversaryInfoSection,
   AdversaryNotesEditor,
@@ -107,6 +108,13 @@ export function AdversaryDialogBody({
           onAddFeature={actions.addFeature}
           onRemoveFeature={actions.removeFeature}
           onResetAll={actions.resetToOriginal}
+        />
+
+        <Separator />
+
+        <AdversaryCountdownEditor
+          countdown={state.countdown}
+          onCountdownChange={actions.setCountdown}
         />
 
         <Separator />

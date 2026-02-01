@@ -8,7 +8,6 @@ import {
   Beaker,
   BookOpen,
   Folder,
-  GitFork,
   Globe,
   Home,
   Layers,
@@ -21,11 +20,17 @@ import {
   Skull,
   Star,
   Sword,
+  Trash2,
   Users,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { HomebrewFormDialog, HomebrewList } from '@/components/homebrew';
+import {
+  HomebrewFormDialog,
+  HomebrewList,
+  HomebrewViewDialog,
+} from '@/components/homebrew';
+import { OfficialContentBrowser } from '@/components/homebrew/official-content-browser';
 import { useAuth } from '@/components/providers';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -36,15 +41,29 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   useCollectionItems,
+  useCreateHomebrewCollection,
   useCreateHomebrewContent,
+  useDeletedHomebrewContent,
   useDeleteHomebrewContent,
+  useEmptyRecycleBin,
   useHomebrewCollections,
   useHomebrewContentBatch,
   useMyHomebrewContentInfinite,
-  useMyHomebrewStats,
+  usePermanentlyDeleteHomebrewContent,
+  useRestoreHomebrewContent,
   useStarredHomebrewContent,
   useUpdateHomebrewContent,
 } from '@/features/homebrew';
@@ -134,16 +153,38 @@ function HomebrewDashboard() {
     return pages.flatMap(page => page.items);
   }, [pages]);
 
-  const { data: stats } = useMyHomebrewStats();
+  // Tab counts computed from content
+  const tabCounts = useMemo(() => {
+    const publicCount = myContent.filter(c => c.visibility === 'public').length;
+    const privateCount = myContent.filter(
+      c => c.visibility === 'private'
+    ).length;
+    const linkedCount = myContent.filter(
+      c => c.campaignLinks && c.campaignLinks.length > 0
+    ).length;
+    return {
+      all: myContent.length,
+      public: publicCount,
+      private: privateCount,
+      linked: linkedCount,
+    };
+  }, [myContent]);
   const { data: starredData, isLoading: isStarredLoading } =
     useStarredHomebrewContent();
   const starredItems = starredData?.items ?? [];
+  const { data: deletedData, isLoading: isDeletedLoading } =
+    useDeletedHomebrewContent();
+  const deletedItems = deletedData?.items ?? [];
   const createMutation = useCreateHomebrewContent();
   const updateMutation = useUpdateHomebrewContent();
   const deleteMutation = useDeleteHomebrewContent();
+  const restoreMutation = useRestoreHomebrewContent();
+  const permanentDeleteMutation = usePermanentlyDeleteHomebrewContent();
+  const emptyRecycleBinMutation = useEmptyRecycleBin();
 
   const { data: collections = [], isLoading: isCollectionsLoading } =
     useHomebrewCollections();
+  const createCollectionMutation = useCreateHomebrewCollection();
   const visibleCollections = useMemo(
     () => collections.filter(collection => !collection.isQuicklist),
     [collections]
@@ -151,6 +192,9 @@ function HomebrewDashboard() {
   const [selectedCollectionId, setSelectedCollectionId] = useState<
     string | null
   >(null);
+  const [isCreateCollectionOpen, setIsCreateCollectionOpen] = useState(false);
+  const [newCollectionName, setNewCollectionName] = useState('');
+  const [newCollectionDescription, setNewCollectionDescription] = useState('');
 
   // Derive effective selected ID: use state if valid, otherwise default to first
   const effectiveCollectionId = useMemo(() => {
@@ -190,6 +234,8 @@ function HomebrewDashboard() {
   }, [collectionItemIds, collectionContent]);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isViewOpen, setIsViewOpen] = useState(false);
+  const [viewingItem, setViewingItem] = useState<HomebrewContent | null>(null);
   const [selectedType, setSelectedType] =
     useState<HomebrewContentType>('adversary');
   const [editingItem, setEditingItem] = useState<HomebrewContent | null>(null);
@@ -219,19 +265,68 @@ function HomebrewDashboard() {
     setIsFormOpen(true);
   }, []);
 
+  const handleView = useCallback((item: HomebrewContent) => {
+    setViewingItem(item);
+    setIsViewOpen(true);
+  }, []);
+
   const handleEdit = useCallback((item: HomebrewContent) => {
     setSelectedType(item.contentType);
     setEditingItem(item);
     setIsFormOpen(true);
+    // Close view dialog if open
+    setIsViewOpen(false);
   }, []);
 
   const handleDelete = useCallback(
     async (item: HomebrewContent) => {
-      if (confirm(`Are you sure you want to delete "${item.name}"?`)) {
+      if (
+        confirm(
+          `Are you sure you want to delete "${item.name}"? It will be moved to the Recycle Bin.`
+        )
+      ) {
         await deleteMutation.mutateAsync(item.id);
       }
     },
     [deleteMutation]
+  );
+
+  const handleRestore = useCallback(
+    async (item: HomebrewContent) => {
+      await restoreMutation.mutateAsync(item.id);
+    },
+    [restoreMutation]
+  );
+
+  const handlePermanentDelete = useCallback(
+    async (item: HomebrewContent) => {
+      if (
+        confirm(
+          `Are you sure you want to permanently delete "${item.name}"? This cannot be undone.`
+        )
+      ) {
+        await permanentDeleteMutation.mutateAsync(item.id);
+      }
+    },
+    [permanentDeleteMutation]
+  );
+
+  const handleEmptyRecycleBin = useCallback(async () => {
+    if (
+      confirm(
+        `Are you sure you want to permanently delete all ${deletedItems.length} items in the recycle bin? This cannot be undone.`
+      )
+    ) {
+      await emptyRecycleBinMutation.mutateAsync();
+    }
+  }, [emptyRecycleBinMutation, deletedItems.length]);
+
+  const handleFork = useCallback(
+    (item: HomebrewContent) => {
+      const sourceId = item.forkedFrom ?? item.id;
+      navigate({ to: '/homebrew/new', search: { forkFrom: sourceId } });
+    },
+    [navigate]
   );
 
   const handleFormSubmit = useCallback(
@@ -267,6 +362,17 @@ function HomebrewDashboard() {
     },
     [editingItem, selectedType, createMutation, updateMutation]
   );
+
+  const handleCreateCollection = useCallback(async () => {
+    if (!newCollectionName.trim()) return;
+    await createCollectionMutation.mutateAsync({
+      name: newCollectionName.trim(),
+      description: newCollectionDescription.trim() || undefined,
+    });
+    setNewCollectionName('');
+    setNewCollectionDescription('');
+    setIsCreateCollectionOpen(false);
+  }, [newCollectionName, newCollectionDescription, createCollectionMutation]);
 
   if (!user) {
     return (
@@ -306,90 +412,79 @@ function HomebrewDashboard() {
             Create and manage your custom Daggerheart content
           </p>
         </div>
-        <Button size="lg" onClick={() => navigate({ to: '/homebrew/new' })}>
+        <Button
+          size="lg"
+          onClick={() =>
+            navigate({ to: '/homebrew/new', search: { forkFrom: undefined } })
+          }
+        >
           <Plus className="mr-2 size-5" /> Create New
         </Button>
       </div>
 
-      {/* Stats Cards */}
-      {stats && (
-        <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Card className="border-blue-500/20 bg-linear-to-br from-blue-500/5 to-blue-500/10">
-            <CardHeader className="pb-2">
-              <CardDescription className="flex items-center gap-2 font-medium">
-                <Package className="size-4 text-blue-500" />
-                Total Items
-              </CardDescription>
-              <CardTitle className="text-4xl font-bold text-blue-600 dark:text-blue-400">
-                {stats.total}
-              </CardTitle>
-            </CardHeader>
-          </Card>
-          <Card className="border-green-500/20 bg-linear-to-br from-green-500/5 to-green-500/10">
-            <CardHeader className="pb-2">
-              <CardDescription className="flex items-center gap-2 font-medium">
-                <Globe className="size-4 text-green-500" />
-                Public
-              </CardDescription>
-              <CardTitle className="text-4xl font-bold text-green-600 dark:text-green-400">
-                {stats.public}
-              </CardTitle>
-            </CardHeader>
-          </Card>
-          <Card className="border-amber-500/20 bg-linear-to-br from-amber-500/5 to-amber-500/10">
-            <CardHeader className="pb-2">
-              <CardDescription className="flex items-center gap-2 font-medium">
-                <Lock className="size-4 text-amber-500" />
-                Private
-              </CardDescription>
-              <CardTitle className="text-4xl font-bold text-amber-600 dark:text-amber-400">
-                {stats.total - stats.public}
-              </CardTitle>
-            </CardHeader>
-          </Card>
-          <Card className="border-purple-500/20 bg-linear-to-br from-purple-500/5 to-purple-500/10">
-            <CardHeader className="pb-2">
-              <CardDescription className="flex items-center gap-2 font-medium">
-                <GitFork className="size-4 text-purple-500" />
-                Times Forked
-              </CardDescription>
-              <CardTitle className="text-4xl font-bold text-purple-600 dark:text-purple-400">
-                {stats.totalForks}
-              </CardTitle>
-            </CardHeader>
-          </Card>
-        </div>
-      )}
-
       {/* Content Tabs */}
-      <Tabs defaultValue="all" className="space-y-4">
+      <Tabs defaultValue="private" className="space-y-4">
         <TabsList>
           <TabsTrigger value="all" className="gap-2">
             <Package className="size-4" />
             <span className="hidden sm:inline">All</span>
-            <Badge variant="secondary" className="ml-1 hidden lg:inline-flex">
-              {myContent.length}
+            <Badge className="ml-1 hidden bg-zinc-200 text-zinc-700 lg:inline-flex dark:bg-zinc-700 dark:text-zinc-200">
+              {tabCounts.all}
             </Badge>
           </TabsTrigger>
           <TabsTrigger value="public" className="gap-2">
             <Globe className="size-4 text-green-500" />
             <span className="hidden sm:inline">Public</span>
+            <Badge className="ml-1 hidden bg-zinc-200 text-zinc-700 lg:inline-flex dark:bg-zinc-700 dark:text-zinc-200">
+              {tabCounts.public}
+            </Badge>
           </TabsTrigger>
           <TabsTrigger value="private" className="gap-2">
             <Lock className="size-4 text-amber-500" />
             <span className="hidden sm:inline">Private</span>
+            <Badge className="ml-1 hidden bg-zinc-200 text-zinc-700 lg:inline-flex dark:bg-zinc-700 dark:text-zinc-200">
+              {tabCounts.private}
+            </Badge>
           </TabsTrigger>
           <TabsTrigger value="quicklist" className="gap-2">
             <Star className="size-4 text-amber-500" />
             <span className="hidden sm:inline">Quicklist</span>
+            {starredItems.length > 0 && (
+              <Badge className="ml-1 hidden bg-zinc-200 text-zinc-700 lg:inline-flex dark:bg-zinc-700 dark:text-zinc-200">
+                {starredItems.length}
+              </Badge>
+            )}
           </TabsTrigger>
           <TabsTrigger value="campaign" className="gap-2">
             <Users className="size-4 text-purple-500" />
-            <span className="hidden sm:inline">Campaign</span>
+            <span className="hidden sm:inline">Linked</span>
+            {tabCounts.linked > 0 && (
+              <Badge className="ml-1 hidden bg-zinc-200 text-zinc-700 lg:inline-flex dark:bg-zinc-700 dark:text-zinc-200">
+                {tabCounts.linked}
+              </Badge>
+            )}
           </TabsTrigger>
           <TabsTrigger value="collections" className="gap-2">
             <Folder className="size-4 text-blue-500" />
             <span className="hidden sm:inline">Collections</span>
+            {visibleCollections.length > 0 && (
+              <Badge className="ml-1 hidden bg-zinc-200 text-zinc-700 lg:inline-flex dark:bg-zinc-700 dark:text-zinc-200">
+                {visibleCollections.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="recycle-bin" className="gap-2">
+            <Trash2 className="size-4 text-red-500" />
+            <span className="hidden sm:inline">Recycle Bin</span>
+            {deletedItems.length > 0 && (
+              <Badge className="ml-1 hidden bg-red-100 text-red-700 lg:inline-flex dark:bg-red-900 dark:text-red-200">
+                {deletedItems.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="official" className="gap-2">
+            <BookOpen className="size-4 text-indigo-500" />
+            <span className="hidden sm:inline">Official</span>
           </TabsTrigger>
         </TabsList>
 
@@ -398,9 +493,10 @@ function HomebrewDashboard() {
             items={myContent}
             isLoading={isLoading}
             currentUserId={user.id}
-            onView={handleEdit}
+            onView={handleView}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            onFork={handleFork}
             onCreate={handleCreate}
             emptyMessage="You haven't created any homebrew content yet. Click 'Create New' to get started!"
           />
@@ -411,11 +507,11 @@ function HomebrewDashboard() {
             items={myContent.filter(c => c.visibility === 'public')}
             isLoading={isLoading}
             currentUserId={user.id}
-            onView={handleEdit}
+            onView={handleView}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            onFork={handleFork}
             onCreate={handleCreate}
-            showCreateButton={false}
             emptyMessage="No public homebrew content. Share your creations with the community!"
           />
         </TabsContent>
@@ -425,11 +521,11 @@ function HomebrewDashboard() {
             items={myContent.filter(c => c.visibility === 'private')}
             isLoading={isLoading}
             currentUserId={user.id}
-            onView={handleEdit}
+            onView={handleView}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            onFork={handleFork}
             onCreate={handleCreate}
-            showCreateButton={false}
             emptyMessage="No private homebrew content."
           />
         </TabsContent>
@@ -439,26 +535,28 @@ function HomebrewDashboard() {
             items={starredItems}
             isLoading={isStarredLoading}
             currentUserId={user.id}
-            onView={handleEdit}
+            onView={handleView}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            onFork={handleFork}
             onCreate={handleCreate}
-            showCreateButton={false}
             emptyMessage="No items in your quicklist yet."
           />
         </TabsContent>
 
         <TabsContent value="campaign">
           <HomebrewList
-            items={myContent.filter(c => c.visibility === 'campaign_only')}
+            items={myContent.filter(
+              c => c.campaignLinks && c.campaignLinks.length > 0
+            )}
             isLoading={isLoading}
             currentUserId={user.id}
-            onView={handleEdit}
+            onView={handleView}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            onFork={handleFork}
             onCreate={handleCreate}
-            showCreateButton={false}
-            emptyMessage="No campaign-only homebrew content."
+            emptyMessage="No homebrew linked to campaigns yet. Link your content from a campaign's homebrew tab!"
           />
         </TabsContent>
 
@@ -473,15 +571,28 @@ function HomebrewDashboard() {
                 <Folder className="text-muted-foreground size-8" />
               </div>
               <p className="text-muted-foreground">
-                You don&apos;t have any collections yet. Use &quot;Add to
-                Collection&quot; on a homebrew item to create one.
+                You don&apos;t have any collections yet.
               </p>
+              <Button onClick={() => setIsCreateCollectionOpen(true)}>
+                <Plus className="mr-2 size-4" /> Create Collection
+              </Button>
             </div>
           ) : (
             <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-base">Your Collections</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base">
+                      Your Collections
+                    </CardTitle>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsCreateCollectionOpen(true)}
+                    >
+                      <Plus className="size-4" />
+                    </Button>
+                  </div>
                   <CardDescription>
                     Pick a collection to view its items.
                   </CardDescription>
@@ -543,9 +654,10 @@ function HomebrewDashboard() {
                       items={orderedCollectionContent}
                       isLoading={false}
                       currentUserId={user.id}
-                      onView={handleEdit}
+                      onView={handleView}
                       onEdit={handleEdit}
                       onDelete={handleDelete}
+                      onFork={handleFork}
                       onCreate={handleCreate}
                       showCreateButton={false}
                       emptyMessage="No items in this collection."
@@ -555,6 +667,112 @@ function HomebrewDashboard() {
               </Card>
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="recycle-bin">
+          <div className="mb-4 rounded-lg border border-red-500/20 bg-red-500/5 p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <Trash2 className="mt-0.5 size-5 text-red-500" />
+                <div>
+                  <h3 className="font-medium text-red-600 dark:text-red-400">
+                    Recycle Bin
+                  </h3>
+                  <p className="text-muted-foreground text-sm">
+                    Items here can be restored or permanently deleted.
+                    Permanently deleted items cannot be recovered.
+                  </p>
+                </div>
+              </div>
+              {deletedItems.length > 0 && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleEmptyRecycleBin}
+                  disabled={emptyRecycleBinMutation.isPending}
+                >
+                  Empty Recycle Bin
+                </Button>
+              )}
+            </div>
+          </div>
+          {isDeletedLoading ? (
+            <div className="flex h-48 items-center justify-center">
+              <div className="text-muted-foreground animate-pulse">
+                Loading...
+              </div>
+            </div>
+          ) : deletedItems.length === 0 ? (
+            <div className="flex h-48 flex-col items-center justify-center gap-3 text-center">
+              <div className="bg-muted flex size-16 items-center justify-center rounded-full">
+                <Trash2 className="text-muted-foreground size-8" />
+              </div>
+              <p className="text-muted-foreground">
+                Your recycle bin is empty.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {deletedItems.map(item => {
+                const config = CONTENT_TYPE_CONFIG[item.contentType];
+                const TypeIcon = config.icon;
+                return (
+                  <Card
+                    key={item.id}
+                    className={`border-l-4 ${config.bgColor.replace('/10', '/5')}`}
+                    style={{
+                      borderLeftColor: `var(--${config.color.replace('text-', '')})`,
+                    }}
+                  >
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex min-w-0 flex-1 items-center gap-3">
+                          <div
+                            className={`flex size-10 shrink-0 items-center justify-center rounded-lg ${config.bgColor}`}
+                          >
+                            <TypeIcon className={`size-5 ${config.color}`} />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <CardTitle className="truncate text-lg">
+                              {item.name}
+                            </CardTitle>
+                            <CardDescription className="text-xs">
+                              Deleted{' '}
+                              {item.deletedAt
+                                ? new Date(item.deletedAt).toLocaleDateString()
+                                : 'recently'}
+                            </CardDescription>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleRestore(item)}
+                            disabled={restoreMutation.isPending}
+                          >
+                            Restore
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handlePermanentDelete(item)}
+                            disabled={permanentDeleteMutation.isPending}
+                          >
+                            Delete Forever
+                          </Button>
+                        </div>
+                      </div>
+                    </CardHeader>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="official">
+          <OfficialContentBrowser />
         </TabsContent>
       </Tabs>
 
@@ -573,6 +791,18 @@ function HomebrewDashboard() {
         )}
       </div>
 
+      {/* View Dialog (Read-only) */}
+      <HomebrewViewDialog
+        open={isViewOpen}
+        onOpenChange={setIsViewOpen}
+        content={viewingItem}
+        isOwner={viewingItem?.ownerId === user.id}
+        onEdit={() => {
+          if (viewingItem) handleEdit(viewingItem);
+        }}
+        onFork={viewingItem ? () => handleFork(viewingItem) : undefined}
+      />
+
       {/* Form Dialog */}
       <HomebrewFormDialog
         open={isFormOpen}
@@ -582,6 +812,61 @@ function HomebrewDashboard() {
         onSubmit={handleFormSubmit}
         isSubmitting={createMutation.isPending || updateMutation.isPending}
       />
+
+      {/* Create Collection Dialog */}
+      <Dialog
+        open={isCreateCollectionOpen}
+        onOpenChange={setIsCreateCollectionOpen}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Folder className="size-5" /> Create Collection
+            </DialogTitle>
+            <DialogDescription>
+              Create a new collection to organize your homebrew content.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="collection-name">Name</Label>
+              <Input
+                id="collection-name"
+                placeholder="My Collection"
+                value={newCollectionName}
+                onChange={e => setNewCollectionName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="collection-description">
+                Description (optional)
+              </Label>
+              <Input
+                id="collection-description"
+                placeholder="A brief description..."
+                value={newCollectionDescription}
+                onChange={e => setNewCollectionDescription(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsCreateCollectionOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateCollection}
+              disabled={
+                !newCollectionName.trim() || createCollectionMutation.isPending
+              }
+            >
+              {createCollectionMutation.isPending ? 'Creating...' : 'Create'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

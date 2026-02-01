@@ -1009,6 +1009,7 @@ export function AdversaryCard({
   onEdit?: () => void;
 }) {
   const source = adversary.source;
+  const countdown = adversary.countdown ?? 0;
   const {
     difficulty: effectiveDifficulty,
     hasDifficultyOverride,
@@ -1066,6 +1067,14 @@ export function AdversaryCard({
       <AdversaryFeaturesTooltip
         features={effectiveFeatures}
         hasOverride={hasFeaturesOverride}
+      />
+      <CountdownControl
+        value={countdown}
+        enabled={adversary.countdownEnabled ?? false}
+        onChange={v => onChange(adversary.id, a => ({ ...a, countdown: v }))}
+        onEnabledChange={enabled =>
+          onChange(adversary.id, a => ({ ...a, countdownEnabled: enabled }))
+        }
       />
     </div>
   );
@@ -1164,7 +1173,11 @@ export function EnvironmentCard({
 
       <CountdownControl
         value={countdown}
+        enabled={environment.countdownEnabled ?? false}
         onChange={v => onChange(environment.id, e => ({ ...e, countdown: v }))}
+        onEnabledChange={enabled =>
+          onChange(environment.id, e => ({ ...e, countdownEnabled: enabled }))
+        }
       />
     </div>
   );
