@@ -49,6 +49,7 @@ import type {
 } from '@/lib/schemas/homebrew';
 import { getContentTypeLabel } from '@/lib/schemas/homebrew';
 
+import { AlphabeticalContentGrid } from './alphabetical-content-grid';
 import { HomebrewCampaignDialog } from './homebrew-campaign-dialog';
 import { HomebrewCard } from './homebrew-card';
 import { HomebrewCharacterDialog } from './homebrew-character-dialog';
@@ -368,14 +369,8 @@ export function HomebrewList({
             {items.length === 0 ? emptyMessage : 'No items match your filters.'}
           </p>
         </div>
-      ) : (
-        <div
-          className={
-            viewMode === 'grid'
-              ? 'grid gap-4 sm:grid-cols-2 lg:grid-cols-3'
-              : 'space-y-3'
-          }
-        >
+      ) : viewMode === 'list' ? (
+        <div className="space-y-3">
           {filteredItems.map(item => (
             <HomebrewCard
               key={item.id}
@@ -407,6 +402,42 @@ export function HomebrewList({
             />
           ))}
         </div>
+      ) : (
+        <AlphabeticalContentGrid
+          items={filteredItems}
+          getName={item => item.name}
+          getKey={item => item.id}
+          columns={{ default: 1, sm: 2, lg: 3 }}
+          renderItem={item => (
+            <HomebrewCard
+              content={item}
+              isOwner={item.ownerId === currentUserId}
+              isStarred={starredSet.has(item.id)}
+              isLinkedToCampaign={linkedItemIds?.has(item.id) ?? false}
+              onView={onView ? () => onView(item) : undefined}
+              onEdit={onEdit ? () => onEdit(item) : undefined}
+              onDelete={onDelete ? () => onDelete(item) : undefined}
+              onFork={onFork ? () => onFork(item) : undefined}
+              onLinkToCampaign={
+                onLinkToCampaign
+                  ? () => onLinkToCampaign(item)
+                  : currentUserId
+                    ? () => handleLinkToCampaign(item)
+                    : undefined
+              }
+              onAddToCharacter={
+                currentUserId ? () => handleAddToCharacter(item) : undefined
+              }
+              onToggleStar={
+                currentUserId ? () => handleToggleStar(item) : undefined
+              }
+              onAddToCollection={
+                currentUserId ? () => handleAddToCollection(item) : undefined
+              }
+              canInteract={!!currentUserId}
+            />
+          )}
+        />
       )}
 
       {collectionTarget && (
