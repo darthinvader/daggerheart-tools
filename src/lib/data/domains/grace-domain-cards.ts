@@ -136,6 +136,17 @@ export const GRACE_DOMAIN_CARDS: DomainCard[] = [
     recallCost: 2,
     description:
       "When 4 or more of the domain cards in your loadout are from the Grace domain, gain the following benefits:\n• +1 bonus to your Presence Rolls\n• Once per rest, when you spend Hope, roll a d6. On a 5-6, you don't spend the Hope.",
+    modifiers: {
+      traits: {
+        Presence: 1,
+      },
+    },
+    metadata: {
+      domainRequirement: {
+        domain: 'Grace',
+        minCards: 4,
+      },
+    },
   },
   {
     name: 'ASTRAL PROJECTION',

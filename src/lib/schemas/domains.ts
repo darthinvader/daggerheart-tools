@@ -1,6 +1,11 @@
 import { z } from 'zod';
 
-import { DomainNameSchema, MetadataSchema, unionWithString } from './core';
+import {
+  DomainNameSchema,
+  FeatureStatModifiersSchema,
+  MetadataSchema,
+  unionWithString,
+} from './core';
 
 // Per RAW (page 26): "There are three types of domain cards: abilities, spells, and grimoires.
 // Grimoires are unique to the Codex domain and are a collection of smaller spells bundled together."
@@ -19,6 +24,8 @@ export const DomainCardSchema = z
     stressCost: z.number().int().min(0).optional(),
     description: z.string(),
     tags: z.array(z.string()).optional(),
+    // Optional explicit modifiers for auto-calculation
+    modifiers: FeatureStatModifiersSchema.optional(),
     metadata: MetadataSchema,
   })
   .refine(

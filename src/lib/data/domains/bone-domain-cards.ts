@@ -27,6 +27,15 @@ If you end this movement within Melee range of an adversary and immediately make
     type: 'Ability',
     recallCost: 1,
     description: `Gain a bonus to your Evasion equal to half your Agility.`,
+    metadata: {
+      scaledModifiers: {
+        per: 'trait',
+        trait: 'Agility',
+        factor: 0.5,
+        round: 'floor',
+        modifiers: { evasion: 1 },
+      },
+    },
   },
   {
     name: 'FEROCITY',
@@ -133,6 +142,17 @@ Additionally on a success, you can mark a Stress to remove a Fear from the GM's 
 
 • +1 bonus to Agility
 • Once per rest, you can spend 3 Hope to cause an attack that succeeded against you to fail instead.`,
+    modifiers: {
+      traits: {
+        Agility: 1,
+      },
+    },
+    metadata: {
+      domainRequirement: {
+        domain: 'Bone',
+        minCards: 4,
+      },
+    },
   },
   {
     name: 'CRUEL PRECISION',

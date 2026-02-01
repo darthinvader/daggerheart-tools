@@ -74,6 +74,10 @@ export function HomebrewEditModal({
       hopeCost: draft.hopeCost,
       recallCost: draft.recallCost,
       stressCost: draft.stressCost,
+      tags: card.tags,
+      modifiers: card.modifiers,
+      metadata: card.metadata,
+      isActivated: card.isActivated ?? true,
       isHomebrew: true,
     };
 

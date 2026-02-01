@@ -10,6 +10,10 @@ import { ThresholdsEditableSection } from '@/components/thresholds-editor';
 import { TraitsDisplay } from '@/components/traits';
 import { getClassByName, getSubclassByName } from '@/lib/data/classes';
 import { getEquipmentFeatureModifiers } from '@/lib/equipment-feature-parser';
+import {
+  aggregateBonusModifiers,
+  combineModifiers,
+} from '@/lib/utils/feature-modifiers';
 
 import { CompanionSection } from '../companion-section';
 import { createDamageHandler } from '../demo-handlers';
@@ -54,6 +58,25 @@ function getArmorStats(equipment: TabProps['state']['equipment']) {
   };
 }
 
+function getTraitScores(traits: TabProps['state']['traits']) {
+  return {
+    Agility: traits.Agility.value + traits.Agility.bonus,
+    Strength: traits.Strength.value + traits.Strength.bonus,
+    Finesse: traits.Finesse.value + traits.Finesse.bonus,
+    Instinct: traits.Instinct.value + traits.Instinct.bonus,
+    Presence: traits.Presence.value + traits.Presence.bonus,
+    Knowledge: traits.Knowledge.value + traits.Knowledge.bonus,
+  };
+}
+
+function hasEquippedArmor(equipment: TabProps['state']['equipment']) {
+  if (equipment.armor) return true;
+  if (equipment.armorMode === 'homebrew') {
+    return !!equipment.homebrewArmor?.name;
+  }
+  return false;
+}
+
 export function CombatTab({
   state,
   handlers,
@@ -72,6 +95,49 @@ export function CombatTab({
     () => getEquipmentFeatureModifiers(state.equipment),
     [state.equipment]
   );
+  const bonusFeatureModifiers = useMemo(
+    () =>
+      aggregateBonusModifiers({
+        classSelection: state.classSelection,
+        ancestry: state.ancestry,
+        community: state.community,
+        loadout: state.loadout,
+        inventory: state.inventory,
+        isWearingArmor: hasEquippedArmor(state.equipment),
+        proficiency: state.coreScores.proficiency,
+        level: state.progression.currentLevel,
+        traitScores: getTraitScores(state.traits),
+      }),
+    [
+      state.classSelection,
+      state.ancestry,
+      state.community,
+      state.loadout,
+      state.inventory,
+      state.equipment,
+      state.coreScores.proficiency,
+      state.progression.currentLevel,
+      state.traits,
+    ]
+  );
+
+  const combinedFeatureModifiers = useMemo(
+    () =>
+      combineModifiers(
+        {
+          evasion: equipmentFeatureModifiers.evasion,
+          proficiency: equipmentFeatureModifiers.proficiency,
+          armorScore: equipmentFeatureModifiers.armorScore,
+          majorThreshold: equipmentFeatureModifiers.majorThreshold,
+          severeThreshold: equipmentFeatureModifiers.severeThreshold,
+          attackRolls: equipmentFeatureModifiers.attackRolls,
+          spellcastRolls: equipmentFeatureModifiers.spellcastRolls,
+          traits: equipmentFeatureModifiers.traits,
+        },
+        bonusFeatureModifiers
+      ),
+    [equipmentFeatureModifiers, bonusFeatureModifiers]
+  );
 
   const resourcesAutoContext = useMemo(
     () => ({
@@ -84,18 +150,18 @@ export function CombatTab({
       armorThresholdsSevere: armorStats.severe,
       level: state.progression.currentLevel,
       equipmentFeatureModifiers: {
-        evasion: equipmentFeatureModifiers.evasion,
-        proficiency: equipmentFeatureModifiers.proficiency,
-        armorScore: equipmentFeatureModifiers.armorScore,
-        majorThreshold: equipmentFeatureModifiers.majorThreshold,
-        severeThreshold: equipmentFeatureModifiers.severeThreshold,
+        evasion: combinedFeatureModifiers.evasion,
+        proficiency: combinedFeatureModifiers.proficiency,
+        armorScore: combinedFeatureModifiers.armorScore,
+        majorThreshold: combinedFeatureModifiers.majorThreshold,
+        severeThreshold: combinedFeatureModifiers.severeThreshold,
       },
     }),
     [
       classStats,
       armorStats,
       state.progression.currentLevel,
-      equipmentFeatureModifiers,
+      combinedFeatureModifiers,
     ]
   );
 
@@ -104,11 +170,13 @@ export function CombatTab({
       classEvasion: classStats.evasion,
       armorEvasionModifier: armorStats.evasionMod,
       equipmentEvasionModifier: equipmentFeatureModifiers.evasion,
+      bonusEvasionModifier: bonusFeatureModifiers.evasion,
     }),
     [
       classStats.evasion,
       armorStats.evasionMod,
       equipmentFeatureModifiers.evasion,
+      bonusFeatureModifiers.evasion,
     ]
   );
 
@@ -119,6 +187,8 @@ export function CombatTab({
       level: state.progression.currentLevel,
       equipmentMajorModifier: equipmentFeatureModifiers.majorThreshold,
       equipmentSevereModifier: equipmentFeatureModifiers.severeThreshold,
+      bonusMajorModifier: bonusFeatureModifiers.majorThreshold,
+      bonusSevereModifier: bonusFeatureModifiers.severeThreshold,
     }),
     [
       armorStats.major,
@@ -126,6 +196,8 @@ export function CombatTab({
       state.progression.currentLevel,
       equipmentFeatureModifiers.majorThreshold,
       equipmentFeatureModifiers.severeThreshold,
+      bonusFeatureModifiers.majorThreshold,
+      bonusFeatureModifiers.severeThreshold,
     ]
   );
 
@@ -195,7 +267,7 @@ export function CombatTab({
         <TraitsDisplay
           traits={state.traits}
           onChange={handlers.setTraits}
-          equipmentModifiers={equipmentFeatureModifiers.traits}
+          equipmentModifiers={combinedFeatureModifiers.traits}
         />
         <ResourcesDisplay
           resources={state.resources}

@@ -75,6 +75,7 @@ import {
   ALL_PRIMARY_WEAPONS,
   ALL_SECONDARY_WEAPONS,
 } from '@/lib/data/equipment';
+import type { BaseFeature, FeatureStatModifiers } from '@/lib/schemas/core';
 import type {
   CombatWheelchair,
   PrimaryWeapon,
@@ -148,13 +149,58 @@ function formatDamage(damage: PrimaryWeapon['damage']): string {
   return `${count}d${diceType}${modStr} ${typeStr}`;
 }
 
+const MODIFIER_TRAIT_ORDER: Array<
+  keyof NonNullable<FeatureStatModifiers['traits']>
+> = ['Agility', 'Strength', 'Finesse', 'Instinct', 'Presence', 'Knowledge'];
+
+function formatExplicitModifier(
+  modifiers: FeatureStatModifiers | undefined
+): { modifier: string; isPositive: boolean } | null {
+  if (!modifiers) return null;
+
+  const parts: string[] = [];
+  const values: number[] = [];
+
+  const push = (value: number | undefined, label: string) => {
+    if (typeof value !== 'number' || value === 0) return;
+    const sign = value > 0 ? '+' : '−';
+    parts.push(`${sign}${Math.abs(value)} ${label}`);
+    values.push(value);
+  };
+
+  push(modifiers.attackRolls, 'attack rolls');
+  push(modifiers.spellcastRolls, 'Spellcast rolls');
+  push(modifiers.armorScore, 'Armor Score');
+  push(modifiers.evasion, 'Evasion');
+  push(modifiers.proficiency, 'Proficiency');
+  push(modifiers.majorThreshold, 'Major damage threshold');
+  push(modifiers.severeThreshold, 'Severe damage threshold');
+
+  if (modifiers.traits) {
+    for (const trait of MODIFIER_TRAIT_ORDER) {
+      push(modifiers.traits[trait], trait);
+    }
+  }
+
+  if (parts.length === 0) return null;
+  return {
+    modifier: parts.join('; '),
+    isPositive: values.every(value => value >= 0),
+  };
+}
+
 /** Parse feature description to extract stat modifiers for display */
-function parseFeatureModifier(description: string): {
+function parseFeatureModifier(feature: BaseFeature): {
   modifier: string;
   isPositive: boolean;
 } | null {
+  const explicit = formatExplicitModifier(feature.modifiers);
+  if (explicit) return explicit;
+
   // Match patterns like "+1 to Evasion", "−1 to Finesse", "+2 to attack rolls"
-  const match = description.match(/([+−-])(\d+)\s+to\s+(\w+(?:\s+\w+)?)/i);
+  const match = feature.description.match(
+    /([+−-])(\d+)\s+to\s+(\w+(?:\s+\w+)?)/i
+  );
   if (!match) return null;
   const [, sign, value, stat] = match;
   const isPositive = sign === '+';
@@ -163,9 +209,7 @@ function parseFeatureModifier(description: string): {
 }
 
 /** Get all feature modifiers from an equipment item */
-function getFeatureModifiers(
-  features: Array<{ name: string; description: string }> | undefined
-): Array<{
+function getFeatureModifiers(features: BaseFeature[] | undefined): Array<{
   name: string;
   modifier: string;
   isPositive: boolean;
@@ -174,7 +218,7 @@ function getFeatureModifiers(
   if (!features) return [];
   return features
     .map(f => {
-      const parsed = parseFeatureModifier(f.description);
+      const parsed = parseFeatureModifier(f);
       if (!parsed) return null;
       return { name: f.name, description: f.description, ...parsed };
     })
@@ -187,12 +231,12 @@ function getFeatureModifiers(
 }
 
 function getNonModifierFeatures(
-  features: Array<{ name: string; description: string }> | undefined
+  features: BaseFeature[] | undefined
 ): FeatureSummary[] {
   if (!features) return [];
   const seen = new Set<string>();
   return features
-    .filter(feature => !parseFeatureModifier(feature.description))
+    .filter(feature => !parseFeatureModifier(feature))
     .filter(feature => {
       const key = feature.name.toLowerCase();
       if (seen.has(key)) return false;
@@ -807,7 +851,7 @@ function CollapsibleFeatureList({
       </CollapsibleTrigger>
       <CollapsibleContent className="space-y-2 pt-2">
         {features.map((feature, idx) => {
-          const mod = parseFeatureModifier(feature.description);
+          const mod = parseFeatureModifier(feature);
           return (
             <div key={idx} className="bg-muted/30 rounded-lg border p-3">
               <div className="flex items-center gap-2">

@@ -108,6 +108,7 @@ export const HEAVY_FRAME_WHEELCHAIRS: CombatWheelchair[] = [
       {
         name: 'Heavy',
         description: '−1 to Evasion',
+        modifiers: { evasion: -1 },
       },
     ],
     wheelchairFeatures: [
@@ -130,6 +131,7 @@ export const HEAVY_FRAME_WHEELCHAIRS: CombatWheelchair[] = [
       {
         name: 'Heavy',
         description: '−1 to Evasion',
+        modifiers: { evasion: -1 },
       },
     ],
     wheelchairFeatures: [
@@ -152,6 +154,7 @@ export const HEAVY_FRAME_WHEELCHAIRS: CombatWheelchair[] = [
       {
         name: 'Heavy',
         description: '−1 to Evasion',
+        modifiers: { evasion: -1 },
       },
     ],
     wheelchairFeatures: [
@@ -174,6 +177,7 @@ export const HEAVY_FRAME_WHEELCHAIRS: CombatWheelchair[] = [
       {
         name: 'Heavy',
         description: '−1 to Evasion',
+        modifiers: { evasion: -1 },
       },
     ],
     wheelchairFeatures: [
@@ -200,6 +204,7 @@ export const ARCANE_FRAME_WHEELCHAIRS: CombatWheelchair[] = [
       {
         name: 'Reliable',
         description: '+1 to attack rolls',
+        modifiers: { attackRolls: 1 },
       },
     ],
     wheelchairFeatures: [
@@ -222,6 +227,7 @@ export const ARCANE_FRAME_WHEELCHAIRS: CombatWheelchair[] = [
       {
         name: 'Reliable',
         description: '+1 to attack rolls',
+        modifiers: { attackRolls: 1 },
       },
     ],
     wheelchairFeatures: [
@@ -244,6 +250,7 @@ export const ARCANE_FRAME_WHEELCHAIRS: CombatWheelchair[] = [
       {
         name: 'Reliable',
         description: '+1 to attack rolls',
+        modifiers: { attackRolls: 1 },
       },
     ],
     wheelchairFeatures: [
@@ -266,6 +273,7 @@ export const ARCANE_FRAME_WHEELCHAIRS: CombatWheelchair[] = [
       {
         name: 'Reliable',
         description: '+1 to attack rolls',
+        modifiers: { attackRolls: 1 },
       },
     ],
     wheelchairFeatures: [

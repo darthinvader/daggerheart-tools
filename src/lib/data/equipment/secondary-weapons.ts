@@ -41,6 +41,7 @@ export const TIER_1_SECONDARY_WEAPONS: SecondaryWeapon[] = [
       {
         name: 'Barrier',
         description: '+2 to Armor Score; −1 to Evasion',
+        modifiers: { armorScore: 2, evasion: -1 },
       },
     ],
   },
@@ -134,6 +135,7 @@ export const TIER_2_SECONDARY_WEAPONS: SecondaryWeapon[] = [
       {
         name: 'Protective',
         description: '+2 to Armor Score',
+        modifiers: { armorScore: 2 },
       },
     ],
   },
@@ -149,6 +151,7 @@ export const TIER_2_SECONDARY_WEAPONS: SecondaryWeapon[] = [
       {
         name: 'Barrier',
         description: '+3 to Armor Score; −1 to Evasion',
+        modifiers: { armorScore: 3, evasion: -1 },
       },
     ],
   },
@@ -290,6 +293,7 @@ export const TIER_3_SECONDARY_WEAPONS: SecondaryWeapon[] = [
       {
         name: 'Protective',
         description: '+3 to Armor Score',
+        modifiers: { armorScore: 3 },
       },
     ],
   },
@@ -305,6 +309,7 @@ export const TIER_3_SECONDARY_WEAPONS: SecondaryWeapon[] = [
       {
         name: 'Barrier',
         description: '+4 to Armor Score; −1 to Evasion',
+        modifiers: { armorScore: 4, evasion: -1 },
       },
     ],
   },
@@ -446,6 +451,7 @@ export const TIER_4_SECONDARY_WEAPONS: SecondaryWeapon[] = [
       {
         name: 'Protective',
         description: '+4 to Armor Score',
+        modifiers: { armorScore: 4 },
       },
     ],
   },
@@ -461,6 +467,7 @@ export const TIER_4_SECONDARY_WEAPONS: SecondaryWeapon[] = [
       {
         name: 'Barrier',
         description: '+5 to Armor Score; −1 to Evasion.',
+        modifiers: { armorScore: 5, evasion: -1 },
       },
     ],
   },

@@ -15,6 +15,7 @@ import {
   createRemoveVaultCardHandler,
   createSwapToActiveHandler,
   createSwapToVaultHandler,
+  createToggleActivationHandler,
 } from './loadout-handlers';
 import { LoadoutSelector } from './loadout-selector';
 
@@ -90,6 +91,10 @@ export function LoadoutDisplay({
     () => createRemoveVaultCardHandler(selection, onChange),
     [selection, onChange]
   );
+  const handleToggleActivation = useMemo(
+    () => createToggleActivationHandler(selection, onChange),
+    [selection, onChange]
+  );
   const handleHomebrewSave = useMemo(
     () => createHomebrewSaveHandler(onChange),
     [onChange]
@@ -131,6 +136,7 @@ export function LoadoutDisplay({
         onConvertToHomebrew={readOnly ? undefined : setHomebrewEditCard}
         onRemoveActiveCard={readOnly ? undefined : handleRemoveActiveCard}
         onRemoveVaultCard={readOnly ? undefined : handleRemoveVaultCard}
+        onToggleActivated={readOnly ? undefined : handleToggleActivation}
         onEdit={!readOnly ? handleEditToggle : undefined}
       />
       <HomebrewEditModal

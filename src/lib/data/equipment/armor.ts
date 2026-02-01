@@ -11,7 +11,13 @@ export const TIER_1_STANDARD_ARMOR: StandardArmor[] = [
     baseScore: 3,
     evasionModifier: 1,
     agilityModifier: 0,
-    features: [{ name: 'Flexible', description: '+1 to Evasion' }],
+    features: [
+      {
+        name: 'Flexible',
+        description: '+1 to Evasion',
+        modifiers: { evasion: 1 },
+      },
+    ],
   },
   {
     name: 'Leather Armor',
@@ -33,7 +39,13 @@ export const TIER_1_STANDARD_ARMOR: StandardArmor[] = [
     baseScore: 4,
     evasionModifier: -1,
     agilityModifier: 0,
-    features: [{ name: 'Heavy', description: '−1 to Evasion' }],
+    features: [
+      {
+        name: 'Heavy',
+        description: '−1 to Evasion',
+        modifiers: { evasion: -1 },
+      },
+    ],
   },
   {
     name: 'Full Plate Armor',
@@ -45,7 +57,11 @@ export const TIER_1_STANDARD_ARMOR: StandardArmor[] = [
     evasionModifier: -2,
     agilityModifier: -1,
     features: [
-      { name: 'Very Heavy', description: '−2 to Evasion; −1 to Agility' },
+      {
+        name: 'Very Heavy',
+        description: '−2 to Evasion; −1 to Agility',
+        modifiers: { evasion: -2, traits: { Agility: -1 } },
+      },
     ],
   },
 ];
@@ -61,7 +77,13 @@ export const TIER_2_STANDARD_ARMOR: StandardArmor[] = [
     baseScore: 4,
     evasionModifier: 1,
     agilityModifier: 0,
-    features: [{ name: 'Flexible', description: '+1 to Evasion' }],
+    features: [
+      {
+        name: 'Flexible',
+        description: '+1 to Evasion',
+        modifiers: { evasion: 1 },
+      },
+    ],
   },
   {
     name: 'Improved Leather Armor',
@@ -83,7 +105,13 @@ export const TIER_2_STANDARD_ARMOR: StandardArmor[] = [
     baseScore: 5,
     evasionModifier: -1,
     agilityModifier: 0,
-    features: [{ name: 'Heavy', description: '−1 to Evasion' }],
+    features: [
+      {
+        name: 'Heavy',
+        description: '−1 to Evasion',
+        modifiers: { evasion: -1 },
+      },
+    ],
   },
   {
     name: 'Improved Full Plate Armor',
@@ -95,7 +123,11 @@ export const TIER_2_STANDARD_ARMOR: StandardArmor[] = [
     evasionModifier: -2,
     agilityModifier: -1,
     features: [
-      { name: 'Very Heavy', description: '−2 to Evasion; −1 to Agility' },
+      {
+        name: 'Very Heavy',
+        description: '−2 to Evasion; −1 to Agility',
+        modifiers: { evasion: -2, traits: { Agility: -1 } },
+      },
     ],
   },
 ];
@@ -111,7 +143,13 @@ export const TIER_3_STANDARD_ARMOR: StandardArmor[] = [
     baseScore: 5,
     evasionModifier: 1,
     agilityModifier: 0,
-    features: [{ name: 'Flexible', description: '+1 to Evasion' }],
+    features: [
+      {
+        name: 'Flexible',
+        description: '+1 to Evasion',
+        modifiers: { evasion: 1 },
+      },
+    ],
   },
   {
     name: 'Advanced Leather Armor',
@@ -133,7 +171,13 @@ export const TIER_3_STANDARD_ARMOR: StandardArmor[] = [
     baseScore: 6,
     evasionModifier: -1,
     agilityModifier: 0,
-    features: [{ name: 'Heavy', description: '−1 to Evasion' }],
+    features: [
+      {
+        name: 'Heavy',
+        description: '−1 to Evasion',
+        modifiers: { evasion: -1 },
+      },
+    ],
   },
   {
     name: 'Advanced Full Plate Armor',
@@ -145,7 +189,11 @@ export const TIER_3_STANDARD_ARMOR: StandardArmor[] = [
     evasionModifier: -2,
     agilityModifier: -1,
     features: [
-      { name: 'Very Heavy', description: '−2 to Evasion; −1 to Agility' },
+      {
+        name: 'Very Heavy',
+        description: '−2 to Evasion; −1 to Agility',
+        modifiers: { evasion: -2, traits: { Agility: -1 } },
+      },
     ],
   },
 ];
@@ -161,7 +209,13 @@ export const TIER_4_STANDARD_ARMOR: StandardArmor[] = [
     baseScore: 6,
     evasionModifier: 1,
     agilityModifier: 0,
-    features: [{ name: 'Flexible', description: '+1 to Evasion' }],
+    features: [
+      {
+        name: 'Flexible',
+        description: '+1 to Evasion',
+        modifiers: { evasion: 1 },
+      },
+    ],
   },
   {
     name: 'Legendary Leather Armor',
@@ -183,7 +237,13 @@ export const TIER_4_STANDARD_ARMOR: StandardArmor[] = [
     baseScore: 7,
     evasionModifier: -1,
     agilityModifier: 0,
-    features: [{ name: 'Heavy', description: '−1 to Evasion' }],
+    features: [
+      {
+        name: 'Heavy',
+        description: '−1 to Evasion',
+        modifiers: { evasion: -1 },
+      },
+    ],
   },
   {
     name: 'Legendary Full Plate Armor',
@@ -195,7 +255,11 @@ export const TIER_4_STANDARD_ARMOR: StandardArmor[] = [
     evasionModifier: -2,
     agilityModifier: -1,
     features: [
-      { name: 'Very Heavy', description: '−2 to Evasion; −1 to Agility' },
+      {
+        name: 'Very Heavy',
+        description: '−2 to Evasion; −1 to Agility',
+        modifiers: { evasion: -2, traits: { Agility: -1 } },
+      },
     ],
   },
 ];
@@ -320,7 +384,13 @@ export const SPECIAL_ARMOR: SpecialArmor[] = [
     baseScore: 5,
     evasionModifier: 0,
     agilityModifier: 0,
-    features: [{ name: 'Gilded', description: '+1 to Presence' }],
+    features: [
+      {
+        name: 'Gilded',
+        description: '+1 to Presence',
+        modifiers: { traits: { Presence: 1 } },
+      },
+    ],
   },
   {
     name: 'Dragonscale Armor',
@@ -438,7 +508,13 @@ export const SPECIAL_ARMOR: SpecialArmor[] = [
     baseScore: 5,
     evasionModifier: 0,
     agilityModifier: 0,
-    features: [{ name: 'Channeling', description: '+1 to Spellcast Rolls' }],
+    features: [
+      {
+        name: 'Channeling',
+        description: '+1 to Spellcast Rolls',
+        modifiers: { spellcastRolls: 1 },
+      },
+    ],
   },
   {
     name: 'Emberwoven Armor',
@@ -508,6 +584,17 @@ export const SPECIAL_ARMOR: SpecialArmor[] = [
       {
         name: 'Difficult',
         description: '−1 to all character traits and Evasion',
+        modifiers: {
+          evasion: -1,
+          traits: {
+            Agility: -1,
+            Strength: -1,
+            Finesse: -1,
+            Instinct: -1,
+            Presence: -1,
+            Knowledge: -1,
+          },
+        },
       },
     ],
   },

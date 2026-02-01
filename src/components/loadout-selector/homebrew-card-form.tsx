@@ -31,6 +31,7 @@ const EMPTY_CARD = {
   hopeCost: 1,
   recallCost: 0,
   stressCost: 0,
+  isActivated: true,
 };
 
 export function HomebrewCardForm({

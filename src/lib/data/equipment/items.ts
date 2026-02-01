@@ -899,6 +899,23 @@ export const RELICS: Relic[] = [
       trait: 'Agility',
       bonus: 1,
     },
+    statModifiers: {
+      evasion: 0,
+      proficiency: 0,
+      armorScore: 0,
+      majorThreshold: 0,
+      severeThreshold: 0,
+      attackRolls: 0,
+      spellcastRolls: 0,
+      traits: {
+        Agility: 1,
+        Strength: 0,
+        Finesse: 0,
+        Instinct: 0,
+        Presence: 0,
+        Knowledge: 0,
+      },
+    },
     features: [
       {
         name: 'Permanent Agility Boost',
@@ -917,6 +934,23 @@ export const RELICS: Relic[] = [
     traitBonus: {
       trait: 'Strength',
       bonus: 1,
+    },
+    statModifiers: {
+      evasion: 0,
+      proficiency: 0,
+      armorScore: 0,
+      majorThreshold: 0,
+      severeThreshold: 0,
+      attackRolls: 0,
+      spellcastRolls: 0,
+      traits: {
+        Agility: 0,
+        Strength: 1,
+        Finesse: 0,
+        Instinct: 0,
+        Presence: 0,
+        Knowledge: 0,
+      },
     },
     features: [
       {
@@ -937,6 +971,23 @@ export const RELICS: Relic[] = [
       trait: 'Finesse',
       bonus: 1,
     },
+    statModifiers: {
+      evasion: 0,
+      proficiency: 0,
+      armorScore: 0,
+      majorThreshold: 0,
+      severeThreshold: 0,
+      attackRolls: 0,
+      spellcastRolls: 0,
+      traits: {
+        Agility: 0,
+        Strength: 0,
+        Finesse: 1,
+        Instinct: 0,
+        Presence: 0,
+        Knowledge: 0,
+      },
+    },
     features: [
       {
         name: 'Permanent Finesse Boost',
@@ -955,6 +1006,23 @@ export const RELICS: Relic[] = [
     traitBonus: {
       trait: 'Instinct',
       bonus: 1,
+    },
+    statModifiers: {
+      evasion: 0,
+      proficiency: 0,
+      armorScore: 0,
+      majorThreshold: 0,
+      severeThreshold: 0,
+      attackRolls: 0,
+      spellcastRolls: 0,
+      traits: {
+        Agility: 0,
+        Strength: 0,
+        Finesse: 0,
+        Instinct: 1,
+        Presence: 0,
+        Knowledge: 0,
+      },
     },
     features: [
       {
@@ -975,6 +1043,23 @@ export const RELICS: Relic[] = [
       trait: 'Presence',
       bonus: 1,
     },
+    statModifiers: {
+      evasion: 0,
+      proficiency: 0,
+      armorScore: 0,
+      majorThreshold: 0,
+      severeThreshold: 0,
+      attackRolls: 0,
+      spellcastRolls: 0,
+      traits: {
+        Agility: 0,
+        Strength: 0,
+        Finesse: 0,
+        Instinct: 0,
+        Presence: 1,
+        Knowledge: 0,
+      },
+    },
     features: [
       {
         name: 'Permanent Presence Boost',
@@ -994,6 +1079,23 @@ export const RELICS: Relic[] = [
       trait: 'Knowledge',
       bonus: 1,
     },
+    statModifiers: {
+      evasion: 0,
+      proficiency: 0,
+      armorScore: 0,
+      majorThreshold: 0,
+      severeThreshold: 0,
+      attackRolls: 0,
+      spellcastRolls: 0,
+      traits: {
+        Agility: 0,
+        Strength: 0,
+        Finesse: 0,
+        Instinct: 0,
+        Presence: 0,
+        Knowledge: 1,
+      },
+    },
     features: [
       {
         name: 'Permanent Knowledge Boost',
@@ -1012,6 +1114,9 @@ export const RELICS: Relic[] = [
     experienceBonus: {
       experience: 'Any Experience of your choice',
       bonus: 1,
+    },
+    metadata: {
+      requiresExperienceSelection: true,
     },
     features: [
       {

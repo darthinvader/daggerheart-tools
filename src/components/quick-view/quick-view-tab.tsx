@@ -1,12 +1,18 @@
 import { useMemo } from 'react';
 
 import type { DemoHandlers, DemoState } from '@/components/demo/demo-types';
+import type { EquipmentState } from '@/components/equipment';
+import type { TraitsState } from '@/components/traits';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { getEquipmentFeatureModifiers } from '@/lib/equipment-feature-parser';
 import {
   DEFAULT_QUICK_VIEW_PREFERENCES,
   type QuickViewSections,
 } from '@/lib/schemas/quick-view';
+import {
+  aggregateBonusModifiers,
+  combineModifiers,
+} from '@/lib/utils/feature-modifiers';
 
 import {
   QuickViewIdentitySections,
@@ -22,6 +28,25 @@ interface QuickViewTabProps {
 
 type QuickSectionKey = keyof QuickViewSections;
 
+function hasEquippedArmor(equipment: EquipmentState) {
+  if (equipment.armor) return true;
+  if (equipment.armorMode === 'homebrew') {
+    return !!equipment.homebrewArmor?.name;
+  }
+  return false;
+}
+
+function getTraitScores(traits: TraitsState) {
+  return {
+    Agility: traits.Agility.value + traits.Agility.bonus,
+    Strength: traits.Strength.value + traits.Strength.bonus,
+    Finesse: traits.Finesse.value + traits.Finesse.bonus,
+    Instinct: traits.Instinct.value + traits.Instinct.bonus,
+    Presence: traits.Presence.value + traits.Presence.bonus,
+    Knowledge: traits.Knowledge.value + traits.Knowledge.bonus,
+  };
+}
+
 export function QuickViewTab({ state, handlers }: QuickViewTabProps) {
   const hasCompanion = !!(state.companionEnabled && state.companion);
   const bonusHopeSlots = state.companion?.training.lightInTheDark ? 1 : 0;
@@ -31,6 +56,50 @@ export function QuickViewTab({ state, handlers }: QuickViewTabProps) {
   const equipmentModifiers = useMemo(
     () => getEquipmentFeatureModifiers(state.equipment),
     [state.equipment]
+  );
+
+  const bonusModifiers = useMemo(
+    () =>
+      aggregateBonusModifiers({
+        classSelection: state.classSelection,
+        ancestry: state.ancestry,
+        community: state.community,
+        loadout: state.loadout,
+        inventory: state.inventory,
+        isWearingArmor: hasEquippedArmor(state.equipment),
+        proficiency: state.coreScores.proficiency,
+        level: state.progression.currentLevel,
+        traitScores: getTraitScores(state.traits),
+      }),
+    [
+      state.classSelection,
+      state.ancestry,
+      state.community,
+      state.loadout,
+      state.inventory,
+      state.equipment,
+      state.coreScores.proficiency,
+      state.progression.currentLevel,
+      state.traits,
+    ]
+  );
+
+  const combinedModifiers = useMemo(
+    () =>
+      combineModifiers(
+        {
+          evasion: equipmentModifiers.evasion,
+          proficiency: equipmentModifiers.proficiency,
+          armorScore: equipmentModifiers.armorScore,
+          majorThreshold: equipmentModifiers.majorThreshold,
+          severeThreshold: equipmentModifiers.severeThreshold,
+          attackRolls: equipmentModifiers.attackRolls,
+          spellcastRolls: equipmentModifiers.spellcastRolls,
+          traits: equipmentModifiers.traits,
+        },
+        bonusModifiers
+      ),
+    [equipmentModifiers, bonusModifiers]
   );
 
   const handleToggleSection = (id: QuickSectionKey) => {
@@ -53,7 +122,10 @@ export function QuickViewTab({ state, handlers }: QuickViewTabProps) {
         isSectionOpen={isSectionOpen}
         onToggle={handleToggleSection}
         bonusHopeSlots={bonusHopeSlots}
-        equipmentModifiers={equipmentModifiers}
+        equipmentModifiers={{
+          ...combinedModifiers,
+          parsedFeatures: equipmentModifiers.parsedFeatures,
+        }}
       />
       <QuickViewIdentitySections
         state={state}

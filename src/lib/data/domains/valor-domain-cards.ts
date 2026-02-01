@@ -91,6 +91,12 @@ Additionally, once per rest when you would gain a condition, you can describe ho
     description: `While you're wearing armor, gain a +1 bonus to your Armor Score.
 
 During a rest, when you choose to repair your armor as a downtime move, your allies also clear an Armor Slot.`,
+    modifiers: {
+      armorScore: 1,
+    },
+    metadata: {
+      requiresArmor: true,
+    },
   },
   {
     name: 'ROUSING STRIKE',
@@ -117,6 +123,12 @@ During a rest, when you choose to repair your armor as a downtime move, your all
     description: `Gain a bonus to your Severe threshold equal to your Proficiency.
 
 When you mark 1 or more Hit Points from an attack, clear a Stress.`,
+    metadata: {
+      scaledModifiers: {
+        per: 'proficiency',
+        modifiers: { severeThreshold: 1 },
+      },
+    },
   },
   {
     name: 'SHRUG IT OFF',
@@ -135,6 +147,15 @@ When you mark 1 or more Hit Points from an attack, clear a Stress.`,
     description: `When 4 or more of the domain cards in your loadout are from the Valor domain, gain the following benefits:
 • +1 bonus to your Armor Score
 • When you mark 1 or more Hit Points without marking an Armor Slot, clear an Armor Slot.`,
+    modifiers: {
+      armorScore: 1,
+    },
+    metadata: {
+      domainRequirement: {
+        domain: 'Valor',
+        minCards: 4,
+      },
+    },
   },
   {
     name: 'FULL SURGE',

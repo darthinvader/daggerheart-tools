@@ -234,6 +234,12 @@ export const ANCESTRIES = [
       description:
         'Gain a bonus to your damage thresholds equal to your Proficiency.',
       type: 'primary',
+      metadata: {
+        scaledModifiers: {
+          per: 'proficiency',
+          modifiers: { majorThreshold: 1, severeThreshold: 1 },
+        },
+      },
     },
     secondaryFeature: {
       name: 'Retract',
@@ -484,6 +490,7 @@ export const ANCESTRIES = [
       description:
         'Gain a permanent +1 bonus to your Evasion at character creation.',
       type: 'secondary',
+      modifiers: { evasion: 1 },
     },
   },
 ];

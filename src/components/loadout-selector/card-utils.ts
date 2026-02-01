@@ -12,6 +12,9 @@ export function cardToLite(card: DomainCard): DomainCardLite {
     recallCost: card.recallCost,
     stressCost: card.stressCost,
     tags: card.tags,
+    modifiers: card.modifiers,
+    metadata: card.metadata,
+    isActivated: true,
     isHomebrew: false,
   };
 }
@@ -27,6 +30,9 @@ export function homebrewToLite(card: HomebrewDomainCard): DomainCardLite {
     recallCost: card.recallCost,
     stressCost: card.stressCost,
     tags: card.tags,
+    modifiers: card.modifiers,
+    metadata: card.metadata,
+    isActivated: true,
     isHomebrew: true,
   };
 }

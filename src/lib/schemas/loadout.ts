@@ -3,7 +3,11 @@ import type { ComponentType } from 'react';
 import { z } from 'zod';
 import { DomainIcons, getIcon } from '@/lib/icons';
 
-import { DomainNameSchema, MetadataSchema } from './core';
+import {
+  DomainNameSchema,
+  FeatureStatModifiersSchema,
+  MetadataSchema,
+} from './core';
 
 // Domain icon mapping for visual engagement
 // Returns Lucide icon components instead of emoji strings
@@ -95,6 +99,9 @@ export const DomainCardLiteSchema = z.object({
   recallCost: z.number().int().min(0).optional(),
   stressCost: z.number().int().min(0).optional(),
   tags: z.array(z.string()).optional(),
+  // Optional explicit modifiers for auto-calculation
+  modifiers: FeatureStatModifiersSchema.optional(),
+  isActivated: z.boolean().default(true),
   isHomebrew: z.boolean().optional(),
   metadata: MetadataSchema.optional(),
 });

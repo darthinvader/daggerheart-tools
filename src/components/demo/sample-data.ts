@@ -35,6 +35,7 @@ const sampleCard = (
   description: `A ${domain.toLowerCase()} ability: ${name.toLowerCase()}.`,
   hopeCost,
   recallCost: type === 'Spell' ? 1 : undefined,
+  isActivated: true,
 });
 
 export const buildClassSelection = (): ClassSelection | null => {

@@ -192,6 +192,27 @@ export const ScoreSchema = z.object({
   max: z.number().int(),
 });
 
+// Optional feature modifiers (explicit numeric effects to avoid parsing text)
+export const FeatureTraitModifiersSchema = z.object({
+  Agility: z.number().optional(),
+  Strength: z.number().optional(),
+  Finesse: z.number().optional(),
+  Instinct: z.number().optional(),
+  Presence: z.number().optional(),
+  Knowledge: z.number().optional(),
+});
+
+export const FeatureStatModifiersSchema = z.object({
+  evasion: z.number().optional(),
+  proficiency: z.number().optional(),
+  armorScore: z.number().optional(),
+  majorThreshold: z.number().optional(),
+  severeThreshold: z.number().optional(),
+  attackRolls: z.number().optional(),
+  spellcastRolls: z.number().optional(),
+  traits: FeatureTraitModifiersSchema.optional(),
+});
+
 export const unionWithString = <T extends z.ZodTypeAny>(schema: T) =>
   z.union([schema, z.string()]);
 
@@ -318,6 +339,8 @@ export const BaseFeatureSchema = z.object({
   type: z.union([FeatureTypeEnum, z.string()]).optional(),
   // Tags are free-form to allow broader categorization than equipment traits
   tags: z.array(z.string()).optional(),
+  // Explicit modifiers for auto-calculation (avoids parsing description text)
+  modifiers: FeatureStatModifiersSchema.optional(),
   availability: FeatureAvailabilitySchema.optional(),
   metadata: MetadataSchema,
 });
@@ -363,6 +386,8 @@ export type CharacterTrait = z.infer<typeof CharacterTraitEnum>;
 export type WeaponTrait = z.infer<typeof WeaponTraitEnum>;
 export type ConditionName = z.infer<typeof ConditionNameSchema>;
 export type CharacterTier = z.infer<typeof CharacterTierSchema>;
+export type FeatureTraitModifiers = z.infer<typeof FeatureTraitModifiersSchema>;
+export type FeatureStatModifiers = z.infer<typeof FeatureStatModifiersSchema>;
 export type BaseFeature = z.infer<typeof BaseFeatureSchema>;
 export type ClassFeature = BaseFeature;
 export type SubclassFeature = z.infer<typeof SubclassFeatureSchema>;

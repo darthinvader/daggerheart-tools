@@ -12,6 +12,10 @@ export interface ThresholdsAutoContext {
   armorThresholdsMajor?: number;
   armorThresholdsSevere?: number;
   level?: number;
+  equipmentMajorModifier?: number;
+  equipmentSevereModifier?: number;
+  bonusMajorModifier?: number;
+  bonusSevereModifier?: number;
 }
 
 interface ThresholdsEditableSectionProps {

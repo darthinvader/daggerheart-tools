@@ -75,6 +75,13 @@ When you deal damage, you can mark a Stress to use the maximum result of one of 
     type: 'Ability',
     recallCost: 0,
     description: `While you are wearing armor, gain a +2 bonus to your damage thresholds.`,
+    modifiers: {
+      majorThreshold: 2,
+      severeThreshold: 2,
+    },
+    metadata: {
+      requiresArmor: true,
+    },
   },
   {
     name: 'CHAMPION’S EDGE',
@@ -129,6 +136,16 @@ You can Rage Up twice per attack.`,
     description: `When 4 or more of the domain cards in your loadout are from the Blade domain, gain the following benefits:
 • +2 bonus to your attack rolls
 • +4 bonus to your Severe damage threshold`,
+    modifiers: {
+      attackRolls: 2,
+      severeThreshold: 4,
+    },
+    metadata: {
+      domainRequirement: {
+        domain: 'Blade',
+        minCards: 4,
+      },
+    },
   },
   {
     name: 'GLANCING BLOW',

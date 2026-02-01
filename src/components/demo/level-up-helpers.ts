@@ -76,6 +76,11 @@ export function createDomainCardLite(cardName: string): DomainCardLite | null {
     description: card.description,
     hopeCost: card.hopeCost,
     recallCost: card.recallCost,
+    stressCost: card.stressCost,
+    tags: card.tags,
+    modifiers: card.modifiers,
+    metadata: card.metadata,
+    isActivated: true,
   };
 }
 

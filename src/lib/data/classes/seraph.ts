@@ -123,6 +123,7 @@ export const SERAPH = {
             'Gain a permanent +4 bonus to your Severe damage threshold.',
           type: 'mastery',
           level: 8,
+          modifiers: { severeThreshold: 4 },
           availability: {
             tier: '8-10',
             minLevel: 8,

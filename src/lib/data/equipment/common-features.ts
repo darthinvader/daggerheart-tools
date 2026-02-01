@@ -5,6 +5,7 @@ export const COMMON_EQUIPMENT_FEATURES: Record<string, BaseFeature> = {
     name: 'Reliable',
     description: '+1 to attack rolls',
     type: 'passive',
+    modifiers: { attackRolls: 1 },
   },
   BRUTAL: {
     name: 'Brutal',
@@ -16,46 +17,55 @@ export const COMMON_EQUIPMENT_FEATURES: Record<string, BaseFeature> = {
     name: 'Heavy',
     description: '−1 to Evasion',
     type: 'passive',
+    modifiers: { evasion: -1 },
   },
   PROTECTIVE_1: {
     name: 'Protective',
     description: '+1 to Armor Score',
     type: 'passive',
+    modifiers: { armorScore: 1 },
   },
   PROTECTIVE_2: {
     name: 'Protective',
     description: '+2 to Armor Score',
     type: 'passive',
+    modifiers: { armorScore: 2 },
   },
   PROTECTIVE_3: {
     name: 'Protective',
     description: '+3 to Armor Score',
     type: 'passive',
+    modifiers: { armorScore: 3 },
   },
   PROTECTIVE_4: {
     name: 'Protective',
     description: '+4 to Armor Score',
     type: 'passive',
+    modifiers: { armorScore: 4 },
   },
   BARRIER_1: {
     name: 'Barrier',
     description: '+1 to Armor Score; −1 to Evasion',
     type: 'passive',
+    modifiers: { armorScore: 1, evasion: -1 },
   },
   BARRIER_3: {
     name: 'Barrier',
     description: '+3 to Armor Score; −1 to Evasion',
     type: 'passive',
+    modifiers: { armorScore: 3, evasion: -1 },
   },
   BARRIER_4: {
     name: 'Barrier',
     description: '+4 to Armor Score; −1 to Evasion',
     type: 'passive',
+    modifiers: { armorScore: 4, evasion: -1 },
   },
   BARRIER_5: {
     name: 'Barrier',
     description: '+5 to Armor Score; −1 to Evasion',
     type: 'passive',
+    modifiers: { armorScore: 5, evasion: -1 },
   },
 };
 

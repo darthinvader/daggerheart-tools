@@ -17,6 +17,8 @@ export interface CoreScoresState {
 export interface CoreScoresAutoContext {
   classEvasion?: number;
   armorEvasionModifier?: number;
+  equipmentEvasionModifier?: number;
+  bonusEvasionModifier?: number;
 }
 
 interface CoreScoresDisplayProps {
@@ -28,7 +30,12 @@ interface CoreScoresDisplayProps {
 }
 
 function computeAutoEvasion(ctx: CoreScoresAutoContext): number {
-  return (ctx.classEvasion ?? 10) + (ctx.armorEvasionModifier ?? 0);
+  return (
+    (ctx.classEvasion ?? 10) +
+    (ctx.armorEvasionModifier ?? 0) +
+    (ctx.equipmentEvasionModifier ?? 0) +
+    (ctx.bonusEvasionModifier ?? 0)
+  );
 }
 
 function CoreScoresDetailedDisplay({

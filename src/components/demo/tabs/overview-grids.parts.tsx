@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useRef } from 'react';
 
 import { AncestryDisplay } from '@/components/ancestry-selector';
+import { BonusSummaryDisplay } from '@/components/bonus-summary';
 import { ClassDisplay } from '@/components/class-selector';
 import { CommunityDisplay } from '@/components/community-selector';
 import { ConditionsDisplay } from '@/components/conditions';
 import { CoreScoresDisplay } from '@/components/core-scores';
 import { EquipmentDisplay } from '@/components/equipment';
+import type { EquipmentState } from '@/components/equipment';
 import { ExperiencesDisplay } from '@/components/experiences';
 import { GoldDisplay } from '@/components/gold';
 import { IdentityDisplay } from '@/components/identity-editor';
@@ -15,8 +17,27 @@ import { HopeWithScarsDisplay } from '@/components/scars';
 import { ProgressionDisplay } from '@/components/shared/progression-display';
 import { ThresholdsEditableSection } from '@/components/thresholds-editor';
 import { TraitsDisplay } from '@/components/traits';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { getClassByName } from '@/lib/data/classes';
 import { getEquipmentFeatureModifiers } from '@/lib/equipment-feature-parser';
+import {
+  hasAnyModifiers,
+  normalizeEquipment,
+} from '@/lib/equipment-feature-parser/normalize-equipment';
+import type { FeatureStatModifiers } from '@/lib/schemas/core';
+import {
+  aggregateBonusBreakdown,
+  aggregateBonusModifiers,
+  combineModifiers,
+} from '@/lib/utils/feature-modifiers';
+import type { BonusSourceEntry } from '@/lib/utils/feature-modifiers';
 
 import { createDamageHandler } from '../demo-handlers';
 import type { TabProps } from '../demo-types';
@@ -58,6 +79,155 @@ function getArmorStats(equipment: TabProps['state']['equipment']) {
     major: armor.baseThresholds?.major ?? 5,
     severe: armor.baseThresholds?.severe ?? 11,
   };
+}
+
+function getTraitScores(traits: TabProps['state']['traits']) {
+  return {
+    Agility: traits.Agility.value + traits.Agility.bonus,
+    Strength: traits.Strength.value + traits.Strength.bonus,
+    Finesse: traits.Finesse.value + traits.Finesse.bonus,
+    Instinct: traits.Instinct.value + traits.Instinct.bonus,
+    Presence: traits.Presence.value + traits.Presence.bonus,
+    Knowledge: traits.Knowledge.value + traits.Knowledge.bonus,
+  };
+}
+
+function getExperienceBonus(
+  entry: TabProps['state']['inventory']['items'][number]
+) {
+  if (!entry.item || typeof entry.item !== 'object') return undefined;
+  return 'experienceBonus' in entry.item
+    ? (
+        entry.item as {
+          experienceBonus?: { experience?: string; bonus: number };
+        }
+      ).experienceBonus
+    : undefined;
+}
+
+function hasEquippedArmor(equipment: EquipmentState) {
+  if (equipment.armor) return true;
+  if (equipment.armorMode === 'homebrew') {
+    return !!equipment.homebrewArmor?.name;
+  }
+  return false;
+}
+
+function getExperienceBonuses(
+  inventory: TabProps['state']['inventory'],
+  experiences: TabProps['state']['experiences']
+) {
+  const bonuses: Record<string, number> = {};
+  const experienceNames = (experiences?.items ?? [])
+    .map(item => item.name)
+    .filter(Boolean);
+
+  for (const entry of inventory?.items ?? []) {
+    if (!entry.isEquipped) continue;
+    const bonus = getExperienceBonus(entry);
+    if (!bonus) continue;
+    const rawExperience = bonus.experience?.trim();
+    if (!rawExperience) continue;
+
+    let target = rawExperience;
+    const selectedExperience =
+      (entry.item as { metadata?: Record<string, unknown> })?.metadata
+        ?.selectedExperience ??
+      (entry as { metadata?: Record<string, unknown> })?.metadata
+        ?.selectedExperience;
+
+    if (/any experience/i.test(rawExperience)) {
+      if (typeof selectedExperience === 'string') {
+        target = selectedExperience;
+      } else {
+        target = experienceNames[0] ?? '';
+      }
+    }
+
+    if (!target) continue;
+    const exactMatch = experienceNames.find(name => name === target);
+    const normalizedMatch =
+      exactMatch ??
+      experienceNames.find(name => name.toLowerCase() === target.toLowerCase());
+    const key = normalizedMatch ?? target;
+    bonuses[key] = (bonuses[key] ?? 0) + bonus.bonus;
+  }
+
+  return bonuses;
+}
+
+function resolveExperienceTarget(
+  entry: TabProps['state']['inventory']['items'][number],
+  experienceNames: string[],
+  rawExperience: string
+) {
+  let target = rawExperience;
+  const selectedExperience =
+    (entry.item as { metadata?: Record<string, unknown> })?.metadata
+      ?.selectedExperience ??
+    (entry as { metadata?: Record<string, unknown> })?.metadata
+      ?.selectedExperience;
+
+  if (/any experience/i.test(rawExperience)) {
+    if (typeof selectedExperience === 'string') {
+      target = selectedExperience;
+    } else {
+      target = experienceNames[0] ?? '';
+    }
+  }
+
+  const exactMatch = experienceNames.find(name => name === target);
+  const normalizedMatch =
+    exactMatch ??
+    experienceNames.find(name => name.toLowerCase() === target.toLowerCase());
+
+  return normalizedMatch ?? target;
+}
+
+function getExperienceBonusSources(
+  inventory: TabProps['state']['inventory'],
+  experiences: TabProps['state']['experiences']
+): BonusSourceEntry[] {
+  const sources: BonusSourceEntry[] = [];
+  const experienceNames = (experiences?.items ?? [])
+    .map(item => item.name)
+    .filter(Boolean);
+
+  for (const entry of inventory?.items ?? []) {
+    if (!entry.isEquipped) continue;
+    const bonus = getExperienceBonus(entry);
+    if (!bonus) continue;
+    const rawExperience = bonus.experience?.trim();
+    if (!rawExperience) continue;
+    const target = resolveExperienceTarget(
+      entry,
+      experienceNames,
+      rawExperience
+    );
+    if (!target) continue;
+    sources.push({
+      type: 'experience-bonus',
+      sourceName: entry.item?.name ?? 'Experience Bonus',
+      detail: target,
+      modifiers: {},
+      experienceBonus: {
+        experience: target,
+        bonus: bonus.bonus,
+      },
+    });
+  }
+
+  return sources;
+}
+
+function getSelectableExperienceBonusItems(
+  inventory: TabProps['state']['inventory']
+) {
+  return (inventory?.items ?? []).filter(entry => {
+    const bonus = getExperienceBonus(entry);
+    if (!bonus) return false;
+    return /any experience/i.test(bonus.experience ?? '');
+  });
 }
 
 interface AutoUpdateConfig {
@@ -194,7 +364,7 @@ function useAutoUpdateScores({
 
 export function IdentityProgressionGrid({ state, handlers }: TabProps) {
   return (
-    <div className="grid gap-3 sm:gap-4 sm:gap-6 md:grid-cols-2">
+    <div className="grid gap-3 sm:gap-6 md:grid-cols-2">
       <IdentityDisplay
         identity={state.identity}
         onChange={handlers.setIdentity}
@@ -210,7 +380,7 @@ export function IdentityProgressionGrid({ state, handlers }: TabProps) {
 
 export function AncestryClassGrid({ state, handlers }: TabProps) {
   return (
-    <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 sm:gap-6 lg:grid-cols-3">
+    <div className="grid gap-3 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
       <AncestryDisplay
         selection={state.ancestry}
         onChange={handlers.setAncestry}
@@ -244,6 +414,50 @@ export function TraitsScoresGrid({ state, handlers, isHydrated }: TabProps) {
     [state.equipment]
   );
 
+  const bonusFeatureModifiers = useMemo(
+    () =>
+      aggregateBonusModifiers({
+        classSelection: state.classSelection,
+        ancestry: state.ancestry,
+        community: state.community,
+        loadout: state.loadout,
+        inventory: state.inventory,
+        isWearingArmor: hasEquippedArmor(state.equipment),
+        proficiency: state.coreScores.proficiency,
+        level: state.progression.currentLevel,
+        traitScores: getTraitScores(state.traits),
+      }),
+    [
+      state.classSelection,
+      state.ancestry,
+      state.community,
+      state.loadout,
+      state.inventory,
+      state.equipment,
+      state.coreScores.proficiency,
+      state.progression.currentLevel,
+      state.traits,
+    ]
+  );
+
+  const combinedFeatureModifiers = useMemo(
+    () =>
+      combineModifiers(
+        {
+          evasion: equipmentFeatureModifiers.evasion,
+          proficiency: equipmentFeatureModifiers.proficiency,
+          armorScore: equipmentFeatureModifiers.armorScore,
+          majorThreshold: equipmentFeatureModifiers.majorThreshold,
+          severeThreshold: equipmentFeatureModifiers.severeThreshold,
+          attackRolls: equipmentFeatureModifiers.attackRolls,
+          spellcastRolls: equipmentFeatureModifiers.spellcastRolls,
+          traits: equipmentFeatureModifiers.traits,
+        },
+        bonusFeatureModifiers
+      ),
+    [equipmentFeatureModifiers, bonusFeatureModifiers]
+  );
+
   const resourcesAutoContext = useMemo(
     () => ({
       classHp: classStats.hp,
@@ -255,18 +469,18 @@ export function TraitsScoresGrid({ state, handlers, isHydrated }: TabProps) {
       armorThresholdsSevere: armorStats.severe,
       level: state.progression.currentLevel,
       equipmentFeatureModifiers: {
-        evasion: equipmentFeatureModifiers.evasion,
-        proficiency: equipmentFeatureModifiers.proficiency,
-        armorScore: equipmentFeatureModifiers.armorScore,
-        majorThreshold: equipmentFeatureModifiers.majorThreshold,
-        severeThreshold: equipmentFeatureModifiers.severeThreshold,
+        evasion: combinedFeatureModifiers.evasion,
+        proficiency: combinedFeatureModifiers.proficiency,
+        armorScore: combinedFeatureModifiers.armorScore,
+        majorThreshold: combinedFeatureModifiers.majorThreshold,
+        severeThreshold: combinedFeatureModifiers.severeThreshold,
       },
     }),
     [
       classStats,
       armorStats,
       state.progression.currentLevel,
-      equipmentFeatureModifiers,
+      combinedFeatureModifiers,
     ]
   );
 
@@ -304,11 +518,11 @@ export function TraitsScoresGrid({ state, handlers, isHydrated }: TabProps) {
   );
 
   return (
-    <div className="grid gap-3 sm:gap-4 sm:gap-6 md:grid-cols-2">
+    <div className="grid gap-3 sm:gap-6 md:grid-cols-2">
       <TraitsDisplay
         traits={state.traits}
         onChange={handlers.setTraits}
-        equipmentModifiers={equipmentFeatureModifiers.traits}
+        equipmentModifiers={combinedFeatureModifiers.traits}
       />
       <ResourcesDisplay
         resources={state.resources}
@@ -349,16 +563,56 @@ export function HopeScoresThresholdsGrid({
     [state.equipment]
   );
 
+  const bonusFeatureModifiers = useMemo(
+    () =>
+      aggregateBonusModifiers({
+        classSelection: state.classSelection,
+        ancestry: state.ancestry,
+        community: state.community,
+        loadout: state.loadout,
+        inventory: state.inventory,
+        isWearingArmor: hasEquippedArmor(state.equipment),
+      }),
+    [
+      state.classSelection,
+      state.ancestry,
+      state.community,
+      state.loadout,
+      state.inventory,
+      state.equipment,
+    ]
+  );
+
+  const combinedFeatureModifiers = useMemo(
+    () =>
+      combineModifiers(
+        {
+          evasion: equipmentFeatureModifiers.evasion,
+          proficiency: equipmentFeatureModifiers.proficiency,
+          armorScore: equipmentFeatureModifiers.armorScore,
+          majorThreshold: equipmentFeatureModifiers.majorThreshold,
+          severeThreshold: equipmentFeatureModifiers.severeThreshold,
+          attackRolls: equipmentFeatureModifiers.attackRolls,
+          spellcastRolls: equipmentFeatureModifiers.spellcastRolls,
+          traits: equipmentFeatureModifiers.traits,
+        },
+        bonusFeatureModifiers
+      ),
+    [equipmentFeatureModifiers, bonusFeatureModifiers]
+  );
+
   const coreScoresAutoContext = useMemo(
     () => ({
       classEvasion: classStats.evasion,
       armorEvasionModifier: armorStats.evasionMod,
       equipmentEvasionModifier: equipmentFeatureModifiers.evasion,
+      bonusEvasionModifier: bonusFeatureModifiers.evasion,
     }),
     [
       classStats.evasion,
       armorStats.evasionMod,
       equipmentFeatureModifiers.evasion,
+      bonusFeatureModifiers.evasion,
     ]
   );
 
@@ -369,6 +623,8 @@ export function HopeScoresThresholdsGrid({
       level: state.progression.currentLevel,
       equipmentMajorModifier: equipmentFeatureModifiers.majorThreshold,
       equipmentSevereModifier: equipmentFeatureModifiers.severeThreshold,
+      bonusMajorModifier: bonusFeatureModifiers.majorThreshold,
+      bonusSevereModifier: bonusFeatureModifiers.severeThreshold,
     }),
     [
       armorStats.major,
@@ -376,6 +632,8 @@ export function HopeScoresThresholdsGrid({
       state.progression.currentLevel,
       equipmentFeatureModifiers.majorThreshold,
       equipmentFeatureModifiers.severeThreshold,
+      bonusFeatureModifiers.majorThreshold,
+      bonusFeatureModifiers.severeThreshold,
     ]
   );
 
@@ -383,11 +641,11 @@ export function HopeScoresThresholdsGrid({
     () =>
       classStats.evasion +
       armorStats.evasionMod +
-      equipmentFeatureModifiers.evasion,
+      combinedFeatureModifiers.evasion,
     [
       classStats.evasion,
       armorStats.evasionMod,
-      equipmentFeatureModifiers.evasion,
+      combinedFeatureModifiers.evasion,
     ]
   );
 
@@ -395,22 +653,22 @@ export function HopeScoresThresholdsGrid({
     () =>
       armorStats.major +
       Math.max(0, state.progression.currentLevel) +
-      equipmentFeatureModifiers.majorThreshold,
+      combinedFeatureModifiers.majorThreshold,
     [
       armorStats.major,
       state.progression.currentLevel,
-      equipmentFeatureModifiers.majorThreshold,
+      combinedFeatureModifiers.majorThreshold,
     ]
   );
   const autoThresholdsSevere = useMemo(
     () =>
       armorStats.severe +
       Math.max(0, state.progression.currentLevel) +
-      equipmentFeatureModifiers.severeThreshold,
+      combinedFeatureModifiers.severeThreshold,
     [
       armorStats.severe,
       state.progression.currentLevel,
-      equipmentFeatureModifiers.severeThreshold,
+      combinedFeatureModifiers.severeThreshold,
     ]
   );
 
@@ -425,7 +683,7 @@ export function HopeScoresThresholdsGrid({
   });
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 sm:gap-6 lg:grid-cols-3">
+    <div className="grid gap-3 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
       <HopeWithScarsDisplay
         state={state.hopeWithScars}
         onChange={handlers.setHopeWithScars}
@@ -448,7 +706,7 @@ export function HopeScoresThresholdsGrid({
 
 export function GoldConditionsGrid({ state, handlers }: TabProps) {
   return (
-    <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 sm:gap-6">
+    <div className="grid gap-3 sm:grid-cols-2 sm:gap-6">
       <GoldDisplay gold={state.gold} onChange={handlers.setGold} />
       <ConditionsDisplay
         conditions={state.conditions}
@@ -459,11 +717,124 @@ export function GoldConditionsGrid({ state, handlers }: TabProps) {
 }
 
 export function ExperiencesEquipmentGrid({ state, handlers }: TabProps) {
+  const bonusBreakdown = useMemo(
+    () =>
+      aggregateBonusBreakdown({
+        classSelection: state.classSelection,
+        ancestry: state.ancestry,
+        community: state.community,
+        loadout: state.loadout,
+        inventory: state.inventory,
+        isWearingArmor: hasEquippedArmor(state.equipment),
+        proficiency: state.coreScores.proficiency,
+        level: state.progression.currentLevel,
+        traitScores: getTraitScores(state.traits),
+      }),
+    [
+      state.classSelection,
+      state.ancestry,
+      state.community,
+      state.loadout,
+      state.inventory,
+      state.equipment,
+      state.coreScores.proficiency,
+      state.progression.currentLevel,
+      state.traits,
+    ]
+  );
+  const equipmentSources = useMemo(
+    () => collectEquipmentSources(state.equipment),
+    [state.equipment]
+  );
+  const experienceBonusSources = useMemo(
+    () => getExperienceBonusSources(state.inventory, state.experiences),
+    [state.inventory, state.experiences]
+  );
+  const experienceBonuses = useMemo(
+    () => getExperienceBonuses(state.inventory, state.experiences),
+    [state.inventory, state.experiences]
+  );
+  const selectableExperienceItems = useMemo(
+    () => getSelectableExperienceBonusItems(state.inventory),
+    [state.inventory]
+  );
+  const experienceNames = useMemo(
+    () => state.experiences.items.map(item => item.name).filter(Boolean),
+    [state.experiences]
+  );
+
+  const handleExperienceSelection = (entryId: string, selection: string) => {
+    handlers.setInventory({
+      ...state.inventory,
+      items: state.inventory.items.map(item => {
+        if (item.id !== entryId) return item;
+        const metadata =
+          (item as { metadata?: Record<string, unknown> }).metadata ?? {};
+        return {
+          ...item,
+          metadata: { ...metadata, selectedExperience: selection },
+        };
+      }),
+    });
+  };
+
   return (
-    <div className="grid gap-3 sm:gap-4 sm:gap-6 md:grid-cols-3">
+    <div className="grid gap-3 sm:gap-6 md:grid-cols-4">
       <ExperiencesDisplay
         experiences={state.experiences}
         onChange={handlers.setExperiences}
+        bonusByExperience={experienceBonuses}
+      />
+      {selectableExperienceItems.length > 0 && (
+        <div className="rounded-lg border p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold">Experience Bonus Targets</p>
+              <p className="text-muted-foreground text-xs">
+                Choose which experience receives each bonus.
+              </p>
+            </div>
+          </div>
+          <div className="space-y-3">
+            {selectableExperienceItems.map(entry => {
+              const metadata = (entry as { metadata?: Record<string, unknown> })
+                .metadata;
+              const selected =
+                typeof metadata?.selectedExperience === 'string'
+                  ? metadata.selectedExperience
+                  : (experienceNames[0] ?? '');
+              return (
+                <div key={entry.id} className="grid gap-2">
+                  <Label className="text-muted-foreground text-xs">
+                    {entry.item?.name ?? 'Experience Bonus'}
+                  </Label>
+                  <Select
+                    value={selected}
+                    onValueChange={value =>
+                      handleExperienceSelection(entry.id, value)
+                    }
+                    disabled={experienceNames.length === 0}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select an experience" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {experienceNames.map(name => (
+                        <SelectItem key={name} value={name}>
+                          {name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+      <BonusSummaryDisplay
+        breakdown={bonusBreakdown}
+        extraSources={[...equipmentSources, ...experienceBonusSources]}
       />
       <EquipmentDisplay
         equipment={state.equipment}
@@ -473,4 +844,101 @@ export function ExperiencesEquipmentGrid({ state, handlers }: TabProps) {
       />
     </div>
   );
+}
+
+function getActiveEquipment(equipment: EquipmentState) {
+  return {
+    armor:
+      equipment.armorMode === 'homebrew'
+        ? equipment.homebrewArmor
+        : equipment.armor,
+    primaryWeapon:
+      equipment.primaryWeaponMode === 'homebrew'
+        ? equipment.homebrewPrimaryWeapon
+        : equipment.primaryWeapon,
+    secondaryWeapon:
+      equipment.secondaryWeaponMode === 'homebrew'
+        ? equipment.homebrewSecondaryWeapon
+        : equipment.secondaryWeapon,
+    wheelchair: equipment.useCombatWheelchair
+      ? equipment.wheelchairMode === 'homebrew'
+        ? equipment.homebrewWheelchair
+        : equipment.combatWheelchair
+      : null,
+  };
+}
+
+function collectEquipmentSources(
+  equipment: EquipmentState
+): BonusSourceEntry[] {
+  const sources: BonusSourceEntry[] = [];
+  const active = getActiveEquipment(equipment);
+
+  const pushStatModifiers = (
+    sourceName: string,
+    modifiers?: FeatureStatModifiers
+  ) => {
+    if (!modifiers) return;
+    sources.push({
+      type: 'equipment-item',
+      sourceName,
+      modifiers,
+    });
+  };
+
+  const pushFeatureModifiers = (
+    sourceName: string,
+    featureName: string,
+    modifiers?: FeatureStatModifiers
+  ) => {
+    if (!modifiers) return;
+    sources.push({
+      type: 'equipment-feature',
+      sourceName,
+      detail: featureName,
+      modifiers,
+    });
+  };
+
+  const collectFromEquipment = (item: unknown, fallbackLabel: string) => {
+    if (!item || typeof item !== 'object') return;
+    const record = item as {
+      name?: string;
+      statModifiers?: FeatureStatModifiers;
+      features?: Array<{ name: string; modifiers?: FeatureStatModifiers }>;
+    };
+    const name = record.name ?? fallbackLabel;
+    const hasExplicitStatModifiers = Boolean(record.statModifiers);
+    const hasExplicitFeatureModifiers = (record.features ?? []).some(feature =>
+      Boolean(feature.modifiers)
+    );
+
+    if (hasExplicitStatModifiers || hasExplicitFeatureModifiers) {
+      pushStatModifiers(name, record.statModifiers);
+      for (const feature of record.features ?? []) {
+        pushFeatureModifiers(name, feature.name, feature.modifiers);
+      }
+      return;
+    }
+
+    const normalized = normalizeEquipment(record);
+    if (!hasAnyModifiers(normalized)) return;
+    pushStatModifiers(name, {
+      evasion: normalized.evasion,
+      proficiency: normalized.proficiency,
+      armorScore: normalized.armorScore,
+      majorThreshold: normalized.majorThreshold,
+      severeThreshold: normalized.severeThreshold,
+      attackRolls: normalized.attackRolls,
+      spellcastRolls: normalized.spellcastRolls,
+      traits: normalized.traits,
+    });
+  };
+
+  collectFromEquipment(active.armor, 'Armor');
+  collectFromEquipment(active.primaryWeapon, 'Primary Weapon');
+  collectFromEquipment(active.secondaryWeapon, 'Secondary Weapon');
+  collectFromEquipment(active.wheelchair, 'Combat Wheelchair');
+
+  return sources;
 }

@@ -85,6 +85,7 @@ export const ROGUE = {
             'Gain a permanent +1 bonus to your Evasion. You can use your "Shadow Stepper" feature to move within Very Far range.',
           type: 'mastery',
           level: 8,
+          modifiers: { evasion: 1 },
           availability: {
             tier: '8-10',
             minLevel: 8,

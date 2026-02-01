@@ -40,6 +40,7 @@ export type LoadoutContentProps = {
   onConvertToHomebrew?: (card: DomainCardLite) => void;
   onRemoveActiveCard?: (cardName: string) => void;
   onRemoveVaultCard?: (cardName: string) => void;
+  onToggleActivated?: (cardName: string) => void;
   onEdit?: () => void;
 };
 
@@ -53,6 +54,7 @@ export function LoadoutContent({
   onConvertToHomebrew,
   onRemoveActiveCard,
   onRemoveVaultCard,
+  onToggleActivated,
   onEdit,
 }: LoadoutContentProps) {
   const activeCards = selection?.activeCards ?? [];
@@ -95,6 +97,7 @@ export function LoadoutContent({
         onMoveCard={!!onMoveCard}
         onConvertToHomebrew={onConvertToHomebrew}
         onRemoveCard={onRemoveActiveCard}
+        onToggleActivated={onToggleActivated}
         dragSource={dragSource}
         dragOverTarget={dragOverTarget}
         swapSource={swapSource}

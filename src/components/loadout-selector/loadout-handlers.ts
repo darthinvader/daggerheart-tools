@@ -30,7 +30,7 @@ export function createSwapToActiveHandler(
     const updated: LoadoutSelection = {
       ...selection,
       vaultCards: selection.vaultCards.filter(c => c.name !== cardName),
-      activeCards: [...selection.activeCards, card],
+      activeCards: [...selection.activeCards, { ...card, isActivated: true }],
     };
     onChange?.(updated);
   };
@@ -80,6 +80,19 @@ export function createMoveCardHandler(
     );
     if (!result) return;
     onChange?.({ ...selection, ...result });
+  };
+}
+
+export function createToggleActivationHandler(
+  selection: LoadoutSelection,
+  onChange?: (selection: LoadoutSelection) => void
+) {
+  return (cardName: string) => {
+    const updatedActive = selection.activeCards.map(card => {
+      if (card.name !== cardName) return card;
+      return { ...card, isActivated: !(card.isActivated ?? true) };
+    });
+    onChange?.({ ...selection, activeCards: updatedActive });
   };
 }
 

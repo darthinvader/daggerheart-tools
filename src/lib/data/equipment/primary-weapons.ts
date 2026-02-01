@@ -12,7 +12,13 @@ export const TIER_1_PHYSICAL_PRIMARY_WEAPONS: PrimaryWeapon[] = [
     range: 'Melee',
     damage: { diceType: 8, count: 1, modifier: 0, type: 'phy' },
     burden: 'One-Handed',
-    features: [{ name: 'Reliable', description: '+1 to attack rolls' }],
+    features: [
+      {
+        name: 'Reliable',
+        description: '+1 to attack rolls',
+        modifiers: { attackRolls: 1 },
+      },
+    ],
   },
   {
     name: 'Longsword',
@@ -47,6 +53,7 @@ export const TIER_1_PHYSICAL_PRIMARY_WEAPONS: PrimaryWeapon[] = [
         name: 'Massive',
         description:
           '−1 to Evasion; on a successful attack, roll an additional damage die and discard the lowest result.',
+        modifiers: { evasion: -1 },
       },
     ],
   },
@@ -68,7 +75,13 @@ export const TIER_1_PHYSICAL_PRIMARY_WEAPONS: PrimaryWeapon[] = [
     range: 'Melee',
     damage: { diceType: 12, count: 1, modifier: 3, type: 'phy' },
     burden: 'Two-Handed',
-    features: [{ name: 'Heavy', description: '−1 to Evasion' }],
+    features: [
+      {
+        name: 'Heavy',
+        description: '−1 to Evasion',
+        modifiers: { evasion: -1 },
+      },
+    ],
   },
   {
     name: 'Dagger',
@@ -124,7 +137,13 @@ export const TIER_1_PHYSICAL_PRIMARY_WEAPONS: PrimaryWeapon[] = [
     range: 'Very Close',
     damage: { diceType: 10, count: 1, modifier: 2, type: 'phy' },
     burden: 'Two-Handed',
-    features: [{ name: 'Cumbersome', description: '−1 to Finesse' }],
+    features: [
+      {
+        name: 'Cumbersome',
+        description: '−1 to Finesse',
+        modifiers: { traits: { Finesse: -1 } },
+      },
+    ],
   },
   {
     name: 'Spear',
@@ -134,7 +153,13 @@ export const TIER_1_PHYSICAL_PRIMARY_WEAPONS: PrimaryWeapon[] = [
     range: 'Very Close',
     damage: { diceType: 10, count: 1, modifier: 2, type: 'phy' },
     burden: 'Two-Handed',
-    features: [{ name: 'Cumbersome', description: '−1 to Finesse' }],
+    features: [
+      {
+        name: 'Cumbersome',
+        description: '−1 to Finesse',
+        modifiers: { traits: { Finesse: -1 } },
+      },
+    ],
   },
   {
     name: 'Shortbow',
@@ -164,7 +189,13 @@ export const TIER_1_PHYSICAL_PRIMARY_WEAPONS: PrimaryWeapon[] = [
     range: 'Very Far',
     damage: { diceType: 8, count: 1, modifier: 3, type: 'phy' },
     burden: 'Two-Handed',
-    features: [{ name: 'Cumbersome', description: '−1 to Finesse' }],
+    features: [
+      {
+        name: 'Cumbersome',
+        description: '−1 to Finesse',
+        modifiers: { traits: { Finesse: -1 } },
+      },
+    ],
   },
 ];
 
@@ -300,7 +331,13 @@ export const TIER_2_PHYSICAL_PRIMARY_WEAPONS: PrimaryWeapon[] = [
     range: 'Melee',
     damage: { diceType: 8, count: 1, modifier: 3, type: 'phy' },
     burden: 'One-Handed',
-    features: [{ name: 'Reliable', description: '+1 to attack rolls' }],
+    features: [
+      {
+        name: 'Reliable',
+        description: '+1 to attack rolls',
+        modifiers: { attackRolls: 1 },
+      },
+    ],
   },
   {
     name: 'Improved Longsword',
@@ -335,6 +372,7 @@ export const TIER_2_PHYSICAL_PRIMARY_WEAPONS: PrimaryWeapon[] = [
         name: 'Massive',
         description:
           '−1 to Evasion; on a successful attack, roll an additional damage die and discard the lowest result.',
+        modifiers: { evasion: -1 },
       },
     ],
   },
@@ -356,7 +394,13 @@ export const TIER_2_PHYSICAL_PRIMARY_WEAPONS: PrimaryWeapon[] = [
     range: 'Melee',
     damage: { diceType: 12, count: 1, modifier: 6, type: 'phy' },
     burden: 'Two-Handed',
-    features: [{ name: 'Heavy', description: '−1 to Evasion' }],
+    features: [
+      {
+        name: 'Heavy',
+        description: '−1 to Evasion',
+        modifiers: { evasion: -1 },
+      },
+    ],
   },
   {
     name: 'Improved Dagger',
@@ -412,7 +456,13 @@ export const TIER_2_PHYSICAL_PRIMARY_WEAPONS: PrimaryWeapon[] = [
     range: 'Very Close',
     damage: { diceType: 10, count: 1, modifier: 5, type: 'phy' },
     burden: 'Two-Handed',
-    features: [{ name: 'Cumbersome', description: '−1 to Finesse' }],
+    features: [
+      {
+        name: 'Cumbersome',
+        description: '−1 to Finesse',
+        modifiers: { traits: { Finesse: -1 } },
+      },
+    ],
   },
   {
     name: 'Improved Spear',
@@ -422,7 +472,13 @@ export const TIER_2_PHYSICAL_PRIMARY_WEAPONS: PrimaryWeapon[] = [
     range: 'Very Close',
     damage: { diceType: 10, count: 1, modifier: 5, type: 'phy' },
     burden: 'Two-Handed',
-    features: [{ name: 'Cumbersome', description: '−1 to Finesse' }],
+    features: [
+      {
+        name: 'Cumbersome',
+        description: '−1 to Finesse',
+        modifiers: { traits: { Finesse: -1 } },
+      },
+    ],
   },
   {
     name: 'Improved Shortbow',
@@ -452,7 +508,13 @@ export const TIER_2_PHYSICAL_PRIMARY_WEAPONS: PrimaryWeapon[] = [
     range: 'Very Far',
     damage: { diceType: 8, count: 1, modifier: 6, type: 'phy' },
     burden: 'Two-Handed',
-    features: [{ name: 'Cumbersome', description: '−1 to Finesse' }],
+    features: [
+      {
+        name: 'Cumbersome',
+        description: '−1 to Finesse',
+        modifiers: { traits: { Finesse: -1 } },
+      },
+    ],
   },
   // Named SRD weapons (Tier 2 Physical)
   {
@@ -542,7 +604,13 @@ export const TIER_2_PHYSICAL_PRIMARY_WEAPONS: PrimaryWeapon[] = [
     range: 'Very Close',
     damage: { diceType: 8, count: 1, modifier: 5, type: 'phy' },
     burden: 'Two-Handed',
-    features: [{ name: 'Reliable', description: '+1 to attack rolls' }],
+    features: [
+      {
+        name: 'Reliable',
+        description: '+1 to attack rolls',
+        modifiers: { attackRolls: 1 },
+      },
+    ],
   },
   {
     name: 'Blunderbuss',
@@ -584,7 +652,13 @@ export const TIER_2_PHYSICAL_PRIMARY_WEAPONS: PrimaryWeapon[] = [
     range: 'Very Far',
     damage: { diceType: 6, count: 1, modifier: 5, type: 'phy' },
     burden: 'Two-Handed',
-    features: [{ name: 'Reliable', description: '+1 to attack rolls' }],
+    features: [
+      {
+        name: 'Reliable',
+        description: '+1 to attack rolls',
+        modifiers: { attackRolls: 1 },
+      },
+    ],
   },
 ];
 
@@ -844,7 +918,13 @@ export const TIER_2_MAGIC_PRIMARY_WEAPONS: PrimaryWeapon[] = [
     range: 'Far',
     damage: { diceType: 6, count: 1, modifier: 4, type: 'mag' },
     burden: 'Two-Handed',
-    features: [{ name: 'Reliable', description: '+1 to attack rolls' }],
+    features: [
+      {
+        name: 'Reliable',
+        description: '+1 to attack rolls',
+        modifiers: { attackRolls: 1 },
+      },
+    ],
   },
 ];
 
@@ -858,7 +938,13 @@ export const TIER_3_PHYSICAL_PRIMARY_WEAPONS: PrimaryWeapon[] = [
     range: 'Melee',
     damage: { diceType: 8, count: 1, modifier: 6, type: 'phy' },
     burden: 'One-Handed',
-    features: [{ name: 'Reliable', description: '+1 to attack rolls' }],
+    features: [
+      {
+        name: 'Reliable',
+        description: '+1 to attack rolls',
+        modifiers: { attackRolls: 1 },
+      },
+    ],
   },
   {
     name: 'Advanced Longsword',
@@ -893,6 +979,7 @@ export const TIER_3_PHYSICAL_PRIMARY_WEAPONS: PrimaryWeapon[] = [
         name: 'Massive',
         description:
           '−1 to Evasion; on a successful attack, roll an additional damage die and discard the lowest result.',
+        modifiers: { evasion: -1 },
       },
     ],
   },
@@ -914,7 +1001,13 @@ export const TIER_3_PHYSICAL_PRIMARY_WEAPONS: PrimaryWeapon[] = [
     range: 'Melee',
     damage: { diceType: 12, count: 1, modifier: 9, type: 'phy' },
     burden: 'Two-Handed',
-    features: [{ name: 'Heavy', description: '−1 to Evasion' }],
+    features: [
+      {
+        name: 'Heavy',
+        description: '−1 to Evasion',
+        modifiers: { evasion: -1 },
+      },
+    ],
   },
   {
     name: 'Advanced Dagger',
@@ -970,7 +1063,13 @@ export const TIER_3_PHYSICAL_PRIMARY_WEAPONS: PrimaryWeapon[] = [
     range: 'Very Close',
     damage: { diceType: 10, count: 1, modifier: 8, type: 'phy' },
     burden: 'Two-Handed',
-    features: [{ name: 'Cumbersome', description: '−1 to Finesse' }],
+    features: [
+      {
+        name: 'Cumbersome',
+        description: '−1 to Finesse',
+        modifiers: { traits: { Finesse: -1 } },
+      },
+    ],
   },
   {
     name: 'Advanced Spear',
@@ -980,7 +1079,13 @@ export const TIER_3_PHYSICAL_PRIMARY_WEAPONS: PrimaryWeapon[] = [
     range: 'Very Close',
     damage: { diceType: 10, count: 1, modifier: 8, type: 'phy' },
     burden: 'Two-Handed',
-    features: [{ name: 'Cumbersome', description: '−1 to Finesse' }],
+    features: [
+      {
+        name: 'Cumbersome',
+        description: '−1 to Finesse',
+        modifiers: { traits: { Finesse: -1 } },
+      },
+    ],
   },
   {
     name: 'Advanced Shortbow',
@@ -1010,7 +1115,13 @@ export const TIER_3_PHYSICAL_PRIMARY_WEAPONS: PrimaryWeapon[] = [
     range: 'Very Far',
     damage: { diceType: 8, count: 1, modifier: 9, type: 'phy' },
     burden: 'Two-Handed',
-    features: [{ name: 'Cumbersome', description: '−1 to Finesse' }],
+    features: [
+      {
+        name: 'Cumbersome',
+        description: '−1 to Finesse',
+        modifiers: { traits: { Finesse: -1 } },
+      },
+    ],
   },
   // Named SRD weapons (Tier 3 Physical)
   {
@@ -1040,6 +1151,7 @@ export const TIER_3_PHYSICAL_PRIMARY_WEAPONS: PrimaryWeapon[] = [
       {
         name: 'Brave',
         description: '−1 to Evasion; +3 to Severe damage threshold',
+        modifiers: { evasion: -1, severeThreshold: 3 },
       },
     ],
   },
@@ -1067,7 +1179,13 @@ export const TIER_3_PHYSICAL_PRIMARY_WEAPONS: PrimaryWeapon[] = [
     range: 'Melee',
     damage: { diceType: 10, count: 1, modifier: 7, type: 'phy' },
     burden: 'Two-Handed',
-    features: [{ name: 'Protective', description: '+1 to Armor Score' }],
+    features: [
+      {
+        name: 'Protective',
+        description: '+1 to Armor Score',
+        modifiers: { armorScore: 1 },
+      },
+    ],
   },
   {
     name: 'Meridian Cutlass',
@@ -1442,7 +1560,13 @@ export const TIER_4_PHYSICAL_PRIMARY_WEAPONS: PrimaryWeapon[] = [
     range: 'Melee',
     damage: { diceType: 8, count: 1, modifier: 9, type: 'phy' },
     burden: 'One-Handed',
-    features: [{ name: 'Reliable', description: '+1 to attack rolls' }],
+    features: [
+      {
+        name: 'Reliable',
+        description: '+1 to attack rolls',
+        modifiers: { attackRolls: 1 },
+      },
+    ],
   },
   {
     name: 'Legendary Longsword',
@@ -1477,6 +1601,7 @@ export const TIER_4_PHYSICAL_PRIMARY_WEAPONS: PrimaryWeapon[] = [
         name: 'Massive',
         description:
           '−1 to Evasion; on a successful attack, roll an additional damage die and discard the lowest result.',
+        modifiers: { evasion: -1 },
       },
     ],
   },
@@ -1498,7 +1623,13 @@ export const TIER_4_PHYSICAL_PRIMARY_WEAPONS: PrimaryWeapon[] = [
     range: 'Melee',
     damage: { diceType: 12, count: 1, modifier: 12, type: 'phy' },
     burden: 'Two-Handed',
-    features: [{ name: 'Heavy', description: '−1 to Evasion' }],
+    features: [
+      {
+        name: 'Heavy',
+        description: '−1 to Evasion',
+        modifiers: { evasion: -1 },
+      },
+    ],
   },
   {
     name: 'Legendary Dagger',
@@ -1554,7 +1685,13 @@ export const TIER_4_PHYSICAL_PRIMARY_WEAPONS: PrimaryWeapon[] = [
     range: 'Very Close',
     damage: { diceType: 10, count: 1, modifier: 11, type: 'phy' },
     burden: 'Two-Handed',
-    features: [{ name: 'Cumbersome', description: '−1 to Finesse' }],
+    features: [
+      {
+        name: 'Cumbersome',
+        description: '−1 to Finesse',
+        modifiers: { traits: { Finesse: -1 } },
+      },
+    ],
   },
   {
     name: 'Legendary Spear',
@@ -1564,7 +1701,13 @@ export const TIER_4_PHYSICAL_PRIMARY_WEAPONS: PrimaryWeapon[] = [
     range: 'Very Close',
     damage: { diceType: 10, count: 1, modifier: 11, type: 'phy' },
     burden: 'Two-Handed',
-    features: [{ name: 'Cumbersome', description: '−1 to Finesse' }],
+    features: [
+      {
+        name: 'Cumbersome',
+        description: '−1 to Finesse',
+        modifiers: { traits: { Finesse: -1 } },
+      },
+    ],
   },
   {
     name: 'Legendary Shortbow',
@@ -1594,7 +1737,13 @@ export const TIER_4_PHYSICAL_PRIMARY_WEAPONS: PrimaryWeapon[] = [
     range: 'Very Far',
     damage: { diceType: 8, count: 1, modifier: 12, type: 'phy' },
     burden: 'Two-Handed',
-    features: [{ name: 'Cumbersome', description: '−1 to Finesse' }],
+    features: [
+      {
+        name: 'Cumbersome',
+        description: '−1 to Finesse',
+        modifiers: { traits: { Finesse: -1 } },
+      },
+    ],
   },
   // Named SRD weapons (Tier 4 Physical)
   {
@@ -1642,6 +1791,7 @@ export const TIER_4_PHYSICAL_PRIMARY_WEAPONS: PrimaryWeapon[] = [
         name: 'Destructive',
         description:
           '−1 to Agility; on a successful attack, all adversaries within Very Close range must mark a Stress.',
+        modifiers: { traits: { Agility: -1 } },
       },
     ],
   },
@@ -1717,7 +1867,13 @@ export const TIER_4_PHYSICAL_PRIMARY_WEAPONS: PrimaryWeapon[] = [
     range: 'Far',
     damage: { diceType: 6, count: 1, modifier: 11, type: 'phy' },
     burden: 'Two-Handed',
-    features: [{ name: 'Reliable', description: '+1 to attack rolls' }],
+    features: [
+      {
+        name: 'Reliable',
+        description: '+1 to attack rolls',
+        modifiers: { attackRolls: 1 },
+      },
+    ],
   },
   {
     name: 'Hand Cannon',
@@ -1942,7 +2098,13 @@ export const TIER_4_MAGIC_PRIMARY_WEAPONS: PrimaryWeapon[] = [
     range: 'Far',
     damage: { diceType: 6, count: 1, modifier: 13, type: 'mag' },
     burden: 'Two-Handed',
-    features: [{ name: 'Reliable', description: '+1 to attack rolls' }],
+    features: [
+      {
+        name: 'Reliable',
+        description: '+1 to attack rolls',
+        modifiers: { attackRolls: 1 },
+      },
+    ],
   },
   {
     name: 'Wand of Essek',

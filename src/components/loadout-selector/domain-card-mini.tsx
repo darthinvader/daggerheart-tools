@@ -16,8 +16,10 @@ import {
   ICON_SIZE_LG,
   ICON_SIZE_MD,
   Scroll,
+  Slash,
   Wrench,
   X,
+  Zap,
 } from '@/lib/icons';
 import type { DomainCardLite } from '@/lib/schemas/loadout';
 import { DOMAIN_BG_COLORS, DOMAIN_COLORS } from '@/lib/schemas/loadout';
@@ -109,6 +111,7 @@ export type DomainCardMiniProps = {
   isMovingAway?: boolean;
   onConvertToHomebrew?: () => void;
   onRemove?: () => void;
+  onToggleActivated?: () => void;
 };
 
 export function DomainCardMini({
@@ -133,6 +136,7 @@ export function DomainCardMini({
   isMovingAway,
   onConvertToHomebrew,
   onRemove,
+  onToggleActivated,
 }: DomainCardMiniProps) {
   const visualState = getCardVisualState(
     card,
@@ -189,6 +193,7 @@ export function DomainCardMini({
         onSwap={onSwap}
         onConvertToHomebrew={onConvertToHomebrew}
         onRemove={onRemove}
+        onToggleActivated={onToggleActivated}
       />
       <p className="text-muted-foreground text-xs">{card.description}</p>
       <CardBadges card={card} costs={costs} />
@@ -212,6 +217,7 @@ type CardHeaderProps = {
   onSwap?: () => void;
   onConvertToHomebrew?: () => void;
   onRemove?: () => void;
+  onToggleActivated?: () => void;
 };
 
 // eslint-disable-next-line complexity
@@ -231,7 +237,9 @@ function CardHeader({
   onSwap,
   onConvertToHomebrew,
   onRemove,
+  onToggleActivated,
 }: CardHeaderProps) {
+  const isActivated = card.isActivated ?? true;
   return (
     <div className="mb-1 flex items-center justify-between">
       <div className="flex items-center gap-2">
@@ -270,6 +278,33 @@ function CardHeader({
               }}
             >
               <ArrowUpDown className="size-3" />
+            </Button>
+          </SmartTooltip>
+        )}
+        {!isSwapMode && onToggleActivated && location === 'active' && (
+          <SmartTooltip
+            content={isActivated ? 'Deactivate bonuses' : 'Activate bonuses'}
+          >
+            <Button
+              variant="ghost"
+              size="icon"
+              className={cn(
+                'size-6',
+                isActivated
+                  ? 'text-amber-600 hover:text-amber-700'
+                  : 'text-muted-foreground'
+              )}
+              aria-pressed={isActivated}
+              onClick={e => {
+                e.stopPropagation();
+                onToggleActivated();
+              }}
+            >
+              {isActivated ? (
+                <Zap size={ICON_SIZE_MD} />
+              ) : (
+                <Slash size={ICON_SIZE_MD} />
+              )}
             </Button>
           </SmartTooltip>
         )}

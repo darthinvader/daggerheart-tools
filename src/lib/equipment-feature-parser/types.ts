@@ -70,4 +70,14 @@ export interface EquipmentFeature {
   name: string;
   description: string;
   type?: string;
+  modifiers?: {
+    evasion?: number;
+    proficiency?: number;
+    armorScore?: number;
+    majorThreshold?: number;
+    severeThreshold?: number;
+    attackRolls?: number;
+    spellcastRolls?: number;
+    traits?: Partial<Record<CharacterTrait, number>>;
+  };
 }

@@ -1,5 +1,8 @@
 import { z } from 'zod';
 
+import { FeatureStatModifiersSchema } from '@/lib/schemas/core';
+import { EquipmentStatModifiersSchema } from '@/lib/schemas/equipment';
+
 // =====================================================================================
 // Companion Schema (for Ranger companions)
 // =====================================================================================
@@ -142,10 +145,12 @@ export const ApiIdentitySchema = z.object({
           primaryFeature: z.object({
             name: z.string(),
             description: z.string(),
+            modifiers: FeatureStatModifiersSchema.optional(),
           }),
           secondaryFeature: z.object({
             name: z.string(),
             description: z.string(),
+            modifiers: FeatureStatModifiersSchema.optional(),
           }),
         })
         .optional(),
@@ -162,6 +167,7 @@ export const ApiIdentitySchema = z.object({
           feature: z.object({
             name: z.string(),
             description: z.string().optional(),
+            modifiers: FeatureStatModifiersSchema.optional(),
           }),
         })
         .optional(),
@@ -213,8 +219,15 @@ export const ApiInventorySlotSchema = z.object({
       description: z.string().optional(),
       category: z.string().optional(),
       features: z
-        .array(z.object({ name: z.string(), description: z.string() }))
+        .array(
+          z.object({
+            name: z.string(),
+            description: z.string(),
+            modifiers: FeatureStatModifiersSchema.optional(),
+          })
+        )
         .optional(),
+      statModifiers: EquipmentStatModifiersSchema.optional(),
       rarity: z.string().optional(),
       isConsumable: z.boolean().optional(),
       maxQuantity: z.number().optional(),

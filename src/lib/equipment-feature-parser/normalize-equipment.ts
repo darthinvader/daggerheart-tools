@@ -11,7 +11,7 @@
  * 4. Any equipment with statModifiers: Uses those, skips feature parsing
  */
 
-import { parseFeatures } from './parse-feature';
+import { parseFeatureDescription } from './parse-feature';
 import type { CharacterTrait, EquipmentFeature } from './types';
 
 /** Normalized equipment modifiers - the unified format */
@@ -205,6 +205,44 @@ function applyModifier(
   }
 }
 
+/** Apply explicit modifiers from a feature object (if present). */
+function applyFeatureModifiers(
+  mods: NormalizedModifiers,
+  modifiers: EquipmentFeature['modifiers']
+): boolean {
+  if (!modifiers) return false;
+
+  let applied = false;
+
+  const applySimple = (
+    key: keyof Omit<NormalizedModifiers, 'traits' | 'source' | 'equipmentName'>,
+    value: number | undefined
+  ) => {
+    if (typeof value !== 'number' || value === 0) return;
+    mods[key] += value;
+    applied = true;
+  };
+
+  applySimple('evasion', modifiers.evasion);
+  applySimple('proficiency', modifiers.proficiency);
+  applySimple('armorScore', modifiers.armorScore);
+  applySimple('majorThreshold', modifiers.majorThreshold);
+  applySimple('severeThreshold', modifiers.severeThreshold);
+  applySimple('attackRolls', modifiers.attackRolls);
+  applySimple('spellcastRolls', modifiers.spellcastRolls);
+
+  if (modifiers.traits) {
+    for (const trait of Object.keys(modifiers.traits) as CharacterTrait[]) {
+      const value = modifiers.traits[trait];
+      if (typeof value !== 'number' || value === 0) continue;
+      mods.traits[trait] += value;
+      applied = true;
+    }
+  }
+
+  return applied;
+}
+
 /**
  * Normalize modifiers by parsing feature text.
  */
@@ -217,12 +255,30 @@ function normalizeFromFeatures(equipment: WeaponLike): NormalizedModifiers {
     return mods;
   }
 
-  const effects = parseFeatures(equipment.features);
+  let usedExplicit = false;
+  let usedParsed = false;
 
-  for (const effect of effects) {
-    for (const modifier of effect.modifiers) {
-      applyModifier(mods, modifier.stat, modifier.value);
+  for (const feature of equipment.features) {
+    if (applyFeatureModifiers(mods, feature.modifiers)) {
+      usedExplicit = true;
+      continue;
     }
+
+    const modifiers = parseFeatureDescription(feature.description);
+    if (modifiers.length > 0) {
+      usedParsed = true;
+      for (const modifier of modifiers) {
+        applyModifier(mods, modifier.stat, modifier.value);
+      }
+    }
+  }
+
+  if (usedExplicit) {
+    mods.source = 'explicit';
+  } else if (usedParsed) {
+    mods.source = 'parsed';
+  } else {
+    mods.source = 'none';
   }
 
   return mods;

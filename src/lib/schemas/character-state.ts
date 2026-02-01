@@ -1,6 +1,10 @@
 import { z } from 'zod';
 
-import { CharacterTraitEnum, ScoreSchema } from './core';
+import {
+  CharacterTraitEnum,
+  FeatureStatModifiersSchema,
+  ScoreSchema,
+} from './core';
 
 // Armor score allows 0 for max (unarmored)
 export const ArmorScoreSchema = z.object({
@@ -72,6 +76,8 @@ export const ExperienceEntrySchema = z.object({
   trait: z.string().optional(),
   bonus: z.number().int().min(1).default(2),
   notes: z.string().optional(),
+  // Optional explicit modifiers for auto-calculation
+  modifiers: FeatureStatModifiersSchema.optional(),
 });
 export const ExperiencesSchema = z.array(ExperienceEntrySchema);
 

@@ -39,7 +39,8 @@ export function moveCardBetweenLocations(
 
   if (shouldSwap) {
     const [cardToMove] = fromCards.splice(from.index, 1);
-    const [cardToSwap] = toCards.splice(to.index, 1, cardToMove);
+    const activatedCard = { ...cardToMove, isActivated: true };
+    const [cardToSwap] = toCards.splice(to.index, 1, activatedCard);
     fromCards.splice(from.index, 0, cardToSwap);
     return { activeCards: toCards, vaultCards: fromCards };
   }
@@ -49,7 +50,11 @@ export function moveCardBetweenLocations(
   }
 
   const [movedCard] = fromCards.splice(from.index, 1);
-  toCards.splice(to.index, 0, movedCard);
+  const activatedCard =
+    from.location === 'vault' && to.location === 'active'
+      ? { ...movedCard, isActivated: true }
+      : movedCard;
+  toCards.splice(to.index, 0, activatedCard);
 
   return {
     activeCards: from.location === 'active' ? fromCards : toCards,
@@ -87,7 +92,7 @@ export function moveToActive(
   const card = vaultCards.find(c => c.name === cardName);
   if (!card) return null;
   return {
-    activeCards: [...activeCards, card],
+    activeCards: [...activeCards, { ...card, isActivated: true }],
     vaultCards: vaultCards.filter(c => c.name !== cardName),
   };
 }
@@ -105,7 +110,7 @@ export function swapCards(
   return {
     activeCards: activeCards
       .filter(c => c.name !== activeCardName)
-      .concat(vaultCard),
+      .concat({ ...vaultCard, isActivated: true }),
     vaultCards: vaultCards
       .filter(c => c.name !== vaultCardName)
       .concat(activeCard),

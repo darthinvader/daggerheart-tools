@@ -33,6 +33,7 @@ interface CardPropsBuilderParams {
   canSwapToActive?: boolean;
   onConvertToHomebrew?: () => void;
   onRemove?: () => void;
+  onToggleActivated?: () => void;
 }
 
 export function buildCardProps(
@@ -60,6 +61,7 @@ export function buildCardProps(
     canSwapToActive,
     onConvertToHomebrew,
     onRemove,
+    onToggleActivated,
   } = params;
 
   const originalIndex = originalCards.findIndex(c => c.name === card.name);
@@ -91,5 +93,6 @@ export function buildCardProps(
     isMovingAway: card.isMovingAway,
     onConvertToHomebrew,
     onRemove,
+    onToggleActivated,
   };
 }

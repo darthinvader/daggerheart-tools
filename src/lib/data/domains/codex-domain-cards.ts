@@ -158,6 +158,15 @@ export const CODEX_TOUCHED: DomainCard = {
   recallCost: 2,
   description:
     'When 4 or more of the domain cards in your loadout are from the Codex domain, gain the following benefits:\n• +1 bonus to your Spellcast Rolls\n• You can recall one additional Codex spell per long rest',
+  modifiers: {
+    spellcastRolls: 1,
+  },
+  metadata: {
+    domainRequirement: {
+      domain: 'Codex',
+      minCards: 4,
+    },
+  },
 };
 
 export const BOOK_OF_VYOLA: DomainCard = {

@@ -24,14 +24,17 @@ interface ExperiencesDisplayProps {
   onChange?: (experiences: ExperiencesState) => void;
   className?: string;
   readOnly?: boolean;
+  bonusByExperience?: Record<string, number>;
 }
 
 function ExperiencesDetailedDisplay({
   experiences,
   onEdit,
+  bonusByExperience,
 }: {
   experiences: ExperiencesState;
   onEdit?: () => void;
+  bonusByExperience?: Record<string, number>;
 }) {
   const items = experiences?.items ?? [];
   if (items.length === 0) {
@@ -54,17 +57,28 @@ function ExperiencesDetailedDisplay({
 
   return (
     <div className="space-y-2">
-      {items.map(exp => (
-        <div
-          key={exp.id}
-          className="flex items-center justify-between rounded-lg border p-3"
-        >
-          <span className="font-medium">{exp.name}</span>
-          <span className="text-muted-foreground bg-primary/10 rounded-md px-2 py-1 text-sm font-semibold">
-            +{exp.value}
-          </span>
-        </div>
-      ))}
+      {items.map(exp => {
+        const bonus = bonusByExperience?.[exp.name] ?? 0;
+        const total = exp.value + bonus;
+        return (
+          <div
+            key={exp.id}
+            className="flex items-center justify-between rounded-lg border p-3"
+          >
+            <span className="font-medium">{exp.name}</span>
+            <span className="flex items-center gap-2">
+              <span className="text-muted-foreground bg-primary/10 rounded-md px-2 py-1 text-sm font-semibold">
+                +{total}
+              </span>
+              {bonus > 0 && (
+                <span className="text-muted-foreground text-xs">
+                  (+{bonus} bonus)
+                </span>
+              )}
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -114,7 +128,7 @@ export function ExperiencesEditor({
   };
 
   return (
-    <div className="min-h-[400px] space-y-4">
+    <div className="min-h-100 space-y-4">
       <div className="relative flex gap-2">
         <div className="relative flex-1">
           <Input
@@ -192,6 +206,7 @@ export function ExperiencesDisplay({
   onChange,
   className,
   readOnly = false,
+  bonusByExperience,
 }: ExperiencesDisplayProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState<ExperiencesState>(experiences);
@@ -233,6 +248,7 @@ export function ExperiencesDisplay({
       <ExperiencesDetailedDisplay
         experiences={experiences}
         onEdit={!readOnly ? handleOpen : undefined}
+        bonusByExperience={bonusByExperience}
       />
     </EditableSection>
   );

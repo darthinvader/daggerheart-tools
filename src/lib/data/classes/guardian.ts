@@ -40,6 +40,7 @@ export const GUARDIAN = {
           description: 'Gain a permanent +1 bonus to your damage thresholds.',
           type: 'foundation',
           level: 1,
+          modifiers: { majorThreshold: 1, severeThreshold: 1 },
           availability: {
             tier: '1',
             minLevel: 1,
@@ -63,6 +64,7 @@ export const GUARDIAN = {
           description: 'Gain a permanent +2 bonus to your damage thresholds.',
           type: 'specialization',
           level: 5,
+          modifiers: { majorThreshold: 2, severeThreshold: 2 },
           availability: {
             tier: '5-7',
             minLevel: 5,
@@ -86,6 +88,7 @@ export const GUARDIAN = {
           description: 'Gain a permanent +3 bonus to your damage thresholds.',
           type: 'mastery',
           level: 8,
+          modifiers: { majorThreshold: 3, severeThreshold: 3 },
           availability: {
             tier: '8-10',
             minLevel: 8,

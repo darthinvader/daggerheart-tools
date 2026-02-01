@@ -81,9 +81,13 @@ function HomebrewFromCardModalContent({
   const createHomebrewCard = useCallback(
     (): HomebrewDomainCard => ({
       ...draft,
+      tags: card.tags,
+      modifiers: card.modifiers,
+      metadata: card.metadata,
+      isActivated: true,
       isHomebrew: true,
     }),
-    [draft]
+    [draft, card]
   );
 
   const handleSaveToLoadout = useCallback(() => {
