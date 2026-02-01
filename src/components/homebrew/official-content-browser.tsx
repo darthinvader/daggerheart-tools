@@ -2322,7 +2322,7 @@ export function OfficialContentBrowser() {
         </div>
 
         {/* Category-specific filters */}
-        {'tierOptions' in categoryFilters && (
+        {'tierOptions' in categoryFilters && categoryFilters.tierOptions && (
           <Select value={tierFilter} onValueChange={setTierFilter}>
             <SelectTrigger className="w-[130px]">
               <SelectValue placeholder="Tier" />
@@ -2337,7 +2337,7 @@ export function OfficialContentBrowser() {
           </Select>
         )}
 
-        {'roleOptions' in categoryFilters && (
+        {'roleOptions' in categoryFilters && categoryFilters.roleOptions && (
           <Select value={roleFilter} onValueChange={setRoleFilter}>
             <SelectTrigger className="w-[130px]">
               <SelectValue placeholder="Role" />
@@ -2352,22 +2352,23 @@ export function OfficialContentBrowser() {
           </Select>
         )}
 
-        {'domainOptions' in categoryFilters && (
-          <Select value={domainFilter} onValueChange={setDomainFilter}>
-            <SelectTrigger className="w-[130px]">
-              <SelectValue placeholder="Domain" />
-            </SelectTrigger>
-            <SelectContent>
-              {categoryFilters.domainOptions.map(d => (
-                <SelectItem key={d} value={d}>
-                  {d === 'all' ? 'All Domains' : d}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
+        {'domainOptions' in categoryFilters &&
+          categoryFilters.domainOptions && (
+            <Select value={domainFilter} onValueChange={setDomainFilter}>
+              <SelectTrigger className="w-[130px]">
+                <SelectValue placeholder="Domain" />
+              </SelectTrigger>
+              <SelectContent>
+                {categoryFilters.domainOptions.map(d => (
+                  <SelectItem key={d} value={d}>
+                    {d === 'all' ? 'All Domains' : d}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
 
-        {'levelOptions' in categoryFilters && (
+        {'levelOptions' in categoryFilters && categoryFilters.levelOptions && (
           <Select value={levelFilter} onValueChange={setLevelFilter}>
             <SelectTrigger className="w-[130px]">
               <SelectValue placeholder="Level" />
@@ -2382,29 +2383,30 @@ export function OfficialContentBrowser() {
           </Select>
         )}
 
-        {'categoryOptions' in categoryFilters && (
-          <Select
-            value={equipmentCategoryFilter}
-            onValueChange={setEquipmentCategoryFilter}
-          >
-            <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="Type" />
-            </SelectTrigger>
-            <SelectContent>
-              {categoryFilters.categoryOptions.map(c => (
-                <SelectItem key={c} value={c}>
-                  {c === 'all'
-                    ? 'All Types'
-                    : c === 'Primary Weapon'
-                      ? 'Primary'
-                      : c === 'Secondary Weapon'
-                        ? 'Secondary'
-                        : c}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
+        {'categoryOptions' in categoryFilters &&
+          categoryFilters.categoryOptions && (
+            <Select
+              value={equipmentCategoryFilter}
+              onValueChange={setEquipmentCategoryFilter}
+            >
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Type" />
+              </SelectTrigger>
+              <SelectContent>
+                {categoryFilters.categoryOptions.map(c => (
+                  <SelectItem key={c} value={c}>
+                    {c === 'all'
+                      ? 'All Types'
+                      : c === 'Primary Weapon'
+                        ? 'Primary'
+                        : c === 'Secondary Weapon'
+                          ? 'Secondary'
+                          : c}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
       </div>
 
       {/* Results count */}

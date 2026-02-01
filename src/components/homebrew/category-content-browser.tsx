@@ -623,19 +623,19 @@ function GroupedContentDisplay<T extends ContentItem>({
   const groupConfigs = getGroupConfigsForCategory(category);
 
   // Group items
-  const groupedItems = useMemo(() => {
-    const groups = new Map<string, T[]>();
+  const groupedItems = useMemo((): Record<string, T[]> => {
+    const groups: Record<string, T[]> = {};
     for (const item of items) {
       const groupKey = getGroupKeyForItem(item, category);
-      const existing = groups.get(groupKey) ?? [];
-      existing.push(item);
-      groups.set(groupKey, existing);
+      if (!groups[groupKey]) {
+        groups[groupKey] = [];
+      }
+      groups[groupKey].push(item);
     }
     // Sort items within each group alphabetically
-    for (const [key, groupItems] of groups) {
-      groups.set(
-        key,
-        groupItems.sort((a, b) => a.name.localeCompare(b.name))
+    for (const key of Object.keys(groups)) {
+      groups[key] = groups[key].sort((a: T, b: T) =>
+        a.name.localeCompare(b.name)
       );
     }
     return groups;
@@ -645,7 +645,8 @@ function GroupedContentDisplay<T extends ContentItem>({
   const orderedGroups = useMemo(() => {
     if (groupConfigs.length === 0) {
       // Alphabetical grouping
-      const letters = Array.from(groupedItems.keys()).sort();
+      const letters = Object.keys(groupedItems);
+      letters.sort();
       const hashIndex = letters.indexOf('#');
       if (hashIndex !== -1) {
         letters.splice(hashIndex, 1);
@@ -658,7 +659,7 @@ function GroupedContentDisplay<T extends ContentItem>({
         order: letter === '#' ? 999 : letter.charCodeAt(0),
       }));
     }
-    return groupConfigs.filter(g => groupedItems.has(g.key));
+    return groupConfigs.filter(g => g.key in groupedItems);
   }, [groupConfigs, groupedItems]);
 
   if (items.length === 0) {
@@ -679,7 +680,7 @@ function GroupedContentDisplay<T extends ContentItem>({
   return (
     <div className="space-y-6">
       {orderedGroups.map(group => {
-        const groupItems = groupedItems.get(group.key) ?? [];
+        const groupItems = groupedItems[group.key] ?? [];
         if (groupItems.length === 0) return null;
 
         return (
@@ -739,12 +740,13 @@ export function CategoryContentBrowser<T extends ContentItem>({
   showSearch = true,
 }: CategoryContentBrowserProps<T>) {
   // Group items by category
-  const itemsByCategory = useMemo(() => {
-    const map = new Map<ContentCategory, T[]>();
+  const itemsByCategory = useMemo((): Record<ContentCategory, T[]> => {
+    const map = {} as Record<ContentCategory, T[]>;
     for (const item of items) {
-      const existing = map.get(item.category) ?? [];
-      existing.push(item);
-      map.set(item.category, existing);
+      if (!map[item.category]) {
+        map[item.category] = [];
+      }
+      map[item.category].push(item);
     }
     return map;
   }, [items]);
@@ -752,7 +754,7 @@ export function CategoryContentBrowser<T extends ContentItem>({
   // Determine which categories to show
   const visibleCategories = useMemo(() => {
     const categoriesWithItems = CATEGORY_CONFIGS.filter(
-      c => (itemsByCategory.get(c.key)?.length ?? 0) > 0
+      c => (itemsByCategory[c.key]?.length ?? 0) > 0
     );
     if (allowedCategories) {
       return categoriesWithItems.filter(c => allowedCategories.includes(c.key));
@@ -775,7 +777,7 @@ export function CategoryContentBrowser<T extends ContentItem>({
 
   // Get items for current category
   const categoryItems = useMemo(
-    () => itemsByCategory.get(activeCategory) ?? [],
+    () => itemsByCategory[activeCategory] ?? [],
     [itemsByCategory, activeCategory]
   );
 
@@ -787,7 +789,7 @@ export function CategoryContentBrowser<T extends ContentItem>({
     if (search.trim()) {
       const query = search.toLowerCase();
       result = result.filter(
-        item =>
+        (item: T) =>
           item.name.toLowerCase().includes(query) ||
           (item.searchText?.toLowerCase().includes(query) ?? false)
       );
@@ -796,7 +798,7 @@ export function CategoryContentBrowser<T extends ContentItem>({
     // Apply category-specific filters
     for (const [key, value] of Object.entries(filterValues)) {
       if (value && value !== 'all') {
-        result = result.filter(item => {
+        result = result.filter((item: T) => {
           switch (key) {
             case 'tier':
               return item.tier === value;
@@ -832,7 +834,7 @@ export function CategoryContentBrowser<T extends ContentItem>({
 
   // Get category count
   const getCategoryCount = useCallback(
-    (category: ContentCategory) => itemsByCategory.get(category)?.length ?? 0,
+    (category: ContentCategory) => itemsByCategory[category]?.length ?? 0,
     [itemsByCategory]
   );
 
