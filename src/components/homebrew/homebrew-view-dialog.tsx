@@ -3,6 +3,7 @@
  *
  * Read-only dialog for viewing homebrew content details.
  * Provides view-only display with options to edit (if owner) or fork.
+ * Uses the same detail components as the official content browser.
  */
 import {
   BookOpen,
@@ -25,7 +26,6 @@ import {
   Users,
 } from 'lucide-react';
 import type { ElementType } from 'react';
-import { useMemo } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -35,7 +35,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import type {
   HomebrewContent,
   HomebrewContentType,
@@ -45,6 +45,7 @@ import {
   getVisibilityLabel,
 } from '@/lib/schemas/homebrew';
 
+import { ContentDetail } from './content-detail-views';
 import { HomebrewComments } from './homebrew-comments';
 
 interface HomebrewViewDialogProps {
@@ -112,6 +113,19 @@ const CONTENT_TYPE_CONFIG: Record<
   },
 };
 
+// Color gradients matching official content browser
+const TYPE_GRADIENTS: Record<HomebrewContentType, string> = {
+  adversary: 'from-red-500 via-rose-500 to-orange-500',
+  environment: 'from-emerald-500 via-teal-500 to-sky-500',
+  class: 'from-blue-500 via-indigo-500 to-purple-500',
+  subclass: 'from-indigo-500 via-purple-500 to-pink-500',
+  ancestry: 'from-amber-500 via-orange-500 to-rose-500',
+  community: 'from-teal-500 via-cyan-500 to-blue-500',
+  domain_card: 'from-violet-500 via-purple-500 to-fuchsia-500',
+  equipment: 'from-orange-500 via-amber-500 to-yellow-500',
+  item: 'from-cyan-500 via-sky-500 to-blue-500',
+};
+
 const VisibilityIcon = ({
   visibility,
 }: {
@@ -126,171 +140,6 @@ const VisibilityIcon = ({
       return <Lock className="size-4 text-amber-500" />;
   }
 };
-
-/** Helper to format thresholds object or string */
-function formatThresholds(thresholds: unknown): string {
-  if (typeof thresholds === 'string') return thresholds;
-  if (typeof thresholds === 'number') return String(thresholds);
-  if (thresholds && typeof thresholds === 'object') {
-    const t = thresholds as { major?: number | null; severe?: number | null };
-    const parts = [];
-    if (t.major != null) parts.push(`Major: ${t.major}`);
-    if (t.severe != null) parts.push(`Severe: ${t.severe}`);
-    return parts.join(', ') || 'N/A';
-  }
-  return 'N/A';
-}
-
-/** Helper to extract string array from potentially complex arrays */
-function extractStringArray(arr: unknown[]): string[] {
-  return arr.map(item => {
-    if (typeof item === 'string') return item;
-    if (item && typeof item === 'object' && 'name' in item) {
-      const named = item as { name: string; description?: string };
-      return named.description
-        ? `${named.name}: ${named.description}`
-        : named.name;
-    }
-    return String(item);
-  });
-}
-
-/** Field extractor configuration */
-type FieldConfig = {
-  key: string;
-  label: string;
-  format?: (value: unknown) => string;
-  check?: (value: unknown) => boolean;
-};
-
-const CONTENT_FIELD_CONFIGS: FieldConfig[] = [
-  { key: 'tier', label: 'Tier' },
-  { key: 'role', label: 'Role' },
-  { key: 'difficulty', label: 'Difficulty' },
-  { key: 'hp', label: 'HP', check: v => typeof v === 'number' },
-  { key: 'stress', label: 'Stress', check: v => typeof v === 'number' },
-  { key: 'thresholds', label: 'Thresholds', format: formatThresholds },
-  { key: 'domain', label: 'Domain' },
-  { key: 'level', label: 'Level', check: v => typeof v === 'number' },
-  { key: 'cost', label: 'Cost' },
-  { key: 'recallCost', label: 'Recall Cost' },
-];
-
-/** Extract content details from homebrew content using config-driven approach */
-function extractContentDetails(
-  content: HomebrewContent['content']
-): { label: string; value: string }[] {
-  const c = content as Record<string, unknown>;
-  return CONTENT_FIELD_CONFIGS.filter(config => {
-    const value = c[config.key];
-    if (value == null) return false;
-    return config.check ? config.check(value) : Boolean(value);
-  }).map(config => ({
-    label: config.label,
-    value: config.format ? config.format(c[config.key]) : String(c[config.key]),
-  }));
-}
-
-/** Content details grid display */
-function ContentDetailsSection({
-  content,
-}: {
-  content: HomebrewContent['content'];
-}) {
-  const details = extractContentDetails(content);
-  if (details.length === 0) return null;
-
-  return (
-    <section>
-      <h3 className="text-muted-foreground mb-2 text-sm font-semibold tracking-wide uppercase">
-        Details
-      </h3>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-        {details.map(detail => (
-          <div
-            key={detail.label}
-            className="bg-muted/30 rounded-md border px-3 py-2"
-          >
-            <div className="text-muted-foreground text-xs">{detail.label}</div>
-            <div className="font-medium">{detail.value}</div>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-/** Features list display */
-function FeaturesSection({ content }: { content: HomebrewContent['content'] }) {
-  if (
-    !('features' in content) ||
-    !Array.isArray(content.features) ||
-    content.features.length === 0
-  ) {
-    return null;
-  }
-  const features = extractStringArray(content.features);
-
-  return (
-    <section>
-      <h3 className="text-muted-foreground mb-2 text-sm font-semibold tracking-wide uppercase">
-        Features
-      </h3>
-      <ul className="space-y-2">
-        {features.map((feature, idx) => (
-          <li key={idx} className="text-sm leading-relaxed">
-            {feature}
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-/** Experiences list display */
-function ExperiencesSection({
-  content,
-}: {
-  content: HomebrewContent['content'];
-}) {
-  if (
-    !('experiences' in content) ||
-    !Array.isArray(content.experiences) ||
-    content.experiences.length === 0
-  ) {
-    return null;
-  }
-  const experiences = extractStringArray(content.experiences);
-
-  return (
-    <section>
-      <h3 className="text-muted-foreground mb-2 text-sm font-semibold tracking-wide uppercase">
-        Experiences
-      </h3>
-      <ul className="space-y-1">
-        {experiences.map((exp, idx) => (
-          <li key={idx} className="text-sm">
-            • {exp}
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-/** Effect display (for domain cards) */
-function EffectSection({ content }: { content: HomebrewContent['content'] }) {
-  if (!('effect' in content) || typeof content.effect !== 'string') return null;
-
-  return (
-    <section>
-      <h3 className="text-muted-foreground mb-2 text-sm font-semibold tracking-wide uppercase">
-        Effect
-      </h3>
-      <p className="text-sm leading-relaxed">{content.effect}</p>
-    </section>
-  );
-}
 
 /** Stats row showing engagement metrics */
 function StatsRow({ content }: { content: HomebrewContent }) {
@@ -352,111 +201,96 @@ export function HomebrewViewDialog({
   onEdit,
   onFork,
 }: HomebrewViewDialogProps) {
-  const description = useMemo(() => {
-    if (!content) return 'No description available.';
-    if ('description' in content.content && content.content.description) {
-      return content.content.description;
-    }
-    return 'No description available.';
-  }, [content]);
-
   if (!content) return null;
 
   const config = CONTENT_TYPE_CONFIG[content.contentType];
   const TypeIcon = config.icon;
+  const gradient = TYPE_GRADIENTS[content.contentType];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
-        <DialogHeader className="space-y-4">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-3">
-              <div
-                className={`flex size-12 shrink-0 items-center justify-center rounded-lg ${config.bgColor}`}
-              >
-                <TypeIcon className={`size-6 ${config.color}`} />
-              </div>
-              <div>
-                <DialogTitle className="flex items-center gap-2 text-xl">
-                  {content.name}
-                  {content.forkedFrom && (
-                    <GitFork className="text-muted-foreground size-4" />
+      <DialogContent className="max-w-2xl overflow-hidden p-0">
+        {/* Gradient Header - matching official view */}
+        <div className={`bg-gradient-to-r p-6 ${gradient}`}>
+          <div className="rounded-xl bg-black/25 p-4">
+            <DialogHeader className="space-y-0">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <DialogTitle className="flex items-center gap-2 text-xl font-bold text-white drop-shadow">
+                    {content.name}
+                    {content.forkedFrom && (
+                      <GitFork className="size-4 text-white/70" />
+                    )}
+                  </DialogTitle>
+                  <p className="text-white/80">
+                    Homebrew {getContentTypeLabel(content.contentType)}
+                  </p>
+                </div>
+                {/* Action buttons */}
+                <div className="flex shrink-0 gap-2">
+                  {isOwner && onEdit && (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="bg-white/20 text-white hover:bg-white/30"
+                      onClick={onEdit}
+                    >
+                      <Pencil className="mr-1.5 size-3.5" />
+                      Edit
+                    </Button>
                   )}
-                </DialogTitle>
-                <div className="mt-1 flex flex-wrap items-center gap-2">
-                  <Badge
-                    variant="secondary"
-                    className={`gap-1 ${config.bgColor} ${config.color}`}
-                  >
-                    <TypeIcon className="size-3" />
-                    {getContentTypeLabel(content.contentType)}
-                  </Badge>
-                  <Badge variant="outline" className="gap-1">
-                    <VisibilityIcon visibility={content.visibility} />
-                    {getVisibilityLabel(content.visibility)}
-                  </Badge>
+                  {onFork && (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="bg-white/20 text-white hover:bg-white/30"
+                      onClick={onFork}
+                    >
+                      <Copy className="mr-1.5 size-3.5" />
+                      Fork
+                    </Button>
+                  )}
                 </div>
               </div>
-            </div>
-
-            {/* Action buttons */}
-            <div className="flex shrink-0 gap-2">
-              {isOwner && onEdit && (
-                <Button size="sm" variant="outline" onClick={onEdit}>
-                  <Pencil className="mr-1.5 size-3.5" />
-                  Edit
-                </Button>
-              )}
-              {onFork && (
-                <Button size="sm" variant="outline" onClick={onFork}>
-                  <Copy className="mr-1.5 size-3.5" />
-                  Fork
-                </Button>
-              )}
-            </div>
-          </div>
-        </DialogHeader>
-
-        <div className="space-y-6">
-          {/* Stats Row */}
-          <StatsRow content={content} />
-
-          {/* Tags */}
-          {content.tags && content.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {content.tags.map(tag => (
-                <Badge key={tag} variant="outline">
+            </DialogHeader>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <Badge className="border-slate-900/40 bg-slate-900/80 text-white">
+                <TypeIcon className="mr-1 size-3" />
+                {getContentTypeLabel(content.contentType)}
+              </Badge>
+              <Badge className="gap-1 border-slate-900/40 bg-slate-900/80 text-white">
+                <VisibilityIcon visibility={content.visibility} />
+                {getVisibilityLabel(content.visibility)}
+              </Badge>
+              {content.tags?.map(tag => (
+                <Badge
+                  key={tag}
+                  variant="outline"
+                  className="border-white/30 text-white"
+                >
                   {tag}
                 </Badge>
               ))}
             </div>
-          )}
+          </div>
+        </div>
 
-          <Separator />
+        {/* Content - Using shared detail component */}
+        <ScrollArea className="max-h-[50vh] p-6">
+          {/* Stats Row (homebrew-specific) */}
+          <div className="mb-4">
+            <StatsRow content={content} />
+          </div>
 
-          {/* Description */}
-          <section>
-            <h3 className="text-muted-foreground mb-2 text-sm font-semibold tracking-wide uppercase">
-              Description
-            </h3>
-            <p className="text-sm leading-relaxed">{description}</p>
-          </section>
+          {/* Content Detail - same as official view */}
+          <ContentDetail
+            contentType={content.contentType}
+            rawData={content.content}
+          />
+        </ScrollArea>
 
-          {/* Content Details */}
-          <ContentDetailsSection content={content.content} />
-
-          {/* Experiences */}
-          <ExperiencesSection content={content.content} />
-
-          {/* Effect (for domain cards) */}
-          <EffectSection content={content.content} />
-
-          {/* Features */}
-          <FeaturesSection content={content.content} />
-
-          <Separator />
-
-          {/* Comments Section */}
+        {/* Footer with comments */}
+        <div className="border-t p-4">
           <HomebrewComments homebrewId={content.id} />
         </div>
       </DialogContent>
