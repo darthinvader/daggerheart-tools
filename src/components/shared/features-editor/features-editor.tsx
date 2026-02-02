@@ -1,12 +1,15 @@
 import { Plus, Sparkles, Trash2 } from 'lucide-react';
 
+import { FeatureModifiersSection } from '@/components/shared/feature-modifiers-section';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import type { FeatureStatModifiers } from '@/lib/schemas/core';
 
 export interface Feature {
   name: string;
   description: string;
+  modifiers?: FeatureStatModifiers;
 }
 
 export interface FeaturesEditorProps {
@@ -15,6 +18,8 @@ export interface FeaturesEditorProps {
   maxFeatures?: number;
   label?: string;
   showIcon?: boolean;
+  /** Show trait modifiers (Agility, Strength, etc.) in modifier section */
+  showTraitModifiers?: boolean;
 }
 
 export function FeaturesEditor({
@@ -23,6 +28,7 @@ export function FeaturesEditor({
   maxFeatures = 5,
   label = 'Features',
   showIcon = true,
+  showTraitModifiers = false,
 }: FeaturesEditorProps) {
   const handleAdd = () => {
     if (features.length < maxFeatures) {
@@ -30,7 +36,11 @@ export function FeaturesEditor({
     }
   };
 
-  const handleUpdate = (index: number, field: keyof Feature, value: string) => {
+  const handleUpdate = (
+    index: number,
+    field: keyof Feature,
+    value: string | FeatureStatModifiers | undefined
+  ) => {
     const updated = [...features];
     updated[index] = { ...updated[index], [field]: value };
     onChange(updated);
@@ -89,6 +99,13 @@ export function FeaturesEditor({
             value={feature.description}
             onChange={e => handleUpdate(idx, 'description', e.target.value)}
             rows={2}
+          />
+          <FeatureModifiersSection
+            modifiers={feature.modifiers}
+            onChange={mods => handleUpdate(idx, 'modifiers', mods)}
+            title="Feature Modifiers"
+            colorClass="text-emerald-500"
+            showTraits={showTraitModifiers}
           />
         </div>
       ))}

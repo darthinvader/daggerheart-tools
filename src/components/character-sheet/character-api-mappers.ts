@@ -55,7 +55,9 @@ function getAncestryName(v: AncestrySelection): string {
   if (!v) return '';
   if (v.mode === 'standard') return v.ancestry?.name || '';
   if (v.mode === 'mixed') return v.mixedAncestry?.name || '';
-  return v.homebrew?.name || '';
+  if (v.mode === 'homebrew') return v.homebrew?.name || '';
+  if (v.mode === 'custom') return v.custom?.name || '';
+  return '';
 }
 
 /**
@@ -131,8 +133,12 @@ export function mapCommunityToApi(
       } as CharacterRecord['identity'],
     };
   }
-  const communityName =
-    v.mode === 'standard' ? v.community?.name || '' : v.homebrew?.name || '';
+  const communityName = (() => {
+    if (v.mode === 'standard') return v.community?.name || '';
+    if (v.mode === 'homebrew') return v.homebrew?.name || '';
+    if (v.mode === 'custom') return v.custom?.name || '';
+    return '';
+  })();
   return {
     identity: {
       ...serverIdentity,
@@ -146,6 +152,15 @@ export function mapCommunityToApi(
                 description: v.homebrew.description || '',
                 commonTraits: v.homebrew.commonTraits || [],
                 feature: v.homebrew.feature,
+              }
+            : undefined,
+        custom:
+          v.mode === 'custom' && v.custom
+            ? {
+                name: v.custom.name,
+                description: v.custom.description || '',
+                commonTraits: v.custom.commonTraits || [],
+                feature: v.custom.feature,
               }
             : undefined,
       },

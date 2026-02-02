@@ -1,14 +1,17 @@
 import { useCallback, useState } from 'react';
 
+import { HomebrewContentBrowser } from '@/components/shared';
 import type {
   Ancestry,
   AncestryMode,
   AncestrySelection,
+  CustomAncestry,
   HomebrewAncestry,
   MixedAncestry,
 } from '@/lib/schemas/identity';
 
 import { AncestryModeTabs } from './ancestry-mode-tabs';
+import { HomebrewAncestryCard } from './homebrew-ancestry-card';
 import { HomebrewAncestryForm } from './homebrew-ancestry-form';
 import { MixedAncestrySelector } from './mixed-ancestry-selector';
 import { StandardAncestryList } from './standard-ancestry-list';
@@ -19,7 +22,6 @@ interface AncestrySelectorProps {
   campaignId?: string;
 }
 
-// eslint-disable-next-line complexity
 export function AncestrySelector({
   value,
   onChange,
@@ -37,14 +39,17 @@ export function AncestrySelector({
     useState<HomebrewAncestry | null>(
       value?.mode === 'homebrew' ? value.homebrew : null
     );
+  const [customSelection, setCustomSelection] = useState<CustomAncestry | null>(
+    value?.mode === 'custom' ? value.custom : null
+  );
 
-  const activeMode = value?.mode ?? mode;
-  const activeStandardSelection =
-    value?.mode === 'standard' ? value.ancestry : standardSelection;
-  const activeMixedSelection =
-    value?.mode === 'mixed' ? value.mixedAncestry : mixedSelection;
-  const activeHomebrewSelection =
-    value?.mode === 'homebrew' ? value.homebrew : homebrewSelection;
+  // Use local mode state for tab display - value.mode only sets initial state
+  const activeMode = mode;
+  // Use local selections, falling back to value if not yet set locally
+  const activeStandardSelection = standardSelection;
+  const activeMixedSelection = mixedSelection;
+  const activeHomebrewSelection = homebrewSelection;
+  const activeCustomSelection = customSelection;
 
   const handleModeChange = useCallback((newMode: AncestryMode) => {
     setMode(newMode);
@@ -66,10 +71,18 @@ export function AncestrySelector({
     [onChange]
   );
 
-  const handleHomebrewChange = useCallback(
-    (homebrew: HomebrewAncestry) => {
+  const handleHomebrewSelect = useCallback(
+    (homebrew: HomebrewAncestry, homebrewContentId: string) => {
       setHomebrewSelection(homebrew);
-      onChange?.({ mode: 'homebrew', homebrew });
+      onChange?.({ mode: 'homebrew', homebrew, homebrewContentId });
+    },
+    [onChange]
+  );
+
+  const handleCustomChange = useCallback(
+    (custom: CustomAncestry) => {
+      setCustomSelection(custom);
+      onChange?.({ mode: 'custom', custom });
     },
     [onChange]
   );
@@ -97,9 +110,28 @@ export function AncestrySelector({
       )}
 
       {activeMode === 'homebrew' && (
+        <HomebrewContentBrowser<HomebrewAncestry>
+          contentType="ancestry"
+          campaignId={campaignId}
+          selectedItem={activeHomebrewSelection}
+          onSelect={handleHomebrewSelect}
+          renderItem={(content, isSelected, onClick) => (
+            <HomebrewAncestryCard
+              key={content.id}
+              content={content}
+              isSelected={isSelected}
+              onClick={onClick}
+            />
+          )}
+          extractContent={c => c.content as unknown as HomebrewAncestry}
+          emptyMessage="No homebrew ancestries found."
+        />
+      )}
+
+      {activeMode === 'custom' && (
         <HomebrewAncestryForm
-          homebrew={activeHomebrewSelection}
-          onChange={handleHomebrewChange}
+          homebrew={activeCustomSelection}
+          onChange={handleCustomChange}
           hideSaveButton
         />
       )}

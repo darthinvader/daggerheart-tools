@@ -6,6 +6,7 @@ import { ArmorCardCompact } from '../armor-card-compact';
 import { type EquipmentMode, EquipmentModeTabs } from '../equipment-mode-tabs';
 import { EquipmentSection } from '../equipment-section';
 import { HomebrewArmorForm } from '../homebrew-armor-form';
+import { HomebrewEquipmentBrowser } from '../homebrew-equipment-browser';
 
 interface ArmorSectionProps {
   mode: EquipmentMode;
@@ -15,6 +16,7 @@ interface ArmorSectionProps {
   homebrewArmor: Partial<StandardArmor>;
   onHomebrewChange: (value: Partial<StandardArmor>) => void;
   allowedTiers?: string[];
+  campaignId?: string;
 }
 
 export function ArmorSection({
@@ -25,12 +27,21 @@ export function ArmorSection({
   homebrewArmor,
   onHomebrewChange,
   allowedTiers,
+  campaignId,
 }: ArmorSectionProps) {
   return (
     <div className="flex min-h-0 flex-1 flex-col space-y-4">
       <EquipmentModeTabs activeMode={mode} onModeChange={onModeChange} />
-      {mode === 'homebrew' ? (
+      {mode === 'custom' ? (
         <HomebrewArmorForm value={homebrewArmor} onChange={onHomebrewChange} />
+      ) : mode === 'homebrew' ? (
+        <HomebrewEquipmentBrowser<StandardArmor>
+          equipmentType="armor"
+          campaignId={campaignId}
+          selectedItem={armor}
+          onSelect={(item, _contentId) => onArmorChange(item)}
+          emptyMessage="No homebrew armor found."
+        />
       ) : (
         <EquipmentSection
           title="Armor"

@@ -1,4 +1,5 @@
 import {
+  CustomIcon,
   HomebrewIcon,
   type ModeOption,
   ModeTabs,
@@ -14,6 +15,7 @@ interface CommunityModeTabsProps {
 const MODES: ModeOption<CommunityMode>[] = [
   { value: 'standard', label: 'Standard', icon: <StandardIcon /> },
   { value: 'homebrew', label: 'Homebrew', icon: <HomebrewIcon /> },
+  { value: 'custom', label: 'Custom', icon: <CustomIcon /> },
 ];
 
 export function CommunityModeTabs({

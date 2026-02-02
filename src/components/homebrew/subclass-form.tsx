@@ -4,9 +4,10 @@
  * Form for creating and editing homebrew subclasses.
  * Uses features array with SubclassFeatureSchema structure.
  */
-import { Plus, Shield, Sparkles, Trash2, Wand2 } from 'lucide-react';
+import { Dog, Plus, Shield, Sparkles, Trash2, Wand2 } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,9 +20,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { useMyHomebrewContent } from '@/features/homebrew/use-homebrew-query';
 import { ClassNameEnum } from '@/lib/schemas/core';
+import type { RangerCompanion } from '@/lib/schemas/core';
 import type { HomebrewSubclass } from '@/lib/schemas/homebrew';
 import { createDefaultSubclassContent } from '@/lib/schemas/homebrew';
 
@@ -35,6 +38,20 @@ const SPELLCAST_TRAITS = [
   'Instinct',
   'Presence',
   'Knowledge',
+] as const;
+
+// Companion options - must match CompanionDamageDieSchema and CompanionRangeSchema
+const COMPANION_DAMAGE_DICE = ['d6', 'd8', 'd10', 'd12'] as const;
+const COMPANION_RANGES = ['Melee', 'Close', 'Far'] as const;
+const COMPANION_TYPE_SUGGESTIONS = [
+  'Wolf',
+  'Bear',
+  'Hawk',
+  'Cat',
+  'Horse',
+  'Serpent',
+  'Boar',
+  'Stag',
 ] as const;
 
 interface SubclassFormProps {
@@ -185,6 +202,22 @@ export function SubclassForm({
       level: f.level,
     }))
   );
+  const [hasCompanion, setHasCompanion] = useState(
+    !!initialData?.companion?.name
+  );
+  const [companion, setCompanion] = useState<Partial<RangerCompanion>>(
+    initialData?.companion ?? {
+      name: '',
+      type: 'Wolf',
+      evasion: 10,
+      experiences: [],
+      standardAttack: '',
+      damageDie: 'd6',
+      range: 'Melee',
+      stressSlots: 2,
+    }
+  );
+  const [newExperience, setNewExperience] = useState('');
 
   // Fetch homebrew classes to allow creating subclasses for them
   const { data: homebrewClassesResult } = useMyHomebrewContent({
@@ -204,12 +237,36 @@ export function SubclassForm({
           type: f.type as 'foundation' | 'specialization' | 'mastery',
           level: f.level,
         })),
+        companion:
+          hasCompanion && companion.name
+            ? {
+                name: companion.name,
+                type: companion.type ?? 'Wolf',
+                evasion: companion.evasion ?? 10,
+                experiences: (companion.experiences ?? []).map(exp => ({
+                  name: exp.name,
+                  bonus: exp.bonus ?? 2,
+                })),
+                standardAttack: companion.standardAttack ?? '',
+                damageDie: (companion.damageDie ?? 'd6') as
+                  | 'd6'
+                  | 'd8'
+                  | 'd10'
+                  | 'd12',
+                range: (companion.range ?? 'Melee') as
+                  | 'Melee'
+                  | 'Close'
+                  | 'Far',
+                stressSlots: companion.stressSlots ?? 2,
+                training: companion.training,
+              }
+            : undefined,
         isHomebrew: true,
       };
 
       onSubmit(content);
     },
-    [formData, features, onSubmit]
+    [formData, features, hasCompanion, companion, onSubmit]
   );
 
   const addFeature = (type: string) => {
@@ -393,6 +450,242 @@ export function SubclassForm({
             onRemove={removeFeature}
             onUpdate={updateFeature}
           />
+
+          <Separator />
+
+          {/* Companion Section (for Ranger-like subclasses) */}
+          <section className="space-y-4 rounded-lg border border-green-500/30 bg-green-500/10 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="flex items-center gap-2 font-semibold">
+                  <Dog className="size-4 text-green-500" /> Companion
+                </h3>
+                <p className="text-muted-foreground text-sm">
+                  For Ranger-style subclasses that include an animal companion.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="hasCompanion" className="text-sm">
+                  Include Companion
+                </Label>
+                <Switch
+                  id="hasCompanion"
+                  checked={hasCompanion}
+                  onCheckedChange={setHasCompanion}
+                />
+              </div>
+            </div>
+
+            {hasCompanion && (
+              <div className="space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label>Companion Name *</Label>
+                    <Input
+                      value={companion.name ?? ''}
+                      onChange={e =>
+                        setCompanion(prev => ({
+                          ...prev,
+                          name: e.target.value,
+                        }))
+                      }
+                      placeholder="e.g., Shadow"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Companion Type *</Label>
+                    <Select
+                      value={companion.type ?? 'Wolf'}
+                      onValueChange={v =>
+                        setCompanion(prev => ({ ...prev, type: v }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {COMPANION_TYPE_SUGGESTIONS.map(t => (
+                          <SelectItem key={t} value={t}>
+                            {t}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <div className="space-y-2">
+                    <Label>Evasion</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={companion.evasion ?? 10}
+                      onChange={e =>
+                        setCompanion(prev => ({
+                          ...prev,
+                          evasion: parseInt(e.target.value, 10) || 10,
+                        }))
+                      }
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Damage Die</Label>
+                    <Select
+                      value={companion.damageDie ?? 'd6'}
+                      onValueChange={v =>
+                        setCompanion(prev => ({
+                          ...prev,
+                          damageDie: v as 'd6' | 'd8' | 'd10' | 'd12',
+                        }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {COMPANION_DAMAGE_DICE.map(d => (
+                          <SelectItem key={d} value={d}>
+                            {d}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Range</Label>
+                    <Select
+                      value={companion.range ?? 'Melee'}
+                      onValueChange={v =>
+                        setCompanion(prev => ({
+                          ...prev,
+                          range: v as 'Melee' | 'Close' | 'Far',
+                        }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {COMPANION_RANGES.map(r => (
+                          <SelectItem key={r} value={r}>
+                            {r}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label>Standard Attack</Label>
+                    <Input
+                      value={companion.standardAttack ?? ''}
+                      onChange={e =>
+                        setCompanion(prev => ({
+                          ...prev,
+                          standardAttack: e.target.value,
+                        }))
+                      }
+                      placeholder="e.g., Bite, Claw"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Stress Slots</Label>
+                    <Input
+                      type="number"
+                      min={2}
+                      max={6}
+                      value={companion.stressSlots ?? 2}
+                      onChange={e =>
+                        setCompanion(prev => ({
+                          ...prev,
+                          stressSlots:
+                            Math.max(2, parseInt(e.target.value, 10)) || 2,
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+
+                {/* Companion Experiences */}
+                <div className="space-y-2">
+                  <Label>Experiences (+2 each)</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {(companion.experiences ?? []).map((exp, index) => (
+                      <Badge
+                        key={index}
+                        variant="secondary"
+                        className="gap-1 border-green-500/50 bg-green-500/20"
+                      >
+                        {exp.name} (+{exp.bonus ?? 2})
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setCompanion(prev => ({
+                              ...prev,
+                              experiences: (prev.experiences ?? []).filter(
+                                (_, i) => i !== index
+                              ),
+                            }))
+                          }
+                          className="hover:text-destructive"
+                        >
+                          <Trash2 className="size-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      value={newExperience}
+                      onChange={e => setNewExperience(e.target.value)}
+                      placeholder="e.g., Tracking, Hunting"
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          if (newExperience.trim()) {
+                            setCompanion(prev => ({
+                              ...prev,
+                              experiences: [
+                                ...(prev.experiences ?? []),
+                                { name: newExperience.trim(), bonus: 2 },
+                              ],
+                            }));
+                            setNewExperience('');
+                          }
+                        }
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        if (newExperience.trim()) {
+                          setCompanion(prev => ({
+                            ...prev,
+                            experiences: [
+                              ...(prev.experiences ?? []),
+                              { name: newExperience.trim(), bonus: 2 },
+                            ],
+                          }));
+                          setNewExperience('');
+                        }
+                      }}
+                    >
+                      <Plus className="size-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </section>
         </div>
       </ScrollArea>
 

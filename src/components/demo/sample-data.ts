@@ -48,6 +48,7 @@ export const buildClassSelection = (): ClassSelection | null => {
     subclassName: 'School of Knowledge',
     domains: [...gameClass.domains],
     isHomebrew: false,
+    isCustom: false,
     spellcastTrait:
       'spellcastTrait' in subclass ? subclass.spellcastTrait : undefined,
   };

@@ -19,6 +19,8 @@ function getAncestryName(selection: AncestrySelection): string {
       return selection.mixedAncestry.name;
     case 'homebrew':
       return selection.homebrew.name;
+    case 'custom':
+      return selection.custom?.name || 'Custom Ancestry';
   }
 }
 
@@ -42,6 +44,10 @@ function getAncestryFeatures(
         selection.homebrew.primaryFeature,
         selection.homebrew.secondaryFeature,
       ];
+    case 'custom':
+      return selection.custom
+        ? [selection.custom.primaryFeature, selection.custom.secondaryFeature]
+        : [];
   }
 }
 

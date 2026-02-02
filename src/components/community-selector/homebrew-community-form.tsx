@@ -1,11 +1,14 @@
-import { useCallback, useState } from 'react';
+/**
+ * Homebrew Community Form - Character Page Wrapper
+ *
+ * Thin wrapper that uses the unified CommunityForm from the homebrew module.
+ * Adapts between the character page's HomebrewCommunity type and CommunityForm's data type.
+ */
+import { useMemo } from 'react';
 
-import { TraitsIcon } from '@/components/shared';
+import { CommunityForm, type CommunityFormData } from '@/components/homebrew';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Wrench } from '@/lib/icons';
 import type { HomebrewCommunity } from '@/lib/schemas/identity';
 
@@ -14,124 +17,47 @@ interface HomebrewCommunityFormProps {
   onChange: (homebrew: HomebrewCommunity) => void;
 }
 
-const EMPTY_HOMEBREW: HomebrewCommunity = {
-  name: '',
-  description: '',
-  commonTraits: [],
-  feature: { name: '', description: '' },
-};
-
-interface TraitsFieldProps {
-  traits: string[];
-  traitsText: string;
-  onTraitsChange: (value: string) => void;
+/** Convert HomebrewCommunity to CommunityFormData */
+function homebrewToFormData(
+  homebrew: HomebrewCommunity | null
+): CommunityFormData | undefined {
+  if (!homebrew) return undefined;
+  return {
+    name: homebrew.name,
+    description: homebrew.description,
+    commonTraits: homebrew.commonTraits,
+    feature: {
+      name: homebrew.feature.name,
+      description: homebrew.feature.description,
+      modifiers: homebrew.feature.modifiers,
+    },
+    isHomebrew: true,
+  };
 }
 
-function TraitsField({ traits, traitsText, onTraitsChange }: TraitsFieldProps) {
-  return (
-    <div className="space-y-2">
-      <Label htmlFor="community-traits" className="flex items-center gap-2">
-        <TraitsIcon /> Common Traits (one per line)
-      </Label>
-      <Textarea
-        id="community-traits"
-        placeholder={`Enter traits, one per line:
-brave
-resourceful
-cunning
-loyal`}
-        value={traitsText}
-        onChange={e => onTraitsChange(e.target.value)}
-        rows={5}
-      />
-      <p className="text-muted-foreground text-sm">
-        {traits.length} trait(s) added
-      </p>
-      {traits.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {traits.map(trait => (
-            <span
-              key={trait}
-              className="text-muted-foreground rounded-full border px-2 py-1 text-xs capitalize"
-            >
-              {trait}
-            </span>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-interface FeatureFieldsProps {
-  feature: HomebrewCommunity['feature'];
-  onFeatureChange: (feature: HomebrewCommunity['feature']) => void;
-}
-
-function FeatureFields({ feature, onFeatureChange }: FeatureFieldsProps) {
-  return (
-    <div className="rounded-lg border p-4">
-      <h4 className="mb-4 font-semibold">Community Feature</h4>
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="feature-name">Feature Name</Label>
-          <Input
-            id="feature-name"
-            placeholder="Enter feature name..."
-            value={feature.name}
-            onChange={e =>
-              onFeatureChange({ ...feature, name: e.target.value })
-            }
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="feature-description">Feature Description</Label>
-          <Textarea
-            id="feature-description"
-            placeholder="Describe what this feature does..."
-            value={feature.description}
-            onChange={e =>
-              onFeatureChange({ ...feature, description: e.target.value })
-            }
-            rows={3}
-          />
-        </div>
-      </div>
-    </div>
-  );
+/** Convert CommunityFormData back to HomebrewCommunity */
+function formDataToHomebrew(data: CommunityFormData): HomebrewCommunity {
+  return {
+    name: data.name,
+    description: data.description,
+    commonTraits: data.commonTraits,
+    feature: {
+      name: data.feature.name,
+      description: data.feature.description,
+      modifiers: data.feature.modifiers,
+    },
+  };
 }
 
 export function HomebrewCommunityForm({
   homebrew,
   onChange,
 }: HomebrewCommunityFormProps) {
-  const [formState, setFormState] = useState<HomebrewCommunity>(
-    homebrew ?? EMPTY_HOMEBREW
-  );
-  const [traitsText, setTraitsText] = useState(
-    homebrew?.commonTraits.join('\n') ?? ''
-  );
+  const initialData = useMemo(() => homebrewToFormData(homebrew), [homebrew]);
 
-  const updateForm = useCallback(
-    (updates: Partial<HomebrewCommunity>) => {
-      const updated = { ...formState, ...updates };
-      setFormState(updated);
-      onChange(updated);
-    },
-    [formState, onChange]
-  );
-
-  const handleTraitsChange = useCallback(
-    (value: string) => {
-      setTraitsText(value);
-      const traits = value
-        .split('\n')
-        .map(t => t.trim().toLowerCase())
-        .filter(t => t.length > 0);
-      updateForm({ commonTraits: traits });
-    },
-    [updateForm]
-  );
+  const handleChange = (data: CommunityFormData) => {
+    onChange(formDataToHomebrew(data));
+  };
 
   return (
     <Card className="border-primary/50 border-dashed">
@@ -143,37 +69,11 @@ export function HomebrewCommunityForm({
           <CardTitle className="text-base">Create Community</CardTitle>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="community-name">Community Name</Label>
-          <Input
-            id="community-name"
-            placeholder="Enter community name..."
-            value={formState.name}
-            onChange={e => updateForm({ name: e.target.value })}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="community-description">Description</Label>
-          <Textarea
-            id="community-description"
-            placeholder="Describe your community's background and culture..."
-            value={formState.description}
-            onChange={e => updateForm({ description: e.target.value })}
-            rows={4}
-          />
-        </div>
-
-        <TraitsField
-          traits={formState.commonTraits}
-          traitsText={traitsText}
-          onTraitsChange={handleTraitsChange}
-        />
-
-        <FeatureFields
-          feature={formState.feature}
-          onFeatureChange={feature => updateForm({ feature })}
+      <CardContent>
+        <CommunityForm
+          initialData={initialData}
+          onChange={handleChange}
+          showActions={false}
         />
       </CardContent>
     </Card>

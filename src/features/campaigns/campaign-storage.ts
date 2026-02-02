@@ -263,12 +263,13 @@ export async function getCampaign(id: string): Promise<Campaign | undefined> {
 export async function getCampaignForCharacter(
   characterId: string
 ): Promise<Campaign | undefined> {
-  // Query campaigns where the players array contains this characterId
+  // Query campaigns where the players array contains an object with this characterId
+  // Use raw filter with @> operator for JSONB containment
   const { data, error } = await supabase
     .from('campaigns')
     .select('*')
     .is('deleted_at', null)
-    .contains('players', [{ characterId }]);
+    .filter('players', 'cs', JSON.stringify([{ characterId }]));
 
   if (error) {
     console.error('Error finding campaign for character:', error);

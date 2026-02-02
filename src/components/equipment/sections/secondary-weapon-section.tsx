@@ -4,6 +4,7 @@ import type { SecondaryWeapon } from '@/lib/schemas/equipment';
 
 import { type EquipmentMode, EquipmentModeTabs } from '../equipment-mode-tabs';
 import { EquipmentSection } from '../equipment-section';
+import { HomebrewEquipmentBrowser } from '../homebrew-equipment-browser';
 import { HomebrewWeaponForm } from '../homebrew-weapon-form';
 import { WeaponCardCompact } from '../weapon-card-compact';
 
@@ -15,6 +16,7 @@ interface SecondaryWeaponSectionProps {
   homebrewWeapon: Partial<SecondaryWeapon>;
   onHomebrewChange: (value: Partial<SecondaryWeapon>) => void;
   allowedTiers?: string[];
+  campaignId?: string;
 }
 
 export function SecondaryWeaponSection({
@@ -25,15 +27,24 @@ export function SecondaryWeaponSection({
   homebrewWeapon,
   onHomebrewChange,
   allowedTiers,
+  campaignId,
 }: SecondaryWeaponSectionProps) {
   return (
     <div className="flex min-h-0 flex-1 flex-col space-y-4">
       <EquipmentModeTabs activeMode={mode} onModeChange={onModeChange} />
-      {mode === 'homebrew' ? (
+      {mode === 'custom' ? (
         <HomebrewWeaponForm
           weaponType="Secondary"
           value={homebrewWeapon}
           onChange={onHomebrewChange}
+        />
+      ) : mode === 'homebrew' ? (
+        <HomebrewEquipmentBrowser<SecondaryWeapon>
+          equipmentType="weapon"
+          campaignId={campaignId}
+          selectedItem={weapon}
+          onSelect={(item, _contentId) => onWeaponChange(item)}
+          emptyMessage="No homebrew secondary weapons found."
         />
       ) : (
         <EquipmentSection

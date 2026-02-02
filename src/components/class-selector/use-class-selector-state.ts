@@ -36,6 +36,11 @@ function isHomebrewSelectionComplete(
   return Boolean(homebrewClass?.name && homebrewClass.subclasses[0]?.name);
 }
 
+// Check if custom mode selection is complete (same logic as homebrew)
+function isCustomSelectionComplete(customClass: HomebrewClass | null): boolean {
+  return Boolean(customClass?.name && customClass.subclasses[0]?.name);
+}
+
 // Build standard class selection from selected classes and subclasses
 function buildStandardSelection(
   selectedClasses: GameClass[],
@@ -76,16 +81,18 @@ function buildStandardSelection(
       .join(' / '),
     domains: uniqueDomains,
     isHomebrew: false,
+    isCustom: false,
     spellcastTrait,
     isMulticlass: selectedClasses.length > 1,
     classes: classPairs,
   };
 }
 
-// Build homebrew class selection
+// Build homebrew class selection (from campaign-linked content)
 function buildHomebrewSelection(
   homebrewClass: HomebrewClass,
-  homebrewSubclassName: string | null
+  homebrewSubclassName: string | null,
+  homebrewContentId?: string
 ): ClassSelection {
   const subclassName =
     homebrewSubclassName ?? homebrewClass.subclasses[0]?.name ?? '';
@@ -99,8 +106,33 @@ function buildHomebrewSelection(
     subclassName,
     domains: homebrewClass.domains,
     isHomebrew: true,
+    isCustom: false,
     spellcastTrait: selectedHomebrewSubclass?.spellcastTrait,
     homebrewClass,
+    homebrewContentId,
+  };
+}
+
+// Build custom class selection (player-created on the fly)
+function buildCustomSelection(
+  customClass: HomebrewClass,
+  customSubclassName: string | null
+): ClassSelection {
+  const subclassName =
+    customSubclassName ?? customClass.subclasses[0]?.name ?? '';
+  const selectedSubclass = customClass.subclasses.find(
+    s => s.name === subclassName
+  );
+
+  return {
+    mode: 'custom',
+    className: customClass.name,
+    subclassName,
+    domains: customClass.domains,
+    isHomebrew: false,
+    isCustom: true,
+    spellcastTrait: selectedSubclass?.spellcastTrait,
+    customClass,
   };
 }
 
@@ -108,13 +140,17 @@ function getCanComplete(
   mode: ClassMode,
   selectedClasses: GameClass[],
   selectedSubclasses: Map<string, GameSubclass>,
-  homebrewClass: HomebrewClass | null
+  homebrewClass: HomebrewClass | null,
+  customClass: HomebrewClass | null
 ) {
   if (mode === 'standard') {
     return isStandardSelectionComplete(selectedClasses, selectedSubclasses);
   }
   if (mode === 'homebrew') {
     return isHomebrewSelectionComplete(homebrewClass);
+  }
+  if (mode === 'custom') {
+    return isCustomSelectionComplete(customClass);
   }
   return false;
 }
@@ -206,32 +242,77 @@ function useModalHandlers({
 function useHomebrewHandlers({
   homebrewClass,
   homebrewSubclassName,
+  homebrewContentId,
   setHomebrewClass,
+  setHomebrewContentId,
   onChange,
 }: {
   homebrewClass: HomebrewClass | null;
   homebrewSubclassName: string | null;
+  homebrewContentId: string | undefined;
   setHomebrewClass: React.Dispatch<React.SetStateAction<HomebrewClass | null>>;
+  setHomebrewContentId: React.Dispatch<
+    React.SetStateAction<string | undefined>
+  >;
   onChange?: (draft: ClassDraft) => void;
 }) {
   const handleHomebrewChange = useCallback(
-    (homebrew: HomebrewClass) => {
+    (homebrew: HomebrewClass, contentId?: string) => {
       setHomebrewClass(homebrew);
+      if (contentId) {
+        setHomebrewContentId(contentId);
+      }
       onChange?.({
         mode: 'homebrew',
         homebrewClass: homebrew,
         subclassName: homebrewSubclassName ?? homebrew.subclasses[0]?.name,
+        homebrewContentId: contentId,
       });
     },
-    [homebrewSubclassName, onChange, setHomebrewClass]
+    [homebrewSubclassName, onChange, setHomebrewClass, setHomebrewContentId]
   );
 
   const selection = useMemo(() => {
     if (!homebrewClass) return null;
-    return buildHomebrewSelection(homebrewClass, homebrewSubclassName);
-  }, [homebrewClass, homebrewSubclassName]);
+    return buildHomebrewSelection(
+      homebrewClass,
+      homebrewSubclassName,
+      homebrewContentId
+    );
+  }, [homebrewClass, homebrewSubclassName, homebrewContentId]);
 
   return { handleHomebrewChange, homebrewSelection: selection };
+}
+
+function useCustomHandlers({
+  customClass,
+  customSubclassName,
+  setCustomClass,
+  onChange,
+}: {
+  customClass: HomebrewClass | null;
+  customSubclassName: string | null;
+  setCustomClass: React.Dispatch<React.SetStateAction<HomebrewClass | null>>;
+  onChange?: (draft: ClassDraft) => void;
+}) {
+  const handleCustomChange = useCallback(
+    (custom: HomebrewClass) => {
+      setCustomClass(custom);
+      onChange?.({
+        mode: 'custom',
+        customClass: custom,
+        subclassName: customSubclassName ?? custom.subclasses[0]?.name,
+      });
+    },
+    [customSubclassName, onChange, setCustomClass]
+  );
+
+  const selection = useMemo(() => {
+    if (!customClass) return null;
+    return buildCustomSelection(customClass, customSubclassName);
+  }, [customClass, customSubclassName]);
+
+  return { handleCustomChange, customSelection: selection };
 }
 
 function useClassCompletion({
@@ -240,25 +321,47 @@ function useClassCompletion({
   selectedSubclasses,
   homebrewSelection,
   homebrewClass,
+  customSelection,
+  customClass,
 }: {
   mode: ClassMode;
   selectedClasses: GameClass[];
   selectedSubclasses: Map<string, GameSubclass>;
   homebrewSelection: ClassSelection | null;
   homebrewClass: HomebrewClass | null;
+  customSelection: ClassSelection | null;
+  customClass: HomebrewClass | null;
 }) {
   const canComplete = useMemo(
     () =>
-      getCanComplete(mode, selectedClasses, selectedSubclasses, homebrewClass),
-    [mode, selectedClasses, selectedSubclasses, homebrewClass]
+      getCanComplete(
+        mode,
+        selectedClasses,
+        selectedSubclasses,
+        homebrewClass,
+        customClass
+      ),
+    [mode, selectedClasses, selectedSubclasses, homebrewClass, customClass]
   );
 
   const buildSelection = useCallback((): ClassSelection | null => {
     if (mode === 'standard') {
       return buildStandardSelection(selectedClasses, selectedSubclasses);
     }
-    return homebrewSelection;
-  }, [mode, selectedClasses, selectedSubclasses, homebrewSelection]);
+    if (mode === 'homebrew') {
+      return homebrewSelection;
+    }
+    if (mode === 'custom') {
+      return customSelection;
+    }
+    return null;
+  }, [
+    mode,
+    selectedClasses,
+    selectedSubclasses,
+    homebrewSelection,
+    customSelection,
+  ]);
 
   return { canComplete, buildSelection };
 }
@@ -279,6 +382,15 @@ export function useClassSelectorState({
     value?.homebrewClass ?? null
   );
   const [homebrewSubclassName] = useState<string | null>(null);
+  const [homebrewContentId, setHomebrewContentId] = useState<
+    string | undefined
+  >(value?.homebrewContentId);
+
+  // Custom class state (player-created on the fly)
+  const [customClass, setCustomClass] = useState<HomebrewClass | null>(
+    value?.customClass ?? null
+  );
+  const [customSubclassName] = useState<string | null>(null);
 
   const handleModeChange = useCallback((newMode: ClassMode) => {
     setMode(newMode);
@@ -307,7 +419,16 @@ export function useClassSelectorState({
   const { handleHomebrewChange, homebrewSelection } = useHomebrewHandlers({
     homebrewClass,
     homebrewSubclassName,
+    homebrewContentId,
     setHomebrewClass,
+    setHomebrewContentId,
+    onChange,
+  });
+
+  const { handleCustomChange, customSelection } = useCustomHandlers({
+    customClass,
+    customSubclassName,
+    setCustomClass,
     onChange,
   });
 
@@ -317,6 +438,8 @@ export function useClassSelectorState({
     selectedSubclasses,
     homebrewSelection,
     homebrewClass,
+    customSelection,
+    customClass,
   });
 
   const handleComplete = useCallback(() => {
@@ -340,6 +463,7 @@ export function useClassSelectorState({
     selectedClasses,
     selectedSubclasses,
     homebrewClass,
+    customClass,
     canComplete,
     modalClass,
     isModalOpen,
@@ -348,6 +472,7 @@ export function useClassSelectorState({
     handleClassSelect,
     handleSubclassSelect,
     handleHomebrewChange,
+    handleCustomChange,
     handleComplete,
     handleOpenModal,
     handleCloseModal,

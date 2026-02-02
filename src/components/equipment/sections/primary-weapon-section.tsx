@@ -4,6 +4,7 @@ import type { PrimaryWeapon } from '@/lib/schemas/equipment';
 
 import { type EquipmentMode, EquipmentModeTabs } from '../equipment-mode-tabs';
 import { EquipmentSection } from '../equipment-section';
+import { HomebrewEquipmentBrowser } from '../homebrew-equipment-browser';
 import { HomebrewWeaponForm } from '../homebrew-weapon-form';
 import { WeaponCardCompact } from '../weapon-card-compact';
 
@@ -15,6 +16,7 @@ interface PrimaryWeaponSectionProps {
   homebrewWeapon: Partial<PrimaryWeapon>;
   onHomebrewChange: (value: Partial<PrimaryWeapon>) => void;
   allowedTiers?: string[];
+  campaignId?: string;
 }
 
 export function PrimaryWeaponSection({
@@ -25,15 +27,24 @@ export function PrimaryWeaponSection({
   homebrewWeapon,
   onHomebrewChange,
   allowedTiers,
+  campaignId,
 }: PrimaryWeaponSectionProps) {
   return (
     <div className="flex min-h-0 flex-1 flex-col space-y-4">
       <EquipmentModeTabs activeMode={mode} onModeChange={onModeChange} />
-      {mode === 'homebrew' ? (
+      {mode === 'custom' ? (
         <HomebrewWeaponForm
           weaponType="Primary"
           value={homebrewWeapon}
           onChange={onHomebrewChange}
+        />
+      ) : mode === 'homebrew' ? (
+        <HomebrewEquipmentBrowser<PrimaryWeapon>
+          equipmentType="weapon"
+          campaignId={campaignId}
+          selectedItem={weapon}
+          onSelect={(item, _contentId) => onWeaponChange(item)}
+          emptyMessage="No homebrew primary weapons found."
         />
       ) : (
         <EquipmentSection

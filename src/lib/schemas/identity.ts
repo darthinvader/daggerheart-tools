@@ -38,16 +38,24 @@ export type AncestryFeature = z.infer<typeof AncestryFeatureSchema>;
 export type Ancestry = z.infer<typeof AncestrySchema>;
 export type MixedAncestry = z.infer<typeof MixedAncestrySchema>;
 
-export type AncestryMode = 'standard' | 'mixed' | 'homebrew';
+// 'standard' = Official content
+// 'mixed' = Mix features from standard ancestries
+// 'homebrew' = Campaign-linked homebrew content
+// 'custom' = Player-created custom content on the fly
+export type AncestryMode = 'standard' | 'mixed' | 'homebrew' | 'custom';
 
 // Homebrew uses same shape as Ancestry but represents user-created content
 export type HomebrewAncestry = Ancestry;
+
+// Custom ancestry type (same as homebrew but created on the fly)
+export type CustomAncestry = Ancestry;
 
 // Discriminated union for ancestry selection state
 export type AncestrySelection =
   | { mode: 'standard'; ancestry: Ancestry }
   | { mode: 'mixed'; mixedAncestry: MixedAncestry }
-  | { mode: 'homebrew'; homebrew: HomebrewAncestry }
+  | { mode: 'homebrew'; homebrew: HomebrewAncestry; homebrewContentId?: string }
+  | { mode: 'custom'; custom: CustomAncestry }
   | null;
 
 export const ANCESTRIES = RAW_ANCESTRIES as Ancestry[];
@@ -176,13 +184,22 @@ export const CommunitySchema = z.object({
 export type CommunityFeature = z.infer<typeof CommunityFeatureSchema>;
 export type Community = z.infer<typeof CommunitySchema>;
 
-export type CommunityMode = 'standard' | 'homebrew';
+// 'standard' = Official content
+// 'homebrew' = Campaign-linked homebrew content
+// 'custom' = Player-created custom content on the fly
+export type CommunityMode = 'standard' | 'homebrew' | 'custom';
 
 export type HomebrewCommunity = Community;
+export type CustomCommunity = Community;
 
 export type CommunitySelection =
   | { mode: 'standard'; community: Community }
-  | { mode: 'homebrew'; homebrew: HomebrewCommunity }
+  | {
+      mode: 'homebrew';
+      homebrew: HomebrewCommunity;
+      homebrewContentId?: string;
+    }
+  | { mode: 'custom'; custom: CustomCommunity }
   | null;
 
 export const COMMUNITIES = RAW_COMMUNITIES as Community[];

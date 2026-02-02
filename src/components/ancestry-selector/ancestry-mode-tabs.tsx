@@ -1,4 +1,5 @@
 import {
+  CustomIcon,
   HomebrewIcon,
   MixedIcon,
   type ModeOption,
@@ -16,6 +17,7 @@ const MODES: ModeOption<AncestryMode>[] = [
   { value: 'standard', label: 'Standard', icon: <StandardIcon /> },
   { value: 'mixed', label: 'Mixed', icon: <MixedIcon /> },
   { value: 'homebrew', label: 'Homebrew', icon: <HomebrewIcon /> },
+  { value: 'custom', label: 'Custom', icon: <CustomIcon /> },
 ];
 
 export function AncestryModeTabs({

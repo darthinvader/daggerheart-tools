@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { ICON_SIZE_MD, Package, Plus, Wrench, Zap } from '@/lib/icons';
+import type { FeatureStatModifiers } from '@/lib/schemas/core';
 import type { HomebrewDomainCard } from '@/lib/schemas/loadout';
 
 import { CardFormFields } from './card-form-fields';
@@ -31,6 +32,8 @@ const EMPTY_CARD = {
   hopeCost: 1,
   recallCost: 0,
   stressCost: 0,
+  tags: [] as string[],
+  modifiers: undefined as FeatureStatModifiers | undefined,
   isActivated: true,
 };
 

@@ -9,6 +9,7 @@ import type {
   LoadoutSelection,
 } from '@/lib/schemas/loadout';
 
+import { CampaignHomebrewCardGrid } from './campaign-homebrew-card-grid';
 import { CardGrid } from './card-grid';
 import { DomainFilter } from './domain-filter';
 import { HomebrewCardForm } from './homebrew-card-form';
@@ -103,7 +104,8 @@ export function LoadoutSelector({
         classDomains={classDomains}
       />
 
-      {state.mode === 'homebrew' && (
+      {/* Custom mode: Player-created cards on the fly */}
+      {state.mode === 'custom' && (
         <HomebrewCardForm
           onAdd={state.handleAddHomebrew}
           onAddToLoadout={state.handleAddHomebrewToLoadout}
@@ -113,7 +115,23 @@ export function LoadoutSelector({
         />
       )}
 
-      {state.mode !== 'homebrew' && (
+      {/* Homebrew mode: Browse homebrew cards from all sources */}
+      {state.mode === 'homebrew' && (
+        <CampaignHomebrewCardGrid
+          campaignId={campaignId}
+          activeCards={state.activeCards}
+          vaultCards={state.vaultCards}
+          onToggleActive={state.handleToggleActive}
+          onToggleVault={state.handleToggleVault}
+          maxActiveCards={state.rules.maxActiveCards}
+          maxVaultCards={state.rules.maxVaultCards}
+          activeCardNames={state.activeCardNames}
+          vaultCardNames={state.vaultCardNames}
+        />
+      )}
+
+      {/* Standard modes: Class domains or all domains */}
+      {(state.mode === 'class-domains' || state.mode === 'all-domains') && (
         <>
           <DomainFilter
             domains={state.domainsToShow}

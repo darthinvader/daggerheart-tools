@@ -9,6 +9,7 @@ import type {
 } from '@/lib/schemas/equipment';
 
 import type { CustomEquipment } from './custom-slot-editor';
+import type { EquipmentMode } from './equipment-mode-tabs';
 import {
   ArmorSummaryCard,
   CustomEquipmentSummaryCard,
@@ -22,17 +23,17 @@ import {
 
 interface EquipmentSummaryProps {
   primaryWeapon: PrimaryWeapon | null;
-  primaryWeaponMode: 'standard' | 'homebrew';
+  primaryWeaponMode: EquipmentMode;
   homebrewPrimaryWeapon: Partial<PrimaryWeapon>;
   secondaryWeapon: SecondaryWeapon | null;
-  secondaryWeaponMode: 'standard' | 'homebrew';
+  secondaryWeaponMode: EquipmentMode;
   homebrewSecondaryWeapon: Partial<SecondaryWeapon>;
   armor: StandardArmor | null;
-  armorMode: 'standard' | 'homebrew';
+  armorMode: EquipmentMode;
   homebrewArmor: Partial<StandardArmor>;
   useCombatWheelchair: boolean;
   combatWheelchair: CombatWheelchair | null;
-  wheelchairMode: 'standard' | 'homebrew';
+  wheelchairMode: EquipmentMode;
   homebrewWheelchair: Partial<CombatWheelchair>;
   customSlots: CustomEquipment[];
 }
@@ -96,8 +97,8 @@ function WeaponGrid({
 }: {
   primaryData: ReturnType<typeof getWeaponData>;
   secondaryData: ReturnType<typeof getWeaponData>;
-  primaryMode: 'standard' | 'homebrew';
-  secondaryMode: 'standard' | 'homebrew';
+  primaryMode: EquipmentMode;
+  secondaryMode: EquipmentMode;
 }) {
   return (
     <div className="grid gap-4 md:grid-cols-2">
@@ -105,7 +106,7 @@ function WeaponGrid({
         icon={Sword}
         label="Primary Weapon"
         name={primaryData.name}
-        isHomebrew={primaryMode === 'homebrew'}
+        isHomebrew={primaryMode === 'homebrew' || primaryMode === 'custom'}
         isEmpty={primaryData.isEmpty}
         damage={primaryData.damage}
         range={primaryData.range}
@@ -118,7 +119,7 @@ function WeaponGrid({
         icon={Axe}
         label="Secondary Weapon"
         name={secondaryData.name}
-        isHomebrew={secondaryMode === 'homebrew'}
+        isHomebrew={secondaryMode === 'homebrew' || secondaryMode === 'custom'}
         isEmpty={secondaryData.isEmpty}
         damage={secondaryData.damage}
         range={secondaryData.range}
@@ -140,15 +141,15 @@ function ArmorGrid({
 }: {
   armorData: ReturnType<typeof getArmorData>;
   wheelchairData: ReturnType<typeof getWheelchairData>;
-  armorMode: 'standard' | 'homebrew';
+  armorMode: EquipmentMode;
   useCombatWheelchair: boolean;
-  wheelchairMode: 'standard' | 'homebrew';
+  wheelchairMode: EquipmentMode;
 }) {
   return (
     <div className="grid gap-4 md:grid-cols-2">
       <ArmorSummaryCard
         name={armorData.name}
-        isHomebrew={armorMode === 'homebrew'}
+        isHomebrew={armorMode === 'homebrew' || armorMode === 'custom'}
         isEmpty={armorData.isEmpty}
         baseScore={armorData.baseScore}
         major={armorData.major}
@@ -163,7 +164,10 @@ function ArmorGrid({
         icon={Wheelchair}
         label="Combat Wheelchair"
         name={wheelchairData.name}
-        isHomebrew={useCombatWheelchair && wheelchairMode === 'homebrew'}
+        isHomebrew={
+          useCombatWheelchair &&
+          (wheelchairMode === 'homebrew' || wheelchairMode === 'custom')
+        }
         isEmpty={wheelchairData.isEmpty}
         damage={wheelchairData.damage}
         range={wheelchairData.range}

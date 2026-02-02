@@ -16,6 +16,8 @@ function getCommunityName(selection: CommunitySelection): string {
       return selection.community.name;
     case 'homebrew':
       return selection.homebrew.name;
+    case 'custom':
+      return selection.custom?.name || 'Custom Community';
   }
 }
 
@@ -28,6 +30,8 @@ function getCommunityFeature(
       return selection.community.feature;
     case 'homebrew':
       return selection.homebrew.feature;
+    case 'custom':
+      return selection.custom?.feature || null;
   }
 }
 

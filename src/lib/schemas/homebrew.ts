@@ -16,6 +16,7 @@ import {
   BaseFeatureSchema,
   BaseSubclassSchema,
   DomainNameSchema,
+  FeatureStatModifiersSchema,
 } from './core';
 import { DomainCardSchema } from './domains';
 import {
@@ -23,7 +24,12 @@ import {
   EnvironmentTierEnum,
   EnvironmentTypeEnum,
 } from './environments';
-import { ArmorSchema, EquipmentTierSchema, WeaponSchema } from './equipment';
+import {
+  ArmorSchema,
+  EquipmentTierSchema,
+  RaritySchema,
+  WeaponSchema,
+} from './equipment';
 
 // =====================================================================================
 // Content Type Enum
@@ -191,6 +197,7 @@ export const HomebrewAncestryFeatureSchema = z.object({
   name: z.string().min(1),
   description: z.string(),
   type: z.enum(['primary', 'secondary']),
+  modifiers: FeatureStatModifiersSchema.optional(),
 });
 
 export const HomebrewAncestryContentSchema = z.object({
@@ -218,6 +225,7 @@ export type HomebrewAncestry = z.infer<typeof HomebrewAncestrySchema>;
 export const HomebrewCommunityFeatureSchema = z.object({
   name: z.string().min(1),
   description: z.string(),
+  modifiers: FeatureStatModifiersSchema.optional(),
 });
 
 export const HomebrewCommunityContentSchema = z.object({
@@ -250,6 +258,12 @@ export const HomebrewArmorContentSchema = ArmorSchema.omit({
   metadata: true,
 }).extend({
   equipmentType: z.literal('armor'),
+  armorType: z
+    .union([
+      z.enum(['Gambeson', 'Leather', 'Chainmail', 'Full Plate']),
+      z.string(),
+    ])
+    .default('Leather'),
   isHomebrew: z.literal(true).default(true),
 });
 
@@ -293,23 +307,37 @@ export type HomebrewEquipment = z.infer<typeof HomebrewEquipmentSchema>;
 // Homebrew Item (General items, consumables, etc.)
 // =====================================================================================
 
+export const HomebrewItemFeatureSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  modifiers: FeatureStatModifiersSchema.optional(),
+});
+
+// Unified item categories used across homebrew and inventory
+export const ItemCategorySchema = z.enum([
+  'Utility',
+  'Consumable',
+  'Relic',
+  'Weapon Modification',
+  'Armor Modification',
+  'Recipe',
+]);
+
+export type ItemCategory = z.infer<typeof ItemCategorySchema>;
+
 export const HomebrewItemContentSchema = z.object({
   name: z.string().min(1),
   description: z.string().default(''),
   tier: EquipmentTierSchema.optional(),
-  category: z
-    .enum(['consumable', 'tool', 'treasure', 'misc', 'quest', 'container'])
-    .default('misc'),
-  features: z
-    .array(
-      z.object({
-        name: z.string(),
-        description: z.string(),
-      })
-    )
-    .default([]),
+  category: ItemCategorySchema.default('Utility'),
+  rarity: RaritySchema.default('Common'),
+  features: z.array(HomebrewItemFeatureSchema).default([]),
   value: z.string().optional(), // Gold value as string (e.g., "50g", "2h")
   weight: z.string().optional(),
+  modifiers: FeatureStatModifiersSchema.optional(), // Direct item modifiers
+  // Inventory management fields
+  maxQuantity: z.number().min(1).default(1),
+  isConsumable: z.boolean().default(false),
   isHomebrew: z.literal(true).default(true),
 });
 
@@ -639,8 +667,11 @@ export function createDefaultItemContent(): z.infer<
   return {
     name: 'New Item',
     description: '',
-    category: 'misc',
+    category: 'Utility',
+    rarity: 'Common',
     features: [],
+    maxQuantity: 1,
+    isConsumable: false,
     isHomebrew: true,
   };
 }
@@ -674,6 +705,7 @@ export function createDefaultArmorContent(): z.infer<
     name: 'New Armor',
     tier: '1',
     equipmentType: 'armor',
+    armorType: 'Leather',
     baseThresholds: {
       major: 3,
       severe: 6,

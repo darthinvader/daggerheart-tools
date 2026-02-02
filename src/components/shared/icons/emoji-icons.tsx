@@ -1,6 +1,8 @@
 import {
   BookOpen,
   Dna,
+  Library,
+  PenTool,
   Ruler,
   Scroll,
   Search,
@@ -17,7 +19,9 @@ export interface IconProps {
 
 // Common icons used across multiple selectors - now using Lucide icons
 export const SearchIcon = Search;
-export const HomebrewIcon = Wrench;
+export const HomebrewIcon = Library; // Campaign-linked homebrew content
+export const CustomIcon = PenTool; // Player-created custom content
+export const LegacyHomebrewIcon = Wrench; // Legacy export for backwards compatibility
 export const StandardIcon = BookOpen;
 export const DescriptionIcon = Scroll;
 export const FeatureIcon = Star;

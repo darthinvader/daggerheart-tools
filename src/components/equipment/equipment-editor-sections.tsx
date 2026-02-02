@@ -12,12 +12,14 @@ interface EquipmentEditorSectionsProps {
   filter: EquipmentFilter;
   state: EquipmentState;
   updateState: (updates: Partial<EquipmentState>) => void;
+  campaignId?: string;
 }
 
 export function EquipmentEditorSections({
   filter,
   state,
   updateState,
+  campaignId,
 }: EquipmentEditorSectionsProps) {
   const showPrimary = filter === 'all' || filter === 'primary';
   const showSecondary = filter === 'all' || filter === 'secondary';
@@ -35,6 +37,7 @@ export function EquipmentEditorSections({
           onWeaponChange={weapon => updateState({ primaryWeapon: weapon })}
           homebrewWeapon={state.homebrewPrimaryWeapon}
           onHomebrewChange={v => updateState({ homebrewPrimaryWeapon: v })}
+          campaignId={campaignId}
         />
       )}
 
@@ -46,6 +49,7 @@ export function EquipmentEditorSections({
           onWeaponChange={weapon => updateState({ secondaryWeapon: weapon })}
           homebrewWeapon={state.homebrewSecondaryWeapon}
           onHomebrewChange={v => updateState({ homebrewSecondaryWeapon: v })}
+          campaignId={campaignId}
         />
       )}
 
@@ -57,6 +61,7 @@ export function EquipmentEditorSections({
           onArmorChange={armor => updateState({ armor })}
           homebrewArmor={state.homebrewArmor}
           onHomebrewChange={v => updateState({ homebrewArmor: v })}
+          campaignId={campaignId}
         />
       )}
 
@@ -70,6 +75,7 @@ export function EquipmentEditorSections({
           onWheelchairChange={chair => updateState({ combatWheelchair: chair })}
           homebrewWheelchair={state.homebrewWheelchair}
           onHomebrewChange={v => updateState({ homebrewWheelchair: v })}
+          campaignId={campaignId}
         />
       )}
 

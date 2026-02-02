@@ -16,9 +16,8 @@ import {
   type EquipmentFilter,
   EquipmentFilterBar,
 } from './equipment-filter-bar';
+import type { EquipmentMode } from './equipment-mode-tabs';
 import { EquipmentSummary } from './equipment-summary';
-
-type EquipmentMode = 'standard' | 'homebrew';
 
 export interface EquipmentState {
   primaryWeapon: PrimaryWeapon | null;
@@ -44,9 +43,14 @@ export interface EquipmentState {
 interface EquipmentEditorProps {
   value?: EquipmentState;
   onChange?: (value: EquipmentState) => void;
+  campaignId?: string;
 }
 
-export function EquipmentEditor({ value, onChange }: EquipmentEditorProps) {
+export function EquipmentEditor({
+  value,
+  onChange,
+  campaignId,
+}: EquipmentEditorProps) {
   const [internalState, setInternalState] = useState<EquipmentState>(
     DEFAULT_EQUIPMENT_STATE
   );
@@ -74,6 +78,7 @@ export function EquipmentEditor({ value, onChange }: EquipmentEditorProps) {
         filter={filter}
         state={state}
         updateState={updateState}
+        campaignId={campaignId}
       />
 
       <SummaryCard state={state} />

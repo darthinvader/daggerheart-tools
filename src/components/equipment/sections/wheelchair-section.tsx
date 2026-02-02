@@ -6,6 +6,7 @@ import type { CombatWheelchair } from '@/lib/schemas/equipment';
 
 import { type EquipmentMode, EquipmentModeTabs } from '../equipment-mode-tabs';
 import { EquipmentSection } from '../equipment-section';
+import { HomebrewEquipmentBrowser } from '../homebrew-equipment-browser';
 import { HomebrewWeaponForm } from '../homebrew-weapon-form';
 import { WheelchairCardCompact } from '../wheelchair-card-compact';
 
@@ -20,6 +21,7 @@ interface WheelchairSectionProps {
   onHomebrewChange: (value: Partial<CombatWheelchair>) => void;
   hideTitle?: boolean;
   allowedTiers?: string[];
+  campaignId?: string;
 }
 
 export function WheelchairSection({
@@ -33,6 +35,7 @@ export function WheelchairSection({
   onHomebrewChange,
   hideTitle = false,
   allowedTiers,
+  campaignId,
 }: WheelchairSectionProps) {
   const enableSwitch = (
     <div className="flex items-center gap-2">
@@ -42,7 +45,7 @@ export function WheelchairSection({
   );
 
   const wheelchairContent =
-    mode === 'homebrew' ? (
+    mode === 'custom' ? (
       <HomebrewWeaponForm
         weaponType="Primary"
         value={homebrewWheelchair}
@@ -53,6 +56,14 @@ export function WheelchairSection({
             wheelchairFeatures: homebrewWheelchair.wheelchairFeatures ?? [],
           })
         }
+      />
+    ) : mode === 'homebrew' ? (
+      <HomebrewEquipmentBrowser<CombatWheelchair>
+        equipmentType="wheelchair"
+        campaignId={campaignId}
+        selectedItem={wheelchair}
+        onSelect={(item, _contentId) => onWheelchairChange(item)}
+        emptyMessage="No homebrew combat wheelchairs found."
       />
     ) : (
       <EquipmentSection

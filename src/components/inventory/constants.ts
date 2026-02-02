@@ -19,14 +19,10 @@ import {
   Wrench,
 } from '@/lib/icons';
 import type { EquipmentTier, Rarity } from '@/lib/schemas/equipment';
+import type { ItemCategory } from '@/lib/schemas/homebrew';
 
-export type ItemCategory =
-  | 'Utility'
-  | 'Consumable'
-  | 'Relic'
-  | 'Weapon Modification'
-  | 'Armor Modification'
-  | 'Recipe';
+// Re-export ItemCategory for convenience
+export type { ItemCategory } from '@/lib/schemas/homebrew';
 
 export type CategoryConfig = {
   icon: LucideIcon;

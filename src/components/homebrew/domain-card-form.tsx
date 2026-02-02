@@ -10,6 +10,7 @@ import {
   Plus,
   Sparkles,
   Tag,
+  TrendingUp,
   Wand2,
   X,
   Zap,
@@ -18,6 +19,11 @@ import { useCallback, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -31,6 +37,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { ALL_KNOWN_DOMAINS } from '@/lib/schemas/core';
+import type { FeatureStatModifiers } from '@/lib/schemas/core';
 import type { HomebrewDomainCard } from '@/lib/schemas/homebrew';
 import { createDefaultDomainCardContent } from '@/lib/schemas/homebrew';
 
@@ -130,19 +137,37 @@ export function DomainCardForm({
   );
   const [tags, setTags] = useState<string[]>(initialData?.tags ?? []);
   const [newTag, setNewTag] = useState('');
+  const [hasModifiers, setHasModifiers] = useState(!!initialData?.modifiers);
+  const [modifiers, setModifiers] = useState<Partial<FeatureStatModifiers>>(
+    initialData?.modifiers ?? {}
+  );
 
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
 
+      // Clean up modifiers - only include if there are actual values
+      const cleanModifiers = hasModifiers
+        ? Object.fromEntries(
+            Object.entries(modifiers).filter(
+              ([, v]) => v !== undefined && v !== 0
+            )
+          )
+        : undefined;
+      const hasAnyModifiers =
+        cleanModifiers && Object.keys(cleanModifiers).length > 0;
+
       const content: HomebrewDomainCard['content'] = {
         ...formData,
         tags: tags.filter(t => t.trim()),
+        modifiers: hasAnyModifiers
+          ? (cleanModifiers as FeatureStatModifiers)
+          : undefined,
       };
 
       onSubmit(content);
     },
-    [formData, tags, onSubmit]
+    [formData, tags, hasModifiers, modifiers, onSubmit]
   );
 
   const addTag = () => {
@@ -444,6 +469,134 @@ export function DomainCardForm({
                 <Plus className="size-4" />
               </Button>
             </div>
+          </section>
+
+          <Separator />
+
+          {/* Stat Modifiers */}
+          <section
+            className={`space-y-4 rounded-lg border p-4 ${domainStyle.border} ${domainStyle.bg}`}
+          >
+            <Collapsible open={hasModifiers} onOpenChange={setHasModifiers}>
+              <CollapsibleTrigger asChild>
+                <div className="flex cursor-pointer items-center justify-between">
+                  <h3 className="flex items-center gap-2 font-semibold">
+                    <TrendingUp className={`size-4 ${domainStyle.text}`} />
+                    Stat Modifiers
+                  </h3>
+                  <Badge variant="outline" className="text-xs">
+                    {hasModifiers ? 'Enabled' : 'Click to add'}
+                  </Badge>
+                </div>
+              </CollapsibleTrigger>
+              <p className="text-muted-foreground text-sm">
+                Explicit stat bonuses this card provides when equipped/active.
+              </p>
+
+              <CollapsibleContent className="mt-4 space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label>Evasion</Label>
+                    <Input
+                      type="number"
+                      value={modifiers.evasion ?? 0}
+                      onChange={e =>
+                        setModifiers(prev => ({
+                          ...prev,
+                          evasion: parseInt(e.target.value, 10) || 0,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Proficiency</Label>
+                    <Input
+                      type="number"
+                      value={modifiers.proficiency ?? 0}
+                      onChange={e =>
+                        setModifiers(prev => ({
+                          ...prev,
+                          proficiency: parseInt(e.target.value, 10) || 0,
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label>Armor Score</Label>
+                    <Input
+                      type="number"
+                      value={modifiers.armorScore ?? 0}
+                      onChange={e =>
+                        setModifiers(prev => ({
+                          ...prev,
+                          armorScore: parseInt(e.target.value, 10) || 0,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Attack Rolls</Label>
+                    <Input
+                      type="number"
+                      value={modifiers.attackRolls ?? 0}
+                      onChange={e =>
+                        setModifiers(prev => ({
+                          ...prev,
+                          attackRolls: parseInt(e.target.value, 10) || 0,
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label>Spellcast Rolls</Label>
+                    <Input
+                      type="number"
+                      value={modifiers.spellcastRolls ?? 0}
+                      onChange={e =>
+                        setModifiers(prev => ({
+                          ...prev,
+                          spellcastRolls: parseInt(e.target.value, 10) || 0,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Major Threshold</Label>
+                    <Input
+                      type="number"
+                      value={modifiers.majorThreshold ?? 0}
+                      onChange={e =>
+                        setModifiers(prev => ({
+                          ...prev,
+                          majorThreshold: parseInt(e.target.value, 10) || 0,
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Severe Threshold</Label>
+                  <Input
+                    type="number"
+                    value={modifiers.severeThreshold ?? 0}
+                    onChange={e =>
+                      setModifiers(prev => ({
+                        ...prev,
+                        severeThreshold: parseInt(e.target.value, 10) || 0,
+                      }))
+                    }
+                    className="max-w-[200px]"
+                  />
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
           </section>
         </div>
       </ScrollArea>

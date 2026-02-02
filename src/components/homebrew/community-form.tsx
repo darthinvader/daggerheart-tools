@@ -5,8 +5,9 @@
  * Uses singular feature object per schema.
  */
 import { Home, Plus, Sparkles, Trash2, Users } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
+import { FeatureModifiersSection } from '@/components/shared';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,8 +15,7 @@ import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
-import type { HomebrewCommunity } from '@/lib/schemas/homebrew';
-import { createDefaultCommunityContent } from '@/lib/schemas/homebrew';
+import type { FeatureStatModifiers } from '@/lib/schemas/core';
 
 // Predefined common traits from official communities
 const COMMON_TRAIT_SUGGESTIONS = [
@@ -71,39 +71,84 @@ const COMMON_TRAIT_SUGGESTIONS = [
   'witty',
 ] as const;
 
-interface CommunityFormProps {
-  initialData?: HomebrewCommunity['content'];
-  onSubmit: (data: HomebrewCommunity['content']) => void;
-  onCancel: () => void;
-  isSubmitting?: boolean;
+/**
+ * Data shape that the CommunityForm works with.
+ * Compatible with both HomebrewCommunity['content'] (homebrew page)
+ * and the character page inline community type.
+ */
+export interface CommunityFormData {
+  name: string;
+  description: string;
+  commonTraits: string[];
+  feature: {
+    name: string;
+    description: string;
+    modifiers?: FeatureStatModifiers;
+  };
+  isHomebrew: true;
 }
+
+interface CommunityFormProps {
+  initialData?: CommunityFormData;
+  /** Called on form submit (dialog mode) */
+  onSubmit?: (data: CommunityFormData) => void;
+  /** Called on cancel (dialog mode) */
+  onCancel?: () => void;
+  /** Called on every change (inline mode) */
+  onChange?: (data: CommunityFormData) => void;
+  isSubmitting?: boolean;
+  /** Show submit/cancel buttons (default: true, set false for inline mode) */
+  showActions?: boolean;
+}
+
+const DEFAULT_COMMUNITY_DATA: CommunityFormData = {
+  name: '',
+  description: '',
+  commonTraits: [],
+  feature: { name: '', description: '' },
+  isHomebrew: true,
+};
 
 export function CommunityForm({
   initialData,
   onSubmit,
   onCancel,
+  onChange,
   isSubmitting = false,
+  showActions = true,
 }: CommunityFormProps) {
-  const [formData, setFormData] = useState(
-    initialData ?? createDefaultCommunityContent()
+  const [formData, setFormData] = useState<CommunityFormData>(
+    initialData ?? DEFAULT_COMMUNITY_DATA
   );
   const [commonTraits, setCommonTraits] = useState<string[]>(
     initialData?.commonTraits ?? []
   );
   const [newTrait, setNewTrait] = useState('');
 
+  // Build current data for callbacks
+  const buildCurrentData = useCallback((): CommunityFormData => {
+    return {
+      ...formData,
+      commonTraits: commonTraits.filter(t => t.trim()),
+      isHomebrew: true,
+    };
+  }, [formData, commonTraits]);
+
+  // Auto-notify on changes (for inline mode)
+  useEffect(() => {
+    if (onChange) {
+      onChange(buildCurrentData());
+    }
+  }, [formData, commonTraits]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
-
-      const content: HomebrewCommunity['content'] = {
-        ...formData,
-        commonTraits: commonTraits.filter(t => t.trim()),
-      };
-
-      onSubmit(content);
+      if (onSubmit) {
+        onSubmit(buildCurrentData());
+      }
     },
-    [formData, commonTraits, onSubmit]
+    [onSubmit, buildCurrentData]
   );
 
   const addTrait = (trait: string) => {
@@ -289,22 +334,45 @@ export function CommunityForm({
                   required
                 />
               </div>
+
+              <FeatureModifiersSection
+                modifiers={formData.feature.modifiers}
+                onChange={modifiers =>
+                  setFormData(prev => ({
+                    ...prev,
+                    feature: {
+                      ...prev.feature,
+                      modifiers,
+                    },
+                  }))
+                }
+                title="Feature Modifiers"
+                colorClass="text-purple-500"
+                showTraits
+              />
             </div>
           </section>
         </div>
       </ScrollArea>
 
-      <Separator />
+      {showActions && (
+        <>
+          <Separator />
 
-      {/* Actions */}
-      <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button type="submit" disabled={isSubmitting || !formData.name.trim()}>
-          {isSubmitting ? 'Saving...' : 'Save Community'}
-        </Button>
-      </div>
+          {/* Actions */}
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={isSubmitting || !formData.name.trim()}
+            >
+              {isSubmitting ? 'Saving...' : 'Save Community'}
+            </Button>
+          </div>
+        </>
+      )}
     </form>
   );
 }

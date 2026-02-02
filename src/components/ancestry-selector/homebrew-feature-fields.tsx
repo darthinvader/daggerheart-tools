@@ -1,7 +1,12 @@
-import { FeatureIcon, SecondaryFeatureIcon } from '@/components/shared';
+import {
+  FeatureIcon,
+  FeatureModifiersSection,
+  SecondaryFeatureIcon,
+} from '@/components/shared';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import type { FeatureStatModifiers } from '@/lib/schemas/core';
 import type { HomebrewAncestry } from '@/lib/schemas/identity';
 
 interface HomebrewFeatureFieldsProps {
@@ -9,8 +14,10 @@ interface HomebrewFeatureFieldsProps {
   secondaryFeature: HomebrewAncestry['secondaryFeature'];
   onPrimaryNameChange: (value: string) => void;
   onPrimaryDescChange: (value: string) => void;
+  onPrimaryModifiersChange: (value: FeatureStatModifiers | undefined) => void;
   onSecondaryNameChange: (value: string) => void;
   onSecondaryDescChange: (value: string) => void;
+  onSecondaryModifiersChange: (value: FeatureStatModifiers | undefined) => void;
 }
 
 export function HomebrewFeatureFields({
@@ -18,8 +25,10 @@ export function HomebrewFeatureFields({
   secondaryFeature,
   onPrimaryNameChange,
   onPrimaryDescChange,
+  onPrimaryModifiersChange,
   onSecondaryNameChange,
   onSecondaryDescChange,
+  onSecondaryModifiersChange,
 }: HomebrewFeatureFieldsProps) {
   return (
     <div className="grid gap-6 md:grid-cols-2">
@@ -49,6 +58,14 @@ export function HomebrewFeatureFields({
             className="min-h-25"
           />
         </div>
+
+        <FeatureModifiersSection
+          modifiers={primaryFeature.modifiers}
+          onChange={onPrimaryModifiersChange}
+          title="Primary Feature Modifiers"
+          colorClass="text-amber-600 dark:text-amber-400"
+          showTraits
+        />
       </div>
 
       <div className="space-y-4 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950/30">
@@ -77,6 +94,14 @@ export function HomebrewFeatureFields({
             className="min-h-25"
           />
         </div>
+
+        <FeatureModifiersSection
+          modifiers={secondaryFeature.modifiers}
+          onChange={onSecondaryModifiersChange}
+          title="Secondary Feature Modifiers"
+          colorClass="text-blue-600 dark:text-blue-400"
+          showTraits
+        />
       </div>
     </div>
   );

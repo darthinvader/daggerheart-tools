@@ -1,4 +1,12 @@
-import { FeaturesEditor } from '@/components/shared';
+/**
+ * Custom Item Form Dialog - Inventory Page Wrapper
+ *
+ * Thin wrapper that uses the unified ItemForm from the homebrew module.
+ * Presents the form in a dialog for creating/editing inventory items.
+ */
+import { useMemo, useState } from 'react';
+
+import { ItemForm, type ItemFormData } from '@/components/homebrew';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -7,18 +15,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { BookOpen, Check, Pencil, Save, Wrench } from '@/lib/icons';
-import type { AnyItem } from '@/lib/schemas/equipment';
-
-import {
-  ItemPreviewBadge,
-  QuantityConsumableRow,
-} from './custom-item-subcomponents';
-import { ItemPropertySelectors } from './item-property-selectors';
-import { useCustomItemForm } from './use-custom-item-form';
+import { Check, Pencil, Save, Wrench } from '@/lib/icons';
+import type { AnyItem, EquipmentTier, Rarity } from '@/lib/schemas/equipment';
+import type { ItemCategory } from '@/lib/schemas/homebrew';
 
 interface CustomItemFormProps {
   open: boolean;
@@ -27,19 +26,64 @@ interface CustomItemFormProps {
   initialItem?: AnyItem | null;
 }
 
+/** Convert AnyItem to ItemFormData */
+function itemToFormData(
+  item: AnyItem | null | undefined
+): ItemFormData | undefined {
+  if (!item) return undefined;
+  return {
+    name: item.name,
+    description: (item as { description?: string }).description ?? '',
+    tier: item.tier as EquipmentTier | undefined,
+    category:
+      ((item as { category?: string }).category as ItemCategory) ?? 'Utility',
+    rarity: (item.rarity as Rarity) ?? 'Common',
+    features: item.features ?? [],
+    maxQuantity: item.maxQuantity ?? 1,
+    isConsumable: (item as { isConsumable?: boolean }).isConsumable ?? false,
+    isHomebrew: true,
+  };
+}
+
+/** Convert ItemFormData to AnyItem */
+function formDataToItem(data: ItemFormData): AnyItem {
+  const validFeatures = data.features.filter(
+    f => f.name.trim() && f.description.trim()
+  );
+  return {
+    name: data.name.trim(),
+    tier: data.tier as EquipmentTier,
+    rarity: data.rarity,
+    category: data.category,
+    description: data.description?.trim() || undefined,
+    features: validFeatures,
+    isConsumable: data.isConsumable,
+    maxQuantity: data.maxQuantity,
+  } as AnyItem;
+}
+
 export function CustomItemForm({
   open,
   onOpenChange,
   onSave,
   initialItem,
 }: CustomItemFormProps) {
-  const form = useCustomItemForm(initialItem);
   const isEditing = !!initialItem;
+  const initialData = useMemo(() => itemToFormData(initialItem), [initialItem]);
+
+  // Track form data and validity as state
+  const [formData, setFormData] = useState<ItemFormData | null>(null);
+  const isValid = formData?.name?.trim();
+
+  const handleChange = (data: ItemFormData) => {
+    setFormData(data);
+  };
 
   const handleSave = () => {
-    onSave(form.buildItem());
-    form.reset();
-    onOpenChange(false);
+    if (formData && formData.name.trim()) {
+      onSave(formDataToItem(formData));
+      onOpenChange(false);
+    }
   };
 
   return (
@@ -61,70 +105,17 @@ export function CustomItemForm({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <ItemPreviewBadge
-            name={form.name}
-            category={form.category}
-            rarity={form.rarity}
-            tier={form.tier}
-          />
-
-          <div className="space-y-2">
-            <Label htmlFor="item-name" className="flex items-center gap-1.5">
-              <Pencil className="size-4" /> Name *
-            </Label>
-            <Input
-              id="item-name"
-              placeholder="Enter item name..."
-              value={form.name}
-              onChange={e => form.setField('name', e.target.value)}
-            />
-          </div>
-
-          <ItemPropertySelectors
-            category={form.category}
-            rarity={form.rarity}
-            tier={form.tier}
-            onCategoryChange={v => form.setField('category', v)}
-            onRarityChange={v => form.setField('rarity', v)}
-            onTierChange={v => form.setField('tier', v)}
-          />
-
-          <QuantityConsumableRow
-            maxQuantity={form.maxQuantity}
-            isConsumable={form.isConsumable}
-            onMaxQuantityChange={v => form.setField('maxQuantity', v)}
-            onConsumableChange={v => form.setField('isConsumable', v)}
-          />
-
-          <div className="space-y-2">
-            <Label htmlFor="description" className="flex items-center gap-1.5">
-              <BookOpen className="size-4" /> Description
-            </Label>
-            <Textarea
-              id="description"
-              placeholder="Optional item description..."
-              value={form.description}
-              onChange={e => form.setField('description', e.target.value)}
-              rows={2}
-            />
-          </div>
-
-          <FeaturesEditor
-            features={form.features}
-            onChange={features => form.setField('features', features)}
-          />
-        </div>
+        <ItemForm
+          initialData={initialData}
+          onChange={handleChange}
+          showActions={false}
+        />
 
         <div className="flex justify-end gap-2 border-t pt-4">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button
-            onClick={handleSave}
-            disabled={!form.isValid}
-            className="gap-1.5"
-          >
+          <Button onClick={handleSave} disabled={!isValid} className="gap-1.5">
             {isEditing ? (
               <>
                 <Save className="size-4" /> Save Changes

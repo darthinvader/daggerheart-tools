@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 
+import { HomebrewContentBrowser } from '@/components/shared';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -13,10 +14,15 @@ import {
   Palette,
   Shuffle,
 } from '@/lib/icons';
-import type { ClassDraft, ClassSelection } from '@/lib/schemas/class-selection';
+import type {
+  ClassDraft,
+  ClassSelection,
+  HomebrewClass,
+} from '@/lib/schemas/class-selection';
 
 import { ClassList } from './class-list';
 import { ClassModeTabs } from './class-mode-tabs';
+import { HomebrewClassCard } from './homebrew-class-card';
 import { HomebrewClassForm } from './homebrew-class-form';
 import { SubclassModal } from './subclass-modal';
 import { useClassSelectorState } from './use-class-selector-state';
@@ -139,6 +145,7 @@ interface ClassSelectorProps {
     complete: () => ClassSelection | null;
   } | null>;
   onValidityChange?: (canComplete: boolean) => void;
+  campaignId?: string;
 }
 
 export function ClassSelector({
@@ -148,6 +155,7 @@ export function ClassSelector({
   hideCompleteButton = false,
   completeRef,
   onValidityChange,
+  campaignId,
 }: ClassSelectorProps) {
   const {
     mode,
@@ -155,6 +163,7 @@ export function ClassSelector({
     selectedClasses,
     selectedSubclasses,
     homebrewClass,
+    customClass,
     canComplete,
     modalClass,
     isModalOpen,
@@ -162,6 +171,7 @@ export function ClassSelector({
     handleMulticlassToggle,
     handleSubclassSelect,
     handleHomebrewChange,
+    handleCustomChange,
     handleComplete,
     handleOpenModal,
     handleCloseModal,
@@ -190,9 +200,28 @@ export function ClassSelector({
       )}
 
       {mode === 'homebrew' && (
+        <HomebrewContentBrowser<HomebrewClass>
+          contentType="class"
+          campaignId={campaignId}
+          selectedItem={homebrewClass}
+          onSelect={(cls, contentId) => handleHomebrewChange(cls, contentId)}
+          renderItem={(content, isSelected, onClick) => (
+            <HomebrewClassCard
+              key={content.id}
+              content={content}
+              isSelected={isSelected}
+              onClick={onClick}
+            />
+          )}
+          extractContent={c => c.content as unknown as HomebrewClass}
+          emptyMessage="No homebrew classes found."
+        />
+      )}
+
+      {mode === 'custom' && (
         <HomebrewClassForm
-          homebrewClass={homebrewClass}
-          onChange={handleHomebrewChange}
+          homebrewClass={customClass}
+          onChange={handleCustomChange}
         />
       )}
 
@@ -220,6 +249,14 @@ export function ClassSelector({
                 <Palette className="size-4 shrink-0" />
                 <span className="truncate">
                   Continue with {homebrewClass.name || 'Homebrew Class'}
+                </span>
+              </span>
+            )}
+            {mode === 'custom' && customClass && (
+              <span className="flex min-w-0 items-center gap-1">
+                <Palette className="size-4 shrink-0" />
+                <span className="truncate">
+                  Continue with {customClass.name || 'Custom Class'}
                 </span>
               </span>
             )}

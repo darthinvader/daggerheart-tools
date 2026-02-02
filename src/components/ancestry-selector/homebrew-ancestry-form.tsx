@@ -1,14 +1,5 @@
-import { useCallback, useState } from 'react';
-
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Wrench } from '@/lib/icons';
+import { AncestryForm, type AncestryFormData } from '@/components/homebrew';
 import type { HomebrewAncestry } from '@/lib/schemas/identity';
-
-import { HomebrewBasicFields } from './homebrew-basic-fields';
-import { HomebrewCharacteristicsField } from './homebrew-characteristics-field';
-import { HomebrewFeatureFields } from './homebrew-feature-fields';
 
 interface HomebrewAncestryFormProps {
   homebrew: HomebrewAncestry | null;
@@ -17,129 +8,72 @@ interface HomebrewAncestryFormProps {
   hideSaveButton?: boolean;
 }
 
-const EMPTY_HOMEBREW: HomebrewAncestry = {
-  name: '',
-  description: '',
-  heightRange: '',
-  lifespan: '',
-  physicalCharacteristics: [],
-  primaryFeature: { name: '', description: '', type: 'primary' },
-  secondaryFeature: { name: '', description: '', type: 'secondary' },
-};
+/**
+ * Converts AncestryFormData to the character page HomebrewAncestry type.
+ */
+function formDataToHomebrewAncestry(data: AncestryFormData): HomebrewAncestry {
+  return {
+    name: data.name,
+    description: data.description,
+    heightRange: data.heightRange,
+    lifespan: data.lifespan,
+    physicalCharacteristics: data.physicalCharacteristics,
+    primaryFeature: {
+      name: data.primaryFeature.name,
+      description: data.primaryFeature.description,
+      type: 'primary',
+      modifiers: data.primaryFeature.modifiers,
+    },
+    secondaryFeature: {
+      name: data.secondaryFeature.name,
+      description: data.secondaryFeature.description,
+      type: 'secondary',
+      modifiers: data.secondaryFeature.modifiers,
+    },
+  };
+}
+
+/**
+ * Converts HomebrewAncestry to AncestryFormData for the form.
+ */
+function homebrewAncestryToFormData(
+  ancestry: HomebrewAncestry
+): AncestryFormData {
+  return {
+    name: ancestry.name,
+    description: ancestry.description,
+    heightRange: ancestry.heightRange,
+    lifespan: ancestry.lifespan,
+    physicalCharacteristics: ancestry.physicalCharacteristics,
+    primaryFeature: {
+      name: ancestry.primaryFeature.name,
+      description: ancestry.primaryFeature.description,
+      type: 'primary',
+      modifiers: ancestry.primaryFeature.modifiers,
+    },
+    secondaryFeature: {
+      name: ancestry.secondaryFeature.name,
+      description: ancestry.secondaryFeature.description,
+      type: 'secondary',
+      modifiers: ancestry.secondaryFeature.modifiers,
+    },
+    isHomebrew: true,
+  };
+}
 
 export function HomebrewAncestryForm({
   homebrew,
   onChange,
-  onSave,
-  hideSaveButton = false,
 }: HomebrewAncestryFormProps) {
-  const [formState, setFormState] = useState<HomebrewAncestry>(
-    homebrew ?? EMPTY_HOMEBREW
-  );
-  const [characteristicsText, setCharacteristicsText] = useState(
-    homebrew?.physicalCharacteristics.join('\n') ?? ''
-  );
-
-  const updateForm = useCallback(
-    (updates: Partial<HomebrewAncestry>) => {
-      const updated = { ...formState, ...updates };
-      setFormState(updated);
-      onChange(updated);
-    },
-    [formState, onChange]
-  );
-
-  const handleCharacteristicsChange = useCallback(
-    (value: string) => {
-      setCharacteristicsText(value);
-      const characteristics = value
-        .split('\n')
-        .map(line => line.trim())
-        .filter(line => line.length > 0);
-      updateForm({ physicalCharacteristics: characteristics });
-    },
-    [updateForm]
-  );
-
-  const handleSave = useCallback(() => {
-    onChange(formState);
-    onSave?.(formState);
-  }, [formState, onChange, onSave]);
-
-  const isValid =
-    formState.name.trim() &&
-    formState.primaryFeature.name.trim() &&
-    formState.secondaryFeature.name.trim();
+  const handleChange = (data: AncestryFormData) => {
+    onChange(formDataToHomebrewAncestry(data));
+  };
 
   return (
-    <Card className="border-primary/50 border-dashed">
-      <CardHeader className="pb-3">
-        <div className="flex items-center gap-2">
-          <Badge className="gap-1">
-            <Wrench className="size-3" /> Homebrew
-          </Badge>
-          <CardTitle className="text-base">Create Ancestry</CardTitle>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <HomebrewBasicFields
-          name={formState.name}
-          heightRange={formState.heightRange}
-          lifespan={formState.lifespan}
-          description={formState.description}
-          onNameChange={v => updateForm({ name: v })}
-          onHeightChange={v => updateForm({ heightRange: v })}
-          onLifespanChange={v => updateForm({ lifespan: v })}
-          onDescriptionChange={v => updateForm({ description: v })}
-        />
-
-        <HomebrewFeatureFields
-          primaryFeature={formState.primaryFeature}
-          secondaryFeature={formState.secondaryFeature}
-          onPrimaryNameChange={v =>
-            updateForm({
-              primaryFeature: { ...formState.primaryFeature, name: v },
-            })
-          }
-          onPrimaryDescChange={v =>
-            updateForm({
-              primaryFeature: { ...formState.primaryFeature, description: v },
-            })
-          }
-          onSecondaryNameChange={v =>
-            updateForm({
-              secondaryFeature: { ...formState.secondaryFeature, name: v },
-            })
-          }
-          onSecondaryDescChange={v =>
-            updateForm({
-              secondaryFeature: {
-                ...formState.secondaryFeature,
-                description: v,
-              },
-            })
-          }
-        />
-
-        <HomebrewCharacteristicsField
-          value={characteristicsText}
-          characteristicsCount={formState.physicalCharacteristics.length}
-          onChange={handleCharacteristicsChange}
-        />
-
-        {!hideSaveButton && (
-          <div className="flex justify-end border-t pt-4">
-            <Button
-              onClick={handleSave}
-              disabled={!isValid}
-              size="lg"
-              className="gap-1.5"
-            >
-              <Wrench className="size-4" /> Save Homebrew Ancestry
-            </Button>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+    <AncestryForm
+      initialData={homebrew ? homebrewAncestryToFormData(homebrew) : undefined}
+      onChange={handleChange}
+      showActions={false}
+    />
   );
 }

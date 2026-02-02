@@ -45,7 +45,10 @@ export const CLASS_BG_COLORS: Record<string, string> = {
   Wizard: 'bg-blue-500/10 border-blue-500/30',
 };
 
-export type ClassMode = 'standard' | 'homebrew';
+// 'standard' = Official content
+// 'homebrew' = Campaign-linked homebrew content
+// 'custom' = Player-created custom content on the fly
+export type ClassMode = 'standard' | 'homebrew' | 'custom';
 
 // Homebrew class schema (same shape as BaseClass with subclasses)
 export const HomebrewSubclassSchema = BaseSubclassSchema.extend({
@@ -79,25 +82,32 @@ export type ClassSubclassPair = z.infer<typeof ClassSubclassPairSchema>;
 
 // Complete selection state - includes derived fields for display
 export const ClassSelectionSchema = z.object({
-  mode: z.enum(['standard', 'homebrew']),
+  mode: z.enum(['standard', 'homebrew', 'custom']),
   className: z.string(),
   subclassName: z.string(),
   domains: z.array(DomainNameSchema),
   isHomebrew: z.boolean().default(false),
+  isCustom: z.boolean().default(false),
   spellcastTrait: z.string().optional(),
   homebrewClass: HomebrewClassSchema.optional(),
+  customClass: HomebrewClassSchema.optional(),
   isMulticlass: z.boolean().optional(),
   classes: z.array(ClassSubclassPairSchema).optional(),
+  // ID of campaign-linked homebrew content
+  homebrewContentId: z.string().optional(),
 });
 
 export type ClassSelection = z.infer<typeof ClassSelectionSchema>;
 
 // Draft schema for storage (simpler, handles partial selections)
 export const ClassDraftSchema = z.object({
-  mode: z.enum(['standard', 'homebrew']).default('standard'),
+  mode: z.enum(['standard', 'homebrew', 'custom']).default('standard'),
   className: z.union([ClassNameEnum, z.string()]).optional(),
   subclassName: SubclassNameSchema.optional(),
   homebrewClass: HomebrewClassSchema.optional(),
+  customClass: HomebrewClassSchema.optional(),
+  // ID of campaign-linked homebrew content
+  homebrewContentId: z.string().optional(),
 });
 
 export type ClassDraft = z.infer<typeof ClassDraftSchema>;

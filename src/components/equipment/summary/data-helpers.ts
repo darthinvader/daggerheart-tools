@@ -5,6 +5,8 @@ import type {
   StandardArmor,
 } from '@/lib/schemas/equipment';
 
+import type { EquipmentMode } from '../equipment-mode-tabs';
+
 export type WeaponDisplayData = ReturnType<typeof getWeaponData>;
 export type ArmorDisplayData = ReturnType<typeof getArmorData>;
 export type WheelchairDisplayData = ReturnType<typeof getWheelchairData>;
@@ -27,20 +29,25 @@ export function formatDamage(damage?: {
 }
 
 export function getWeaponData(
-  mode: 'standard' | 'homebrew',
+  mode: EquipmentMode,
   standard: PrimaryWeapon | SecondaryWeapon | null,
-  homebrew: Partial<PrimaryWeapon | SecondaryWeapon>
+  homebrew: Partial<PrimaryWeapon | SecondaryWeapon>,
+  custom?: Partial<PrimaryWeapon | SecondaryWeapon>
 ) {
-  if (mode === 'homebrew') {
+  // Homebrew and custom use the same shape
+  if (mode === 'homebrew' || mode === 'custom') {
+    const data = mode === 'custom' ? (custom ?? homebrew) : homebrew;
     return {
-      name: homebrew.name || 'Unnamed Homebrew',
-      damage: formatDamage(homebrew.damage),
-      range: homebrew.range,
-      trait: homebrew.trait,
-      burden: homebrew.burden,
-      features: homebrew.features ?? [],
-      tier: homebrew.tier,
-      description: homebrew.description,
+      name:
+        data.name ||
+        (mode === 'custom' ? 'Unnamed Custom' : 'Unnamed Homebrew'),
+      damage: formatDamage(data.damage),
+      range: data.range,
+      trait: data.trait,
+      burden: data.burden,
+      features: data.features ?? [],
+      tier: data.tier,
+      description: data.description,
       isEmpty: false,
     };
   }
@@ -61,22 +68,27 @@ export function getWeaponData(
 }
 
 export function getArmorData(
-  mode: 'standard' | 'homebrew',
+  mode: EquipmentMode,
   armor: StandardArmor | null,
-  homebrew: Partial<StandardArmor>
+  homebrew: Partial<StandardArmor>,
+  custom?: Partial<StandardArmor>
 ) {
-  if (mode === 'homebrew') {
+  // Homebrew and custom use the same shape
+  if (mode === 'homebrew' || mode === 'custom') {
+    const data = mode === 'custom' ? (custom ?? homebrew) : homebrew;
     return {
-      name: homebrew.name || 'Unnamed Homebrew',
-      baseScore: homebrew.baseScore,
-      major: homebrew.baseThresholds?.major,
-      severe: homebrew.baseThresholds?.severe,
-      evasionMod: homebrew.evasionModifier,
-      agilityMod: homebrew.agilityModifier,
-      armorType: homebrew.armorType,
-      features: homebrew.features ?? [],
-      tier: homebrew.tier,
-      description: homebrew.description,
+      name:
+        data.name ||
+        (mode === 'custom' ? 'Unnamed Custom' : 'Unnamed Homebrew'),
+      baseScore: data.baseScore,
+      major: data.baseThresholds?.major,
+      severe: data.baseThresholds?.severe,
+      evasionMod: data.evasionModifier,
+      agilityMod: data.agilityModifier,
+      armorType: data.armorType,
+      features: data.features ?? [],
+      tier: data.tier,
+      description: data.description,
       isEmpty: false,
     };
   }
@@ -100,24 +112,29 @@ export function getArmorData(
 
 export function getWheelchairData(
   enabled: boolean,
-  mode: 'standard' | 'homebrew',
+  mode: EquipmentMode,
   wheelchair: CombatWheelchair | null,
-  homebrew: Partial<CombatWheelchair>
+  homebrew: Partial<CombatWheelchair>,
+  custom?: Partial<CombatWheelchair>
 ) {
   if (!enabled) return { name: 'Not using', isEmpty: true };
 
-  if (mode === 'homebrew') {
+  // Homebrew and custom use the same shape
+  if (mode === 'homebrew' || mode === 'custom') {
+    const data = mode === 'custom' ? (custom ?? homebrew) : homebrew;
     return {
-      name: homebrew.name || 'Unnamed Homebrew',
-      damage: formatDamage(homebrew.damage),
-      range: homebrew.range,
-      trait: homebrew.trait,
-      burden: homebrew.burden,
-      features: homebrew.features ?? [],
-      tier: homebrew.tier,
-      frameType: homebrew.frameType,
-      wheelchairFeatures: homebrew.wheelchairFeatures ?? [],
-      description: homebrew.description,
+      name:
+        data.name ||
+        (mode === 'custom' ? 'Unnamed Custom' : 'Unnamed Homebrew'),
+      damage: formatDamage(data.damage),
+      range: data.range,
+      trait: data.trait,
+      burden: data.burden,
+      features: data.features ?? [],
+      tier: data.tier,
+      frameType: data.frameType,
+      wheelchairFeatures: data.wheelchairFeatures ?? [],
+      description: data.description,
       isEmpty: false,
     };
   }

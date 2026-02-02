@@ -1,4 +1,4 @@
-import { type ModeOption, ModeTabs } from '@/components/shared';
+import { CustomIcon, type ModeOption, ModeTabs } from '@/components/shared';
 import { LoadoutModeIcons } from '@/lib/icons';
 import type { LoadoutMode } from '@/lib/schemas/loadout';
 
@@ -24,8 +24,14 @@ const MODES: ModeOption<LoadoutMode>[] = [
   {
     value: 'homebrew',
     label: 'Homebrew',
-    shortLabel: 'Custom',
+    shortLabel: 'Homebrew',
     icon: <LoadoutModeIcons.homebrew size={16} />,
+  },
+  {
+    value: 'custom',
+    label: 'Custom',
+    shortLabel: 'Custom',
+    icon: <CustomIcon size={16} />,
   },
 ];
 

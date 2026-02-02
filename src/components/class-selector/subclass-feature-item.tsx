@@ -1,3 +1,4 @@
+import { FeatureModifiersSection } from '@/components/shared/feature-modifiers-section';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -120,6 +121,13 @@ export function SubclassFeatureItem({
           rows={2}
         />
       </div>
+      <FeatureModifiersSection
+        modifiers={feature.modifiers}
+        onChange={modifiers => onUpdate({ modifiers })}
+        title="Feature Modifiers"
+        colorClass="text-purple-500"
+        showTraits
+      />
     </div>
   );
 }

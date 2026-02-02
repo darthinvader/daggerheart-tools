@@ -49,7 +49,15 @@ export const CARD_TYPE_COLORS: Record<string, string> = {
   Grimoire: 'text-amber-400',
 };
 
-export type LoadoutMode = 'class-domains' | 'all-domains' | 'homebrew';
+// 'class-domains' = Official cards filtered to class domains
+// 'all-domains' = All official domain cards
+// 'homebrew' = Campaign-linked homebrew content
+// 'custom' = Player-created custom content on the fly
+export type LoadoutMode =
+  | 'class-domains'
+  | 'all-domains'
+  | 'homebrew'
+  | 'custom';
 
 // Loadout rules per character level/tier
 // Per RAW: Max 5 active cards in loadout at any time, vault is unlimited
@@ -118,7 +126,7 @@ export type HomebrewDomainCard = z.infer<typeof HomebrewDomainCardSchema>;
 // Loadout selection state
 export const LoadoutSelectionSchema = z.object({
   mode: z
-    .enum(['class-domains', 'all-domains', 'homebrew'])
+    .enum(['class-domains', 'all-domains', 'homebrew', 'custom'])
     .default('class-domains'),
   activeCards: z.array(DomainCardLiteSchema).default([]),
   vaultCards: z.array(DomainCardLiteSchema).default([]),

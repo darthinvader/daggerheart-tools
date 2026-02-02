@@ -5,8 +5,9 @@
  * Uses singular primaryFeature/secondaryFeature objects per schema.
  */
 import { Dna, Plus, Sparkles, Trash2, Users } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
+import { FeatureModifiersSection } from '@/components/shared';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,8 +15,7 @@ import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
-import type { HomebrewAncestry } from '@/lib/schemas/homebrew';
-import { createDefaultAncestryContent } from '@/lib/schemas/homebrew';
+import type { FeatureStatModifiers } from '@/lib/schemas/core';
 import { cn } from '@/lib/utils';
 
 // Predefined physical characteristics from official ancestries
@@ -42,39 +42,96 @@ const PHYSICAL_CHARACTERISTIC_SUGGESTIONS = [
   'Retractable claws',
 ] as const;
 
-interface AncestryFormProps {
-  initialData?: HomebrewAncestry['content'];
-  onSubmit: (data: HomebrewAncestry['content']) => void;
-  onCancel: () => void;
-  isSubmitting?: boolean;
+/**
+ * Data shape that the AncestryForm works with.
+ * Compatible with both HomebrewAncestry['content'] (homebrew page)
+ * and the character page inline ancestry type.
+ */
+export interface AncestryFormData {
+  name: string;
+  description: string;
+  heightRange: string;
+  lifespan: string;
+  physicalCharacteristics: string[];
+  primaryFeature: {
+    name: string;
+    description: string;
+    type: 'primary' | 'secondary';
+    modifiers?: FeatureStatModifiers;
+  };
+  secondaryFeature: {
+    name: string;
+    description: string;
+    type: 'primary' | 'secondary';
+    modifiers?: FeatureStatModifiers;
+  };
+  isHomebrew: true;
 }
+
+interface AncestryFormProps {
+  initialData?: AncestryFormData;
+  /** Called on form submit (dialog mode) */
+  onSubmit?: (data: AncestryFormData) => void;
+  /** Called on cancel (dialog mode) */
+  onCancel?: () => void;
+  /** Called on every change (inline mode) */
+  onChange?: (data: AncestryFormData) => void;
+  isSubmitting?: boolean;
+  /** Show submit/cancel buttons (default: true, set false for inline mode) */
+  showActions?: boolean;
+}
+
+const DEFAULT_ANCESTRY_DATA: AncestryFormData = {
+  name: '',
+  description: '',
+  heightRange: '',
+  lifespan: '',
+  physicalCharacteristics: [],
+  primaryFeature: { name: '', description: '', type: 'primary' },
+  secondaryFeature: { name: '', description: '', type: 'secondary' },
+  isHomebrew: true,
+};
 
 export function AncestryForm({
   initialData,
   onSubmit,
   onCancel,
+  onChange,
   isSubmitting = false,
+  showActions = true,
 }: AncestryFormProps) {
-  const [formData, setFormData] = useState(
-    initialData ?? createDefaultAncestryContent()
+  const [formData, setFormData] = useState<AncestryFormData>(
+    initialData ?? DEFAULT_ANCESTRY_DATA
   );
   const [characteristics, setCharacteristics] = useState<string[]>(
     initialData?.physicalCharacteristics ?? []
   );
   const [newCharacteristic, setNewCharacteristic] = useState('');
 
+  // Build current data for callbacks
+  const buildCurrentData = useCallback((): AncestryFormData => {
+    return {
+      ...formData,
+      physicalCharacteristics: characteristics.filter(c => c.trim()),
+      isHomebrew: true,
+    };
+  }, [formData, characteristics]);
+
+  // Auto-notify on changes (for inline mode)
+  useEffect(() => {
+    if (onChange) {
+      onChange(buildCurrentData());
+    }
+  }, [formData, characteristics]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
-
-      const content: HomebrewAncestry['content'] = {
-        ...formData,
-        physicalCharacteristics: characteristics.filter(c => c.trim()),
-      };
-
-      onSubmit(content);
+      if (onSubmit) {
+        onSubmit(buildCurrentData());
+      }
     },
-    [formData, characteristics, onSubmit]
+    [onSubmit, buildCurrentData]
   );
 
   const addCharacteristic = (value: string) => {
@@ -299,6 +356,22 @@ export function AncestryForm({
                   required
                 />
               </div>
+
+              <FeatureModifiersSection
+                modifiers={formData.primaryFeature.modifiers}
+                onChange={modifiers =>
+                  setFormData(prev => ({
+                    ...prev,
+                    primaryFeature: {
+                      ...prev.primaryFeature,
+                      modifiers,
+                    },
+                  }))
+                }
+                title="Primary Feature Modifiers"
+                colorClass="text-purple-500"
+                showTraits
+              />
             </div>
           </section>
 
@@ -352,22 +425,45 @@ export function AncestryForm({
                   required
                 />
               </div>
+
+              <FeatureModifiersSection
+                modifiers={formData.secondaryFeature.modifiers}
+                onChange={modifiers =>
+                  setFormData(prev => ({
+                    ...prev,
+                    secondaryFeature: {
+                      ...prev.secondaryFeature,
+                      modifiers,
+                    },
+                  }))
+                }
+                title="Secondary Feature Modifiers"
+                colorClass="text-indigo-500"
+                showTraits
+              />
             </div>
           </section>
         </div>
       </ScrollArea>
 
-      <Separator />
+      {showActions && (
+        <>
+          <Separator />
 
-      {/* Actions */}
-      <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button type="submit" disabled={isSubmitting || !formData.name.trim()}>
-          {isSubmitting ? 'Saving...' : 'Save Ancestry'}
-        </Button>
-      </div>
+          {/* Actions */}
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={isSubmitting || !formData.name.trim()}
+            >
+              {isSubmitting ? 'Saving...' : 'Save Ancestry'}
+            </Button>
+          </div>
+        </>
+      )}
     </form>
   );
 }

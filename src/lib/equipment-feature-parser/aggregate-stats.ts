@@ -73,10 +73,21 @@ function addModifiers(
 }
 
 /**
+ * Check if a primary weapon is Two-Handed.
+ */
+function isPrimaryTwoHanded(primaryWeapon: unknown): boolean {
+  if (!primaryWeapon || typeof primaryWeapon !== 'object') return false;
+  const weapon = primaryWeapon as Record<string, unknown>;
+  return weapon.burden === 'Two-Handed';
+}
+
+/**
  * Aggregate stat modifiers from all equipped items.
  *
  * Each equipment item is normalized first, then aggregated.
  * The normalization handles all equipment-type-specific logic.
+ *
+ * NOTE: If the primary weapon is Two-Handed, secondary weapon bonuses are skipped.
  *
  * @param armor - The equipped armor (if any)
  * @param primaryWeapon - The equipped primary weapon (if any)
@@ -95,7 +106,12 @@ export function aggregateEquipmentStats(
   // Normalize each equipment piece and aggregate
   addModifiers(stats, normalizeEquipment(armor));
   addModifiers(stats, normalizeEquipment(primaryWeapon));
-  addModifiers(stats, normalizeEquipment(secondaryWeapon));
+
+  // Skip secondary weapon bonuses if primary is Two-Handed
+  if (!isPrimaryTwoHanded(primaryWeapon)) {
+    addModifiers(stats, normalizeEquipment(secondaryWeapon));
+  }
+
   addModifiers(stats, normalizeEquipment(wheelchair));
 
   return stats;

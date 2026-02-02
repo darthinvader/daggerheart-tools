@@ -10,22 +10,39 @@ import {
   Shield,
   Sparkles,
   Sword,
+  Theater,
   Trash2,
   User,
   Users,
 } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
+import { FeatureModifiersSection } from '@/components/shared/feature-modifiers-section';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
-import { ALL_KNOWN_DOMAINS } from '@/lib/schemas/core';
-import type { HomebrewClass } from '@/lib/schemas/homebrew';
-import { createDefaultClassContent } from '@/lib/schemas/homebrew';
+import {
+  ALL_KNOWN_DOMAINS,
+  type FeatureStatModifiers,
+} from '@/lib/schemas/core';
 import { cn } from '@/lib/utils';
 
 // Domain color mapping for visual distinction
@@ -41,27 +58,360 @@ const DOMAIN_COLORS: Record<string, string> = {
   Valor: 'bg-orange-500/20 border-orange-500/50 text-orange-300',
 };
 
+/**
+ * Data shape that the ClassForm works with.
+ * Compatible with both HomebrewClass['content'] (homebrew page)
+ * and the character page inline class type.
+ */
+export interface ClassFormData {
+  name: string;
+  description: string;
+  domains: string[];
+  startingHitPoints: number;
+  startingEvasion: number;
+  classItems: string[];
+  hopeFeature: { name: string; description: string; hopeCost: number };
+  classFeatures: Array<{
+    name: string;
+    description: string;
+    modifiers?: FeatureStatModifiers;
+  }>;
+  backgroundQuestions: string[];
+  connections: string[];
+  startingEquipment: Array<{ name: string; description?: string }>;
+  subclasses?: Array<{
+    name: string;
+    description: string;
+    spellcastTrait?: string;
+    features: Array<{
+      name: string;
+      description: string;
+      type: string;
+      level?: number;
+      modifiers?: FeatureStatModifiers;
+    }>;
+  }>;
+  isHomebrew: true;
+}
+
 interface ClassFormProps {
-  initialData?: HomebrewClass['content'];
-  onSubmit: (data: HomebrewClass['content']) => void;
-  onCancel: () => void;
+  initialData?: ClassFormData;
+  /** Called on form submit (dialog mode) */
+  onSubmit?: (data: ClassFormData) => void;
+  /** Called on cancel (dialog mode) */
+  onCancel?: () => void;
+  /** Called on every change (inline mode) */
+  onChange?: (data: ClassFormData) => void;
   isSubmitting?: boolean;
+  /** Show submit/cancel buttons (default: true, set false for inline mode) */
+  showActions?: boolean;
+  /** Include subclass section (default: false, set true for character page) */
+  includeSubclasses?: boolean;
 }
 
 interface FeatureState {
   id: string;
   name: string;
   description: string;
+  modifiers?: FeatureStatModifiers;
 }
+
+interface SubclassState {
+  id: string;
+  name: string;
+  description: string;
+  spellcastTrait?: string;
+  features: Array<{
+    id: string;
+    name: string;
+    description: string;
+    type: string;
+    level?: number;
+    modifiers?: FeatureStatModifiers;
+  }>;
+}
+
+const FEATURE_TYPES = ['foundation', 'specialization', 'mastery'] as const;
+const FEATURE_TYPE_COLORS: Record<string, string> = {
+  foundation: 'bg-blue-500/10 text-blue-700 border-blue-500/30',
+  specialization: 'bg-purple-500/10 text-purple-700 border-purple-500/30',
+  mastery: 'bg-amber-500/10 text-amber-700 border-amber-500/30',
+};
+
+interface SubclassesSectionProps {
+  subclasses: SubclassState[];
+  onAddSubclass: () => void;
+  onUpdateSubclass: (id: string, updates: Partial<SubclassState>) => void;
+  onRemoveSubclass: (id: string) => void;
+  onAddFeature: (subclassId: string) => void;
+  onUpdateFeature: (
+    subclassId: string,
+    featureId: string,
+    updates: Partial<SubclassState['features'][number]>
+  ) => void;
+  onRemoveFeature: (subclassId: string, featureId: string) => void;
+}
+
+function SubclassesSection({
+  subclasses,
+  onAddSubclass,
+  onUpdateSubclass,
+  onRemoveSubclass,
+  onAddFeature,
+  onUpdateFeature,
+  onRemoveFeature,
+}: SubclassesSectionProps) {
+  return (
+    <Card className="border-primary/50 border-dashed">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="inline-flex items-center">
+              <Theater className="size-3" />
+            </Badge>
+            <CardTitle className="text-base">Subclasses</CardTitle>
+          </div>
+          <Button variant="outline" size="sm" onClick={onAddSubclass}>
+            <Plus className="mr-1 size-3" /> Add Subclass
+          </Button>
+        </div>
+        <CardDescription>
+          Create at least one subclass for your homebrew class.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {subclasses.map((subclass, index) => (
+          <div
+            key={subclass.id}
+            className="bg-muted/30 space-y-4 rounded-lg border p-4"
+          >
+            <div className="flex items-center justify-between">
+              <Badge variant="secondary">Subclass {index + 1}</Badge>
+              {subclasses.length > 1 && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onRemoveSubclass(subclass.id)}
+                  className="text-destructive"
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+              )}
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Subclass Name</Label>
+                <Input
+                  value={subclass.name}
+                  onChange={e =>
+                    onUpdateSubclass(subclass.id, { name: e.target.value })
+                  }
+                  placeholder="e.g., Battle Mage"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Spellcast Trait (optional)</Label>
+                <Select
+                  value={subclass.spellcastTrait ?? ''}
+                  onValueChange={v =>
+                    onUpdateSubclass(subclass.id, {
+                      spellcastTrait: v || undefined,
+                    })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select trait..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="Presence">Presence</SelectItem>
+                    <SelectItem value="Knowledge">Knowledge</SelectItem>
+                    <SelectItem value="Instinct">Instinct</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Description</Label>
+              <Textarea
+                value={subclass.description}
+                onChange={e =>
+                  onUpdateSubclass(subclass.id, { description: e.target.value })
+                }
+                placeholder="Describe this subclass..."
+                rows={2}
+              />
+            </div>
+
+            {/* Subclass Features */}
+            <div className="space-y-3 border-t pt-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium">Subclass Features</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onAddFeature(subclass.id)}
+                >
+                  <Plus className="mr-1 size-3" /> Add Feature
+                </Button>
+              </div>
+
+              {subclass.features.length === 0 ? (
+                <p className="text-muted-foreground text-sm italic">
+                  No features yet.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {subclass.features.map(feature => (
+                    <div
+                      key={feature.id}
+                      className="bg-background space-y-3 rounded border p-3"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <Badge
+                          variant="outline"
+                          className={
+                            FEATURE_TYPE_COLORS[feature.type] ??
+                            FEATURE_TYPE_COLORS.foundation
+                          }
+                        >
+                          {feature.type}
+                        </Badge>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            onRemoveFeature(subclass.id, feature.id)
+                          }
+                          className="text-destructive h-7 w-7 p-0"
+                        >
+                          ✕
+                        </Button>
+                      </div>
+
+                      <div className="grid gap-3 sm:grid-cols-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs">Name</Label>
+                          <Input
+                            value={feature.name}
+                            onChange={e =>
+                              onUpdateFeature(subclass.id, feature.id, {
+                                name: e.target.value,
+                              })
+                            }
+                            placeholder="Feature name..."
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Type</Label>
+                          <Select
+                            value={feature.type}
+                            onValueChange={v =>
+                              onUpdateFeature(subclass.id, feature.id, {
+                                type: v,
+                              })
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {FEATURE_TYPES.map(type => (
+                                <SelectItem key={type} value={type}>
+                                  {type.charAt(0).toUpperCase() + type.slice(1)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Level (optional)</Label>
+                          <Input
+                            type="number"
+                            min={1}
+                            max={10}
+                            value={feature.level ?? ''}
+                            onChange={e =>
+                              onUpdateFeature(subclass.id, feature.id, {
+                                level: e.target.value
+                                  ? Number(e.target.value)
+                                  : undefined,
+                              })
+                            }
+                            placeholder="1-10"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <Label className="text-xs">Description</Label>
+                        <Textarea
+                          value={feature.description}
+                          onChange={e =>
+                            onUpdateFeature(subclass.id, feature.id, {
+                              description: e.target.value,
+                            })
+                          }
+                          placeholder="Describe what this feature does..."
+                          rows={2}
+                        />
+                      </div>
+
+                      <FeatureModifiersSection
+                        modifiers={feature.modifiers}
+                        onChange={modifiers =>
+                          onUpdateFeature(subclass.id, feature.id, {
+                            modifiers,
+                          })
+                        }
+                        title="Feature Modifiers"
+                        colorClass="text-purple-500"
+                        showTraits
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
+
+const DEFAULT_FORM_DATA: ClassFormData = {
+  name: '',
+  description: '',
+  domains: ['Arcana', 'Blade'],
+  startingHitPoints: 6,
+  startingEvasion: 10,
+  classItems: [],
+  hopeFeature: { name: '', description: '', hopeCost: 3 },
+  classFeatures: [],
+  backgroundQuestions: [],
+  connections: [],
+  startingEquipment: [],
+  subclasses: [{ name: '', description: '', features: [] }],
+  isHomebrew: true,
+};
 
 export function ClassForm({
   initialData,
   onSubmit,
   onCancel,
+  onChange,
   isSubmitting = false,
+  showActions = true,
+  includeSubclasses = false,
 }: ClassFormProps) {
-  const [formData, setFormData] = useState(
-    initialData ?? createDefaultClassContent()
+  const [formData, setFormData] = useState<ClassFormData>(
+    initialData ?? { ...DEFAULT_FORM_DATA }
   );
   const [selectedDomains, setSelectedDomains] = useState<string[]>(
     initialData?.domains ?? ['Arcana', 'Blade']
@@ -75,6 +425,7 @@ export function ClassForm({
       id: `feature-${i}`,
       name: f.name,
       description: f.description,
+      modifiers: f.modifiers,
     }))
   );
   const [backgroundQuestions, setBackgroundQuestions] = useState<string[]>(
@@ -85,46 +436,121 @@ export function ClassForm({
     initialData?.connections ?? []
   );
   const [newConnection, setNewConnection] = useState('');
+  const [startingEquipment, setStartingEquipment] = useState<
+    Array<{ id: string; name: string; description: string }>
+  >(
+    (initialData?.startingEquipment ?? []).map((e, i) => ({
+      id: `equip-${i}`,
+      name: e.name,
+      description: e.description ?? '',
+    }))
+  );
+  const [subclasses, setSubclasses] = useState<SubclassState[]>(
+    (
+      initialData?.subclasses ?? [{ name: '', description: '', features: [] }]
+    ).map((s, i) => ({
+      id: `subclass-${i}`,
+      name: s.name,
+      description: s.description,
+      spellcastTrait: s.spellcastTrait,
+      features: (s.features ?? []).map((f, j) => ({
+        id: `subclass-${i}-feature-${j}`,
+        name: f.name,
+        description: f.description,
+        type: f.type || 'foundation',
+        level: f.level,
+        modifiers: f.modifiers,
+      })),
+    }))
+  );
+
+  // Build current data for onChange callback
+  const buildCurrentData = useCallback((): ClassFormData => {
+    return {
+      ...formData,
+      domains: selectedDomains,
+      classItems: classItems.filter(c => c.trim()),
+      classFeatures: classFeatures.map(f => ({
+        name: f.name,
+        description: f.description,
+        modifiers: f.modifiers,
+      })),
+      backgroundQuestions: backgroundQuestions.filter(q => q.trim()),
+      connections: connections.filter(c => c.trim()),
+      startingEquipment: startingEquipment
+        .filter(e => e.name.trim())
+        .map(e => ({
+          name: e.name,
+          description: e.description || undefined,
+        })),
+      subclasses: subclasses.map(s => ({
+        name: s.name,
+        description: s.description,
+        spellcastTrait: s.spellcastTrait,
+        features: s.features.map(f => ({
+          name: f.name,
+          description: f.description,
+          type: f.type,
+          level: f.level,
+          modifiers: f.modifiers,
+        })),
+      })),
+      isHomebrew: true,
+    };
+  }, [
+    formData,
+    selectedDomains,
+    classItems,
+    classFeatures,
+    backgroundQuestions,
+    connections,
+    startingEquipment,
+    subclasses,
+  ]);
+
+  // Notify onChange when data changes
+  const notifyChange = useCallback(() => {
+    if (onChange) {
+      onChange(buildCurrentData());
+    }
+  }, [onChange, buildCurrentData]);
+
+  // Auto-notify on formData changes (for inline mode)
+  useEffect(() => {
+    if (onChange) {
+      notifyChange();
+    }
+  }, [
+    formData,
+    classFeatures,
+    classItems,
+    backgroundQuestions,
+    connections,
+    startingEquipment,
+    subclasses,
+  ]);  
 
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
-
-      const content: HomebrewClass['content'] = {
-        ...formData,
-        domains: selectedDomains,
-        classItems: classItems.filter(c => c.trim()),
-        classFeatures: classFeatures.map(f => ({
-          name: f.name,
-          description: f.description,
-        })),
-        backgroundQuestions: backgroundQuestions.filter(q => q.trim()),
-        connections: connections.filter(c => c.trim()),
-        isHomebrew: true,
-      };
-
-      onSubmit(content);
+      if (onSubmit) {
+        onSubmit(buildCurrentData());
+      }
     },
-    [
-      formData,
-      selectedDomains,
-      classItems,
-      classFeatures,
-      backgroundQuestions,
-      connections,
-      onSubmit,
-    ]
+    [onSubmit, buildCurrentData]
   );
 
   const toggleDomain = (domain: string) => {
     setSelectedDomains(prev => {
-      if (prev.includes(domain)) {
-        return prev.filter(d => d !== domain);
-      }
-      if (prev.length < 2) {
-        return [...prev, domain];
-      }
-      return [prev[1], domain];
+      const newDomains = prev.includes(domain)
+        ? prev.filter(d => d !== domain)
+        : prev.length < 2
+          ? [...prev, domain]
+          : [prev[1], domain];
+
+      // Schedule onChange after state update
+      setTimeout(() => notifyChange(), 0);
+      return newDomains;
     });
   };
 
@@ -474,6 +900,15 @@ export function ClassForm({
                           placeholder="Feature description..."
                           rows={2}
                         />
+                        <FeatureModifiersSection
+                          modifiers={feature.modifiers}
+                          onChange={modifiers =>
+                            updateFeature(feature.id, { modifiers })
+                          }
+                          title="Feature Modifiers"
+                          colorClass="text-emerald-500"
+                          showTraits
+                        />
                       </div>
                       <Button
                         type="button"
@@ -490,6 +925,90 @@ export function ClassForm({
               </div>
             )}
           </section>
+
+          {/* Subclasses Section (only when includeSubclasses is true) */}
+          {includeSubclasses && (
+            <>
+              <Separator />
+              <SubclassesSection
+                subclasses={subclasses}
+                onAddSubclass={() => {
+                  setSubclasses(prev => [
+                    ...prev,
+                    {
+                      id: `subclass-${Date.now()}`,
+                      name: '',
+                      description: '',
+                      features: [],
+                    },
+                  ]);
+                  setTimeout(() => notifyChange(), 0);
+                }}
+                onUpdateSubclass={(id, updates) => {
+                  setSubclasses(prev =>
+                    prev.map(s => (s.id === id ? { ...s, ...updates } : s))
+                  );
+                  setTimeout(() => notifyChange(), 0);
+                }}
+                onRemoveSubclass={id => {
+                  if (subclasses.length <= 1) return;
+                  setSubclasses(prev => prev.filter(s => s.id !== id));
+                  setTimeout(() => notifyChange(), 0);
+                }}
+                onAddFeature={subclassId => {
+                  setSubclasses(prev =>
+                    prev.map(s =>
+                      s.id === subclassId
+                        ? {
+                            ...s,
+                            features: [
+                              ...s.features,
+                              {
+                                id: `feature-${Date.now()}`,
+                                name: '',
+                                description: '',
+                                type: 'foundation',
+                              },
+                            ],
+                          }
+                        : s
+                    )
+                  );
+                  setTimeout(() => notifyChange(), 0);
+                }}
+                onUpdateFeature={(subclassId, featureId, updates) => {
+                  setSubclasses(prev =>
+                    prev.map(s =>
+                      s.id === subclassId
+                        ? {
+                            ...s,
+                            features: s.features.map(f =>
+                              f.id === featureId ? { ...f, ...updates } : f
+                            ),
+                          }
+                        : s
+                    )
+                  );
+                  setTimeout(() => notifyChange(), 0);
+                }}
+                onRemoveFeature={(subclassId, featureId) => {
+                  setSubclasses(prev =>
+                    prev.map(s =>
+                      s.id === subclassId
+                        ? {
+                            ...s,
+                            features: s.features.filter(
+                              f => f.id !== featureId
+                            ),
+                          }
+                        : s
+                    )
+                  );
+                  setTimeout(() => notifyChange(), 0);
+                }}
+              />
+            </>
+          )}
 
           <Separator />
 
@@ -611,27 +1130,122 @@ export function ClassForm({
               </Button>
             </div>
           </section>
+
+          <Separator />
+
+          {/* Starting Equipment */}
+          <section className="space-y-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="flex items-center gap-2 font-semibold">
+                  <Sword className="size-4 text-emerald-500" /> Starting
+                  Equipment
+                </h3>
+                <p className="text-muted-foreground text-sm">
+                  Equipment that new characters of this class start with.
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setStartingEquipment(prev => [
+                    ...prev,
+                    { id: `equip-${Date.now()}`, name: '', description: '' },
+                  ])
+                }
+              >
+                <Plus className="mr-1 size-4" /> Add Item
+              </Button>
+            </div>
+
+            {startingEquipment.length === 0 ? (
+              <p className="text-muted-foreground text-sm italic">
+                No starting equipment defined. Click "Add Item" to begin.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {startingEquipment.map(item => (
+                  <div
+                    key={item.id}
+                    className="space-y-2 rounded border border-emerald-500/20 p-3"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Input
+                        value={item.name}
+                        onChange={e =>
+                          setStartingEquipment(prev =>
+                            prev.map(i =>
+                              i.id === item.id
+                                ? { ...i, name: e.target.value }
+                                : i
+                            )
+                          )
+                        }
+                        placeholder="Item name (e.g., Longsword)"
+                        className="flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setStartingEquipment(prev =>
+                            prev.filter(i => i.id !== item.id)
+                          );
+                          setTimeout(() => notifyChange(), 0);
+                        }}
+                        className="text-destructive"
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </div>
+                    <Textarea
+                      value={item.description}
+                      onChange={e => {
+                        setStartingEquipment(prev =>
+                          prev.map(i =>
+                            i.id === item.id
+                              ? { ...i, description: e.target.value }
+                              : i
+                          )
+                        );
+                        setTimeout(() => notifyChange(), 0);
+                      }}
+                      placeholder="Optional description..."
+                      className="min-h-16"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
         </div>
       </ScrollArea>
 
-      <Separator />
+      {showActions && (
+        <>
+          <Separator />
 
-      {/* Actions */}
-      <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button
-          type="submit"
-          disabled={
-            isSubmitting ||
-            !formData.name.trim() ||
-            selectedDomains.length !== 2
-          }
-        >
-          {isSubmitting ? 'Saving...' : 'Save Class'}
-        </Button>
-      </div>
+          {/* Actions */}
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={
+                isSubmitting ||
+                !formData.name.trim() ||
+                selectedDomains.length !== 2
+              }
+            >
+              {isSubmitting ? 'Saving...' : 'Save Class'}
+            </Button>
+          </div>
+        </>
+      )}
     </form>
   );
 }

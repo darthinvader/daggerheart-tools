@@ -1,3 +1,13 @@
+import { ChevronRight, Plus, Tag, TrendingUp, X } from 'lucide-react';
+import { useState } from 'react';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -7,9 +17,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { ALL_DOMAIN_NAMES } from '@/lib/data/domains';
 import { CardTypeIcons, DomainIcons, ICON_SIZE_MD } from '@/lib/icons';
+import type { FeatureStatModifiers } from '@/lib/schemas/core';
 
 interface HomebrewCardDraft {
   name: string;
@@ -20,12 +32,29 @@ interface HomebrewCardDraft {
   hopeCost: number;
   recallCost: number;
   stressCost: number;
+  tags?: string[];
+  modifiers?: FeatureStatModifiers;
 }
 
 interface CardFormFieldsProps {
   draft: HomebrewCardDraft;
   onUpdate: (updates: Partial<HomebrewCardDraft>) => void;
 }
+
+const TAG_SUGGESTIONS = [
+  'Attack',
+  'Damage',
+  'Healing',
+  'Buff',
+  'Debuff',
+  'Control',
+  'Utility',
+  'Defense',
+  'Movement',
+  'Summon',
+  'Area',
+  'Single Target',
+];
 
 function CostField({
   id,
@@ -117,6 +146,13 @@ export function CardFormFields({ draft, onUpdate }: CardFormFieldsProps) {
                 />
                 Ability
               </SelectItem>
+              <SelectItem value="Grimoire">
+                <CardTypeIcons.Grimoire
+                  size={ICON_SIZE_MD}
+                  className="mr-1 inline-block"
+                />
+                Grimoire
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -164,6 +200,203 @@ export function CardFormFields({ draft, onUpdate }: CardFormFieldsProps) {
           rows={4}
         />
       </div>
+
+      {/* Tags Section */}
+      <TagsSection
+        tags={draft.tags ?? []}
+        onChange={tags => onUpdate({ tags })}
+      />
+
+      {/* Stat Modifiers Section */}
+      <ModifiersSection
+        modifiers={draft.modifiers}
+        onChange={modifiers => onUpdate({ modifiers })}
+      />
     </>
+  );
+}
+
+interface TagsSectionProps {
+  tags: string[];
+  onChange: (tags: string[]) => void;
+}
+
+function TagsSection({ tags, onChange }: TagsSectionProps) {
+  const [newTag, setNewTag] = useState('');
+
+  const addTag = (tag: string) => {
+    const trimmed = tag.trim();
+    if (!trimmed || tags.includes(trimmed)) return;
+    onChange([...tags, trimmed]);
+    setNewTag('');
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <Tag className="text-muted-foreground size-4" />
+        <Label>Tags</Label>
+      </div>
+      <div className="flex gap-2">
+        <Input
+          value={newTag}
+          placeholder="Add a tag..."
+          onChange={e => setNewTag(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && addTag(newTag)}
+        />
+        <Button type="button" variant="outline" onClick={() => addTag(newTag)}>
+          <Plus className="size-4" />
+        </Button>
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        {TAG_SUGGESTIONS.filter(s => !tags.includes(s)).map(suggestion => (
+          <Badge
+            key={suggestion}
+            variant="outline"
+            className="hover:bg-primary/10 cursor-pointer"
+            onClick={() => addTag(suggestion)}
+          >
+            + {suggestion}
+          </Badge>
+        ))}
+      </div>
+      {tags.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {tags.map((tag, i) => (
+            <Badge key={i} className="flex items-center gap-1 bg-violet-500/20">
+              {tag}
+              <button
+                type="button"
+                onClick={() => onChange(tags.filter((_, idx) => idx !== i))}
+                className="hover:bg-destructive/20 ml-1 rounded-full p-0.5"
+              >
+                <X className="size-3" />
+              </button>
+            </Badge>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface ModifiersSectionProps {
+  modifiers: FeatureStatModifiers | undefined;
+  onChange: (modifiers: FeatureStatModifiers | undefined) => void;
+}
+
+function ModifiersSection({ modifiers, onChange }: ModifiersSectionProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [hasModifiers, setHasModifiers] = useState(!!modifiers);
+
+  const handleToggle = (enabled: boolean) => {
+    setHasModifiers(enabled);
+    if (!enabled) {
+      onChange(undefined);
+    } else {
+      onChange({});
+    }
+  };
+
+  const updateModifier = (key: keyof FeatureStatModifiers, value: number) => {
+    const current = modifiers ?? {};
+    if (value === 0) {
+      const rest = { ...current } as Record<string, unknown>;
+      delete rest[key];
+      onChange(
+        Object.keys(rest).length > 0
+          ? (rest as FeatureStatModifiers)
+          : undefined
+      );
+    } else {
+      onChange({ ...current, [key]: value });
+    }
+  };
+
+  return (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <CollapsibleTrigger asChild>
+        <Button variant="ghost" className="w-full justify-start gap-2">
+          <ChevronRight
+            className={`size-4 transition-transform ${isOpen ? 'rotate-90' : ''}`}
+          />
+          <TrendingUp className="text-muted-foreground size-4" />
+          Stat Modifiers
+          {hasModifiers && (
+            <Badge variant="secondary" className="ml-auto text-xs">
+              Active
+            </Badge>
+          )}
+        </Button>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="space-y-4 pt-4">
+        <div className="flex items-center justify-between">
+          <Label>Enable Stat Modifiers</Label>
+          <Switch checked={hasModifiers} onCheckedChange={handleToggle} />
+        </div>
+
+        {hasModifiers && (
+          <div className="grid gap-4 sm:grid-cols-2">
+            <ModifierInput
+              label="Evasion"
+              value={modifiers?.evasion ?? 0}
+              onChange={v => updateModifier('evasion', v)}
+            />
+            <ModifierInput
+              label="Proficiency"
+              value={modifiers?.proficiency ?? 0}
+              onChange={v => updateModifier('proficiency', v)}
+            />
+            <ModifierInput
+              label="Armor Score"
+              value={modifiers?.armorScore ?? 0}
+              onChange={v => updateModifier('armorScore', v)}
+            />
+            <ModifierInput
+              label="Attack Rolls"
+              value={modifiers?.attackRolls ?? 0}
+              onChange={v => updateModifier('attackRolls', v)}
+            />
+            <ModifierInput
+              label="Spellcast Rolls"
+              value={modifiers?.spellcastRolls ?? 0}
+              onChange={v => updateModifier('spellcastRolls', v)}
+            />
+            <ModifierInput
+              label="Major Threshold"
+              value={modifiers?.majorThreshold ?? 0}
+              onChange={v => updateModifier('majorThreshold', v)}
+            />
+            <ModifierInput
+              label="Severe Threshold"
+              value={modifiers?.severeThreshold ?? 0}
+              onChange={v => updateModifier('severeThreshold', v)}
+            />
+          </div>
+        )}
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
+function ModifierInput({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <Label className="text-sm">{label}</Label>
+      <Input
+        type="number"
+        value={value}
+        onChange={e => onChange(Number(e.target.value))}
+        className="h-8"
+      />
+    </div>
   );
 }
