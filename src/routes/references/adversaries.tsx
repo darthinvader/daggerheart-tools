@@ -15,6 +15,7 @@ import {
   ResultsCounter,
   useDeferredItems,
   useDeferredLoad,
+  useDeferredSheetContent,
   useKeyboardNavigation,
 } from '@/components/references';
 import { Badge } from '@/components/ui/badge';
@@ -28,11 +29,12 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
+  ResponsiveSheet,
+  ResponsiveSheetContent,
+  ResponsiveSheetHeader,
+  ResponsiveSheetTitle,
+} from '@/components/ui/responsive-sheet';
+import { SheetContentSkeleton } from '@/components/ui/skeleton';
 import {
   Tooltip,
   TooltipContent,
@@ -395,7 +397,7 @@ function AdversariesHeader({
   );
 }
 
-function AdversariesGrid({
+const AdversariesGrid = React.memo(function AdversariesGrid({
   items,
   isMobile,
   onSelect,
@@ -429,7 +431,7 @@ function AdversariesGrid({
       ))}
     </div>
   );
-}
+});
 
 function AdversariesEmptyState({ onClear }: { onClear: () => void }) {
   return (
@@ -449,34 +451,43 @@ function AdversaryDetailSheet({
   selectedAdversary: AdversaryItem | null;
   onClose: () => void;
 }) {
+  // Defer rendering heavy content until sheet animation completes
+  const shouldRenderContent = useDeferredSheetContent(
+    selectedAdversary !== null
+  );
+
   return (
-    <Sheet
+    <ResponsiveSheet
       open={selectedAdversary !== null}
       onOpenChange={open => !open && onClose()}
     >
-      <SheetContent
+      <ResponsiveSheetContent
         side="right"
         className="flex w-full flex-col p-0 sm:max-w-lg"
         hideCloseButton
       >
         {selectedAdversary && (
           <>
-            <SheetHeader className="bg-background shrink-0 border-b p-4">
-              <SheetTitle className="flex items-center justify-between gap-2">
+            <ResponsiveSheetHeader className="bg-background shrink-0 border-b p-4">
+              <ResponsiveSheetTitle className="flex items-center justify-between gap-2">
                 <span className="truncate">{selectedAdversary.name}</span>
                 <div className="flex shrink-0 items-center gap-2">
                   <KeyboardHint />
                   <DetailCloseButton onClose={onClose} />
                 </div>
-              </SheetTitle>
-            </SheetHeader>
-            <div className="min-h-0 flex-1 overflow-y-auto p-4">
-              <AdversaryDetail adversary={selectedAdversary} />
+              </ResponsiveSheetTitle>
+            </ResponsiveSheetHeader>
+            <div className="scroll-container-optimized min-h-0 flex-1 overflow-y-auto p-4">
+              {shouldRenderContent ? (
+                <AdversaryDetail adversary={selectedAdversary} />
+              ) : (
+                <SheetContentSkeleton />
+              )}
             </div>
           </>
         )}
-      </SheetContent>
-    </Sheet>
+      </ResponsiveSheetContent>
+    </ResponsiveSheet>
   );
 }
 
@@ -506,7 +517,8 @@ function formatFeature(feature: Adversary['features'][number]) {
   return `${feature.name} — ${type}${feature.description}`;
 }
 
-function AdversaryCard({
+// Memoized card component for performance
+const AdversaryCard = React.memo(function AdversaryCard({
   adversary,
   compact = false,
   onClick,
@@ -520,7 +532,7 @@ function AdversaryCard({
 
   return (
     <Card
-      className="hover:border-primary/50 group h-full cursor-pointer overflow-hidden transition-all hover:scale-[1.01] hover:shadow-xl"
+      className="reference-card card-grid-item hover:border-primary/50 group h-full cursor-pointer overflow-hidden transition-all hover:scale-[1.01] hover:shadow-xl"
       onClick={onClick}
     >
       <div className="h-1 bg-linear-to-r from-red-500 via-rose-500 to-orange-500" />
@@ -707,7 +719,7 @@ function AdversaryCard({
       </CardContent>
     </Card>
   );
-}
+});
 
 function AdversaryDetailHeader({ adversary }: { adversary: AdversaryItem }) {
   return (
@@ -937,6 +949,12 @@ function AdversariesReferencePage() {
   const [selectedAdversary, setSelectedAdversary] =
     React.useState<AdversaryItem | null>(null);
 
+  const handleCloseItem = React.useCallback(() => {
+    React.startTransition(() => {
+      setSelectedAdversary(null);
+    });
+  }, []);
+
   const { data: allAdversaries, isLoading: isInitialLoading } =
     useDeferredLoad(loadAllAdversaries);
 
@@ -960,7 +978,7 @@ function AdversariesReferencePage() {
     items: deferredAdversaries,
     selectedItem: selectedAdversary,
     onSelect: setSelectedAdversary,
-    onClose: () => setSelectedAdversary(null),
+    onClose: handleCloseItem,
   });
 
   if (isInitialLoading) {
@@ -1016,7 +1034,7 @@ function AdversariesReferencePage() {
 
       <AdversaryDetailSheet
         selectedAdversary={selectedAdversary}
-        onClose={() => setSelectedAdversary(null)}
+        onClose={handleCloseItem}
       />
     </div>
   );

@@ -191,3 +191,113 @@ h1 {
     overflow: hidden;
   }
 }
+
+/* ===== MOBILE PERFORMANCE OPTIMIZATIONS ===== */
+
+/*
+ * content-visibility: auto tells the browser to skip rendering elements
+ * that are not visible in the viewport. This dramatically improves
+ * initial paint time for pages with many cards/items.
+ */
+.reference-card {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 200px; /* Reserve space to prevent layout shifts */
+}
+
+/*
+ * CSS containment tells the browser that an element is independent
+ * from the rest of the document, enabling rendering optimizations.
+ */
+.card-grid-item {
+  contain: layout style paint;
+}
+
+/*
+ * Disable expensive backdrop-blur effects on mobile devices.
+ * backdrop-blur causes significant performance issues on mobile browsers.
+ */
+@media (max-width: 767px) {
+  /* Remove backdrop-blur from overlays on mobile */
+  [data-slot='sheet-overlay'],
+  [data-slot='drawer-overlay'],
+  [data-slot='dialog-overlay'] {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* Faster animations on mobile - reduce from 500ms/300ms to 200ms/150ms */
+  [data-slot='sheet-content'] {
+    --sheet-animation-duration: 200ms;
+    transition-duration: var(--sheet-animation-duration) !important;
+  }
+
+  [data-slot='sheet-content'][data-state='open'] {
+    animation-duration: 200ms !important;
+  }
+
+  [data-slot='sheet-content'][data-state='closed'] {
+    animation-duration: 150ms !important;
+  }
+
+  /* Optimize drawer animations on mobile */
+  [data-vaul-drawer] {
+    transition-duration: 200ms !important;
+  }
+
+  /* Reduce navbar backdrop blur on mobile */
+  .supports-backdrop-filter\:bg-background\/60 {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background-color: var(--background) !important;
+  }
+}
+
+/*
+ * GPU-accelerated transforms for sheet/drawer animations.
+ * will-change hints to the browser to prepare for animations.
+ */
+[data-slot='sheet-content'],
+[data-slot='drawer-content'] {
+  will-change: transform;
+  transform: translateZ(0); /* Force GPU layer */
+  backface-visibility: hidden;
+}
+
+/*
+ * Optimize overlay fade animation with GPU acceleration.
+ * Use opacity-only transitions for smoother performance.
+ */
+[data-slot='sheet-overlay'],
+[data-slot='drawer-overlay'] {
+  will-change: opacity;
+  backface-visibility: hidden;
+}
+
+/*
+ * Prevent layout recalculation during drawer gestures.
+ * Use contain to isolate layout/paint to the drawer.
+ */
+@media (pointer: coarse) {
+  [data-slot='drawer-content'] {
+    contain: layout style;
+  }
+}
+
+/*
+ * Optimize scroll containers with touch scrolling and momentum.
+ */
+.scroll-container-optimized {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/*
+ * Prevent text selection during drawer gestures on mobile.
+ * Improves perceived responsiveness.
+ */
+@media (pointer: coarse) {
+  [data-vaul-drawer][data-state='open'] {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+}

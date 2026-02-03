@@ -31,6 +31,7 @@ import {
   useCompare,
   useDeferredItems,
   useDeferredLoad,
+  useDeferredSheetContent,
   useFilterState,
   useKeyboardNavigation,
 } from '@/components/references';
@@ -49,11 +50,12 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
+  ResponsiveSheet,
+  ResponsiveSheetContent,
+  ResponsiveSheetHeader,
+  ResponsiveSheetTitle,
+} from '@/components/ui/responsive-sheet';
+import { SheetContentSkeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -652,8 +654,8 @@ function getEquipmentId(item: EquipmentItem): string {
   return `${item.type}-${item.data.name}`;
 }
 
-// Compact card for grid view
-function EquipmentCard({
+// Compact card for grid view - memoized to prevent unnecessary re-renders
+const EquipmentCard = React.memo(function EquipmentCard({
   item,
   onClick,
 }: {
@@ -671,7 +673,7 @@ function EquipmentCard({
 
   return (
     <Card
-      className={`hover:border-primary/50 cursor-pointer overflow-hidden transition-all hover:scale-[1.02] hover:shadow-lg ${inCompare ? 'ring-primary ring-2' : ''}`}
+      className={`reference-card card-grid-item hover:border-primary/50 cursor-pointer overflow-hidden transition-all hover:scale-[1.02] hover:shadow-lg ${inCompare ? 'ring-primary ring-2' : ''}`}
       onClick={onClick}
     >
       {/* Tier indicator bar */}
@@ -720,10 +722,10 @@ function EquipmentCard({
       </CardContent>
     </Card>
   );
-}
+});
 
-// Table row component - mobile-friendly with stacked layout
-function EquipmentTableRow({
+// Table row component - memoized for performance
+const EquipmentTableRow = React.memo(function EquipmentTableRow({
   item,
   onClick,
 }: {
@@ -739,7 +741,7 @@ function EquipmentTableRow({
 
   return (
     <TableRow
-      className={`hover:bg-muted/50 cursor-pointer ${inCompare ? 'bg-primary/10' : ''}`}
+      className={`reference-card hover:bg-muted/50 cursor-pointer ${inCompare ? 'bg-primary/10' : ''}`}
       onClick={onClick}
     >
       {/* Name + compare button - always visible */}
@@ -803,7 +805,7 @@ function EquipmentTableRow({
       </TableCell>
     </TableRow>
   );
-}
+});
 
 /** Collapsible features list for detail view */
 function CollapsibleFeatureList({
@@ -1296,7 +1298,8 @@ function EquipmentHeader({
   );
 }
 
-function EquipmentGridSections({
+// Memoized to prevent re-renders when sheet opens/closes
+const EquipmentGridSections = React.memo(function EquipmentGridSections({
   groupedItems,
   onSelectItem,
   filterState,
@@ -1537,9 +1540,10 @@ function EquipmentGridSections({
       })}
     </div>
   );
-}
+});
 
-function EquipmentTableView({
+// Memoized to prevent re-renders when sheet opens/closes
+const EquipmentTableView = React.memo(function EquipmentTableView({
   items,
   sortBy,
   sortDir,
@@ -1600,7 +1604,7 @@ function EquipmentTableView({
       </TableBody>
     </Table>
   );
-}
+});
 
 function EquipmentEmptyState({
   onClearFilters,
@@ -1624,34 +1628,41 @@ function EquipmentDetailSheet({
   selectedItem: EquipmentItem | null;
   onClose: () => void;
 }) {
+  // Defer rendering heavy content until sheet animation completes
+  const shouldRenderContent = useDeferredSheetContent(selectedItem !== null);
+
   return (
-    <Sheet
+    <ResponsiveSheet
       open={selectedItem !== null}
       onOpenChange={open => !open && onClose()}
     >
-      <SheetContent
+      <ResponsiveSheetContent
         side="right"
         className="flex w-full flex-col p-0 sm:max-w-md"
         hideCloseButton
       >
         {selectedItem && (
           <>
-            <SheetHeader className="bg-background shrink-0 border-b p-4">
-              <SheetTitle className="flex items-center justify-between gap-2">
+            <ResponsiveSheetHeader className="bg-background shrink-0 border-b p-4">
+              <ResponsiveSheetTitle className="flex items-center justify-between gap-2">
                 <span className="truncate">{selectedItem.data.name}</span>
                 <div className="flex shrink-0 items-center gap-2">
                   <KeyboardHint />
                   <DetailCloseButton onClose={onClose} />
                 </div>
-              </SheetTitle>
-            </SheetHeader>
-            <div className="min-h-0 flex-1 overflow-y-auto p-4">
-              <ItemDetail item={selectedItem} />
+              </ResponsiveSheetTitle>
+            </ResponsiveSheetHeader>
+            <div className="scroll-container-optimized min-h-0 flex-1 overflow-y-auto p-4">
+              {shouldRenderContent ? (
+                <ItemDetail item={selectedItem} />
+              ) : (
+                <SheetContentSkeleton />
+              )}
             </div>
           </>
         )}
-      </SheetContent>
-    </Sheet>
+      </ResponsiveSheetContent>
+    </ResponsiveSheet>
   );
 }
 
@@ -1881,6 +1892,13 @@ function EquipmentReferencePage() {
     [sortBy]
   );
 
+  // Stable close callback to prevent re-renders
+  const handleCloseItem = React.useCallback(() => {
+    React.startTransition(() => {
+      setSelectedItem(null);
+    });
+  }, []);
+
   const totalCount = allItems?.length ?? 0;
 
   return (
@@ -1903,7 +1921,7 @@ function EquipmentReferencePage() {
       groupedItems={groupedItems}
       onSelectItem={setSelectedItem}
       selectedItem={selectedItem}
-      onCloseItem={() => setSelectedItem(null)}
+      onCloseItem={handleCloseItem}
       onSort={handleSortClick}
     />
   );

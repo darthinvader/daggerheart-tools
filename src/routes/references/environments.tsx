@@ -15,6 +15,7 @@ import {
   ResultsCounter,
   useDeferredItems,
   useDeferredLoad,
+  useDeferredSheetContent,
   useKeyboardNavigation,
 } from '@/components/references';
 import { Badge } from '@/components/ui/badge';
@@ -28,11 +29,12 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
+  ResponsiveSheet,
+  ResponsiveSheetContent,
+  ResponsiveSheetHeader,
+  ResponsiveSheetTitle,
+} from '@/components/ui/responsive-sheet';
+import { SheetContentSkeleton } from '@/components/ui/skeleton';
 import {
   Tooltip,
   TooltipContent,
@@ -369,7 +371,7 @@ function EnvironmentsHeader({
   );
 }
 
-function EnvironmentsGrid({
+const EnvironmentsGrid = React.memo(function EnvironmentsGrid({
   items,
   isMobile,
   onSelect,
@@ -403,7 +405,7 @@ function EnvironmentsGrid({
       ))}
     </div>
   );
-}
+});
 
 function EnvironmentsEmptyState({ onClear }: { onClear: () => void }) {
   return (
@@ -423,34 +425,42 @@ function EnvironmentDetailSheet({
   selectedEnvironment: EnvironmentItem | null;
   onClose: () => void;
 }) {
+  const shouldRenderContent = useDeferredSheetContent(
+    selectedEnvironment !== null
+  );
+
   return (
-    <Sheet
+    <ResponsiveSheet
       open={selectedEnvironment !== null}
       onOpenChange={open => !open && onClose()}
     >
-      <SheetContent
+      <ResponsiveSheetContent
         side="right"
         className="flex w-full flex-col p-0 sm:max-w-lg"
         hideCloseButton
       >
         {selectedEnvironment && (
           <>
-            <SheetHeader className="bg-background shrink-0 border-b p-4">
-              <SheetTitle className="flex items-center justify-between gap-2">
+            <ResponsiveSheetHeader className="bg-background shrink-0 border-b p-4">
+              <ResponsiveSheetTitle className="flex items-center justify-between gap-2">
                 <span className="truncate">{selectedEnvironment.name}</span>
                 <div className="flex shrink-0 items-center gap-2">
                   <KeyboardHint />
                   <DetailCloseButton onClose={onClose} />
                 </div>
-              </SheetTitle>
-            </SheetHeader>
-            <div className="min-h-0 flex-1 overflow-y-auto p-4">
-              <EnvironmentDetail environment={selectedEnvironment} />
+              </ResponsiveSheetTitle>
+            </ResponsiveSheetHeader>
+            <div className="scroll-container-optimized min-h-0 flex-1 overflow-y-auto p-4">
+              {shouldRenderContent ? (
+                <EnvironmentDetail environment={selectedEnvironment} />
+              ) : (
+                <SheetContentSkeleton />
+              )}
             </div>
           </>
         )}
-      </SheetContent>
-    </Sheet>
+      </ResponsiveSheetContent>
+    </ResponsiveSheet>
   );
 }
 
@@ -464,7 +474,8 @@ function formatFeature(feature: Environment['features'][number]) {
   return `${feature.name} — ${type}${feature.description}`;
 }
 
-function EnvironmentCard({
+// Memoized card component for performance
+const EnvironmentCard = React.memo(function EnvironmentCard({
   environment,
   compact = false,
   onClick,
@@ -478,7 +489,7 @@ function EnvironmentCard({
 
   return (
     <Card
-      className="hover:border-primary/50 group h-full cursor-pointer overflow-hidden transition-all hover:scale-[1.01] hover:shadow-xl"
+      className="reference-card card-grid-item hover:border-primary/50 group h-full cursor-pointer overflow-hidden transition-all hover:scale-[1.01] hover:shadow-xl"
       onClick={onClick}
     >
       <div className="h-1 bg-linear-to-r from-emerald-500 via-teal-500 to-sky-500" />
@@ -612,7 +623,7 @@ function EnvironmentCard({
       </CardContent>
     </Card>
   );
-}
+});
 
 function EnvironmentDetail({ environment }: { environment: EnvironmentItem }) {
   return (
@@ -778,6 +789,12 @@ function EnvironmentsReferencePage() {
   const [selectedEnvironment, setSelectedEnvironment] =
     React.useState<EnvironmentItem | null>(null);
 
+  const handleCloseItem = React.useCallback(() => {
+    React.startTransition(() => {
+      setSelectedEnvironment(null);
+    });
+  }, []);
+
   const { data: allEnvironments, isLoading: isInitialLoading } =
     useDeferredLoad(loadAllEnvironments);
 
@@ -801,7 +818,7 @@ function EnvironmentsReferencePage() {
     items: deferredEnvironments,
     selectedItem: selectedEnvironment,
     onSelect: setSelectedEnvironment,
-    onClose: () => setSelectedEnvironment(null),
+    onClose: handleCloseItem,
   });
 
   if (isInitialLoading) {
@@ -857,7 +874,7 @@ function EnvironmentsReferencePage() {
 
       <EnvironmentDetailSheet
         selectedEnvironment={selectedEnvironment}
-        onClose={() => setSelectedEnvironment(null)}
+        onClose={handleCloseItem}
       />
     </div>
   );

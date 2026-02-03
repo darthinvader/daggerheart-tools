@@ -28,6 +28,9 @@ export {
 export {
   useDeferredItems,
   useDeferredLoad,
+  useDeferredSheetContent,
+  useDelayedUnmount,
+  useStableValue,
   useTransitionState,
 } from './use-deferred-data';
 export { useFilterState } from './use-filter-state';

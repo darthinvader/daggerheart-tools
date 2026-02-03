@@ -31,6 +31,7 @@ import {
   useCompare,
   useDeferredItems,
   useDeferredLoad,
+  useDeferredSheetContent,
   useFilterState,
   useKeyboardNavigation,
 } from '@/components/references';
@@ -43,11 +44,12 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
+  ResponsiveSheet,
+  ResponsiveSheetContent,
+  ResponsiveSheetHeader,
+  ResponsiveSheetTitle,
+} from '@/components/ui/responsive-sheet';
+import { SheetContentSkeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -249,7 +251,8 @@ function getCardId(card: DomainCard): string {
   return `${card.domain}-${card.name}`;
 }
 
-function DomainCardCard({
+// Memoized card component for performance
+const DomainCardCard = React.memo(function DomainCardCard({
   card,
   onClick,
 }: {
@@ -264,7 +267,7 @@ function DomainCardCard({
 
   return (
     <Card
-      className={`h-full cursor-pointer border-l-4 transition-all hover:scale-[1.01] hover:shadow-lg ${domainColor.border} overflow-hidden ${inCompare ? 'ring-primary ring-2' : ''}`}
+      className={`reference-card card-grid-item h-full cursor-pointer border-l-4 transition-all hover:scale-[1.01] hover:shadow-lg ${domainColor.border} overflow-hidden ${inCompare ? 'ring-primary ring-2' : ''}`}
       onClick={onClick}
     >
       <CardHeader className="pb-2">
@@ -327,9 +330,10 @@ function DomainCardCard({
       </CardContent>
     </Card>
   );
-}
+});
 
-function DomainCardTableRow({
+// Memoized table row component for performance
+const DomainCardTableRow = React.memo(function DomainCardTableRow({
   card,
   onClick,
 }: {
@@ -344,7 +348,7 @@ function DomainCardTableRow({
 
   return (
     <TableRow
-      className={`hover:bg-muted/50 cursor-pointer ${inCompare ? 'bg-primary/10' : ''}`}
+      className={`reference-card hover:bg-muted/50 cursor-pointer ${inCompare ? 'bg-primary/10' : ''}`}
       onClick={onClick}
     >
       <TableCell className="max-w-48 truncate font-medium">
@@ -399,7 +403,7 @@ function DomainCardTableRow({
       </TableCell>
     </TableRow>
   );
-}
+});
 
 function CardDetail({ card }: { card: DomainCard }) {
   const domainColor = domainColors[card.domain] ?? defaultDomainColor;
@@ -637,7 +641,7 @@ function DomainCardsHeader({
   );
 }
 
-function DomainCardsGridSections({
+const DomainCardsGridSections = React.memo(function DomainCardsGridSections({
   domainEntries,
   onSelectCard,
   filterState,
@@ -864,9 +868,9 @@ function DomainCardsGridSections({
       })}
     </div>
   );
-}
+});
 
-function DomainCardsTableView({
+const DomainCardsTableView = React.memo(function DomainCardsTableView({
   cards,
   sortBy,
   sortDir,
@@ -925,7 +929,7 @@ function DomainCardsTableView({
       </TableBody>
     </Table>
   );
-}
+});
 
 function DomainCardsEmptyState({
   onClearFilters,
@@ -949,34 +953,41 @@ function DomainCardDetailSheet({
   selectedCard: DomainCard | null;
   onClose: () => void;
 }) {
+  // Defer rendering heavy content until sheet animation completes
+  const shouldRenderContent = useDeferredSheetContent(selectedCard !== null);
+
   return (
-    <Sheet
+    <ResponsiveSheet
       open={selectedCard !== null}
       onOpenChange={open => !open && onClose()}
     >
-      <SheetContent
+      <ResponsiveSheetContent
         side="right"
         className="flex w-full flex-col p-0 sm:max-w-md"
         hideCloseButton
       >
         {selectedCard && (
           <>
-            <SheetHeader className="bg-background shrink-0 border-b p-4">
-              <SheetTitle className="flex items-center justify-between gap-2">
+            <ResponsiveSheetHeader className="bg-background shrink-0 border-b p-4">
+              <ResponsiveSheetTitle className="flex items-center justify-between gap-2">
                 <span className="truncate">{selectedCard.name}</span>
                 <div className="flex shrink-0 items-center gap-2">
                   <KeyboardHint />
                   <DetailCloseButton onClose={onClose} />
                 </div>
-              </SheetTitle>
-            </SheetHeader>
-            <div className="min-h-0 flex-1 overflow-y-auto p-4">
-              <CardDetail card={selectedCard} />
+              </ResponsiveSheetTitle>
+            </ResponsiveSheetHeader>
+            <div className="scroll-container-optimized min-h-0 flex-1 overflow-y-auto p-4">
+              {shouldRenderContent ? (
+                <CardDetail card={selectedCard} />
+              ) : (
+                <SheetContentSkeleton />
+              )}
             </div>
           </>
         )}
-      </SheetContent>
-    </Sheet>
+      </ResponsiveSheetContent>
+    </ResponsiveSheet>
   );
 }
 
@@ -1138,6 +1149,13 @@ function DomainCardsReferencePage() {
     null
   );
 
+  // Memoized close handler with startTransition for smooth UI
+  const handleCloseCard = React.useCallback(() => {
+    React.startTransition(() => {
+      setSelectedCard(null);
+    });
+  }, []);
+
   // Force grid view on mobile - tables are too wide for small screens
   React.useEffect(() => {
     if (isMobile && viewMode === 'table') {
@@ -1229,7 +1247,7 @@ function DomainCardsReferencePage() {
       sortedDomainEntries={sortedDomainEntries}
       onSelectCard={setSelectedCard}
       selectedCard={selectedCard}
-      onCloseCard={() => setSelectedCard(null)}
+      onCloseCard={handleCloseCard}
     />
   );
 }
