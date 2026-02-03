@@ -43,11 +43,11 @@ export function EquipmentEditDialog({
     <Dialog open={editingSection !== null} onOpenChange={() => closeSection()}>
       <DialogContent
         className={cn(
-          'grid max-h-[90vh] gap-0 overflow-hidden p-0',
+          'grid h-full w-full gap-0 overflow-hidden p-0 sm:h-auto sm:max-h-[90vh]',
           hideDialogHeader
             ? 'grid-rows-[1fr_auto]'
             : 'grid-rows-[auto_1fr_auto]',
-          'w-[98vw] max-w-5xl sm:w-[95vw] sm:max-w-5xl'
+          'sm:w-[98vw] sm:max-w-5xl'
         )}
         aria-describedby={hideDialogHeader ? undefined : undefined}
       >

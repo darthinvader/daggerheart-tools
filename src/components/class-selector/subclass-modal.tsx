@@ -44,7 +44,7 @@ function SubclassModalContent({
   }, [gameClass.name, tempSelection, onConfirm]);
 
   return (
-    <DialogContent className="flex max-h-[80vh] w-[95vw] flex-col gap-4 overflow-hidden p-4 sm:max-h-[85vh] sm:max-w-4xl sm:p-6 lg:max-w-5xl">
+    <DialogContent className="flex h-full w-full flex-col gap-4 overflow-hidden p-4 sm:h-auto sm:max-h-[85vh] sm:w-[95vw] sm:max-w-4xl sm:p-6 lg:max-w-5xl">
       <DialogHeader className="shrink-0">
         <DialogTitle className={cn('flex items-center gap-2', colorClass)}>
           <ClassIcon size={ICON_SIZE_LG} />

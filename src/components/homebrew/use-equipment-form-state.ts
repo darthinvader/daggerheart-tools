@@ -2,7 +2,7 @@
  * Hook for managing EquipmentForm state
  * Consolidates all state management, handlers, and side effects
  */
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
   createDefaultArmorContent,
@@ -76,9 +76,16 @@ export function useEquipmentFormState({
       features,
     });
 
+  // Track previous data to avoid notifying on unchanged values
+  const prevDataRef = useRef<string>();
+
   // Auto-notify on changes (for inline mode)
   useEffect(() => {
-    onChange?.(currentData);
+    const serialized = JSON.stringify(currentData);
+    if (onChange && serialized !== prevDataRef.current) {
+      prevDataRef.current = serialized;
+      onChange(currentData);
+    }
   }, [currentData, onChange]);
 
   // Description handler - uses switch for proper type narrowing

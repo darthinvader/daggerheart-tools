@@ -92,7 +92,7 @@ export function DomainCardSelectionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={open => !open && handleClose()}>
-      <DialogContent className="flex max-h-[90vh] w-[98vw] max-w-5xl flex-col overflow-hidden sm:max-w-5xl">
+      <DialogContent className="flex h-full w-full flex-col overflow-hidden sm:h-auto sm:max-h-[90vh] sm:w-[98vw] sm:max-w-5xl">
         <DialogHeader>
           <DialogTitle>Select a Domain Card</DialogTitle>
           <DialogDescription>

@@ -819,7 +819,7 @@ export function FightBuilderWizard({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[90vh] max-w-[95vw] flex-col gap-0 p-0">
+      <DialogContent className="flex h-full w-full flex-col gap-0 p-0 sm:h-auto sm:max-h-[90vh] sm:max-w-[95vw]">
         <DialogHeader className="border-b bg-gradient-to-r from-amber-500/10 to-orange-500/10 px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">

@@ -35,7 +35,7 @@ export function AddAdversaryDialogEnhanced({
 
   return (
     <Dialog open={isOpen} onOpenChange={state.handleOpenChange}>
-      <DialogContent className="flex max-h-[90vh] max-w-[95vw] flex-col gap-0 p-0">
+      <DialogContent className="flex h-full w-full flex-col gap-0 p-0 sm:h-auto sm:max-h-[90vh] sm:max-w-[95vw]">
         <DialogHeader className="border-b px-6 py-4">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-xl">Add Adversaries</DialogTitle>

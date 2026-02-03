@@ -88,7 +88,7 @@ export function CustomItemForm({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[90vh] w-[98vw] max-w-4xl flex-col overflow-y-auto sm:max-w-4xl">
+      <DialogContent className="flex h-full w-full flex-col overflow-y-auto sm:h-auto sm:max-h-[90vh] sm:w-[98vw] sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {isEditing ? (

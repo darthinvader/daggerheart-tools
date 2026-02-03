@@ -156,7 +156,7 @@ function HomebrewFormDialogBody({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+      <DialogContent className="h-full w-full overflow-y-auto sm:h-auto sm:max-h-[90vh] sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>
             {initialData ? 'Edit' : 'Create'} {getContentTypeLabel(contentType)}

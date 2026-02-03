@@ -433,14 +433,16 @@ function SubclassCard({
         <div className="space-y-2">
           <Label>Spellcast Trait (optional)</Label>
           <Select
-            value={subclass.spellcastTrait ?? ''}
-            onValueChange={v => onUpdate({ spellcastTrait: v || undefined })}
+            value={subclass.spellcastTrait ?? '__none__'}
+            onValueChange={v =>
+              onUpdate({ spellcastTrait: v === '__none__' ? undefined : v })
+            }
           >
             <SelectTrigger>
               <SelectValue placeholder="Select trait..." />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">None</SelectItem>
+              <SelectItem value="__none__">None</SelectItem>
               <SelectItem value="Presence">Presence</SelectItem>
               <SelectItem value="Knowledge">Knowledge</SelectItem>
               <SelectItem value="Instinct">Instinct</SelectItem>

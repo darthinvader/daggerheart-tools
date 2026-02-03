@@ -185,7 +185,7 @@ function AddAdversaryDialog({
 }) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[85vh] max-w-3xl flex-col">
+      <DialogContent className="flex h-full w-full flex-col sm:h-auto sm:max-h-[85vh] sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>Add Adversary</DialogTitle>
         </DialogHeader>
@@ -239,7 +239,7 @@ function AddEnvironmentDialog({
 }) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[85vh] max-w-3xl flex-col">
+      <DialogContent className="flex h-full w-full flex-col sm:h-auto sm:max-h-[85vh] sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>Add Environment</DialogTitle>
         </DialogHeader>

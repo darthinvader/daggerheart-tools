@@ -63,7 +63,7 @@ export function ResponsiveModal({
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent
         className={cn(
-          'grid max-h-[90vh] grid-rows-[auto_1fr_auto] gap-0 p-0',
+          'grid h-full w-full grid-rows-[auto_1fr_auto] gap-0 p-0 sm:h-auto sm:max-h-[90vh]',
           MODE_CLASSES[mode]
         )}
       >

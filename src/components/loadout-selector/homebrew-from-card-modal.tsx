@@ -104,7 +104,7 @@ function HomebrewFromCardModalContent({
 
   return (
     <Dialog open onOpenChange={open => !open && onClose()}>
-      <DialogContent className="flex max-h-[85vh] w-[95vw] flex-col overflow-hidden sm:max-h-[90vh] sm:max-w-2xl">
+      <DialogContent className="flex h-full w-full flex-col overflow-hidden sm:h-auto sm:max-h-[90vh] sm:w-[95vw] sm:max-w-2xl">
         <DialogHeader className="shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <Wrench size={ICON_SIZE_MD} />

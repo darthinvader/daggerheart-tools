@@ -1,12 +1,16 @@
+import { Slash, Zap } from 'lucide-react';
 import { useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { Sparkle } from '@/lib/icons';
+import { SmartTooltip } from '@/components/ui/smart-tooltip';
+import { useCoarsePointer } from '@/hooks/use-coarse-pointer';
+import { ICON_SIZE_MD, Sparkle } from '@/lib/icons';
 import { cn } from '@/lib/utils';
 
 interface HopeFeatureCardProps {
@@ -15,13 +19,58 @@ interface HopeFeatureCardProps {
     readonly description: string;
     readonly hopeCost: number;
   };
+  /** Whether this feature's bonuses are activated */
+  isActivated?: boolean;
+  /** Callback when the activate/deactivate button is clicked */
+  onToggleActivated?: () => void;
 }
 
-export function HopeFeatureCard({ feature }: HopeFeatureCardProps) {
+export function HopeFeatureCard({
+  feature,
+  isActivated = true,
+  onToggleActivated,
+}: HopeFeatureCardProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const isCoarse = useCoarsePointer();
 
   return (
-    <div className="space-y-1.5">
+    <div className="group relative space-y-1.5">
+      {/* Activate/Deactivate button */}
+      {onToggleActivated && (
+        <div
+          className={cn(
+            'absolute top-0 right-0 z-10 transition-opacity',
+            isCoarse ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+          )}
+        >
+          <SmartTooltip
+            content={isActivated ? 'Deactivate bonuses' : 'Activate bonuses'}
+          >
+            <Button
+              variant="ghost"
+              size="icon"
+              className={cn(
+                'size-6',
+                isActivated
+                  ? 'text-amber-600 hover:text-amber-700'
+                  : 'text-muted-foreground'
+              )}
+              aria-pressed={isActivated}
+              onClick={e => {
+                e.stopPropagation();
+                onToggleActivated();
+              }}
+            >
+              {isActivated ? (
+                <Zap size={ICON_SIZE_MD} />
+              ) : (
+                <Slash size={ICON_SIZE_MD} />
+              )}
+            </Button>
+          </SmartTooltip>
+        </div>
+      )}
+
       <div className="flex items-center gap-2 px-1 text-sm font-medium">
         <Sparkle className="size-4" />
         <span>Hope Feature</span>

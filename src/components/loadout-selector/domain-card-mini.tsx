@@ -241,15 +241,15 @@ function CardHeader({
 }: CardHeaderProps) {
   const isActivated = card.isActivated ?? true;
   return (
-    <div className="mb-1 flex items-center justify-between">
-      <div className="flex items-center gap-2">
+    <div className="mb-1 flex items-start justify-between gap-1">
+      <div className="flex min-w-0 flex-1 items-center gap-2">
         {onDragStart && !isCoarse && (
           <GripVertical className="text-muted-foreground size-4 shrink-0" />
         )}
         {DomainIcon && <DomainIcon size={ICON_SIZE_LG} />}
-        <span className={cn('font-medium', color)}>{card.name}</span>
+        <span className={cn('truncate font-medium', color)}>{card.name}</span>
       </div>
-      <div className="flex items-center gap-1">
+      <div className="flex shrink-0 flex-wrap items-center justify-end gap-1">
         <Badge variant="outline" className="text-xs">
           Lv. {card.level}
         </Badge>

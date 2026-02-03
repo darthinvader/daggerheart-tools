@@ -114,7 +114,7 @@ export function EditableSection({
       <Dialog open={isEditing} onOpenChange={open => !open && handleCancel()}>
         <DialogContent
           className={cn(
-            'grid max-h-[90vh] grid-rows-[auto_1fr_auto] gap-0 overflow-hidden p-0',
+            'grid h-full w-full grid-rows-[auto_1fr_auto] gap-0 overflow-hidden p-0 sm:h-auto sm:max-h-[90vh]',
             MODAL_SIZE_CLASSES[modalSize]
           )}
         >

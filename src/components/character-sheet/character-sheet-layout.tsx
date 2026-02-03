@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router';
-import { ArrowLeft, Cloud, CloudOff, Loader2 } from 'lucide-react';
+import { ArrowLeft, Cloud, CloudOff, Loader2, Users } from 'lucide-react';
+import { useState } from 'react';
 
 import { CharacterOnboardingWizard } from '@/components/character-onboarding';
 import {
@@ -14,7 +15,15 @@ import type { LevelUpResult } from '@/components/level-up';
 import { LevelUpModal } from '@/components/level-up';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Backpack, BarChart3, Dice5, Swords, User, Zap } from '@/lib/icons';
 import type { Campaign } from '@/lib/schemas/campaign';
@@ -104,17 +113,19 @@ export function CharacterSheetLayout({
           readOnly={readOnly}
           isSaving={isSaving}
           lastSaved={lastSaved}
-        />
-        <CharacterCampaignSection
-          campaigns={campaignSummary}
-          inviteCode={inviteCode}
-          onInviteCodeChange={onInviteCodeChange}
-          onJoinCampaign={onJoinCampaign}
-          canJoinCampaign={canJoinCampaign}
-          isJoiningCampaign={isJoiningCampaign}
-          joinCampaignError={joinCampaignError}
-          joinCampaignSuccess={joinCampaignSuccess}
-          readOnly={readOnly}
+          campaignSection={
+            <CharacterCampaignSection
+              campaigns={campaignSummary}
+              inviteCode={inviteCode}
+              onInviteCodeChange={onInviteCodeChange}
+              onJoinCampaign={onJoinCampaign}
+              canJoinCampaign={canJoinCampaign}
+              isJoiningCampaign={isJoiningCampaign}
+              joinCampaignError={joinCampaignError}
+              joinCampaignSuccess={joinCampaignSuccess}
+              readOnly={readOnly}
+            />
+          }
         />
         <CharacterSheetTabs
           activeTab={activeTab}
@@ -216,6 +227,7 @@ function CharacterSheetHeader({
   readOnly,
   isSaving,
   lastSaved,
+  campaignSection,
 }: {
   characterName: string;
   characterTitle?: string;
@@ -223,6 +235,7 @@ function CharacterSheetHeader({
   readOnly: boolean;
   isSaving: boolean;
   lastSaved: Date | null;
+  campaignSection?: React.ReactNode;
 }) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -252,11 +265,14 @@ function CharacterSheetHeader({
           </p>
         </div>
       </div>
-      {readOnly ? (
-        <Badge variant="outline">Read-only</Badge>
-      ) : (
-        <SaveIndicator isSaving={isSaving} lastSaved={lastSaved} />
-      )}
+      <div className="flex items-center gap-2">
+        {campaignSection}
+        {readOnly ? (
+          <Badge variant="outline">Read-only</Badge>
+        ) : (
+          <SaveIndicator isSaving={isSaving} lastSaved={lastSaved} />
+        )}
+      </div>
     </div>
   );
 }
@@ -287,64 +303,111 @@ function CharacterCampaignSection({
   joinCampaignSuccess: boolean;
   readOnly: boolean;
 }) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const hasCampaigns = campaigns.length > 0;
+  const campaignLabel = hasCampaigns ? campaigns[0].name : 'No campaign';
+  const multipleCampaigns = campaigns.length > 1;
+
   return (
-    <div className="bg-muted/30 flex flex-wrap items-center gap-3 rounded-lg border px-3 py-2">
-      {/* Campaign badges */}
-      {campaigns.length === 0 ? (
-        <span className="text-muted-foreground text-sm">No campaign</span>
-      ) : (
-        campaigns.map(campaign => (
-          <div key={campaign.id} className="flex items-center gap-1.5">
-            <span className="text-sm font-medium">{campaign.name}</span>
-            <Badge variant="outline" className="h-5 px-1.5 text-xs capitalize">
-              {campaign.status}
+    <>
+      <SmartTooltip content="Manage campaign membership">
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-7 gap-1.5 px-2 text-xs"
+          onClick={() => setIsModalOpen(true)}
+        >
+          <Users className="size-3.5" />
+          <span className="hidden sm:inline">{campaignLabel}</span>
+          {multipleCampaigns && (
+            <Badge variant="secondary" className="ml-1 h-4 px-1 text-[10px]">
+              +{campaigns.length - 1}
             </Badge>
-            {campaign.role && (
-              <Badge
-                variant="secondary"
-                className="h-5 px-1.5 text-xs capitalize"
-              >
-                {campaign.role}
-              </Badge>
+          )}
+        </Button>
+      </SmartTooltip>
+
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Campaign Membership</DialogTitle>
+            <DialogDescription>
+              View your current campaigns or join a new one with an invite code.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Current campaigns */}
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium">Current Campaigns</h4>
+              {campaigns.length === 0 ? (
+                <p className="text-muted-foreground text-sm">
+                  Not part of any campaign yet.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {campaigns.map(campaign => (
+                    <div
+                      key={campaign.id}
+                      className="bg-muted/50 flex items-center justify-between rounded-lg border p-3"
+                    >
+                      <span className="font-medium">{campaign.name}</span>
+                      <div className="flex gap-1.5">
+                        <Badge variant="outline" className="text-xs capitalize">
+                          {campaign.status}
+                        </Badge>
+                        {campaign.role && (
+                          <Badge
+                            variant="secondary"
+                            className="text-xs capitalize"
+                          >
+                            {campaign.role}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Join campaign */}
+            {!readOnly && (
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium">Join a Campaign</h4>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="campaign-invite-code"
+                    value={inviteCode}
+                    onChange={event => onInviteCodeChange(event.target.value)}
+                    placeholder="Enter invite code"
+                    maxLength={12}
+                    className="font-mono uppercase"
+                  />
+                  <Button
+                    type="button"
+                    onClick={onJoinCampaign}
+                    disabled={!canJoinCampaign}
+                  >
+                    {isJoiningCampaign ? 'Joining...' : 'Join'}
+                  </Button>
+                </div>
+                {joinCampaignError && (
+                  <p className="text-destructive text-sm">
+                    Invalid invite code. Please try again.
+                  </p>
+                )}
+                {joinCampaignSuccess && (
+                  <p className="text-sm text-green-600">
+                    Successfully joined the campaign!
+                  </p>
+                )}
+              </div>
             )}
           </div>
-        ))
-      )}
-
-      {/* Join campaign inline */}
-      {!readOnly && (
-        <>
-          <div className="bg-border h-4 w-px" />
-          <div className="flex items-center gap-1.5">
-            <Input
-              id="campaign-invite-code"
-              value={inviteCode}
-              onChange={event => onInviteCodeChange(event.target.value)}
-              placeholder="Invite code"
-              maxLength={12}
-              className="h-7 w-28 font-mono text-xs uppercase"
-            />
-            <Button
-              type="button"
-              size="sm"
-              className="h-7 px-2 text-xs"
-              onClick={onJoinCampaign}
-              disabled={!canJoinCampaign}
-            >
-              {isJoiningCampaign ? '...' : 'Join'}
-            </Button>
-          </div>
-        </>
-      )}
-
-      {joinCampaignError && (
-        <span className="text-destructive text-xs">Invalid code</span>
-      )}
-
-      {joinCampaignSuccess && (
-        <span className="text-xs text-green-600">Joined!</span>
-      )}
-    </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 

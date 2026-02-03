@@ -191,7 +191,7 @@ export function ItemPickerModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[90vh] w-[98vw] max-w-5xl flex-col overflow-hidden sm:max-w-5xl lg:max-w-6xl">
+      <DialogContent className="flex h-full w-full flex-col overflow-hidden sm:h-auto sm:max-h-[90vh] sm:w-[98vw] sm:max-w-5xl lg:max-w-6xl">
         <PickerHeader
           totalQuantity={totalQuantity}
           slotsRemaining={slotsRemaining}
