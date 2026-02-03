@@ -16,11 +16,9 @@ import { useAuth } from '@/components/providers';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import {
-  BrowseFilterCard,
   BrowseHeaderSection,
   ForkInfoCard,
   InfiniteScrollTrigger,
-  ResultsInfoBar,
 } from './browse-sections';
 import { useBrowseHomebrewState } from './use-browse-homebrew-state';
 
@@ -33,18 +31,11 @@ function BrowseHomebrew() {
   const navigate = useNavigate();
 
   const {
-    // Filter state
-    searchQuery,
-    setSearchQuery,
-    typeFilter,
-    setTypeFilter,
-    sortBy,
-    setSortBy,
+    // Fork info
     showForkInfo,
     handleDismissForkInfo,
     // Data
     publicContent,
-    totalCount,
     isLoading,
     // Infinite scroll
     loadMoreRef,
@@ -65,7 +56,6 @@ function BrowseHomebrew() {
     handleFork,
     handleCreate,
     handleFormSubmit,
-    handleClearFilters,
   } = useBrowseHomebrewState({
     userId: user?.id,
     onNavigateToLogin: () => navigate({ to: '/login' }),
@@ -97,23 +87,6 @@ function BrowseHomebrew() {
         </TabsList>
 
         <TabsContent value="community" className="space-y-4">
-          <BrowseFilterCard
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            typeFilter={typeFilter}
-            onTypeFilterChange={setTypeFilter}
-            sortBy={sortBy}
-            onSortChange={setSortBy}
-          />
-
-          <ResultsInfoBar
-            totalCount={totalCount}
-            displayedCount={publicContent.length}
-            isLoading={isLoading}
-            hasActiveFilters={!!searchQuery || typeFilter !== 'all'}
-            onClearFilters={handleClearFilters}
-          />
-
           {/* Content List */}
           <HomebrewList
             items={publicContent}
