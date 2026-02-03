@@ -77,7 +77,7 @@ export function useEquipmentFormState({
     });
 
   // Track previous data to avoid notifying on unchanged values
-  const prevDataRef = useRef<string>();
+  const prevDataRef = useRef<string | undefined>(undefined);
 
   // Auto-notify on changes (for inline mode)
   useEffect(() => {

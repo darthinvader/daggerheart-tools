@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronUp, Plus, Search, Sparkles } from 'lucide-react';
+import { ChevronDown, ChevronUp, Plus, Search } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -16,7 +16,6 @@ interface InventoryHeaderProps {
   onMaxSlotsChange: (delta: number) => void;
   searchQuery: string;
   onSearchChange: (v: string) => void;
-  onCustomClick: () => void;
   onAddClick: () => void;
 }
 
@@ -30,7 +29,6 @@ export function InventoryHeader({
   onMaxSlotsChange,
   searchQuery,
   onSearchChange,
-  onCustomClick,
   onAddClick,
 }: InventoryHeaderProps) {
   return (
@@ -66,10 +64,6 @@ export function InventoryHeader({
           )}
         </CardTitle>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={onCustomClick}>
-            <Sparkles className="mr-1 h-4 w-4" />
-            Custom Item
-          </Button>
           <Button size="sm" onClick={onAddClick}>
             <Plus className="mr-1 h-4 w-4" />
             Add Items

@@ -5,7 +5,10 @@ import { useMemo, useState } from 'react';
 import { useAuth } from '@/components/providers';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { joinCampaignByInviteCode } from '@/features/campaigns/campaign-storage';
+import {
+  joinCampaignByInviteCode,
+  unlinkCharacterFromCampaign,
+} from '@/features/campaigns/campaign-storage';
 import {
   campaignKeys,
   useCampaigns,
@@ -152,6 +155,17 @@ export function CharacterSheet({
     },
   });
 
+  const unlinkMutation = useMutation<void, Error, string>({
+    mutationFn: async (campaignId: string) =>
+      unlinkCharacterFromCampaign({
+        campaignId,
+        characterId,
+      }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: campaignKeys.all });
+    },
+  });
+
   const canJoin = inviteCode.trim().length >= 6 && !joinMutation.isPending;
 
   // Auto-open wizard if new character, but don't auto-close
@@ -204,6 +218,8 @@ export function CharacterSheet({
       isJoiningCampaign={joinMutation.isPending}
       joinCampaignError={joinMutation.isError ? joinMutation.error : null}
       joinCampaignSuccess={joinMutation.isSuccess}
+      onUnlinkCampaign={campaignId => unlinkMutation.mutate(campaignId)}
+      isUnlinkingCampaign={unlinkMutation.isPending}
     />
   );
 }

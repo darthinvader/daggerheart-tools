@@ -75,9 +75,6 @@ export function InventoryDisplay({
             readOnly ? undefined : handleUnlimitedQuantityChange
           }
           onAddClick={readOnly ? undefined : () => setPickerOpen(true)}
-          onCustomClick={
-            readOnly ? undefined : () => handleCustomFormClose(true)
-          }
           readOnly={readOnly}
         />
       </div>
@@ -86,6 +83,7 @@ export function InventoryDisplay({
         open={pickerOpen}
         onOpenChange={setPickerOpen}
         onSelectItems={handleAddItems}
+        onAddCustomItem={handleAddCustomItem}
         inventoryItems={inventory.items}
         unlimitedQuantity={inventory.unlimitedQuantity}
         unlimitedSlots={inventory.unlimitedSlots}

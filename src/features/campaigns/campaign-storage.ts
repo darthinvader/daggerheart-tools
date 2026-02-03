@@ -221,6 +221,31 @@ export async function joinCampaignByInviteCode(params: {
   return data as string;
 }
 
+/**
+ * Unlink a character from a campaign
+ * Removes the player entry that has the specified characterId
+ */
+export async function unlinkCharacterFromCampaign(params: {
+  campaignId: string;
+  characterId: string;
+}): Promise<void> {
+  const { campaignId, characterId } = params;
+
+  // First get the current campaign
+  const campaign = await getCampaign(campaignId);
+  if (!campaign) {
+    throw new Error('Campaign not found');
+  }
+
+  // Filter out the player with this characterId
+  const updatedPlayers = campaign.players.filter(
+    player => player.characterId !== characterId
+  );
+
+  // Update the campaign with the new players list
+  await updateCampaign(campaignId, { players: updatedPlayers });
+}
+
 // =====================================================================================
 // Campaign CRUD
 // =====================================================================================

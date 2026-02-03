@@ -201,22 +201,13 @@ export function InventoryEditor({
           }
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
-          onCustomClick={() => setCustomFormOpen(true)}
           onAddClick={() => setPickerOpen(true)}
         />
       )}
-      {hideHeader && (
-        <CompactToolbar
-          onCustomClick={() => setCustomFormOpen(true)}
-          onAddClick={() => setPickerOpen(true)}
-        />
-      )}
+      {hideHeader && <CompactToolbar onAddClick={() => setPickerOpen(true)} />}
       <CardContent className={hideHeader ? 'p-0' : ''}>
         {state.items.length === 0 ? (
-          <EmptyInventory
-            onCustomClick={() => setCustomFormOpen(true)}
-            onAddClick={() => setPickerOpen(true)}
-          />
+          <EmptyInventory onAddClick={() => setPickerOpen(true)} />
         ) : (
           <InventoryTabs
             items={filteredItems}
@@ -244,6 +235,7 @@ export function InventoryEditor({
         open={pickerOpen}
         onOpenChange={setPickerOpen}
         onSelectItems={actions.handleAddItems}
+        onAddCustomItem={actions.handleAddCustomItem}
         inventoryItems={state.items}
         unlimitedQuantity={unlimitedQuantity}
       />

@@ -23,7 +23,6 @@ interface InventoryContentProps {
   onUnlimitedSlotsChange?: (value: boolean) => void;
   onUnlimitedQuantityChange?: (value: boolean) => void;
   onAddClick?: () => void;
-  onCustomClick?: () => void;
   readOnly?: boolean;
 }
 
@@ -39,7 +38,6 @@ export function InventoryContent({
   onUnlimitedSlotsChange,
   onUnlimitedQuantityChange,
   onAddClick,
-  onCustomClick,
   readOnly,
 }: InventoryContentProps) {
   const [filters, setFilters] = useState<InventoryFilters>({
@@ -71,7 +69,6 @@ export function InventoryContent({
         onUnlimitedSlotsChange={onUnlimitedSlotsChange}
         onUnlimitedQuantityChange={onUnlimitedQuantityChange}
         onAddClick={onAddClick}
-        onCustomClick={onCustomClick}
         showFilters={showFilters}
         onToggleFilters={() => setShowFilters(v => !v)}
         activeFilterCount={activeFilterCount}

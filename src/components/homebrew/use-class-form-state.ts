@@ -2,7 +2,7 @@
  * Hook for managing ClassForm state
  * Consolidates all state management, handlers, and side effects
  */
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { ClassFormData } from './class-form';
 import {
@@ -102,41 +102,29 @@ export function useClassFormState({
     subclasses,
   });
 
-  // Notify onChange when data changes
-  const notifyChange = useCallback(() => {
-    onChange?.(currentData);
-  }, [onChange, currentData]);
+  // Track previous data to avoid notifying on unchanged values
+  const prevDataRef = useRef<string | undefined>(undefined);
 
   // Auto-notify on data changes (for inline mode)
   useEffect(() => {
-    notifyChange();
-  }, [
-    formData,
-    classFeatures,
-    classItems,
-    backgroundQuestions,
-    connections,
-    startingEquipment,
-    subclasses,
-    notifyChange,
-  ]);
+    const serialized = JSON.stringify(currentData);
+    if (onChange && serialized !== prevDataRef.current) {
+      prevDataRef.current = serialized;
+      onChange(currentData);
+    }
+  }, [currentData, onChange]);
 
   // Domain toggle handler
-  const toggleDomain = useCallback(
-    (domain: string) => {
-      setSelectedDomains(prev => {
-        const newDomains = prev.includes(domain)
-          ? prev.filter(d => d !== domain)
-          : prev.length < 2
-            ? [...prev, domain]
-            : [prev[1], domain];
-        return newDomains;
-      });
-      // Schedule onChange after state update
-      setTimeout(() => notifyChange(), 0);
-    },
-    [notifyChange]
-  );
+  const toggleDomain = useCallback((domain: string) => {
+    setSelectedDomains(prev => {
+      const newDomains = prev.includes(domain)
+        ? prev.filter(d => d !== domain)
+        : prev.length < 2
+          ? [...prev, domain]
+          : [prev[1], domain];
+      return newDomains;
+    });
+  }, []);
 
   // Field handlers (extracted hook)
   const fieldHandlers = useClassFormFieldHandlers(setFormData);

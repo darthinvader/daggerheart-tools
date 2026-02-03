@@ -1,5 +1,12 @@
 import { Link } from '@tanstack/react-router';
-import { ArrowLeft, Cloud, CloudOff, Loader2, Users } from 'lucide-react';
+import {
+  ArrowLeft,
+  Cloud,
+  CloudOff,
+  Loader2,
+  Unlink,
+  Users,
+} from 'lucide-react';
 import { useState } from 'react';
 
 import { CharacterOnboardingWizard } from '@/components/character-onboarding';
@@ -64,6 +71,8 @@ interface CharacterSheetLayoutProps {
   isJoiningCampaign: boolean;
   joinCampaignError: Error | null;
   joinCampaignSuccess: boolean;
+  onUnlinkCampaign: (campaignId: string) => void;
+  isUnlinkingCampaign: boolean;
 }
 
 export function CharacterSheetLayout({
@@ -93,6 +102,8 @@ export function CharacterSheetLayout({
   isJoiningCampaign,
   joinCampaignError,
   joinCampaignSuccess,
+  onUnlinkCampaign,
+  isUnlinkingCampaign,
 }: CharacterSheetLayoutProps) {
   return (
     <div className="container mx-auto px-4 py-4 sm:py-8">
@@ -124,6 +135,8 @@ export function CharacterSheetLayout({
               joinCampaignError={joinCampaignError}
               joinCampaignSuccess={joinCampaignSuccess}
               readOnly={readOnly}
+              onUnlinkCampaign={onUnlinkCampaign}
+              isUnlinkingCampaign={isUnlinkingCampaign}
             />
           }
         />
@@ -287,6 +300,8 @@ function CharacterCampaignSection({
   joinCampaignError,
   joinCampaignSuccess,
   readOnly,
+  onUnlinkCampaign,
+  isUnlinkingCampaign,
 }: {
   campaigns: Array<{
     id: string;
@@ -302,6 +317,8 @@ function CharacterCampaignSection({
   joinCampaignError: Error | null;
   joinCampaignSuccess: boolean;
   readOnly: boolean;
+  onUnlinkCampaign: (campaignId: string) => void;
+  isUnlinkingCampaign: boolean;
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const hasCampaigns = campaigns.length > 0;
@@ -352,7 +369,7 @@ function CharacterCampaignSection({
                       className="bg-muted/50 flex items-center justify-between rounded-lg border p-3"
                     >
                       <span className="font-medium">{campaign.name}</span>
-                      <div className="flex gap-1.5">
+                      <div className="flex items-center gap-1.5">
                         <Badge variant="outline" className="text-xs capitalize">
                           {campaign.status}
                         </Badge>
@@ -363,6 +380,24 @@ function CharacterCampaignSection({
                           >
                             {campaign.role}
                           </Badge>
+                        )}
+                        {!readOnly && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="ml-1 h-7 w-7 p-0 text-red-500 hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-950"
+                            onClick={() => onUnlinkCampaign(campaign.id)}
+                            disabled={isUnlinkingCampaign}
+                          >
+                            {isUnlinkingCampaign ? (
+                              <Loader2 className="size-3.5 animate-spin" />
+                            ) : (
+                              <Unlink className="size-3.5" />
+                            )}
+                            <span className="sr-only">
+                              Leave {campaign.name}
+                            </span>
+                          </Button>
                         )}
                       </div>
                     </div>

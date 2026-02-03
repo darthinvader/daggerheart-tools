@@ -1,10 +1,10 @@
-import { Filter, Minus, Plus, Search, X } from 'lucide-react';
+import { Filter, Minus, Plus, Search, Sparkles, X } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
-import { Backpack, ICON_SIZE_MD, Package, Sparkles, Sword } from '@/lib/icons';
+import { Backpack, ICON_SIZE_MD, Package, Sword } from '@/lib/icons';
 import type { InventoryState } from '@/lib/schemas/equipment';
 import { cn } from '@/lib/utils';
 
@@ -21,7 +21,6 @@ interface InventoryToolbarProps {
   onUnlimitedSlotsChange?: (value: boolean) => void;
   onUnlimitedQuantityChange?: (value: boolean) => void;
   onAddClick?: () => void;
-  onCustomClick?: () => void;
   showFilters: boolean;
   onToggleFilters: () => void;
   activeFilterCount: number;
@@ -37,7 +36,6 @@ export function InventoryToolbar({
   onUnlimitedSlotsChange,
   onUnlimitedQuantityChange,
   onAddClick,
-  onCustomClick,
   showFilters,
   onToggleFilters,
   activeFilterCount,
@@ -56,7 +54,6 @@ export function InventoryToolbar({
           showFilters={showFilters}
           activeFilterCount={activeFilterCount}
           inventory={inventory}
-          onCustomClick={onCustomClick}
           onAddClick={onAddClick}
           onToggleFilters={onToggleFilters}
           onClearFilters={onClearFilters}
@@ -83,7 +80,6 @@ interface ToolbarActionButtonsProps {
   showFilters: boolean;
   activeFilterCount: number;
   inventory: InventoryState;
-  onCustomClick?: () => void;
   onAddClick?: () => void;
   onToggleFilters: () => void;
   onClearFilters: () => void;
@@ -96,7 +92,6 @@ function ToolbarActionButtons({
   showFilters,
   activeFilterCount,
   inventory,
-  onCustomClick,
   onAddClick,
   onToggleFilters,
   onClearFilters,
@@ -105,16 +100,6 @@ function ToolbarActionButtons({
 }: ToolbarActionButtonsProps) {
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {onCustomClick && (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onCustomClick}
-          className="gap-1.5 border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 hover:text-purple-800 dark:border-purple-800 dark:bg-purple-950/50 dark:text-purple-300 dark:hover:bg-purple-900/50"
-        >
-          <Sparkles size={ICON_SIZE_MD} /> Custom Item
-        </Button>
-      )}
       {onAddClick && (
         <Button
           size="sm"
