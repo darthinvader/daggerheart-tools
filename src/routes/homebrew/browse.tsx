@@ -31,6 +31,9 @@ function BrowseHomebrew() {
   const navigate = useNavigate();
 
   const {
+    // Filter state
+    searchQuery,
+    typeFilter,
     // Fork info
     showForkInfo,
     handleDismissForkInfo,

@@ -175,10 +175,10 @@ function NewCharacter() {
   return (
     <div className="container mx-auto max-w-5xl p-4">
       <div className="mb-6">
-        <h1 className="flex items-center gap-3 text-3xl font-bold">
-          <Theater className="size-8" />
-          <span>Create New Character</span>
-        </h1>
+        <span className="text-2xl font-bold">
+          <Theater className="mr-2 inline-block size-6" />
+          Create New Character
+        </span>
         <p className="text-muted-foreground mt-2">
           Build your hero step by step.
         </p>

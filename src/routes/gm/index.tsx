@@ -17,13 +17,11 @@ function GmDashboard() {
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="mb-2 flex items-center gap-3 text-3xl font-bold sm:text-4xl">
-          <div className="flex size-12 items-center justify-center rounded-xl bg-amber-500/10">
-            <Crown className="size-6 text-amber-500" />
-          </div>
+        <span className="text-2xl font-bold">
+          <Crown className="mr-2 inline-block size-6 text-amber-500" />
           GM Tools
-        </h1>
-        <p className="text-muted-foreground text-lg">
+        </span>
+        <p className="text-muted-foreground mt-2">
           Manage your campaigns, track battles, and run your Daggerheart
           sessions
         </p>

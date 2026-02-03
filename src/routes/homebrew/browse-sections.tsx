@@ -52,13 +52,11 @@ export function BrowseHeaderSection({
   return (
     <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <h1 className="mb-2 flex items-center gap-3 text-3xl font-bold sm:text-4xl">
-          <div className="flex size-12 items-center justify-center rounded-xl bg-green-500/10">
-            <Globe className="size-6 text-green-500" />
-          </div>
+        <span className="text-2xl font-bold">
+          <Globe className="mr-2 inline-block size-6 text-green-500" />
           Browse Community Homebrew
-        </h1>
-        <p className="text-muted-foreground text-lg">
+        </span>
+        <p className="text-muted-foreground mt-2">
           Discover and fork community-created content for your campaigns
         </p>
       </div>

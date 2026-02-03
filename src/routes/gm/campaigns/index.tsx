@@ -345,13 +345,11 @@ function CampaignsList() {
       {/* Header */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="mb-2 flex items-center gap-3 text-3xl font-bold sm:text-4xl">
-            <div className="flex size-12 items-center justify-center rounded-xl bg-blue-500/10">
-              <FolderOpen className="size-6 text-blue-500" />
-            </div>
+          <span className="text-2xl font-bold">
+            <FolderOpen className="mr-2 inline-block size-6 text-blue-500" />
             My Campaigns
-          </h1>
-          <p className="text-muted-foreground text-lg">
+          </span>
+          <p className="text-muted-foreground mt-2">
             Manage your campaign frames and settings
           </p>
         </div>

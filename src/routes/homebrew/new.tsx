@@ -183,18 +183,14 @@ function CreateHomebrew() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="mb-2 flex items-center gap-3 text-3xl font-bold sm:text-4xl">
-          <div
-            className={`flex size-12 items-center justify-center rounded-xl ${forkSource ? 'bg-green-500/10' : 'bg-primary/10'}`}
-          >
-            {forkSource ? (
-              <GitFork className="size-6 text-green-500" />
-            ) : (
-              <Plus className="text-primary size-6" />
-            )}
-          </div>
+        <span className="text-2xl font-bold">
+          {forkSource ? (
+            <GitFork className="mr-2 inline-block size-6 text-green-500" />
+          ) : (
+            <Plus className="text-primary mr-2 inline-block size-6" />
+          )}
           {forkSource ? 'Fork Homebrew' : 'Create Homebrew'}
-        </h1>
+        </span>
         <p className="text-muted-foreground text-lg">
           {forkSource
             ? `Create your own version of "${forkSource.name}"`

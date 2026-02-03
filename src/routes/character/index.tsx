@@ -148,13 +148,11 @@ function CharactersContent({
       {/* Header */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="mb-2 flex items-center gap-3 text-3xl font-bold sm:text-4xl">
-            <div className="bg-primary/10 flex size-12 items-center justify-center rounded-xl">
-              <Users className="text-primary size-6" />
-            </div>
+          <span className="text-2xl font-bold">
+            <Users className="text-primary mr-2 inline-block size-6" />
             My Characters
-          </h1>
-          <p className="text-muted-foreground text-lg">
+          </span>
+          <p className="text-muted-foreground mt-2">
             Create and manage your Daggerheart characters
           </p>
         </div>
