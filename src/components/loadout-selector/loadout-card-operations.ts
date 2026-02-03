@@ -10,6 +10,32 @@ export type MoveLocation = {
   index: number;
 };
 
+function reorderWithinLocation(
+  cards: DomainCardLite[],
+  fromIndex: number,
+  toIndex: number
+): DomainCardLite[] {
+  const result = [...cards];
+  const [movedCard] = result.splice(fromIndex, 1);
+  result.splice(toIndex, 0, movedCard);
+  return result;
+}
+
+function swapBetweenLocations(
+  fromCards: DomainCardLite[],
+  toCards: DomainCardLite[],
+  fromIndex: number,
+  toIndex: number
+): { newFromCards: DomainCardLite[]; newToCards: DomainCardLite[] } {
+  const newFromCards = [...fromCards];
+  const newToCards = [...toCards];
+  const [cardToMove] = newFromCards.splice(fromIndex, 1);
+  const activatedCard = { ...cardToMove, isActivated: true };
+  const [cardToSwap] = newToCards.splice(toIndex, 1, activatedCard);
+  newFromCards.splice(fromIndex, 0, cardToSwap);
+  return { newFromCards, newToCards };
+}
+
 export function moveCardBetweenLocations(
   from: MoveLocation,
   to: MoveLocation,
@@ -17,43 +43,46 @@ export function moveCardBetweenLocations(
   vaultCards: DomainCardLite[],
   maxActiveCards: number
 ): CardUpdateResult {
-  const fromCards =
-    from.location === 'active' ? [...activeCards] : [...vaultCards];
-  const toCards = to.location === 'active' ? [...activeCards] : [...vaultCards];
-
+  // Same location reorder
   if (from.location === to.location) {
-    const cards = fromCards;
-    const [movedCard] = cards.splice(from.index, 1);
-    cards.splice(to.index, 0, movedCard);
+    const cards =
+      from.location === 'active' ? [...activeCards] : [...vaultCards];
+    const reordered = reorderWithinLocation(cards, from.index, to.index);
     return {
-      activeCards: from.location === 'active' ? cards : activeCards,
-      vaultCards: from.location === 'vault' ? cards : vaultCards,
+      activeCards: from.location === 'active' ? reordered : activeCards,
+      vaultCards: from.location === 'vault' ? reordered : vaultCards,
     };
   }
 
+  // Moving from vault to active when at capacity - try swap
   const shouldSwap =
     from.location === 'vault' &&
     to.location === 'active' &&
     activeCards.length >= maxActiveCards &&
-    to.index < toCards.length;
+    to.index < activeCards.length;
 
   if (shouldSwap) {
-    const [cardToMove] = fromCards.splice(from.index, 1);
-    const activatedCard = { ...cardToMove, isActivated: true };
-    const [cardToSwap] = toCards.splice(to.index, 1, activatedCard);
-    fromCards.splice(from.index, 0, cardToSwap);
-    return { activeCards: toCards, vaultCards: fromCards };
+    const { newFromCards, newToCards } = swapBetweenLocations(
+      [...vaultCards],
+      [...activeCards],
+      from.index,
+      to.index
+    );
+    return { activeCards: newToCards, vaultCards: newFromCards };
   }
 
+  // Can't move to active if at capacity
   if (to.location === 'active' && activeCards.length >= maxActiveCards) {
     return null;
   }
 
+  // Standard move between locations
+  const fromCards =
+    from.location === 'active' ? [...activeCards] : [...vaultCards];
+  const toCards = to.location === 'active' ? [...activeCards] : [...vaultCards];
   const [movedCard] = fromCards.splice(from.index, 1);
   const activatedCard =
-    from.location === 'vault' && to.location === 'active'
-      ? { ...movedCard, isActivated: true }
-      : movedCard;
+    to.location === 'active' ? { ...movedCard, isActivated: true } : movedCard;
   toCards.splice(to.index, 0, activatedCard);
 
   return {

@@ -302,6 +302,14 @@ export const HomebrewEquipmentSchema = HomebrewMetadataSchema.extend({
 });
 
 export type HomebrewEquipment = z.infer<typeof HomebrewEquipmentSchema>;
+export type HomebrewWeaponContent = z.infer<typeof HomebrewWeaponContentSchema>;
+export type HomebrewArmorContent = z.infer<typeof HomebrewArmorContentSchema>;
+export type HomebrewWheelchairContent = z.infer<
+  typeof HomebrewWheelchairContentSchema
+>;
+export type HomebrewCustomEquipmentContent = z.infer<
+  typeof HomebrewCustomEquipmentContentSchema
+>;
 
 // =====================================================================================
 // Homebrew Item (General items, consumables, etc.)

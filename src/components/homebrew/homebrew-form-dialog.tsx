@@ -31,16 +31,8 @@ import {
   getVisibilityLabel,
 } from '@/lib/schemas/homebrew';
 
-import { AdversaryForm } from './adversary-form';
-import { AncestryForm } from './ancestry-form';
-import { ClassForm } from './class-form';
-import { CommunityForm } from './community-form';
-import { DomainCardForm } from './domain-card-form';
-import { EnvironmentForm } from './environment-form';
-import { EquipmentForm } from './equipment-form';
 import { HomebrewComments } from './homebrew-comments';
-import { ItemForm } from './item-form';
-import { SubclassForm } from './subclass-form';
+import { getHomebrewForm } from './homebrew-form-registry';
 
 interface HomebrewFormDialogProps {
   open: boolean;
@@ -145,116 +137,21 @@ function HomebrewFormDialogBody({
   }, [visibility]);
 
   const renderForm = () => {
-    const commonProps = {
-      onSubmit: (content: HomebrewContent['content']) =>
-        onSubmit({ content, visibility }),
-      onCancel: handleCancel,
-      isSubmitting,
-    };
-
-    switch (contentType) {
-      case 'adversary':
-        return (
-          <AdversaryForm
-            {...commonProps}
-            initialData={
-              initialData?.content as Parameters<
-                typeof AdversaryForm
-              >[0]['initialData']
-            }
-          />
-        );
-      case 'environment':
-        return (
-          <EnvironmentForm
-            {...commonProps}
-            initialData={
-              initialData?.content as Parameters<
-                typeof EnvironmentForm
-              >[0]['initialData']
-            }
-          />
-        );
-      case 'domain_card':
-        return (
-          <DomainCardForm
-            {...commonProps}
-            initialData={
-              initialData?.content as Parameters<
-                typeof DomainCardForm
-              >[0]['initialData']
-            }
-          />
-        );
-      case 'class':
-        return (
-          <ClassForm
-            {...commonProps}
-            initialData={
-              initialData?.content as Parameters<
-                typeof ClassForm
-              >[0]['initialData']
-            }
-          />
-        );
-      case 'subclass':
-        return (
-          <SubclassForm
-            {...commonProps}
-            initialData={
-              initialData?.content as Parameters<
-                typeof SubclassForm
-              >[0]['initialData']
-            }
-          />
-        );
-      case 'ancestry':
-        return (
-          <AncestryForm
-            {...commonProps}
-            initialData={
-              initialData?.content as Parameters<
-                typeof AncestryForm
-              >[0]['initialData']
-            }
-          />
-        );
-      case 'community':
-        return (
-          <CommunityForm
-            {...commonProps}
-            initialData={
-              initialData?.content as Parameters<
-                typeof CommunityForm
-              >[0]['initialData']
-            }
-          />
-        );
-      case 'equipment':
-        return (
-          <EquipmentForm
-            {...commonProps}
-            initialData={
-              initialData?.content as Parameters<
-                typeof EquipmentForm
-              >[0]['initialData']
-            }
-          />
-        );
-      case 'item':
-        return (
-          <ItemForm
-            {...commonProps}
-            initialData={
-              initialData?.content as Parameters<
-                typeof ItemForm
-              >[0]['initialData']
-            }
-          />
-        );
-      default:
-        return <div>Unknown content type</div>;
+    const FormComponent = getHomebrewForm(contentType);
+    if (!FormComponent) {
+      return <div>Unknown content type</div>;
     }
+
+    return (
+      <FormComponent
+        initialData={initialData?.content}
+        onSubmit={(content: HomebrewContent['content']) =>
+          onSubmit({ content, visibility })
+        }
+        onCancel={handleCancel}
+        isSubmitting={isSubmitting}
+      />
+    );
   };
 
   return (

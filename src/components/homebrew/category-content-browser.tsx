@@ -22,7 +22,7 @@ import {
   Sword,
   Users,
 } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -36,6 +36,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+
+import { useCategoryBrowserState } from './use-category-browser-state';
 
 // =====================================================================================
 // Types
@@ -739,104 +741,24 @@ export function CategoryContentBrowser<T extends ContentItem>({
   className,
   showSearch = true,
 }: CategoryContentBrowserProps<T>) {
-  // Group items by category
-  const itemsByCategory = useMemo((): Record<ContentCategory, T[]> => {
-    const map = {} as Record<ContentCategory, T[]>;
-    for (const item of items) {
-      if (!map[item.category]) {
-        map[item.category] = [];
-      }
-      map[item.category].push(item);
-    }
-    return map;
-  }, [items]);
-
-  // Determine which categories to show
-  const visibleCategories = useMemo(() => {
-    const categoriesWithItems = CATEGORY_CONFIGS.filter(
-      c => (itemsByCategory[c.key]?.length ?? 0) > 0
-    );
-    if (allowedCategories) {
-      return categoriesWithItems.filter(c => allowedCategories.includes(c.key));
-    }
-    return categoriesWithItems;
-  }, [itemsByCategory, allowedCategories]);
-
-  // State
-  const [activeCategory, setActiveCategory] = useState<ContentCategory>(
-    initialCategory ?? visibleCategories[0]?.key ?? 'adversary'
-  );
-  const [search, setSearch] = useState('');
-  const [filterValues, setFilterValues] = useState<Record<string, string>>({});
-
-  // Get current category config
-  const currentConfig = useMemo(
-    () => CATEGORY_CONFIGS.find(c => c.key === activeCategory),
-    [activeCategory]
-  );
-
-  // Get items for current category
-  const categoryItems = useMemo(
-    () => itemsByCategory[activeCategory] ?? [],
-    [itemsByCategory, activeCategory]
-  );
-
-  // Apply filters
-  const filteredItems = useMemo(() => {
-    let result = categoryItems;
-
-    // Apply search
-    if (search.trim()) {
-      const query = search.toLowerCase();
-      result = result.filter(
-        (item: T) =>
-          item.name.toLowerCase().includes(query) ||
-          (item.searchText?.toLowerCase().includes(query) ?? false)
-      );
-    }
-
-    // Apply category-specific filters
-    for (const [key, value] of Object.entries(filterValues)) {
-      if (value && value !== 'all') {
-        result = result.filter((item: T) => {
-          switch (key) {
-            case 'tier':
-              return item.tier === value;
-            case 'domain':
-              return item.domain === value;
-            case 'level':
-              return String(item.level) === value;
-            case 'role':
-              return item.role === value;
-            case 'equipmentCategory':
-              return item.equipmentCategory === value;
-            default:
-              return true;
-          }
-        });
-      }
-    }
-
-    return result;
-  }, [categoryItems, search, filterValues]);
-
-  // Handle category change
-  const handleCategoryChange = useCallback((category: ContentCategory) => {
-    setActiveCategory(category);
-    setSearch('');
-    setFilterValues({});
-  }, []);
-
-  // Handle filter change
-  const handleFilterChange = useCallback((key: string, value: string) => {
-    setFilterValues(prev => ({ ...prev, [key]: value }));
-  }, []);
-
-  // Get category count
-  const getCategoryCount = useCallback(
-    (category: ContentCategory) => itemsByCategory[category]?.length ?? 0,
-    [itemsByCategory]
-  );
+  // Use consolidated hook for all state management
+  const {
+    visibleCategories,
+    activeCategory,
+    currentConfig,
+    filteredItems,
+    search,
+    setSearch,
+    filterValues,
+    hasActiveFilters,
+    handleCategoryChange,
+    handleFilterChange,
+    getCategoryCount,
+  } = useCategoryBrowserState({
+    items,
+    allowedCategories,
+    initialCategory,
+  });
 
   if (visibleCategories.length === 0) {
     return (
@@ -884,9 +806,7 @@ export function CategoryContentBrowser<T extends ContentItem>({
       {/* Results count */}
       <div className="text-muted-foreground text-sm">
         {filteredItems.length} {currentConfig?.label.toLowerCase() ?? 'items'}
-        {search || Object.values(filterValues).some(v => v && v !== 'all')
-          ? ' matching filters'
-          : ''}
+        {hasActiveFilters ? ' matching filters' : ''}
       </div>
 
       {/* Content Display */}

@@ -225,6 +225,98 @@ function MassiveToggle({
   );
 }
 
+function EnvironmentCountdownControl({
+  environment,
+  onEnvironmentChange,
+}: {
+  environment: EnvironmentTracker;
+  onEnvironmentChange: (
+    id: string,
+    fn: (e: EnvironmentTracker) => EnvironmentTracker
+  ) => void;
+}) {
+  const countdown = environment.countdown ?? 0;
+  const countdownEnabled = environment.countdownEnabled ?? false;
+  const isZero = countdown === 0 && countdownEnabled;
+
+  return (
+    <div
+      className={cn(
+        'flex items-center gap-1 rounded border px-1.5 py-0.5 transition-all',
+        countdownEnabled
+          ? 'border-emerald-300/50 bg-emerald-500/10'
+          : 'border-muted bg-muted/30 opacity-50',
+        isZero && 'animate-pulse border-amber-500 bg-amber-500/20'
+      )}
+    >
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={() =>
+                onEnvironmentChange(environment.id, e => ({
+                  ...e,
+                  countdownEnabled: !e.countdownEnabled,
+                }))
+              }
+              className={cn(
+                'flex size-4 items-center justify-center rounded-sm border transition-colors',
+                countdownEnabled
+                  ? 'border-emerald-500 bg-emerald-500 text-white'
+                  : 'border-muted-foreground'
+              )}
+            >
+              {countdownEnabled && <span className="text-[10px]">✓</span>}
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>
+            {countdownEnabled ? 'Disable countdown' : 'Enable countdown'}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      <Button
+        size="icon"
+        variant="ghost"
+        className="size-5 hover:bg-emerald-500/20"
+        disabled={!countdownEnabled}
+        onClick={() =>
+          onEnvironmentChange(environment.id, e => ({
+            ...e,
+            countdown: Math.max(0, (e.countdown ?? 0) - 1),
+          }))
+        }
+      >
+        <Minus className="size-3" />
+      </Button>
+      <span
+        className={cn(
+          'min-w-[1.5ch] text-center text-sm font-medium',
+          countdownEnabled
+            ? 'text-emerald-700 dark:text-emerald-400'
+            : 'text-muted-foreground',
+          isZero && 'text-amber-500'
+        )}
+      >
+        {countdown}
+      </span>
+      <Button
+        size="icon"
+        variant="ghost"
+        className="size-5 hover:bg-emerald-500/20"
+        disabled={!countdownEnabled}
+        onClick={() =>
+          onEnvironmentChange(environment.id, e => ({
+            ...e,
+            countdown: (e.countdown ?? 0) + 1,
+          }))
+        }
+      >
+        <Plus className="size-3" />
+      </Button>
+    </div>
+  );
+}
+
 function ActiveEnvironmentPanel({
   environment,
   selection,
@@ -247,10 +339,6 @@ function ActiveEnvironmentPanel({
     fn: (e: EnvironmentTracker) => EnvironmentTracker
   ) => void;
 }) {
-  const countdown = environment.countdown ?? 0;
-  const countdownEnabled = environment.countdownEnabled ?? false;
-  const isZero = countdown === 0 && countdownEnabled;
-
   return (
     <div
       className={`flex min-h-13 items-center gap-2 rounded-lg border-2 border-emerald-500/30 bg-linear-to-r from-emerald-500/10 to-teal-500/10 px-2.5 py-2 ${
@@ -336,81 +424,10 @@ function ActiveEnvironmentPanel({
           <X className="size-3" />
         </Button>
       </div>
-      {/* Countdown Counter - positioned at end */}
-      <div
-        className={cn(
-          'flex items-center gap-1 rounded border px-1.5 py-0.5 transition-all',
-          countdownEnabled
-            ? 'border-emerald-300/50 bg-emerald-500/10'
-            : 'border-muted bg-muted/30 opacity-50',
-          isZero && 'animate-pulse border-amber-500 bg-amber-500/20'
-        )}
-      >
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={() =>
-                  onEnvironmentChange(environment.id, e => ({
-                    ...e,
-                    countdownEnabled: !e.countdownEnabled,
-                  }))
-                }
-                className={cn(
-                  'flex size-4 items-center justify-center rounded-sm border transition-colors',
-                  countdownEnabled
-                    ? 'border-emerald-500 bg-emerald-500 text-white'
-                    : 'border-muted-foreground'
-                )}
-              >
-                {countdownEnabled && <span className="text-[10px]">✓</span>}
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>
-              {countdownEnabled ? 'Disable countdown' : 'Enable countdown'}
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-        <Button
-          size="icon"
-          variant="ghost"
-          className="size-5 hover:bg-emerald-500/20"
-          disabled={!countdownEnabled}
-          onClick={() =>
-            onEnvironmentChange(environment.id, e => ({
-              ...e,
-              countdown: Math.max(0, (e.countdown ?? 0) - 1),
-            }))
-          }
-        >
-          <Minus className="size-3" />
-        </Button>
-        <span
-          className={cn(
-            'min-w-[1.5ch] text-center text-sm font-medium',
-            countdownEnabled
-              ? 'text-emerald-700 dark:text-emerald-400'
-              : 'text-muted-foreground',
-            isZero && 'text-amber-500'
-          )}
-        >
-          {countdown}
-        </span>
-        <Button
-          size="icon"
-          variant="ghost"
-          className="size-5 hover:bg-emerald-500/20"
-          disabled={!countdownEnabled}
-          onClick={() =>
-            onEnvironmentChange(environment.id, e => ({
-              ...e,
-              countdown: (e.countdown ?? 0) + 1,
-            }))
-          }
-        >
-          <Plus className="size-3" />
-        </Button>
-      </div>
+      <EnvironmentCountdownControl
+        environment={environment}
+        onEnvironmentChange={onEnvironmentChange}
+      />
     </div>
   );
 }

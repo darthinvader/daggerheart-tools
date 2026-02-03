@@ -18,7 +18,6 @@ import {
   Sword,
   Users,
 } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
 
 import { HomebrewFormDialog } from '@/components/homebrew';
 import { useAuth } from '@/components/providers';
@@ -29,15 +28,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  useCreateHomebrewContent,
-  useHomebrewContent,
-} from '@/features/homebrew';
-import type {
-  HomebrewContent,
-  HomebrewContentType,
-  HomebrewVisibility,
-} from '@/lib/schemas/homebrew';
+import type { HomebrewContentType } from '@/lib/schemas/homebrew';
+
+import { useCreateHomebrewState } from './use-create-homebrew-state';
 
 export const Route = createFileRoute('/homebrew/new')({
   component: CreateHomebrew,
@@ -135,71 +128,23 @@ function CreateHomebrew() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { forkFrom } = Route.useSearch();
-  const createMutation = useCreateHomebrewContent();
 
-  // Fetch the source content if forking
-  const { data: forkSource, isLoading: isForkSourceLoading } =
-    useHomebrewContent(forkFrom);
-
-  // User-selected type (null means use forkSource if available)
-  const [userSelectedType, setUserSelectedType] =
-    useState<HomebrewContentType | null>(null);
-  // Track if user has explicitly interacted with the form
-  const [hasUserInteracted, setHasUserInteracted] = useState(false);
-
-  // Derive effective selected type: user selection takes precedence, then forkSource
-  const selectedType = userSelectedType ?? forkSource?.contentType ?? null;
-  // Derive if form should be open: open if user interacted, or if forkSource loaded
-  const isFormOpen =
-    hasUserInteracted || (Boolean(forkSource) && selectedType !== null);
-
-  const handleTypeSelect = useCallback((type: HomebrewContentType) => {
-    setUserSelectedType(type);
-    setHasUserInteracted(true);
-  }, []);
-
-  const handleFormClose = useCallback(() => {
-    setHasUserInteracted(false);
-    setUserSelectedType(null);
-  }, []);
-
-  // Build initial data for form when forking
-  const forkInitialData = useMemo(() => {
-    if (!forkSource) return undefined;
-    return {
-      ...forkSource,
-      id: '', // Clear ID so it creates a new one
-      name: `${forkSource.name} (Fork)`,
-      forkedFrom: forkSource.forkedFrom ?? forkSource.id,
-    } as HomebrewContent;
-  }, [forkSource]);
-
-  const handleFormSubmit = useCallback(
-    async (payload: {
-      content: HomebrewContent['content'];
-      visibility: HomebrewVisibility;
-    }) => {
-      if (!selectedType || !user) return;
-
-      const typedContent = payload.content as {
-        name: string;
-        description?: string;
-      };
-
-      await createMutation.mutateAsync({
-        contentType: selectedType,
-        content: payload.content,
-        name: typedContent.name,
-        description: typedContent.description ?? '',
-        visibility: payload.visibility,
-        tags: [],
-        campaignLinks: [],
-        forkedFrom: forkSource?.forkedFrom ?? forkSource?.id,
-      });
-      navigate({ to: '/homebrew' });
-    },
-    [selectedType, user, createMutation, navigate, forkSource]
-  );
+  const {
+    forkSource,
+    isForkSourceLoading,
+    selectedType,
+    isFormOpen,
+    forkInitialData,
+    isPending,
+    handleTypeSelect,
+    handleFormSubmit,
+    handleFormDialogChange,
+  } = useCreateHomebrewState({
+    forkFrom,
+    user,
+    onNavigateAfterCreate: () => navigate({ to: '/homebrew' }),
+    onNavigateAfterForkClose: () => navigate({ to: '/homebrew/browse' }),
+  });
 
   if (!user) {
     return (
@@ -290,21 +235,11 @@ function CreateHomebrew() {
       {selectedType && (
         <HomebrewFormDialog
           open={isFormOpen}
-          onOpenChange={open => {
-            if (open) {
-              setHasUserInteracted(true);
-            } else {
-              handleFormClose();
-              // If closing and was forking, navigate back
-              if (forkSource) {
-                navigate({ to: '/homebrew/browse' });
-              }
-            }
-          }}
+          onOpenChange={handleFormDialogChange}
           contentType={selectedType}
           initialData={forkInitialData}
           onSubmit={handleFormSubmit}
-          isSubmitting={createMutation.isPending}
+          isSubmitting={isPending}
         />
       )}
     </div>

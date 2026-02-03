@@ -13,7 +13,6 @@ import {
   Home,
   Layers,
   Package,
-  Search,
   Shield,
   Skull,
   Sparkles,
@@ -41,15 +40,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useCreateHomebrewContent } from '@/features/homebrew';
 import { ADVERSARIES } from '@/lib/data/adversaries';
 import { ANCESTRIES } from '@/lib/data/characters/ancestries';
@@ -86,32 +77,18 @@ import {
   SubclassDetail,
 } from './content-detail-views';
 import { HomebrewFormDialog } from './homebrew-form-dialog';
-
-type OfficialContentType =
-  | 'all'
-  | 'adversary'
-  | 'environment'
-  | 'class'
-  | 'subclass'
-  | 'ancestry'
-  | 'community'
-  | 'domain_card'
-  | 'equipment'
-  | 'item';
-
-interface OfficialItem {
-  id: string;
-  name: string;
-  type: OfficialContentType;
-  description?: string;
-  tier?: string;
-  level?: number;
-  domain?: string;
-  difficulty?: string | number;
-  role?: string;
-  category?: string;
-  rawData: unknown;
-}
+import {
+  CategoryTabsSection,
+  ContentEmptyState,
+  FilterBarSection,
+  GroupedContentGrid,
+  ResultsCountSection,
+} from './official-content-browser-sections';
+import {
+  type OfficialContentType,
+  type OfficialItem,
+  useOfficialContentFilter,
+} from './use-official-content-filter';
 
 // Color gradients matching reference pages
 const TYPE_GRADIENTS: Record<OfficialContentType, string> = {
@@ -222,23 +199,6 @@ const roleColors: Record<string, string> = {
     'bg-gray-500/20 text-gray-700 dark:text-gray-300 border-gray-500/30',
 };
 
-// Domain colors for domain cards
-const domainColors: Record<string, string> = {
-  Arcana:
-    'bg-violet-500/20 text-violet-700 dark:text-violet-300 border-violet-500/30',
-  Blade: 'bg-red-500/20 text-red-700 dark:text-red-300 border-red-500/30',
-  Bone: 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/30',
-  Codex: 'bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-500/30',
-  Grace: 'bg-pink-500/20 text-pink-700 dark:text-pink-300 border-pink-500/30',
-  Midnight:
-    'bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border-indigo-500/30',
-  Sage: 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/30',
-  Splendor:
-    'bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 border-yellow-500/30',
-  Valor:
-    'bg-orange-500/20 text-orange-700 dark:text-orange-300 border-orange-500/30',
-};
-
 // Order for category tabs
 const CATEGORY_ORDER: OfficialContentType[] = [
   'adversary',
@@ -276,7 +236,10 @@ function buildOfficialContent(): OfficialItem[] {
       type: 'environment',
       description: env.description,
       tier: env.tier,
-      difficulty: env.difficulty,
+      difficulty:
+        typeof env.difficulty === 'number'
+          ? env.difficulty
+          : parseInt(String(env.difficulty), 10) || undefined,
       rawData: env,
     });
   });
@@ -922,17 +885,33 @@ function OfficialViewDialog({
 // ========== MAIN COMPONENT ==========
 
 export function OfficialContentBrowser() {
-  // Category tab state
-  const [activeCategory, setActiveCategory] =
-    useState<OfficialContentType>('adversary');
-  const [searchQuery, setSearchQuery] = useState('');
+  // Build all official content
+  const allOfficialContent = useMemo<OfficialItem[]>(
+    () => buildOfficialContent(),
+    []
+  );
 
-  // Filter states (reset when changing category)
-  const [tierFilter, setTierFilter] = useState('all');
-  const [roleFilter, setRoleFilter] = useState('all');
-  const [domainFilter, setDomainFilter] = useState('all');
-  const [levelFilter, setLevelFilter] = useState('all');
-  const [equipmentCategoryFilter, setEquipmentCategoryFilter] = useState('all');
+  // Use extracted filter hook
+  const {
+    activeCategory,
+    handleCategoryChange,
+    searchQuery,
+    setSearchQuery,
+    tierFilter,
+    setTierFilter,
+    roleFilter,
+    setRoleFilter,
+    domainFilter,
+    setDomainFilter,
+    levelFilter,
+    setLevelFilter,
+    equipmentCategoryFilter,
+    setEquipmentCategoryFilter,
+    categoryFilters,
+    filteredCategoryItems,
+    groupedDisplayItems,
+    orderedGroups,
+  } = useOfficialContentFilter({ allItems: allOfficialContent });
 
   // View/fork dialog states
   const [viewingItem, setViewingItem] = useState<OfficialItem | null>(null);
@@ -941,26 +920,6 @@ export function OfficialContentBrowser() {
   const [isForkOpen, setIsForkOpen] = useState(false);
 
   const createMutation = useCreateHomebrewContent();
-  const allOfficialContent = useMemo<OfficialItem[]>(
-    () => buildOfficialContent(),
-    []
-  );
-
-  // Get items for current category
-  const categoryItems = useMemo(() => {
-    return allOfficialContent.filter(item => item.type === activeCategory);
-  }, [allOfficialContent, activeCategory]);
-
-  // Reset filters when category changes
-  const handleCategoryChange = useCallback((type: OfficialContentType) => {
-    setActiveCategory(type);
-    setSearchQuery('');
-    setTierFilter('all');
-    setRoleFilter('all');
-    setDomainFilter('all');
-    setLevelFilter('all');
-    setEquipmentCategoryFilter('all');
-  }, []);
 
   const handleView = useCallback((item: OfficialItem) => {
     setViewingItem(item);
@@ -1008,518 +967,89 @@ export function OfficialContentBrowser() {
   const currentConfig = TYPE_CONFIG[activeCategory];
   const CurrentIcon = currentConfig.icon;
 
-  // Get category-specific filter options
-  const categoryFilters = useMemo(() => {
-    switch (activeCategory) {
-      case 'adversary':
-        return {
-          tierOptions: ['all', '1', '2', '3', '4'],
-          roleOptions: [
-            'all',
-            'Solo',
-            'Bruiser',
-            'Leader',
-            'Support',
-            'Ranged',
-            'Skulk',
-            'Horde',
-            'Minion',
-            'Social',
-            'Standard',
-          ],
-        };
-      case 'environment':
-        return { tierOptions: ['all', '1', '2', '3', '4'] };
-      case 'domain_card':
-        return {
-          domainOptions: [
-            'all',
-            'Arcana',
-            'Blade',
-            'Bone',
-            'Codex',
-            'Grace',
-            'Midnight',
-            'Sage',
-            'Splendor',
-            'Valor',
-          ],
-          levelOptions: [
-            'all',
-            '1',
-            '2',
-            '3',
-            '4',
-            '5',
-            '6',
-            '7',
-            '8',
-            '9',
-            '10',
-          ],
-        };
-      case 'equipment':
-        return {
-          categoryOptions: [
-            'all',
-            'Primary Weapon',
-            'Secondary Weapon',
-            'Armor',
-            'Combat Wheelchair',
-          ],
-          tierOptions: ['all', '1', '2', '3', '4'],
-        };
-      case 'item':
-        return { tierOptions: ['all', '1', '2', '3', '4'] };
-      default:
-        return {};
-    }
-  }, [activeCategory]);
-
-  // Apply category-specific filters
-  const filteredCategoryItems = useMemo(() => {
-    let items = categoryItems;
-
-    // Apply search
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      items = items.filter(
-        item =>
-          item.name.toLowerCase().includes(query) ||
-          item.description?.toLowerCase().includes(query)
-      );
-    }
-
-    // Apply tier filter
-    if (tierFilter !== 'all') {
-      items = items.filter(item => item.tier === tierFilter);
-    }
-
-    // Apply role filter (adversaries)
-    if (roleFilter !== 'all' && activeCategory === 'adversary') {
-      items = items.filter(item => item.role === roleFilter);
-    }
-
-    // Apply domain filter (domain cards)
-    if (domainFilter !== 'all' && activeCategory === 'domain_card') {
-      items = items.filter(item => item.domain === domainFilter);
-    }
-
-    // Apply level filter (domain cards)
-    if (levelFilter !== 'all' && activeCategory === 'domain_card') {
-      items = items.filter(item => String(item.level) === levelFilter);
-    }
-
-    // Apply equipment category filter
-    if (equipmentCategoryFilter !== 'all' && activeCategory === 'equipment') {
-      items = items.filter(item => {
-        const cat = item.category ?? 'Primary Weapon';
-        if (cat === 'Weapon') {
-          const rawData = item.rawData as { type?: string };
-          const actualCat =
-            rawData.type === 'Secondary'
-              ? 'Secondary Weapon'
-              : 'Primary Weapon';
-          return actualCat === equipmentCategoryFilter;
-        }
-        return cat === equipmentCategoryFilter;
-      });
-    }
-
-    return items;
-  }, [
-    categoryItems,
-    searchQuery,
-    tierFilter,
-    roleFilter,
-    domainFilter,
-    levelFilter,
-    equipmentCategoryFilter,
-    activeCategory,
-  ]);
-
-  // Group items for display
-  const groupedDisplayItems = useMemo(() => {
-    const items = filteredCategoryItems;
-    const groups = new Map<string, OfficialItem[]>();
-
-    for (const item of items) {
-      let groupKey: string;
-      switch (activeCategory) {
-        case 'adversary':
-          groupKey = item.role ?? 'Standard';
-          break;
-        case 'environment':
-          groupKey = item.tier ?? '1';
-          break;
-        case 'domain_card':
-          groupKey = item.domain ?? 'Arcana';
-          break;
-        case 'equipment': {
-          const cat = item.category ?? 'Primary Weapon';
-          if (cat === 'Weapon') {
-            const rawData = item.rawData as { type?: string };
-            groupKey =
-              rawData.type === 'Secondary'
-                ? 'Secondary Weapon'
-                : 'Primary Weapon';
-          } else {
-            groupKey = cat;
-          }
-          break;
-        }
-        case 'item':
-          groupKey = item.tier ?? '1';
-          break;
-        default: {
-          // Alphabetical grouping
-          const firstChar = item.name.charAt(0).toUpperCase();
-          groupKey = /[A-Z]/.test(firstChar) ? firstChar : '#';
-        }
-      }
-
-      const existing = groups.get(groupKey) ?? [];
-      existing.push(item);
-      groups.set(groupKey, existing);
-    }
-
-    // Sort items within each group
-    for (const [key, groupItems] of groups) {
-      groups.set(
-        key,
-        groupItems.sort((a, b) => a.name.localeCompare(b.name))
-      );
-    }
-
-    return groups;
-  }, [filteredCategoryItems, activeCategory]);
-
-  // Get ordered groups
-  const orderedGroups = useMemo(() => {
-    const getGroupConfigs = (): {
-      key: string;
-      label: string;
-      colorClass: string;
-    }[] => {
-      switch (activeCategory) {
-        case 'adversary':
-          return [
-            { key: 'Solo', label: 'Solo', colorClass: roleColors['Solo'] },
-            {
-              key: 'Bruiser',
-              label: 'Bruiser',
-              colorClass: roleColors['Bruiser'],
-            },
-            {
-              key: 'Leader',
-              label: 'Leader',
-              colorClass: roleColors['Leader'],
-            },
-            {
-              key: 'Support',
-              label: 'Support',
-              colorClass: roleColors['Support'],
-            },
-            {
-              key: 'Ranged',
-              label: 'Ranged',
-              colorClass: roleColors['Ranged'],
-            },
-            { key: 'Skulk', label: 'Skulk', colorClass: roleColors['Skulk'] },
-            { key: 'Horde', label: 'Horde', colorClass: roleColors['Horde'] },
-            {
-              key: 'Minion',
-              label: 'Minion',
-              colorClass: roleColors['Minion'],
-            },
-            {
-              key: 'Social',
-              label: 'Social',
-              colorClass: roleColors['Social'],
-            },
-            {
-              key: 'Standard',
-              label: 'Standard',
-              colorClass: roleColors['Standard'],
-            },
-          ];
-        case 'environment':
-        case 'item':
-          return [
-            { key: '1', label: 'Tier 1', colorClass: tierColors['1'] },
-            { key: '2', label: 'Tier 2', colorClass: tierColors['2'] },
-            { key: '3', label: 'Tier 3', colorClass: tierColors['3'] },
-            { key: '4', label: 'Tier 4', colorClass: tierColors['4'] },
-          ];
-        case 'domain_card':
-          return [
-            {
-              key: 'Arcana',
-              label: 'Arcana',
-              colorClass: domainColors['Arcana'],
-            },
-            { key: 'Blade', label: 'Blade', colorClass: domainColors['Blade'] },
-            { key: 'Bone', label: 'Bone', colorClass: domainColors['Bone'] },
-            { key: 'Codex', label: 'Codex', colorClass: domainColors['Codex'] },
-            { key: 'Grace', label: 'Grace', colorClass: domainColors['Grace'] },
-            {
-              key: 'Midnight',
-              label: 'Midnight',
-              colorClass: domainColors['Midnight'],
-            },
-            { key: 'Sage', label: 'Sage', colorClass: domainColors['Sage'] },
-            {
-              key: 'Splendor',
-              label: 'Splendor',
-              colorClass: domainColors['Splendor'],
-            },
-            { key: 'Valor', label: 'Valor', colorClass: domainColors['Valor'] },
-          ];
-        case 'equipment':
-          return [
-            {
-              key: 'Primary Weapon',
-              label: 'Primary Weapons',
-              colorClass:
-                'bg-red-500/20 text-red-700 dark:text-red-300 border-red-500/30',
-            },
-            {
-              key: 'Secondary Weapon',
-              label: 'Secondary Weapons',
-              colorClass:
-                'bg-orange-500/20 text-orange-700 dark:text-orange-300 border-orange-500/30',
-            },
-            {
-              key: 'Armor',
-              label: 'Armor',
-              colorClass:
-                'bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-500/30',
-            },
-            {
-              key: 'Combat Wheelchair',
-              label: 'Combat Wheelchairs',
-              colorClass:
-                'bg-purple-500/20 text-purple-700 dark:text-purple-300 border-purple-500/30',
-            },
-          ];
-        default:
-          // Alphabetical - generate from actual data
-          return Array.from(groupedDisplayItems.keys())
-            .sort((a, b) =>
-              a === '#' ? 1 : b === '#' ? -1 : a.localeCompare(b)
-            )
-            .map(letter => ({
-              key: letter,
-              label: letter,
-              colorClass: 'bg-muted/50',
-            }));
-      }
-    };
-
-    return getGroupConfigs().filter(g => groupedDisplayItems.has(g.key));
-  }, [activeCategory, groupedDisplayItems]);
+  const hasActiveFilters =
+    !!searchQuery ||
+    tierFilter !== 'all' ||
+    roleFilter !== 'all' ||
+    domainFilter !== 'all' ||
+    levelFilter !== 'all' ||
+    equipmentCategoryFilter !== 'all';
 
   return (
     <div className="space-y-4">
-      {/* Category Tabs */}
-      <ScrollArea className="w-full whitespace-nowrap">
-        <div className="flex gap-1 pb-2">
-          {CATEGORY_ORDER.map(type => {
-            const config = TYPE_CONFIG[type];
-            const Icon = config.icon;
-            const count = allOfficialContent.filter(
-              i => i.type === type
-            ).length;
-            const isActive = activeCategory === type;
+      <CategoryTabsSection
+        categoryOrder={CATEGORY_ORDER}
+        allContent={allOfficialContent}
+        activeCategory={activeCategory}
+        typeConfig={TYPE_CONFIG}
+        onCategoryChange={handleCategoryChange}
+      />
 
-            return (
-              <Button
-                key={type}
-                variant={isActive ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => handleCategoryChange(type)}
-                className={`flex shrink-0 items-center gap-1.5 transition-all ${
-                  isActive ? 'shadow-sm' : config.bgColor
-                }`}
-              >
-                <Icon className={`size-4 ${isActive ? '' : config.color}`} />
-                <span className="hidden sm:inline">{config.label}</span>
-                <Badge
-                  variant={isActive ? 'secondary' : 'outline'}
-                  className="ml-1 text-xs"
-                >
-                  {count}
-                </Badge>
-              </Button>
-            );
-          })}
-        </div>
-        <ScrollBar orientation="horizontal" />
-      </ScrollArea>
+      <FilterBarSection
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder={`Search ${currentConfig.label.toLowerCase()}...`}
+        categoryFilters={{
+          tierOptions:
+            'tierOptions' in categoryFilters
+              ? categoryFilters.tierOptions
+              : undefined,
+          roleOptions:
+            'roleOptions' in categoryFilters
+              ? categoryFilters.roleOptions
+              : undefined,
+          domainOptions:
+            'domainOptions' in categoryFilters
+              ? categoryFilters.domainOptions
+              : undefined,
+          levelOptions:
+            'levelOptions' in categoryFilters
+              ? categoryFilters.levelOptions
+              : undefined,
+          categoryOptions:
+            'categoryOptions' in categoryFilters
+              ? categoryFilters.categoryOptions
+              : undefined,
+        }}
+        tierFilter={tierFilter}
+        onTierChange={setTierFilter}
+        roleFilter={roleFilter}
+        onRoleChange={setRoleFilter}
+        domainFilter={domainFilter}
+        onDomainChange={setDomainFilter}
+        levelFilter={levelFilter}
+        onLevelChange={setLevelFilter}
+        equipmentCategoryFilter={equipmentCategoryFilter}
+        onEquipmentCategoryChange={setEquipmentCategoryFilter}
+      />
 
-      {/* Search and Category-Specific Filters */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-        <div className="relative flex-1 sm:max-w-xs">
-          <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-          <Input
-            placeholder={`Search ${currentConfig.label.toLowerCase()}...`}
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
-        </div>
+      <ResultsCountSection
+        Icon={CurrentIcon}
+        iconColor={currentConfig.color}
+        count={filteredCategoryItems.length}
+        label={currentConfig.label.toLowerCase()}
+        hasActiveFilters={hasActiveFilters}
+      />
 
-        {/* Category-specific filters */}
-        {'tierOptions' in categoryFilters && categoryFilters.tierOptions && (
-          <Select value={tierFilter} onValueChange={setTierFilter}>
-            <SelectTrigger className="w-[130px]">
-              <SelectValue placeholder="Tier" />
-            </SelectTrigger>
-            <SelectContent>
-              {categoryFilters.tierOptions.map(t => (
-                <SelectItem key={t} value={t}>
-                  {t === 'all' ? 'All Tiers' : `Tier ${t}`}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-
-        {'roleOptions' in categoryFilters && categoryFilters.roleOptions && (
-          <Select value={roleFilter} onValueChange={setRoleFilter}>
-            <SelectTrigger className="w-[130px]">
-              <SelectValue placeholder="Role" />
-            </SelectTrigger>
-            <SelectContent>
-              {categoryFilters.roleOptions.map(r => (
-                <SelectItem key={r} value={r}>
-                  {r === 'all' ? 'All Roles' : r}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-
-        {'domainOptions' in categoryFilters &&
-          categoryFilters.domainOptions && (
-            <Select value={domainFilter} onValueChange={setDomainFilter}>
-              <SelectTrigger className="w-[130px]">
-                <SelectValue placeholder="Domain" />
-              </SelectTrigger>
-              <SelectContent>
-                {categoryFilters.domainOptions.map(d => (
-                  <SelectItem key={d} value={d}>
-                    {d === 'all' ? 'All Domains' : d}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-
-        {'levelOptions' in categoryFilters && categoryFilters.levelOptions && (
-          <Select value={levelFilter} onValueChange={setLevelFilter}>
-            <SelectTrigger className="w-[130px]">
-              <SelectValue placeholder="Level" />
-            </SelectTrigger>
-            <SelectContent>
-              {categoryFilters.levelOptions.map(l => (
-                <SelectItem key={l} value={l}>
-                  {l === 'all' ? 'All Levels' : `Level ${l}`}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-
-        {'categoryOptions' in categoryFilters &&
-          categoryFilters.categoryOptions && (
-            <Select
-              value={equipmentCategoryFilter}
-              onValueChange={setEquipmentCategoryFilter}
-            >
-              <SelectTrigger className="w-[160px]">
-                <SelectValue placeholder="Type" />
-              </SelectTrigger>
-              <SelectContent>
-                {categoryFilters.categoryOptions.map(c => (
-                  <SelectItem key={c} value={c}>
-                    {c === 'all'
-                      ? 'All Types'
-                      : c === 'Primary Weapon'
-                        ? 'Primary'
-                        : c === 'Secondary Weapon'
-                          ? 'Secondary'
-                          : c}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-      </div>
-
-      {/* Results count */}
-      <div className="flex items-center gap-2">
-        <CurrentIcon className={`size-4 ${currentConfig.color}`} />
-        <span className="text-muted-foreground text-sm">
-          {filteredCategoryItems.length} {currentConfig.label.toLowerCase()}
-          {searchQuery ||
-          tierFilter !== 'all' ||
-          roleFilter !== 'all' ||
-          domainFilter !== 'all' ||
-          levelFilter !== 'all' ||
-          equipmentCategoryFilter !== 'all'
-            ? ' matching filters'
-            : ''}
-        </span>
-      </div>
-
-      {/* Grouped Content Display */}
       {filteredCategoryItems.length === 0 ? (
-        <div className="flex h-48 flex-col items-center justify-center gap-3 text-center">
-          <div className="bg-muted flex size-16 items-center justify-center rounded-full">
-            <Search className="text-muted-foreground size-8" />
-          </div>
-          <p className="text-muted-foreground">
-            No {currentConfig.label.toLowerCase()} match your filters.
-          </p>
-        </div>
+        <ContentEmptyState label={currentConfig.label.toLowerCase()} />
       ) : (
-        <div className="space-y-6">
-          {orderedGroups.map(group => {
-            const groupItems = groupedDisplayItems.get(group.key) ?? [];
-            if (groupItems.length === 0) return null;
-
-            return (
-              <div key={group.key} className="scroll-mt-24">
-                {/* Group Header */}
-                <div
-                  className={`mb-3 flex items-center gap-2 rounded-lg border px-3 py-2 ${group.colorClass}`}
-                >
-                  <span className="text-lg font-bold">{group.label}</span>
-                  <Badge variant="secondary">{groupItems.length}</Badge>
-                </div>
-
-                {/* Items Grid */}
-                <div
-                  className="grid gap-2"
-                  style={{
-                    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-                  }}
-                >
-                  {groupItems.map(item => (
-                    <OfficialItemCard
-                      key={item.id}
-                      item={item}
-                      config={currentConfig}
-                      onView={() => handleView(item)}
-                      onFork={() => handleFork(item)}
-                    />
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <GroupedContentGrid
+          orderedGroups={orderedGroups}
+          groupedItems={groupedDisplayItems}
+          config={currentConfig}
+          onViewItem={handleView}
+          onForkItem={handleFork}
+          renderCard={(item, config, onView, onFork) => (
+            <OfficialItemCard
+              key={item.id}
+              item={item}
+              config={config}
+              onView={onView}
+              onFork={onFork}
+            />
+          )}
+        />
       )}
 
       <OfficialViewDialog

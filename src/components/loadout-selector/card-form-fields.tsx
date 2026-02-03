@@ -285,32 +285,29 @@ interface ModifiersSectionProps {
   onChange: (modifiers: FeatureStatModifiers | undefined) => void;
 }
 
+function cleanModifiers(
+  modifiers: FeatureStatModifiers
+): FeatureStatModifiers | undefined {
+  const cleaned = Object.fromEntries(
+    Object.entries(modifiers).filter(([, v]) => v !== 0 && v !== undefined)
+  );
+  return Object.keys(cleaned).length > 0
+    ? (cleaned as FeatureStatModifiers)
+    : undefined;
+}
+
 function ModifiersSection({ modifiers, onChange }: ModifiersSectionProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [hasModifiers, setHasModifiers] = useState(!!modifiers);
 
   const handleToggle = (enabled: boolean) => {
     setHasModifiers(enabled);
-    if (!enabled) {
-      onChange(undefined);
-    } else {
-      onChange({});
-    }
+    onChange(enabled ? {} : undefined);
   };
 
   const updateModifier = (key: keyof FeatureStatModifiers, value: number) => {
-    const current = modifiers ?? {};
-    if (value === 0) {
-      const rest = { ...current } as Record<string, unknown>;
-      delete rest[key];
-      onChange(
-        Object.keys(rest).length > 0
-          ? (rest as FeatureStatModifiers)
-          : undefined
-      );
-    } else {
-      onChange({ ...current, [key]: value });
-    }
+    const updated = { ...modifiers, [key]: value };
+    onChange(cleanModifiers(updated));
   };
 
   return (

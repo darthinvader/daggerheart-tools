@@ -67,6 +67,7 @@ import { ALL_DOMAIN_NAMES, getAllDomainCards } from '@/lib/data/domains';
 import { AlertTriangle, Sparkle, Sparkles, Zap } from '@/lib/icons';
 import type { DomainCard } from '@/lib/schemas/domains';
 import { getCardCosts } from '@/lib/utils/card-costs';
+import { useCategoryExpandState } from './use-category-expand-state';
 
 export const Route = createFileRoute('/references/domain-cards')({
   component: DomainCardsPageWrapper,
@@ -661,28 +662,15 @@ function DomainCardsGridSections({
   onViewModeChange: (value: 'grid' | 'table') => void;
   isMobile: boolean;
 }) {
-  const [expandedDomains, setExpandedDomains] = React.useState<
-    Record<string, boolean>
-  >(() => Object.fromEntries(domainEntries.map(([domain]) => [domain, true])));
-
-  const toggleDomain = (domain: string) => {
-    setExpandedDomains(prev => ({ ...prev, [domain]: !prev[domain] }));
-  };
-
-  const expandAll = () => {
-    setExpandedDomains(
-      Object.fromEntries(domainEntries.map(([domain]) => [domain, true]))
-    );
-  };
-
-  const collapseAll = () => {
-    setExpandedDomains(
-      Object.fromEntries(domainEntries.map(([domain]) => [domain, false]))
-    );
-  };
-
-  const allExpanded = Object.values(expandedDomains).every(Boolean);
-  const allCollapsed = Object.values(expandedDomains).every(v => !v);
+  // Use extracted hook for expand/collapse state (same as EquipmentGridSections)
+  const {
+    toggleCategory: toggleDomain,
+    expandAll,
+    collapseAll,
+    allExpanded,
+    allCollapsed,
+    isCategoryExpanded,
+  } = useCategoryExpandState(domainEntries.map(([domain]) => domain));
 
   return (
     <div className="space-y-4">
@@ -836,7 +824,7 @@ function DomainCardsGridSections({
 
       {domainEntries.map(([domain, cards]) => {
         const domainColor = domainColors[domain] ?? defaultDomainColor;
-        const isExpanded = expandedDomains[domain] ?? true;
+        const isExpanded = isCategoryExpanded(domain);
 
         return (
           <Collapsible

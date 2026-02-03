@@ -126,29 +126,36 @@ function rowToCampaignInvitePreview(
   };
 }
 
+/** Field mapping from Campaign to CampaignRow */
+const CAMPAIGN_TO_ROW_FIELDS: Record<string, string> = {
+  name: 'name',
+  frame: 'frame',
+  gmId: 'gm_id',
+  players: 'players',
+  sessions: 'sessions',
+  npcs: 'npcs',
+  locations: 'locations',
+  quests: 'quests',
+  organizations: 'organizations',
+  storyThreads: 'story_threads',
+  battles: 'battles',
+  sessionPrepChecklist: 'session_prep_checklist',
+  inviteCode: 'invite_code',
+  status: 'status',
+  notes: 'notes',
+};
+
 function campaignToRow(
   campaign: Partial<Campaign> & { gmId?: string }
 ): Partial<CampaignRow> {
   const row: Partial<CampaignRow> = {};
+  const campaignRecord = campaign as Record<string, unknown>;
 
-  if (campaign.name !== undefined) row.name = campaign.name;
-  if (campaign.frame !== undefined) row.frame = campaign.frame;
-  if (campaign.gmId !== undefined) row.gm_id = campaign.gmId;
-  if (campaign.players !== undefined) row.players = campaign.players;
-  if (campaign.sessions !== undefined) row.sessions = campaign.sessions;
-  if (campaign.npcs !== undefined) row.npcs = campaign.npcs;
-  if (campaign.locations !== undefined) row.locations = campaign.locations;
-  if (campaign.quests !== undefined) row.quests = campaign.quests;
-  if (campaign.organizations !== undefined)
-    row.organizations = campaign.organizations;
-  if (campaign.storyThreads !== undefined)
-    row.story_threads = campaign.storyThreads;
-  if (campaign.battles !== undefined) row.battles = campaign.battles;
-  if (campaign.sessionPrepChecklist !== undefined)
-    row.session_prep_checklist = campaign.sessionPrepChecklist;
-  if (campaign.inviteCode !== undefined) row.invite_code = campaign.inviteCode;
-  if (campaign.status !== undefined) row.status = campaign.status;
-  if (campaign.notes !== undefined) row.notes = campaign.notes;
+  for (const [campaignKey, rowKey] of Object.entries(CAMPAIGN_TO_ROW_FIELDS)) {
+    if (campaignRecord[campaignKey] !== undefined) {
+      (row as Record<string, unknown>)[rowKey] = campaignRecord[campaignKey];
+    }
+  }
 
   return row;
 }

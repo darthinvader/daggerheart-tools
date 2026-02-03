@@ -79,6 +79,7 @@ import type {
   UtilityItem,
   WeaponModification,
 } from '@/lib/schemas/equipment';
+import { useCategoryExpandState } from './use-category-expand-state';
 
 export const Route = createFileRoute('/references/inventory')({
   component: InventoryPageWrapper,
@@ -776,28 +777,16 @@ function InventoryGridSections({
   const visibleCategories = categoryOrder.filter(
     category => groupedItems[category]?.length > 0
   );
-  const [expandedCategories, setExpandedCategories] = React.useState<
-    Record<string, boolean>
-  >(() => Object.fromEntries(visibleCategories.map(k => [k, true])));
 
-  const toggleCategory = (category: string) => {
-    setExpandedCategories(prev => ({ ...prev, [category]: !prev[category] }));
-  };
-
-  const expandAll = () => {
-    setExpandedCategories(
-      Object.fromEntries(visibleCategories.map(k => [k, true]))
-    );
-  };
-
-  const collapseAll = () => {
-    setExpandedCategories(
-      Object.fromEntries(visibleCategories.map(k => [k, false]))
-    );
-  };
-
-  const allExpanded = visibleCategories.every(k => expandedCategories[k]);
-  const allCollapsed = visibleCategories.every(k => !expandedCategories[k]);
+  // Use extracted hook for expand/collapse state
+  const {
+    toggleCategory,
+    expandAll,
+    collapseAll,
+    allExpanded,
+    allCollapsed,
+    isCategoryExpanded,
+  } = useCategoryExpandState(visibleCategories);
 
   return (
     <div className="space-y-4">
@@ -952,7 +941,7 @@ function InventoryGridSections({
         const items = groupedItems[category];
         const gradient =
           categoryGradients[category] ?? 'from-gray-500 to-slate-600';
-        const isExpanded = expandedCategories[category] ?? true;
+        const isExpanded = isCategoryExpanded(category);
 
         return (
           <Collapsible

@@ -41,3 +41,13 @@ export function generateId(): string {
     return value.toString(16);
   });
 }
+
+/**
+ * Toggle an item in an array - adds if not present, removes if present.
+ * Useful for managing selection state.
+ */
+export function toggleArrayItem<T>(array: T[], item: T): T[] {
+  return array.includes(item)
+    ? array.filter(i => i !== item)
+    : [...array, item];
+}

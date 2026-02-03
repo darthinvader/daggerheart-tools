@@ -13,13 +13,16 @@
  * - "Show All" toggle for large lists
  */
 import { Eye, EyeOff } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-const INITIAL_LIMIT = 50;
+import {
+  INITIAL_LIMIT,
+  useGroupedContentState,
+} from './use-grouped-content-state';
 
 // =====================================================================================
 // Types
@@ -124,170 +127,102 @@ function GroupNav({
 }
 
 // =====================================================================================
-// Main Component
+// Collapsed View Component
 // =====================================================================================
 
-export function GroupedContentGrid<T>({
+interface CollapsedViewProps<T> {
+  items: T[];
+  getKey: (item: T) => string;
+  renderItem: (item: T) => React.ReactNode;
+  gridCols: string;
+  columnsStyle: string;
+  totalCount: number;
+  needsShowAll: boolean;
+  groupingTitle: string;
+  onShowAll: () => void;
+}
+
+function CollapsedView<T>({
   items,
   getKey,
-  getGroupKey,
-  getName,
-  groupConfigs,
   renderItem,
-  className,
-  columns = { default: 1, sm: 2, lg: 3 },
-  groupingTitle = 'Group',
-}: GroupedContentGridProps<T>) {
-  const [showAll, setShowAll] = useState(false);
-  const [activeGroup, setActiveGroup] = useState<string | undefined>();
-  const containerRef = useRef<HTMLDivElement>(null);
-  const groupRefs = useRef<Map<string, HTMLDivElement>>(new Map());
-
-  // Group items by their group key
-  const groupedItems = useMemo(() => {
-    const groups = new Map<string, T[]>();
-    for (const item of items) {
-      const groupKey = getGroupKey(item);
-      const existing = groups.get(groupKey) ?? [];
-      existing.push(item);
-      groups.set(groupKey, existing);
-    }
-    // Sort items within each group alphabetically
-    for (const [key, groupItems] of groups) {
-      groups.set(
-        key,
-        groupItems.sort((a, b) => getName(a).localeCompare(getName(b)))
-      );
-    }
-    return groups;
-  }, [items, getGroupKey, getName]);
-
-  // Get available groups (those that have items)
-  const availableGroups = useMemo(
-    () => new Set(groupedItems.keys()),
-    [groupedItems]
-  );
-
-  // Get ordered group configs that have items
-  const orderedGroups = useMemo(() => {
-    return groupConfigs
-      .filter(g => availableGroups.has(g.key))
-      .sort((a, b) => a.order - b.order);
-  }, [groupConfigs, availableGroups]);
-
-  // Flatten items in group order for initial display
-  const flattenedItems = useMemo(() => {
-    const result: T[] = [];
-    for (const group of orderedGroups) {
-      const groupItems = groupedItems.get(group.key) ?? [];
-      result.push(...groupItems);
-    }
-    return result;
-  }, [orderedGroups, groupedItems]);
-
-  // Determine what to show based on showAll toggle
-  const totalCount = items.length;
-  const needsShowAll = totalCount > INITIAL_LIMIT;
-
-  // Scroll to a group section
-  const scrollToGroup = useCallback((groupKey: string) => {
-    const element = groupRefs.current.get(groupKey);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      setActiveGroup(groupKey);
-    }
-  }, []);
-
-  // Track active group on scroll
-  useEffect(() => {
-    if (!showAll) return;
-
-    const observer = new IntersectionObserver(
-      entries => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            const groupKey = entry.target.getAttribute('data-group');
-            if (groupKey) {
-              setActiveGroup(groupKey);
-              break;
-            }
-          }
-        }
-      },
-      { rootMargin: '-100px 0px -80% 0px', threshold: 0 }
-    );
-
-    groupRefs.current.forEach(element => {
-      observer.observe(element);
-    });
-
-    return () => observer.disconnect();
-  }, [showAll]);
-
-  // Register group ref
-  const setGroupRef = useCallback(
-    (groupKey: string) => (el: HTMLDivElement | null) => {
-      if (el) {
-        groupRefs.current.set(groupKey, el);
-      } else {
-        groupRefs.current.delete(groupKey);
-      }
-    },
-    []
-  );
-
-  // Build column classes
-  const gridCols = cn(
-    `grid-cols-${columns.default}`,
-    columns.sm && `sm:grid-cols-${columns.sm}`,
-    columns.lg && `lg:grid-cols-${columns.lg}`
-  );
-
-  if (items.length === 0) {
-    return null;
-  }
-
-  // If not showing all, just show first N items without grouping
-  if (!showAll) {
-    const itemsToShow = flattenedItems.slice(0, INITIAL_LIMIT);
-
-    return (
-      <div className={cn('space-y-4', className)} ref={containerRef}>
-        <div
-          className={cn('grid gap-2', gridCols)}
-          style={{
-            gridTemplateColumns: `repeat(${columns.lg ?? columns.sm ?? columns.default}, minmax(0, 1fr))`,
-          }}
-        >
-          {itemsToShow.map(item => (
-            <div key={getKey(item)}>{renderItem(item)}</div>
-          ))}
-        </div>
-
-        {needsShowAll && (
-          <div className="flex flex-col items-center gap-3 py-4">
-            <p className="text-muted-foreground text-sm">
-              Showing {Math.min(INITIAL_LIMIT, totalCount)} of {totalCount}{' '}
-              items
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowAll(true)}
-              className="gap-2"
-            >
-              <Eye className="size-4" />
-              Show All {totalCount} Items (Grouped by {groupingTitle})
-            </Button>
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // Show all with grouping
+  gridCols,
+  columnsStyle,
+  totalCount,
+  needsShowAll,
+  groupingTitle,
+  onShowAll,
+}: CollapsedViewProps<T>) {
   return (
-    <div className={cn('space-y-4', className)} ref={containerRef}>
+    <>
+      <div
+        className={cn('grid gap-2', gridCols)}
+        style={{ gridTemplateColumns: columnsStyle }}
+      >
+        {items.map(item => (
+          <div key={getKey(item)}>{renderItem(item)}</div>
+        ))}
+      </div>
+
+      {needsShowAll && (
+        <div className="flex flex-col items-center gap-3 py-4">
+          <p className="text-muted-foreground text-sm">
+            Showing {Math.min(INITIAL_LIMIT, totalCount)} of {totalCount} items
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onShowAll}
+            className="gap-2"
+          >
+            <Eye className="size-4" />
+            Show All {totalCount} Items (Grouped by {groupingTitle})
+          </Button>
+        </div>
+      )}
+    </>
+  );
+}
+
+// =====================================================================================
+// Expanded View Component
+// =====================================================================================
+
+interface ExpandedViewProps<T> {
+  orderedGroups: GroupConfig[];
+  groupedItems: Map<string, T[]>;
+  groupConfigs: GroupConfig[];
+  availableGroups: Set<string>;
+  activeGroup?: string;
+  getKey: (item: T) => string;
+  renderItem: (item: T) => React.ReactNode;
+  setGroupRef: (groupKey: string) => (el: HTMLDivElement | null) => void;
+  scrollToGroup: (groupKey: string) => void;
+  gridCols: string;
+  columnsStyle: string;
+  totalCount: number;
+  groupingTitle: string;
+  onCollapse: () => void;
+}
+
+function ExpandedView<T>({
+  orderedGroups,
+  groupedItems,
+  groupConfigs,
+  availableGroups,
+  activeGroup,
+  getKey,
+  renderItem,
+  setGroupRef,
+  scrollToGroup,
+  gridCols,
+  columnsStyle,
+  totalCount,
+  groupingTitle,
+  onCollapse,
+}: ExpandedViewProps<T>) {
+  return (
+    <>
       {/* Group Navigation */}
       <div className="bg-background/95 sticky top-0 z-10 py-2 backdrop-blur">
         <GroupNav
@@ -303,7 +238,7 @@ export function GroupedContentGrid<T>({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setShowAll(false)}
+            onClick={onCollapse}
             className="gap-2"
           >
             <EyeOff className="size-4" />
@@ -340,9 +275,7 @@ export function GroupedContentGrid<T>({
               {/* Items Grid */}
               <div
                 className={cn('grid gap-2', gridCols)}
-                style={{
-                  gridTemplateColumns: `repeat(${columns.lg ?? columns.sm ?? columns.default}, minmax(0, 1fr))`,
-                }}
+                style={{ gridTemplateColumns: columnsStyle }}
               >
                 {groupItems.map(item => (
                   <div key={getKey(item)}>{renderItem(item)}</div>
@@ -352,6 +285,96 @@ export function GroupedContentGrid<T>({
           );
         })}
       </div>
+    </>
+  );
+}
+
+// =====================================================================================
+// Main Component
+// =====================================================================================
+
+export function GroupedContentGrid<T>({
+  items,
+  getKey,
+  getGroupKey,
+  getName,
+  groupConfigs,
+  renderItem,
+  className,
+  columns = { default: 1, sm: 2, lg: 3 },
+  groupingTitle = 'Group',
+}: GroupedContentGridProps<T>) {
+  // Use extracted hook for all grouping and scroll state
+  const {
+    showAll,
+    setShowAll,
+    activeGroup,
+    containerRef,
+    groupedItems,
+    availableGroups,
+    orderedGroups,
+    flattenedItems,
+    totalCount,
+    needsShowAll,
+    scrollToGroup,
+    setGroupRef,
+  } = useGroupedContentState({ items, getGroupKey, getName, groupConfigs });
+
+  // Build column classes and style
+  const { gridCols, columnsStyle } = useMemo(() => {
+    const gridColsStr = cn(
+      `grid-cols-${columns.default}`,
+      columns.sm && `sm:grid-cols-${columns.sm}`,
+      columns.lg && `lg:grid-cols-${columns.lg}`
+    );
+    const colsStyle = `repeat(${columns.lg ?? columns.sm ?? columns.default}, minmax(0, 1fr))`;
+    return { gridCols: gridColsStr, columnsStyle: colsStyle };
+  }, [columns]);
+
+  if (items.length === 0) {
+    return null;
+  }
+
+  // If not showing all, just show first N items without grouping
+  if (!showAll) {
+    const itemsToShow = flattenedItems.slice(0, INITIAL_LIMIT);
+
+    return (
+      <div className={cn('space-y-4', className)} ref={containerRef}>
+        <CollapsedView
+          items={itemsToShow}
+          getKey={getKey}
+          renderItem={renderItem}
+          gridCols={gridCols}
+          columnsStyle={columnsStyle}
+          totalCount={totalCount}
+          needsShowAll={needsShowAll}
+          groupingTitle={groupingTitle}
+          onShowAll={() => setShowAll(true)}
+        />
+      </div>
+    );
+  }
+
+  // Show all with grouping
+  return (
+    <div className={cn('space-y-4', className)} ref={containerRef}>
+      <ExpandedView
+        orderedGroups={orderedGroups}
+        groupedItems={groupedItems}
+        groupConfigs={groupConfigs}
+        availableGroups={availableGroups}
+        activeGroup={activeGroup}
+        getKey={getKey}
+        renderItem={renderItem}
+        setGroupRef={setGroupRef}
+        scrollToGroup={scrollToGroup}
+        gridCols={gridCols}
+        columnsStyle={columnsStyle}
+        totalCount={totalCount}
+        groupingTitle={groupingTitle}
+        onCollapse={() => setShowAll(false)}
+      />
     </div>
   );
 }

@@ -10,8 +10,6 @@ import {
   Brain,
   Heart,
   Home,
-  Layers,
-  Package,
   Sparkles,
   Swords,
   Target,
@@ -26,6 +24,17 @@ import type { DomainCard } from '@/lib/schemas/domains';
 import type { Environment } from '@/lib/schemas/environments';
 import type { HomebrewContentType } from '@/lib/schemas/homebrew';
 import { getCardCosts } from '@/lib/utils/card-costs';
+
+import {
+  BackgroundQuestionsSection,
+  ClassBaseStatsSection,
+  ClassFeaturesSection,
+  ClassHopeFeatureSection,
+  ClassItemsSection,
+  ClassOverviewSection,
+  ConnectionsSection,
+  SubclassesSection,
+} from './content-detail-sections';
 
 // ========== COLOR CONSTANTS ==========
 
@@ -389,211 +398,26 @@ export function ClassDetail({ raw }: { raw: unknown }) {
 
   return (
     <div className="space-y-4">
-      {/* Overview */}
-      <div className="bg-card rounded-lg border p-4">
-        <div className="mb-2 inline-flex items-center gap-1 rounded-full border border-rose-500/30 bg-rose-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-rose-700 uppercase dark:text-rose-300">
-          Overview
-        </div>
-        <p className="text-muted-foreground text-sm">{cls.description}</p>
-        {cls.domains && cls.domains.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-1">
-            {cls.domains.map(d => (
-              <Badge key={d} variant="outline">
-                {d}
-              </Badge>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Base Stats */}
-      <div className="bg-card rounded-lg border p-4">
-        <div className="mb-3 inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-emerald-700 uppercase dark:text-emerald-300">
-          <Target className="size-3" />
-          Base Stats
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4">
-            <div className="text-muted-foreground text-sm">Hit Points</div>
-            <div className="text-2xl font-bold text-red-600 dark:text-red-400">
-              {cls.startingHitPoints ?? '?'}
-            </div>
-          </div>
-          <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-4">
-            <div className="text-muted-foreground text-sm">Evasion</div>
-            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-              {cls.startingEvasion ?? '?'}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Hope Feature */}
+      <ClassOverviewSection
+        description={cls.description}
+        domains={cls.domains}
+      />
+      <ClassBaseStatsSection
+        startingHitPoints={cls.startingHitPoints}
+        startingEvasion={cls.startingEvasion}
+      />
       {cls.hopeFeature && (
-        <div className="bg-card rounded-lg border p-4">
-          <div className="mb-3 inline-flex items-center gap-1 rounded-full border border-yellow-500/30 bg-yellow-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-yellow-700 uppercase dark:text-yellow-300">
-            <Sparkles className="size-3" />
-            Hope Feature
-          </div>
-          <div className="bg-muted/50 rounded-lg p-3">
-            <div className="mb-1 flex items-center justify-between gap-3">
-              <span className="font-semibold text-yellow-700 dark:text-yellow-300">
-                {cls.hopeFeature.name}
-              </span>
-              <Badge className="border-yellow-500/30 bg-yellow-500/15 text-yellow-700 dark:text-yellow-300">
-                {cls.hopeFeature.hopeCost} Hope
-              </Badge>
-            </div>
-            <p className="text-muted-foreground text-sm">
-              {cls.hopeFeature.description}
-            </p>
-          </div>
-        </div>
+        <ClassHopeFeatureSection hopeFeature={cls.hopeFeature} />
       )}
-
-      {/* Class Features */}
-      {cls.classFeatures && cls.classFeatures.length > 0 && (
-        <div className="bg-card rounded-lg border p-4">
-          <div className="mb-3 inline-flex items-center gap-1 rounded-full border border-violet-500/30 bg-violet-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-violet-700 uppercase dark:text-violet-300">
-            <Sparkles className="size-3" />
-            Class Features
-          </div>
-          <div className="space-y-2">
-            {cls.classFeatures.map((feat, i) => (
-              <div key={i} className="bg-muted/50 rounded-lg p-3">
-                <div className="mb-1 flex items-center gap-2">
-                  <span className="font-medium">{feat.name}</span>
-                  {feat.type && (
-                    <Badge variant="outline" className="text-xs">
-                      {feat.type}
-                    </Badge>
-                  )}
-                </div>
-                <p className="text-muted-foreground text-sm">
-                  {feat.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
+      {cls.classFeatures && (
+        <ClassFeaturesSection features={cls.classFeatures} />
       )}
-
-      {/* Class Items */}
-      {cls.classItems && cls.classItems.length > 0 && (
-        <div className="bg-card rounded-lg border p-4">
-          <div className="mb-3 inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-amber-700 uppercase dark:text-amber-300">
-            <Package className="size-3" />
-            Class Items
-          </div>
-          <ul className="text-muted-foreground list-inside list-disc text-sm">
-            {cls.classItems.map((item, i) => (
-              <li key={i}>{item}</li>
-            ))}
-          </ul>
-        </div>
+      {cls.classItems && <ClassItemsSection items={cls.classItems} />}
+      {cls.subclasses && <SubclassesSection subclasses={cls.subclasses} />}
+      {cls.backgroundQuestions && (
+        <BackgroundQuestionsSection questions={cls.backgroundQuestions} />
       )}
-
-      {/* Subclasses */}
-      {cls.subclasses && cls.subclasses.length > 0 && (
-        <div className="bg-card rounded-lg border p-4">
-          <div className="mb-3 flex items-center gap-2">
-            <div className="inline-flex items-center gap-1 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-indigo-700 uppercase dark:text-indigo-300">
-              <Layers className="size-3" />
-              Subclasses
-            </div>
-            <Badge variant="outline">{cls.subclasses.length}</Badge>
-          </div>
-          <div className="space-y-4">
-            {cls.subclasses.map((sub, i) => (
-              <div key={i} className="bg-muted/30 rounded-lg border p-3">
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <span className="font-semibold">{sub.name}</span>
-                  {sub.spellcastTrait && (
-                    <Badge variant="outline" className="text-xs">
-                      Spellcast: {sub.spellcastTrait}
-                    </Badge>
-                  )}
-                </div>
-                <p className="text-muted-foreground mb-3 text-sm">
-                  {sub.description}
-                </p>
-                {sub.features && sub.features.length > 0 && (
-                  <div className="space-y-2">
-                    {sub.features.map((feat, j) => (
-                      <div
-                        key={j}
-                        className="bg-background/50 rounded border-l-2 border-l-indigo-500/50 p-2"
-                      >
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-sm font-medium">
-                            {feat.name}
-                          </span>
-                          {feat.level != null && (
-                            <Badge
-                              variant="outline"
-                              className="py-0 text-[10px]"
-                            >
-                              Lvl {feat.level}
-                            </Badge>
-                          )}
-                          {feat.type && (
-                            <Badge
-                              variant="outline"
-                              className="py-0 text-[10px]"
-                            >
-                              {feat.type}
-                            </Badge>
-                          )}
-                          {feat.availability && (
-                            <Badge
-                              variant="secondary"
-                              className="py-0 text-[10px]"
-                            >
-                              {feat.availability.unlockCondition ??
-                                `Tier ${feat.availability.tier}`}
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-muted-foreground mt-1 text-xs">
-                          {feat.description}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Background Questions */}
-      {cls.backgroundQuestions && cls.backgroundQuestions.length > 0 && (
-        <div className="bg-card rounded-lg border p-4">
-          <div className="mb-3 inline-flex items-center gap-1 rounded-full border border-sky-500/30 bg-sky-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-sky-700 uppercase dark:text-sky-300">
-            Background Questions
-          </div>
-          <ul className="text-muted-foreground list-inside list-decimal space-y-1 text-sm">
-            {cls.backgroundQuestions.map((q, i) => (
-              <li key={i}>{q}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Connections */}
-      {cls.connections && cls.connections.length > 0 && (
-        <div className="bg-card rounded-lg border p-4">
-          <div className="mb-3 inline-flex items-center gap-1 rounded-full border border-rose-500/30 bg-rose-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-rose-700 uppercase dark:text-rose-300">
-            Connections
-          </div>
-          <ul className="text-muted-foreground list-inside list-disc space-y-1 text-sm">
-            {cls.connections.map((c, i) => (
-              <li key={i}>{c}</li>
-            ))}
-          </ul>
-        </div>
-      )}
+      {cls.connections && <ConnectionsSection connections={cls.connections} />}
     </div>
   );
 }

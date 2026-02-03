@@ -20,7 +20,7 @@ import {
   Users,
   X,
 } from 'lucide-react';
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useCallback, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -42,7 +42,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import type {
@@ -51,10 +50,39 @@ import type {
   CampaignOrganization,
   CampaignQuest,
 } from '@/lib/schemas/campaign';
+import { toggleArrayItem } from '@/lib/utils';
+
+import {
+  NPCInvolvementFieldsSection,
+  NPCListSection,
+} from './entity-modal-sections';
+import {
+  excludeSelected,
+  filterByName,
+  filterByTitle,
+  useEntityPickerState,
+} from './use-entity-picker-state';
 
 // =====================================================================================
 // Shared Types and Utils
 // =====================================================================================
+
+/**
+ * Creates a confirm handler for multi-select picker modals.
+ */
+export function useMultiSelectConfirm(
+  multiSelect: boolean,
+  selectedIds: string[],
+  onSelectMultiple: ((ids: string[]) => void) | undefined,
+  handleClose: () => void
+) {
+  return useCallback(() => {
+    if (multiSelect && onSelectMultiple) {
+      onSelectMultiple(selectedIds);
+      handleClose();
+    }
+  }, [multiSelect, selectedIds, onSelectMultiple, handleClose]);
+}
 
 // =====================================================================================
 // NPC Status Options
@@ -250,20 +278,15 @@ export function NPCPickerModal({
   };
 
   const toggleLocation = (locationId: string) => {
-    setSelectedLocations(prev =>
-      prev.includes(locationId)
-        ? prev.filter(id => id !== locationId)
-        : [...prev, locationId]
-    );
+    setSelectedLocations(prev => toggleArrayItem(prev, locationId));
   };
 
   const toggleQuest = (questId: string) => {
-    setSelectedQuests(prev =>
-      prev.includes(questId)
-        ? prev.filter(id => id !== questId)
-        : [...prev, questId]
-    );
+    setSelectedQuests(prev => toggleArrayItem(prev, questId));
   };
+
+  const getStatusColor = (status: string) =>
+    NPC_STATUS_OPTIONS.find(s => s.value === status)?.color ?? '';
 
   const canConfirm = selectedNpc !== null || newNpcName.trim().length > 0;
 
@@ -295,51 +318,15 @@ export function NPCPickerModal({
               />
             </div>
 
-            <ScrollArea className="h-[200px] rounded-md border p-2">
-              {availableNpcs.length === 0 ? (
-                <div className="text-muted-foreground flex h-full items-center justify-center text-sm">
-                  {npcs.length === 0
-                    ? 'No NPCs created yet'
-                    : 'No matching NPCs'}
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {availableNpcs.map(npc => (
-                    <button
-                      key={npc.id}
-                      type="button"
-                      onClick={() =>
-                        setSelectedNpc(selectedNpc?.id === npc.id ? null : npc)
-                      }
-                      className={`flex w-full items-center gap-3 rounded-lg p-3 text-left transition-colors ${
-                        selectedNpc?.id === npc.id
-                          ? 'bg-primary text-primary-foreground'
-                          : 'hover:bg-muted'
-                      }`}
-                    >
-                      <User className="h-5 w-5 flex-shrink-0" />
-                      <div className="min-w-0 flex-1">
-                        <div className="font-medium">{npc.name}</div>
-                        {npc.titleRole && (
-                          <div className="text-sm opacity-80">
-                            {npc.titleRole}
-                          </div>
-                        )}
-                      </div>
-                      <Badge
-                        variant="outline"
-                        className={`text-xs ${
-                          NPC_STATUS_OPTIONS.find(s => s.value === npc.status)
-                            ?.color ?? ''
-                        }`}
-                      >
-                        {npc.status}
-                      </Badge>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </ScrollArea>
+            <NPCListSection
+              npcs={availableNpcs}
+              selectedNpc={selectedNpc}
+              onSelectNpc={setSelectedNpc}
+              getStatusColor={getStatusColor}
+              emptyMessage={
+                npcs.length === 0 ? 'No NPCs created yet' : 'No matching NPCs'
+              }
+            />
           </TabsContent>
 
           <TabsContent value="create" className="space-y-4">
@@ -355,87 +342,20 @@ export function NPCPickerModal({
         </Tabs>
 
         {showInvolvementFields && (selectedNpc || newNpcName.trim()) && (
-          <>
-            <Separator />
-            <div className="space-y-4">
-              <h4 className="font-medium">Involvement Details</h4>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label className="text-xs">Role</Label>
-                  <Input
-                    value={role}
-                    onChange={e => setRole(e.target.value)}
-                    placeholder="e.g., Quest Giver, Antagonist..."
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs">Actions Taken</Label>
-                  <Input
-                    value={actionsTaken}
-                    onChange={e => setActionsTaken(e.target.value)}
-                    placeholder="What did they do?"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-xs">Notes</Label>
-                <Textarea
-                  value={notes}
-                  onChange={e => setNotes(e.target.value)}
-                  placeholder="Additional notes..."
-                  rows={2}
-                />
-              </div>
-
-              {locations.length > 0 && (
-                <div className="space-y-2">
-                  <Label className="text-xs">Locations</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {locations.map(location => (
-                      <Badge
-                        key={location.id}
-                        variant={
-                          selectedLocations.includes(location.id)
-                            ? 'default'
-                            : 'outline'
-                        }
-                        className="cursor-pointer"
-                        onClick={() => toggleLocation(location.id)}
-                      >
-                        <Map className="mr-1 h-3 w-3" />
-                        {location.name}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {quests.length > 0 && (
-                <div className="space-y-2">
-                  <Label className="text-xs">Quests</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {quests.map(quest => (
-                      <Badge
-                        key={quest.id}
-                        variant={
-                          selectedQuests.includes(quest.id)
-                            ? 'default'
-                            : 'outline'
-                        }
-                        className="cursor-pointer"
-                        onClick={() => toggleQuest(quest.id)}
-                      >
-                        <Scroll className="mr-1 h-3 w-3" />
-                        {quest.title}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </>
+          <NPCInvolvementFieldsSection
+            role={role}
+            actionsTaken={actionsTaken}
+            notes={notes}
+            onRoleChange={setRole}
+            onActionsTakenChange={setActionsTaken}
+            onNotesChange={setNotes}
+            locations={locations}
+            selectedLocations={selectedLocations}
+            onToggleLocation={toggleLocation}
+            quests={quests}
+            selectedQuests={selectedQuests}
+            onToggleQuest={toggleQuest}
+          />
         )}
 
         <DialogFooter>
@@ -487,74 +407,34 @@ export function LocationPickerModal({
   multiSelect = false,
   onSelectMultiple,
 }: LocationPickerModalProps) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [newLocationName, setNewLocationName] = useState('');
-  const [newLocationType, setNewLocationType] =
-    useState<CampaignLocation['type']>('other');
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [isCreating, setIsCreating] = useState(false);
-
-  const filteredLocations = locations.filter(location => {
-    const query = searchQuery.toLowerCase();
-    if (!query) return true;
-    return location.name.toLowerCase().includes(query);
+  const {
+    searchQuery,
+    setSearchQuery,
+    newName,
+    setNewName,
+    newType,
+    setNewType,
+    selectedIds,
+    isCreating,
+    handleClose,
+    handleToggleSelection,
+    handleConfirmMultiple,
+    createAndAdd,
+  } = useEntityPickerState<CampaignLocation['type']>({
+    multiSelect,
+    onSelectSingle: onSelectLocation,
+    onSelectMultiple,
+    onClose: () => onOpenChange(false),
+    defaultType: 'other',
   });
 
-  const availableLocations = filteredLocations.filter(
-    location => !selectedLocationIds.includes(location.id)
+  const availableLocations = excludeSelected(
+    filterByName(locations, searchQuery),
+    selectedLocationIds
   );
 
-  const resetState = () => {
-    setSearchQuery('');
-    setNewLocationName('');
-    setNewLocationType('other');
-    setSelectedIds([]);
-    setIsCreating(false);
-  };
-
-  const handleClose = () => {
-    resetState();
-    onOpenChange(false);
-  };
-
-  const handleToggleSelection = (locationId: string) => {
-    if (multiSelect) {
-      setSelectedIds(prev =>
-        prev.includes(locationId)
-          ? prev.filter(id => id !== locationId)
-          : [...prev, locationId]
-      );
-    } else {
-      onSelectLocation(locationId);
-      handleClose();
-    }
-  };
-
-  const handleConfirmMultiple = () => {
-    if (multiSelect && onSelectMultiple) {
-      onSelectMultiple(selectedIds);
-      handleClose();
-    }
-  };
-
-  const handleCreateAndAdd = async () => {
-    if (!newLocationName.trim()) return;
-    setIsCreating(true);
-    try {
-      const newId = await onCreateLocation(
-        newLocationName.trim(),
-        newLocationType
-      );
-      if (multiSelect && onSelectMultiple) {
-        onSelectMultiple([...selectedIds, newId]);
-      } else {
-        onSelectLocation(newId);
-      }
-      handleClose();
-    } finally {
-      setIsCreating(false);
-    }
-  };
+  const handleCreateAndAdd = () =>
+    createAndAdd(() => onCreateLocation(newName.trim(), newType ?? 'other'));
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -644,18 +524,16 @@ export function LocationPickerModal({
               <div className="space-y-2">
                 <Label>Location Name</Label>
                 <Input
-                  value={newLocationName}
-                  onChange={e => setNewLocationName(e.target.value)}
+                  value={newName}
+                  onChange={e => setNewName(e.target.value)}
                   placeholder="Enter location name..."
                 />
               </div>
               <div className="space-y-2">
                 <Label>Type</Label>
                 <Select
-                  value={newLocationType}
-                  onValueChange={v =>
-                    setNewLocationType(v as CampaignLocation['type'])
-                  }
+                  value={newType}
+                  onValueChange={v => setNewType(v as CampaignLocation['type'])}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -677,7 +555,7 @@ export function LocationPickerModal({
             <div className="flex justify-end">
               <Button
                 onClick={handleCreateAndAdd}
-                disabled={!newLocationName.trim() || isCreating}
+                disabled={!newName.trim() || isCreating}
               >
                 {isCreating ? 'Creating...' : 'Create & Add'}
               </Button>
@@ -727,71 +605,34 @@ export function QuestPickerModal({
   multiSelect = false,
   onSelectMultiple,
 }: QuestPickerModalProps) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [newQuestTitle, setNewQuestTitle] = useState('');
-  const [newQuestType, setNewQuestType] =
-    useState<CampaignQuest['type']>('side');
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [isCreating, setIsCreating] = useState(false);
-
-  const filteredQuests = quests.filter(quest => {
-    const query = searchQuery.toLowerCase();
-    if (!query) return true;
-    return quest.title.toLowerCase().includes(query);
+  const {
+    searchQuery,
+    setSearchQuery,
+    newName,
+    setNewName,
+    newType,
+    setNewType,
+    selectedIds,
+    isCreating,
+    handleClose,
+    handleToggleSelection,
+    handleConfirmMultiple,
+    createAndAdd,
+  } = useEntityPickerState<CampaignQuest['type']>({
+    multiSelect,
+    onSelectSingle: onSelectQuest,
+    onSelectMultiple,
+    onClose: () => onOpenChange(false),
+    defaultType: 'side',
   });
 
-  const availableQuests = filteredQuests.filter(
-    quest => !selectedQuestIds.includes(quest.id)
+  const availableQuests = excludeSelected(
+    filterByTitle(quests, searchQuery),
+    selectedQuestIds
   );
 
-  const resetState = () => {
-    setSearchQuery('');
-    setNewQuestTitle('');
-    setNewQuestType('side');
-    setSelectedIds([]);
-    setIsCreating(false);
-  };
-
-  const handleClose = () => {
-    resetState();
-    onOpenChange(false);
-  };
-
-  const handleToggleSelection = (questId: string) => {
-    if (multiSelect) {
-      setSelectedIds(prev =>
-        prev.includes(questId)
-          ? prev.filter(id => id !== questId)
-          : [...prev, questId]
-      );
-    } else {
-      onSelectQuest(questId);
-      handleClose();
-    }
-  };
-
-  const handleConfirmMultiple = () => {
-    if (multiSelect && onSelectMultiple) {
-      onSelectMultiple(selectedIds);
-      handleClose();
-    }
-  };
-
-  const handleCreateAndAdd = async () => {
-    if (!newQuestTitle.trim()) return;
-    setIsCreating(true);
-    try {
-      const newId = await onCreateQuest(newQuestTitle.trim(), newQuestType);
-      if (multiSelect && onSelectMultiple) {
-        onSelectMultiple([...selectedIds, newId]);
-      } else {
-        onSelectQuest(newId);
-      }
-      handleClose();
-    } finally {
-      setIsCreating(false);
-    }
-  };
+  const handleCreateAndAdd = () =>
+    createAndAdd(() => onCreateQuest(newName.trim(), newType ?? 'side'));
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -886,18 +727,16 @@ export function QuestPickerModal({
               <div className="space-y-2">
                 <Label>Quest Title</Label>
                 <Input
-                  value={newQuestTitle}
-                  onChange={e => setNewQuestTitle(e.target.value)}
+                  value={newName}
+                  onChange={e => setNewName(e.target.value)}
                   placeholder="Enter quest title..."
                 />
               </div>
               <div className="space-y-2">
                 <Label>Type</Label>
                 <Select
-                  value={newQuestType}
-                  onValueChange={v =>
-                    setNewQuestType(v as CampaignQuest['type'])
-                  }
+                  value={newType}
+                  onValueChange={v => setNewType(v as CampaignQuest['type'])}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -916,7 +755,7 @@ export function QuestPickerModal({
             <div className="flex justify-end">
               <Button
                 onClick={handleCreateAndAdd}
-                disabled={!newQuestTitle.trim() || isCreating}
+                disabled={!newName.trim() || isCreating}
               >
                 {isCreating ? 'Creating...' : 'Create & Add'}
               </Button>
@@ -966,71 +805,36 @@ export function OrganizationPickerModal({
   multiSelect = false,
   onSelectMultiple,
 }: OrganizationPickerModalProps) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [newOrgName, setNewOrgName] = useState('');
-  const [newOrgType, setNewOrgType] =
-    useState<CampaignOrganization['type']>('other');
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [isCreating, setIsCreating] = useState(false);
-
-  const filteredOrganizations = organizations.filter(org => {
-    const query = searchQuery.toLowerCase();
-    if (!query) return true;
-    return org.name.toLowerCase().includes(query);
+  const {
+    searchQuery,
+    setSearchQuery,
+    newName,
+    setNewName,
+    newType,
+    setNewType,
+    selectedIds,
+    isCreating,
+    handleClose,
+    handleToggleSelection,
+    handleConfirmMultiple,
+    createAndAdd,
+  } = useEntityPickerState<CampaignOrganization['type']>({
+    multiSelect,
+    onSelectSingle: onSelectOrganization,
+    onSelectMultiple,
+    onClose: () => onOpenChange(false),
+    defaultType: 'other',
   });
 
-  const availableOrganizations = filteredOrganizations.filter(
-    org => !selectedOrganizationIds.includes(org.id)
+  const availableOrganizations = excludeSelected(
+    filterByName(organizations, searchQuery),
+    selectedOrganizationIds
   );
 
-  const resetState = () => {
-    setSearchQuery('');
-    setNewOrgName('');
-    setNewOrgType('other');
-    setSelectedIds([]);
-    setIsCreating(false);
-  };
-
-  const handleClose = () => {
-    resetState();
-    onOpenChange(false);
-  };
-
-  const handleToggleSelection = (orgId: string) => {
-    if (multiSelect) {
-      setSelectedIds(prev =>
-        prev.includes(orgId)
-          ? prev.filter(id => id !== orgId)
-          : [...prev, orgId]
-      );
-    } else {
-      onSelectOrganization(orgId);
-      handleClose();
-    }
-  };
-
-  const handleConfirmMultiple = () => {
-    if (multiSelect && onSelectMultiple) {
-      onSelectMultiple(selectedIds);
-      handleClose();
-    }
-  };
-
-  const handleCreateAndAdd = async () => {
-    if (!newOrgName.trim()) return;
-    setIsCreating(true);
-    try {
-      const newId = await onCreateOrganization(newOrgName.trim(), newOrgType);
-      if (multiSelect && onSelectMultiple) {
-        onSelectMultiple([...selectedIds, newId]);
-      } else {
-        onSelectOrganization(newId);
-      }
-      handleClose();
-    } finally {
-      setIsCreating(false);
-    }
-  };
+  const handleCreateAndAdd = () =>
+    createAndAdd(() =>
+      onCreateOrganization(newName.trim(), newType ?? 'other')
+    );
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -1120,17 +924,17 @@ export function OrganizationPickerModal({
               <div className="space-y-2">
                 <Label>Organization Name</Label>
                 <Input
-                  value={newOrgName}
-                  onChange={e => setNewOrgName(e.target.value)}
+                  value={newName}
+                  onChange={e => setNewName(e.target.value)}
                   placeholder="Enter organization name..."
                 />
               </div>
               <div className="space-y-2">
                 <Label>Type</Label>
                 <Select
-                  value={newOrgType}
+                  value={newType}
                   onValueChange={v =>
-                    setNewOrgType(v as CampaignOrganization['type'])
+                    setNewType(v as CampaignOrganization['type'])
                   }
                 >
                   <SelectTrigger>
@@ -1153,7 +957,7 @@ export function OrganizationPickerModal({
             <div className="flex justify-end">
               <Button
                 onClick={handleCreateAndAdd}
-                disabled={!newOrgName.trim() || isCreating}
+                disabled={!newName.trim() || isCreating}
               >
                 {isCreating ? 'Creating...' : 'Create & Add'}
               </Button>
@@ -1228,19 +1032,11 @@ export function NPCInvolvementEditorModal({
   };
 
   const toggleLocation = (locationId: string) => {
-    setSelectedLocations(prev =>
-      prev.includes(locationId)
-        ? prev.filter(id => id !== locationId)
-        : [...prev, locationId]
-    );
+    setSelectedLocations(prev => toggleArrayItem(prev, locationId));
   };
 
   const toggleQuest = (questId: string) => {
-    setSelectedQuests(prev =>
-      prev.includes(questId)
-        ? prev.filter(id => id !== questId)
-        : [...prev, questId]
-    );
+    setSelectedQuests(prev => toggleArrayItem(prev, questId));
   };
 
   return (

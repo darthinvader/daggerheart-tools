@@ -13,7 +13,6 @@ import {
   User,
   Wand2,
 } from 'lucide-react';
-import type { MutableRefObject } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { AddAdversaryDialogEnhanced } from '@/components/battle-tracker/adversary-dialog-enhanced';
@@ -41,10 +40,7 @@ import {
   useBattleRosterState,
 } from '@/components/battle-tracker/use-battle-tracker-state';
 import { useCampaignBattle } from '@/components/battle-tracker/use-campaign-battle';
-import {
-  useCharacterRealtimeSync,
-  useRefreshLinkedCharacter,
-} from '@/components/battle-tracker/use-character-realtime';
+import { useCharacterRealtimeSync } from '@/components/battle-tracker/use-character-realtime';
 import { DEFAULT_CHARACTER_DRAFT } from '@/components/battle-tracker/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -55,14 +51,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import {
-  createBattle,
-  getCampaign,
-  updateBattle,
-} from '@/features/campaigns/campaign-storage';
+import { getCampaign } from '@/features/campaigns/campaign-storage';
 import type { Adversary } from '@/lib/schemas/adversaries';
 import type { BattleState } from '@/lib/schemas/battle';
 import type { Campaign } from '@/lib/schemas/campaign';
+
+import { useCampaignBattleState } from './use-campaign-battle-state';
+import { useLinkedCharacterRefresh } from './use-linked-character-refresh';
 
 export const Route = createFileRoute('/gm/campaigns/$id/battle')({
   component: CampaignBattlePage,
@@ -79,20 +74,6 @@ export const Route = createFileRoute('/gm/campaigns/$id/battle')({
     return { campaign };
   },
 });
-
-function useSavedBattleIds(campaign: Campaign | null) {
-  const savedBattleIdsRef = useRef<Set<string>>(
-    new Set(campaign?.battles?.map(b => b.id) ?? [])
-  );
-
-  useEffect(() => {
-    savedBattleIdsRef.current = new Set(
-      campaign?.battles?.map(b => b.id) ?? []
-    );
-  }, [campaign]);
-
-  return savedBattleIdsRef;
-}
 
 function useInitialBattleLoad({
   campaign,
@@ -353,45 +334,9 @@ function BattleDialogs({
   );
 }
 
-async function refreshCampaignState(
-  campaignId: string,
-  setCampaign: (campaign: Campaign) => void
-) {
-  const updated = await getCampaign(campaignId);
-  if (updated) setCampaign(updated);
-}
-
-async function saveExistingBattle(campaignId: string, state: BattleState) {
-  await updateBattle(campaignId, state.id, state);
-}
-
-async function createNewBattle({
-  campaignId,
-  state,
-  savedBattleIdsRef,
-  justSavedBattleIdRef,
-  navigate,
-}: {
-  campaignId: string;
-  state: BattleState;
-  savedBattleIdsRef: MutableRefObject<Set<string>>;
-  justSavedBattleIdRef: MutableRefObject<string | null>;
-  navigate: ReturnType<typeof useNavigate>;
-}): Promise<string> {
-  const created = await createBattle(campaignId, state);
-  savedBattleIdsRef.current.add(created.id);
-  justSavedBattleIdRef.current = created.id;
-  void navigate({
-    to: '/gm/campaigns/$id/battle',
-    params: { id: campaignId },
-    search: { battleId: created.id, tab: 'gm-tools' },
-    replace: true,
-  });
-  return created.id;
-}
-
 function useBattleDialogHandlers({
   rosterActions,
+  rosterState,
   dialogState,
   dialogActions,
   campaignBattle,
@@ -400,6 +345,7 @@ function useBattleDialogHandlers({
   editingEnvironment,
 }: {
   rosterActions: ReturnType<typeof useBattleRosterState>['rosterActions'];
+  rosterState: ReturnType<typeof useBattleRosterState>['rosterState'];
   dialogState: ReturnType<typeof useBattleDialogState>['dialogState'];
   dialogActions: ReturnType<typeof useBattleDialogState>['dialogActions'];
   campaignBattle: ReturnType<typeof useCampaignBattle>;
@@ -407,53 +353,95 @@ function useBattleDialogHandlers({
   editingAdversary: AdversaryTracker | null;
   editingEnvironment: EnvironmentTracker | null;
 }) {
-  const handleAddCharacter = () => {
+  const handleAddCharacter = useCallback(() => {
     const newId = rosterActions.addCharacter(dialogState.characterDraft);
     if (!newId) return;
     dialogActions.setCharacterDraft(DEFAULT_CHARACTER_DRAFT);
     dialogActions.setIsAddCharacterOpen(false);
-  };
+  }, [rosterActions, dialogState.characterDraft, dialogActions]);
 
-  const handleAddCampaignCharacter = (tracker: CharacterTracker) => {
-    rosterActions.setCharacters(prev => [...prev, tracker]);
-    rosterActions.handleSelect(tracker);
-    dialogActions.setIsAddCharacterOpen(false);
-  };
+  const handleAddCampaignCharacter = useCallback(
+    (tracker: CharacterTracker) => {
+      rosterActions.setCharacters(prev => [...prev, tracker]);
+      rosterActions.handleSelect(tracker);
+      dialogActions.setIsAddCharacterOpen(false);
+    },
+    [rosterActions, dialogActions]
+  );
 
-  const handleAddAdversary = (
-    adversary: Parameters<typeof rosterActions.addAdversary>[0]
-  ) => {
-    rosterActions.addAdversary(adversary);
-    dialogActions.setIsAddAdversaryOpen(false);
-  };
+  const handleAddAdversary = useCallback(
+    (adversary: Parameters<typeof rosterActions.addAdversary>[0]) => {
+      rosterActions.addAdversary(adversary);
+      dialogActions.setIsAddAdversaryOpen(false);
+    },
+    [rosterActions, dialogActions]
+  );
 
-  const handleAddEnvironment = (
-    environment: Parameters<typeof rosterActions.addEnvironment>[0]
-  ) => {
-    rosterActions.addEnvironment(environment);
-    dialogActions.setIsAddEnvironmentOpen(false);
-  };
+  const handleAddEnvironment = useCallback(
+    (environment: Parameters<typeof rosterActions.addEnvironment>[0]) => {
+      rosterActions.addEnvironment(environment);
+      dialogActions.setIsAddEnvironmentOpen(false);
+    },
+    [rosterActions, dialogActions]
+  );
 
-  const handleSaveAdversary = (updates: Partial<AdversaryTracker>) => {
-    if (!editingAdversary) return;
-    rosterActions.updateAdversary(editingAdversary.id, prev => ({
-      ...prev,
-      ...updates,
-    }));
-  };
+  const handleSaveAdversary = useCallback(
+    (updates: Partial<AdversaryTracker>) => {
+      if (!editingAdversary) return;
+      rosterActions.updateAdversary(editingAdversary.id, prev => ({
+        ...prev,
+        ...updates,
+      }));
+    },
+    [editingAdversary, rosterActions]
+  );
 
-  const handleSaveEnvironment = (updates: Partial<EnvironmentTracker>) => {
-    if (!editingEnvironment) return;
-    rosterActions.updateEnvironment(editingEnvironment.id, prev => ({
-      ...prev,
-      ...updates,
-    }));
-  };
+  const handleSaveEnvironment = useCallback(
+    (updates: Partial<EnvironmentTracker>) => {
+      if (!editingEnvironment) return;
+      rosterActions.updateEnvironment(editingEnvironment.id, prev => ({
+        ...prev,
+        ...updates,
+      }));
+    },
+    [editingEnvironment, rosterActions]
+  );
 
-  const handleManualSave = async () => {
+  const handleManualSave = useCallback(async () => {
     const state = campaignBattle.toBattleState();
     await handleStateChange(state);
-  };
+  }, [campaignBattle, handleStateChange]);
+
+  const handleReduceAllCountdowns = useCallback(() => {
+    rosterState.environments.forEach(env => {
+      if (env.countdownEnabled && (env.countdown ?? 0) > 0) {
+        rosterActions.updateEnvironment(env.id, e => ({
+          ...e,
+          countdown: Math.max(0, (e.countdown ?? 0) - 1),
+        }));
+      }
+    });
+    rosterState.adversaries.forEach(adv => {
+      if (adv.countdownEnabled && (adv.countdown ?? 0) > 0) {
+        rosterActions.updateAdversary(adv.id, a => ({
+          ...a,
+          countdown: Math.max(0, (a.countdown ?? 0) - 1),
+        }));
+      }
+    });
+  }, [rosterState.environments, rosterState.adversaries, rosterActions]);
+
+  const handleAddFromWizard = useCallback(
+    (adversaries: Array<{ adversary: Adversary; count: number }>) => {
+      for (const { adversary, count } of adversaries) {
+        for (let i = 0; i < count; i++) {
+          rosterActions.addAdversary(adversary);
+          dialogActions.setIsAddAdversaryOpen(false);
+        }
+      }
+    },
+    [rosterActions, dialogActions]
+  );
 
   return {
     handleAddCharacter,
@@ -463,6 +451,8 @@ function useBattleDialogHandlers({
     handleSaveAdversary,
     handleSaveEnvironment,
     handleManualSave,
+    handleReduceAllCountdowns,
+    handleAddFromWizard,
   };
 }
 
@@ -472,28 +462,24 @@ function CampaignBattlePage() {
   const { battleId: initialBattleId, new: isNewBattle } = Route.useSearch();
   const navigate = useNavigate();
 
-  const [campaign, setCampaign] = useState<Campaign | null>(
-    initialCampaign ?? null
+  const campaignBattleRef = useRef<ReturnType<typeof useCampaignBattle> | null>(
+    null
   );
-  const [isSaving, setIsSaving] = useState(false);
 
-  // Track if we've loaded the initial battle to prevent re-loading
-  const [hasLoadedInitialBattle, setHasLoadedInitialBattle] = useState(false);
-
-  // Track when we saved a battle - don't reset state after our own save
-  const justSavedBattleIdRef = useRef<string | null>(null);
-
-  // Reset state when campaign changes from route (different campaign ID)
-  // Skip reset if we just saved a battle ourselves
-  useEffect(() => {
-    if (justSavedBattleIdRef.current === initialBattleId) {
-      // We triggered this navigation after saving - don't reset
-      justSavedBattleIdRef.current = null;
-      return;
-    }
-    setCampaign(initialCampaign ?? null);
-    setHasLoadedInitialBattle(false);
-  }, [initialCampaign, initialBattleId]);
+  // Campaign state management extracted to hook
+  const {
+    campaign,
+    isSaving,
+    hasLoadedInitialBattle,
+    setHasLoadedInitialBattle,
+    handleStateChange,
+  } = useCampaignBattleState({
+    initialCampaign,
+    campaignId,
+    initialBattleId,
+    navigate,
+    campaignBattleRef,
+  });
 
   // Core roster state
   const { rosterState, rosterActions } = useBattleRosterState();
@@ -505,31 +491,12 @@ function CampaignBattlePage() {
     rosterActions.updateCharacter
   );
 
-  const refreshLinkedCharacter = useRefreshLinkedCharacter();
-  const refreshedCharacterIdsRef = useRef<Set<string>>(new Set());
-
-  useEffect(() => {
-    if (!hasLoadedInitialBattle) return;
-
-    rosterState.characters.forEach(character => {
-      if (!character.isLinkedCharacter || !character.sourceCharacterId) return;
-
-      const sourceId = character.sourceCharacterId;
-      if (refreshedCharacterIdsRef.current.has(sourceId)) return;
-
-      refreshedCharacterIdsRef.current.add(sourceId);
-      void refreshLinkedCharacter(
-        sourceId,
-        character.id,
-        rosterActions.updateCharacter
-      );
-    });
-  }, [
+  // Linked character refresh extracted to hook
+  useLinkedCharacterRefresh({
+    characters: rosterState.characters,
+    updateCharacter: rosterActions.updateCharacter,
     hasLoadedInitialBattle,
-    refreshLinkedCharacter,
-    rosterActions.updateCharacter,
-    rosterState.characters,
-  ]);
+  });
 
   // Edit dialog state
   const [editingAdversary, setEditingAdversary] =
@@ -538,44 +505,6 @@ function CampaignBattlePage() {
     useState<EnvironmentTracker | null>(null);
   const [isFightBuilderOpen, setIsFightBuilderOpen] = useState(false);
 
-  const savedBattleIdsRef = useSavedBattleIds(campaign);
-  const campaignBattleRef = useRef<ReturnType<typeof useCampaignBattle> | null>(
-    null
-  );
-
-  // Handle save - use the hook's battleId to determine create vs update
-  const handleStateChange = useCallback(
-    async (state: BattleState) => {
-      if (!campaignId) return;
-      setIsSaving(true);
-      try {
-        const battleExists = savedBattleIdsRef.current.has(state.id);
-        if (battleExists) {
-          await saveExistingBattle(campaignId, state);
-        } else {
-          const createdId = await createNewBattle({
-            campaignId,
-            state,
-            savedBattleIdsRef,
-            justSavedBattleIdRef,
-            navigate,
-          });
-          if (createdId !== state.id) {
-            campaignBattleRef.current?.setBattleId(createdId);
-          }
-        }
-        // Mark as clean after successful save
-        campaignBattleRef.current?.markClean();
-        await refreshCampaignState(campaignId, setCampaign);
-      } catch (error) {
-        console.error('Failed to save battle:', error);
-      } finally {
-        setIsSaving(false);
-      }
-    },
-    [campaignId, navigate, savedBattleIdsRef]
-  );
-
   // Campaign battle integration
   const campaignBattle = useCampaignBattle(rosterState, rosterActions, {
     campaignId,
@@ -583,7 +512,11 @@ function CampaignBattlePage() {
     autoSaveDebounceMs: 3000,
     onStateChange: handleStateChange,
   });
-  campaignBattleRef.current = campaignBattle;
+
+  // Sync ref outside render (in effect) to avoid React rules violation
+  useEffect(() => {
+    campaignBattleRef.current = campaignBattle;
+  }, [campaignBattle]);
 
   useInitialBattleLoad({
     campaign,
@@ -615,8 +548,11 @@ function CampaignBattlePage() {
     handleSaveAdversary,
     handleSaveEnvironment,
     handleManualSave,
+    handleReduceAllCountdowns,
+    handleAddFromWizard,
   } = useBattleDialogHandlers({
     rosterActions,
+    rosterState,
     dialogState,
     dialogActions,
     campaignBattle,
@@ -671,24 +607,7 @@ function CampaignBattlePage() {
         onEditEnvironment={setEditingEnvironment}
         onEnvironmentChange={rosterActions.updateEnvironment}
         onAdversaryChange={rosterActions.updateAdversary}
-        onReduceAllCountdowns={() => {
-          rosterState.environments.forEach(env => {
-            if (env.countdownEnabled && (env.countdown ?? 0) > 0) {
-              rosterActions.updateEnvironment(env.id, e => ({
-                ...e,
-                countdown: Math.max(0, (e.countdown ?? 0) - 1),
-              }));
-            }
-          });
-          rosterState.adversaries.forEach(adv => {
-            if (adv.countdownEnabled && (adv.countdown ?? 0) > 0) {
-              rosterActions.updateAdversary(adv.id, a => ({
-                ...a,
-                countdown: Math.max(0, (a.countdown ?? 0) - 1),
-              }));
-            }
-          });
-        }}
+        onReduceAllCountdowns={handleReduceAllCountdowns}
       />
 
       <BattleRosterLayout
@@ -715,13 +634,7 @@ function CampaignBattlePage() {
         onCloseAdversaryEdit={() => setEditingAdversary(null)}
         onCloseEnvironmentEdit={() => setEditingEnvironment(null)}
         onCloseFightBuilder={() => setIsFightBuilderOpen(false)}
-        onAddFromWizard={adversaries => {
-          for (const { adversary, count } of adversaries) {
-            for (let i = 0; i < count; i++) {
-              handleAddAdversary(adversary);
-            }
-          }
-        }}
+        onAddFromWizard={handleAddFromWizard}
       />
     </div>
   );

@@ -33,6 +33,10 @@ import {
 import { getAncestryByName, getCommunityByName } from '@/lib/schemas/identity';
 import { cn } from '@/lib/utils';
 
+import {
+  type AdversaryThresholdsValue,
+  getAdversaryEffectiveValues,
+} from './adversary-effective-values';
 import type {
   AdversaryTracker,
   CharacterTracker,
@@ -484,10 +488,6 @@ function AdversaryAttackInfo({
     </div>
   );
 }
-
-type AdversaryThresholdsValue =
-  | string
-  | { major: number | null; severe: number | null; massive?: number | null };
 
 function AdversaryThresholdsDisplay({
   thresholds,
@@ -1452,85 +1452,6 @@ function AdversaryDetails({
         onChange={v => onChange(item.id, a => ({ ...a, notes: v }))}
       />
     </div>
-  );
-}
-
-function normalizeAttackModifier(value: string | number) {
-  if (typeof value === 'number') return value;
-  // Handle unicode minus sign (U+2212) and regular hyphen-minus
-  const normalized = value.replace(/−/g, '-');
-  const parsed = Number.parseInt(normalized, 10);
-  return Number.isNaN(parsed) ? 0 : parsed;
-}
-
-function getAdversaryEffectiveValues(item: AdversaryTracker) {
-  return {
-    effectiveAttack: getEffectiveAdversaryAttack(item),
-    effectiveThresholds: getEffectiveAdversaryThresholds(item),
-    effectiveFeatures: getEffectiveAdversaryFeatures(item),
-    effectiveDifficulty: getEffectiveAdversaryDifficulty(item),
-    hasModifications: hasAdversaryModifications(item),
-  };
-}
-
-function getEffectiveAdversaryAttack(item: AdversaryTracker) {
-  return {
-    name: item.attackOverride?.name ?? item.source.attack.name,
-    modifier: normalizeAttackModifier(
-      item.attackOverride?.modifier ?? item.source.attack.modifier
-    ),
-    range: item.attackOverride?.range ?? item.source.attack.range,
-    damage: item.attackOverride?.damage ?? item.source.attack.damage,
-  };
-}
-
-function getEffectiveAdversaryThresholds(
-  item: AdversaryTracker
-): AdversaryThresholdsValue {
-  // Parse string thresholds (e.g., "8/15") into object with computed massive
-  if (typeof item.source.thresholds === 'string') {
-    const parts = item.source.thresholds
-      .split('/')
-      .map(s => parseInt(s.trim(), 10));
-    if (parts.length >= 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
-      const major = parts[0];
-      const severe = parts[1];
-      const massive = item.thresholdsOverride?.massive ?? severe * 2;
-      return {
-        major: item.thresholdsOverride?.major ?? major,
-        severe: item.thresholdsOverride?.severe ?? severe,
-        massive,
-      };
-    }
-    return item.source.thresholds; // Return unparseable string as-is
-  }
-
-  const major = item.thresholdsOverride?.major ?? item.source.thresholds.major;
-  const severe =
-    item.thresholdsOverride?.severe ?? item.source.thresholds.severe;
-  // Massive = 2 × severe if not explicitly set
-  const massive =
-    item.thresholdsOverride?.massive ??
-    item.source.thresholds.massive ??
-    (severe != null ? severe * 2 : null);
-
-  return { major, severe, massive };
-}
-
-function getEffectiveAdversaryFeatures(item: AdversaryTracker) {
-  return item.featuresOverride ?? item.source.features;
-}
-
-function getEffectiveAdversaryDifficulty(item: AdversaryTracker) {
-  return item.difficultyOverride ?? item.source.difficulty;
-}
-
-function hasAdversaryModifications(item: AdversaryTracker) {
-  return Boolean(
-    item.attackOverride ||
-    item.thresholdsOverride ||
-    item.featuresOverride ||
-    item.difficultyOverride
   );
 }
 

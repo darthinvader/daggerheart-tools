@@ -9,7 +9,6 @@ import {
   RotateCcw,
   Trash2,
 } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '@/components/providers';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
@@ -40,19 +39,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import {
-  deleteCampaign,
-  emptyTrash,
-  listCampaigns,
-  listTrashedCampaigns,
-  permanentlyDeleteCampaign,
-  restoreCampaign,
-} from '@/features/campaigns/campaign-storage';
 import type { Campaign } from '@/lib/schemas/campaign';
-
-interface TrashedCampaign extends Campaign {
-  deletedAt: string;
-}
+import {
+  type TrashedCampaign,
+  useCampaignsListState,
+} from './use-campaigns-list-state';
 
 type ComplexityLabel = { label: string; color: string };
 
@@ -310,92 +301,25 @@ export const Route = createFileRoute('/gm/campaigns/')({
 
 function CampaignsList() {
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [trashedCampaigns, setTrashedCampaigns] = useState<TrashedCampaign[]>(
-    []
-  );
-  const [loading, setLoading] = useState(true);
-  const [deleteTarget, setDeleteTarget] = useState<Campaign | null>(null);
-  const [permanentDeleteTarget, setPermanentDeleteTarget] =
-    useState<TrashedCampaign | null>(null);
-  const [showEmptyTrashConfirm, setShowEmptyTrashConfirm] = useState(false);
-  const [trashOpen, setTrashOpen] = useState(false);
 
-  const loadData = useCallback(async (signal?: AbortSignal) => {
-    setLoading(true);
-    try {
-      const [campaignsData, trashData] = await Promise.all([
-        listCampaigns(),
-        listTrashedCampaigns(),
-      ]);
-      // Check if aborted before updating state
-      if (signal?.aborted) return;
-      setCampaigns(campaignsData);
-      setTrashedCampaigns(trashData);
-    } catch (error) {
-      if (signal?.aborted) return;
-      console.error('Failed to load campaigns:', error);
-    } finally {
-      if (!signal?.aborted) {
-        setLoading(false);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    const timeoutId = window.setTimeout(() => {
-      void loadData(controller.signal);
-    }, 0);
-    return () => {
-      window.clearTimeout(timeoutId);
-      controller.abort();
-    };
-  }, [loadData]);
-
-  async function handleDelete() {
-    if (!deleteTarget) return;
-    try {
-      await deleteCampaign(deleteTarget.id);
-      setDeleteTarget(null);
-      await loadData();
-    } catch (error) {
-      console.error('Failed to delete campaign:', error);
-      setDeleteTarget(null);
-    }
-  }
-
-  async function handleRestore(id: string) {
-    try {
-      await restoreCampaign(id);
-      await loadData();
-    } catch (error) {
-      console.error('Failed to restore campaign:', error);
-    }
-  }
-
-  async function handlePermanentDelete() {
-    if (!permanentDeleteTarget) return;
-    try {
-      await permanentlyDeleteCampaign(permanentDeleteTarget.id);
-      setPermanentDeleteTarget(null);
-      await loadData();
-    } catch (error) {
-      console.error('Failed to permanently delete campaign:', error);
-      setPermanentDeleteTarget(null);
-    }
-  }
-
-  async function handleEmptyTrash() {
-    try {
-      await emptyTrash();
-      setShowEmptyTrashConfirm(false);
-      await loadData();
-    } catch (error) {
-      console.error('Failed to empty trash:', error);
-      setShowEmptyTrashConfirm(false);
-    }
-  }
+  // Use extracted hook for state management
+  const {
+    campaigns,
+    trashedCampaigns,
+    loading,
+    deleteTarget,
+    setDeleteTarget,
+    permanentDeleteTarget,
+    setPermanentDeleteTarget,
+    showEmptyTrashConfirm,
+    setShowEmptyTrashConfirm,
+    trashOpen,
+    setTrashOpen,
+    handleDelete,
+    handleRestore,
+    handlePermanentDelete,
+    handleEmptyTrash,
+  } = useCampaignsListState();
 
   if (loading) {
     return (

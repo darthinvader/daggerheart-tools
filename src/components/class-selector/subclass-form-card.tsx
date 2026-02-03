@@ -1,5 +1,3 @@
-import { useState } from 'react';
-
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,6 +16,7 @@ import type { HomebrewSubclass } from '@/lib/schemas/class-selection';
 import type { RangerCompanion, SubclassFeature } from '@/lib/schemas/core';
 
 import { SubclassFeatureItem } from './subclass-feature-item';
+import { useCompanionState } from './use-companion-state';
 
 const COMPANION_DAMAGE_DICE = ['d6', 'd8', 'd10', 'd12'] as const;
 const COMPANION_RANGES = ['Melee', 'Close', 'Far'] as const;
@@ -165,49 +164,17 @@ interface CompanionSectionProps {
 }
 
 function CompanionSection({ companion, onUpdate }: CompanionSectionProps) {
-  const [hasCompanion, setHasCompanion] = useState(!!companion);
-  const [experiences, setExperiences] = useState<
-    { name: string; bonus: number }[]
-  >(companion?.experiences ?? []);
-  const [newExperience, setNewExperience] = useState('');
-
-  const handleToggle = (enabled: boolean) => {
-    setHasCompanion(enabled);
-    if (!enabled) {
-      onUpdate(undefined);
-    } else {
-      onUpdate({
-        name: companion?.name ?? '',
-        type: companion?.type ?? 'Wolf',
-        evasion: companion?.evasion ?? 10,
-        experiences: [],
-        standardAttack: companion?.standardAttack ?? '',
-        damageDie: companion?.damageDie ?? 'd6',
-        range: companion?.range ?? 'Melee',
-        stressSlots: companion?.stressSlots ?? 2,
-      });
-    }
-  };
-
-  const updateCompanion = (updates: Partial<RangerCompanion>) => {
-    if (!companion) return;
-    onUpdate({ ...companion, ...updates });
-  };
-
-  const addExperience = () => {
-    if (!newExperience.trim() || !companion) return;
-    const newExp = { name: newExperience.trim(), bonus: 2 };
-    const updated = [...experiences, newExp];
-    setExperiences(updated);
-    updateCompanion({ experiences: updated });
-    setNewExperience('');
-  };
-
-  const removeExperience = (idx: number) => {
-    const updated = experiences.filter((_, i) => i !== idx);
-    setExperiences(updated);
-    updateCompanion({ experiences: updated });
-  };
+  // Use extracted hook for state management
+  const {
+    hasCompanion,
+    experiences,
+    newExperience,
+    setNewExperience,
+    handleToggle,
+    updateCompanion,
+    addExperience,
+    removeExperience,
+  } = useCompanionState({ companion, onUpdate });
 
   return (
     <div className="space-y-3 border-t border-dashed pt-3">

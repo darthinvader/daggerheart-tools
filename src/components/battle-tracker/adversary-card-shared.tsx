@@ -249,6 +249,132 @@ export function AdversaryFeatureItem({
   );
 }
 
+// ============== Quantity Controls ==============
+
+function QuantityControls({
+  selectedCount,
+  canAfford,
+  onIncrement,
+  onDecrement,
+}: {
+  selectedCount: number;
+  canAfford: boolean;
+  onIncrement: () => void;
+  onDecrement: () => void;
+}) {
+  const isSelected = selectedCount > 0;
+
+  if (isSelected) {
+    return (
+      <div className="flex shrink-0 items-center gap-1">
+        <Button
+          size="icon"
+          variant="outline"
+          onClick={e => {
+            e.stopPropagation();
+            onDecrement();
+          }}
+          className="size-7"
+        >
+          <Minus className="size-3" />
+        </Button>
+        <span className="bg-primary text-primary-foreground min-w-[1.75rem] rounded px-1 text-center text-sm font-bold">
+          {selectedCount}
+        </span>
+        <Button
+          size="icon"
+          variant="outline"
+          onClick={e => {
+            e.stopPropagation();
+            onIncrement();
+          }}
+          className="size-7"
+          disabled={!canAfford}
+        >
+          <Plus className="size-3" />
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex shrink-0 items-center gap-1">
+      <Button
+        size="icon"
+        onClick={e => {
+          e.stopPropagation();
+          onIncrement();
+        }}
+        className="size-8 shrink-0"
+        disabled={!canAfford}
+      >
+        <Plus className="size-4" />
+      </Button>
+    </div>
+  );
+}
+
+// ============== Quick Stats Row ==============
+
+function AdversaryQuickStats({
+  adversary,
+  thresholdDisplay,
+  showExpandedDetails,
+  isExpanded,
+  onToggleExpand,
+}: {
+  adversary: Adversary;
+  thresholdDisplay: string;
+  showExpandedDetails: boolean;
+  isExpanded: boolean;
+  onToggleExpand?: () => void;
+}) {
+  return (
+    <div className="bg-background/60 flex items-center justify-between gap-2 rounded-md border px-2 py-1.5">
+      <div className="flex items-center gap-3 text-xs">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="flex items-center gap-1 font-medium text-red-600 dark:text-red-400">
+              <Heart className="size-3" />
+              {adversary.hp}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>HP</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="text-muted-foreground flex items-center gap-1">
+              <Crosshair className="size-3" />
+              {adversary.difficulty}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>Difficulty to hit</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
+              <Shield className="size-3" />
+              {thresholdDisplay}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>Thresholds (Major/Severe)</TooltipContent>
+        </Tooltip>
+      </div>
+      {showExpandedDetails && onToggleExpand && (
+        <CollapsibleTrigger asChild>
+          <button className="text-muted-foreground hover:text-foreground rounded p-0.5 transition-colors">
+            {isExpanded ? (
+              <ChevronUp className="size-4" />
+            ) : (
+              <ChevronDown className="size-4" />
+            )}
+          </button>
+        </CollapsibleTrigger>
+      )}
+    </div>
+  );
+}
+
 // ============== Main Card Component ==============
 
 interface AdversarySelectCardProps {
@@ -307,96 +433,21 @@ export function AdversarySelectCard({
                   </Badge>
                 </div>
               </div>
-              {/* Quantity Controls */}
-              <div className="flex shrink-0 items-center gap-1">
-                {isSelected ? (
-                  <>
-                    <Button
-                      size="icon"
-                      variant="outline"
-                      onClick={e => {
-                        e.stopPropagation();
-                        onDecrement();
-                      }}
-                      className="size-7"
-                    >
-                      <Minus className="size-3" />
-                    </Button>
-                    <span className="bg-primary text-primary-foreground min-w-[1.75rem] rounded px-1 text-center text-sm font-bold">
-                      {selectedCount}
-                    </span>
-                    <Button
-                      size="icon"
-                      variant="outline"
-                      onClick={e => {
-                        e.stopPropagation();
-                        onIncrement();
-                      }}
-                      className="size-7"
-                      disabled={!canAfford}
-                    >
-                      <Plus className="size-3" />
-                    </Button>
-                  </>
-                ) : (
-                  <Button
-                    size="icon"
-                    onClick={e => {
-                      e.stopPropagation();
-                      onIncrement();
-                    }}
-                    className="size-8 shrink-0"
-                    disabled={!canAfford}
-                  >
-                    <Plus className="size-4" />
-                  </Button>
-                )}
-              </div>
+              <QuantityControls
+                selectedCount={selectedCount}
+                canAfford={canAfford}
+                onIncrement={onIncrement}
+                onDecrement={onDecrement}
+              />
             </div>
 
-            {/* Quick Stats Row */}
-            <div className="bg-background/60 flex items-center justify-between gap-2 rounded-md border px-2 py-1.5">
-              <div className="flex items-center gap-3 text-xs">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="flex items-center gap-1 font-medium text-red-600 dark:text-red-400">
-                      <Heart className="size-3" />
-                      {adversary.hp}
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent>HP</TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="text-muted-foreground flex items-center gap-1">
-                      <Crosshair className="size-3" />
-                      {adversary.difficulty}
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent>Difficulty to hit</TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
-                      <Shield className="size-3" />
-                      {thresholdDisplay}
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent>Thresholds (Major/Severe)</TooltipContent>
-                </Tooltip>
-              </div>
-              {showExpandedDetails && onToggleExpand && (
-                <CollapsibleTrigger asChild>
-                  <button className="text-muted-foreground hover:text-foreground rounded p-0.5 transition-colors">
-                    {isExpanded ? (
-                      <ChevronUp className="size-4" />
-                    ) : (
-                      <ChevronDown className="size-4" />
-                    )}
-                  </button>
-                </CollapsibleTrigger>
-              )}
-            </div>
+            <AdversaryQuickStats
+              adversary={adversary}
+              thresholdDisplay={thresholdDisplay}
+              showExpandedDetails={showExpandedDetails}
+              isExpanded={isExpanded}
+              onToggleExpand={onToggleExpand}
+            />
           </div>
 
           {/* Expanded Content */}

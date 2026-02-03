@@ -129,28 +129,13 @@ function getExperienceBonuses(
     const rawExperience = bonus.experience?.trim();
     if (!rawExperience) continue;
 
-    let target = rawExperience;
-    const selectedExperience =
-      (entry.item as { metadata?: Record<string, unknown> })?.metadata
-        ?.selectedExperience ??
-      (entry as { metadata?: Record<string, unknown> })?.metadata
-        ?.selectedExperience;
-
-    if (/any experience/i.test(rawExperience)) {
-      if (typeof selectedExperience === 'string') {
-        target = selectedExperience;
-      } else {
-        target = experienceNames[0] ?? '';
-      }
-    }
-
+    const target = resolveExperienceTarget(
+      entry,
+      experienceNames,
+      rawExperience
+    );
     if (!target) continue;
-    const exactMatch = experienceNames.find(name => name === target);
-    const normalizedMatch =
-      exactMatch ??
-      experienceNames.find(name => name.toLowerCase() === target.toLowerCase());
-    const key = normalizedMatch ?? target;
-    bonuses[key] = (bonuses[key] ?? 0) + bonus.bonus;
+    bonuses[target] = (bonuses[target] ?? 0) + bonus.bonus;
   }
 
   return bonuses;

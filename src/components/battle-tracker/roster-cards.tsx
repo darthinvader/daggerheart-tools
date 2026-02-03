@@ -23,6 +23,12 @@ import {
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
+import {
+  type EffectiveThresholds,
+  getEffectiveAdversaryAttack,
+  getEffectiveAdversaryFeatures,
+  getEffectiveAdversaryThresholds,
+} from './adversary-effective-values';
 import { CountdownControl, StatMini } from './stat-controls';
 import type {
   AdversaryTracker,
@@ -231,59 +237,6 @@ function FeatureItem({
 }
 
 // ============== Effective Adversary Values ==============
-
-interface EffectiveThresholds {
-  major: number | null;
-  severe: number | null;
-  massive?: number | null;
-}
-
-function getEffectiveAdversaryAttack(adversary: AdversaryTracker) {
-  const source = adversary.source;
-  return {
-    name: adversary.attackOverride?.name ?? source.attack.name,
-    modifier: adversary.attackOverride?.modifier ?? source.attack.modifier,
-    range: adversary.attackOverride?.range ?? source.attack.range,
-    damage: adversary.attackOverride?.damage ?? source.attack.damage,
-  };
-}
-
-function getEffectiveAdversaryThresholds(
-  adversary: AdversaryTracker
-): string | EffectiveThresholds {
-  const source = adversary.source;
-
-  // Parse string thresholds (e.g., "8/15") into object with computed massive
-  if (typeof source.thresholds === 'string') {
-    const parts = source.thresholds.split('/').map(s => parseInt(s.trim(), 10));
-    if (parts.length >= 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
-      const major = parts[0];
-      const severe = parts[1];
-      const massive = adversary.thresholdsOverride?.massive ?? severe * 2;
-      return {
-        major: adversary.thresholdsOverride?.major ?? major,
-        severe: adversary.thresholdsOverride?.severe ?? severe,
-        massive,
-      };
-    }
-    return source.thresholds; // Return unparseable string as-is
-  }
-
-  const major = adversary.thresholdsOverride?.major ?? source.thresholds.major;
-  const severe =
-    adversary.thresholdsOverride?.severe ?? source.thresholds.severe;
-  // Massive = 2 × severe if not explicitly set
-  const massive =
-    adversary.thresholdsOverride?.massive ??
-    source.thresholds.massive ??
-    (severe != null ? severe * 2 : null);
-
-  return { major, severe, massive };
-}
-
-function getEffectiveAdversaryFeatures(adversary: AdversaryTracker) {
-  return adversary.featuresOverride ?? adversary.source.features;
-}
 
 function useEffectiveAdversaryValues(adversary: AdversaryTracker) {
   const source = adversary.source;
