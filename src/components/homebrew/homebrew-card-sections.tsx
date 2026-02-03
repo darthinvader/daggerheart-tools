@@ -172,7 +172,7 @@ export function CardActionsMenu({
             <Button
               variant="ghost"
               size="icon"
-              className="opacity-0 transition-opacity group-hover:opacity-100"
+              className="opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100"
             >
               <MoreVertical className="size-4" />
             </Button>

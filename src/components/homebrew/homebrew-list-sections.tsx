@@ -210,12 +210,7 @@ export function HomebrewContentDisplaySection({
             </div>
 
             {/* Items Grid */}
-            <div
-              className="grid gap-2"
-              style={{
-                gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-              }}
-            >
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {groupItems.map(item => (
                 <div key={item.id}>{renderCard(item)}</div>
               ))}
