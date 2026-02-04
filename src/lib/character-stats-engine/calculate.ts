@@ -5,7 +5,7 @@
  * All components should use this engine instead of performing their own calculations.
  *
  * Calculation Rules (per SRD):
- * - HP: Class base HP + (Tier - 1)
+ * - HP: Class base HP only (level-up HP additions tracked separately in resources)
  * - Evasion: Class base + Armor modifier + Equipment feature modifiers
  * - Armor Score: Armor base + Equipment feature modifiers
  * - Thresholds: Armor base + Level + Equipment feature modifiers
@@ -43,14 +43,14 @@ import {
 
 /**
  * Calculate HP with breakdown.
- * Formula: Class base HP + (Tier - 1)
+ * Formula: Class base HP only.
+ * Per SRD, HP is only increased via level-up selections ("Permanently gain one Hit Point slot"),
+ * NOT automatically per tier. Level-up selections are tracked separately in resources.hp.max.
  */
 export function calculateHp(classInput: ClassInput): CalculatedHp {
-  const tierBonus = Math.max(0, classInput.tier - 1);
   return {
     classBase: classInput.baseHp,
-    tierBonus,
-    total: classInput.baseHp + tierBonus,
+    total: classInput.baseHp,
   };
 }
 
@@ -75,38 +75,69 @@ export function calculateEvasion(
 }
 
 /**
+ * Maximum Armor Score allowed per SRD:
+ * "Your character's Armor Score, with all bonuses included, can never exceed 12."
+ */
+export const MAX_ARMOR_SCORE = 12;
+
+/**
  * Calculate Armor Score with breakdown.
  * Formula: Armor base + Equipment feature modifiers
+ * Capped at MAX_ARMOR_SCORE (12) per SRD.
  */
 export function calculateArmorScore(
   armorInput: ArmorInput,
   equipmentModifiers: EquipmentModifiersInput
 ): CalculatedArmorScore {
+  const rawTotal = armorInput.baseScore + equipmentModifiers.armorScore;
   return {
     base: armorInput.baseScore,
     equipmentModifier: equipmentModifiers.armorScore,
-    total: armorInput.baseScore + equipmentModifiers.armorScore,
+    total: Math.min(MAX_ARMOR_SCORE, rawTotal),
   };
 }
 
 /**
+ * Calculate base proficiency from level per SRD:
+ * - Level 1: Proficiency 1
+ * - Level 2+: +1 (total 2)
+ * - Level 5+: +1 (total 3)
+ * - Level 8+: +1 (total 4)
+ * Max proficiency is 6 per SRD.
+ */
+export function getLevelBasedProficiency(level: number): number {
+  let proficiency = 1; // Level 1 starts at 1
+  if (level >= 2) proficiency++; // Level 2 achievement
+  if (level >= 5) proficiency++; // Level 5 achievement
+  if (level >= 8) proficiency++; // Level 8 achievement
+  return proficiency;
+}
+
+/** Maximum proficiency allowed per SRD */
+export const MAX_PROFICIENCY = 6;
+
+/**
  * Calculate Proficiency with breakdown.
- * Formula: Base (typically 1 at level 1) + Equipment feature modifiers
+ * Formula: Level-based proficiency + Equipment feature modifiers + manual bonuses
+ * Capped at MAX_PROFICIENCY (6) per SRD.
  */
 export function calculateProficiency(
   equipmentModifiers: EquipmentModifiersInput,
-  baseProficiency: number = 1
+  baseProficiency: number = 1,
+  manualBonuses: number = 0
 ): CalculatedProficiency {
+  const rawTotal =
+    baseProficiency + equipmentModifiers.proficiency + manualBonuses;
   return {
     base: baseProficiency,
     equipmentModifier: equipmentModifiers.proficiency,
-    total: baseProficiency + equipmentModifiers.proficiency,
+    total: Math.min(MAX_PROFICIENCY, rawTotal),
   };
 }
 
 /**
  * Calculate a single threshold with breakdown.
- * Formula: Armor base + Level + Equipment feature modifiers
+ * Formula for armored: Armor base + Level + Equipment feature modifiers
  */
 function calculateThreshold(
   baseValue: number,
@@ -124,12 +155,36 @@ function calculateThreshold(
 
 /**
  * Calculate all thresholds with breakdown.
+ * Per SRD:
+ * - Armored: threshold = armor base + level + equipment modifiers
+ * - Unarmored: Major = level, Severe = 2×level (+ equipment modifiers)
  */
 export function calculateThresholds(
   armorInput: ArmorInput,
   progressionInput: ProgressionInput,
   equipmentModifiers: EquipmentModifiersInput
 ): CalculatedThresholds {
+  const level = Math.max(0, progressionInput.level);
+
+  if (armorInput.isUnarmored) {
+    // Per SRD: "While unarmored... Major threshold is equal to their level,
+    // and their Severe threshold is equal to twice their level."
+    return {
+      major: {
+        base: 0,
+        levelBonus: level,
+        equipmentModifier: equipmentModifiers.majorThreshold,
+        total: level + equipmentModifiers.majorThreshold,
+      },
+      severe: {
+        base: 0,
+        levelBonus: level * 2,
+        equipmentModifier: equipmentModifiers.severeThreshold,
+        total: level * 2 + equipmentModifiers.severeThreshold,
+      },
+    };
+  }
+
   return {
     major: calculateThreshold(
       armorInput.baseThresholds.major,
@@ -220,7 +275,10 @@ export function calculateCharacterStats(
     hp: calculateHp(classInput),
     evasion: calculateEvasion(classInput, armorInput, equipmentModifiers),
     armorScore: calculateArmorScore(armorInput, equipmentModifiers),
-    proficiency: calculateProficiency(equipmentModifiers),
+    proficiency: calculateProficiency(
+      equipmentModifiers,
+      getLevelBasedProficiency(progressionInput.level)
+    ),
     thresholds: calculateThresholds(
       armorInput,
       progressionInput,

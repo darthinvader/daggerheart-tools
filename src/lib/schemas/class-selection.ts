@@ -95,6 +95,8 @@ export const ClassSelectionSchema = z.object({
   classes: z.array(ClassSubclassPairSchema).optional(),
   // ID of campaign-linked homebrew content
   homebrewContentId: z.string().optional(),
+  // Features that are deactivated from stat calculations
+  disabledFeatures: z.array(z.string()).optional(),
 });
 
 export type ClassSelection = z.infer<typeof ClassSelectionSchema>;

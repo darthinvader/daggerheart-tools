@@ -1,3 +1,4 @@
+import { isTierStartLevel } from '@/lib/data/core/level-progression';
 import type {
   ClassSelection,
   ClassSubclassPair,
@@ -106,7 +107,7 @@ export function computeAllOwnedCardNames(
 }
 
 export function shouldGetNewExperience(targetLevel: number): boolean {
-  return targetLevel === 2 || targetLevel === 5 || targetLevel === 8;
+  return isTierStartLevel(targetLevel);
 }
 
 export function canProceedToOptions(

@@ -17,22 +17,14 @@
  * - Combined patterns: "+X to Armor Score; −Y to Evasion"
  */
 
+import { CHARACTER_TRAITS } from '@/lib/character-stats-engine/types';
+
 import type {
-  CharacterTrait,
   EquipmentFeature,
   ModifiableStat,
   ParsedFeatureEffect,
   StatModifier,
 } from './types';
-
-const CHARACTER_TRAITS: CharacterTrait[] = [
-  'Agility',
-  'Strength',
-  'Finesse',
-  'Instinct',
-  'Presence',
-  'Knowledge',
-];
 
 /**
  * Normalize unicode minus signs and various dash characters to standard hyphen-minus

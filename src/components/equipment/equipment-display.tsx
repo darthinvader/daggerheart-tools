@@ -42,6 +42,34 @@ export function EquipmentDisplay({
     [equipment, onChange]
   );
 
+  const handleTogglePrimaryActivated = useCallback(() => {
+    onChange?.({
+      ...equipment,
+      primaryWeaponActivated: equipment.primaryWeaponActivated === false,
+    });
+  }, [equipment, onChange]);
+
+  const handleToggleSecondaryActivated = useCallback(() => {
+    onChange?.({
+      ...equipment,
+      secondaryWeaponActivated: equipment.secondaryWeaponActivated === false,
+    });
+  }, [equipment, onChange]);
+
+  const handleToggleArmorActivated = useCallback(() => {
+    onChange?.({
+      ...equipment,
+      armorActivated: equipment.armorActivated === false,
+    });
+  }, [equipment, onChange]);
+
+  const handleToggleWheelchairActivated = useCallback(() => {
+    onChange?.({
+      ...equipment,
+      wheelchairActivated: equipment.wheelchairActivated === false,
+    });
+  }, [equipment, onChange]);
+
   return (
     <>
       <section
@@ -62,6 +90,18 @@ export function EquipmentDisplay({
           readOnly={readOnly}
           openSection={openSection}
           onToggleWheelchair={readOnly ? undefined : handleToggleWheelchair}
+          onTogglePrimaryActivated={
+            readOnly ? undefined : handleTogglePrimaryActivated
+          }
+          onToggleSecondaryActivated={
+            readOnly ? undefined : handleToggleSecondaryActivated
+          }
+          onToggleArmorActivated={
+            readOnly ? undefined : handleToggleArmorActivated
+          }
+          onToggleWheelchairActivated={
+            readOnly ? undefined : handleToggleWheelchairActivated
+          }
         />
       </section>
 

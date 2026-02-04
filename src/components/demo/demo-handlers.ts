@@ -2,7 +2,7 @@ import type { CompanionState } from '@/components/companion';
 import type { DamageResult } from '@/components/damage-calculator';
 import type { DeathMoveState } from '@/components/death-move';
 import type { ResourcesState } from '@/components/resources';
-import type { RestEffects, RestState } from '@/components/rest-management';
+import type { RestResult, RestState } from '@/components/rest';
 import type { HopeWithScarsState } from '@/components/scars';
 
 interface RestHandlerParams {
@@ -28,32 +28,57 @@ export function createRestHandler(params: RestHandlerParams) {
     setRestState,
   } = params;
 
-  return (restType: 'short' | 'long', effects: RestEffects) => {
+  return (result: RestResult) => {
+    // Aggregate effects from all move results
+    let hpRecovered = 0;
+    let stressCleared = 0;
+    let armorRepaired = 0;
+    let hopeGained = 0;
+
+    for (const moveResult of result.moveResults) {
+      // Map move categories to resources
+      if (
+        moveResult.moveId.includes('wounds') ||
+        moveResult.moveId.includes('hp')
+      ) {
+        hpRecovered += moveResult.amount;
+      } else if (moveResult.moveId.includes('stress')) {
+        stressCleared += moveResult.amount;
+      } else if (moveResult.moveId.includes('armor')) {
+        armorRepaired += moveResult.amount;
+      } else if (
+        moveResult.moveId.includes('prepare') ||
+        moveResult.moveId.includes('hope')
+      ) {
+        hopeGained += moveResult.amount;
+      }
+    }
+
     setResources({
       ...resources,
       hp: {
         ...resources.hp,
-        current: Math.min(
-          resources.hp.max,
-          resources.hp.current + effects.hpRecovered
-        ),
+        current: Math.min(resources.hp.max, resources.hp.current + hpRecovered),
       },
       stress: {
         ...resources.stress,
-        current: Math.max(0, resources.stress.current - effects.stressCleared),
+        current: Math.max(0, resources.stress.current - stressCleared),
+      },
+      armorScore: {
+        ...resources.armorScore,
+        current: Math.max(0, resources.armorScore.current - armorRepaired),
       },
     });
     setHopeWithScars({
       ...hopeWithScars,
-      current: Math.min(
-        hopeWithScars.max,
-        hopeWithScars.current + effects.hopeRecovered
-      ),
+      current: Math.min(hopeWithScars.max, hopeWithScars.current + hopeGained),
     });
 
     if (companion) {
       const companionStressCleared =
-        restType === 'long' ? companion.markedStress : effects.stressCleared;
+        result.restType === 'long'
+          ? companion.markedStress
+          : Math.min(stressCleared, 1);
       setCompanion({
         ...companion,
         markedStress: Math.max(
@@ -63,12 +88,16 @@ export function createRestHandler(params: RestHandlerParams) {
       });
     }
 
-    const now = new Date().toISOString();
     setRestState({
       ...restState,
-      lastShortRest: restType === 'short' ? now : restState.lastShortRest,
-      lastLongRest: restType === 'long' ? now : restState.lastLongRest,
-      shortRestsToday: restType === 'short' ? restState.shortRestsToday + 1 : 0,
+      lastShortRest:
+        result.restType === 'short'
+          ? result.timestamp
+          : restState.lastShortRest,
+      lastLongRest:
+        result.restType === 'long' ? result.timestamp : restState.lastLongRest,
+      shortRestsToday:
+        result.restType === 'short' ? restState.shortRestsToday + 1 : 0,
     });
   };
 }

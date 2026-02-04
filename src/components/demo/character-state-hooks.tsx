@@ -21,7 +21,7 @@ import type {
   DEFAULT_RESOURCES_STATE,
   ResourcesState,
 } from '@/components/resources';
-import type { RestState } from '@/components/rest-management';
+import type { RestState } from '@/components/rest';
 import type { SessionEntry } from '@/components/session-tracker';
 import type { ProgressionState } from '@/components/shared/progression-display';
 import { DEFAULT_TRAITS_STATE, type TraitsState } from '@/components/traits';
@@ -158,6 +158,7 @@ export function useSessionState() {
   const [deathState, setDeathState] = useState<DeathMoveState>({
     isUnconscious: false,
     deathMovePending: false,
+    isDead: false,
     lastDeathMoveResult: undefined,
   });
   const [companion, setCompanion] = useState<CompanionState | undefined>(

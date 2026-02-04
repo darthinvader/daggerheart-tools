@@ -68,6 +68,8 @@ export function QuickViewPrimarySections({
           onResourcesChange={handlers.setResources}
           onHopeChange={handlers.setHopeWithScars}
           bonusHopeSlots={bonusHopeSlots}
+          conditions={state.conditions}
+          onConditionsChange={handlers.setConditions}
         />
       </QuickSection>
 

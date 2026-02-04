@@ -8,19 +8,27 @@ interface SingleClassDetailsProps {
   data: ClassDetailsData;
   unlockState: FeatureUnlockState;
   onToggleUnlock: (featureName: string) => void;
+  disabledFeatures?: Set<string>;
+  onToggleFeatureActivation?: (featureName: string) => void;
 }
 
 export function SingleClassDetails({
   data,
   unlockState,
   onToggleUnlock,
+  disabledFeatures,
+  onToggleFeatureActivation,
 }: SingleClassDetailsProps) {
   return (
     <div className="space-y-4">
       <CompactClassInfo data={data} />
 
       {data.classFeatures && data.classFeatures.length > 0 && (
-        <ClassFeaturesCard features={data.classFeatures} />
+        <ClassFeaturesCard
+          features={data.classFeatures}
+          disabledFeatures={disabledFeatures}
+          onToggleFeature={onToggleFeatureActivation}
+        />
       )}
 
       {data.hopeFeature && <HopeFeatureCard feature={data.hopeFeature} />}
@@ -31,6 +39,8 @@ export function SingleClassDetails({
           features={data.subclassFeatures}
           unlockState={unlockState}
           onToggleUnlock={onToggleUnlock}
+          disabledFeatures={disabledFeatures}
+          onToggleFeatureActivation={onToggleFeatureActivation}
         />
       )}
     </div>

@@ -438,6 +438,8 @@ export interface InventoryItemEntry {
   isEquipped: boolean;
   location: 'backpack' | 'belt' | 'equipped' | 'stored';
   isCustom?: boolean;
+  /** Whether bonuses from this item are active - defaults to true */
+  isActivated?: boolean;
 }
 
 export interface InventoryState {

@@ -1,14 +1,23 @@
 import { type ReactNode, useCallback } from 'react';
 
+import type { ConditionsState } from '@/components/conditions';
 import type { ResourcesState } from '@/components/resources';
 import { NumberControl } from '@/components/shared/labeled-counter/number-control';
 import { AlertTriangle, Heart, Shield } from '@/lib/icons';
+import {
+  applyStressWithOverflow,
+  shouldAddVulnerableFromStress,
+} from '@/lib/mechanics';
 import { cn } from '@/lib/utils';
 
 interface QuickResourcesInfoProps {
   resources: ResourcesState;
   onChange?: (resources: ResourcesState) => void;
   className?: string;
+  /** Current conditions for auto-Vulnerable on full stress */
+  conditions?: ConditionsState;
+  /** Callback when conditions should change (for auto-Vulnerable) */
+  onConditionsChange?: (conditions: ConditionsState) => void;
 }
 
 interface QuickResourceProps {
@@ -54,6 +63,8 @@ export function QuickResourcesInfo({
   resources,
   onChange,
   className,
+  conditions,
+  onConditionsChange,
 }: QuickResourcesInfoProps) {
   const handleHpChange = useCallback(
     (value: number) => {
@@ -77,12 +88,40 @@ export function QuickResourcesInfo({
 
   const handleStressChange = useCallback(
     (value: number) => {
-      onChange?.({
+      if (!onChange) return;
+
+      // Per SRD: stress overflow marks HP, full stress = Vulnerable
+      const result = applyStressWithOverflow(
+        resources.stress.current,
+        resources.stress.max,
+        resources.hp.current,
+        value
+      );
+
+      onChange({
         ...resources,
-        stress: { ...resources.stress, current: value },
+        stress: { ...resources.stress, current: result.newStress },
+        hp: { ...resources.hp, current: result.newHp },
       });
+
+      // Auto-add Vulnerable condition when stress is full
+      if (
+        result.shouldBecomeVulnerable &&
+        conditions &&
+        onConditionsChange &&
+        shouldAddVulnerableFromStress(
+          result.newStress,
+          resources.stress.max,
+          conditions.items
+        )
+      ) {
+        onConditionsChange({
+          ...conditions,
+          items: [...conditions.items, 'Vulnerable'],
+        });
+      }
     },
-    [resources, onChange]
+    [resources, onChange, conditions, onConditionsChange]
   );
 
   return (

@@ -3,7 +3,7 @@
  *
  * Extracted state and handlers for ItemForm to reduce complexity.
  */
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { FeatureStatModifiers } from '@/lib/schemas/core';
 import type { Rarity } from '@/lib/schemas/equipment';
@@ -59,6 +59,16 @@ export function useItemFormState(
     }))
   );
 
+  // Track previous data to avoid notifying on unchanged values
+  const prevDataRef = useRef<string | undefined>(undefined);
+  // Store onChange in ref to avoid dependency on unstable callback reference
+  const onChangeRef = useRef(onChange);
+
+  // Update ref in effect to satisfy react-hooks/refs rule
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  });
+
   const buildCurrentData = useCallback((): ItemFormData => {
     return {
       ...formData,
@@ -72,10 +82,13 @@ export function useItemFormState(
 
   // Auto-notify on changes (for inline mode)
   useEffect(() => {
-    if (onChange) {
-      onChange(buildCurrentData());
+    const currentData = buildCurrentData();
+    const serialized = JSON.stringify(currentData);
+    if (onChangeRef.current && serialized !== prevDataRef.current) {
+      prevDataRef.current = serialized;
+      onChangeRef.current(currentData);
     }
-  }, [formData, features]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [buildCurrentData]);
 
   // Field update helpers
   const updateField = useCallback(

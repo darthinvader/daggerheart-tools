@@ -176,14 +176,17 @@ export const DEFAULT_EQUIPMENT_STATE = {
   primaryWeapon: null,
   primaryWeaponMode: 'standard' as const,
   homebrewPrimaryWeapon: { type: 'Primary' as const, features: [] },
+  primaryWeaponActivated: true,
 
   secondaryWeapon: null,
   secondaryWeaponMode: 'standard' as const,
   homebrewSecondaryWeapon: { type: 'Secondary' as const, features: [] },
+  secondaryWeaponActivated: true,
 
   armor: null,
   armorMode: 'standard' as const,
   homebrewArmor: { features: [] },
+  armorActivated: true,
 
   useCombatWheelchair: false,
   combatWheelchair: null,
@@ -194,6 +197,7 @@ export const DEFAULT_EQUIPMENT_STATE = {
     wheelchairFeatures: [],
     frameType: 'Light' as const,
   },
+  wheelchairActivated: true,
 
   customSlots: [],
 };

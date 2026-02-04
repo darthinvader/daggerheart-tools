@@ -97,6 +97,7 @@ export function extractArmorInput(
     agilityModifier:
       armor.agilityModifier ?? DEFAULT_ARMOR_INPUT.agilityModifier,
     baseThresholds: armor.baseThresholds ?? DEFAULT_ARMOR_INPUT.baseThresholds,
+    isUnarmored: false, // Explicitly armored when armor is equipped
   };
 }
 
@@ -156,10 +157,14 @@ export function extractTraitsInput(
 }
 
 /**
- * Get tier from level (Tier 1: levels 1-2, Tier 2: 3-4, Tier 3: 5-7, Tier 4: 8-10)
+ * Get tier from level per SRD:
+ * - Tier 1: Level 1 only
+ * - Tier 2: Levels 2-4
+ * - Tier 3: Levels 5-7
+ * - Tier 4: Levels 8-10
  */
 export function getTierFromLevel(level: number): number {
-  if (level <= 2) return 1;
+  if (level <= 1) return 1;
   if (level <= 4) return 2;
   if (level <= 7) return 3;
   return 4;

@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 
+import { LEVEL_UP_OPTIONS } from '@/lib/data/core/level-progression';
 import type { ClassSelection } from '@/lib/schemas/class-selection';
 import type { CharacterTier } from '@/lib/schemas/core';
 import { getTierForLevel } from '@/lib/schemas/core';
@@ -16,7 +17,7 @@ import {
 import { type LevelUpSelection, type LevelUpStep } from './types';
 import { useLevelUpComputed } from './use-level-up-computed';
 
-const POINTS_PER_LEVEL = 2;
+const { POINTS_PER_LEVEL } = LEVEL_UP_OPTIONS;
 
 interface UseLevelUpStateProps {
   currentLevel: number;

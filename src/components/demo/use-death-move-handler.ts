@@ -49,34 +49,43 @@ export function useDeathMoveHandler({
         setDeathState({
           ...deathState,
           isUnconscious: true,
+          isDead: false,
           deathMovePending: false,
           lastDeathMoveResult: result,
         });
         return result;
       } else {
-        const survived = hopeDie > fearDie;
-        const isCritical = hopeDie === 12;
+        // Per SRD: Critical success occurs when both duality dice show matching results
+        const isCritical = hopeDie === fearDie;
+        const survived = isCritical || hopeDie > fearDie;
         result = {
           moveType,
           survived,
           gainedScar: false,
           hopeDieRoll: hopeDie,
           fearDieRoll: fearDie,
-          hpCleared: isCritical ? resources.hp.max : survived ? hopeDie : 0,
-          stressCleared: isCritical ? resources.stress.max : 0,
+          // For critical success, clear all; for non-critical, allocation handled by UI
+          hpCleared: isCritical ? resources.hp.max : undefined,
+          stressCleared: isCritical ? resources.stress.max : undefined,
+          clearingValue: survived && !isCritical ? hopeDie : undefined,
+          needsAllocation: survived && !isCritical,
           description: isCritical
             ? `Critical Success! (${hopeDie}/${fearDie}) You clear all HP and Stress!`
             : survived
-              ? `Hope wins! (${hopeDie}/${fearDie}) Clear ${hopeDie} HP or Stress.`
+              ? `Hope wins! (${hopeDie}/${fearDie}) Divide ${hopeDie} between HP and Stress.`
               : `Fear wins... (${hopeDie}/${fearDie}) You cross through the veil of death.`,
         };
-        if (survived) {
-          const hpToRestore = isCritical ? resources.hp.max : hopeDie;
+        if (isCritical) {
+          // Only auto-apply for critical success; non-critical needs allocation
           setResources(prev => ({
             ...prev,
             hp: {
               ...prev.hp,
-              current: Math.min(prev.hp.max, hpToRestore),
+              current: prev.hp.max,
+            },
+            stress: {
+              ...prev.stress,
+              current: 0,
             },
           }));
         }
@@ -84,7 +93,8 @@ export function useDeathMoveHandler({
 
       setDeathState({
         ...deathState,
-        isUnconscious: !result.survived,
+        isUnconscious: result.survived ? false : false,
+        isDead: !result.survived,
         deathMovePending: false,
         lastDeathMoveResult: result,
       });

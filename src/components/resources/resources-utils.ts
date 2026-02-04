@@ -10,16 +10,17 @@ export interface ComputedAutoValues {
 
 /**
  * Compute auto-calculated values from class and armor data.
- * HP = class base HP + (tier - 1) bonus
+ * HP = class base HP only (level-up selections tracked separately in resources.hp.max)
  * Evasion = class base evasion + armor evasion modifier + equipment feature modifiers
  * Armor Score = armor base score + equipment feature modifiers
  * Thresholds = armor base thresholds + level per threshold + equipment feature modifiers
+ *
+ * Per SRD: HP is only gained through class base + level-up "Permanently gain one Hit Point slot".
  */
 export function computeAutoResources(
   ctx: AutoCalculateContext
 ): ComputedAutoValues {
   const baseHp = ctx.classHp ?? 6;
-  const tierBonus = (ctx.classTier ?? 1) - 1;
   const baseEvasion = ctx.classEvasion ?? 10;
   const armorEvasionMod = ctx.armorEvasionModifier ?? 0;
   const level = ctx.level ?? 1;
@@ -35,7 +36,7 @@ export function computeAutoResources(
   };
 
   return {
-    maxHp: baseHp + tierBonus,
+    maxHp: baseHp,
     evasion: baseEvasion + armorEvasionMod + featureMods.evasion,
     armorScore: (ctx.armorScore ?? 0) + featureMods.armorScore,
     thresholdsMajor:

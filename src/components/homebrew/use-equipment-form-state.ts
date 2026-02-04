@@ -78,15 +78,22 @@ export function useEquipmentFormState({
 
   // Track previous data to avoid notifying on unchanged values
   const prevDataRef = useRef<string | undefined>(undefined);
+  // Store onChange in ref to avoid dependency on unstable callback reference
+  const onChangeRef = useRef(onChange);
+
+  // Update ref in effect to satisfy react-hooks/refs rule
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  });
 
   // Auto-notify on changes (for inline mode)
   useEffect(() => {
     const serialized = JSON.stringify(currentData);
-    if (onChange && serialized !== prevDataRef.current) {
+    if (onChangeRef.current && serialized !== prevDataRef.current) {
       prevDataRef.current = serialized;
-      onChange(currentData);
+      onChangeRef.current(currentData);
     }
-  }, [currentData, onChange]);
+  }, [currentData]);
 
   // Description handler - uses switch for proper type narrowing
   const handleDescriptionChange = useCallback(

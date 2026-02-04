@@ -10,9 +10,14 @@ import {
 } from 'lucide-react';
 import { useCallback } from 'react';
 
+import type { ConditionsState } from '@/components/conditions';
 import type { ResourcesState } from '@/components/resources';
 import type { HopeWithScarsState } from '@/components/scars';
 import { NumberControl } from '@/components/shared/labeled-counter/number-control';
+import {
+  applyStressWithOverflow,
+  shouldAddVulnerableFromStress,
+} from '@/lib/mechanics';
 import type { Scar } from '@/lib/schemas/session-state';
 import { cn } from '@/lib/utils';
 
@@ -23,6 +28,10 @@ interface QuickVitalsInfoProps {
   onHopeChange?: (state: HopeWithScarsState) => void;
   bonusHopeSlots?: number;
   className?: string;
+  /** Current conditions for auto-Vulnerable on full stress */
+  conditions?: ConditionsState;
+  /** Callback when conditions should change (for auto-Vulnerable) */
+  onConditionsChange?: (conditions: ConditionsState) => void;
 }
 
 interface VitalProps {
@@ -85,6 +94,8 @@ export function QuickVitalsInfo({
   onHopeChange,
   bonusHopeSlots = 0,
   className,
+  conditions,
+  onConditionsChange,
 }: QuickVitalsInfoProps) {
   const extraSlots = hopeState.extraSlots ?? 0;
   const effectiveMax = hopeState.max + extraSlots;
@@ -113,12 +124,40 @@ export function QuickVitalsInfo({
 
   const handleStressChange = useCallback(
     (value: number) => {
-      onResourcesChange?.({
+      if (!onResourcesChange) return;
+
+      // Per SRD: stress overflow marks HP, full stress = Vulnerable
+      const result = applyStressWithOverflow(
+        resources.stress.current,
+        resources.stress.max,
+        resources.hp.current,
+        value
+      );
+
+      onResourcesChange({
         ...resources,
-        stress: { ...resources.stress, current: value },
+        stress: { ...resources.stress, current: result.newStress },
+        hp: { ...resources.hp, current: result.newHp },
       });
+
+      // Auto-add Vulnerable condition when stress is full
+      if (
+        result.shouldBecomeVulnerable &&
+        conditions &&
+        onConditionsChange &&
+        shouldAddVulnerableFromStress(
+          result.newStress,
+          resources.stress.max,
+          conditions.items
+        )
+      ) {
+        onConditionsChange({
+          ...conditions,
+          items: [...conditions.items, 'Vulnerable'],
+        });
+      }
     },
-    [resources, onResourcesChange]
+    [resources, onResourcesChange, conditions, onConditionsChange]
   );
 
   const handleHopeChange = useCallback(

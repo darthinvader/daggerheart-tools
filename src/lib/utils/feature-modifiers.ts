@@ -381,9 +381,13 @@ function collectClassSources(
 ) {
   const className = params.classSelection?.className;
   const homebrewClass = params.classSelection?.homebrewClass;
+  const disabledFeatures = new Set(
+    params.classSelection?.disabledFeatures ?? []
+  );
 
   if (params.classSelection?.isHomebrew && homebrewClass) {
     for (const feature of homebrewClass.classFeatures ?? []) {
+      if (disabledFeatures.has(feature.name)) continue;
       pushSource({
         type: 'class-feature',
         sourceName: homebrewClass.name ?? className ?? 'Homebrew Class',
@@ -398,6 +402,7 @@ function collectClassSources(
   const gameClass = getClassByName(className);
   if (!gameClass) return;
   for (const feature of gameClass.classFeatures ?? []) {
+    if (disabledFeatures.has(feature.name)) continue;
     pushSource({
       type: 'class-feature',
       sourceName: className,
@@ -492,53 +497,73 @@ function collectAncestrySources(
   ) => void
 ) {
   if (!ancestry) return;
+  const disabledFeatures = new Set(ancestry.disabledFeatures ?? []);
+
   if (ancestry.mode === 'standard' && ancestry.ancestry) {
-    pushSource({
-      type: 'ancestry-feature',
-      sourceName: ancestry.ancestry.name,
-      detail: ancestry.ancestry.primaryFeature.name,
-      modifiers: resolveModifiers(ancestry.ancestry.primaryFeature, context),
-    });
-    pushSource({
-      type: 'ancestry-feature',
-      sourceName: ancestry.ancestry.name,
-      detail: ancestry.ancestry.secondaryFeature.name,
-      modifiers: resolveModifiers(ancestry.ancestry.secondaryFeature, context),
-    });
+    if (!disabledFeatures.has(ancestry.ancestry.primaryFeature.name)) {
+      pushSource({
+        type: 'ancestry-feature',
+        sourceName: ancestry.ancestry.name,
+        detail: ancestry.ancestry.primaryFeature.name,
+        modifiers: resolveModifiers(ancestry.ancestry.primaryFeature, context),
+      });
+    }
+    if (!disabledFeatures.has(ancestry.ancestry.secondaryFeature.name)) {
+      pushSource({
+        type: 'ancestry-feature',
+        sourceName: ancestry.ancestry.name,
+        detail: ancestry.ancestry.secondaryFeature.name,
+        modifiers: resolveModifiers(
+          ancestry.ancestry.secondaryFeature,
+          context
+        ),
+      });
+    }
   }
   if (ancestry.mode === 'mixed' && ancestry.mixedAncestry) {
-    pushSource({
-      type: 'ancestry-feature',
-      sourceName: ancestry.mixedAncestry.name,
-      detail: ancestry.mixedAncestry.primaryFeature.name,
-      modifiers: resolveModifiers(
-        ancestry.mixedAncestry.primaryFeature,
-        context
-      ),
-    });
-    pushSource({
-      type: 'ancestry-feature',
-      sourceName: ancestry.mixedAncestry.name,
-      detail: ancestry.mixedAncestry.secondaryFeature.name,
-      modifiers: resolveModifiers(
-        ancestry.mixedAncestry.secondaryFeature,
-        context
-      ),
-    });
+    if (!disabledFeatures.has(ancestry.mixedAncestry.primaryFeature.name)) {
+      pushSource({
+        type: 'ancestry-feature',
+        sourceName: ancestry.mixedAncestry.name,
+        detail: ancestry.mixedAncestry.primaryFeature.name,
+        modifiers: resolveModifiers(
+          ancestry.mixedAncestry.primaryFeature,
+          context
+        ),
+      });
+    }
+    if (!disabledFeatures.has(ancestry.mixedAncestry.secondaryFeature.name)) {
+      pushSource({
+        type: 'ancestry-feature',
+        sourceName: ancestry.mixedAncestry.name,
+        detail: ancestry.mixedAncestry.secondaryFeature.name,
+        modifiers: resolveModifiers(
+          ancestry.mixedAncestry.secondaryFeature,
+          context
+        ),
+      });
+    }
   }
   if (ancestry.mode === 'homebrew' && ancestry.homebrew) {
-    pushSource({
-      type: 'ancestry-feature',
-      sourceName: ancestry.homebrew.name,
-      detail: ancestry.homebrew.primaryFeature.name,
-      modifiers: resolveModifiers(ancestry.homebrew.primaryFeature, context),
-    });
-    pushSource({
-      type: 'ancestry-feature',
-      sourceName: ancestry.homebrew.name,
-      detail: ancestry.homebrew.secondaryFeature.name,
-      modifiers: resolveModifiers(ancestry.homebrew.secondaryFeature, context),
-    });
+    if (!disabledFeatures.has(ancestry.homebrew.primaryFeature.name)) {
+      pushSource({
+        type: 'ancestry-feature',
+        sourceName: ancestry.homebrew.name,
+        detail: ancestry.homebrew.primaryFeature.name,
+        modifiers: resolveModifiers(ancestry.homebrew.primaryFeature, context),
+      });
+    }
+    if (!disabledFeatures.has(ancestry.homebrew.secondaryFeature.name)) {
+      pushSource({
+        type: 'ancestry-feature',
+        sourceName: ancestry.homebrew.name,
+        detail: ancestry.homebrew.secondaryFeature.name,
+        modifiers: resolveModifiers(
+          ancestry.homebrew.secondaryFeature,
+          context
+        ),
+      });
+    }
   }
 }
 
@@ -552,21 +577,27 @@ function collectCommunitySources(
   ) => void
 ) {
   if (!community) return;
+  const disabledFeatures = new Set(community.disabledFeatures ?? []);
+
   if (community.mode === 'standard' && community.community) {
-    pushSource({
-      type: 'community-feature',
-      sourceName: community.community.name,
-      detail: community.community.feature.name,
-      modifiers: resolveModifiers(community.community.feature, context),
-    });
+    if (!disabledFeatures.has(community.community.feature.name)) {
+      pushSource({
+        type: 'community-feature',
+        sourceName: community.community.name,
+        detail: community.community.feature.name,
+        modifiers: resolveModifiers(community.community.feature, context),
+      });
+    }
   }
   if (community.mode === 'homebrew' && community.homebrew) {
-    pushSource({
-      type: 'community-feature',
-      sourceName: community.homebrew.name,
-      detail: community.homebrew.feature.name,
-      modifiers: resolveModifiers(community.homebrew.feature, context),
-    });
+    if (!disabledFeatures.has(community.homebrew.feature.name)) {
+      pushSource({
+        type: 'community-feature',
+        sourceName: community.homebrew.name,
+        detail: community.homebrew.feature.name,
+        modifiers: resolveModifiers(community.homebrew.feature, context),
+      });
+    }
   }
 }
 
@@ -686,6 +717,8 @@ function collectInventorySources(
   if (!inventory) return;
   for (const entry of inventory.items ?? []) {
     if (!entry.isEquipped) continue;
+    // Skip deactivated items
+    if (entry.isActivated === false) continue;
     const itemName = entry.item?.name ?? 'Equipped Item';
     pushInventoryTraitBonus(entry, itemName, pushSource);
     pushSource({

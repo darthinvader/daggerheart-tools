@@ -11,6 +11,7 @@ interface InventoryTabsProps {
   onQuantityChange: (id: string, delta: number) => void;
   onEquipToggle: (id: string) => void;
   onEdit: (id: string) => void;
+  onToggleActivated?: (id: string) => void;
   unlimitedQuantity?: boolean;
 }
 
@@ -21,6 +22,7 @@ export function InventoryTabs({
   onQuantityChange,
   onEquipToggle,
   onEdit,
+  onToggleActivated,
   unlimitedQuantity = false,
 }: InventoryTabsProps) {
   const safeItems = items ?? [];
@@ -45,6 +47,7 @@ export function InventoryTabs({
           onQuantityChange={onQuantityChange}
           onEquipToggle={onEquipToggle}
           onEdit={onEdit}
+          onToggleActivated={onToggleActivated}
           unlimitedQuantity={unlimitedQuantity}
         />
       </TabsContent>
@@ -61,6 +64,7 @@ export function InventoryTabs({
             onQuantityChange={onQuantityChange}
             onEquipToggle={onEquipToggle}
             onEdit={onEdit}
+            onToggleActivated={onToggleActivated}
             unlimitedQuantity={unlimitedQuantity}
           />
         )}
@@ -73,6 +77,7 @@ export function InventoryTabs({
           onQuantityChange={onQuantityChange}
           onEquipToggle={onEquipToggle}
           onEdit={onEdit}
+          onToggleActivated={onToggleActivated}
           unlimitedQuantity={unlimitedQuantity}
         />
       </TabsContent>

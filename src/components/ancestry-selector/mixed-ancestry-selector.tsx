@@ -1,10 +1,11 @@
 import { useState } from 'react';
 
 import { MixedIcon } from '@/components/shared';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Sparkles, Star } from '@/lib/icons';
+import { AlertTriangle, Sparkles, Star } from '@/lib/icons';
 import type { Ancestry, MixedAncestry } from '@/lib/schemas/identity';
 import { ANCESTRIES } from '@/lib/schemas/identity';
 
@@ -46,6 +47,10 @@ export function MixedAncestrySelector({
     secondary: Ancestry | null
   ): void => {
     if (!primary || !secondary) return;
+
+    // SRD Rule: "You must choose the first feature from one ancestry and the
+    // second from another. You can't take both features from the same ancestry."
+    if (primary.name === secondary.name) return;
 
     const displayName =
       newName.trim() || `${primary.name}-${secondary.name} Mix`;
@@ -131,16 +136,34 @@ export function MixedAncestrySelector({
         </div>
       </div>
 
-      {primaryAncestry && secondaryAncestry && (
-        <>
-          <Separator />
-          <MixedAncestryPreview
-            name={name}
-            primaryAncestry={primaryAncestry}
-            secondaryAncestry={secondaryAncestry}
-          />
-        </>
-      )}
+      {primaryAncestry &&
+        secondaryAncestry &&
+        primaryAncestry.name === secondaryAncestry.name && (
+          <Alert
+            variant="destructive"
+            className="border-amber-500 bg-amber-50 dark:bg-amber-950/30"
+          >
+            <AlertTriangle className="size-4 text-amber-600" />
+            <AlertDescription className="text-amber-700 dark:text-amber-400">
+              Per the rules, you must choose features from{' '}
+              <strong>different</strong> ancestries. Both features are currently
+              from {primaryAncestry.name}.
+            </AlertDescription>
+          </Alert>
+        )}
+
+      {primaryAncestry &&
+        secondaryAncestry &&
+        primaryAncestry.name !== secondaryAncestry.name && (
+          <>
+            <Separator />
+            <MixedAncestryPreview
+              name={name}
+              primaryAncestry={primaryAncestry}
+              secondaryAncestry={secondaryAncestry}
+            />
+          </>
+        )}
     </div>
   );
 }

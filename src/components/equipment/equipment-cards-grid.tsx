@@ -21,6 +21,10 @@ interface EquipmentCardsGridProps {
   readOnly: boolean;
   openSection: (section: EditingSection) => void;
   onToggleWheelchair?: (enabled: boolean) => void;
+  onTogglePrimaryActivated?: () => void;
+  onToggleSecondaryActivated?: () => void;
+  onToggleArmorActivated?: () => void;
+  onToggleWheelchairActivated?: () => void;
 }
 
 export function EquipmentCardsGrid({
@@ -28,6 +32,10 @@ export function EquipmentCardsGrid({
   readOnly,
   openSection,
   onToggleWheelchair,
+  onTogglePrimaryActivated,
+  onToggleSecondaryActivated,
+  onToggleArmorActivated,
+  onToggleWheelchairActivated,
 }: EquipmentCardsGridProps) {
   const primaryData = getWeaponData(
     equipment.primaryWeaponMode,
@@ -56,7 +64,7 @@ export function EquipmentCardsGrid({
   return (
     <div className="space-y-4 p-4 sm:p-6">
       {/* Wheelchair Toggle at the top */}
-      {!readOnly && onToggleWheelchair && (
+      {onToggleWheelchair && (
         <div className="flex items-center justify-end gap-2 py-1">
           <Label
             htmlFor="wheelchair-toggle"
@@ -82,6 +90,10 @@ export function EquipmentCardsGrid({
           wheelchairData={wheelchairData}
           readOnly={readOnly}
           openSection={openSection}
+          onTogglePrimaryActivated={onTogglePrimaryActivated}
+          onToggleSecondaryActivated={onToggleSecondaryActivated}
+          onToggleArmorActivated={onToggleArmorActivated}
+          onToggleWheelchairActivated={onToggleWheelchairActivated}
         />
       ) : (
         <EquipmentGrid3Col
@@ -91,6 +103,9 @@ export function EquipmentCardsGrid({
           armorData={armorData}
           readOnly={readOnly}
           openSection={openSection}
+          onTogglePrimaryActivated={onTogglePrimaryActivated}
+          onToggleSecondaryActivated={onToggleSecondaryActivated}
+          onToggleArmorActivated={onToggleArmorActivated}
         />
       )}
 

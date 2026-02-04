@@ -122,11 +122,15 @@ function ClassContent({
   unlockState,
   onToggleUnlock,
   onEdit,
+  disabledFeatures,
+  onToggleFeatureActivation,
 }: {
   selection: ClassSelection | null;
   unlockState: FeatureUnlockState;
   onToggleUnlock: (featureName: string) => void;
   onEdit?: () => void;
+  disabledFeatures?: Set<string>;
+  onToggleFeatureActivation?: (featureName: string) => void;
 }) {
   if (!selection || !selection.className) {
     return <EmptyClass onEdit={onEdit} />;
@@ -151,6 +155,8 @@ function ClassContent({
             data={buildClassDetailsData(pair, selection)}
             unlockState={unlockState}
             onToggleUnlock={onToggleUnlock}
+            disabledFeatures={disabledFeatures}
+            onToggleFeatureActivation={onToggleFeatureActivation}
           />
         </div>
       ))}
@@ -252,6 +258,28 @@ export function ClassDisplay({
     }));
   }, []);
 
+  const disabledFeatures = useMemo(
+    () => new Set(selection?.disabledFeatures ?? []),
+    [selection?.disabledFeatures]
+  );
+
+  const handleToggleFeatureActivation = useCallback(
+    (featureName: string) => {
+      if (!selection || !onChange) return;
+      const current = new Set(selection.disabledFeatures ?? []);
+      if (current.has(featureName)) {
+        current.delete(featureName);
+      } else {
+        current.add(featureName);
+      }
+      onChange({
+        ...selection,
+        disabledFeatures: Array.from(current),
+      });
+    },
+    [selection, onChange]
+  );
+
   return (
     <EditableSection
       title="Class"
@@ -281,6 +309,8 @@ export function ClassDisplay({
         unlockState={unlockState}
         onToggleUnlock={handleToggleUnlock}
         onEdit={!readOnly ? handleEditToggle : undefined}
+        disabledFeatures={disabledFeatures}
+        onToggleFeatureActivation={handleToggleFeatureActivation}
       />
     </EditableSection>
   );

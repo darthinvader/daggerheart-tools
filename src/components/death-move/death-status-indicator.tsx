@@ -1,4 +1,4 @@
-import { Heart, Skull } from 'lucide-react';
+import { Heart, RefreshCw, Skull } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ interface DeathStatusIndicatorProps {
   state: DeathMoveState;
   onWakeUp?: () => void;
   onTriggerDeathMove?: () => void;
+  onRevive?: () => void;
   className?: string;
 }
 
@@ -17,8 +18,46 @@ export function DeathStatusIndicator({
   state,
   onWakeUp,
   onTriggerDeathMove,
+  onRevive,
   className,
 }: DeathStatusIndicatorProps) {
+  // Show dead status if character is dead
+  if (state.isDead) {
+    return (
+      <div
+        className={cn(
+          'bg-destructive/10 border-destructive rounded-lg border-2 p-4',
+          className
+        )}
+      >
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+          <div className="flex items-center gap-2">
+            <Skull className="text-destructive size-5 shrink-0" />
+            <div>
+              <div className="text-destructive font-bold">
+                Character Has Fallen
+              </div>
+              <p className="text-muted-foreground text-sm">
+                Your character has crossed through the veil of death.
+              </p>
+            </div>
+          </div>
+          {onRevive && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onRevive}
+              className="w-full gap-2 sm:w-auto"
+            >
+              <RefreshCw className="size-4" />
+              Revive Character
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   if (!state.isUnconscious && !state.deathMovePending) {
     return null;
   }

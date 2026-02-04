@@ -1,9 +1,30 @@
 import { AlertTriangle } from 'lucide-react';
 
-import { HeartCrack, Skull, Sparkles, Star } from '@/lib/icons';
+import { Badge } from '@/components/ui/badge';
+import {
+  Dice5,
+  Flame,
+  HeartCrack,
+  Skull,
+  Sparkle,
+  Sparkles,
+  Star,
+} from '@/lib/icons';
 import { cn } from '@/lib/utils';
 
 import type { DeathMoveResult } from './types';
+
+const MOVE_TYPE_LABELS: Record<
+  string,
+  { label: string; icon: React.ReactNode }
+> = {
+  blaze_of_glory: {
+    label: 'Blaze of Glory',
+    icon: <Flame className="size-4" />,
+  },
+  avoid_death: { label: 'Avoid Death', icon: <Sparkle className="size-4" /> },
+  risk_it_all: { label: 'Risk It All', icon: <Dice5 className="size-4" /> },
+};
 
 interface DeathMoveResultDisplayProps {
   result: DeathMoveResult;
@@ -14,6 +35,8 @@ export function DeathMoveResultDisplay({
   result,
   className,
 }: DeathMoveResultDisplayProps) {
+  const moveInfo = MOVE_TYPE_LABELS[result.moveType];
+
   const getResultStyles = () => {
     if (!result.survived) {
       return 'bg-destructive/20 border-destructive text-destructive-foreground';
@@ -45,6 +68,14 @@ export function DeathMoveResultDisplay({
         className
       )}
     >
+      {/* Move type indicator */}
+      {moveInfo && (
+        <Badge variant="outline" className="gap-1.5">
+          {moveInfo.icon}
+          {moveInfo.label}
+        </Badge>
+      )}
+
       <div className="flex items-center gap-2">
         {getResultIcon()}
         <h4 className="text-lg font-bold">{getResultTitle()}</h4>
@@ -52,24 +83,33 @@ export function DeathMoveResultDisplay({
 
       <p className="text-sm">{result.description}</p>
 
+      {/* Dice roll results */}
       {result.hopeDieRoll !== undefined && (
-        <div className="flex gap-4 text-sm">
-          <div>
-            <span className="text-muted-foreground">Hope Die: </span>
-            <span className="font-bold">{result.hopeDieRoll}</span>
+        <div className="bg-background/50 flex items-center gap-4 rounded-lg p-3 text-sm">
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-2xl font-bold text-blue-600 dark:text-blue-400">
+              {result.hopeDieRoll}
+            </span>
+            <span className="text-muted-foreground text-xs">Hope Die</span>
           </div>
           {result.fearDieRoll !== undefined && (
-            <div>
-              <span className="text-muted-foreground">Fear Die: </span>
-              <span className="font-bold">{result.fearDieRoll}</span>
-            </div>
+            <>
+              <span className="text-muted-foreground">vs</span>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-2xl font-bold text-red-600 dark:text-red-400">
+                  {result.fearDieRoll}
+                </span>
+                <span className="text-muted-foreground text-xs">Fear Die</span>
+              </div>
+            </>
           )}
         </div>
       )}
 
       {result.survived &&
         result.moveType === 'risk_it_all' &&
-        result.hpCleared !== undefined && (
+        (result.hpCleared !== undefined ||
+          result.stressCleared !== undefined) && (
           <div className="bg-background/50 rounded p-2 text-sm">
             {result.hpCleared === 999 ? (
               <span className="font-medium">
@@ -77,8 +117,13 @@ export function DeathMoveResultDisplay({
               </span>
             ) : (
               <span>
-                Clear <span className="font-bold">{result.hpCleared}</span> Hit
-                Points or Stress (your choice).
+                Cleared{' '}
+                <span className="font-bold">{result.hpCleared ?? 0}</span> HP
+                {' and '}
+                <span className="font-bold">
+                  {result.stressCleared ?? 0}
+                </span>{' '}
+                Stress.
               </span>
             )}
           </div>

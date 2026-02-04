@@ -52,10 +52,27 @@ export type CustomAncestry = Ancestry;
 
 // Discriminated union for ancestry selection state
 export type AncestrySelection =
-  | { mode: 'standard'; ancestry: Ancestry }
-  | { mode: 'mixed'; mixedAncestry: MixedAncestry }
-  | { mode: 'homebrew'; homebrew: HomebrewAncestry; homebrewContentId?: string }
-  | { mode: 'custom'; custom: CustomAncestry }
+  | {
+      mode: 'standard';
+      ancestry: Ancestry;
+      disabledFeatures?: string[];
+    }
+  | {
+      mode: 'mixed';
+      mixedAncestry: MixedAncestry;
+      disabledFeatures?: string[];
+    }
+  | {
+      mode: 'homebrew';
+      homebrew: HomebrewAncestry;
+      homebrewContentId?: string;
+      disabledFeatures?: string[];
+    }
+  | {
+      mode: 'custom';
+      custom: CustomAncestry;
+      disabledFeatures?: string[];
+    }
   | null;
 
 export const ANCESTRIES = RAW_ANCESTRIES as Ancestry[];
@@ -193,13 +210,22 @@ export type HomebrewCommunity = Community;
 export type CustomCommunity = Community;
 
 export type CommunitySelection =
-  | { mode: 'standard'; community: Community }
+  | {
+      mode: 'standard';
+      community: Community;
+      disabledFeatures?: string[];
+    }
   | {
       mode: 'homebrew';
       homebrew: HomebrewCommunity;
       homebrewContentId?: string;
+      disabledFeatures?: string[];
     }
-  | { mode: 'custom'; custom: CustomCommunity }
+  | {
+      mode: 'custom';
+      custom: CustomCommunity;
+      disabledFeatures?: string[];
+    }
   | null;
 
 export const COMMUNITIES = RAW_COMMUNITIES as Community[];

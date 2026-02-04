@@ -52,27 +52,26 @@ function createTraitModifiers(
 // eslint-disable-next-line max-lines-per-function -- Comprehensive test coverage in a single suite
 describe('Character Stats Engine', () => {
   // ===== HP Calculation =====
+  // Per SRD: HP is class base only; level-up HP additions tracked separately
   describe('calculateHp', () => {
-    it('should calculate HP with tier 1', () => {
+    it('should calculate HP from class base only', () => {
       const classInput: ClassInput = { baseHp: 6, baseEvasion: 10, tier: 1 };
       const result = calculateHp(classInput);
-      expect(result.total).toBe(6); // 6 + (1-1) = 6
+      expect(result.total).toBe(6);
       expect(result.classBase).toBe(6);
-      expect(result.tierBonus).toBe(0);
     });
 
-    it('should add tier bonus correctly', () => {
+    it('should not add tier bonus (HP gained via level-up selections per SRD)', () => {
       const classInput: ClassInput = { baseHp: 6, baseEvasion: 10, tier: 3 };
       const result = calculateHp(classInput);
-      expect(result.total).toBe(8); // 6 + (3-1) = 8
+      expect(result.total).toBe(6); // No tier bonus per SRD
       expect(result.classBase).toBe(6);
-      expect(result.tierBonus).toBe(2);
     });
 
     it('should handle different class HP values', () => {
       const classInput: ClassInput = { baseHp: 10, baseEvasion: 10, tier: 4 };
       const result = calculateHp(classInput);
-      expect(result.total).toBe(13); // 10 + (4-1) = 13
+      expect(result.total).toBe(10); // Just class base, no tier bonus per SRD
     });
   });
 
@@ -225,6 +224,7 @@ describe('Character Stats Engine', () => {
       const armorInput: ArmorInput = {
         ...DEFAULT_ARMOR_INPUT,
         baseThresholds: { major: 6, severe: 9 },
+        isUnarmored: false, // Explicitly armored for this test
       };
       const progressionInput: ProgressionInput = { level: 1 };
       const result = calculateThresholds(
@@ -243,6 +243,7 @@ describe('Character Stats Engine', () => {
       const armorInput: ArmorInput = {
         ...DEFAULT_ARMOR_INPUT,
         baseThresholds: { major: 6, severe: 9 },
+        isUnarmored: false, // Explicitly armored for this test
       };
       const progressionInput: ProgressionInput = { level: 5 };
       const result = calculateThresholds(
@@ -263,6 +264,7 @@ describe('Character Stats Engine', () => {
       const armorInput: ArmorInput = {
         ...DEFAULT_ARMOR_INPUT,
         baseThresholds: { major: 6, severe: 9 },
+        isUnarmored: false, // Explicitly armored for this test
       };
       const progressionInput: ProgressionInput = { level: 1 };
       const equipMods = createEquipmentModifiers({
@@ -281,6 +283,25 @@ describe('Character Stats Engine', () => {
 
       expect(result.major.equipmentModifier).toBe(2);
       expect(result.severe.equipmentModifier).toBe(3);
+    });
+
+    it('should calculate unarmored thresholds per SRD (Major=level, Severe=2×level)', () => {
+      // SRD: "While unarmored... Major threshold is equal to their level,
+      // and their Severe threshold is equal to twice their level."
+      const armorInput: ArmorInput = {
+        ...DEFAULT_ARMOR_INPUT,
+        isUnarmored: true,
+      };
+      const progressionInput: ProgressionInput = { level: 3 };
+      const result = calculateThresholds(
+        armorInput,
+        progressionInput,
+        DEFAULT_EQUIPMENT_MODIFIERS
+      );
+
+      expect(result.major.total).toBe(3); // level
+      expect(result.severe.total).toBe(6); // 2 × level
+      expect(result.severe.levelBonus).toBe(6); // 2 × level
     });
   });
 
@@ -458,8 +479,8 @@ describe('Character Stats Engine', () => {
 
       const result = calculateCharacterStats(input);
 
-      // HP: 8 + (2-1) = 9
-      expect(result.hp.total).toBe(9);
+      // HP: class base only (8), no tier bonus per SRD
+      expect(result.hp.total).toBe(8);
 
       // Evasion: 12 - 2 + 1 = 11
       expect(result.evasion.total).toBe(11);
@@ -467,8 +488,8 @@ describe('Character Stats Engine', () => {
       // Armor Score: 6 + 0 = 6
       expect(result.armorScore.total).toBe(6);
 
-      // SRD: Proficiency starts at 1
-      expect(result.proficiency.total).toBe(1);
+      // SRD: Proficiency at level 5 = 1 (base) + 1 (level 2) + 1 (level 5) = 3
+      expect(result.proficiency.total).toBe(3);
 
       // Thresholds: base + level + equipMod (SRD: add full level)
       // Major: 8 + 5 + 0 = 13
@@ -611,14 +632,14 @@ describe('Character Stats Engine', () => {
 
   // ===== Tier Calculation =====
   describe('Tier from level calculation', () => {
-    it('should use provided tier for HP calculation', () => {
+    it('should return class base HP regardless of tier (no tier bonus per SRD)', () => {
       const classInput: ClassInput = { baseHp: 6, baseEvasion: 10, tier: 2 };
 
       const result = calculateHp(classInput);
 
-      // HP uses tier: 6 + (2-1) = 7
-      expect(result.tierBonus).toBe(1);
-      expect(result.total).toBe(7);
+      // HP is class base only; tier bonus not automatic per SRD
+      expect(result.total).toBe(6);
+      expect(result.classBase).toBe(6);
     });
   });
 });

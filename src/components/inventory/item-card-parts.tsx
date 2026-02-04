@@ -1,7 +1,8 @@
-import { ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Pencil, Power, Trash2 } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import { ICON_SIZE_MD, Pin, Sparkles, Star } from '@/lib/icons';
 import { cn } from '@/lib/utils';
 
@@ -102,7 +103,9 @@ export function QuantityControls({
 interface ItemActionsProps {
   isEquipped: boolean;
   isEquippable: boolean;
+  isActivated?: boolean;
   onEquipToggle?: () => void;
+  onToggleActivated?: () => void;
   onEdit?: () => void;
   onRemove?: () => void;
 }
@@ -110,12 +113,32 @@ interface ItemActionsProps {
 export function ItemActions({
   isEquipped,
   isEquippable,
+  isActivated = true,
   onEquipToggle,
+  onToggleActivated,
   onEdit,
   onRemove,
 }: ItemActionsProps) {
   return (
     <div className="flex items-center gap-1">
+      {isEquipped && onToggleActivated && (
+        <SmartTooltip
+          content={isActivated ? 'Deactivate bonuses' : 'Activate bonuses'}
+        >
+          <Button
+            size="sm"
+            variant="ghost"
+            className={cn(
+              isActivated
+                ? 'text-green-600 hover:bg-green-100 hover:text-green-700'
+                : 'text-muted-foreground hover:bg-muted'
+            )}
+            onClick={onToggleActivated}
+          >
+            <Power className="h-4 w-4" />
+          </Button>
+        </SmartTooltip>
+      )}
       {isEquippable && onEquipToggle && (
         <Button
           size="sm"

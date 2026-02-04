@@ -1,14 +1,9 @@
-import { Sparkles } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { Power, Sparkles } from 'lucide-react';
+import { useMemo } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import type { FeatureStatModifiers } from '@/lib/schemas/core';
 import { cn } from '@/lib/utils';
 import type {
@@ -16,10 +11,21 @@ import type {
   BonusSourceEntry,
 } from '@/lib/utils/feature-modifiers';
 
+/** Callback to toggle a bonus source's activation state */
+export type ToggleBonusSourceCallback = (
+  sourceType: BonusSourceEntry['type'],
+  sourceName: string,
+  detail?: string
+) => void;
+
 interface BonusSummaryDisplayProps {
   breakdown: BonusBreakdown;
   extraSources?: BonusSourceEntry[];
   className?: string;
+  /** Callback to toggle a bonus source on/off - if provided, shows toggle buttons */
+  onToggleSource?: ToggleBonusSourceCallback;
+  /** Map of disabled source keys (type-sourceName-detail) */
+  disabledSources?: Set<string>;
 }
 
 const MODIFIER_LABELS: Array<[keyof FeatureStatModifiers, string]> = [
@@ -99,13 +105,94 @@ function formatExperienceBonus(entry: BonusSourceEntry) {
   return `+${bonus} ${experience}`;
 }
 
+function getSourceKey(entry: BonusSourceEntry): string {
+  return `${entry.type}-${entry.sourceName}-${entry.detail ?? 'base'}`;
+}
+
+interface BonusSourceCardProps {
+  entry: BonusSourceEntry;
+  isDisabled: boolean;
+  onToggle?: () => void;
+}
+
+function BonusSourceCard({
+  entry,
+  isDisabled,
+  onToggle,
+}: BonusSourceCardProps) {
+  const modifiers = formatModifiers(entry.modifiers);
+  const experienceBonus = formatExperienceBonus(entry);
+
+  return (
+    <div
+      className={cn(
+        'rounded-lg border p-3 transition-all',
+        isDisabled && 'opacity-50'
+      )}
+    >
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          {onToggle && (
+            <SmartTooltip
+              content={isDisabled ? 'Activate bonus' : 'Deactivate bonus'}
+            >
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  'size-7 shrink-0',
+                  isDisabled
+                    ? 'text-muted-foreground'
+                    : 'text-green-600 hover:text-green-700'
+                )}
+                onClick={onToggle}
+              >
+                <Power className="size-4" />
+              </Button>
+            </SmartTooltip>
+          )}
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold">
+              {sourceLabel(entry)}
+            </p>
+            {entry.detail && (
+              <p className="text-muted-foreground truncate text-xs">
+                {entry.detail}
+              </p>
+            )}
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-1">
+          {modifiers.map(mod => (
+            <Badge
+              key={mod}
+              variant="secondary"
+              className={cn(isDisabled && 'line-through')}
+            >
+              {mod}
+            </Badge>
+          ))}
+          {experienceBonus && (
+            <Badge
+              variant="secondary"
+              className={cn(isDisabled && 'line-through')}
+            >
+              {experienceBonus}
+            </Badge>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function BonusSummaryDisplay({
   breakdown,
   extraSources = [],
   className,
+  onToggleSource,
+  disabledSources = new Set(),
 }: BonusSummaryDisplayProps) {
-  const [isOpen, setIsOpen] = useState(false);
-
   const combinedSources = useMemo(
     () => [...breakdown.sources, ...extraSources],
     [breakdown.sources, extraSources]
@@ -120,78 +207,56 @@ export function BonusSummaryDisplay({
     [combinedSources]
   );
 
+  const enabledCount = useMemo(
+    () =>
+      activeSources.filter(entry => !disabledSources.has(getSourceKey(entry)))
+        .length,
+    [activeSources, disabledSources]
+  );
+
   return (
     <div className={cn('rounded-lg border p-4', className)}>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Sparkles className="size-5 text-amber-500" />
-          <div>
-            <p className="text-sm font-semibold">Bonuses</p>
-            <p className="text-muted-foreground text-xs">
-              {activeSources.length > 0
-                ? `${activeSources.length} active source${activeSources.length === 1 ? '' : 's'}`
-                : 'No active bonuses'}
-            </p>
-          </div>
+      <div className="mb-3 flex items-center gap-2">
+        <Sparkles className="size-5 text-amber-500" />
+        <div>
+          <p className="text-sm font-semibold">Active Bonuses</p>
+          <p className="text-muted-foreground text-xs">
+            {activeSources.length > 0
+              ? `${enabledCount} of ${activeSources.length} source${activeSources.length === 1 ? '' : 's'} active`
+              : 'No bonus sources'}
+          </p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setIsOpen(true)}
-          disabled={activeSources.length === 0}
-        >
-          View
-        </Button>
       </div>
 
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Bonus Sources</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            {activeSources.length === 0 ? (
-              <p className="text-muted-foreground text-sm">
-                No active bonuses.
-              </p>
-            ) : (
-              activeSources.map(entry => {
-                const modifiers = formatModifiers(entry.modifiers);
-                const experienceBonus = formatExperienceBonus(entry);
-                return (
-                  <div
-                    key={`${entry.type}-${entry.sourceName}-${entry.detail ?? 'base'}`}
-                    className="rounded-lg border p-3"
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div>
-                        <p className="text-sm font-semibold">
-                          {sourceLabel(entry)}
-                        </p>
-                        {entry.detail && (
-                          <p className="text-muted-foreground text-xs">
-                            {entry.detail}
-                          </p>
-                        )}
-                      </div>
-                      <div className="flex flex-wrap gap-1">
-                        {modifiers.map(mod => (
-                          <Badge key={mod} variant="secondary">
-                            {mod}
-                          </Badge>
-                        ))}
-                        {experienceBonus && (
-                          <Badge variant="secondary">{experienceBonus}</Badge>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      {activeSources.length === 0 ? (
+        <p className="text-muted-foreground py-2 text-center text-sm">
+          No active bonuses from any source.
+        </p>
+      ) : (
+        <div className="space-y-2">
+          {activeSources.map(entry => {
+            const key = getSourceKey(entry);
+            const isDisabled = disabledSources.has(key);
+            return (
+              <BonusSourceCard
+                key={key}
+                entry={entry}
+                isDisabled={isDisabled}
+                onToggle={
+                  onToggleSource
+                    ? () =>
+                        onToggleSource(
+                          entry.type,
+                          entry.sourceName,
+                          entry.detail
+                        )
+                    : undefined
+                }
+              />
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

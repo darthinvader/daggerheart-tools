@@ -150,6 +150,14 @@ export function useBattleTrackerPageState(initialBattleId?: string) {
   const { rosterState, rosterActions } = useBattleRosterState();
   const { dialogState, dialogActions } = useBattleDialogState();
 
+  // Store rosterActions in ref to avoid dependency on unstable object reference
+  const rosterActionsRef = React.useRef(rosterActions);
+
+  // Update ref in effect to satisfy react-hooks/refs rule
+  React.useEffect(() => {
+    rosterActionsRef.current = rosterActions;
+  });
+
   const [editingAdversary, setEditingAdversary] =
     useState<AdversaryTracker | null>(null);
   const [editingEnvironment, setEditingEnvironment] =
@@ -179,20 +187,26 @@ export function useBattleTrackerPageState(initialBattleId?: string) {
       setActiveBattleId(initialBattle.id);
       setBattleName(initialBattle.name);
       setBattleStatus(initialBattle.status ?? 'planning');
-      rosterActions.setCharacters(battleCharactersToTrackers(initialBattle));
-      rosterActions.setAdversaries(battleAdversariesToTrackers(initialBattle));
-      rosterActions.setEnvironments(
+      rosterActionsRef.current.setCharacters(
+        battleCharactersToTrackers(initialBattle)
+      );
+      rosterActionsRef.current.setAdversaries(
+        battleAdversariesToTrackers(initialBattle)
+      );
+      rosterActionsRef.current.setEnvironments(
         battleEnvironmentsToTrackers(initialBattle)
       );
-      rosterActions.setSpotlight(initialBattle.spotlight ?? null);
-      rosterActions.setSpotlightHistory(initialBattle.spotlightHistory ?? []);
-      rosterActions.setFearPool(initialBattle.fearPool ?? 0);
-      rosterActions.setUseMassiveThreshold(
+      rosterActionsRef.current.setSpotlight(initialBattle.spotlight ?? null);
+      rosterActionsRef.current.setSpotlightHistory(
+        initialBattle.spotlightHistory ?? []
+      );
+      rosterActionsRef.current.setFearPool(initialBattle.fearPool ?? 0);
+      rosterActionsRef.current.setUseMassiveThreshold(
         initialBattle.useMassiveThreshold ?? false
       );
       setHasLoadedInitial(true);
     }
-  }, [initialBattle, hasLoadedInitial, rosterActions]);
+  }, [initialBattle, hasLoadedInitial]);
 
   // Save mutation
   const saveBattleMutation = useMutation({
@@ -291,14 +305,14 @@ export function useBattleTrackerPageState(initialBattleId?: string) {
     setActiveBattleId(null);
     setBattleName('Untitled Battle');
     setBattleStatus('planning');
-    rosterActions.setCharacters([]);
-    rosterActions.setAdversaries([]);
-    rosterActions.setEnvironments([]);
-    rosterActions.setSpotlight(null);
-    rosterActions.setSpotlightHistory([]);
-    rosterActions.setFearPool(0);
-    rosterActions.setUseMassiveThreshold(false);
-  }, [rosterActions]);
+    rosterActionsRef.current.setCharacters([]);
+    rosterActionsRef.current.setAdversaries([]);
+    rosterActionsRef.current.setEnvironments([]);
+    rosterActionsRef.current.setSpotlight(null);
+    rosterActionsRef.current.setSpotlightHistory([]);
+    rosterActionsRef.current.setFearPool(0);
+    rosterActionsRef.current.setUseMassiveThreshold(false);
+  }, []);
 
   const handleLinkToCampaign = useCallback(() => {
     if (selectedCampaignId) {

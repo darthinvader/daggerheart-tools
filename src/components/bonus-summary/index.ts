@@ -1,1 +1,4 @@
-export { BonusSummaryDisplay } from './bonus-summary-display';
+export {
+  BonusSummaryDisplay,
+  type ToggleBonusSourceCallback,
+} from './bonus-summary-display';

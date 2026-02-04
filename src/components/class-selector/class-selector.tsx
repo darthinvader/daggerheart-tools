@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { HomebrewContentBrowser } from '@/components/shared';
 import { Badge } from '@/components/ui/badge';
@@ -157,6 +157,14 @@ export function ClassSelector({
   onValidityChange,
   campaignId,
 }: ClassSelectorProps) {
+  // Store callback in ref to avoid dependency on unstable reference
+  const onValidityChangeRef = useRef(onValidityChange);
+
+  // Update ref in effect to satisfy react-hooks/refs rule
+  useEffect(() => {
+    onValidityChangeRef.current = onValidityChange;
+  });
+
   const {
     mode,
     isMulticlass,
@@ -178,8 +186,8 @@ export function ClassSelector({
   } = useClassSelectorState({ value, onChange, onComplete, completeRef });
 
   useEffect(() => {
-    onValidityChange?.(canComplete);
-  }, [canComplete, onValidityChange]);
+    onValidityChangeRef.current?.(canComplete);
+  }, [canComplete]);
 
   return (
     <div className="space-y-6">

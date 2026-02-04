@@ -115,6 +115,14 @@ export function TraitAllocationEditor({
 }: TraitAllocationEditorProps) {
   const [error, setError] = useState<string | null>(null);
   const autoPresetAppliedRef = useRef(false);
+  // Store onChange in ref to avoid dependency on unstable callback reference
+  const onChangeRef = useRef(onChange);
+
+  // Update ref in effect to satisfy react-hooks/refs rule
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  });
+
   const preset = useMemo(() => getTraitPreset(className), [className]);
   const assigned = useMemo(() => buildAssignedCounts(traits), [traits]);
   const remaining = useMemo(() => {
@@ -141,9 +149,9 @@ export function TraitAllocationEditor({
     if (!preset || autoPresetAppliedRef.current) return;
     const allZero = Object.values(traits).every(t => t.value === 0);
     if (!allZero) return;
-    onChange(applyTraitPreset(traits, preset));
+    onChangeRef.current(applyTraitPreset(traits, preset));
     autoPresetAppliedRef.current = true;
-  }, [preset, traits, onChange]);
+  }, [preset, traits]);
 
   const updateTrait = (
     name: keyof TraitsState,

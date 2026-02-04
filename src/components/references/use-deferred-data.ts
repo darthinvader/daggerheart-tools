@@ -11,6 +11,14 @@ export function useDeferredLoad<T>(loader: () => T): {
   const [data, setData] = React.useState<T | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
 
+  // Store loader in a ref to avoid dependency on unstable callback references
+  const loaderRef = React.useRef(loader);
+
+  // Update ref in effect to satisfy react-hooks/refs rule
+  React.useEffect(() => {
+    loaderRef.current = loader;
+  });
+
   React.useEffect(() => {
     // Use requestAnimationFrame + setTimeout to ensure we paint first
     let cancelled = false;
@@ -22,7 +30,7 @@ export function useDeferredLoad<T>(loader: () => T): {
         if (cancelled) return;
         // Use startTransition to keep UI responsive during load
         React.startTransition(() => {
-          setData(loader());
+          setData(loaderRef.current());
           setIsLoading(false);
         });
       });
@@ -31,7 +39,7 @@ export function useDeferredLoad<T>(loader: () => T): {
     return () => {
       cancelled = true;
     };
-  }, [loader]);
+  }, []);
 
   return { data, isLoading };
 }

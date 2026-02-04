@@ -23,7 +23,10 @@ interface LoadoutSelectorProps {
   onChange?: (selection: LoadoutSelection) => void;
   onComplete?: (selection: LoadoutSelection) => void;
   classDomains: string[];
+  /** @deprecated Use `level` instead for accurate domain card restrictions per SRD */
   tier?: string;
+  /** Character level (1-10). Used to restrict domain card selection per SRD. */
+  level?: number;
   hideHeader?: boolean;
   campaignId?: string;
 }
@@ -34,9 +37,13 @@ export function LoadoutSelector({
   onComplete,
   classDomains,
   tier = '1',
+  level,
   hideHeader = false,
   campaignId,
 }: LoadoutSelectorProps) {
+  // Compute effective level: prefer explicit level prop, fallback to tier-based estimate
+  const effectiveLevel = level ?? (tier ? parseInt(tier, 10) : 1);
+
   // Fetch campaign homebrew domain cards
   const { data: campaignHomebrew } = useHomebrewForCharacter(
     'domain_card',
@@ -56,7 +63,7 @@ export function LoadoutSelector({
     onChange,
     onComplete,
     classDomains,
-    tier,
+    level: effectiveLevel,
     campaignHomebrewCards,
   });
 

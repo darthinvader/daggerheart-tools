@@ -10,7 +10,7 @@ import type { EquipmentState } from '@/components/equipment';
 import type { ExperiencesState } from '@/components/experiences';
 import type { InventoryState } from '@/components/inventory';
 import type { ResourcesState } from '@/components/resources';
-import type { RestState } from '@/components/rest-management';
+import type { RestState } from '@/components/rest';
 import type { HopeWithScarsState } from '@/components/scars';
 import type { SessionEntry } from '@/components/session-tracker';
 import type { ProgressionState } from '@/components/shared/progression-display';

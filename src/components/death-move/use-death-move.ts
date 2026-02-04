@@ -23,6 +23,7 @@ export function useDeathMove({
   const [state, setState] = useState<DeathMoveState>({
     isUnconscious: false,
     deathMovePending: false,
+    isDead: false,
   });
 
   const triggerDeathMove = useCallback(() => {
@@ -32,6 +33,7 @@ export function useDeathMove({
   const resetDeathState = useCallback(() => {
     setState({
       isUnconscious: false,
+      isDead: false,
       deathMovePending: false,
     });
   }, []);
@@ -55,6 +57,7 @@ export function useDeathMove({
           };
           setState({
             isUnconscious: false,
+            isDead: true,
             deathMovePending: false,
             lastDeathMoveResult: result,
           });
@@ -75,6 +78,7 @@ export function useDeathMove({
           };
           setState({
             isUnconscious: true,
+            isDead: false,
             deathMovePending: false,
             lastDeathMoveResult: result,
           });
@@ -92,16 +96,20 @@ export function useDeathMove({
             gainedScar: false,
             hopeDieRoll: hopeDie,
             fearDieRoll: fearDie,
-            hpCleared: riskResult.hpCleared,
-            stressCleared: riskResult.stressCleared,
+            // For critical success, clear all; for non-critical, player allocates
+            hpCleared: riskResult.isCritical ? 999 : undefined,
+            stressCleared: riskResult.isCritical ? 999 : undefined,
+            clearingValue: riskResult.clearingValue,
+            needsAllocation: riskResult.needsAllocation,
             description: riskResult.isCritical
               ? `Critical Success! (${hopeDie}/${fearDie}) You clear all HP and Stress!`
               : riskResult.survived
-                ? `Hope wins! (${hopeDie}/${fearDie}) Clear ${hopeDie} HP or Stress.`
+                ? `Hope wins! (${hopeDie}/${fearDie}) Divide ${hopeDie} between HP and Stress.`
                 : `Fear wins... (${hopeDie}/${fearDie}) You cross through the veil of death.`,
           };
           setState({
             isUnconscious: false,
+            isDead: !riskResult.survived,
             deathMovePending: false,
             lastDeathMoveResult: result,
           });

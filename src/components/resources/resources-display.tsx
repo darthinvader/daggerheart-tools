@@ -80,6 +80,7 @@ interface ResourcesDisplayProps {
   deathState?: DeathMoveState;
   onTriggerDeathMove?: () => void;
   onWakeUp?: () => void;
+  onRevive?: () => void;
   thresholds?: ThresholdsConfig;
   onApplyDamage?: (result: DamageResult) => void;
 }
@@ -180,6 +181,7 @@ export function ResourcesDisplay({
   deathState,
   onTriggerDeathMove,
   onWakeUp,
+  onRevive,
   thresholds,
   onApplyDamage,
 }: ResourcesDisplayProps) {
@@ -277,6 +279,7 @@ export function ResourcesDisplay({
               state={deathState}
               onTriggerDeathMove={onTriggerDeathMove}
               onWakeUp={onWakeUp}
+              onRevive={onRevive}
             />
           )}
         </div>

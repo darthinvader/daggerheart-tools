@@ -41,8 +41,11 @@ export {
   calculateProficiency,
   calculateThresholds,
   calculateTraits,
+  getLevelBasedProficiency,
   getStatTotals,
   hasEquipmentModifiers,
+  MAX_ARMOR_SCORE,
+  MAX_PROFICIENCY,
 } from './calculate';
 
 // State adapters

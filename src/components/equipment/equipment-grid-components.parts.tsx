@@ -1,7 +1,9 @@
 import type { ComponentType } from 'react';
 
+import { Button } from '@/components/ui/button';
 import type { LucideProps } from '@/lib/icons';
-import { Axe, Sword, Wheelchair } from '@/lib/icons';
+import { Axe, Power, Sword, Wheelchair } from '@/lib/icons';
+import { cn } from '@/lib/utils';
 
 import { ClickableCard } from './clickable-card';
 import type { EquipmentState } from './equipment-editor';
@@ -22,6 +24,8 @@ interface WeaponCardProps {
   section: EditingSection;
   readOnly: boolean;
   openSection: (section: EditingSection) => void;
+  isActivated?: boolean;
+  onToggleActivated?: () => void;
 }
 
 export function WeaponCard({
@@ -32,24 +36,47 @@ export function WeaponCard({
   section,
   readOnly,
   openSection,
+  isActivated = true,
+  onToggleActivated,
 }: WeaponCardProps) {
   return (
-    <ClickableCard onClick={() => openSection(section)} disabled={readOnly}>
-      <WeaponSummaryCard
-        icon={icon}
-        label={label}
-        name={data.name}
-        isHomebrew={isHomebrew}
-        isEmpty={data.isEmpty}
-        damage={data.damage}
-        range={data.range}
-        trait={data.trait}
-        burden={data.burden}
-        features={data.features}
-        tier={data.tier}
-        description={data.description}
-      />
-    </ClickableCard>
+    <div className={cn('relative', !isActivated && 'opacity-50')}>
+      <ClickableCard onClick={() => openSection(section)} disabled={readOnly}>
+        <WeaponSummaryCard
+          icon={icon}
+          label={label}
+          name={data.name}
+          isHomebrew={isHomebrew}
+          isEmpty={data.isEmpty}
+          damage={data.damage}
+          range={data.range}
+          trait={data.trait}
+          burden={data.burden}
+          features={data.features}
+          tier={data.tier}
+          description={data.description}
+        />
+      </ClickableCard>
+      {onToggleActivated && !data.isEmpty && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="absolute top-1 right-1 z-10 h-7 w-7 p-0"
+          onClick={e => {
+            e.stopPropagation();
+            onToggleActivated();
+          }}
+          title={isActivated ? 'Deactivate equipment' : 'Activate equipment'}
+        >
+          <Power
+            className={cn(
+              'h-4 w-4',
+              isActivated ? 'text-green-500' : 'text-muted-foreground'
+            )}
+          />
+        </Button>
+      )}
+    </div>
   );
 }
 
@@ -58,6 +85,8 @@ interface ArmorCardProps {
   isHomebrew: boolean;
   readOnly: boolean;
   openSection: (section: EditingSection) => void;
+  isActivated?: boolean;
+  onToggleActivated?: () => void;
 }
 
 export function ArmorCard({
@@ -65,24 +94,47 @@ export function ArmorCard({
   isHomebrew,
   readOnly,
   openSection,
+  isActivated = true,
+  onToggleActivated,
 }: ArmorCardProps) {
   return (
-    <ClickableCard onClick={() => openSection('armor')} disabled={readOnly}>
-      <ArmorSummaryCard
-        name={data.name}
-        isHomebrew={isHomebrew}
-        isEmpty={data.isEmpty}
-        baseScore={data.baseScore}
-        major={data.major}
-        severe={data.severe}
-        evasionMod={data.evasionMod}
-        agilityMod={data.agilityMod}
-        armorType={data.armorType}
-        features={data.features}
-        tier={data.tier}
-        description={data.description}
-      />
-    </ClickableCard>
+    <div className={cn('relative', !isActivated && 'opacity-50')}>
+      <ClickableCard onClick={() => openSection('armor')} disabled={readOnly}>
+        <ArmorSummaryCard
+          name={data.name}
+          isHomebrew={isHomebrew}
+          isEmpty={data.isEmpty}
+          baseScore={data.baseScore}
+          major={data.major}
+          severe={data.severe}
+          evasionMod={data.evasionMod}
+          agilityMod={data.agilityMod}
+          armorType={data.armorType}
+          features={data.features}
+          tier={data.tier}
+          description={data.description}
+        />
+      </ClickableCard>
+      {onToggleActivated && !data.isEmpty && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="absolute top-1 right-1 z-10 h-7 w-7 p-0"
+          onClick={e => {
+            e.stopPropagation();
+            onToggleActivated();
+          }}
+          title={isActivated ? 'Deactivate equipment' : 'Activate equipment'}
+        >
+          <Power
+            className={cn(
+              'h-4 w-4',
+              isActivated ? 'text-green-500' : 'text-muted-foreground'
+            )}
+          />
+        </Button>
+      )}
+    </div>
   );
 }
 
@@ -94,6 +146,8 @@ interface WheelchairCardProps {
   isHomebrew: boolean;
   readOnly: boolean;
   openSection: (section: EditingSection) => void;
+  isActivated?: boolean;
+  onToggleActivated?: () => void;
 }
 
 export function WheelchairCard({
@@ -101,29 +155,52 @@ export function WheelchairCard({
   isHomebrew,
   readOnly,
   openSection,
+  isActivated = true,
+  onToggleActivated,
 }: WheelchairCardProps) {
   return (
-    <ClickableCard
-      onClick={() => openSection('wheelchair')}
-      disabled={readOnly}
-    >
-      <WeaponSummaryCard
-        icon={Wheelchair}
-        label="Combat Wheelchair"
-        name={data.name}
-        isHomebrew={isHomebrew}
-        isEmpty={data.isEmpty}
-        damage={data.damage}
-        range={data.range}
-        trait={data.trait}
-        burden={data.burden}
-        features={data.features}
-        tier={data.tier}
-        frameType={data.frameType}
-        wheelchairFeatures={data.wheelchairFeatures}
-        description={data.description}
-      />
-    </ClickableCard>
+    <div className={cn('relative', !isActivated && 'opacity-50')}>
+      <ClickableCard
+        onClick={() => openSection('wheelchair')}
+        disabled={readOnly}
+      >
+        <WeaponSummaryCard
+          icon={Wheelchair}
+          label="Combat Wheelchair"
+          name={data.name}
+          isHomebrew={isHomebrew}
+          isEmpty={data.isEmpty}
+          damage={data.damage}
+          range={data.range}
+          trait={data.trait}
+          burden={data.burden}
+          features={data.features}
+          tier={data.tier}
+          frameType={data.frameType}
+          wheelchairFeatures={data.wheelchairFeatures}
+          description={data.description}
+        />
+      </ClickableCard>
+      {onToggleActivated && !data.isEmpty && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="absolute top-1 right-1 z-10 h-7 w-7 p-0"
+          onClick={e => {
+            e.stopPropagation();
+            onToggleActivated();
+          }}
+          title={isActivated ? 'Deactivate equipment' : 'Activate equipment'}
+        >
+          <Power
+            className={cn(
+              'h-4 w-4',
+              isActivated ? 'text-green-500' : 'text-muted-foreground'
+            )}
+          />
+        </Button>
+      )}
+    </div>
   );
 }
 
@@ -134,6 +211,9 @@ interface EquipmentGridProps {
   armorData: ArmorDisplayData;
   readOnly: boolean;
   openSection: (section: EditingSection) => void;
+  onTogglePrimaryActivated?: () => void;
+  onToggleSecondaryActivated?: () => void;
+  onToggleArmorActivated?: () => void;
 }
 
 export function EquipmentGrid3Col({
@@ -143,6 +223,9 @@ export function EquipmentGrid3Col({
   armorData,
   readOnly,
   openSection,
+  onTogglePrimaryActivated,
+  onToggleSecondaryActivated,
+  onToggleArmorActivated,
 }: EquipmentGridProps) {
   return (
     <div className="grid gap-3 lg:grid-cols-3">
@@ -154,6 +237,8 @@ export function EquipmentGrid3Col({
         section="primary"
         readOnly={readOnly}
         openSection={openSection}
+        isActivated={equipment.primaryWeaponActivated !== false}
+        onToggleActivated={onTogglePrimaryActivated}
       />
       <WeaponCard
         icon={Axe}
@@ -163,12 +248,16 @@ export function EquipmentGrid3Col({
         section="secondary"
         readOnly={readOnly}
         openSection={openSection}
+        isActivated={equipment.secondaryWeaponActivated !== false}
+        onToggleActivated={onToggleSecondaryActivated}
       />
       <ArmorCard
         data={armorData}
         isHomebrew={equipment.armorMode === 'homebrew'}
         readOnly={readOnly}
         openSection={openSection}
+        isActivated={equipment.armorActivated !== false}
+        onToggleActivated={onToggleArmorActivated}
       />
     </div>
   );
@@ -179,6 +268,7 @@ interface EquipmentGrid2x2Props extends EquipmentGridProps {
     frameType?: string;
     wheelchairFeatures?: string[];
   };
+  onToggleWheelchairActivated?: () => void;
 }
 
 export function EquipmentGrid2x2({
@@ -189,6 +279,10 @@ export function EquipmentGrid2x2({
   wheelchairData,
   readOnly,
   openSection,
+  onTogglePrimaryActivated,
+  onToggleSecondaryActivated,
+  onToggleArmorActivated,
+  onToggleWheelchairActivated,
 }: EquipmentGrid2x2Props) {
   return (
     <div className="grid gap-3 sm:grid-cols-2">
@@ -200,6 +294,8 @@ export function EquipmentGrid2x2({
         section="primary"
         readOnly={readOnly}
         openSection={openSection}
+        isActivated={equipment.primaryWeaponActivated !== false}
+        onToggleActivated={onTogglePrimaryActivated}
       />
       <WeaponCard
         icon={Axe}
@@ -209,18 +305,24 @@ export function EquipmentGrid2x2({
         section="secondary"
         readOnly={readOnly}
         openSection={openSection}
+        isActivated={equipment.secondaryWeaponActivated !== false}
+        onToggleActivated={onToggleSecondaryActivated}
       />
       <ArmorCard
         data={armorData}
         isHomebrew={equipment.armorMode === 'homebrew'}
         readOnly={readOnly}
         openSection={openSection}
+        isActivated={equipment.armorActivated !== false}
+        onToggleActivated={onToggleArmorActivated}
       />
       <WheelchairCard
         data={wheelchairData}
         isHomebrew={equipment.wheelchairMode === 'homebrew'}
         readOnly={readOnly}
         openSection={openSection}
+        isActivated={equipment.wheelchairActivated !== false}
+        onToggleActivated={onToggleWheelchairActivated}
       />
     </div>
   );

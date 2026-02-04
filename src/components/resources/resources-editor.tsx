@@ -66,7 +66,7 @@ function AutoCalculateToggles({
         checked={resources.autoCalculateHp ?? true}
         onToggle={() => onToggle('autoCalculateHp')}
         label="Auto HP"
-        tooltip={`Auto HP: ${autoValues.maxHp} (class base + tier bonus)`}
+        tooltip={`Auto HP: ${autoValues.maxHp} (class base; increase via level-up)`}
       />
       <AutoToggleItem
         id="auto-armor"

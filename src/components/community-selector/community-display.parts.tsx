@@ -57,7 +57,17 @@ function EmptyCommunity({ onEdit }: { onEdit?: () => void }) {
   );
 }
 
-function StandardCommunityContent({ community }: { community: Community }) {
+function StandardCommunityContent({
+  community,
+  isFeatureDisabled,
+  onToggleFeature,
+  readOnly,
+}: {
+  community: Community;
+  isFeatureDisabled?: boolean;
+  onToggleFeature?: () => void;
+  readOnly?: boolean;
+}) {
   const colors = getCommunityColors(community.name);
   const icon = getCommunityIcon(community.name);
 
@@ -90,6 +100,8 @@ function StandardCommunityContent({ community }: { community: Community }) {
         <CommunityFeatureDisplay
           feature={community.feature}
           communityName={community.name}
+          isActivated={!isFeatureDisabled}
+          onToggleActivated={!readOnly ? onToggleFeature : undefined}
         />
       </div>
 
@@ -115,7 +127,17 @@ function StandardCommunityContent({ community }: { community: Community }) {
   );
 }
 
-function HomebrewCommunityContent({ community }: { community: Community }) {
+function HomebrewCommunityContent({
+  community,
+  isFeatureDisabled,
+  onToggleFeature,
+  readOnly,
+}: {
+  community: Community;
+  isFeatureDisabled?: boolean;
+  onToggleFeature?: () => void;
+  readOnly?: boolean;
+}) {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
@@ -147,7 +169,11 @@ function HomebrewCommunityContent({ community }: { community: Community }) {
             <h5 className="text-muted-foreground mb-3 flex items-center gap-2 text-xs font-medium tracking-wide uppercase">
               <Sword className="size-4" /> Community Feature
             </h5>
-            <CommunityFeatureDisplay feature={community.feature} />
+            <CommunityFeatureDisplay
+              feature={community.feature}
+              isActivated={!isFeatureDisabled}
+              onToggleActivated={!readOnly ? onToggleFeature : undefined}
+            />
           </div>
         </>
       )}
@@ -180,9 +206,15 @@ function HomebrewCommunityContent({ community }: { community: Community }) {
 function CommunityContent({
   selection,
   onEdit,
+  isFeatureDisabled,
+  onToggleFeature,
+  readOnly,
 }: {
   selection: CommunitySelection;
   onEdit?: () => void;
+  isFeatureDisabled?: boolean;
+  onToggleFeature?: () => void;
+  readOnly?: boolean;
 }) {
   if (!selection) {
     return <EmptyCommunity onEdit={onEdit} />;
@@ -191,10 +223,24 @@ function CommunityContent({
   switch (selection.mode) {
     case 'standard':
       if (!selection.community) return <EmptyCommunity onEdit={onEdit} />;
-      return <StandardCommunityContent community={selection.community} />;
+      return (
+        <StandardCommunityContent
+          community={selection.community}
+          isFeatureDisabled={isFeatureDisabled}
+          onToggleFeature={onToggleFeature}
+          readOnly={readOnly}
+        />
+      );
     case 'homebrew':
       if (!selection.homebrew) return <EmptyCommunity onEdit={onEdit} />;
-      return <HomebrewCommunityContent community={selection.homebrew} />;
+      return (
+        <HomebrewCommunityContent
+          community={selection.homebrew}
+          isFeatureDisabled={isFeatureDisabled}
+          onToggleFeature={onToggleFeature}
+          readOnly={readOnly}
+        />
+      );
     default:
       return <EmptyCommunity onEdit={onEdit} />;
   }
@@ -214,6 +260,37 @@ export function CommunityDisplay({
     () => isCommunitySelectionValid(draftSelection),
     [draftSelection]
   );
+
+  // Get the feature name for this community (for disabledFeatures check)
+  const featureName = useMemo(() => {
+    if (!selection) return null;
+    if (selection.mode === 'standard' && selection.community) {
+      return selection.community.feature.name;
+    }
+    if (selection.mode === 'homebrew' && selection.homebrew) {
+      return selection.homebrew.feature.name;
+    }
+    return null;
+  }, [selection]);
+
+  const isFeatureDisabled = useMemo(() => {
+    if (!featureName || !selection) return false;
+    return selection.disabledFeatures?.includes(featureName) ?? false;
+  }, [selection, featureName]);
+
+  const handleToggleFeature = useCallback(() => {
+    if (!selection || !onChange || !featureName) return;
+    const current = new Set(selection.disabledFeatures ?? []);
+    if (current.has(featureName)) {
+      current.delete(featureName);
+    } else {
+      current.add(featureName);
+    }
+    onChange({
+      ...selection,
+      disabledFeatures: Array.from(current),
+    });
+  }, [selection, onChange, featureName]);
 
   const handleEditToggle = useCallback(() => {
     if (!isEditing) {
@@ -255,6 +332,9 @@ export function CommunityDisplay({
       <CommunityContent
         selection={selection}
         onEdit={!readOnly ? handleEditToggle : undefined}
+        isFeatureDisabled={isFeatureDisabled}
+        onToggleFeature={!readOnly ? handleToggleFeature : undefined}
+        readOnly={readOnly}
       />
     </EditableSection>
   );

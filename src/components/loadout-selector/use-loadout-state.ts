@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { DomainCard } from '@/lib/schemas/domains';
 import type { LoadoutRules, LoadoutSelection } from '@/lib/schemas/loadout';
-import { getLoadoutRulesForTier } from '@/lib/schemas/loadout';
+import { getLoadoutRulesForLevel } from '@/lib/schemas/loadout';
 
 import {
   type CardFiltersState,
@@ -21,7 +21,8 @@ interface UseLoadoutStateProps {
   onChange?: (selection: LoadoutSelection) => void;
   onComplete?: (selection: LoadoutSelection) => void;
   classDomains: string[];
-  tier: string;
+  /** Character level (1-10) for accurate domain card restrictions per SRD */
+  level: number;
   campaignHomebrewCards?: DomainCard[];
 }
 
@@ -30,10 +31,11 @@ export function useLoadoutState({
   onChange,
   onComplete,
   classDomains,
-  tier,
+  level,
   campaignHomebrewCards = [],
 }: UseLoadoutStateProps) {
-  const baseRules: LoadoutRules = getLoadoutRulesForTier(tier);
+  // Per SRD: "You cannot acquire a domain card with a level higher than your PC's"
+  const baseRules: LoadoutRules = getLoadoutRulesForLevel(level);
   const {
     mode,
     setMode,

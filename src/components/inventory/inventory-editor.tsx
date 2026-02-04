@@ -111,6 +111,14 @@ function useInventoryActions(
     });
   };
 
+  const handleToggleActivated = (id: string) => {
+    updateState({
+      items: state.items.map(i =>
+        i.id === id ? { ...i, isActivated: !(i.isActivated ?? true) } : i
+      ),
+    });
+  };
+
   return {
     handleAddItems,
     handleAddCustomItem,
@@ -118,6 +126,7 @@ function useInventoryActions(
     handleQuantityChange,
     handleEquipToggle,
     handleUpdateItem,
+    handleToggleActivated,
   };
 }
 
@@ -216,6 +225,7 @@ export function InventoryEditor({
             onQuantityChange={actions.handleQuantityChange}
             onEquipToggle={actions.handleEquipToggle}
             onEdit={handleEdit}
+            onToggleActivated={actions.handleToggleActivated}
             unlimitedQuantity={unlimitedQuantity}
           />
         )}

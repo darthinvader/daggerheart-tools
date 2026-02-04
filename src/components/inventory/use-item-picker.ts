@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   ALL_ARMOR_MODIFICATIONS,
@@ -207,7 +207,15 @@ export function usePickerFiltersState({
 }
 
 export function usePickerReset(open: boolean, reset: () => void) {
+  // Store reset in a ref to avoid dependency on unstable callback references
+  const resetRef = useRef(reset);
+
+  // Update ref in effect to satisfy react-hooks/refs rule
   useEffect(() => {
-    if (open) reset();
-  }, [open, reset]);
+    resetRef.current = reset;
+  });
+
+  useEffect(() => {
+    if (open) resetRef.current();
+  }, [open]);
 }

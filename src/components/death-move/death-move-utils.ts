@@ -13,7 +13,9 @@ export function isCriticalSuccess(hopeDie: number, fearDie: number): boolean {
 }
 
 /**
- * Determines the outcome of a "Risk It All" death move
+ * Determines the outcome of a "Risk It All" death move.
+ * Per SRD: On non-critical success (Hope > Fear), player can divide Hope Die value
+ * between HP and Stress however they prefer. On critical (matching), clears all.
  */
 export function resolveRiskItAll(
   hopeDie: number,
@@ -21,8 +23,10 @@ export function resolveRiskItAll(
 ): {
   survived: boolean;
   isCritical: boolean;
-  hpCleared: number;
-  stressCleared: number;
+  /** Total value to divide between HP and Stress (for non-critical success) */
+  clearingValue: number;
+  /** Whether player needs to allocate clearing value (non-critical success only) */
+  needsAllocation: boolean;
 } {
   const isCritical = isCriticalSuccess(hopeDie, fearDie);
 
@@ -30,8 +34,8 @@ export function resolveRiskItAll(
     return {
       survived: true,
       isCritical: true,
-      hpCleared: 999, // Represents "all"
-      stressCleared: 999,
+      clearingValue: 0, // Not used; clears all
+      needsAllocation: false,
     };
   }
 
@@ -39,16 +43,16 @@ export function resolveRiskItAll(
     return {
       survived: true,
       isCritical: false,
-      hpCleared: hopeDie,
-      stressCleared: 0,
+      clearingValue: hopeDie,
+      needsAllocation: true,
     };
   }
 
   return {
     survived: false,
     isCritical: false,
-    hpCleared: 0,
-    stressCleared: 0,
+    clearingValue: 0,
+    needsAllocation: false,
   };
 }
 

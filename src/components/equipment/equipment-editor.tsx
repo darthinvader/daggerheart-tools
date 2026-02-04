@@ -23,19 +23,23 @@ export interface EquipmentState {
   primaryWeapon: PrimaryWeapon | null;
   primaryWeaponMode: EquipmentMode;
   homebrewPrimaryWeapon: Partial<PrimaryWeapon>;
+  primaryWeaponActivated?: boolean;
 
   secondaryWeapon: SecondaryWeapon | null;
   secondaryWeaponMode: EquipmentMode;
   homebrewSecondaryWeapon: Partial<SecondaryWeapon>;
+  secondaryWeaponActivated?: boolean;
 
   armor: StandardArmor | null;
   armorMode: EquipmentMode;
   homebrewArmor: Partial<StandardArmor>;
+  armorActivated?: boolean;
 
   useCombatWheelchair: boolean;
   combatWheelchair: CombatWheelchair | null;
   wheelchairMode: EquipmentMode;
   homebrewWheelchair: Partial<CombatWheelchair>;
+  wheelchairActivated?: boolean;
 
   customSlots: CustomEquipment[];
 }

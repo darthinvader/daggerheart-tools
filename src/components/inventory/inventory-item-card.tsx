@@ -25,6 +25,7 @@ interface InventoryItemCardProps {
   onQuantityChange?: (delta: number) => void;
   onRemove?: () => void;
   onEdit?: () => void;
+  onToggleActivated?: () => void;
   compact?: boolean;
   unlimitedQuantity?: boolean;
 }
@@ -35,6 +36,7 @@ export function InventoryItemCard({
   onQuantityChange,
   onRemove,
   onEdit,
+  onToggleActivated,
   compact = false,
   unlimitedQuantity = false,
 }: InventoryItemCardProps) {
@@ -107,7 +109,9 @@ export function InventoryItemCard({
           <ItemActions
             isEquipped={item.isEquipped}
             isEquippable={isEquippable}
+            isActivated={item.isActivated ?? true}
             onEquipToggle={onEquipToggle}
+            onToggleActivated={onToggleActivated}
             onEdit={onEdit}
             onRemove={onRemove}
           />

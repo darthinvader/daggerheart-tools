@@ -90,7 +90,15 @@ function EmptyAncestry({ onEdit }: { onEdit?: () => void }) {
   );
 }
 
-function StandardAncestryContent({ ancestry }: { ancestry: Ancestry }) {
+function StandardAncestryContent({
+  ancestry,
+  disabledFeatures,
+  onToggleFeature,
+}: {
+  ancestry: Ancestry;
+  disabledFeatures?: Set<string>;
+  onToggleFeature?: (featureName: string) => void;
+}) {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
@@ -128,10 +136,25 @@ function StandardAncestryContent({ ancestry }: { ancestry: Ancestry }) {
           ⚔️ Ancestry Features
         </h5>
         <div className="grid gap-3 md:grid-cols-2">
-          <FeatureCard feature={ancestry.primaryFeature} variant="primary" />
+          <FeatureCard
+            feature={ancestry.primaryFeature}
+            variant="primary"
+            isActivated={!disabledFeatures?.has(ancestry.primaryFeature.name)}
+            onToggleActivated={
+              onToggleFeature
+                ? () => onToggleFeature(ancestry.primaryFeature.name)
+                : undefined
+            }
+          />
           <FeatureCard
             feature={ancestry.secondaryFeature}
             variant="secondary"
+            isActivated={!disabledFeatures?.has(ancestry.secondaryFeature.name)}
+            onToggleActivated={
+              onToggleFeature
+                ? () => onToggleFeature(ancestry.secondaryFeature.name)
+                : undefined
+            }
           />
         </div>
       </div>
@@ -159,8 +182,12 @@ function StandardAncestryContent({ ancestry }: { ancestry: Ancestry }) {
 
 function MixedAncestryContent({
   mixedAncestry,
+  disabledFeatures,
+  onToggleFeature,
 }: {
   mixedAncestry: MixedAncestry;
+  disabledFeatures?: Set<string>;
+  onToggleFeature?: (featureName: string) => void;
 }) {
   const parentAncestries = mixedAncestry.parentAncestries ?? [];
   const primaryParent = parentAncestries[0]
@@ -253,10 +280,26 @@ function MixedAncestryContent({
           <FeatureCard
             feature={mixedAncestry.primaryFeature}
             variant="primary"
+            isActivated={
+              !disabledFeatures?.has(mixedAncestry.primaryFeature.name)
+            }
+            onToggleActivated={
+              onToggleFeature
+                ? () => onToggleFeature(mixedAncestry.primaryFeature.name)
+                : undefined
+            }
           />
           <FeatureCard
             feature={mixedAncestry.secondaryFeature}
             variant="secondary"
+            isActivated={
+              !disabledFeatures?.has(mixedAncestry.secondaryFeature.name)
+            }
+            onToggleActivated={
+              onToggleFeature
+                ? () => onToggleFeature(mixedAncestry.secondaryFeature.name)
+                : undefined
+            }
           />
         </div>
       </div>
@@ -267,9 +310,13 @@ function MixedAncestryContent({
 function AncestryContent({
   selection,
   onEdit,
+  disabledFeatures,
+  onToggleFeature,
 }: {
   selection: AncestrySelection;
   onEdit?: () => void;
+  disabledFeatures?: Set<string>;
+  onToggleFeature?: (featureName: string) => void;
 }) {
   if (!selection) {
     return <EmptyAncestry onEdit={onEdit} />;
@@ -278,10 +325,22 @@ function AncestryContent({
   switch (selection.mode) {
     case 'standard':
       if (!selection.ancestry) return <EmptyAncestry onEdit={onEdit} />;
-      return <StandardAncestryContent ancestry={selection.ancestry} />;
+      return (
+        <StandardAncestryContent
+          ancestry={selection.ancestry}
+          disabledFeatures={disabledFeatures}
+          onToggleFeature={onToggleFeature}
+        />
+      );
     case 'mixed':
       if (!selection.mixedAncestry) return <EmptyAncestry onEdit={onEdit} />;
-      return <MixedAncestryContent mixedAncestry={selection.mixedAncestry} />;
+      return (
+        <MixedAncestryContent
+          mixedAncestry={selection.mixedAncestry}
+          disabledFeatures={disabledFeatures}
+          onToggleFeature={onToggleFeature}
+        />
+      );
     case 'homebrew':
       if (!selection.homebrew) return <EmptyAncestry onEdit={onEdit} />;
       return <HomebrewAncestryContent ancestry={selection.homebrew} />;
@@ -303,6 +362,28 @@ export function AncestryDisplay({
   const canSave = useMemo(
     () => isAncestrySelectionValid(draftSelection),
     [draftSelection]
+  );
+
+  const disabledFeatures = useMemo(
+    () => new Set(selection?.disabledFeatures ?? []),
+    [selection?.disabledFeatures]
+  );
+
+  const handleToggleFeature = useCallback(
+    (featureName: string) => {
+      if (!selection || !onChange) return;
+      const current = new Set(selection.disabledFeatures ?? []);
+      if (current.has(featureName)) {
+        current.delete(featureName);
+      } else {
+        current.add(featureName);
+      }
+      onChange({
+        ...selection,
+        disabledFeatures: Array.from(current),
+      });
+    },
+    [selection, onChange]
   );
 
   const handleEditToggle = useCallback(() => {
@@ -345,6 +426,8 @@ export function AncestryDisplay({
       <AncestryContent
         selection={selection}
         onEdit={!readOnly ? handleEditToggle : undefined}
+        disabledFeatures={disabledFeatures}
+        onToggleFeature={handleToggleFeature}
       />
     </EditableSection>
   );

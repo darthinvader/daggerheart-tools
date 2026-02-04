@@ -73,10 +73,16 @@ export const LoadoutRulesSchema = z.object({
 
 export type LoadoutRules = z.infer<typeof LoadoutRulesSchema>;
 
-// Default loadout rules by tier
-// Per RAW (page 102): "You can have a maximum of five active domain cards in
-// your loadout at any one time." The vault holds all inactive cards (no limit).
-// At level 1, you start with 2 cards. You gain 1 card per level + subclass cards.
+/**
+ * Default loadout rules by tier (LEGACY - use getLoadoutRulesForLevel instead)
+ * Per RAW (page 102): "You can have a maximum of five active domain cards in
+ * your loadout at any one time." The vault holds all inactive cards (no limit).
+ * At level 1, you start with 2 cards. You gain 1 card per level + subclass cards.
+ *
+ * NOTE: Per SRD "You cannot acquire a domain card with a level higher than your PC's."
+ * The maxCardLevel should be the character's actual level, not the tier max.
+ * Use getLoadoutRulesForLevel() for accurate level-based restrictions.
+ */
 export const LOADOUT_RULES_BY_TIER: Record<string, LoadoutRules> = {
   '1': {
     maxActiveCards: 5,
@@ -160,8 +166,24 @@ export function validateLoadoutSelection(
   }
 }
 
+/**
+ * Get loadout rules for a tier string (LEGACY).
+ * @deprecated Use getLoadoutRulesForLevel() for accurate card level restrictions.
+ */
 export function getLoadoutRulesForTier(tier: string): LoadoutRules {
   return LOADOUT_RULES_BY_TIER[tier] ?? LOADOUT_RULES_BY_TIER['1'];
+}
+
+/**
+ * Get loadout rules for a specific character level.
+ * Per SRD: "You cannot acquire a domain card with a level higher than your PC's."
+ */
+export function getLoadoutRulesForLevel(level: number): LoadoutRules {
+  const clampedLevel = Math.max(1, Math.min(10, level));
+  return {
+    maxActiveCards: 5,
+    maxCardLevel: clampedLevel, // Card level restriction = character level
+  };
 }
 
 export function isCardAllowedInLoadout(

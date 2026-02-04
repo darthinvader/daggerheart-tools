@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Collapsible,
   CollapsibleContent,
@@ -9,7 +10,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import { Switch } from '@/components/ui/switch';
-import { FeatureTypeIcons, Lock, Target } from '@/lib/icons';
+import { FeatureTypeIcons, Lock, Power, Target } from '@/lib/icons';
 import { cn } from '@/lib/utils';
 
 import type { FeatureUnlockState } from './types';
@@ -40,6 +41,8 @@ interface SubclassFeaturesCardProps {
   }>;
   unlockState: FeatureUnlockState;
   onToggleUnlock: (featureName: string) => void;
+  disabledFeatures?: Set<string>;
+  onToggleFeatureActivation?: (featureName: string) => void;
 }
 
 export function SubclassFeaturesCard({
@@ -47,6 +50,8 @@ export function SubclassFeaturesCard({
   features,
   unlockState,
   onToggleUnlock,
+  disabledFeatures,
+  onToggleFeatureActivation,
 }: SubclassFeaturesCardProps) {
   const [openItems, setOpenItems] = useState<Record<number, boolean>>({});
 
@@ -77,6 +82,7 @@ export function SubclassFeaturesCard({
           const featureKey = `${className}:${feature.name}`;
           const isUnlocked =
             unlockState[featureKey] ?? getDefaultUnlockState(featureType);
+          const isDisabled = disabledFeatures?.has(feature.name);
 
           return (
             <Collapsible
@@ -84,49 +90,77 @@ export function SubclassFeaturesCard({
               open={openItems[idx]}
               onOpenChange={() => toggleItem(idx)}
             >
-              <CollapsibleTrigger
+              <div
                 className={cn(
-                  'flex w-full items-center justify-between rounded border px-2.5 py-1.5 text-left text-sm',
+                  'flex w-full items-center gap-1 rounded border',
                   typeBg,
-                  !isUnlocked && 'opacity-60'
+                  !isUnlocked && 'opacity-60',
+                  isDisabled && 'opacity-50'
                 )}
               >
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="font-medium">{feature.name}</span>
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      'inline-flex items-center text-[10px]',
-                      typeColor
-                    )}
-                  >
-                    <TypeIcon className="size-3" />
-                  </Badge>
-                  {isUnlocked ? (
-                    <Badge
-                      variant="outline"
-                      className="border-green-500/30 bg-green-500/10 text-[10px] text-green-700"
-                    >
-                      ✓
-                    </Badge>
-                  ) : (
-                    <Badge
-                      variant="outline"
-                      className="text-muted-foreground inline-flex items-center text-[10px]"
-                    >
-                      <Lock className="size-3" />
-                    </Badge>
-                  )}
-                </div>
-                <span
+                <CollapsibleTrigger
                   className={cn(
-                    'text-muted-foreground text-xs transition-transform',
-                    openItems[idx] && 'rotate-180'
+                    'flex flex-1 items-center justify-between px-2.5 py-1.5 text-left text-sm'
                   )}
                 >
-                  ▼
-                </span>
-              </CollapsibleTrigger>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="font-medium">{feature.name}</span>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        'inline-flex items-center text-[10px]',
+                        typeColor
+                      )}
+                    >
+                      <TypeIcon className="size-3" />
+                    </Badge>
+                    {isUnlocked ? (
+                      <Badge
+                        variant="outline"
+                        className="border-green-500/30 bg-green-500/10 text-[10px] text-green-700"
+                      >
+                        ✓
+                      </Badge>
+                    ) : (
+                      <Badge
+                        variant="outline"
+                        className="text-muted-foreground inline-flex items-center text-[10px]"
+                      >
+                        <Lock className="size-3" />
+                      </Badge>
+                    )}
+                  </div>
+                  <span
+                    className={cn(
+                      'text-muted-foreground text-xs transition-transform',
+                      openItems[idx] && 'rotate-180'
+                    )}
+                  >
+                    ▼
+                  </span>
+                </CollapsibleTrigger>
+                {onToggleFeatureActivation && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="mr-1 h-7 w-7 p-0"
+                    onClick={e => {
+                      e.stopPropagation();
+                      onToggleFeatureActivation(feature.name);
+                    }}
+                    title={
+                      isDisabled ? 'Activate feature' : 'Deactivate feature'
+                    }
+                  >
+                    <Power
+                      className={cn(
+                        'h-4 w-4',
+                        !isDisabled ? 'text-green-500' : 'text-muted-foreground'
+                      )}
+                    />
+                  </Button>
+                )}
+              </div>
               <CollapsibleContent>
                 <div className="bg-muted/20 space-y-2 rounded-b border-x border-b px-2.5 py-2">
                   <p className="text-muted-foreground text-xs">

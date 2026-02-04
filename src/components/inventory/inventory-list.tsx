@@ -13,6 +13,7 @@ interface ItemGridProps {
   onQuantityChange: (id: string, delta: number) => void;
   onEquipToggle: (id: string) => void;
   onEdit: (id: string) => void;
+  onToggleActivated?: (id: string) => void;
   unlimitedQuantity?: boolean;
 }
 
@@ -22,6 +23,7 @@ function ItemGrid({
   onQuantityChange,
   onEquipToggle,
   onEdit,
+  onToggleActivated,
   unlimitedQuantity,
 }: ItemGridProps) {
   return (
@@ -34,6 +36,9 @@ function ItemGrid({
           onQuantityChange={(delta: number) => onQuantityChange(item.id, delta)}
           onEquipToggle={() => onEquipToggle(item.id)}
           onEdit={() => onEdit(item.id)}
+          onToggleActivated={
+            onToggleActivated ? () => onToggleActivated(item.id) : undefined
+          }
           unlimitedQuantity={unlimitedQuantity}
         />
       ))}
@@ -61,6 +66,7 @@ interface InventoryListProps {
   onQuantityChange: (id: string, delta: number) => void;
   onEquipToggle: (id: string) => void;
   onEdit: (id: string) => void;
+  onToggleActivated?: (id: string) => void;
   unlimitedQuantity?: boolean;
 }
 
@@ -71,6 +77,7 @@ export function InventoryList({
   onQuantityChange,
   onEquipToggle,
   onEdit,
+  onToggleActivated,
   unlimitedQuantity = false,
 }: InventoryListProps) {
   const safeItems = items ?? [];
@@ -79,6 +86,7 @@ export function InventoryList({
     onQuantityChange,
     onEquipToggle,
     onEdit,
+    onToggleActivated,
     unlimitedQuantity,
   };
 

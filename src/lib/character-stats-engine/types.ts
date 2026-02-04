@@ -54,7 +54,7 @@ export interface ClassInput {
   baseHp: number;
   /** Base evasion from class */
   baseEvasion: number;
-  /** Class tier (1-4), affects HP */
+  /** Class tier (1-4), used for tier-based features (not HP per SRD) */
   tier: number;
 }
 
@@ -68,6 +68,8 @@ export interface ArmorInput {
   agilityModifier: number;
   /** Base damage thresholds from armor */
   baseThresholds: DamageThresholds;
+  /** Whether character is unarmored (uses level-based thresholds per SRD) */
+  isUnarmored?: boolean;
 }
 
 /** Equipment modifier inputs (parsed from features or explicit) */
@@ -164,13 +166,15 @@ export interface CalculatedArmorScore {
   total: number;
 }
 
-/** Calculated HP with breakdown */
+/**
+ * Calculated HP with breakdown.
+ * Per SRD, HP is only gained through class base + level-up selections.
+ * There is NO automatic tier bonus.
+ */
 export interface CalculatedHp {
   /** Base value from class */
   classBase: number;
-  /** Bonus from tier */
-  tierBonus: number;
-  /** Total calculated value */
+  /** Total calculated value (equals classBase; level-up HP additions tracked separately) */
   total: number;
 }
 
@@ -210,12 +214,18 @@ export const DEFAULT_CLASS_INPUT: ClassInput = {
   tier: 1,
 };
 
-/** Default armor stats when no armor equipped */
+/**
+ * Default armor stats when no armor equipped.
+ * Per SRD: "While unarmored, your character's base Armor Score is 0,
+ * their Major threshold is equal to their level, and their Severe
+ * threshold is equal to twice their level."
+ */
 export const DEFAULT_ARMOR_INPUT: ArmorInput = {
   baseScore: 0,
   evasionModifier: 0,
   agilityModifier: 0,
-  baseThresholds: { major: 5, severe: 11 },
+  baseThresholds: { major: 0, severe: 0 },
+  isUnarmored: true,
 };
 
 /** Default equipment modifiers (no equipment) */

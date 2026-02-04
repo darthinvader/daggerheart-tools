@@ -2,6 +2,10 @@ import { Check, Gift, Sparkles } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import {
+  isTierStartLevel,
+  isTraitClearLevel,
+} from '@/lib/data/core/level-progression';
 import { cn } from '@/lib/utils';
 
 interface AutomaticBenefitsStepProps {
@@ -28,13 +32,13 @@ export function AutomaticBenefitsStep({
           <Sparkles className="size-4" /> Automatic Benefits
         </h4>
         <div className="space-y-2">
-          {(targetLevel === 2 || targetLevel === 5 || targetLevel === 8) && (
+          {isTierStartLevel(targetLevel) && (
             <div className="flex items-center gap-2 rounded-lg border border-green-500/30 bg-green-500/10 p-3 text-sm">
               <Check className="size-4 text-green-600" />
               <span>Gain +1 Proficiency</span>
             </div>
           )}
-          {(targetLevel === 5 || targetLevel === 8) && (
+          {isTraitClearLevel(targetLevel) && (
             <div className="flex items-center gap-2 rounded-lg border border-green-500/30 bg-green-500/10 p-3 text-sm">
               <Check className="size-4 text-green-600" />
               <span>Clear all marks on character traits</span>

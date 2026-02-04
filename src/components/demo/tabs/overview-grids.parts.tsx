@@ -920,10 +920,24 @@ function collectEquipmentSources(
     });
   };
 
-  collectFromEquipment(active.armor, 'Armor');
-  collectFromEquipment(active.primaryWeapon, 'Primary Weapon');
-  collectFromEquipment(active.secondaryWeapon, 'Secondary Weapon');
-  collectFromEquipment(active.wheelchair, 'Combat Wheelchair');
+  collectFromEquipment(
+    equipment.armorActivated !== false ? active.armor : null,
+    'Armor'
+  );
+  collectFromEquipment(
+    equipment.primaryWeaponActivated !== false ? active.primaryWeapon : null,
+    'Primary Weapon'
+  );
+  collectFromEquipment(
+    equipment.secondaryWeaponActivated !== false
+      ? active.secondaryWeapon
+      : null,
+    'Secondary Weapon'
+  );
+  collectFromEquipment(
+    equipment.wheelchairActivated !== false ? active.wheelchair : null,
+    'Combat Wheelchair'
+  );
 
   return sources;
 }

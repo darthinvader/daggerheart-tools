@@ -564,15 +564,21 @@ function useAutoEnableCompanion({
   hasCompanionFeature: boolean;
   handlers: ReturnType<typeof buildAutoSaveHandlers>;
 }) {
+  // Store handler in ref to avoid dependency on unstable object reference
+  const setCompanionEnabledRef = useRef(handlers.setCompanionEnabled);
+
+  // Update ref in effect to satisfy react-hooks/refs rule
+  useEffect(() => {
+    setCompanionEnabledRef.current = handlers.setCompanionEnabled;
+  });
+
   useEffect(() => {
     if (!isHydrated) return;
     if (!state.companionEnabled && (hasCompanionFeature || state.companion)) {
-      handlers.setCompanionEnabled(true);
+      setCompanionEnabledRef.current(true);
     }
   }, [
     hasCompanionFeature,
-    handlers,
-    handlers.setCompanionEnabled,
     isHydrated,
     state.companion,
     state.companionEnabled,

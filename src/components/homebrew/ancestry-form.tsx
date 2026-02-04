@@ -4,7 +4,7 @@
  * Form for creating and editing homebrew ancestries.
  * Uses singular primaryFeature/secondaryFeature objects per schema.
  */
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -83,6 +83,16 @@ export function AncestryForm({
   );
   const [newCharacteristic, setNewCharacteristic] = useState('');
 
+  // Track previous data to avoid notifying on unchanged values
+  const prevDataRef = useRef<string | undefined>(undefined);
+  // Store onChange in ref to avoid dependency on unstable callback reference
+  const onChangeRef = useRef(onChange);
+
+  // Update ref in effect to satisfy react-hooks/refs rule
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  });
+
   // Build current data for callbacks
   const buildCurrentData = useCallback((): AncestryFormData => {
     return {
@@ -94,10 +104,13 @@ export function AncestryForm({
 
   // Auto-notify on changes (for inline mode)
   useEffect(() => {
-    if (onChange) {
-      onChange(buildCurrentData());
+    const currentData = buildCurrentData();
+    const serialized = JSON.stringify(currentData);
+    if (onChangeRef.current && serialized !== prevDataRef.current) {
+      prevDataRef.current = serialized;
+      onChangeRef.current(currentData);
     }
-  }, [formData, characteristics]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [buildCurrentData]);
 
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {

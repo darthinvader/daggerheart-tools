@@ -88,7 +88,7 @@ export function getEquipmentFeatureModifiers(
 export interface ExtendedAutoCalculateContext {
   /** Class base HP */
   classHp: number;
-  /** Class tier (for HP calculation) */
+  /** Class tier (1-4), for tier-based features (not HP per SRD) */
   classTier: number;
   /** Class base evasion */
   classEvasion: number;
@@ -136,18 +136,18 @@ export function buildAutoCalculateContext(
 
 /**
  * Compute extended auto values including equipment feature modifiers.
+ * Per SRD: HP is only gained through class base + level-up selections.
  *
  * @param ctx - Extended auto-calculate context
  * @returns Computed auto values with equipment feature modifiers applied
  */
 export function computeExtendedAutoValues(ctx: ExtendedAutoCalculateContext) {
-  const tierBonus = ctx.classTier - 1;
   const levelBonus = Math.max(0, ctx.level);
   const featureMods = ctx.equipmentFeatureModifiers;
 
   return {
-    // HP: class base + tier bonus
-    maxHp: ctx.classHp + tierBonus,
+    // HP: class base only (level-up selections tracked separately)
+    maxHp: ctx.classHp,
 
     // Evasion: class base + armor modifier + equipment feature modifiers
     evasion: ctx.classEvasion + ctx.armorEvasionModifier + featureMods.evasion,
