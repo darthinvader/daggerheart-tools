@@ -65,6 +65,24 @@
   --feature-primary-foreground: oklch(0.22 0.02 70);
   --feature-secondary: oklch(0.52 0.15 250);
   --feature-secondary-foreground: oklch(0.985 0 0);
+  /* Daggerheart Duality theme */
+  --hope: oklch(0.82 0.16 85);
+  --hope-foreground: oklch(0.25 0.04 85);
+  --hope-muted: oklch(0.92 0.06 85);
+  --fear: oklch(0.55 0.2 300);
+  --fear-foreground: oklch(0.95 0.01 300);
+  --fear-muted: oklch(0.85 0.08 300);
+  /* Tier progression colors */
+  --tier-1: oklch(0.7 0.14 150);
+  --tier-2: oklch(0.65 0.16 235);
+  --tier-3: oklch(0.65 0.18 300);
+  --tier-4: oklch(0.75 0.16 85);
+  /* Status colors */
+  --hp-healthy: oklch(0.7 0.18 145);
+  --hp-wounded: oklch(0.75 0.17 70);
+  --hp-critical: oklch(0.65 0.22 27);
+  --stress-ok: oklch(0.65 0.14 235);
+  --stress-high: oklch(0.65 0.22 27);
 }
 
 a:not([data-slot='button']) {
@@ -150,6 +168,22 @@ h1 {
   --color-feature-primary-foreground: var(--feature-primary-foreground);
   --color-feature-secondary: var(--feature-secondary);
   --color-feature-secondary-foreground: var(--feature-secondary-foreground);
+  /* Daggerheart Duality color mappings */
+  --color-hope: var(--hope);
+  --color-hope-foreground: var(--hope-foreground);
+  --color-hope-muted: var(--hope-muted);
+  --color-fear: var(--fear);
+  --color-fear-foreground: var(--fear-foreground);
+  --color-fear-muted: var(--fear-muted);
+  --color-tier-1: var(--tier-1);
+  --color-tier-2: var(--tier-2);
+  --color-tier-3: var(--tier-3);
+  --color-tier-4: var(--tier-4);
+  --color-hp-healthy: var(--hp-healthy);
+  --color-hp-wounded: var(--hp-wounded);
+  --color-hp-critical: var(--hp-critical);
+  --color-stress-ok: var(--stress-ok);
+  --color-stress-high: var(--stress-high);
 }
 
 .dark {
@@ -200,6 +234,24 @@ h1 {
   --feature-primary-foreground: oklch(0.22 0.02 70);
   --feature-secondary: oklch(0.62 0.12 250);
   --feature-secondary-foreground: oklch(0.985 0 0);
+  /* Daggerheart Duality theme (dark) */
+  --hope: oklch(0.78 0.14 85);
+  --hope-foreground: oklch(0.2 0.04 85);
+  --hope-muted: oklch(0.35 0.06 85);
+  --fear: oklch(0.6 0.18 300);
+  --fear-foreground: oklch(0.95 0.01 300);
+  --fear-muted: oklch(0.3 0.08 300);
+  /* Tier progression colors (dark) */
+  --tier-1: oklch(0.65 0.14 150);
+  --tier-2: oklch(0.62 0.14 235);
+  --tier-3: oklch(0.6 0.16 300);
+  --tier-4: oklch(0.72 0.14 85);
+  /* Status colors (dark) */
+  --hp-healthy: oklch(0.65 0.17 145);
+  --hp-wounded: oklch(0.7 0.15 70);
+  --hp-critical: oklch(0.6 0.2 27);
+  --stress-ok: oklch(0.6 0.12 235);
+  --stress-high: oklch(0.6 0.2 27);
 }
 
 @layer base {
@@ -215,6 +267,108 @@ h1 {
 [data-slot='tabs-trigger'][data-state='active'] {
   background-color: var(--primary) !important;
   color: var(--primary-foreground) !important;
+}
+
+/* ===== CHARACTER SHEET ENHANCEMENTS ===== */
+
+/* Pulsing indicator for critical HP / death state */
+@keyframes pulse-danger {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse-danger {
+  animation: pulse-danger 1.5s ease-in-out infinite;
+}
+
+/* Subtle glow for Hope-themed elements */
+@keyframes glow-hope {
+  0%,
+  100% {
+    box-shadow: 0 0 4px oklch(0.82 0.16 85 / 30%);
+  }
+  50% {
+    box-shadow: 0 0 12px oklch(0.82 0.16 85 / 50%);
+  }
+}
+
+.animate-glow-hope {
+  animation: glow-hope 2s ease-in-out infinite;
+}
+
+/* Tier gradient borders */
+.tier-gradient-1 {
+  border-image: linear-gradient(135deg, var(--tier-1), transparent) 1;
+}
+.tier-gradient-2 {
+  border-image: linear-gradient(135deg, var(--tier-2), transparent) 1;
+}
+.tier-gradient-3 {
+  border-image: linear-gradient(135deg, var(--tier-3), transparent) 1;
+}
+.tier-gradient-4 {
+  border-image: linear-gradient(135deg, var(--tier-4), transparent) 1;
+}
+
+/* Status bar gradient backgrounds */
+.status-bar-healthy {
+  background: linear-gradient(90deg, oklch(0.7 0.18 145 / 15%), transparent);
+}
+.status-bar-wounded {
+  background: linear-gradient(90deg, oklch(0.75 0.17 70 / 15%), transparent);
+}
+.status-bar-critical {
+  background: linear-gradient(90deg, oklch(0.65 0.22 27 / 15%), transparent);
+}
+
+/* Mobile bottom navigation */
+.character-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Add bottom padding to content when bottom nav is present (mobile only) */
+@media (max-width: 767px) {
+  .has-bottom-nav {
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* Character header decorative separator */
+.dagger-divider {
+  position: relative;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--border),
+    var(--primary),
+    var(--border),
+    transparent
+  );
+}
+
+.dagger-divider::after {
+  content: '◆';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--card);
+  color: var(--primary);
+  padding: 0 0.5rem;
+  font-size: 0.6rem;
 }
 
 @layer utilities {

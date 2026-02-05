@@ -1,12 +1,4 @@
-import { Link } from '@tanstack/react-router';
-import {
-  ArrowLeft,
-  Cloud,
-  CloudOff,
-  Loader2,
-  Unlink,
-  Users,
-} from 'lucide-react';
+import { Loader2, Unlink, Users } from 'lucide-react';
 import { useState } from 'react';
 
 import { CharacterOnboardingWizard } from '@/components/character-onboarding';
@@ -36,6 +28,9 @@ import { Backpack, BarChart3, Dice5, Swords, User, Zap } from '@/lib/icons';
 import type { Campaign } from '@/lib/schemas/campaign';
 import { cn } from '@/lib/utils';
 
+import { CharacterStatusBar } from './character-status-bar';
+import { EnhancedCharacterHeader } from './enhanced-header';
+import { MobileBottomNav } from './mobile-bottom-nav';
 import { ResponsiveTabsList } from './responsive-tabs';
 import type { CharacterSheetHandlers, CharacterSheetState } from './types.ts';
 
@@ -105,9 +100,24 @@ export function CharacterSheetLayout({
   onUnlinkCampaign,
   isUnlinkingCampaign,
 }: CharacterSheetLayoutProps) {
+  const tier = getTierNumber(state.progression.currentLevel);
+
+  const allTabs = [
+    { value: 'quick', label: 'Quick', icon: <Zap className="size-4" /> },
+    {
+      value: 'overview',
+      label: 'Overview',
+      icon: <BarChart3 className="size-4" />,
+    },
+    { value: 'identity', label: 'Identity', icon: <User className="size-4" /> },
+    { value: 'combat', label: 'Combat', icon: <Swords className="size-4" /> },
+    { value: 'items', label: 'Items', icon: <Backpack className="size-4" /> },
+    { value: 'session', label: 'Session', icon: <Dice5 className="size-4" /> },
+  ];
+
   return (
-    <div className="container mx-auto px-4 py-4 sm:py-8">
-      <div className="space-y-6">
+    <div className="has-bottom-nav container mx-auto px-3 py-3 sm:px-4 sm:py-6">
+      <div className="space-y-4 sm:space-y-6">
         <CharacterOnboardingSection
           isOpen={isOnboardingOpen}
           readOnly={readOnly}
@@ -117,10 +127,11 @@ export function CharacterSheetLayout({
           handlers={handlers}
           campaignId={campaignId}
         />
-        <CharacterSheetHeader
+        <EnhancedCharacterHeader
           characterName={state.identity.name || 'New Character'}
           characterTitle={state.identity.calling}
           level={state.progression.currentLevel}
+          tier={tier}
           readOnly={readOnly}
           isSaving={isSaving}
           lastSaved={lastSaved}
@@ -139,6 +150,7 @@ export function CharacterSheetLayout({
               isUnlinkingCampaign={isUnlinkingCampaign}
             />
           }
+          statusBar={<CharacterStatusBar state={state} />}
         />
         <CharacterSheetTabs
           activeTab={activeTab}
@@ -159,41 +171,22 @@ export function CharacterSheetLayout({
           ownedCardNames={ownedCardNames}
         />
       </div>
+
+      {/* Mobile bottom navigation */}
+      <MobileBottomNav
+        tabs={allTabs}
+        activeTab={activeTab}
+        onTabChange={onTabChange}
+      />
     </div>
   );
 }
 
-function SaveIndicator({
-  isSaving,
-  lastSaved,
-}: {
-  isSaving: boolean;
-  lastSaved: Date | null;
-}) {
-  if (isSaving) {
-    return (
-      <div className="text-muted-foreground flex items-center gap-2 text-sm">
-        <Loader2 className="h-4 w-4 animate-spin" />
-        <span>Saving...</span>
-      </div>
-    );
-  }
-
-  if (lastSaved) {
-    return (
-      <div className="text-muted-foreground flex items-center gap-2 text-sm">
-        <Cloud className="h-4 w-4 text-green-500" />
-        <span>Saved</span>
-      </div>
-    );
-  }
-
-  return (
-    <div className="text-muted-foreground flex items-center gap-2 text-sm">
-      <CloudOff className="h-4 w-4" />
-      <span>Not saved</span>
-    </div>
-  );
+function getTierNumber(level: number): number {
+  if (level <= 1) return 1;
+  if (level <= 4) return 2;
+  if (level <= 7) return 3;
+  return 4;
 }
 
 function CharacterOnboardingSection({
@@ -230,63 +223,6 @@ function CharacterOnboardingSection({
       handlers={handlers}
       campaignId={campaignId}
     />
-  );
-}
-
-function CharacterSheetHeader({
-  characterName,
-  characterTitle,
-  level,
-  readOnly,
-  isSaving,
-  lastSaved,
-  campaignSection,
-}: {
-  characterName: string;
-  characterTitle?: string;
-  level: number;
-  readOnly: boolean;
-  isSaving: boolean;
-  lastSaved: Date | null;
-  campaignSection?: React.ReactNode;
-}) {
-  return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
-        <Button variant="ghost" size="sm" asChild className="w-fit">
-          <Link to="/character">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
-          </Link>
-        </Button>
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-lg font-bold sm:text-xl">
-              {characterName || 'Untitled Character'}
-            </span>
-            {characterTitle && (
-              <Badge
-                variant="outline"
-                className="border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-900/30"
-              >
-                {characterTitle}
-              </Badge>
-            )}
-          </div>
-          <p className="text-muted-foreground text-sm">
-            Level {level} Character
-          </p>
-        </div>
-      </div>
-      <div className="flex items-center gap-2">
-        {campaignSection}
-        {readOnly ? (
-          <Badge variant="outline">Read-only</Badge>
-        ) : (
-          <SaveIndicator isSaving={isSaving} lastSaved={lastSaved} />
-        )}
-      </div>
-    </div>
   );
 }
 

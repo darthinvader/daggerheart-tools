@@ -69,10 +69,10 @@ export function SessionTab({
       />
 
       {/* Game Actions Section */}
-      <section className="bg-card hover:border-primary/20 rounded-xl border shadow-sm transition-colors">
-        <div className="flex items-center justify-between border-b px-4 py-3 sm:px-6">
+      <section className="bg-card overflow-hidden rounded-xl border shadow-sm transition-all hover:shadow-md">
+        <div className="from-hope/10 flex items-center justify-between border-b bg-gradient-to-r to-transparent px-4 py-3 sm:px-6">
           <div className="flex items-center gap-2">
-            <Sparkles className="size-5" />
+            <Sparkles className="text-hope size-5" />
             <h3 className="text-lg font-semibold">Game Actions</h3>
           </div>
         </div>
@@ -116,10 +116,10 @@ export function SessionTab({
       </section>
 
       {/* Rest Management Section */}
-      <section className="bg-card hover:border-primary/20 rounded-xl border shadow-sm transition-colors">
-        <div className="flex items-center justify-between border-b px-4 py-3 sm:px-6">
+      <section className="bg-card overflow-hidden rounded-xl border shadow-sm transition-all hover:shadow-md">
+        <div className="from-fear-muted/30 flex items-center justify-between border-b bg-gradient-to-r to-transparent px-4 py-3 sm:px-6">
           <div className="flex items-center gap-2">
-            <Moon className="size-5" />
+            <Moon className="text-fear size-5" />
             <h3 className="text-lg font-semibold">Rest</h3>
           </div>
           <Button onClick={() => setIsRestModalOpen(true)}>Take a Rest</Button>

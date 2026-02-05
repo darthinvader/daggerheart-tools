@@ -365,10 +365,10 @@ export function CombatTab({
       />
 
       {/* Rest Section */}
-      <section className="bg-card hover:border-primary/20 rounded-xl border shadow-sm transition-colors">
-        <div className="flex items-center justify-between border-b px-4 py-3 sm:px-6">
+      <section className="bg-card overflow-hidden rounded-xl border shadow-sm transition-all hover:shadow-md">
+        <div className="from-fear-muted/30 flex items-center justify-between border-b bg-gradient-to-r to-transparent px-4 py-3 sm:px-6">
           <div className="flex items-center gap-2">
-            <Moon className="size-5" />
+            <Moon className="text-fear size-5" />
             <h3 className="text-lg font-semibold">Rest</h3>
           </div>
           <Button onClick={() => setIsRestModalOpen(true)}>Take a Rest</Button>
