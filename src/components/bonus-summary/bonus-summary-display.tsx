@@ -1,9 +1,9 @@
-import { Power, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { useMemo } from 'react';
-
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
+import { Power } from '@/lib/icons';
 import type { FeatureStatModifiers } from '@/lib/schemas/core';
 import { cn } from '@/lib/utils';
 import type {

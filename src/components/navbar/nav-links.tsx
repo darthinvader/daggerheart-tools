@@ -93,6 +93,11 @@ export const defaultNavLinks: NavLink[] = [
         label: 'Inventory Items',
         icon: <Backpack className="size-4" />,
       },
+      {
+        to: '/references/demo-features',
+        label: 'Demo Features',
+        icon: <Beaker className="size-4" />,
+      },
     ],
   },
   {

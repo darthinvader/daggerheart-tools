@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/card';
 import {
   Backpack,
+  Beaker,
   Compass,
   Home,
   Shield,
@@ -112,6 +113,15 @@ const referenceCategories: ReferenceCategory[] = [
     icon: Compass,
     gradient: 'from-blue-500 to-cyan-600',
     tint: 'bg-blue-500/10',
+  },
+  {
+    to: '/references/demo-features',
+    title: 'Demo Features',
+    description:
+      'Explore Beast Feast cooking, rest system, downtime moves, and other game mechanics.',
+    icon: Beaker,
+    gradient: 'from-fuchsia-500 to-pink-600',
+    tint: 'bg-fuchsia-500/10',
   },
 ];
 

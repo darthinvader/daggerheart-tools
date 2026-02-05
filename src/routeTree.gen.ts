@@ -33,6 +33,7 @@ import { Route as ReferencesGmMovesRouteImport } from './routes/references/gm-mo
 import { Route as ReferencesEquipmentRouteImport } from './routes/references/equipment'
 import { Route as ReferencesEnvironmentsRouteImport } from './routes/references/environments'
 import { Route as ReferencesDomainCardsRouteImport } from './routes/references/domain-cards'
+import { Route as ReferencesDemoFeaturesRouteImport } from './routes/references/demo-features'
 import { Route as ReferencesCommunitiesRouteImport } from './routes/references/communities'
 import { Route as ReferencesClassesRouteImport } from './routes/references/classes'
 import { Route as ReferencesAncestriesRouteImport } from './routes/references/ancestries'
@@ -173,6 +174,11 @@ const ReferencesDomainCardsRoute = ReferencesDomainCardsRouteImport.update({
   path: '/domain-cards',
   getParentRoute: () => ReferencesRoute,
 } as any)
+const ReferencesDemoFeaturesRoute = ReferencesDemoFeaturesRouteImport.update({
+  id: '/demo-features',
+  path: '/demo-features',
+  getParentRoute: () => ReferencesRoute,
+} as any)
 const ReferencesCommunitiesRoute = ReferencesCommunitiesRouteImport.update({
   id: '/communities',
   path: '/communities',
@@ -280,6 +286,7 @@ export interface FileRoutesByFullPath {
   '/references/ancestries': typeof ReferencesAncestriesRoute
   '/references/classes': typeof ReferencesClassesRoute
   '/references/communities': typeof ReferencesCommunitiesRoute
+  '/references/demo-features': typeof ReferencesDemoFeaturesRoute
   '/references/domain-cards': typeof ReferencesDomainCardsRoute
   '/references/environments': typeof ReferencesEnvironmentsRoute
   '/references/equipment': typeof ReferencesEquipmentRoute
@@ -317,6 +324,7 @@ export interface FileRoutesByTo {
   '/references/ancestries': typeof ReferencesAncestriesRoute
   '/references/classes': typeof ReferencesClassesRoute
   '/references/communities': typeof ReferencesCommunitiesRoute
+  '/references/demo-features': typeof ReferencesDemoFeaturesRoute
   '/references/domain-cards': typeof ReferencesDomainCardsRoute
   '/references/environments': typeof ReferencesEnvironmentsRoute
   '/references/equipment': typeof ReferencesEquipmentRoute
@@ -361,6 +369,7 @@ export interface FileRoutesById {
   '/references/ancestries': typeof ReferencesAncestriesRoute
   '/references/classes': typeof ReferencesClassesRoute
   '/references/communities': typeof ReferencesCommunitiesRoute
+  '/references/demo-features': typeof ReferencesDemoFeaturesRoute
   '/references/domain-cards': typeof ReferencesDomainCardsRoute
   '/references/environments': typeof ReferencesEnvironmentsRoute
   '/references/equipment': typeof ReferencesEquipmentRoute
@@ -406,6 +415,7 @@ export interface FileRouteTypes {
     | '/references/ancestries'
     | '/references/classes'
     | '/references/communities'
+    | '/references/demo-features'
     | '/references/domain-cards'
     | '/references/environments'
     | '/references/equipment'
@@ -443,6 +453,7 @@ export interface FileRouteTypes {
     | '/references/ancestries'
     | '/references/classes'
     | '/references/communities'
+    | '/references/demo-features'
     | '/references/domain-cards'
     | '/references/environments'
     | '/references/equipment'
@@ -486,6 +497,7 @@ export interface FileRouteTypes {
     | '/references/ancestries'
     | '/references/classes'
     | '/references/communities'
+    | '/references/demo-features'
     | '/references/domain-cards'
     | '/references/environments'
     | '/references/equipment'
@@ -689,6 +701,13 @@ declare module '@tanstack/react-router' {
       path: '/domain-cards'
       fullPath: '/references/domain-cards'
       preLoaderRoute: typeof ReferencesDomainCardsRouteImport
+      parentRoute: typeof ReferencesRoute
+    }
+    '/references/demo-features': {
+      id: '/references/demo-features'
+      path: '/demo-features'
+      fullPath: '/references/demo-features'
+      preLoaderRoute: typeof ReferencesDemoFeaturesRouteImport
       parentRoute: typeof ReferencesRoute
     }
     '/references/communities': {
@@ -896,6 +915,7 @@ interface ReferencesRouteChildren {
   ReferencesAncestriesRoute: typeof ReferencesAncestriesRoute
   ReferencesClassesRoute: typeof ReferencesClassesRoute
   ReferencesCommunitiesRoute: typeof ReferencesCommunitiesRoute
+  ReferencesDemoFeaturesRoute: typeof ReferencesDemoFeaturesRoute
   ReferencesDomainCardsRoute: typeof ReferencesDomainCardsRoute
   ReferencesEnvironmentsRoute: typeof ReferencesEnvironmentsRoute
   ReferencesEquipmentRoute: typeof ReferencesEquipmentRoute
@@ -909,6 +929,7 @@ const ReferencesRouteChildren: ReferencesRouteChildren = {
   ReferencesAncestriesRoute: ReferencesAncestriesRoute,
   ReferencesClassesRoute: ReferencesClassesRoute,
   ReferencesCommunitiesRoute: ReferencesCommunitiesRoute,
+  ReferencesDemoFeaturesRoute: ReferencesDemoFeaturesRoute,
   ReferencesDomainCardsRoute: ReferencesDomainCardsRoute,
   ReferencesEnvironmentsRoute: ReferencesEnvironmentsRoute,
   ReferencesEquipmentRoute: ReferencesEquipmentRoute,

@@ -31,7 +31,17 @@ export function SingleClassDetails({
         />
       )}
 
-      {data.hopeFeature && <HopeFeatureCard feature={data.hopeFeature} />}
+      {data.hopeFeature && (
+        <HopeFeatureCard
+          feature={data.hopeFeature}
+          isActivated={!disabledFeatures?.has(data.hopeFeature.name)}
+          onToggleActivated={
+            onToggleFeatureActivation
+              ? () => onToggleFeatureActivation(data.hopeFeature!.name)
+              : undefined
+          }
+        />
+      )}
 
       {data.subclassFeatures && data.subclassFeatures.length > 0 && (
         <SubclassFeaturesCard

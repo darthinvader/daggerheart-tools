@@ -61,12 +61,10 @@ function StandardCommunityContent({
   community,
   isFeatureDisabled,
   onToggleFeature,
-  readOnly,
 }: {
   community: Community;
   isFeatureDisabled?: boolean;
   onToggleFeature?: () => void;
-  readOnly?: boolean;
 }) {
   const colors = getCommunityColors(community.name);
   const icon = getCommunityIcon(community.name);
@@ -101,7 +99,7 @@ function StandardCommunityContent({
           feature={community.feature}
           communityName={community.name}
           isActivated={!isFeatureDisabled}
-          onToggleActivated={!readOnly ? onToggleFeature : undefined}
+          onToggleActivated={onToggleFeature}
         />
       </div>
 
@@ -131,12 +129,10 @@ function HomebrewCommunityContent({
   community,
   isFeatureDisabled,
   onToggleFeature,
-  readOnly,
 }: {
   community: Community;
   isFeatureDisabled?: boolean;
   onToggleFeature?: () => void;
-  readOnly?: boolean;
 }) {
   return (
     <div className="space-y-4">
@@ -172,7 +168,7 @@ function HomebrewCommunityContent({
             <CommunityFeatureDisplay
               feature={community.feature}
               isActivated={!isFeatureDisabled}
-              onToggleActivated={!readOnly ? onToggleFeature : undefined}
+              onToggleActivated={onToggleFeature}
             />
           </div>
         </>
@@ -208,13 +204,11 @@ function CommunityContent({
   onEdit,
   isFeatureDisabled,
   onToggleFeature,
-  readOnly,
 }: {
   selection: CommunitySelection;
   onEdit?: () => void;
   isFeatureDisabled?: boolean;
   onToggleFeature?: () => void;
-  readOnly?: boolean;
 }) {
   if (!selection) {
     return <EmptyCommunity onEdit={onEdit} />;
@@ -228,7 +222,6 @@ function CommunityContent({
           community={selection.community}
           isFeatureDisabled={isFeatureDisabled}
           onToggleFeature={onToggleFeature}
-          readOnly={readOnly}
         />
       );
     case 'homebrew':
@@ -238,7 +231,6 @@ function CommunityContent({
           community={selection.homebrew}
           isFeatureDisabled={isFeatureDisabled}
           onToggleFeature={onToggleFeature}
-          readOnly={readOnly}
         />
       );
     default:
@@ -333,8 +325,7 @@ export function CommunityDisplay({
         selection={selection}
         onEdit={!readOnly ? handleEditToggle : undefined}
         isFeatureDisabled={isFeatureDisabled}
-        onToggleFeature={!readOnly ? handleToggleFeature : undefined}
-        readOnly={readOnly}
+        onToggleFeature={handleToggleFeature}
       />
     </EditableSection>
   );

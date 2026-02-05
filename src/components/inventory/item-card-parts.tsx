@@ -1,8 +1,9 @@
-import { ChevronDown, ChevronUp, Pencil, Power, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
+import { Power } from '@/lib/icons';
 import { ICON_SIZE_MD, Pin, Sparkles, Star } from '@/lib/icons';
 import { cn } from '@/lib/utils';
 

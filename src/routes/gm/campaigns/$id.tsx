@@ -10,6 +10,7 @@ import {
   Beaker,
   BookOpen,
   Building2,
+  ChefHat,
   Lightbulb,
   Map,
   MapPin,
@@ -23,6 +24,7 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
+  BeastFeastTabContent,
   CampaignHeader,
   CharactersTabContent,
   GMToolsTabContent,
@@ -63,6 +65,7 @@ const validTabs = [
   'session-zero',
   'gm-tools',
   'homebrew',
+  'beast-feast',
   'players',
 ] as const;
 
@@ -574,6 +577,10 @@ function CampaignTabs({
           <Beaker className="h-4 w-4 text-purple-500" />
           <span className="ml-2 hidden lg:inline">Homebrew</span>
         </TabsTrigger>
+        <TabsTrigger value="beast-feast">
+          <ChefHat className="h-4 w-4 text-orange-500" />
+          <span className="ml-2 hidden lg:inline">Beast Feast</span>
+        </TabsTrigger>
         <TabsTrigger value="players">
           <Users className="h-4 w-4 text-green-500" />
           <span className="ml-2 hidden lg:inline">Players</span>
@@ -671,6 +678,7 @@ function CampaignTabs({
         onBlur={onFrameBlur}
       />
       <HomebrewTabContent campaignId={campaign.id} />
+      <BeastFeastTabContent campaignId={campaign.id} />
       <PlayersTabContent
         campaign={campaign}
         inviteLink={inviteLink}

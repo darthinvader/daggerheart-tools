@@ -1,13 +1,17 @@
-import { useMemo } from 'react';
+import { Moon } from 'lucide-react';
+import { useMemo, useState } from 'react';
 
 import { ClassDisplay } from '@/components/class-selector';
 import { CoreScoresDisplay } from '@/components/core-scores';
 import { EquipmentDisplay } from '@/components/equipment';
+import { GameActions } from '@/components/game-actions';
 import { LoadoutDisplay } from '@/components/loadout-selector';
 import { ResourcesDisplay } from '@/components/resources';
+import { RestModal } from '@/components/rest';
 import { HopeWithScarsDisplay } from '@/components/scars';
 import { ThresholdsEditableSection } from '@/components/thresholds-editor';
 import { TraitsDisplay } from '@/components/traits';
+import { Button } from '@/components/ui/button';
 import { getClassByName, getSubclassByName } from '@/lib/data/classes';
 import { getEquipmentFeatureModifiers } from '@/lib/equipment-feature-parser';
 import {
@@ -16,7 +20,7 @@ import {
 } from '@/lib/utils/feature-modifiers';
 
 import { CompanionSection } from '../companion-section';
-import { createDamageHandler } from '../demo-handlers';
+import { createDamageHandler, createRestHandler } from '../demo-handlers';
 import type { TabProps } from '../demo-types';
 
 /**
@@ -246,6 +250,29 @@ export function CombatTab({
     [state.resources, state.deathState, handlers]
   );
 
+  const [isRestModalOpen, setIsRestModalOpen] = useState(false);
+
+  const handleRest = useMemo(
+    () =>
+      createRestHandler({
+        resources: state.resources,
+        hopeWithScars: state.hopeWithScars,
+        companion: state.companion,
+        restState: state.restState,
+        setResources: handlers.setResources,
+        setHopeWithScars: handlers.setHopeWithScars,
+        setCompanion: handlers.setCompanion,
+        setRestState: handlers.setRestState,
+      }),
+    [
+      state.resources,
+      state.hopeWithScars,
+      state.companion,
+      state.restState,
+      handlers,
+    ]
+  );
+
   return (
     <div className="space-y-6 pt-4">
       {/* Row 1: Class and Equipment */}
@@ -305,6 +332,73 @@ export function CombatTab({
           baseHp={classStats.hp}
         />
       </div>
+
+      {/* Game Actions - Combat actions for Critical Success and Tag Team */}
+      <GameActions
+        state={{
+          currentStress: state.resources.stress.current,
+          maxStress: state.resources.stress.max,
+          currentHope: state.hopeWithScars.current,
+          tagTeamUsedThisSession:
+            state.restState?.tagTeamUsedThisSession ?? false,
+        }}
+        callbacks={{
+          onStressChange: newStress => {
+            handlers.setResources({
+              ...state.resources,
+              stress: { ...state.resources.stress, current: newStress },
+            });
+          },
+          onHopeChange: newHope => {
+            handlers.setHopeWithScars({
+              ...state.hopeWithScars,
+              current: newHope,
+            });
+          },
+          onTagTeamUsed: () => {
+            handlers.setRestState({
+              ...state.restState,
+              tagTeamUsedThisSession: true,
+            });
+          },
+        }}
+      />
+
+      {/* Rest Section */}
+      <section className="bg-card hover:border-primary/20 rounded-xl border shadow-sm transition-colors">
+        <div className="flex items-center justify-between border-b px-4 py-3 sm:px-6">
+          <div className="flex items-center gap-2">
+            <Moon className="size-5" />
+            <h3 className="text-lg font-semibold">Rest</h3>
+          </div>
+          <Button onClick={() => setIsRestModalOpen(true)}>Take a Rest</Button>
+        </div>
+        <div className="p-4 sm:p-6">
+          <div className="text-muted-foreground text-sm">
+            <p>Short rests allow 2 downtime moves with 1d4+Tier recovery.</p>
+            <p>Long rests allow 2 downtime moves with full recovery.</p>
+          </div>
+        </div>
+      </section>
+
+      <RestModal
+        isOpen={isRestModalOpen}
+        onClose={() => setIsRestModalOpen(false)}
+        tier={Number(state.progression.currentTier)}
+        currentHp={state.resources.hp.current}
+        maxHp={state.resources.hp.max}
+        currentStress={state.resources.stress.current}
+        maxStress={state.resources.stress.max}
+        currentArmorMarked={
+          state.resources.armorScore.max - state.resources.armorScore.current
+        }
+        totalArmorSlots={state.resources.armorScore.max}
+        shortRestsToday={state.restState.shortRestsToday}
+        onRestComplete={result => {
+          handleRest(result);
+          setIsRestModalOpen(false);
+        }}
+      />
 
       {/* Row 4: Companion (if exists) */}
       <CompanionSection
