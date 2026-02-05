@@ -5,10 +5,14 @@ import * as React from 'react';
 
 import { cn } from '@/lib/utils';
 
-function Label({
-  className,
-  ...props
-}: React.ComponentProps<typeof LabelPrimitive.Root>) {
+interface LabelProps extends React.ComponentProps<typeof LabelPrimitive.Root> {
+  /**
+   * Shows a red asterisk after the label text to indicate required fields.
+   */
+  required?: boolean;
+}
+
+function Label({ className, required, children, ...props }: LabelProps) {
   return (
     <LabelPrimitive.Root
       data-slot="label"
@@ -17,8 +21,16 @@ function Label({
         className
       )}
       {...props}
-    />
+    >
+      {children}
+      {required && (
+        <span className="text-destructive" aria-hidden="true">
+          *
+        </span>
+      )}
+    </LabelPrimitive.Root>
   );
 }
 
 export { Label };
+export type { LabelProps };

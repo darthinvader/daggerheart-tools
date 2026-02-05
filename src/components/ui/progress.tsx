@@ -30,7 +30,7 @@ function Progress({
     >
       <div
         data-slot="progress-indicator"
-        className="bg-primary h-full transition-all duration-300 ease-in-out"
+        className="bg-primary h-full transition-[width] duration-300 ease-in-out"
         style={{ width: `${percentage}%` }}
       />
     </div>

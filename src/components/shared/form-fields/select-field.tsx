@@ -1,3 +1,5 @@
+import { useId } from 'react';
+
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -15,6 +17,11 @@ export interface SelectFieldProps {
   options: readonly string[];
   placeholder?: string;
   className?: string;
+  /**
+   * Shows a red asterisk after the label to indicate required fields.
+   */
+  required?: boolean;
+  error?: string;
 }
 
 export function SelectField({
@@ -24,12 +31,24 @@ export function SelectField({
   options,
   placeholder,
   className,
+  required,
+  error,
 }: SelectFieldProps) {
+  const generatedId = useId();
+  const fieldId = generatedId;
+  const errorId = error ? `${fieldId}-error` : undefined;
+
   return (
     <div className={cn('space-y-1.5', className)}>
-      <Label>{label}</Label>
-      <Select value={value} onValueChange={onChange}>
-        <SelectTrigger>
+      <Label htmlFor={fieldId} required={required}>
+        {label}
+      </Label>
+      <Select value={value} onValueChange={onChange} required={required}>
+        <SelectTrigger
+          id={fieldId}
+          aria-describedby={errorId}
+          aria-invalid={error ? true : undefined}
+        >
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
@@ -40,6 +59,11 @@ export function SelectField({
           ))}
         </SelectContent>
       </Select>
+      {error && (
+        <p id={errorId} className="text-destructive text-sm" role="alert">
+          {error}
+        </p>
+      )}
     </div>
   );
 }

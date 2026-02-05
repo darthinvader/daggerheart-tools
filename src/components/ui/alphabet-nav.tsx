@@ -81,7 +81,7 @@ export function AlphabetNav({
             onClick={() => isAvailable && onLetterClick(letter)}
             disabled={!isAvailable}
             className={cn(
-              'text-sm font-medium transition-all',
+              'text-sm font-medium transition-colors',
               'flex size-7 items-center justify-center rounded sm:size-8',
               isAvailable
                 ? isActive

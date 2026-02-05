@@ -1,6 +1,8 @@
 import { createRootRoute, Outlet } from '@tanstack/react-router';
 import { lazy, Suspense } from 'react';
 
+import { Toaster } from '@/components/ui/sonner';
+
 const Navbar = lazy(() =>
   import('@/components/navbar/navbar').then(m => ({ default: m.Navbar }))
 );
@@ -15,15 +17,32 @@ function NavbarSkeleton() {
   );
 }
 
+/**
+ * Skip-to-content link for keyboard accessibility.
+ * Hidden by default, becomes visible when focused.
+ */
+function SkipToContent() {
+  return (
+    <a
+      href="#main-content"
+      className="bg-primary text-primary-foreground focus:ring-ring fixed top-4 left-4 z-[100] -translate-y-16 rounded-md px-4 py-2 font-medium transition-transform focus:translate-y-0 focus:ring-2 focus:ring-offset-2 focus:outline-none"
+    >
+      Skip to main content
+    </a>
+  );
+}
+
 export const Route = createRootRoute({
   component: () => (
     <>
+      <SkipToContent />
       <Suspense fallback={<NavbarSkeleton />}>
         <Navbar />
       </Suspense>
-      <main className="flex-1">
+      <main id="main-content" className="flex-1" tabIndex={-1}>
         <Outlet />
       </main>
+      <Toaster position="bottom-right" richColors closeButton />
       <footer className="text-muted-foreground border-t px-4 py-3 text-center text-xs">
         <p>
           Fan-made tool for friends. I&apos;m a small creator and don&apos;t
