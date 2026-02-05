@@ -1,4 +1,6 @@
+import { Link, type LinkProps } from '@tanstack/react-router';
 import {
+  ArrowUpRight,
   BookOpen,
   Calculator,
   ChevronRight,
@@ -233,6 +235,27 @@ function SectionContent({
       )}
       {section.cautions && section.cautions.length > 0 && (
         <CautionsAlert cautions={section.cautions} />
+      )}
+      {section.relatedSections && section.relatedSections.length > 0 && (
+        <div className="rounded-xl border border-sky-500/30 bg-sky-500/5 p-4">
+          <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-sky-600 dark:text-sky-400">
+            <ArrowUpRight className="size-4" />
+            Related Rules
+          </h3>
+          <ul className="space-y-2">
+            {section.relatedSections.map(ref => (
+              <li key={`${ref.pageId}-${ref.sectionId}`}>
+                <Link
+                  to={`/rules/${ref.pageId}` as LinkProps['to']}
+                  className="flex items-center gap-2 text-sm text-sky-700 underline-offset-2 transition-colors hover:text-sky-500 hover:underline dark:text-sky-300"
+                >
+                  <ChevronRight className="size-3.5 shrink-0 opacity-60" />
+                  {ref.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </div>
   );

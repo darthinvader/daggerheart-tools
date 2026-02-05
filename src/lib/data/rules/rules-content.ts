@@ -18,6 +18,11 @@ export interface RuleSection {
   tips?: string[];
   cautions?: string[];
   tags?: RulesTag[];
+  relatedSections?: Array<{
+    pageId: string;
+    sectionId: string;
+    label: string;
+  }>;
 }
 
 export interface RulesPage {
@@ -285,6 +290,18 @@ export const RULES_PAGES: Record<string, RulesPage> = {
             description: 'Major/Severe damage thresholds from armor.',
           },
         ],
+        relatedSections: [
+          {
+            pageId: 'combat',
+            sectionId: 'armor-thresholds',
+            label: 'Armor & Thresholds',
+          },
+          {
+            pageId: 'core-mechanics',
+            sectionId: 'stress-hp',
+            label: 'Stress & Thresholds',
+          },
+        ],
       },
       {
         id: 'starting-gear',
@@ -420,6 +437,18 @@ export const RULES_PAGES: Record<string, RulesPage> = {
             label: 'Fear',
             description: 'GM resource gained on Fear rolls and spent on moves.',
             tone: 'warning',
+          },
+        ],
+        relatedSections: [
+          {
+            pageId: 'core-mechanics',
+            sectionId: 'hope-uses',
+            label: 'Spending Hope',
+          },
+          {
+            pageId: 'gm-guide',
+            sectionId: 'fear-economy',
+            label: 'Fear Economy',
           },
         ],
       },
@@ -647,6 +676,19 @@ export const RULES_PAGES: Record<string, RulesPage> = {
             description: 'Major/Severe thresholds decide HP lost per hit.',
           },
         ],
+        relatedSections: [
+          {
+            pageId: 'character-creation',
+            sectionId: 'vitals',
+            label: 'Vitals: Evasion, HP, Stress',
+          },
+          {
+            pageId: 'combat',
+            sectionId: 'armor-thresholds',
+            label: 'Armor & Thresholds',
+          },
+          { pageId: 'combat', sectionId: 'death', label: 'Death & Last Moves' },
+        ],
       },
     ],
   },
@@ -784,6 +826,23 @@ export const RULES_PAGES: Record<string, RulesPage> = {
             description: 'Major/Severe thresholds increase by your level.',
           },
         ],
+        relatedSections: [
+          {
+            pageId: 'character-creation',
+            sectionId: 'vitals',
+            label: 'Vitals: Evasion, HP, Stress',
+          },
+          {
+            pageId: 'core-mechanics',
+            sectionId: 'stress-hp',
+            label: 'Stress & Thresholds',
+          },
+          {
+            pageId: 'downtime-advancement',
+            sectionId: 'downtime',
+            label: 'Downtime Moves',
+          },
+        ],
       },
       {
         id: 'conditions',
@@ -892,6 +951,18 @@ export const RULES_PAGES: Record<string, RulesPage> = {
             label: 'Scar',
             description: 'Permanently crosses out a Hope slot.',
             tone: 'warning',
+          },
+        ],
+        relatedSections: [
+          {
+            pageId: 'core-mechanics',
+            sectionId: 'stress-hp',
+            label: 'Stress & Thresholds',
+          },
+          {
+            pageId: 'core-mechanics',
+            sectionId: 'duality',
+            label: 'Duality Dice: Hope & Fear',
           },
         ],
       },
@@ -1141,6 +1212,23 @@ export const RULES_PAGES: Record<string, RulesPage> = {
           {
             label: 'Fear Cap',
             description: 'Fear carries between sessions and caps at 12.',
+          },
+        ],
+        relatedSections: [
+          {
+            pageId: 'core-mechanics',
+            sectionId: 'duality',
+            label: 'Duality Dice: Hope & Fear',
+          },
+          {
+            pageId: 'adversaries-environments',
+            sectionId: 'fear-features',
+            label: 'Fear Features',
+          },
+          {
+            pageId: 'downtime-advancement',
+            sectionId: 'downtime',
+            label: 'Downtime Moves',
           },
         ],
       },

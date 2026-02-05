@@ -39,7 +39,9 @@ export function DetailPanel({
             <SheetTitle className="pr-8">{title}</SheetTitle>
           </SheetHeader>
           <ScrollArea className="min-h-0 flex-1">
-            <div className="p-4 pb-8">{children}</div>
+            <div className="p-4 pb-[calc(2rem+env(safe-area-inset-bottom))]">
+              {children}
+            </div>
           </ScrollArea>
         </SheetContent>
       </Sheet>

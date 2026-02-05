@@ -1,4 +1,5 @@
-import { ChevronRight } from 'lucide-react';
+import { Link } from '@tanstack/react-router';
+import { ArrowLeft, ChevronRight } from 'lucide-react';
 import * as React from 'react';
 
 import { RulesPageDetailPanel } from '@/components/rules/rules-page-detail-panel';
@@ -13,6 +14,7 @@ import {
 } from '@/components/ui/card';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import type { RulesPage } from '@/lib/data/rules/rules-content';
+import { RULES_INDEX_CARDS } from '@/lib/data/rules/rules-content';
 import { RulesSectionIcons } from '@/lib/icons';
 import { cn } from '@/lib/utils';
 
@@ -58,7 +60,7 @@ function RulesSectionCard({
             <CardDescription className="mt-1 text-sm leading-relaxed">
               {section.summary}
             </CardDescription>
-            <div className="text-primary/60 mt-2 flex items-center gap-1 text-xs font-medium">
+            <div className="text-primary/60 mt-2 flex items-center gap-1 text-xs font-medium sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100">
               <ChevronRight className="size-3.5" />
               Tap to explore
             </div>
@@ -107,8 +109,33 @@ export function RulesPageLayout({ page }: { page: RulesPage }) {
   >(null);
   const PageIcon = RulesSectionIcons[page.iconKey];
 
+  const currentIndex = RULES_INDEX_CARDS.findIndex(
+    c => c.to === `/rules/${page.id}`
+  );
+  const prevCard =
+    currentIndex > 0 ? RULES_INDEX_CARDS[currentIndex - 1] : null;
+  const nextCard =
+    currentIndex < RULES_INDEX_CARDS.length - 1
+      ? RULES_INDEX_CARDS[currentIndex + 1]
+      : null;
+
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Sticky back link – always visible on mobile, inline on desktop */}
+      <div className="bg-background/80 sticky top-0 z-10 -mx-4 mb-4 flex items-center gap-2 px-4 py-2 backdrop-blur-sm sm:static sm:mx-0 sm:mb-6 sm:bg-transparent sm:px-0 sm:py-0 sm:backdrop-blur-none">
+        <Link
+          to="/rules"
+          className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm transition-colors"
+        >
+          <ArrowLeft className="size-3.5" />
+          Rules
+        </Link>
+        <ChevronRight className="text-muted-foreground/50 size-3.5" />
+        <span className="text-foreground text-sm font-medium">
+          {page.title}
+        </span>
+      </div>
+
       <div className="mb-10 text-center">
         <h1 className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-4xl font-bold text-transparent">
           {PageIcon && <PageIcon className="mr-2 inline-block size-8" />}
@@ -118,7 +145,7 @@ export function RulesPageLayout({ page }: { page: RulesPage }) {
           {page.description}
         </p>
         {page.quickFacts && page.quickFacts.length > 0 && (
-          <div className="mt-6 flex flex-wrap justify-center gap-2">
+          <div className="max-sm:scrollbar-none mt-6 flex justify-center gap-2 overflow-x-auto pb-2 max-sm:-mx-4 max-sm:justify-start max-sm:px-4">
             {page.quickFacts.map(fact => (
               <SmartTooltip
                 key={fact.label}
@@ -126,7 +153,7 @@ export function RulesPageLayout({ page }: { page: RulesPage }) {
               >
                 <Badge
                   variant="outline"
-                  className="border-primary/30 bg-primary/5 text-primary"
+                  className="border-primary/30 bg-primary/5 text-primary shrink-0"
                 >
                   {fact.label}: {fact.value}
                 </Badge>
@@ -150,6 +177,34 @@ export function RulesPageLayout({ page }: { page: RulesPage }) {
           activeSection={activeSection}
           onClose={() => setActiveSection(null)}
         />
+      </div>
+
+      {/* Prev / Next page navigation */}
+      <div className="mt-10 flex items-center justify-between border-t pt-6">
+        {prevCard ? (
+          <Link
+            to={prevCard.to}
+            className="text-muted-foreground hover:text-foreground group flex items-center gap-2 text-sm transition-colors"
+          >
+            <ArrowLeft className="size-4 transition-transform group-hover:-translate-x-0.5" />
+            <span className="max-sm:sr-only">{prevCard.title}</span>
+            <span className="sm:hidden">Previous</span>
+          </Link>
+        ) : (
+          <span />
+        )}
+        {nextCard ? (
+          <Link
+            to={nextCard.to}
+            className="text-muted-foreground hover:text-foreground group flex items-center gap-2 text-sm transition-colors"
+          >
+            <span className="max-sm:sr-only">{nextCard.title}</span>
+            <span className="sm:hidden">Next</span>
+            <ChevronRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+          </Link>
+        ) : (
+          <span />
+        )}
       </div>
     </div>
   );

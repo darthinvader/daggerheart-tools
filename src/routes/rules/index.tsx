@@ -1,12 +1,16 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
+import { Search } from 'lucide-react';
+import * as React from 'react';
 
+import { Badge } from '@/components/ui/badge';
 import {
   Card,
   CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { RULES_INDEX_CARDS } from '@/lib/data/rules/rules-content';
+import { Input } from '@/components/ui/input';
+import { RULES_INDEX_CARDS, RULES_PAGES } from '@/lib/data/rules/rules-content';
 import { RulesSectionIcons, Scroll } from '@/lib/icons';
 
 export const Route = createFileRoute('/rules/')({
@@ -14,6 +18,27 @@ export const Route = createFileRoute('/rules/')({
 });
 
 function RulesIndexPage() {
+  const [search, setSearch] = React.useState('');
+
+  const filteredCards = React.useMemo(() => {
+    if (!search.trim()) return RULES_INDEX_CARDS;
+    const query = search.toLowerCase();
+    return RULES_INDEX_CARDS.filter(card => {
+      const pageKey = card.to.replace('/rules/', '');
+      const page = RULES_PAGES[pageKey];
+      const sectionText = page
+        ? page.sections
+            .map(s => `${s.title} ${s.summary} ${s.bullets.join(' ')}`)
+            .join(' ')
+        : '';
+      return (
+        card.title.toLowerCase().includes(query) ||
+        card.description.toLowerCase().includes(query) ||
+        sectionText.toLowerCase().includes(query)
+      );
+    });
+  }, [search]);
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-10 text-center">
@@ -25,10 +50,19 @@ function RulesIndexPage() {
           Quick, friendly rule breakdowns for players and GMs. Pick a section to
           dive in.
         </p>
+        <div className="relative mx-auto mt-6 max-w-md">
+          <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+          <Input
+            placeholder="Search rules... (e.g. death, armor, hope)"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {RULES_INDEX_CARDS.map(card => (
+        {filteredCards.map(card => (
           <Link key={card.to} to={card.to} className="group">
             <Card className="group-hover:border-primary/50 h-full overflow-hidden transition-all hover:scale-[1.02] hover:shadow-xl">
               <div className={`h-2 bg-gradient-to-r ${card.gradient}`} />
@@ -51,6 +85,20 @@ function RulesIndexPage() {
                     <CardDescription className="mt-1 text-sm leading-relaxed">
                       {card.description}
                     </CardDescription>
+                    {(() => {
+                      const pageKey = card.to.replace('/rules/', '');
+                      const page = RULES_PAGES[pageKey];
+                      if (!page) return null;
+                      return (
+                        <Badge
+                          variant="secondary"
+                          className="mt-2 text-xs font-medium"
+                        >
+                          {page.sections.length} section
+                          {page.sections.length !== 1 ? 's' : ''}
+                        </Badge>
+                      );
+                    })()}
                   </div>
                 </div>
               </CardHeader>
@@ -58,6 +106,12 @@ function RulesIndexPage() {
           </Link>
         ))}
       </div>
+
+      {filteredCards.length === 0 && (
+        <p className="text-muted-foreground mt-8 text-center text-sm">
+          No rules matched &quot;{search}&quot;. Try a different keyword.
+        </p>
+      )}
     </div>
   );
 }
