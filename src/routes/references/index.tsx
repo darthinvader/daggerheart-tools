@@ -7,6 +7,26 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { ADVERSARIES } from '@/lib/data/adversaries';
+import { ANCESTRIES } from '@/lib/data/characters/ancestries';
+import { COMMUNITIES } from '@/lib/data/characters/communities';
+import { ALL_CLASSES } from '@/lib/data/classes';
+import { getAllDomainCards } from '@/lib/data/domains';
+import { ENVIRONMENTS } from '@/lib/data/environments';
+import {
+  ALL_ARMOR,
+  ALL_ARMOR_MODIFICATIONS,
+  ALL_COMBAT_WHEELCHAIRS,
+  ALL_CONSUMABLES,
+  ALL_POTIONS,
+  ALL_PRIMARY_WEAPONS,
+  ALL_RECIPES,
+  ALL_RELICS,
+  ALL_SECONDARY_WEAPONS,
+  ALL_UTILITY_ITEMS,
+  ALL_WEAPON_MODIFICATIONS,
+} from '@/lib/data/equipment';
+import { GM_MOVES } from '@/lib/data/gm-moves';
 import {
   Backpack,
   Beaker,
@@ -31,7 +51,25 @@ interface ReferenceCategory {
   icon: LucideIcon;
   gradient: string;
   tint: string;
+  itemCount?: number;
 }
+
+const allDomainCards = getAllDomainCards();
+
+const equipmentCount =
+  ALL_PRIMARY_WEAPONS.length +
+  ALL_SECONDARY_WEAPONS.length +
+  ALL_ARMOR.length +
+  ALL_COMBAT_WHEELCHAIRS.length;
+
+const inventoryCount =
+  ALL_UTILITY_ITEMS.length +
+  ALL_CONSUMABLES.length +
+  ALL_POTIONS.length +
+  ALL_RELICS.length +
+  ALL_WEAPON_MODIFICATIONS.length +
+  ALL_ARMOR_MODIFICATIONS.length +
+  ALL_RECIPES.length;
 
 const referenceCategories: ReferenceCategory[] = [
   {
@@ -42,6 +80,7 @@ const referenceCategories: ReferenceCategory[] = [
     icon: Swords,
     gradient: 'from-amber-500 to-orange-600',
     tint: 'bg-amber-500/10',
+    itemCount: equipmentCount,
   },
   {
     to: '/references/classes',
@@ -51,6 +90,7 @@ const referenceCategories: ReferenceCategory[] = [
     icon: Shield,
     gradient: 'from-purple-500 to-indigo-600',
     tint: 'bg-purple-500/10',
+    itemCount: ALL_CLASSES.length,
   },
   {
     to: '/references/ancestries',
@@ -60,6 +100,7 @@ const referenceCategories: ReferenceCategory[] = [
     icon: Users,
     gradient: 'from-teal-500 to-cyan-600',
     tint: 'bg-teal-500/10',
+    itemCount: ANCESTRIES.length,
   },
   {
     to: '/references/communities',
@@ -69,6 +110,7 @@ const referenceCategories: ReferenceCategory[] = [
     icon: Home,
     gradient: 'from-green-500 to-emerald-600',
     tint: 'bg-green-500/10',
+    itemCount: COMMUNITIES.length,
   },
   {
     to: '/references/domain-cards',
@@ -78,6 +120,7 @@ const referenceCategories: ReferenceCategory[] = [
     icon: Sparkles,
     gradient: 'from-violet-500 to-purple-600',
     tint: 'bg-violet-500/10',
+    itemCount: allDomainCards.length,
   },
   {
     to: '/references/inventory',
@@ -87,6 +130,7 @@ const referenceCategories: ReferenceCategory[] = [
     icon: Backpack,
     gradient: 'from-cyan-500 to-blue-600',
     tint: 'bg-cyan-500/10',
+    itemCount: inventoryCount,
   },
   {
     to: '/references/adversaries',
@@ -96,6 +140,7 @@ const referenceCategories: ReferenceCategory[] = [
     icon: Skull,
     gradient: 'from-red-500 to-rose-600',
     tint: 'bg-red-500/10',
+    itemCount: ADVERSARIES.length,
   },
   {
     to: '/references/environments',
@@ -104,6 +149,7 @@ const referenceCategories: ReferenceCategory[] = [
     icon: TreePine,
     gradient: 'from-emerald-500 to-green-600',
     tint: 'bg-emerald-500/10',
+    itemCount: ENVIRONMENTS.length,
   },
   {
     to: '/references/gm-moves',
@@ -113,6 +159,7 @@ const referenceCategories: ReferenceCategory[] = [
     icon: Compass,
     gradient: 'from-blue-500 to-cyan-600',
     tint: 'bg-blue-500/10',
+    itemCount: GM_MOVES.length,
   },
   {
     to: '/references/demo-features',
@@ -138,11 +185,11 @@ function ReferencesIndexPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {referenceCategories.map(category => (
           <Link key={category.to} to={category.to} className="group">
-            <Card className="group-hover:border-primary/50 h-full overflow-hidden transition-all hover:scale-[1.02] hover:shadow-xl">
-              <div className={`h-2 bg-gradient-to-r ${category.gradient}`} />
+            <Card className="group-hover:border-primary/50 h-full overflow-hidden transition-all hover:shadow-xl">
+              <div className={`h-1.5 bg-gradient-to-r ${category.gradient}`} />
               <CardHeader>
                 <div className="flex items-start gap-4">
                   <div
@@ -157,6 +204,11 @@ function ReferencesIndexPage() {
                     <CardDescription className="mt-1 text-sm leading-relaxed">
                       {category.description}
                     </CardDescription>
+                    {category.itemCount != null && (
+                      <span className="text-muted-foreground text-xs">
+                        {category.itemCount} items
+                      </span>
+                    )}
                   </div>
                 </div>
               </CardHeader>

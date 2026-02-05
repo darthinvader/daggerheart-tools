@@ -11,6 +11,7 @@ import {
   BackToTop,
   DetailCloseButton,
   KeyboardHint,
+  ReferenceEmptyState,
   ReferencePageSkeleton,
   ResultsCounter,
   useDeferredItems,
@@ -55,6 +56,7 @@ import {
   TreePine,
 } from '@/lib/icons';
 import type { Environment } from '@/lib/schemas/environments';
+import { tierColors } from '@/lib/utils/tier-colors';
 
 export const Route = createFileRoute('/references/environments')({
   component: EnvironmentsReferencePage,
@@ -73,13 +75,6 @@ const typeOrder: Environment['type'][] = [
   'Social',
   'Traversal',
 ];
-
-const tierColors: Record<Environment['tier'], string> = {
-  '1': 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/40',
-  '2': 'bg-teal-500/20 text-teal-700 dark:text-teal-300 border-teal-500/40',
-  '3': 'bg-orange-500/20 text-orange-700 dark:text-orange-300 border-orange-500/40',
-  '4': 'bg-red-500/20 text-red-700 dark:text-red-300 border-red-500/40',
-};
 
 const typeColors: Record<Environment['type'], string> = {
   Exploration: 'bg-sky-500/20 text-sky-700 dark:text-sky-300 border-sky-500/40',
@@ -382,7 +377,7 @@ const EnvironmentsGrid = React.memo(function EnvironmentsGrid({
 }) {
   if (isMobile) {
     return (
-      <div className="grid grid-cols-1 gap-3">
+      <div className="grid grid-cols-1 gap-4">
         {items.map(environment => (
           <EnvironmentCard
             key={environment.name}
@@ -395,7 +390,7 @@ const EnvironmentsGrid = React.memo(function EnvironmentsGrid({
     );
   }
   return (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
       {items.map(environment => (
         <EnvironmentCard
           key={environment.name}
@@ -406,17 +401,6 @@ const EnvironmentsGrid = React.memo(function EnvironmentsGrid({
     </div>
   );
 });
-
-function EnvironmentsEmptyState({ onClear }: { onClear: () => void }) {
-  return (
-    <div className="text-muted-foreground py-12 text-center">
-      <p>No environments match your filters.</p>
-      <Button variant="link" onClick={onClear} className="mt-2">
-        Clear filters
-      </Button>
-    </div>
-  );
-}
 
 function EnvironmentDetailSheet({
   selectedEnvironment,
@@ -489,10 +473,10 @@ const EnvironmentCard = React.memo(function EnvironmentCard({
 
   return (
     <Card
-      className="reference-card card-grid-item hover:border-primary/50 group h-full cursor-pointer overflow-hidden transition-all hover:scale-[1.01] hover:shadow-xl"
+      className="reference-card card-grid-item hover:border-primary/50 group h-full cursor-pointer overflow-hidden transition-all hover:shadow-xl"
       onClick={onClick}
     >
-      <div className="h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500" />
+      <div className="h-1.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500" />
       <CardHeader className={compact ? 'pb-2' : 'pb-3'}>
         <div className="flex flex-wrap items-center gap-2">
           <CardTitle className={compact ? 'text-base' : 'text-xl'}>
@@ -859,8 +843,9 @@ function EnvironmentsReferencePage() {
           />
 
           {deferredEnvironments.length === 0 && !isFiltering && (
-            <EnvironmentsEmptyState
-              onClear={() => {
+            <ReferenceEmptyState
+              itemType="environments"
+              onClearFilters={() => {
                 setSearch('');
                 setTierFilter('all');
                 setTypeFilter('all');

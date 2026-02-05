@@ -8,6 +8,7 @@ import {
   BackToTop,
   DetailCloseButton,
   KeyboardHint,
+  ReferenceEmptyState,
   ReferencePageSkeleton,
   ResultsCounter,
   useDeferredItems,
@@ -132,10 +133,10 @@ function CommunityCard({
   if (compact) {
     return (
       <Card
-        className="hover:border-primary/50 cursor-pointer overflow-hidden transition-all hover:scale-[1.02] hover:shadow-lg"
+        className="hover:border-primary/50 h-full cursor-pointer overflow-hidden transition-all hover:shadow-lg"
         onClick={onClick}
       >
-        <div className={`h-2 bg-gradient-to-r ${gradient}`} />
+        <div className={`h-1.5 bg-gradient-to-r ${gradient}`} />
         <CardHeader className="pb-2">
           <CardTitle className="truncate text-lg">{community.name}</CardTitle>
           <CardDescription className="mt-1 line-clamp-2 text-xs">
@@ -184,7 +185,7 @@ function CommunityCard({
 
   return (
     <Card
-      className="h-full cursor-pointer overflow-hidden transition-all hover:scale-[1.01] hover:shadow-lg"
+      className="h-full cursor-pointer overflow-hidden transition-all hover:shadow-lg"
       onClick={onClick}
     >
       <div className={`h-3 bg-gradient-to-r ${gradient}`} />
@@ -458,7 +459,7 @@ function CommunitiesGrid({
 }) {
   if (isMobile) {
     return (
-      <div className="grid grid-cols-1 gap-3">
+      <div className="grid grid-cols-1 gap-4">
         {items.map(community => (
           <CommunityCard
             key={community.name}
@@ -471,7 +472,7 @@ function CommunitiesGrid({
     );
   }
   return (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
       {items.map(community => (
         <CommunityCard
           key={community.name}
@@ -479,17 +480,6 @@ function CommunitiesGrid({
           onClick={() => onSelect(community)}
         />
       ))}
-    </div>
-  );
-}
-
-function CommunitiesEmptyState({ onClear }: { onClear: () => void }) {
-  return (
-    <div className="text-muted-foreground py-12 text-center">
-      <p>No communities match your search.</p>
-      <Button variant="link" onClick={onClear} className="mt-2">
-        Clear search
-      </Button>
     </div>
   );
 }
@@ -603,7 +593,10 @@ function CommunitiesReferencePage() {
           />
 
           {deferredCommunities.length === 0 && !isFiltering && (
-            <CommunitiesEmptyState onClear={() => setSearch('')} />
+            <ReferenceEmptyState
+              itemType="communities"
+              onClearFilters={() => setSearch('')}
+            />
           )}
         </div>
       </div>

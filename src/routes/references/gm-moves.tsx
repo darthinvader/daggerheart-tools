@@ -20,6 +20,7 @@ import {
   BackToTop,
   DetailCloseButton,
   KeyboardHint,
+  ReferenceEmptyState,
   ReferencePageSkeleton,
   ResultsCounter,
   useDeferredItems,
@@ -332,10 +333,10 @@ const GMMoveCard = React.memo(function GMMoveCard({
 
   return (
     <Card
-      className="reference-card card-grid-item hover:border-primary/50 group h-full cursor-pointer overflow-hidden transition-all hover:scale-[1.01] hover:shadow-xl"
+      className="reference-card card-grid-item hover:border-primary/50 group h-full cursor-pointer overflow-hidden transition-all hover:shadow-xl"
       onClick={onClick}
     >
-      <div className="h-1 bg-gradient-to-r from-blue-500 via-cyan-500 to-teal-500" />
+      <div className="h-1.5 bg-gradient-to-r from-blue-500 via-cyan-500 to-teal-500" />
       <CardHeader className={compact ? 'pb-2' : 'pb-3'}>
         <div className="flex flex-wrap items-center gap-2">
           <CardTitle className={compact ? 'text-base' : 'text-lg'}>
@@ -387,7 +388,7 @@ const GMMovesGrid = React.memo(function GMMovesGrid({
 }) {
   if (isMobile) {
     return (
-      <div className="grid grid-cols-1 gap-3">
+      <div className="grid grid-cols-1 gap-4">
         {items.map(move => (
           <GMMoveCard
             key={move.name}
@@ -400,7 +401,7 @@ const GMMovesGrid = React.memo(function GMMovesGrid({
     );
   }
   return (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
       {items.map(move => (
         <GMMoveCard
           key={move.name}
@@ -411,17 +412,6 @@ const GMMovesGrid = React.memo(function GMMovesGrid({
     </div>
   );
 });
-
-function GMMovesEmptyState({ onClear }: { onClear: () => void }) {
-  return (
-    <div className="text-muted-foreground py-12 text-center">
-      <p>No moves match your filters.</p>
-      <Button variant="link" onClick={onClear} className="mt-2">
-        Clear filters
-      </Button>
-    </div>
-  );
-}
 
 function GMMoveDetailHeader({ move }: { move: GMMove }) {
   return (
@@ -611,8 +601,9 @@ function GMMovesReferencePage() {
           />
 
           {deferredMoves.length === 0 && !isFiltering && (
-            <GMMovesEmptyState
-              onClear={() => {
+            <ReferenceEmptyState
+              itemType="moves"
+              onClearFilters={() => {
                 setSearch('');
                 setCategoryFilter('all');
               }}

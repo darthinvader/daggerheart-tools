@@ -8,6 +8,7 @@ import {
   BackToTop,
   DetailCloseButton,
   KeyboardHint,
+  ReferenceEmptyState,
   ReferencePageSkeleton,
   ResultsCounter,
   useDeferredItems,
@@ -84,7 +85,7 @@ function AncestryCard({
   if (compact) {
     return (
       <Card
-        className="hover:border-primary/50 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg"
+        className="hover:border-primary/50 h-full cursor-pointer transition-all hover:shadow-lg"
         onClick={onClick}
       >
         <div className={`h-1.5 bg-gradient-to-r ${gradient}`} />
@@ -118,7 +119,7 @@ function AncestryCard({
 
   return (
     <Card
-      className="h-full cursor-pointer overflow-hidden transition-all hover:scale-[1.01] hover:shadow-lg"
+      className="h-full cursor-pointer overflow-hidden transition-all hover:shadow-lg"
       onClick={onClick}
     >
       <div className={`h-1.5 bg-gradient-to-r ${gradient}`} />
@@ -474,7 +475,7 @@ function AncestriesGrid({
 }) {
   if (isMobile) {
     return (
-      <div className="grid grid-cols-1 gap-3">
+      <div className="grid grid-cols-1 gap-4">
         {items.map(ancestry => (
           <AncestryCard
             key={ancestry.name}
@@ -487,7 +488,7 @@ function AncestriesGrid({
     );
   }
   return (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
       {items.map(ancestry => (
         <AncestryCard
           key={ancestry.name}
@@ -495,17 +496,6 @@ function AncestriesGrid({
           onClick={() => onSelect(ancestry)}
         />
       ))}
-    </div>
-  );
-}
-
-function AncestriesEmptyState({ onClear }: { onClear: () => void }) {
-  return (
-    <div className="text-muted-foreground py-12 text-center">
-      <p>No ancestries match your search.</p>
-      <Button variant="link" onClick={onClear} className="mt-2">
-        Clear search
-      </Button>
     </div>
   );
 }
@@ -619,7 +609,10 @@ function AncestriesReferencePage() {
           />
 
           {deferredAncestries.length === 0 && !isFiltering && (
-            <AncestriesEmptyState onClear={() => setSearch('')} />
+            <ReferenceEmptyState
+              itemType="ancestries"
+              onClearFilters={() => setSearch('')}
+            />
           )}
         </div>
       </div>

@@ -22,6 +22,7 @@ import {
   DetailCloseButton,
   type FilterGroup,
   KeyboardHint,
+  ReferenceEmptyState,
   ReferenceFilter,
   ReferencePageSkeleton,
   ResultsCounter,
@@ -293,10 +294,10 @@ const ItemCard = React.memo(function ItemCard({
 
   return (
     <Card
-      className={`reference-card card-grid-item hover:border-primary/50 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg ${inCompare ? 'ring-primary ring-2' : ''}`}
+      className={`reference-card card-grid-item hover:border-primary/50 h-full cursor-pointer transition-all hover:shadow-lg ${inCompare ? 'ring-primary ring-2' : ''}`}
       onClick={onClick}
     >
-      <div className={`h-1 bg-gradient-to-r ${gradient}`} />
+      <div className={`h-1.5 bg-gradient-to-r ${gradient}`} />
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
           <CardTitle
@@ -972,7 +973,7 @@ const InventoryGridSections = React.memo(function InventoryGridSections({
               </button>
             </CollapsibleTrigger>
             <CollapsibleContent className="pt-4">
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {items.map((item, idx) => (
                   <ItemCard
                     key={`${item.data.name}-${idx}`}
@@ -1004,7 +1005,7 @@ const InventoryTableView = React.memo(function InventoryTableView({
 }) {
   return (
     <Table>
-      <TableHeader>
+      <TableHeader className="bg-background sticky top-0 z-10">
         <TableRow>
           <SortableTableHead
             column="name"
@@ -1041,21 +1042,6 @@ const InventoryTableView = React.memo(function InventoryTableView({
     </Table>
   );
 });
-
-function InventoryEmptyState({
-  onClearFilters,
-}: {
-  onClearFilters: () => void;
-}) {
-  return (
-    <div className="text-muted-foreground py-12 text-center">
-      <p>No inventory items match your filters.</p>
-      <Button variant="link" onClick={onClearFilters} className="mt-2">
-        Clear all filters
-      </Button>
-    </div>
-  );
-}
 
 function InventoryDetailSheet({
   selectedItem,
@@ -1232,7 +1218,10 @@ function InventoryLayout({
             )}
 
             {filteredItems.length === 0 && (
-              <InventoryEmptyState onClearFilters={onClearFilters} />
+              <ReferenceEmptyState
+                itemType="inventory items"
+                onClearFilters={onClearFilters}
+              />
             )}
           </div>
         </div>

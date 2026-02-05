@@ -1,5 +1,6 @@
 import { GitCompare, Minus, Plus, X } from 'lucide-react';
 import * as React from 'react';
+import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -118,8 +119,10 @@ export function CompareToggleButton({
         e.stopPropagation();
         if (inCompare) {
           removeFromCompare(item.id);
+          toast('Removed from compare', { description: item.name });
         } else {
           addToCompare(item);
+          toast('Added to compare', { description: item.name });
         }
       }}
       disabled={isFull}

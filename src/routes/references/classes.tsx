@@ -15,6 +15,7 @@ import {
   BackToTop,
   DetailCloseButton,
   KeyboardHint,
+  ReferenceEmptyState,
   ReferencePageSkeleton,
   ResultsCounter,
   useDeferredItems,
@@ -548,7 +549,7 @@ function ClassCard({
     <Tooltip>
       <TooltipTrigger asChild>
         <Card
-          className="group hover:border-primary/50 h-full cursor-pointer overflow-hidden transition-all hover:scale-[1.01] hover:shadow-xl"
+          className="group hover:border-primary/50 h-full cursor-pointer overflow-hidden transition-all hover:shadow-xl"
           onClick={() => onSelect(gameClass.name)}
         >
           <div className={`h-1.5 bg-gradient-to-r ${gradient}`} />
@@ -714,17 +715,6 @@ function ClassesContent({
   );
 }
 
-function ClassesEmptyState({ onClear }: { onClear: () => void }) {
-  return (
-    <div className="text-muted-foreground py-12 text-center">
-      <p>No classes match your search.</p>
-      <Button variant="link" onClick={onClear} className="mt-2">
-        Clear search
-      </Button>
-    </div>
-  );
-}
-
 function ClassDetailSheet({
   selectedClass,
   onClose,
@@ -851,7 +841,10 @@ function ClassesReferencePage() {
             />
 
             {deferredClasses.length === 0 && !isFiltering && (
-              <ClassesEmptyState onClear={() => setSearch('')} />
+              <ReferenceEmptyState
+                itemType="classes"
+                onClearFilters={() => setSearch('')}
+              />
             )}
           </div>
         </div>

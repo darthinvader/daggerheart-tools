@@ -5,6 +5,7 @@ import {
   ArrowDown,
   ArrowUp,
   ChevronDown,
+  ChevronLeft,
   ChevronRight,
   Grid3X3,
   List,
@@ -24,6 +25,7 @@ import {
   DetailCloseButton,
   type FilterGroup,
   KeyboardHint,
+  ReferenceEmptyState,
   ReferenceFilter,
   ReferencePageSkeleton,
   ResultsCounter,
@@ -267,7 +269,7 @@ const DomainCardCard = React.memo(function DomainCardCard({
 
   return (
     <Card
-      className={`reference-card card-grid-item h-full cursor-pointer border-l-4 transition-all hover:scale-[1.01] hover:shadow-lg ${domainColor.border} overflow-hidden ${inCompare ? 'ring-primary ring-2' : ''}`}
+      className={`reference-card card-grid-item h-full cursor-pointer border-l-4 transition-all hover:shadow-lg ${domainColor.border} overflow-hidden ${inCompare ? 'ring-primary ring-2' : ''}`}
       onClick={onClick}
     >
       <CardHeader className="pb-2">
@@ -855,7 +857,7 @@ const DomainCardsGridSections = React.memo(function DomainCardsGridSections({
               </button>
             </CollapsibleTrigger>
             <CollapsibleContent className="pt-4">
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {cards.map(card => (
                   <DomainCardCard
                     key={`${card.domain}-${card.name}`}
@@ -887,7 +889,7 @@ const DomainCardsTableView = React.memo(function DomainCardsTableView({
 }) {
   return (
     <Table>
-      <TableHeader>
+      <TableHeader className="bg-background sticky top-0 z-10">
         <TableRow>
           <SortableTableHead
             column="name"
@@ -933,30 +935,28 @@ const DomainCardsTableView = React.memo(function DomainCardsTableView({
   );
 });
 
-function DomainCardsEmptyState({
-  onClearFilters,
-}: {
-  onClearFilters: () => void;
-}) {
-  return (
-    <div className="text-muted-foreground py-12 text-center">
-      <p>No domain cards match your filters.</p>
-      <Button variant="link" onClick={onClearFilters} className="mt-2">
-        Clear all filters
-      </Button>
-    </div>
-  );
-}
-
 function DomainCardDetailSheet({
   selectedCard,
   onClose,
+  filteredCards,
+  onNavigate,
 }: {
   selectedCard: DomainCard | null;
   onClose: () => void;
+  filteredCards: DomainCard[];
+  onNavigate: (card: DomainCard) => void;
 }) {
   // Defer rendering heavy content until sheet animation completes
   const shouldRenderContent = useDeferredSheetContent(selectedCard !== null);
+
+  const currentIndex = selectedCard
+    ? filteredCards.findIndex(c => c === selectedCard)
+    : -1;
+  const prevCard = currentIndex > 0 ? filteredCards[currentIndex - 1] : null;
+  const nextCard =
+    currentIndex >= 0 && currentIndex < filteredCards.length - 1
+      ? filteredCards[currentIndex + 1]
+      : null;
 
   return (
     <ResponsiveSheet
@@ -985,6 +985,26 @@ function DomainCardDetailSheet({
               ) : (
                 <SheetContentSkeleton />
               )}
+            </div>
+            <div className="mt-4 flex items-center justify-between border-t px-4 pt-4 pb-4">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!prevCard}
+                onClick={() => prevCard && onNavigate(prevCard)}
+              >
+                <ChevronLeft className="mr-1 size-4" />
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!nextCard}
+                onClick={() => nextCard && onNavigate(nextCard)}
+              >
+                Next
+                <ChevronRight className="ml-1 size-4" />
+              </Button>
             </div>
           </>
         )}
@@ -1123,7 +1143,10 @@ function DomainCardsLayout({
             )}
 
             {filteredCards.length === 0 && (
-              <DomainCardsEmptyState onClearFilters={onClearFilters} />
+              <ReferenceEmptyState
+                itemType="domain cards"
+                onClearFilters={onClearFilters}
+              />
             )}
           </div>
         </div>
@@ -1134,6 +1157,8 @@ function DomainCardsLayout({
       <DomainCardDetailSheet
         selectedCard={selectedCard}
         onClose={onCloseCard}
+        filteredCards={filteredCards}
+        onNavigate={onSelectCard}
       />
 
       <DomainCardsCompareDrawer />

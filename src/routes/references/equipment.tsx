@@ -1,7 +1,7 @@
 /* eslint-disable complexity */
 // Equipment reference page with page-specific detail components
 
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import {
   ArrowDown,
   ArrowUp,
@@ -14,6 +14,7 @@ import {
   X,
 } from 'lucide-react';
 import * as React from 'react';
+import { z } from 'zod';
 
 import {
   BackToTop,
@@ -24,6 +25,7 @@ import {
   DetailCloseButton,
   type FilterGroup,
   KeyboardHint,
+  ReferenceEmptyState,
   ReferenceFilter,
   ReferencePageSkeleton,
   ResultsCounter,
@@ -85,10 +87,19 @@ import type {
   SpecialArmor,
   StandardArmor,
 } from '@/lib/schemas/equipment';
+import { tierColors } from '@/lib/utils/tier-colors';
 import { useCategoryExpandState } from './use-category-expand-state';
+
+const equipmentSearchSchema = z.object({
+  q: z.string().optional().catch(undefined),
+  view: z.enum(['grid', 'table']).optional().catch(undefined),
+  sort: z.enum(['name', 'tier', 'type', 'trait']).optional().catch(undefined),
+  dir: z.enum(['asc', 'desc']).optional().catch(undefined),
+});
 
 export const Route = createFileRoute('/references/equipment')({
   component: EquipmentPageWrapper,
+  validateSearch: search => equipmentSearchSchema.parse(search),
 });
 
 type EquipmentItem =
@@ -98,12 +109,6 @@ type EquipmentItem =
   | { type: 'wheelchair'; data: CombatWheelchair };
 
 // Color mappings
-const tierColors: Record<string, string> = {
-  '1': 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30',
-  '2': 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30',
-  '3': 'bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/30',
-  '4': 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30',
-};
 
 const tierDotColors: Record<string, string> = {
   '1': 'bg-emerald-500',
@@ -674,7 +679,7 @@ const EquipmentCard = React.memo(function EquipmentCard({
 
   return (
     <Card
-      className={`reference-card card-grid-item hover:border-primary/50 cursor-pointer overflow-hidden transition-all hover:scale-[1.02] hover:shadow-lg ${inCompare ? 'ring-primary ring-2' : ''}`}
+      className={`reference-card card-grid-item hover:border-primary/50 h-full cursor-pointer overflow-hidden transition-all hover:shadow-lg ${inCompare ? 'ring-primary ring-2' : ''}`}
       onClick={onClick}
       style={{
         // Browser-native content visibility virtualization
@@ -1540,7 +1545,7 @@ const EquipmentGridSections = React.memo(function EquipmentGridSections({
                         ({tierItems.length})
                       </span>
                     </h3>
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                       {tierItems.map((item, idx) => (
                         <EquipmentCard
                           key={`${item.data.name}-${idx}`}
@@ -1576,7 +1581,7 @@ const EquipmentTableView = React.memo(function EquipmentTableView({
 }) {
   return (
     <Table>
-      <TableHeader>
+      <TableHeader className="bg-background sticky top-0 z-10">
         <TableRow>
           <SortableTableHead
             column="name"
@@ -1623,37 +1628,6 @@ const EquipmentTableView = React.memo(function EquipmentTableView({
     </Table>
   );
 });
-
-function EquipmentEmptyState({
-  onClearFilters,
-}: {
-  onClearFilters: () => void;
-}) {
-  return (
-    <div
-      className="flex flex-col items-center justify-center py-12 text-center"
-      role="status"
-      aria-live="polite"
-    >
-      <div className="bg-muted/50 mb-4 rounded-full p-4">
-        <Sword className="text-muted-foreground size-8" />
-      </div>
-      <h3 className="text-foreground mb-2 text-lg font-semibold">
-        No equipment found
-      </h3>
-      <p className="text-muted-foreground mb-1 max-w-sm text-sm">
-        No equipment matches your current filters.
-      </p>
-      <p className="text-muted-foreground/80 mb-4 max-w-sm text-xs italic">
-        Tip: Try adjusting tier, category, or trait filters to find what you're
-        looking for.
-      </p>
-      <Button variant="outline" onClick={onClearFilters} size="sm">
-        Clear all filters
-      </Button>
-    </div>
-  );
-}
 
 function EquipmentDetailSheet({
   selectedItem,
@@ -1827,7 +1801,11 @@ function EquipmentLayout({
             )}
 
             {filteredItems.length === 0 && (
-              <EquipmentEmptyState onClearFilters={onClearFilters} />
+              <ReferenceEmptyState
+                itemType="equipment"
+                onClearFilters={onClearFilters}
+                tip="Try adjusting tier, category, or trait filters to find what you're looking for."
+              />
             )}
           </div>
         </div>
@@ -1843,11 +1821,19 @@ function EquipmentLayout({
 }
 
 function EquipmentReferencePage() {
+  const searchParams = Route.useSearch();
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const scrollRef = React.useRef<HTMLDivElement>(null);
-  const [viewMode, setViewMode] = React.useState<'grid' | 'table'>('grid');
-  const [sortBy, setSortBy] = React.useState<EquipmentSortKey>('name');
-  const [sortDir, setSortDir] = React.useState<'asc' | 'desc'>('asc');
+  const [viewMode, setViewMode] = React.useState<'grid' | 'table'>(
+    searchParams.view ?? 'grid'
+  );
+  const [sortBy, setSortBy] = React.useState<EquipmentSortKey>(
+    searchParams.sort ?? 'name'
+  );
+  const [sortDir, setSortDir] = React.useState<'asc' | 'desc'>(
+    searchParams.dir ?? 'asc'
+  );
   const [selectedItem, setSelectedItem] = React.useState<EquipmentItem | null>(
     null
   );
@@ -1865,6 +1851,51 @@ function EquipmentReferencePage() {
 
   const { filterState, onSearchChange, onFilterChange, onClearFilters } =
     useFilterState(filterGroups);
+
+  // Initialize search text from URL on mount
+  const hasMounted = React.useRef(false);
+  React.useEffect(() => {
+    if (searchParams.q) {
+      onSearchChange(searchParams.q);
+    }
+    const raf = requestAnimationFrame(() => {
+      hasMounted.current = true;
+    });
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Sync view/sort/dir to URL immediately
+  React.useEffect(() => {
+    void navigate({
+      to: '/references/equipment',
+      search: prev => ({
+        ...prev,
+        view: viewMode === 'grid' ? undefined : viewMode,
+        sort: sortBy === 'name' ? undefined : sortBy,
+        dir: sortDir === 'asc' ? undefined : sortDir,
+      }),
+      replace: true,
+    });
+  }, [viewMode, sortBy, sortDir, navigate]);
+
+  // Debounced search text sync to URL
+  const searchTimerRef = React.useRef<ReturnType<typeof setTimeout>>(undefined);
+  React.useEffect(() => {
+    if (!hasMounted.current) return;
+    clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(() => {
+      void navigate({
+        to: '/references/equipment',
+        search: prev => ({
+          ...prev,
+          q: filterState.search || undefined,
+        }),
+        replace: true,
+      });
+    }, 300);
+    return () => clearTimeout(searchTimerRef.current);
+  }, [filterState.search, navigate]);
 
   const filteredItems = React.useMemo(() => {
     if (!allItems) return [];
