@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { BattleStateSchema } from './battle';
+import { SessionZeroSchema } from './session-zero';
 
 // =====================================================================================
 // Campaign Frame Schemas
@@ -11,8 +12,9 @@ import { BattleStateSchema } from './battle';
  * 1 = Low complexity, sits within traditional fantasy genre
  * 2 = Medium complexity, some additional mechanics
  * 3 = High complexity, requires comfortable homebrewing
+ * 4 = Very High complexity, extensive custom content and advanced mechanics
  */
-export const CampaignComplexitySchema = z.enum(['1', '2', '3']);
+export const CampaignComplexitySchema = z.enum(['1', '2', '3', '4']);
 
 /**
  * Tone descriptors for campaign feel
@@ -208,6 +210,47 @@ export const NPCQuestAppearanceSchema = z.object({
 });
 
 // =====================================================================================
+// NPC Feature Schema - Trigger/Effect mechanics per Chapter 3
+// =====================================================================================
+
+/**
+ * NPC Features allow NPCs to mechanically interact with the game system.
+ * Per Chapter 3 (page 167), features have:
+ * - An optional "choice" parameter that sets up the trigger/effect context
+ * - A "trigger" event that activates the feature
+ * - An "effect" that describes what mechanically occurs
+ *
+ * Examples from the rulebook:
+ * - "Not On My Watch": Trigger when a PC marks HP, Effect to absorb damage
+ * - "Volley of Arrows": Trigger when battle begins, Effect to deal damage on countdown
+ * - "Mentor": Trigger when protege fails attack, Effect to grant advantage
+ */
+export const NPCFeatureSchema = z.object({
+  id: z.string(),
+  name: z.string().min(1, 'Feature name is required'),
+  choice: z.string().optional(), // Optional setup parameter (e.g., "When battle begins, choose a favored PC")
+  trigger: z.string().min(1, 'Trigger is required'), // When does this activate
+  effect: z.string().min(1, 'Effect is required'), // What happens mechanically
+  notes: z.string().default(''), // GM notes about this feature
+  isActive: z.boolean().default(true), // Can be toggled on/off
+  usesPerRest: z.number().optional(), // Times usable per rest (if limited)
+  currentUses: z.number().default(0), // Track uses during play
+});
+
+// =====================================================================================
+// NPC Role - Categorizes the NPC's relationship to the party
+// =====================================================================================
+
+/**
+ * NPC Role describes the character's relationship to the PCs.
+ * - ally: Friendly and helpful to the party
+ * - neutral: Neither helpful nor hostile
+ * - rival: Competitive or antagonistic, but not villainous
+ * - villain: Actively working against the party
+ */
+export const NPCRoleSchema = z.enum(['ally', 'neutral', 'rival', 'villain']);
+
+// =====================================================================================
 // Campaign NPCs/Characters - Story characters the GM creates
 // =====================================================================================
 
@@ -215,6 +258,7 @@ export const CampaignNPCSchema = z.object({
   id: z.string(),
   name: z.string().min(1),
   titleRole: z.string().default(''), // e.g., "The Merchant Prince", "Village Elder" (renamed from title)
+  role: NPCRoleSchema.default('neutral'), // Relationship to the party
   status: z
     .enum(['active', 'deceased', 'missing', 'retired'])
     .default('active'),
@@ -223,6 +267,9 @@ export const CampaignNPCSchema = z.object({
   motivation: z.string().default(''), // What drives them
   backgroundHistory: z.string().default(''), // Background/History (renamed)
   secrets: z.string().default(''), // Hidden info only GM knows
+
+  // NPC Features - Trigger/Effect mechanics per Chapter 3
+  features: z.array(NPCFeatureSchema).default([]),
 
   // Organization/Faction links
   faction: z.string().default(''), // Legacy field
@@ -546,6 +593,8 @@ export const CampaignSchema = z.object({
   organizations: z.array(CampaignOrganizationSchema).default([]),
   storyThreads: z.array(StoryThreadSchema).default([]),
   battles: z.array(BattleStateSchema).default([]),
+  // Session Zero Framework - CATS method, safety tools, and table agreements
+  sessionZero: SessionZeroSchema.optional(),
   sessionPrepChecklist: z
     .array(
       z.object({
@@ -603,6 +652,8 @@ export type SessionNote = z.infer<typeof SessionNoteSchema>;
 export type SessionNPCInvolvement = z.infer<typeof SessionNPCInvolvementSchema>;
 export type NPCSessionAppearance = z.infer<typeof NPCSessionAppearanceSchema>;
 export type NPCQuestAppearance = z.infer<typeof NPCQuestAppearanceSchema>;
+export type NPCFeature = z.infer<typeof NPCFeatureSchema>;
+export type NPCRole = z.infer<typeof NPCRoleSchema>;
 export type CampaignNPC = z.infer<typeof CampaignNPCSchema>;
 export type PointOfInterest = z.infer<typeof PointOfInterestSchema>;
 export type CampaignLocation = z.infer<typeof CampaignLocationSchema>;
@@ -617,3 +668,31 @@ export type Campaign = z.infer<typeof CampaignSchema>;
 
 // Re-export battle types for convenience
 export type { BattleState } from './battle';
+
+// Re-export session-zero types and utilities for convenience
+// Note: SafetyLineSchema, SafetyVeilSchema, SafetyLine, SafetyVeil are NOT re-exported here
+// to avoid duplicate export conflicts - they are exported directly from session-zero in index.ts
+export {
+  calculateSessionZeroProgress,
+  CharacterConnectionSchema,
+  CONNECTION_TYPE_OPTIONS,
+  createEmptySessionZero,
+  DEFAULT_TONE_OPTIONS,
+  generateSessionZeroItemId,
+  SESSION_ZERO_CHECKLIST,
+  SessionZeroQuestionAnswerSchema,
+  SessionZeroSchema,
+  SUGGESTED_TABLE_AGREEMENTS,
+  TABLE_AGREEMENT_CATEGORIES,
+  TableAgreementSchema,
+  TonePreferenceSchema,
+  WorldbuildingNoteSchema,
+} from './session-zero';
+export type {
+  CharacterConnection,
+  SessionZero,
+  SessionZeroQuestionAnswer,
+  TableAgreement,
+  TonePreference,
+  WorldbuildingNote,
+} from './session-zero';

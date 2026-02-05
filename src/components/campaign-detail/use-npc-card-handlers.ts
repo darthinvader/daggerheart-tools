@@ -5,6 +5,8 @@
  * - ID list handlers for locations, orgs, allies, enemies
  * - Picker handlers with modal close
  * - Status change handler
+ * - Role change handler (party relationship)
+ * - Feature handlers (add, update, delete, toggle, reset uses)
  */
 import { useCallback, useMemo } from 'react';
 
@@ -12,6 +14,8 @@ import type {
   CampaignLocation,
   CampaignNPC,
   CampaignOrganization,
+  NPCFeature,
+  NPCRole,
 } from '@/lib/schemas/campaign';
 
 import { useEntityIdListHandlers } from './entity-card-utils';
@@ -112,6 +116,110 @@ export function useNPCCardHandlers({
     [setLocalNPC, scheduleAutoSave]
   );
 
+  // Role change handler (party relationship)
+  const handleRoleChange = useCallback(
+    (value: NPCRole) => {
+      setLocalNPC(current => {
+        const updated = { ...current, role: value };
+        scheduleAutoSave(updated);
+        return updated;
+      });
+    },
+    [setLocalNPC, scheduleAutoSave]
+  );
+
+  // ===================================================================================
+  // Feature Handlers - Trigger/Effect mechanics per Chapter 3
+  // ===================================================================================
+
+  // Generate unique ID for new features
+  const generateFeatureId = useCallback(() => {
+    return `feature-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+  }, []);
+
+  // Add a new feature
+  const handleAddFeature = useCallback(() => {
+    const newFeature: NPCFeature = {
+      id: generateFeatureId(),
+      name: 'New Feature',
+      trigger: '',
+      effect: '',
+      notes: '',
+      isActive: true,
+      currentUses: 0,
+    };
+    setLocalNPC(current => {
+      const updated = {
+        ...current,
+        features: [...(current.features ?? []), newFeature],
+      };
+      scheduleAutoSave(updated);
+      return updated;
+    });
+  }, [generateFeatureId, setLocalNPC, scheduleAutoSave]);
+
+  // Update a feature
+  const handleUpdateFeature = useCallback(
+    (featureId: string, updates: Partial<NPCFeature>) => {
+      setLocalNPC(current => {
+        const updatedFeatures = (current.features ?? []).map(feature =>
+          feature.id === featureId ? { ...feature, ...updates } : feature
+        );
+        const updated = { ...current, features: updatedFeatures };
+        scheduleAutoSave(updated);
+        return updated;
+      });
+    },
+    [setLocalNPC, scheduleAutoSave]
+  );
+
+  // Delete a feature
+  const handleDeleteFeature = useCallback(
+    (featureId: string) => {
+      setLocalNPC(current => {
+        const updatedFeatures = (current.features ?? []).filter(
+          feature => feature.id !== featureId
+        );
+        const updated = { ...current, features: updatedFeatures };
+        scheduleAutoSave(updated);
+        return updated;
+      });
+    },
+    [setLocalNPC, scheduleAutoSave]
+  );
+
+  // Toggle feature active state
+  const handleToggleFeatureActive = useCallback(
+    (featureId: string) => {
+      setLocalNPC(current => {
+        const updatedFeatures = (current.features ?? []).map(feature =>
+          feature.id === featureId
+            ? { ...feature, isActive: !feature.isActive }
+            : feature
+        );
+        const updated = { ...current, features: updatedFeatures };
+        scheduleAutoSave(updated);
+        return updated;
+      });
+    },
+    [setLocalNPC, scheduleAutoSave]
+  );
+
+  // Reset feature uses (after a rest)
+  const handleResetFeatureUses = useCallback(
+    (featureId: string) => {
+      setLocalNPC(current => {
+        const updatedFeatures = (current.features ?? []).map(feature =>
+          feature.id === featureId ? { ...feature, currentUses: 0 } : feature
+        );
+        const updated = { ...current, features: updatedFeatures };
+        scheduleAutoSave(updated);
+        return updated;
+      });
+    },
+    [setLocalNPC, scheduleAutoSave]
+  );
+
   // Name lookup helpers
   const getLocationName = useCallback(
     (id: string) => locations.find(l => l.id === id)?.name ?? 'Unknown',
@@ -146,6 +254,16 @@ export function useNPCCardHandlers({
 
     // Status handler
     handleStatusChange,
+
+    // Role handler (party relationship)
+    handleRoleChange,
+
+    // Feature handlers
+    handleAddFeature,
+    handleUpdateFeature,
+    handleDeleteFeature,
+    handleToggleFeatureActive,
+    handleResetFeatureUses,
 
     // Helpers
     getLocationName,

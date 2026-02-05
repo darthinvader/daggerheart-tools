@@ -114,6 +114,7 @@ function BattleTrackerLayout({
         environments={rosterState.environments}
         adversaries={rosterState.adversaries}
         fearPool={rosterState.fearPool}
+        maxFear={rosterState.maxFear}
         selection={rosterState.selection}
         spotlight={rosterState.spotlight}
         useMassiveThreshold={rosterState.useMassiveThreshold}

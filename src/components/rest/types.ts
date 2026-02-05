@@ -36,6 +36,23 @@ export interface RestMove {
   canTargetAlly: boolean;
 }
 
+/**
+ * Fear gain result from rest.
+ * Per Daggerheart Chapter 3:
+ * - Short Rest: GM gains 1d4 Fear
+ * - Long Rest: GM gains (number of PCs + 1d4) Fear
+ */
+export interface FearGainResult {
+  /** The d4 dice roll result */
+  diceRoll: number;
+  /** Party size bonus (only for long rest) */
+  partyBonus: number;
+  /** Total Fear gained */
+  total: number;
+  /** Type of rest that triggered the Fear gain */
+  restType: RestType;
+}
+
 /** Result of executing a single rest move */
 export interface RestMoveResult {
   /** The move that was executed */
@@ -74,6 +91,11 @@ export interface RestResult {
   moveResults: RestMoveResult[];
   /** Timestamp */
   timestamp: string;
+  /**
+   * Fear gained by GM from this rest (optional, for GM tracking).
+   * Per Chapter 3: Short Rest = 1d4, Long Rest = PCs + 1d4
+   */
+  fearGain?: FearGainResult;
 }
 
 /** Tracks when character last rested */
@@ -114,4 +136,14 @@ export interface RestModalProps {
   preparingWithParty?: boolean;
   /** Number of short rests taken today (for 3-short-rest limit per SRD) */
   shortRestsToday?: number;
+  /**
+   * Number of PCs in the party (for Fear gain calculation).
+   * Per Chapter 3: Long Rest Fear gain = partySize + 1d4
+   */
+  partySize?: number;
+  /**
+   * Whether to show and calculate Fear gain for GM.
+   * When true, Fear gain will be calculated and shown in results.
+   */
+  showFearGain?: boolean;
 }

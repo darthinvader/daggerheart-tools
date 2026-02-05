@@ -112,6 +112,8 @@ export function useQuestEntityHandlers({
         sessionAppearances: [],
         questAppearances: [],
         tags: [],
+        role: 'neutral',
+        features: [],
       });
       onNPCsChange?.();
       if (!newNpc) throw new Error('Failed to create NPC');

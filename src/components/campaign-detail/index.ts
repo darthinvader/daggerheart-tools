@@ -6,6 +6,7 @@ export { EditablePrinciples } from './editable-principles';
 export { EditableQuestions } from './editable-questions';
 export { type ChecklistItem, GMToolsPanel } from './gm-tools-panel';
 export { HomebrewTabContent } from './homebrew-tab-content';
+export { SessionZeroPanel } from './session-zero-panel';
 
 // Enhanced entity components with modal-based entity selection
 export { EditableLocations } from './location-components-new';

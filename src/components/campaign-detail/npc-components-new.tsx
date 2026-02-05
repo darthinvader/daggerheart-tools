@@ -41,10 +41,12 @@ import {
   NPCCardHeader,
   NPCDescriptionFieldsSection,
   NPCEnemiesSection,
+  NPCFeaturesSection,
   NPCKnownLocationsSection,
   NPCModalsSection,
   NPCNotesSection,
   NPCOrganizationsSection,
+  NPCRoleSection,
   type NPCStatusOption,
 } from './npc-card-sections';
 import { useNPCCardHandlers } from './use-npc-card-handlers';
@@ -263,6 +265,7 @@ function normalizeNPC(npc: CampaignNPC): CampaignNPC {
   return {
     ...npc,
     titleRole: npc.titleRole ?? '',
+    role: npc.role ?? 'neutral',
     backgroundHistory: npc.backgroundHistory ?? '',
     locationIds: npc.locationIds ?? [],
     organizationIds: npc.organizationIds ?? [],
@@ -270,6 +273,7 @@ function normalizeNPC(npc: CampaignNPC): CampaignNPC {
     enemyNpcIds: npc.enemyNpcIds ?? [],
     allyOrganizationIds: npc.allyOrganizationIds ?? [],
     enemyOrganizationIds: npc.enemyOrganizationIds ?? [],
+    features: npc.features ?? [],
     tags: npc.tags ?? [],
     sessionAppearances: npc.sessionAppearances ?? [],
     questAppearances: npc.questAppearances ?? [],
@@ -344,6 +348,12 @@ function NPCCard({
     handleAddAllyOrg,
     handleAddEnemyOrg,
     handleStatusChange,
+    handleRoleChange,
+    handleAddFeature,
+    handleUpdateFeature,
+    handleDeleteFeature,
+    handleToggleFeatureActive,
+    handleResetFeatureUses,
     getLocationName,
     getOrgName,
     otherNPCs,
@@ -378,6 +388,12 @@ function NPCCard({
                 handleTextChange={handleTextChange}
                 handleBlur={handleBlur}
                 handleStatusChange={handleStatusChange}
+              />
+
+              {/* Party Relationship Role */}
+              <NPCRoleSection
+                localNPC={localNPC}
+                handleRoleChange={handleRoleChange}
               />
 
               <NPCDescriptionFieldsSection
@@ -476,6 +492,18 @@ function NPCCard({
                     isEnemy
                   />
                 }
+              />
+
+              <Separator />
+
+              {/* NPC Features - Trigger/Effect mechanics per Chapter 3 */}
+              <NPCFeaturesSection
+                features={localNPC.features ?? []}
+                onAddFeature={handleAddFeature}
+                onUpdateFeature={handleUpdateFeature}
+                onDeleteFeature={handleDeleteFeature}
+                onToggleFeatureActive={handleToggleFeatureActive}
+                onResetFeatureUses={handleResetFeatureUses}
               />
 
               <Separator />

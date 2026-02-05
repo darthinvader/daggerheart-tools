@@ -55,6 +55,8 @@ export function useNPCEntityHandlers({
       sessionAppearances: [],
       questAppearances: [],
       tags: [],
+      role: 'neutral',
+      features: [],
     });
     onNPCsChange();
   }, [campaignId, onSaveStart, onNPCsChange]);
@@ -161,6 +163,8 @@ export function useNPCEntityHandlers({
         sessionAppearances: [],
         questAppearances: [],
         tags: [],
+        role: 'neutral',
+        features: [],
       });
       onNPCsChange();
       if (!newNPC) throw new Error('Failed to create NPC');

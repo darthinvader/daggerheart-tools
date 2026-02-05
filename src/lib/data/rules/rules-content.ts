@@ -1153,14 +1153,39 @@ export const RULES_PAGES: Record<string, RulesPage> = {
           'Use 5/10/15/20/25/30 as a quick ladder of difficulty.',
           'Tell the Difficulty openly or keep it secret, per table preference.',
           'Degrees of success can reveal more or less information.',
+          'Numbers between ladder values work fine for finer granularity.',
         ],
         details: [
           'Difficulty rolls (d20 + Experience) can stand in for NPCs without stat blocks.',
+          '5 (Very Easy): Almost automatic success for any adventurer.',
+          '10 (Easy): Most characters succeed without much trouble.',
+          '15 (Average): Fair challenge requiring some skill or luck.',
+          '20 (Hard): Skilled characters or good rolls needed.',
+          '25 (Very Hard): Exceptional effort or specialization required.',
+          '30 (Nearly Impossible): Heroic feat; only the most capable can attempt.',
+        ],
+        examples: [
+          'Strength 15: Break through a wooden door or subdue an average adult.',
+          'Agility 20: Run across a narrow beam in heavy wind or jump 18 feet.',
+          'Presence 25: Turn an enemy against their ruler or impress a colosseum.',
+          'Knowledge 30: Recall secret information about an obscure historical group.',
+          'Finesse 15: Disable a standard trap or ride a horse through rough terrain.',
+          'Instinct 20: Detect a nearby assassin or hear someone sneaking.',
+        ],
+        tips: [
+          'Let Experiences lower effective Difficulty when they apply to the situation.',
+          'Consider trait choice: Agility for speed, Strength for power, Finesse for precision, Instinct for awareness, Presence for influence, Knowledge for learning.',
         ],
         tags: [
           {
             label: 'Difficulty Ladder',
-            description: '5/10/15/20/25/30 from easy to nearly impossible.',
+            description:
+              '5/10/15/20/25/30 from Very Easy to Nearly Impossible.',
+          },
+          {
+            label: 'Trait Roll',
+            description:
+              'Choose the trait that fits the action being attempted.',
           },
         ],
       },

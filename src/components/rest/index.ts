@@ -8,13 +8,16 @@ export {
   SHORT_REST_MOVES,
 } from './constants';
 export {
+  calculateFearGain,
   createRestResult,
   executeRestMove,
   formatRestResult,
+  getFearGainSummary,
   getRestMoveResultSummary,
   rollRestRecovery,
 } from './rest-utils';
 export type {
+  FearGainResult,
   RestModalProps,
   RestMove,
   RestMoveCategory,

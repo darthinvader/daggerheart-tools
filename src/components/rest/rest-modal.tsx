@@ -1,8 +1,9 @@
 /**
  * Rest modal component for taking short or long rests.
  * Follows the SRD rest system: 2 downtime moves per rest.
+ * Includes Fear gain mechanics per Chapter 3.
  */
-import { ArrowLeft, Moon, Sun } from 'lucide-react';
+import { ArrowLeft, Flame, Moon, Sun } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -18,8 +19,13 @@ import {
 import { cn } from '@/lib/utils';
 
 import { REST_MOVE_CATEGORY_ICONS } from './constants';
-import { getRestMoveResultSummary } from './rest-utils';
-import type { RestModalProps, RestMove, RestMoveResult } from './types';
+import { getFearGainSummary, getRestMoveResultSummary } from './rest-utils';
+import type {
+  FearGainResult,
+  RestModalProps,
+  RestMove,
+  RestMoveResult,
+} from './types';
 import { useRest } from './use-rest';
 
 /** Max short rests before a long rest is required per SRD */
@@ -37,6 +43,8 @@ export function RestModal({
   totalArmorSlots,
   onRestComplete,
   shortRestsToday = 0,
+  partySize = 0,
+  showFearGain = false,
 }: RestModalProps) {
   const rest = useRest({
     tier,
@@ -47,6 +55,8 @@ export function RestModal({
     currentArmorMarked,
     totalArmorSlots,
     onComplete: onRestComplete,
+    partySize,
+    showFearGain,
   });
 
   const shortRestDisabled = shortRestsToday >= MAX_SHORT_RESTS;
@@ -64,6 +74,8 @@ export function RestModal({
             onSelect={rest.selectRestType}
             shortRestDisabled={shortRestDisabled}
             shortRestsToday={shortRestsToday}
+            showFearGain={showFearGain}
+            partySize={partySize}
           />
         )}
         {rest.phase === 'select-moves' && rest.restType && (
@@ -84,6 +96,7 @@ export function RestModal({
           <RestResults
             restType={rest.restType}
             results={rest.results}
+            fearGain={rest.fearGain}
             onClose={handleClose}
           />
         )}
@@ -96,12 +109,16 @@ interface RestTypeSelectionProps {
   onSelect: (type: 'short' | 'long') => void;
   shortRestDisabled: boolean;
   shortRestsToday: number;
+  showFearGain?: boolean;
+  partySize?: number;
 }
 
 function RestTypeSelection({
   onSelect,
   shortRestDisabled,
   shortRestsToday,
+  showFearGain = false,
+  partySize = 0,
 }: RestTypeSelectionProps) {
   return (
     <>
@@ -148,6 +165,12 @@ function RestTypeSelection({
               </>
             )}
           </p>
+          {showFearGain && !shortRestDisabled && (
+            <p className="flex items-center gap-1 text-xs text-purple-600 dark:text-purple-400">
+              <Flame className="h-3 w-3" />
+              GM gains 1d4 Fear
+            </p>
+          )}
         </button>
 
         <button
@@ -163,6 +186,12 @@ function RestTypeSelection({
             Several hours of rest or sleep. Recovery moves restore{' '}
             <span className="font-medium">all</span> of a resource.
           </p>
+          {showFearGain && (
+            <p className="flex items-center gap-1 text-xs text-purple-600 dark:text-purple-400">
+              <Flame className="h-3 w-3" />
+              GM gains {partySize} PCs + 1d4 Fear
+            </p>
+          )}
         </button>
       </div>
     </>
@@ -385,17 +414,23 @@ function MoveSelection({
 interface RestResultsProps {
   restType: 'short' | 'long';
   results: RestMoveResult[];
+  fearGain: FearGainResult | null;
   onClose: () => void;
 }
 
-function RestResults({ restType, results, onClose }: RestResultsProps) {
+function RestResults({
+  restType,
+  results,
+  fearGain,
+  onClose,
+}: RestResultsProps) {
   const restLabel = restType === 'short' ? 'Short Rest' : 'Long Rest';
 
   return (
     <>
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2">
-          ✨ {restLabel} Complete
+          {restLabel} Complete
         </DialogTitle>
         <DialogDescription>
           Here's what happened during your rest.
@@ -432,6 +467,24 @@ function RestResults({ restType, results, onClose }: RestResultsProps) {
             </div>
           );
         })}
+
+        {/* Fear Gain Display */}
+        {fearGain && (
+          <div className="flex items-center gap-3 rounded-lg border-2 border-purple-500/30 bg-gradient-to-r from-purple-500/10 to-violet-500/10 p-4">
+            <Flame className="h-6 w-6 text-purple-500" />
+            <div className="flex-1">
+              <div className="font-medium text-purple-700 dark:text-purple-400">
+                GM Fear Gained
+              </div>
+              <div className="text-lg font-semibold text-purple-600 dark:text-purple-300">
+                {getFearGainSummary(fearGain)}
+              </div>
+            </div>
+            <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
+              +{fearGain.total}
+            </div>
+          </div>
+        )}
       </div>
 
       <DialogFooter>

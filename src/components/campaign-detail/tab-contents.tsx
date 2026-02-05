@@ -63,6 +63,7 @@ import type {
   CampaignPlayer,
   CampaignQuest,
   SessionNote,
+  SessionZero,
 } from '@/lib/schemas/campaign';
 
 import { EditableDistinctions } from './editable-distinctions';
@@ -75,6 +76,7 @@ import { EditableNPCs } from './npc-components-new';
 import { EditableOrganizations } from './organization-components-new';
 import { EditableQuests } from './quest-components-new';
 import { EditableSessions } from './session-components-new';
+import { SessionZeroPanel } from './session-zero-panel';
 import { TagInput } from './tag-input';
 
 interface OverviewTabProps {
@@ -924,21 +926,33 @@ export function GMToolsTabContent({
 interface SessionZeroTabProps {
   frame: CampaignFrame;
   updateFrame: (updates: Partial<CampaignFrame>) => void;
+  sessionZero: Campaign['sessionZero'];
+  onSessionZeroChange: (sessionZero: SessionZero) => void;
   onBlur: () => void;
 }
 
 export function SessionZeroTabContent({
   frame,
   updateFrame,
+  sessionZero,
+  onSessionZeroChange,
   onBlur,
 }: SessionZeroTabProps) {
   return (
     <TabsContent value="session-zero" className="space-y-6">
+      {/* Full Session Zero Panel with CATS method and safety tools */}
+      <SessionZeroPanel
+        sessionZero={sessionZero}
+        onChange={onSessionZeroChange}
+        onBlur={onBlur}
+      />
+
+      {/* Legacy Session Zero Questions (from Campaign Frame) */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <MessageSquare className="h-4 w-4 text-teal-500" />
-            Session Zero Questions
+            Additional Session Zero Questions
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -946,15 +960,14 @@ export function SessionZeroTabContent({
                 </TooltipTrigger>
                 <TooltipContent side="right" className="max-w-xs">
                   <p>
-                    Discussion prompts for session zero: safety tools,
-                    expectations, character connections, and boundaries.
+                    Custom discussion prompts from your campaign frame template.
                   </p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </CardTitle>
           <CardDescription>
-            Questions to ask your players during session zero
+            Custom questions from your campaign frame
           </CardDescription>
         </CardHeader>
         <CardContent>

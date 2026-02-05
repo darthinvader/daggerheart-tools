@@ -14,7 +14,7 @@ export interface ActivationCost {
 
 type CardCostSource = Pick<
   DomainCard | DomainCardLite,
-  'description' | 'hopeCost' | 'recallCost' | 'stressCost'
+  'description' | 'recallCost' | 'hopeCost' | 'stressCost'
 >;
 
 const HOPE_PATTERN =

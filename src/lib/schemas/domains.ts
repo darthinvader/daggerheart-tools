@@ -18,9 +18,10 @@ export const DomainCardSchema = z
     level: z.number().int().min(1).max(10),
     domain: DomainNameSchema,
     type: DomainCardTypeSchema,
-    // Rulebook phrasing uses Hope as the spend; allow hopeCost while staying backward-compatible with recallCost
-    hopeCost: z.number().int().min(0).optional(),
+    // Per SRD: recallCost is the standard field for domain card recall/equip cost
+    // hopeCost is kept for backward compatibility with legacy data
     recallCost: z.number().int().min(0).optional(),
+    hopeCost: z.number().int().min(0).optional(),
     stressCost: z.number().int().min(0).optional(),
     description: z.string(),
     tags: z.array(z.string()).optional(),
@@ -29,8 +30,11 @@ export const DomainCardSchema = z
     metadata: MetadataSchema,
   })
   .refine(
-    v => typeof v.hopeCost === 'number' || typeof v.recallCost === 'number',
-    { message: 'Domain card must include hopeCost (preferred) or recallCost' }
+    v => typeof v.recallCost === 'number' || typeof v.hopeCost === 'number',
+    {
+      message:
+        'Domain card must include recallCost (preferred) or hopeCost (legacy)',
+    }
   );
 
 export const DomainCardCollectionSchema = z.array(DomainCardSchema);

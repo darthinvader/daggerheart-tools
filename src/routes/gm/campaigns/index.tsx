@@ -47,7 +47,9 @@ import {
 
 type ComplexityLabel = { label: string; color: string };
 
-function getComplexityLabel(complexity: '1' | '2' | '3'): ComplexityLabel {
+function getComplexityLabel(
+  complexity: '1' | '2' | '3' | '4'
+): ComplexityLabel {
   switch (complexity) {
     case '1':
       return { label: 'Simple', color: 'bg-green-500/20 text-green-600' };
@@ -55,6 +57,8 @@ function getComplexityLabel(complexity: '1' | '2' | '3'): ComplexityLabel {
       return { label: 'Standard', color: 'bg-blue-500/20 text-blue-600' };
     case '3':
       return { label: 'Complex', color: 'bg-purple-500/20 text-purple-600' };
+    case '4':
+      return { label: 'Epic', color: 'bg-red-500/20 text-red-600' };
   }
 }
 

@@ -131,9 +131,9 @@ export const HomebrewDomainCardContentSchema = DomainCardSchema.omit({
 }).extend({
   // Allow custom domains beyond the standard enum
   domain: z.union([DomainNameSchema, z.string()]),
-  // Make hopeCost/recallCost more flexible for homebrew
-  hopeCost: z.number().int().min(0).optional(),
+  // Per SRD: recallCost is standard; hopeCost kept for backward compatibility
   recallCost: z.number().int().min(0).optional(),
+  hopeCost: z.number().int().min(0).optional(),
 });
 
 export const HomebrewDomainCardSchema = HomebrewMetadataSchema.extend({
@@ -591,7 +591,7 @@ export function createDefaultDomainCardContent(): z.infer<
     level: 1,
     domain: 'Arcana',
     type: 'Spell',
-    hopeCost: 0,
+    recallCost: 0,
     description: '',
   };
 }

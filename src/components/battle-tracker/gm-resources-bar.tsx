@@ -1,12 +1,14 @@
 import {
-  BookOpen,
   Crosshair,
   Dices,
   Flame,
+  Gauge,
   Leaf,
   Minus,
+  Moon,
   Pencil,
   Plus,
+  Skull,
   Sparkles,
   Swords,
   Timer,
@@ -19,6 +21,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
 import {
   Tooltip,
@@ -26,8 +33,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { DIFFICULTY_LADDER } from '@/lib/data/core/difficulty';
 import { cn } from '@/lib/utils';
-
+import type { FearGainResult } from '../rest';
+import { PartyRestDialog } from './party-rest-dialog';
 import type {
   AdversaryTracker,
   EnvironmentTracker,
@@ -90,58 +99,158 @@ function FearCounter({
   characterCount: number;
   onFearChange: (value: number) => void;
 }) {
+  const isFull = fearPool >= maxFear;
+  const isEmpty = fearPool <= 0;
+  const hasSubstantialFear = fearPool >= 3;
+
   return (
-    <div className="flex min-h-13 items-center gap-2 rounded-lg border-2 border-purple-500/30 bg-linear-to-r from-purple-500/10 to-violet-500/10 px-2.5 py-2">
-      <div className="flex items-center gap-1">
-        <Flame className="size-4 text-purple-500" />
-        <span className="text-sm font-bold text-purple-600 dark:text-purple-400">
-          FEAR
-        </span>
-      </div>
-      <div className="flex items-center gap-1">
-        <Button
-          size="icon"
-          variant="outline"
-          className="size-6 border-purple-300 hover:bg-purple-500/20"
-          onClick={() => onFearChange(Math.max(0, fearPool - 1))}
-          disabled={fearPool <= 0}
-        >
-          <Minus className="size-3" />
-        </Button>
-        <div className="flex items-baseline gap-0.5">
-          <span className="min-w-[2ch] text-center text-xl font-bold text-purple-600 dark:text-purple-400">
-            {fearPool}
-          </span>
-          <span className="text-muted-foreground text-[10px]">/{maxFear}</span>
-        </div>
-        <Button
-          size="icon"
-          variant="outline"
-          className="size-6 border-purple-300 hover:bg-purple-500/20"
-          onClick={() => onFearChange(Math.min(maxFear, fearPool + 1))}
-          disabled={fearPool >= maxFear}
-        >
-          <Plus className="size-3" />
-        </Button>
-      </div>
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div
+            className={cn(
+              'flex min-h-14 items-center gap-3 rounded-xl border-2 px-4 py-2 shadow-md transition-all',
+              hasSubstantialFear
+                ? 'animate-pulse border-purple-500/60 bg-gradient-to-r from-purple-600/25 via-violet-500/20 to-purple-600/25 shadow-purple-500/20'
+                : 'border-purple-500/40 bg-gradient-to-r from-purple-500/15 to-violet-500/15',
+              isFull && 'border-purple-400 shadow-lg shadow-purple-500/30'
+            )}
+          >
+            {/* Icon and Label */}
+            <div className="flex items-center gap-2">
+              <div
+                className={cn(
+                  'flex size-8 items-center justify-center rounded-lg',
+                  hasSubstantialFear ? 'bg-purple-500/30' : 'bg-purple-500/20'
+                )}
+              >
+                <Skull
+                  className={cn(
+                    'size-5',
+                    hasSubstantialFear ? 'text-purple-400' : 'text-purple-500'
+                  )}
+                />
+              </div>
+              <span
+                className={cn(
+                  'text-base font-black tracking-wide',
+                  hasSubstantialFear
+                    ? 'text-purple-400'
+                    : 'text-purple-600 dark:text-purple-400'
+                )}
+              >
+                FEAR
+              </span>
+            </div>
+
+            {/* Counter Controls */}
+            <div className="flex items-center gap-2">
+              <Button
+                size="icon"
+                variant="outline"
+                className={cn(
+                  'size-8 border-2 border-purple-400/50 hover:border-purple-400 hover:bg-purple-500/30',
+                  !isEmpty && 'bg-purple-500/10'
+                )}
+                onClick={e => {
+                  e.stopPropagation();
+                  onFearChange(Math.max(0, fearPool - 1));
+                }}
+                disabled={isEmpty}
+              >
+                <Minus className="size-4" />
+              </Button>
+
+              <div className="flex min-w-[3rem] items-baseline justify-center gap-1">
+                <span
+                  className={cn(
+                    'text-3xl font-black tabular-nums',
+                    hasSubstantialFear
+                      ? 'text-purple-300'
+                      : 'text-purple-600 dark:text-purple-400',
+                    isFull && 'text-purple-300'
+                  )}
+                >
+                  {fearPool}
+                </span>
+              </div>
+
+              <Button
+                size="icon"
+                variant="outline"
+                className={cn(
+                  'size-8 border-2 border-purple-400/50 hover:border-purple-400 hover:bg-purple-500/30',
+                  !isFull && 'bg-purple-500/10'
+                )}
+                onClick={e => {
+                  e.stopPropagation();
+                  onFearChange(Math.min(maxFear, fearPool + 1));
+                }}
+                disabled={isFull}
+              >
+                <Plus className="size-4" />
+              </Button>
+            </div>
+
+            {/* Reset Button */}
             <Button
               size="sm"
               variant="ghost"
-              className="h-6 px-1.5 text-[10px] text-purple-500 hover:text-purple-600"
-              onClick={() => onFearChange(characterCount)}
+              className="h-7 px-2 text-xs font-medium text-purple-500 hover:bg-purple-500/20 hover:text-purple-400"
+              onClick={e => {
+                e.stopPropagation();
+                onFearChange(characterCount);
+              }}
             >
               Reset
             </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Reset to starting Fear ({characterCount} = PC count)</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    </div>
+          </div>
+        </TooltipTrigger>
+        <TooltipContent
+          side="bottom"
+          className="bg-popover text-popover-foreground max-w-xs border-purple-500/30 p-3"
+        >
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 border-b border-purple-500/20 pb-2">
+              <Skull className="size-4 text-purple-500" />
+              <span className="font-bold text-purple-600 dark:text-purple-400">
+                Fear Pool
+              </span>
+            </div>
+            <p className="text-sm">Spend Fear to empower adversaries:</p>
+            <ul className="space-y-1 text-sm">
+              <li className="flex items-start gap-1.5">
+                <span className="mt-0.5 text-purple-500">•</span>
+                <span>
+                  <strong>+1 Experience</strong> to an adversary roll per Fear
+                </span>
+              </li>
+              <li className="flex items-start gap-1.5">
+                <span className="mt-0.5 text-purple-500">•</span>
+                <span>
+                  <strong>Activate Fear Features</strong> on adversaries
+                </span>
+              </li>
+              <li className="flex items-start gap-1.5">
+                <span className="mt-0.5 text-purple-500">•</span>
+                <span>
+                  <strong>Trigger reactions</strong> outside normal turns
+                </span>
+              </li>
+              <li className="flex items-start gap-1.5">
+                <span className="mt-0.5 text-purple-500">•</span>
+                <span>
+                  <strong>Escalate tension</strong> with dramatic GM moves
+                </span>
+              </li>
+            </ul>
+            <p className="border-t border-purple-500/20 pt-2 text-xs">
+              Starting Fear = PC count ({characterCount}). No hard cap in rules.
+            </p>
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
 
@@ -222,6 +331,73 @@ function MassiveToggle({
         />
       </div>
     </div>
+  );
+}
+
+function DifficultyReference() {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className="min-h-13 gap-1.5 rounded-lg border-2 border-sky-500/30 bg-linear-to-r from-sky-500/10 to-cyan-500/10 px-2.5 text-sky-600 hover:bg-sky-500/20 hover:text-sky-700 dark:text-sky-400"
+        >
+          <Gauge className="size-4" />
+          <span className="text-sm font-bold">Difficulty</span>
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80 p-0" align="start">
+        <div className="border-b bg-linear-to-r from-sky-500/10 to-cyan-500/10 px-4 py-3">
+          <h4 className="flex items-center gap-2 font-semibold text-sky-700 dark:text-sky-300">
+            <Gauge className="size-4" />
+            Difficulty Quick Reference
+          </h4>
+          <p className="text-muted-foreground mt-1 text-xs">
+            Target numbers for action rolls
+          </p>
+        </div>
+        <div className="grid gap-1 p-2">
+          {DIFFICULTY_LADDER.map(level => (
+            <div
+              key={level.value}
+              className="hover:bg-muted/50 flex items-center gap-3 rounded-md px-3 py-2 transition-colors"
+            >
+              <span
+                className={cn(
+                  'flex size-8 items-center justify-center rounded-lg font-bold',
+                  level.value <= 10
+                    ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+                    : level.value <= 15
+                      ? 'bg-sky-500/20 text-sky-600 dark:text-sky-400'
+                      : level.value <= 20
+                        ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400'
+                        : level.value <= 25
+                          ? 'bg-orange-500/20 text-orange-600 dark:text-orange-400'
+                          : 'bg-red-500/20 text-red-600 dark:text-red-400'
+                )}
+              >
+                {level.value}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className={cn('text-sm font-medium', level.colorClass)}>
+                  {level.name}
+                </p>
+                <p className="text-muted-foreground truncate text-xs">
+                  {level.description}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="border-t px-4 py-2">
+          <p className="text-muted-foreground text-[10px] leading-tight">
+            Values between ladder steps work fine. Let Experiences lower
+            effective Difficulty when applicable.
+          </p>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 
@@ -464,6 +640,7 @@ export function GMResourcesBar({
   environments,
   adversaries,
   fearPool,
+  maxFear: maxFearProp,
   selection,
   spotlight,
   useMassiveThreshold,
@@ -482,6 +659,11 @@ export function GMResourcesBar({
   environments: EnvironmentTracker[];
   adversaries: AdversaryTracker[];
   fearPool: number;
+  /**
+   * Maximum fear pool size. If not provided, defaults to 2 * characterCount.
+   * Per Daggerheart rules, fear caps are typically based on party size.
+   */
+  maxFear?: number;
   selection: Selection | null;
   spotlight: Spotlight | null;
   useMassiveThreshold: boolean;
@@ -503,9 +685,23 @@ export function GMResourcesBar({
   onReduceAllCountdowns: () => void;
 }) {
   // Note: onAdversaryChange kept for future use but countdown reduction handled by onReduceAllCountdowns
-  const maxFear = 12;
+  // Fear has no hard cap in Daggerheart rules - use a high default (99) for practical display
+  // If maxFearProp is provided, use that; otherwise Fear is effectively unlimited
+  const maxFear = maxFearProp ?? 99;
   const activeEnvironment = environments[0] ?? null;
   const { gmDieResult, isRolling, rollGmDie } = useGmDieRoll();
+
+  // Party Rest dialog state
+  const [isPartyRestOpen, setIsPartyRestOpen] = useState(false);
+
+  // Handle party rest completion - auto-add Fear to pool
+  const handlePartyRestComplete = useCallback(
+    (fearGain: FearGainResult) => {
+      const newFear = Math.min(maxFear, fearPool + fearGain.total);
+      onFearChange(newFear);
+    },
+    [fearPool, maxFear, onFearChange]
+  );
 
   // Count how many enabled countdowns exist
   const enabledCountdowns =
@@ -530,6 +726,7 @@ export function GMResourcesBar({
           useMassiveThreshold={useMassiveThreshold}
           onUseMassiveThresholdChange={onUseMassiveThresholdChange}
         />
+        <DifficultyReference />
         {/* Reduce All Counters Button */}
         <TooltipProvider>
           <Tooltip>
@@ -558,6 +755,29 @@ export function GMResourcesBar({
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
+        {/* Party Rest Button - triggers Fear gain per Chapter 3 */}
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="min-h-13 gap-1.5 rounded-lg border-2 border-indigo-500/30 bg-linear-to-r from-indigo-500/10 to-violet-500/10 px-2.5 text-indigo-600 hover:bg-indigo-500/20 hover:text-indigo-700 dark:text-indigo-400"
+                onClick={() => setIsPartyRestOpen(true)}
+                disabled={characterCount === 0}
+              >
+                <Moon className="size-4" />
+                <span className="text-sm font-bold">Rest</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Party takes a rest - GM gains Fear</p>
+              <p className="text-muted-foreground text-xs">
+                Short: 1d4, Long: {characterCount} PCs + 1d4
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         {activeEnvironment ? (
           <ActiveEnvironmentPanel
             environment={activeEnvironment}
@@ -573,6 +793,16 @@ export function GMResourcesBar({
           <EmptyEnvironmentPanel onAddEnvironment={onAddEnvironment} />
         )}
       </CardContent>
+
+      {/* Party Rest Dialog */}
+      <PartyRestDialog
+        isOpen={isPartyRestOpen}
+        onClose={() => setIsPartyRestOpen(false)}
+        partySize={characterCount}
+        currentFear={fearPool}
+        maxFear={maxFear}
+        onRestComplete={handlePartyRestComplete}
+      />
     </Card>
   );
 }
@@ -589,11 +819,16 @@ export function QuickTipsBar() {
       color: 'text-amber-500',
     },
     {
-      icon: BookOpen,
+      icon: Skull,
       text: 'Spend Fear for features',
       color: 'text-purple-500',
     },
     { icon: Swords, text: 'Mix roles for dynamics', color: 'text-red-500' },
+    {
+      icon: Gauge,
+      text: 'Difficulty 5-30 ladder',
+      color: 'text-sky-500',
+    },
   ];
 
   return (

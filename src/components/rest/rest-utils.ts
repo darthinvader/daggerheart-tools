@@ -1,14 +1,65 @@
 /**
  * Utility functions for the rest system.
  * Per SRD: Short rest recovery is 1d4+Tier.
+ * Per Chapter 3: GM gains Fear when party rests.
  */
-import type { RestMove, RestMoveResult, RestResult, RestType } from './types';
+import type {
+  FearGainResult,
+  RestMove,
+  RestMoveResult,
+  RestResult,
+  RestType,
+} from './types';
 
 /**
  * Roll 1d4.
  */
 function rollD4(): number {
   return Math.floor(Math.random() * 4) + 1;
+}
+
+/**
+ * Calculate Fear gain for GM when party takes a rest.
+ * Per Daggerheart Chapter 3 rulebook:
+ * - Short Rest: GM gains 1d4 Fear
+ * - Long Rest: GM gains (number of PCs + 1d4) Fear
+ *
+ * @param restType The type of rest being taken
+ * @param partySize Number of player characters in the party (only used for long rest)
+ * @returns Object with dice roll, party bonus (if applicable), and total Fear gained
+ */
+export function calculateFearGain(
+  restType: RestType,
+  partySize: number = 0
+): FearGainResult {
+  const diceRoll = rollD4();
+
+  if (restType === 'short') {
+    return {
+      diceRoll,
+      partyBonus: 0,
+      total: diceRoll,
+      restType,
+    };
+  }
+
+  // Long rest: party size + 1d4
+  return {
+    diceRoll,
+    partyBonus: partySize,
+    total: partySize + diceRoll,
+    restType,
+  };
+}
+
+/**
+ * Get a human-readable summary of Fear gain from rest.
+ */
+export function getFearGainSummary(fearGain: FearGainResult): string {
+  if (fearGain.restType === 'short') {
+    return `GM gains ${fearGain.total} Fear (1d4: ${fearGain.diceRoll})`;
+  }
+  return `GM gains ${fearGain.total} Fear (${fearGain.partyBonus} PCs + 1d4: ${fearGain.diceRoll})`;
 }
 
 /**
@@ -96,15 +147,20 @@ export function executeRestMove(
 
 /**
  * Create a full rest result from move results.
+ * @param restType The type of rest taken
+ * @param moveResults Results of the moves executed during rest
+ * @param fearGain Optional Fear gain result for GM tracking
  */
 export function createRestResult(
   restType: RestType,
-  moveResults: RestMoveResult[]
+  moveResults: RestMoveResult[],
+  fearGain?: FearGainResult
 ): RestResult {
   return {
     restType,
     moveResults,
     timestamp: new Date().toISOString(),
+    fearGain,
   };
 }
 
@@ -142,5 +198,12 @@ export function formatRestResult(result: RestResult): string {
     .map(r => `  - ${r.moveName}: ${getRestMoveResultSummary(r)}`)
     .join('\n');
 
-  return `${restTypeLabel}\n${moveSummaries}`;
+  let output = `${restTypeLabel}\n${moveSummaries}`;
+
+  // Add Fear gain information if present
+  if (result.fearGain) {
+    output += `\n  - ${getFearGainSummary(result.fearGain)}`;
+  }
+
+  return output;
 }

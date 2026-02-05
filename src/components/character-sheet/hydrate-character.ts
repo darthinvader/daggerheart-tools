@@ -1,3 +1,7 @@
+import type {
+  CountdownBehavior,
+  VarianceMode,
+} from '@/components/countdown-tracker';
 /**
  * Hydration logic for mapping server CharacterRecord to local state
  */
@@ -381,7 +385,22 @@ export function hydrateSessionStateHook(
   SessionStateHook.setCompanionHopeFilled(
     serverData.companionHopeFilled ?? false
   );
-  SessionStateHook.setCountdowns(serverData.countdowns || []);
+  SessionStateHook.setCountdowns(
+    (serverData.countdowns || []).map(countdown => ({
+      ...countdown,
+      dynamicAdvancement:
+        ((countdown as Record<string, unknown>)
+          .dynamicAdvancement as boolean) ?? false,
+      behavior:
+        ((countdown as Record<string, unknown>)
+          .behavior as CountdownBehavior) ?? 'once',
+      loopCount:
+        ((countdown as Record<string, unknown>).loopCount as number) ?? 0,
+      variance:
+        ((countdown as Record<string, unknown>).variance as VarianceMode) ??
+        'none',
+    }))
+  );
   SessionStateHook.setSessions(serverData.sessions || []);
   SessionStateHook.setCurrentSessionId(serverData.currentSessionId ?? null);
   SessionStateHook.setNotes(serverData.notes || []);

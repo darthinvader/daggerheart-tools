@@ -93,6 +93,8 @@ const buildNPCPayload = (name: string): AddNPCInput => ({
   sessionAppearances: [],
   questAppearances: [],
   tags: [],
+  role: 'neutral',
+  features: [],
 });
 
 const buildLocationPayload = (name: string): AddLocationInput => ({
@@ -161,6 +163,9 @@ type CampaignTabsProps = {
   onAddLocation: (name: string) => void | Promise<void>;
   onAddQuest: (title: string) => void | Promise<void>;
   onChecklistChange: (items: Campaign['sessionPrepChecklist']) => void;
+  onSessionZeroChange: (
+    sessionZero: NonNullable<Campaign['sessionZero']>
+  ) => void;
   onDeleteBattle: (battleId: string) => void | Promise<void>;
 };
 
@@ -421,6 +426,19 @@ function useCampaignDetailState(
     [setCampaign]
   );
 
+  const handleSessionZeroChange = useCallback(
+    (sessionZero: NonNullable<Campaign['sessionZero']>) => {
+      setCampaign(current => {
+        if (!current) {
+          return current;
+        }
+        setChangeVersion(v => v + 1);
+        return { ...current, sessionZero };
+      });
+    },
+    [setCampaign]
+  );
+
   const handleDeleteBattle = useCallback(
     async (battleId: string) => {
       if (!campaign) return;
@@ -474,6 +492,7 @@ function useCampaignDetailState(
     handleSave,
     handleNameChange,
     handleChecklistChange,
+    handleSessionZeroChange,
     handleDeleteBattle,
     handleAddNPCFromGenerator,
     handleAddLocationFromGenerator,
@@ -505,6 +524,7 @@ function CampaignTabs({
   onAddLocation,
   onAddQuest,
   onChecklistChange,
+  onSessionZeroChange,
   onDeleteBattle,
 }: CampaignTabsProps) {
   return (
@@ -646,6 +666,8 @@ function CampaignTabs({
       <SessionZeroTabContent
         frame={frame}
         updateFrame={updateFrame}
+        sessionZero={campaign.sessionZero}
+        onSessionZeroChange={onSessionZeroChange}
         onBlur={onFrameBlur}
       />
       <HomebrewTabContent campaignId={campaign.id} />
@@ -697,6 +719,7 @@ function CampaignDetailPage() {
     handleSave,
     handleNameChange,
     handleChecklistChange,
+    handleSessionZeroChange,
     handleDeleteBattle,
     handleAddNPCFromGenerator,
     handleAddLocationFromGenerator,
@@ -795,6 +818,7 @@ function CampaignDetailPage() {
         onAddLocation={handleAddLocationFromGenerator}
         onAddQuest={handleAddQuestFromGenerator}
         onChecklistChange={handleChecklistChange}
+        onSessionZeroChange={handleSessionZeroChange}
         onDeleteBattle={handleDeleteBattle}
       />
     </div>

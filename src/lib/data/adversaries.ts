@@ -1568,7 +1568,7 @@ export const ADVERSARIES: Adversary[] = [
     },
     experiences: [],
     features: [
-      'Minion () - Passive: The Recruit is defeated when they take any damage. For every 7 damage a PC deals to the Recruit, defeat an additional Minion within range the attack would succeed against.',
+      'Minion (7) - Passive: The Recruit is defeated when they take any damage. For every 7 damage a PC deals to the Recruit, defeat an additional Minion within range the attack would succeed against.',
       'Group Attack - Action: Spend a Fear to choose a target and spotlight all Giant Recruits within Close range of them. Those Minions move into Melee range of the target and make one shared attack roll. On a success, they deal 5 physical damage each. Combine this damage.',
     ],
   },
@@ -1593,7 +1593,7 @@ export const ADVERSARIES: Adversary[] = [
     features: [
       'Two as One - Passive: When the Beastmaster is spotlighted, you can also spotlight a Tier 1 animal adversary currently under their control.',
       'Pinning Strike - Action: Make a standard attack against a target. On a success, you can mark a Stress to pin them to a nearby surface. The pinned target is Restrained until they break free with a successful Finesse or Strength Roll.',
-      'Deadly Companion - Action: Twice per scene, summon a Deadly Bear, Dire Wolf, or similar Tier 1 animal adversary under the Beastmaster’s control. The adversary appears at Close range and is immediately spotlighted.',
+      "Deadly Companion - Action: Twice per scene, summon a Deadly Bear, Dire Wolf, or similar Tier 1 animal adversary under the Beastmaster's control. The adversary appears at Close range and is immediately spotlighted.",
     ],
   },
   {
@@ -2089,7 +2089,7 @@ export const ADVERSARIES: Adversary[] = [
     motivesAndTactics: 'Consume, fuel greed, sow dissent',
     difficulty: 17,
     thresholds: '15/29',
-    hp: 6,
+    hp: 5,
     stress: 5,
     attack: {
       modifier: '+2',
@@ -2113,7 +2113,7 @@ export const ADVERSARIES: Adversary[] = [
       'Make fear contagious, stick to the shadows, undermine resolve',
     difficulty: 17,
     thresholds: '18/35',
-    hp: 6,
+    hp: 5,
     stress: 5,
     attack: {
       modifier: '+3',
@@ -2946,7 +2946,7 @@ export const ADVERSARIES: Adversary[] = [
     motivesAndTactics: 'Defend lair, dive-bomb, fly, hunt, intimidate',
     difficulty: 19,
     thresholds: '33/65',
-    hp: 6,
+    hp: 8,
     stress: 5,
     attack: {
       modifier: '+8',

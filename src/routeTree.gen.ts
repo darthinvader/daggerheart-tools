@@ -29,6 +29,7 @@ import { Route as RulesCharacterCreationRouteImport } from './routes/rules/chara
 import { Route as RulesCampaignFramesRouteImport } from './routes/rules/campaign-frames'
 import { Route as RulesAdversariesEnvironmentsRouteImport } from './routes/rules/adversaries-environments'
 import { Route as ReferencesInventoryRouteImport } from './routes/references/inventory'
+import { Route as ReferencesGmMovesRouteImport } from './routes/references/gm-moves'
 import { Route as ReferencesEquipmentRouteImport } from './routes/references/equipment'
 import { Route as ReferencesEnvironmentsRouteImport } from './routes/references/environments'
 import { Route as ReferencesDomainCardsRouteImport } from './routes/references/domain-cards'
@@ -150,6 +151,11 @@ const RulesAdversariesEnvironmentsRoute =
 const ReferencesInventoryRoute = ReferencesInventoryRouteImport.update({
   id: '/inventory',
   path: '/inventory',
+  getParentRoute: () => ReferencesRoute,
+} as any)
+const ReferencesGmMovesRoute = ReferencesGmMovesRouteImport.update({
+  id: '/gm-moves',
+  path: '/gm-moves',
   getParentRoute: () => ReferencesRoute,
 } as any)
 const ReferencesEquipmentRoute = ReferencesEquipmentRouteImport.update({
@@ -277,6 +283,7 @@ export interface FileRoutesByFullPath {
   '/references/domain-cards': typeof ReferencesDomainCardsRoute
   '/references/environments': typeof ReferencesEnvironmentsRoute
   '/references/equipment': typeof ReferencesEquipmentRoute
+  '/references/gm-moves': typeof ReferencesGmMovesRoute
   '/references/inventory': typeof ReferencesInventoryRoute
   '/rules/adversaries-environments': typeof RulesAdversariesEnvironmentsRoute
   '/rules/campaign-frames': typeof RulesCampaignFramesRoute
@@ -313,6 +320,7 @@ export interface FileRoutesByTo {
   '/references/domain-cards': typeof ReferencesDomainCardsRoute
   '/references/environments': typeof ReferencesEnvironmentsRoute
   '/references/equipment': typeof ReferencesEquipmentRoute
+  '/references/gm-moves': typeof ReferencesGmMovesRoute
   '/references/inventory': typeof ReferencesInventoryRoute
   '/rules/adversaries-environments': typeof RulesAdversariesEnvironmentsRoute
   '/rules/campaign-frames': typeof RulesCampaignFramesRoute
@@ -356,6 +364,7 @@ export interface FileRoutesById {
   '/references/domain-cards': typeof ReferencesDomainCardsRoute
   '/references/environments': typeof ReferencesEnvironmentsRoute
   '/references/equipment': typeof ReferencesEquipmentRoute
+  '/references/gm-moves': typeof ReferencesGmMovesRoute
   '/references/inventory': typeof ReferencesInventoryRoute
   '/rules/adversaries-environments': typeof RulesAdversariesEnvironmentsRoute
   '/rules/campaign-frames': typeof RulesCampaignFramesRoute
@@ -400,6 +409,7 @@ export interface FileRouteTypes {
     | '/references/domain-cards'
     | '/references/environments'
     | '/references/equipment'
+    | '/references/gm-moves'
     | '/references/inventory'
     | '/rules/adversaries-environments'
     | '/rules/campaign-frames'
@@ -436,6 +446,7 @@ export interface FileRouteTypes {
     | '/references/domain-cards'
     | '/references/environments'
     | '/references/equipment'
+    | '/references/gm-moves'
     | '/references/inventory'
     | '/rules/adversaries-environments'
     | '/rules/campaign-frames'
@@ -478,6 +489,7 @@ export interface FileRouteTypes {
     | '/references/domain-cards'
     | '/references/environments'
     | '/references/equipment'
+    | '/references/gm-moves'
     | '/references/inventory'
     | '/rules/adversaries-environments'
     | '/rules/campaign-frames'
@@ -649,6 +661,13 @@ declare module '@tanstack/react-router' {
       path: '/inventory'
       fullPath: '/references/inventory'
       preLoaderRoute: typeof ReferencesInventoryRouteImport
+      parentRoute: typeof ReferencesRoute
+    }
+    '/references/gm-moves': {
+      id: '/references/gm-moves'
+      path: '/gm-moves'
+      fullPath: '/references/gm-moves'
+      preLoaderRoute: typeof ReferencesGmMovesRouteImport
       parentRoute: typeof ReferencesRoute
     }
     '/references/equipment': {
@@ -880,6 +899,7 @@ interface ReferencesRouteChildren {
   ReferencesDomainCardsRoute: typeof ReferencesDomainCardsRoute
   ReferencesEnvironmentsRoute: typeof ReferencesEnvironmentsRoute
   ReferencesEquipmentRoute: typeof ReferencesEquipmentRoute
+  ReferencesGmMovesRoute: typeof ReferencesGmMovesRoute
   ReferencesInventoryRoute: typeof ReferencesInventoryRoute
   ReferencesIndexRoute: typeof ReferencesIndexRoute
 }
@@ -892,6 +912,7 @@ const ReferencesRouteChildren: ReferencesRouteChildren = {
   ReferencesDomainCardsRoute: ReferencesDomainCardsRoute,
   ReferencesEnvironmentsRoute: ReferencesEnvironmentsRoute,
   ReferencesEquipmentRoute: ReferencesEquipmentRoute,
+  ReferencesGmMovesRoute: ReferencesGmMovesRoute,
   ReferencesInventoryRoute: ReferencesInventoryRoute,
   ReferencesIndexRoute: ReferencesIndexRoute,
 }

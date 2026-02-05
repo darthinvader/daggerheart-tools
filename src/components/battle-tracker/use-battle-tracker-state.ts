@@ -157,6 +157,11 @@ export function useBattleRosterState() {
     []
   );
   const [fearPool, setFearPool] = useState(0); // GM Fear pool
+  /**
+   * Custom max fear value. If undefined, defaults to 2 * party size.
+   * Per Daggerheart rules, fear caps are typically based on party size.
+   */
+  const [maxFear, setMaxFear] = useState<number | undefined>(undefined);
   const [useMassiveThreshold, setUseMassiveThreshold] = useState(false); // Global massive threshold toggle
   const [rosterVersion, setRosterVersion] = useState(0);
   const [activeRosterTab, setActiveRosterTab] = useState<
@@ -247,6 +252,7 @@ export function useBattleRosterState() {
       spotlight,
       spotlightHistory,
       fearPool,
+      maxFear,
       useMassiveThreshold,
       rosterVersion,
       activeRosterTab,
@@ -262,6 +268,10 @@ export function useBattleRosterState() {
       },
       setFearPool: (value: number) => {
         setFearPool(value);
+        bumpRosterVersion();
+      },
+      setMaxFear: (value: number | undefined) => {
+        setMaxFear(value);
         bumpRosterVersion();
       },
       setUseMassiveThreshold: (value: boolean) => {

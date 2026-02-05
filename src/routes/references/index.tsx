@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/card';
 import {
   Backpack,
+  Compass,
   Home,
   Shield,
   Skull,
@@ -102,6 +103,15 @@ const referenceCategories: ReferenceCategory[] = [
     icon: TreePine,
     gradient: 'from-emerald-500 to-green-600',
     tint: 'bg-emerald-500/10',
+  },
+  {
+    to: '/references/gm-moves',
+    title: 'GM Moves',
+    description:
+      'Quick reference for GM moves organized by category: soft, medium, and hard.',
+    icon: Compass,
+    gradient: 'from-blue-500 to-cyan-600',
+    tint: 'bg-blue-500/10',
   },
 ];
 

@@ -1,20 +1,27 @@
 /**
  * Tests for the SRD-compliant rest system.
  * Verifies rest mechanics match SRD v1.0 Page 41.
+ * Includes Fear gain mechanics per Chapter 3.
  */
 import { describe, expect, it } from 'vitest';
 
 import {
+  calculateFearGain,
   createRestResult,
   executeRestMove,
   formatRestResult,
+  getFearGainSummary,
   getMovesForRestType,
   getRestMoveResultSummary,
   LONG_REST_MOVES,
   rollRestRecovery,
   SHORT_REST_MOVES,
 } from '@/components/rest';
-import type { RestMove, RestMoveResult } from '@/components/rest';
+import type {
+  FearGainResult,
+  RestMove,
+  RestMoveResult,
+} from '@/components/rest';
 
 describe('Rest System Constants', () => {
   describe('SHORT_REST_MOVES', () => {
@@ -395,5 +402,200 @@ describe('SRD Compliance', () => {
       m => m.id === 'repair-armor-long'
     );
     expect(longArmorMove?.isFullClear).toBe(true);
+  });
+});
+
+/**
+ * Fear Gain on Rest Tests
+ * Per Daggerheart Chapter 3:
+ * - Short Rest: GM gains 1d4 Fear
+ * - Long Rest: GM gains (number of PCs + 1d4) Fear
+ */
+describe('Fear Gain on Rest', () => {
+  describe('calculateFearGain', () => {
+    it('should return 1d4 Fear for short rest', () => {
+      // Run multiple times to verify range
+      for (let i = 0; i < 100; i++) {
+        const result = calculateFearGain('short');
+        expect(result.diceRoll).toBeGreaterThanOrEqual(1);
+        expect(result.diceRoll).toBeLessThanOrEqual(4);
+        expect(result.total).toBe(result.diceRoll);
+        expect(result.partyBonus).toBe(0);
+        expect(result.restType).toBe('short');
+      }
+    });
+
+    it('should return party size + 1d4 Fear for long rest', () => {
+      const partySize = 4;
+      for (let i = 0; i < 100; i++) {
+        const result = calculateFearGain('long', partySize);
+        expect(result.diceRoll).toBeGreaterThanOrEqual(1);
+        expect(result.diceRoll).toBeLessThanOrEqual(4);
+        expect(result.partyBonus).toBe(partySize);
+        expect(result.total).toBe(partySize + result.diceRoll);
+        expect(result.restType).toBe('long');
+      }
+    });
+
+    it('should handle party size of 0 for long rest', () => {
+      const result = calculateFearGain('long', 0);
+      expect(result.partyBonus).toBe(0);
+      expect(result.total).toBe(result.diceRoll);
+    });
+
+    it('should handle large party sizes', () => {
+      const partySize = 6;
+      const result = calculateFearGain('long', partySize);
+      expect(result.total).toBeGreaterThanOrEqual(7); // 6 + 1
+      expect(result.total).toBeLessThanOrEqual(10); // 6 + 4
+    });
+  });
+
+  describe('getFearGainSummary', () => {
+    it('should format short rest Fear gain correctly', () => {
+      const fearGain: FearGainResult = {
+        diceRoll: 3,
+        partyBonus: 0,
+        total: 3,
+        restType: 'short',
+      };
+      expect(getFearGainSummary(fearGain)).toBe('GM gains 3 Fear (1d4: 3)');
+    });
+
+    it('should format long rest Fear gain correctly', () => {
+      const fearGain: FearGainResult = {
+        diceRoll: 2,
+        partyBonus: 4,
+        total: 6,
+        restType: 'long',
+      };
+      expect(getFearGainSummary(fearGain)).toBe(
+        'GM gains 6 Fear (4 PCs + 1d4: 2)'
+      );
+    });
+  });
+
+  describe('createRestResult with Fear gain', () => {
+    it('should include Fear gain in rest result when provided', () => {
+      const moveResults: RestMoveResult[] = [
+        {
+          moveId: 'tend-wounds-short',
+          moveName: 'Tend to Wounds',
+          diceRoll: 3,
+          tierBonus: 2,
+          amount: 5,
+          isFullClear: false,
+          target: 'Self',
+        },
+      ];
+      const fearGain: FearGainResult = {
+        diceRoll: 4,
+        partyBonus: 0,
+        total: 4,
+        restType: 'short',
+      };
+
+      const result = createRestResult('short', moveResults, fearGain);
+
+      expect(result.fearGain).toBeDefined();
+      expect(result.fearGain?.total).toBe(4);
+      expect(result.fearGain?.restType).toBe('short');
+    });
+
+    it('should work without Fear gain (undefined)', () => {
+      const moveResults: RestMoveResult[] = [
+        {
+          moveId: 'prepare',
+          moveName: 'Prepare',
+          amount: 1,
+          isFullClear: false,
+          target: 'Self',
+        },
+      ];
+
+      const result = createRestResult('short', moveResults);
+
+      expect(result.fearGain).toBeUndefined();
+    });
+  });
+
+  describe('formatRestResult with Fear gain', () => {
+    it('should include Fear gain in formatted output', () => {
+      const result = {
+        restType: 'short' as const,
+        moveResults: [
+          {
+            moveId: 'tend-wounds-short',
+            moveName: 'Tend to Wounds',
+            diceRoll: 2,
+            tierBonus: 1,
+            amount: 3,
+            isFullClear: false,
+            target: 'Self',
+          },
+        ],
+        timestamp: new Date().toISOString(),
+        fearGain: {
+          diceRoll: 3,
+          partyBonus: 0,
+          total: 3,
+          restType: 'short' as const,
+        },
+      };
+
+      const formatted = formatRestResult(result);
+      expect(formatted).toContain('Short Rest');
+      expect(formatted).toContain('Tend to Wounds');
+      expect(formatted).toContain('GM gains 3 Fear');
+    });
+
+    it('should work without Fear gain in formatted output', () => {
+      const result = {
+        restType: 'long' as const,
+        moveResults: [
+          {
+            moveId: 'tend-wounds-long',
+            moveName: 'Tend to All Wounds',
+            amount: 15,
+            isFullClear: true,
+            target: 'Self',
+          },
+        ],
+        timestamp: new Date().toISOString(),
+      };
+
+      const formatted = formatRestResult(result);
+      expect(formatted).toContain('Long Rest');
+      expect(formatted).not.toContain('Fear');
+    });
+  });
+});
+
+describe('Chapter 3 Fear Gain Compliance', () => {
+  it('short rest should give GM 1d4 Fear per Chapter 3', () => {
+    const result = calculateFearGain('short');
+    expect(result.total).toBeGreaterThanOrEqual(1);
+    expect(result.total).toBeLessThanOrEqual(4);
+    expect(result.partyBonus).toBe(0);
+  });
+
+  it('long rest should give GM (PCs + 1d4) Fear per Chapter 3', () => {
+    const partyOf4 = calculateFearGain('long', 4);
+    expect(partyOf4.total).toBeGreaterThanOrEqual(5); // 4 + 1
+    expect(partyOf4.total).toBeLessThanOrEqual(8); // 4 + 4
+    expect(partyOf4.partyBonus).toBe(4);
+
+    const partyOf5 = calculateFearGain('long', 5);
+    expect(partyOf5.total).toBeGreaterThanOrEqual(6); // 5 + 1
+    expect(partyOf5.total).toBeLessThanOrEqual(9); // 5 + 4
+    expect(partyOf5.partyBonus).toBe(5);
+  });
+
+  it('Fear gain should be additive with party size', () => {
+    // For various party sizes, verify the formula is correct
+    for (let partySize = 1; partySize <= 6; partySize++) {
+      const result = calculateFearGain('long', partySize);
+      expect(result.total).toBe(partySize + result.diceRoll);
+    }
   });
 });

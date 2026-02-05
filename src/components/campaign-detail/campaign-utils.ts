@@ -18,6 +18,12 @@ export function getComplexityInfo(complexity: string) {
         color: 'bg-red-500/10 text-red-600 border-red-500/30',
         description: 'Requires comfortable homebrewing and custom content',
       };
+    case '4':
+      return {
+        label: 'Very High',
+        color: 'bg-purple-500/10 text-purple-600 border-purple-500/30',
+        description: 'Extensive custom content and advanced mechanics',
+      };
     default:
       return {
         label: 'Unknown',

@@ -61,20 +61,81 @@ export const CharacterNotesSchema = z.object({
 });
 
 // =====================================================================================
-// Countdown Trackers
+// Countdown Trackers (Enhanced with Dynamic Advancement per Daggerheart Ch. 3)
 // =====================================================================================
+
+/**
+ * Roll result types for dynamic countdown advancement
+ * Based on Daggerheart Chapter 3 rules:
+ * - Critical Success: Advance by 3
+ * - Success with Hope: Advance by 2
+ * - Success with Fear: Advance by 1
+ * - Failure: May not advance
+ */
+export const RollResultSchema = z.enum([
+  'critical_success',
+  'success_with_hope',
+  'success_with_fear',
+  'failure',
+]);
+
+/**
+ * Behavior when countdown reaches completion
+ */
+export const CountdownBehaviorSchema = z.enum(['once', 'loop', 'pause']);
+
+/**
+ * Variance mode for starting position randomization
+ */
+export const VarianceModeSchema = z.enum(['none', 'low', 'medium', 'high']);
+
+/**
+ * Trigger that fires when countdown completes
+ */
+export const CountdownTriggerSchema = z.object({
+  id: z.string(),
+  description: z.string(),
+  action: z
+    .enum(['notify', 'spawn_adversary', 'environment_change', 'custom'])
+    .optional(),
+  fired: z.boolean().default(false),
+});
+
+/**
+ * Advancement history entry for tracking/undo
+ */
+export const AdvancementHistoryEntrySchema = z.object({
+  amount: z.number().int(),
+  rollResult: RollResultSchema.optional(),
+  timestamp: z.string().datetime().optional(),
+});
 
 export const CountdownSchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string().optional(),
-  currentValue: z.number().int().min(0),
-  maxValue: z.number().int().min(1),
-  tickOn: z
-    .enum(['action_roll', 'fear_roll', 'rest', 'manual'])
-    .default('manual'),
-  isComplete: z.boolean().default(false),
-  type: z.enum(['progress', 'danger', 'project']).default('progress'),
+
+  // Core countdown values
+  segments: z.number().int().min(1).default(6),
+  filled: z.number().int().min(0).default(0),
+  type: z.enum(['threat', 'opportunity', 'neutral']).default('neutral'),
+  createdAt: z.string().datetime().optional(),
+
+  // Dynamic advancement (Daggerheart Ch. 3)
+  dynamicAdvancement: z.boolean().default(false),
+
+  // Completion behavior
+  behavior: CountdownBehaviorSchema.default('once'),
+  loopCount: z.number().int().min(0).default(0),
+
+  // Variance for randomized starting positions
+  variance: VarianceModeSchema.default('none'),
+
+  // Trigger when countdown completes
+  trigger: CountdownTriggerSchema.optional(),
+
+  // History for undo/tracking
+  advancementHistory: z.array(AdvancementHistoryEntrySchema).optional(),
 });
 
 export const CountdownsStateSchema = z.array(CountdownSchema).default([]);

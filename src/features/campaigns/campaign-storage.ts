@@ -37,6 +37,7 @@ interface CampaignRow {
   organizations: CampaignOrganization[];
   story_threads: Campaign['storyThreads'];
   battles: BattleState[];
+  session_zero: Campaign['sessionZero'];
   session_prep_checklist: Campaign['sessionPrepChecklist'];
   invite_code: string | null;
   status: Campaign['status'];
@@ -99,6 +100,7 @@ function rowToCampaign(row: CampaignRow): Campaign {
     organizations: row.organizations ?? [],
     storyThreads: row.story_threads ?? [],
     battles: row.battles ?? [],
+    sessionZero: row.session_zero ?? undefined,
     sessionPrepChecklist: row.session_prep_checklist ?? [],
     inviteCode: row.invite_code ?? undefined,
     status: row.status,
@@ -139,6 +141,7 @@ const CAMPAIGN_TO_ROW_FIELDS: Record<string, string> = {
   organizations: 'organizations',
   storyThreads: 'story_threads',
   battles: 'battles',
+  sessionZero: 'session_zero',
   sessionPrepChecklist: 'session_prep_checklist',
   inviteCode: 'invite_code',
   status: 'status',

@@ -281,6 +281,11 @@ export const BattleStateSchema = z.object({
   spotlight: BattleSelectionSchema.nullable().default(null),
   spotlightHistory: z.array(BattleSelectionSchema).default([]),
   fearPool: z.number().default(0),
+  /**
+   * Maximum fear pool size. If not set, defaults to 2 * party size.
+   * Per Daggerheart rules, fear caps are typically based on party size.
+   */
+  maxFear: z.number().optional(),
   useMassiveThreshold: z.boolean().default(false),
   notes: z.string().default(''),
   status: z

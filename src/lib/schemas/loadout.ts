@@ -109,8 +109,9 @@ export const DomainCardLiteSchema = z.object({
   domain: z.string(),
   type: z.string(),
   description: z.string(),
-  hopeCost: z.number().int().min(0).optional(),
+  // Per SRD: recallCost is standard; hopeCost kept for backward compatibility
   recallCost: z.number().int().min(0).optional(),
+  hopeCost: z.number().int().min(0).optional(),
   stressCost: z.number().int().min(0).optional(),
   tags: z.array(z.string()).optional(),
   // Optional explicit modifiers for auto-calculation

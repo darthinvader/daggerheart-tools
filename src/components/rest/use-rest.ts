@@ -4,8 +4,13 @@
 import { useCallback, useState } from 'react';
 
 import { getMovesForRestType } from './constants';
-import { createRestResult, executeRestMove } from './rest-utils';
+import {
+  calculateFearGain,
+  createRestResult,
+  executeRestMove,
+} from './rest-utils';
 import type {
+  FearGainResult,
   RestMove,
   RestMoveResult,
   RestMoveSelection,
@@ -32,6 +37,16 @@ interface UseRestOptions {
   totalArmorSlots: number;
   /** Callback when rest is complete */
   onComplete: (result: RestResult) => void;
+  /**
+   * Number of PCs in the party (for Fear gain calculation).
+   * Per Chapter 3: Long Rest Fear gain = partySize + 1d4
+   */
+  partySize?: number;
+  /**
+   * Whether to calculate and include Fear gain in results.
+   * When true, Fear gain will be calculated per Chapter 3 rules.
+   */
+  showFearGain?: boolean;
 }
 
 interface UseRestReturn {
@@ -45,6 +60,8 @@ interface UseRestReturn {
   selection: RestMoveSelection;
   /** Rest results (after completion) */
   results: RestMoveResult[];
+  /** Fear gain result (after completion, if showFearGain was enabled) */
+  fearGain: FearGainResult | null;
   /** Whether preparing with party */
   preparingWithParty: boolean;
   /** Set rest type and advance to move selection */
@@ -73,14 +90,22 @@ const initialSelection: RestMoveSelection = {
 };
 
 export function useRest(options: UseRestOptions): UseRestReturn {
-  const { tier, currentHp, currentStress, currentArmorMarked, onComplete } =
-    options;
+  const {
+    tier,
+    currentHp,
+    currentStress,
+    currentArmorMarked,
+    onComplete,
+    partySize = 0,
+    showFearGain = false,
+  } = options;
 
   const [phase, setPhase] = useState<RestPhase>('select-type');
   const [restType, setRestType] = useState<RestType | null>(null);
   const [selection, setSelection] =
     useState<RestMoveSelection>(initialSelection);
   const [results, setResults] = useState<RestMoveResult[]>([]);
+  const [fearGain, setFearGain] = useState<FearGainResult | null>(null);
   const [preparingWithParty, setPreparingWithParty] = useState(false);
 
   const availableMoves = restType ? getMovesForRestType(restType) : [];
@@ -158,10 +183,18 @@ export function useRest(options: UseRestOptions): UseRestReturn {
     );
     moveResults.push(result2);
 
+    // Calculate Fear gain for GM if enabled
+    // Per Chapter 3: Short Rest = 1d4, Long Rest = PCs + 1d4
+    let fearGainResult: FearGainResult | undefined;
+    if (showFearGain) {
+      fearGainResult = calculateFearGain(restType, partySize);
+      setFearGain(fearGainResult);
+    }
+
     setResults(moveResults);
     setPhase('results');
 
-    const fullResult = createRestResult(restType, moveResults);
+    const fullResult = createRestResult(restType, moveResults, fearGainResult);
     onComplete(fullResult);
   }, [
     restType,
@@ -170,6 +203,8 @@ export function useRest(options: UseRestOptions): UseRestReturn {
     preparingWithParty,
     getResourceValue,
     onComplete,
+    showFearGain,
+    partySize,
   ]);
 
   const reset = useCallback(() => {
@@ -177,6 +212,7 @@ export function useRest(options: UseRestOptions): UseRestReturn {
     setRestType(null);
     setSelection(initialSelection);
     setResults([]);
+    setFearGain(null);
     setPreparingWithParty(false);
   }, []);
 
@@ -187,6 +223,7 @@ export function useRest(options: UseRestOptions): UseRestReturn {
       setPhase('select-type');
     } else if (phase === 'results') {
       setResults([]);
+      setFearGain(null);
       setPhase('select-moves');
     }
   }, [phase]);
@@ -199,6 +236,7 @@ export function useRest(options: UseRestOptions): UseRestReturn {
     availableMoves,
     selection,
     results,
+    fearGain,
     preparingWithParty,
     selectRestType,
     selectMove,

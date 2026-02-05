@@ -11,6 +11,9 @@ import {
   Heart,
   Key,
   Map,
+  Plus,
+  Power,
+  RefreshCw,
   Scroll,
   Shield,
   Sparkles,
@@ -18,6 +21,7 @@ import {
   Trash2,
   User,
   Users,
+  Zap,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
 
@@ -34,6 +38,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Tooltip,
@@ -46,6 +51,8 @@ import type {
   CampaignNPC,
   CampaignOrganization,
   CampaignQuest,
+  NPCFeature,
+  NPCRole,
 } from '@/lib/schemas/campaign';
 
 import { DeleteConfirmDialog } from './entity-card-utils';
@@ -464,6 +471,345 @@ export function NPCEnemiesSection({
       </h4>
       {enemiesNPCContent}
       {enemiesOrgContent}
+    </div>
+  );
+}
+
+// =====================================================================================
+// NPC Role Options - Relationship to the party
+// =====================================================================================
+
+export interface NPCRoleOption {
+  value: NPCRole;
+  label: string;
+  color: string;
+  icon: ReactNode;
+}
+
+export const NPC_ROLE_OPTIONS: NPCRoleOption[] = [
+  {
+    value: 'ally',
+    label: 'Ally',
+    color: 'bg-green-500/20 text-green-700 dark:text-green-400',
+    icon: <Heart className="h-3 w-3" />,
+  },
+  {
+    value: 'neutral',
+    label: 'Neutral',
+    color: 'bg-gray-500/20 text-gray-700 dark:text-gray-400',
+    icon: <User className="h-3 w-3" />,
+  },
+  {
+    value: 'rival',
+    label: 'Rival',
+    color: 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400',
+    icon: <Swords className="h-3 w-3" />,
+  },
+  {
+    value: 'villain',
+    label: 'Villain',
+    color: 'bg-red-500/20 text-red-700 dark:text-red-400',
+    icon: <Zap className="h-3 w-3" />,
+  },
+];
+
+// =====================================================================================
+// NPC Role Section
+// =====================================================================================
+
+interface NPCRoleSectionProps {
+  localNPC: CampaignNPC;
+  handleRoleChange: (value: NPCRole) => void;
+}
+
+export function NPCRoleSection({
+  localNPC,
+  handleRoleChange,
+}: NPCRoleSectionProps) {
+  const currentRole = NPC_ROLE_OPTIONS.find(
+    r => r.value === (localNPC.role ?? 'neutral')
+  );
+
+  return (
+    <div className="space-y-2">
+      <Label className="flex items-center gap-2 text-xs">
+        <Users className="h-3 w-3 text-indigo-500" />
+        Party Relationship
+      </Label>
+      <Select
+        value={localNPC.role ?? 'neutral'}
+        onValueChange={value => handleRoleChange(value as NPCRole)}
+      >
+        <SelectTrigger>
+          <SelectValue>
+            <div className="flex items-center gap-2">
+              {currentRole?.icon}
+              <span>{currentRole?.label ?? 'Neutral'}</span>
+            </div>
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent>
+          {NPC_ROLE_OPTIONS.map(opt => (
+            <SelectItem key={opt.value} value={opt.value}>
+              <div className="flex items-center gap-2">
+                {opt.icon}
+                <span>{opt.label}</span>
+              </div>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
+
+// =====================================================================================
+// NPC Features Section - Trigger/Effect mechanics per Chapter 3
+// =====================================================================================
+
+interface NPCFeaturesSectionProps {
+  features: NPCFeature[];
+  onAddFeature: () => void;
+  onUpdateFeature: (featureId: string, updates: Partial<NPCFeature>) => void;
+  onDeleteFeature: (featureId: string) => void;
+  onToggleFeatureActive: (featureId: string) => void;
+  onResetFeatureUses: (featureId: string) => void;
+}
+
+export function NPCFeaturesSection({
+  features,
+  onAddFeature,
+  onUpdateFeature,
+  onDeleteFeature,
+  onToggleFeatureActive,
+  onResetFeatureUses,
+}: NPCFeaturesSectionProps) {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h4 className="flex items-center gap-2 font-medium text-amber-600">
+          <Zap className="h-4 w-4" />
+          NPC Features
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="text-muted-foreground cursor-help text-xs">
+                  (Chapter 3)
+                </span>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <p>
+                  NPC Features have a trigger (when it activates) and an effect
+                  (what happens). Optionally, a choice can set context for the
+                  feature.
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </h4>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-6 gap-1 px-2 text-xs"
+          onClick={onAddFeature}
+        >
+          <Plus className="h-3 w-3" />
+          Add Feature
+        </Button>
+      </div>
+
+      {features.length === 0 ? (
+        <div className="rounded-lg border border-dashed p-4 text-center">
+          <Zap className="text-muted-foreground mx-auto mb-2 h-6 w-6" />
+          <p className="text-muted-foreground text-sm">
+            No features defined. Add a feature to give this NPC mechanical
+            interaction with the game system.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {features.map(feature => (
+            <NPCFeatureCard
+              key={feature.id}
+              feature={feature}
+              onUpdate={updates => onUpdateFeature(feature.id, updates)}
+              onDelete={() => onDeleteFeature(feature.id)}
+              onToggleActive={() => onToggleFeatureActive(feature.id)}
+              onResetUses={() => onResetFeatureUses(feature.id)}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// =====================================================================================
+// NPC Feature Card - Individual feature display/edit
+// =====================================================================================
+
+interface NPCFeatureCardProps {
+  feature: NPCFeature;
+  onUpdate: (updates: Partial<NPCFeature>) => void;
+  onDelete: () => void;
+  onToggleActive: () => void;
+  onResetUses: () => void;
+}
+
+function NPCFeatureCard({
+  feature,
+  onUpdate,
+  onDelete,
+  onToggleActive,
+  onResetUses,
+}: NPCFeatureCardProps) {
+  return (
+    <div
+      className={`rounded-lg border p-3 ${
+        feature.isActive
+          ? 'border-amber-500/30 bg-amber-500/5'
+          : 'border-gray-300/30 bg-gray-500/5 opacity-60'
+      }`}
+    >
+      {/* Header with name and controls */}
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <div className="flex flex-1 items-center gap-2">
+          <Zap
+            className={`h-4 w-4 ${feature.isActive ? 'text-amber-500' : 'text-gray-400'}`}
+          />
+          <Input
+            value={feature.name}
+            onChange={e => onUpdate({ name: e.target.value })}
+            placeholder="Feature name..."
+            className="h-7 flex-1 font-medium"
+          />
+        </div>
+        <div className="flex items-center gap-1">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-1.5">
+                  <Switch
+                    checked={feature.isActive}
+                    onCheckedChange={onToggleActive}
+                    className="h-4 w-7"
+                  />
+                  <Power
+                    className={`h-3 w-3 ${feature.isActive ? 'text-green-500' : 'text-gray-400'}`}
+                  />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                {feature.isActive ? 'Feature is active' : 'Feature is inactive'}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-destructive hover:bg-destructive/10 h-6 w-6"
+            onClick={onDelete}
+          >
+            <Trash2 className="h-3 w-3" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Choice (optional) */}
+      <div className="mb-2 space-y-1">
+        <Label className="text-muted-foreground flex items-center gap-1 text-xs">
+          <Sparkles className="h-3 w-3 text-purple-400" />
+          Choice (Optional)
+        </Label>
+        <Input
+          value={feature.choice ?? ''}
+          onChange={e => onUpdate({ choice: e.target.value || undefined })}
+          placeholder="e.g., When battle begins, choose a favored PC..."
+          className="h-7 text-xs"
+        />
+      </div>
+
+      {/* Trigger */}
+      <div className="mb-2 space-y-1">
+        <Label className="text-muted-foreground flex items-center gap-1 text-xs">
+          <Power className="h-3 w-3 text-blue-400" />
+          Trigger
+          <span className="text-red-400">*</span>
+        </Label>
+        <Textarea
+          value={feature.trigger}
+          onChange={e => onUpdate({ trigger: e.target.value })}
+          placeholder="e.g., A PC within Very Close range marks at least 2 Hit Points..."
+          rows={2}
+          className="text-xs"
+        />
+      </div>
+
+      {/* Effect */}
+      <div className="mb-2 space-y-1">
+        <Label className="text-muted-foreground flex items-center gap-1 text-xs">
+          <Zap className="h-3 w-3 text-amber-400" />
+          Effect
+          <span className="text-red-400">*</span>
+        </Label>
+        <Textarea
+          value={feature.effect}
+          onChange={e => onUpdate({ effect: e.target.value })}
+          placeholder="e.g., Roll 1d8. On a 4 or higher, this NPC moves into Melee range and marks one of the Hit Points instead..."
+          rows={2}
+          className="text-xs"
+        />
+      </div>
+
+      {/* Uses per rest */}
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <Label className="text-muted-foreground text-xs">Uses/Rest:</Label>
+          <Input
+            type="number"
+            min={0}
+            value={feature.usesPerRest ?? ''}
+            onChange={e => {
+              const val = e.target.value;
+              onUpdate({
+                usesPerRest: val ? parseInt(val, 10) : undefined,
+              });
+            }}
+            placeholder="Unlimited"
+            className="h-6 w-20 text-xs"
+          />
+        </div>
+        {feature.usesPerRest !== undefined && feature.usesPerRest > 0 && (
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="text-xs">
+              {feature.currentUses ?? 0} / {feature.usesPerRest} used
+            </Badge>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-5 w-5"
+              onClick={onResetUses}
+            >
+              <RefreshCw className="h-3 w-3" />
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Notes */}
+      <div className="mt-2 space-y-1">
+        <Label className="text-muted-foreground flex items-center gap-1 text-xs">
+          <FileText className="h-3 w-3" />
+          Notes
+        </Label>
+        <Textarea
+          value={feature.notes}
+          onChange={e => onUpdate({ notes: e.target.value })}
+          placeholder="GM notes about this feature..."
+          rows={1}
+          className="text-xs"
+        />
+      </div>
     </div>
   );
 }
