@@ -135,7 +135,7 @@ export function AppearanceSection({
           {items.map(item => (
             <div
               key={item.key}
-              className="rounded-lg border bg-linear-to-br from-slate-50 to-slate-100 p-3 dark:from-slate-900 dark:to-slate-800"
+              className="rounded-lg border bg-gradient-to-br from-slate-50 to-slate-100 p-3 dark:from-slate-900 dark:to-slate-800"
             >
               <div className="text-muted-foreground mb-1 flex items-center gap-1 text-xs tracking-wide uppercase">
                 {item.icon}
@@ -160,7 +160,7 @@ export function BackgroundSection({ background }: { background?: string }) {
         <h5 className="text-muted-foreground mb-2 flex items-center gap-2 text-xs font-medium tracking-wide uppercase">
           <Scroll className="size-3" /> Background
         </h5>
-        <div className="rounded-lg border bg-linear-to-br from-amber-50 to-orange-50 p-4 dark:from-amber-950/20 dark:to-orange-950/20">
+        <div className="rounded-lg border bg-gradient-to-br from-amber-50 to-orange-50 p-4 dark:from-amber-950/20 dark:to-orange-950/20">
           <p className="text-muted-foreground text-sm leading-relaxed">
             {background}
           </p>

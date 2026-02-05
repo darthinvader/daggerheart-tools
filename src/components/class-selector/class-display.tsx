@@ -51,7 +51,7 @@ function EmptyClass({ onEdit }: { onEdit?: () => void }) {
 
 function MulticlassHeader({ classPairs }: { classPairs: ClassSubclassPair[] }) {
   return (
-    <div className="rounded-lg border border-purple-500/30 bg-linear-to-r from-purple-500/10 to-blue-500/10 p-3">
+    <div className="rounded-lg border border-purple-500/30 bg-gradient-to-r from-purple-500/10 to-blue-500/10 p-3">
       <div className="flex flex-wrap items-center gap-2">
         <Badge variant="secondary" className="text-xs">
           <Shuffle size={ICON_SIZE_SM} className="mr-1" /> Multiclass

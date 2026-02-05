@@ -176,7 +176,7 @@ export function CompanionStressTracker({
             className={cn(
               'h-8 w-8 rounded-lg border-2 transition-all',
               i < markedStress
-                ? 'border-orange-500 bg-linear-to-br from-orange-400 to-orange-600 shadow-md'
+                ? 'border-orange-500 bg-gradient-to-br from-orange-400 to-orange-600 shadow-md'
                 : 'border-muted-foreground/30 bg-transparent hover:border-orange-300'
             )}
             onClick={() => onSlotClick(i)}
@@ -213,7 +213,7 @@ export function CompanionExperiencesBadges({
           {validExperiences.map((exp, i) => (
             <span
               key={i}
-              className="flex items-center gap-1 rounded-full bg-linear-to-r from-emerald-500/20 to-teal-500/20 px-3 py-1.5 text-sm font-medium text-emerald-700 ring-1 ring-emerald-500/30 dark:text-emerald-300"
+              className="flex items-center gap-1 rounded-full bg-gradient-to-r from-emerald-500/20 to-teal-500/20 px-3 py-1.5 text-sm font-medium text-emerald-700 ring-1 ring-emerald-500/30 dark:text-emerald-300"
             >
               {exp.name} +{exp.bonus}
             </span>

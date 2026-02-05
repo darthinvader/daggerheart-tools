@@ -170,7 +170,7 @@ function GMMovesHeader({
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 text-lg font-semibold">
               <Compass className="size-4 text-blue-500" />
-              <span className="bg-linear-to-r from-blue-500 to-cyan-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-blue-500 to-cyan-600 bg-clip-text text-transparent">
                 GM Moves Reference
               </span>
             </div>
@@ -335,7 +335,7 @@ const GMMoveCard = React.memo(function GMMoveCard({
       className="reference-card card-grid-item hover:border-primary/50 group h-full cursor-pointer overflow-hidden transition-all hover:scale-[1.01] hover:shadow-xl"
       onClick={onClick}
     >
-      <div className="h-1 bg-linear-to-r from-blue-500 via-cyan-500 to-teal-500" />
+      <div className="h-1 bg-gradient-to-r from-blue-500 via-cyan-500 to-teal-500" />
       <CardHeader className={compact ? 'pb-2' : 'pb-3'}>
         <div className="flex flex-wrap items-center gap-2">
           <CardTitle className={compact ? 'text-base' : 'text-lg'}>
@@ -425,7 +425,7 @@ function GMMovesEmptyState({ onClear }: { onClear: () => void }) {
 
 function GMMoveDetailHeader({ move }: { move: GMMove }) {
   return (
-    <div className="-mx-4 -mt-4 bg-linear-to-r from-blue-600 via-cyan-600 to-teal-600 p-6">
+    <div className="-mx-4 -mt-4 bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 p-6">
       <div className="rounded-xl bg-black/30 p-4">
         <h2 className="text-2xl font-semibold text-white drop-shadow">
           {move.name}

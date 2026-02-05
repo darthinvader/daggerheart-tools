@@ -296,7 +296,7 @@ const ItemCard = React.memo(function ItemCard({
       className={`reference-card card-grid-item hover:border-primary/50 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg ${inCompare ? 'ring-primary ring-2' : ''}`}
       onClick={onClick}
     >
-      <div className={`h-1 bg-linear-to-r ${gradient}`} />
+      <div className={`h-1 bg-gradient-to-r ${gradient}`} />
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
           <CardTitle
@@ -410,7 +410,7 @@ function ItemDetail({ item }: { item: InventoryItem }) {
 
   return (
     <div className="space-y-4">
-      <div className={`-mx-4 -mt-4 bg-linear-to-r p-6 ${gradient}`}>
+      <div className={`-mx-4 -mt-4 bg-gradient-to-r p-6 ${gradient}`}>
         <div className="rounded-xl bg-black/30 p-4">
           <h2 className="text-xl font-bold text-white drop-shadow">
             {item.data.name}
@@ -725,7 +725,7 @@ function InventoryHeader({
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 text-lg font-semibold">
             <Backpack className="size-4 text-cyan-500" />
-            <span className="bg-linear-to-r from-cyan-500 to-blue-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-cyan-500 to-blue-600 bg-clip-text text-transparent">
               Inventory Items
             </span>
           </div>
@@ -957,7 +957,7 @@ const InventoryGridSections = React.memo(function InventoryGridSections({
               <button className="hover:bg-muted/50 bg-card flex w-full items-center justify-between rounded-lg border p-3 transition-colors">
                 <div className="flex items-center gap-3">
                   <span
-                    className={`inline-block h-3 w-3 rounded-full bg-linear-to-r ${gradient}`}
+                    className={`inline-block h-3 w-3 rounded-full bg-gradient-to-r ${gradient}`}
                   />
                   <h2 className="text-lg font-semibold">
                     {categoryLabels[category]}s

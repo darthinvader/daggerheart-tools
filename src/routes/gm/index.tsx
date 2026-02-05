@@ -31,7 +31,7 @@ function GmDashboard() {
       <h2 className="mb-4 text-xl font-semibold">Quick Actions</h2>
       <div className="mb-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Link to="/gm/campaigns/new" className="block">
-          <Card className="h-full cursor-pointer border-green-500/20 bg-linear-to-br from-green-500/5 to-green-500/10 transition-all hover:scale-[1.02] hover:shadow-md">
+          <Card className="h-full cursor-pointer border-green-500/20 bg-gradient-to-br from-green-500/5 to-green-500/10 transition-all hover:scale-[1.02] hover:shadow-md">
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
                 <div className="flex size-10 items-center justify-center rounded-lg bg-green-500/10">
@@ -47,7 +47,7 @@ function GmDashboard() {
         </Link>
 
         <Link to="/gm/campaigns" className="block">
-          <Card className="h-full cursor-pointer border-blue-500/20 bg-linear-to-br from-blue-500/5 to-blue-500/10 transition-all hover:scale-[1.02] hover:shadow-md">
+          <Card className="h-full cursor-pointer border-blue-500/20 bg-gradient-to-br from-blue-500/5 to-blue-500/10 transition-all hover:scale-[1.02] hover:shadow-md">
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
                 <div className="flex size-10 items-center justify-center rounded-lg bg-blue-500/10">
@@ -63,7 +63,7 @@ function GmDashboard() {
         </Link>
 
         <Link to="/gm/saved-encounters" className="block">
-          <Card className="h-full cursor-pointer border-red-500/20 bg-linear-to-br from-red-500/5 to-red-500/10 transition-all hover:scale-[1.02] hover:shadow-md">
+          <Card className="h-full cursor-pointer border-red-500/20 bg-gradient-to-br from-red-500/5 to-red-500/10 transition-all hover:scale-[1.02] hover:shadow-md">
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
                 <div className="flex size-10 items-center justify-center rounded-lg bg-red-500/10">
@@ -83,7 +83,7 @@ function GmDashboard() {
       {/* Features Overview */}
       <h2 className="mb-4 text-xl font-semibold">Features</h2>
       <div className="grid gap-4 md:grid-cols-2">
-        <Card className="border-amber-500/20 bg-linear-to-br from-amber-500/5 to-amber-500/10">
+        <Card className="border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-amber-500/10">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <Crown className="size-5 text-amber-500" />
@@ -100,7 +100,7 @@ function GmDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="border-purple-500/20 bg-linear-to-br from-purple-500/5 to-purple-500/10">
+        <Card className="border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-purple-500/10">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <Users className="size-5 text-purple-500" />

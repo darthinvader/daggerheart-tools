@@ -11,6 +11,7 @@ import {
   UtensilsCrossed,
 } from 'lucide-react';
 import { useCallback, useState } from 'react';
+import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -320,15 +321,25 @@ export function BeastFeastTabContent({
       createdAt: new Date().toISOString(),
     };
 
-    await addIngredient(newIngredient);
-    setIngredientToAdd('');
+    try {
+      await addIngredient(newIngredient);
+      setIngredientToAdd('');
+    } catch (error) {
+      console.error('Failed to add ingredient:', error);
+      toast.error('Failed to add ingredient. Please try again.');
+    }
   }, [ingredientToAdd, addIngredient]);
 
   // Remove an ingredient from inventory
   const handleRemoveIngredient = useCallback(
     async (ingredientId: string) => {
-      await removeIngredient(ingredientId);
-      setSelectedIngredients(prev => prev.filter(id => id !== ingredientId));
+      try {
+        await removeIngredient(ingredientId);
+        setSelectedIngredients(prev => prev.filter(id => id !== ingredientId));
+      } catch (error) {
+        console.error('Failed to remove ingredient:', error);
+        toast.error('Failed to remove ingredient. Please try again.');
+      }
     },
     [removeIngredient]
   );
@@ -376,9 +387,9 @@ export function BeastFeastTabContent({
       .filter(ing => ing.feature)
       .map(ing => ({
         name: ing.feature!.name,
-        effect: ing.feature!.description,
+        effect: ing.feature!.effect,
         ingredientName: ing.name,
-        isRisky: false,
+        isRisky: ing.feature?.isRisky ?? false,
       }));
 
     // Step 6: Build the cooking result
@@ -399,21 +410,26 @@ export function BeastFeastTabContent({
     setShowCookingResult(true);
 
     // Step 8: Remove the used ingredients (persist to storage)
-    const remainingIngredients = ingredients.filter(
-      ing => !selectedIngredients.includes(ing.id)
-    );
-    await setIngredients(remainingIngredients);
-    setSelectedIngredients([]);
+    try {
+      const remainingIngredients = ingredients.filter(
+        ing => !selectedIngredients.includes(ing.id)
+      );
+      await setIngredients(remainingIngredients);
+      setSelectedIngredients([]);
 
-    // Step 9: Track character cooking contribution
-    if (selectedCookId) {
-      const selectedPlayer = players.find(
-        p => p.characterId === selectedCookId
-      );
-      await incrementMealsContributed(
-        selectedCookId,
-        selectedPlayer?.characterName
-      );
+      // Step 9: Track character cooking contribution
+      if (selectedCookId) {
+        const selectedPlayer = players.find(
+          p => p.characterId === selectedCookId
+        );
+        await incrementMealsContributed(
+          selectedCookId,
+          selectedPlayer?.characterName
+        );
+      }
+    } catch (error) {
+      console.error('Failed to save cooking state:', error);
+      toast.error('Failed to save cooking result. Please try again.');
     }
   }, [
     selectedIngredients,
@@ -455,11 +471,17 @@ export function BeastFeastTabContent({
         updatedAt: new Date().toISOString(),
       };
 
-      await addRecipe(newRecipe);
+      try {
+        await addRecipe(newRecipe);
 
-      // Track recipe contribution for the selected cook
-      if (selectedCookId) {
-        await addRecipeContribution(selectedCookId, recipeId, createdByName);
+        // Track recipe contribution for the selected cook
+        if (selectedCookId) {
+          await addRecipeContribution(selectedCookId, recipeId, createdByName);
+        }
+        toast.success('Recipe saved to cookbook!');
+      } catch (error) {
+        console.error('Failed to save recipe:', error);
+        toast.error('Failed to save recipe. Please try again.');
       }
     },
     [cookingResult, addRecipe, selectedCookId, players, addRecipeContribution]

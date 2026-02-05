@@ -261,7 +261,7 @@ function EnvironmentsHeader({
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 text-lg font-semibold">
               <TreePine className="size-4 text-emerald-500" />
-              <span className="bg-linear-to-r from-emerald-500 via-teal-500 to-sky-500 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500 bg-clip-text text-transparent">
                 Environments Reference
               </span>
             </div>
@@ -492,7 +492,7 @@ const EnvironmentCard = React.memo(function EnvironmentCard({
       className="reference-card card-grid-item hover:border-primary/50 group h-full cursor-pointer overflow-hidden transition-all hover:scale-[1.01] hover:shadow-xl"
       onClick={onClick}
     >
-      <div className="h-1 bg-linear-to-r from-emerald-500 via-teal-500 to-sky-500" />
+      <div className="h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500" />
       <CardHeader className={compact ? 'pb-2' : 'pb-3'}>
         <div className="flex flex-wrap items-center gap-2">
           <CardTitle className={compact ? 'text-base' : 'text-xl'}>
@@ -628,7 +628,7 @@ const EnvironmentCard = React.memo(function EnvironmentCard({
 function EnvironmentDetail({ environment }: { environment: EnvironmentItem }) {
   return (
     <div className="space-y-6">
-      <div className="-mx-4 -mt-4 bg-linear-to-r from-emerald-600 via-teal-600 to-sky-600 p-6">
+      <div className="-mx-4 -mt-4 bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-600 p-6">
         <div className="rounded-xl bg-black/30 p-4">
           <h2 className="text-2xl font-semibold text-white drop-shadow">
             <TreePine className="mr-2 inline-block size-7" />

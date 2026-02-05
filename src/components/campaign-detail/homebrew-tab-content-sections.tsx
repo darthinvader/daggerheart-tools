@@ -63,7 +63,7 @@ interface CampaignInfoCardProps {
 
 export function CampaignHomebrewInfoCard({ onDismiss }: CampaignInfoCardProps) {
   return (
-    <Card className="relative border-purple-500/20 bg-linear-to-r from-purple-500/5 to-purple-500/10">
+    <Card className="relative border-purple-500/20 bg-gradient-to-r from-purple-500/5 to-purple-500/10">
       <Button
         variant="ghost"
         size="icon"

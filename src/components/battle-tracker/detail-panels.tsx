@@ -123,7 +123,7 @@ function PrimaryStat({
         <TooltipTrigger asChild>
           <div
             className={cn(
-              'cursor-help rounded-lg border-2 bg-linear-to-b p-3 text-center',
+              'cursor-help rounded-lg border-2 bg-gradient-to-b p-3 text-center',
               borderClass
             )}
           >
@@ -167,7 +167,7 @@ function SecondaryStat({
         <TooltipTrigger asChild>
           <div
             className={cn(
-              'cursor-help rounded-lg border bg-linear-to-b p-2 text-center',
+              'cursor-help rounded-lg border bg-gradient-to-b p-2 text-center',
               bgClass
             )}
           >
@@ -372,7 +372,7 @@ function AdversaryStatGrid({ hp, stress }: AdversaryStatGridProps) {
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="cursor-help rounded-lg border-2 border-red-500/30 bg-linear-to-b from-red-500/10 to-red-500/5 p-3 text-center">
+            <div className="cursor-help rounded-lg border-2 border-red-500/30 bg-gradient-to-b from-red-500/10 to-red-500/5 p-3 text-center">
               <Heart className="mx-auto mb-1 size-4 text-red-500" />
               <p className="text-2xl font-bold text-red-600 dark:text-red-400">
                 {hp.current}
@@ -388,7 +388,7 @@ function AdversaryStatGrid({ hp, stress }: AdversaryStatGridProps) {
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="cursor-help rounded-lg border-2 border-purple-500/30 bg-linear-to-b from-purple-500/10 to-purple-500/5 p-3 text-center">
+            <div className="cursor-help rounded-lg border-2 border-purple-500/30 bg-gradient-to-b from-purple-500/10 to-purple-500/5 p-3 text-center">
               <Zap className="mx-auto mb-1 size-4 text-purple-500" />
               <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                 {stress.current}
@@ -422,7 +422,7 @@ function AdversaryAttackInfo({
   isModified: boolean;
 }) {
   return (
-    <div className="space-y-2 rounded-lg border-2 border-red-500/20 bg-linear-to-r from-red-500/5 to-orange-500/5 p-3">
+    <div className="space-y-2 rounded-lg border-2 border-red-500/20 bg-gradient-to-r from-red-500/5 to-orange-500/5 p-3">
       <div className="flex items-center gap-2">
         <Sword className="size-4 text-red-500" />
         <span className="font-semibold text-red-600 dark:text-red-400">
@@ -504,7 +504,7 @@ function AdversaryThresholdsDisplay({
     typeof thresholds !== 'string' &&
     thresholds.massive != null;
   return (
-    <div className="space-y-2 rounded-lg border-2 border-amber-500/20 bg-linear-to-r from-amber-500/5 to-yellow-500/5 p-3">
+    <div className="space-y-2 rounded-lg border-2 border-amber-500/20 bg-gradient-to-r from-amber-500/5 to-yellow-500/5 p-3">
       <div className="flex items-center gap-2">
         <Target className="size-4 text-amber-500" />
         <span className="font-semibold text-amber-600 dark:text-amber-400">
@@ -581,7 +581,7 @@ function AdversaryFeatureList({
 }) {
   if (features.length === 0) return null;
   return (
-    <div className="space-y-2 rounded-lg border-2 border-purple-500/20 bg-linear-to-r from-purple-500/5 to-violet-500/5 p-3">
+    <div className="space-y-2 rounded-lg border-2 border-purple-500/20 bg-gradient-to-r from-purple-500/5 to-violet-500/5 p-3">
       <div className="flex items-center gap-2">
         <Sparkles className="size-4 text-purple-500" />
         <span className="font-semibold text-purple-600 dark:text-purple-400">
@@ -729,7 +729,7 @@ function CharacterIdentityHeader({ item }: { item: CharacterTracker }) {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Badge className="bg-linear-to-r from-amber-500 to-orange-500 text-white">
+              <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white">
                 Lv {item.level}
               </Badge>
             </TooltipTrigger>
@@ -1611,7 +1611,7 @@ function EnvironmentDescription({ description }: { description: string }) {
 
 function EnvironmentImpulses({ impulses }: { impulses: string[] }) {
   return (
-    <div className="space-y-2 rounded-lg border-2 border-amber-500/20 bg-linear-to-r from-amber-500/5 to-yellow-500/5 p-3">
+    <div className="space-y-2 rounded-lg border-2 border-amber-500/20 bg-gradient-to-r from-amber-500/5 to-yellow-500/5 p-3">
       <div className="flex items-center gap-2">
         <Zap className="size-4 text-amber-500" />
         <span className="font-semibold text-amber-600 dark:text-amber-400">
@@ -1657,7 +1657,7 @@ function EnvironmentFeaturesList({
   ) => void;
 }) {
   return (
-    <div className="space-y-2 rounded-lg border-2 border-emerald-500/20 bg-linear-to-r from-emerald-500/5 to-teal-500/5 p-3">
+    <div className="space-y-2 rounded-lg border-2 border-emerald-500/20 bg-gradient-to-r from-emerald-500/5 to-teal-500/5 p-3">
       <div className="flex items-center gap-2">
         <Sparkles className="size-4 text-emerald-500" />
         <span className="font-semibold text-emerald-600 dark:text-emerald-400">

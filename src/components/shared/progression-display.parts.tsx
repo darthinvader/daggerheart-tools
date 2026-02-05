@@ -127,7 +127,7 @@ function ProgressionContent({
             className={cn(
               'gap-2',
               canLevelUp &&
-                'bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600'
+                'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600'
             )}
           >
             <ChevronUp className="size-4" />

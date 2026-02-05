@@ -913,7 +913,7 @@ function ItemDetailHeader({
   const typeLabel = equipmentTypeLabels[type];
 
   return (
-    <div className={`-mx-4 -mt-4 bg-linear-to-r p-6 ${gradient}`}>
+    <div className={`-mx-4 -mt-4 bg-gradient-to-r p-6 ${gradient}`}>
       <div className="rounded-xl bg-black/30 p-4">
         <h2 className="text-xl font-bold text-white drop-shadow">{name}</h2>
         <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -1288,7 +1288,7 @@ function EquipmentHeader({
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 text-lg font-semibold">
             <Sword className="size-4 text-amber-500" />
-            <span className="bg-linear-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent">
               Equipment Reference
             </span>
           </div>

@@ -79,7 +79,7 @@ interface ForkInfoCardProps {
 
 export function ForkInfoCard({ onDismiss }: ForkInfoCardProps) {
   return (
-    <Card className="relative mb-6 border-green-500/20 bg-linear-to-r from-green-500/5 to-green-500/10">
+    <Card className="relative mb-6 border-green-500/20 bg-gradient-to-r from-green-500/5 to-green-500/10">
       <Button
         variant="ghost"
         size="icon"

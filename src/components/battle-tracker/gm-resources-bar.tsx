@@ -264,7 +264,7 @@ function GmDieRoller({
   onRoll: () => void;
 }) {
   return (
-    <div className="flex min-h-13 items-center gap-2 rounded-lg border-2 border-blue-500/30 bg-linear-to-r from-blue-500/10 to-cyan-500/10 px-2.5 py-2">
+    <div className="flex min-h-13 items-center gap-2 rounded-lg border-2 border-blue-500/30 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 px-2.5 py-2">
       <div className="flex items-center gap-1">
         <Dices className="size-4 text-blue-500" />
         <span className="text-sm font-bold text-blue-600 dark:text-blue-400">
@@ -315,7 +315,7 @@ function MassiveToggle({
   onUseMassiveThresholdChange: (value: boolean) => void;
 }) {
   return (
-    <div className="flex min-h-13 items-center gap-2 rounded-lg border-2 border-red-500/30 bg-linear-to-r from-red-500/10 to-orange-500/10 px-2.5 py-2">
+    <div className="flex min-h-13 items-center gap-2 rounded-lg border-2 border-red-500/30 bg-gradient-to-r from-red-500/10 to-orange-500/10 px-2.5 py-2">
       <div className="flex items-center gap-2">
         <Flame className="size-4 text-red-500" />
         <Label
@@ -341,14 +341,14 @@ function DifficultyReference() {
         <Button
           variant="outline"
           size="sm"
-          className="min-h-13 gap-1.5 rounded-lg border-2 border-sky-500/30 bg-linear-to-r from-sky-500/10 to-cyan-500/10 px-2.5 text-sky-600 hover:bg-sky-500/20 hover:text-sky-700 dark:text-sky-400"
+          className="min-h-13 gap-1.5 rounded-lg border-2 border-sky-500/30 bg-gradient-to-r from-sky-500/10 to-cyan-500/10 px-2.5 text-sky-600 hover:bg-sky-500/20 hover:text-sky-700 dark:text-sky-400"
         >
           <Gauge className="size-4" />
           <span className="text-sm font-bold">Difficulty</span>
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-0" align="start">
-        <div className="border-b bg-linear-to-r from-sky-500/10 to-cyan-500/10 px-4 py-3">
+        <div className="border-b bg-gradient-to-r from-sky-500/10 to-cyan-500/10 px-4 py-3">
           <h4 className="flex items-center gap-2 font-semibold text-sky-700 dark:text-sky-300">
             <Gauge className="size-4" />
             Difficulty Quick Reference
@@ -517,7 +517,7 @@ function ActiveEnvironmentPanel({
 }) {
   return (
     <div
-      className={`flex min-h-13 items-center gap-2 rounded-lg border-2 border-emerald-500/30 bg-linear-to-r from-emerald-500/10 to-teal-500/10 px-2.5 py-2 ${
+      className={`flex min-h-13 items-center gap-2 rounded-lg border-2 border-emerald-500/30 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 px-2.5 py-2 ${
         spotlight?.id === environment.id && spotlight.kind === 'environment'
           ? 'ring-2 ring-amber-400'
           : ''
@@ -615,7 +615,7 @@ function EmptyEnvironmentPanel({
 }) {
   return (
     <button
-      className="flex min-h-13 cursor-pointer items-center gap-2 rounded-lg border-2 border-dashed border-emerald-500/30 bg-linear-to-r from-emerald-500/5 to-teal-500/5 px-2.5 py-2 transition-colors hover:bg-emerald-500/10"
+      className="flex min-h-13 cursor-pointer items-center gap-2 rounded-lg border-2 border-dashed border-emerald-500/30 bg-gradient-to-r from-emerald-500/5 to-teal-500/5 px-2.5 py-2 transition-colors hover:bg-emerald-500/10"
       onClick={onAddEnvironment}
     >
       <div className="flex items-center gap-1">
@@ -709,7 +709,7 @@ export function GMResourcesBar({
     adversaries.filter(a => a.countdownEnabled).length;
 
   return (
-    <Card className="border-muted-foreground/20 from-muted/30 via-background to-muted/30 mb-4 border-2 border-dashed bg-linear-to-r">
+    <Card className="border-muted-foreground/20 from-muted/30 via-background to-muted/30 mb-4 border-2 border-dashed bg-gradient-to-r">
       <CardContent className="flex flex-wrap items-center justify-center gap-2 px-3 py-3">
         <FearCounter
           fearPool={fearPool}
@@ -734,7 +734,7 @@ export function GMResourcesBar({
               <Button
                 variant="outline"
                 size="sm"
-                className="min-h-13 gap-1.5 rounded-lg border-2 border-amber-500/30 bg-linear-to-r from-amber-500/10 to-orange-500/10 px-2.5 text-amber-600 hover:bg-amber-500/20 hover:text-amber-700 dark:text-amber-400"
+                className="min-h-13 gap-1.5 rounded-lg border-2 border-amber-500/30 bg-gradient-to-r from-amber-500/10 to-orange-500/10 px-2.5 text-amber-600 hover:bg-amber-500/20 hover:text-amber-700 dark:text-amber-400"
                 onClick={onReduceAllCountdowns}
                 disabled={enabledCountdowns === 0}
               >
@@ -762,7 +762,7 @@ export function GMResourcesBar({
               <Button
                 variant="outline"
                 size="sm"
-                className="min-h-13 gap-1.5 rounded-lg border-2 border-indigo-500/30 bg-linear-to-r from-indigo-500/10 to-violet-500/10 px-2.5 text-indigo-600 hover:bg-indigo-500/20 hover:text-indigo-700 dark:text-indigo-400"
+                className="min-h-13 gap-1.5 rounded-lg border-2 border-indigo-500/30 bg-gradient-to-r from-indigo-500/10 to-violet-500/10 px-2.5 text-indigo-600 hover:bg-indigo-500/20 hover:text-indigo-700 dark:text-indigo-400"
                 onClick={() => setIsPartyRestOpen(true)}
                 disabled={characterCount === 0}
               >

@@ -324,7 +324,7 @@ function ClassDetail({ gameClass }: { gameClass: GameClass }) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className={`-mx-4 -mt-4 bg-linear-to-r p-6 ${gradient}`}>
+      <div className={`-mx-4 -mt-4 bg-gradient-to-r p-6 ${gradient}`}>
         <div className="rounded-xl bg-black/30 p-4">
           <h2 className="text-2xl font-semibold text-white drop-shadow">
             <Shield className="mr-2 inline-block size-6" />
@@ -551,7 +551,7 @@ function ClassCard({
           className="group hover:border-primary/50 h-full cursor-pointer overflow-hidden transition-all hover:scale-[1.01] hover:shadow-xl"
           onClick={() => onSelect(gameClass.name)}
         >
-          <div className={`h-1.5 bg-linear-to-r ${gradient}`} />
+          <div className={`h-1.5 bg-gradient-to-r ${gradient}`} />
           <CardHeader className="pb-3">
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 space-y-2">
@@ -637,7 +637,7 @@ function ClassesHeader({
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 text-lg font-semibold">
               <Shield className="size-4 text-purple-500" />
-              <span className="bg-linear-to-r from-purple-500 to-indigo-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-purple-500 to-indigo-600 bg-clip-text text-transparent">
                 Classes & Subclasses
               </span>
             </div>

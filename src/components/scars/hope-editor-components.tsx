@@ -31,7 +31,7 @@ export function CompanionHopeToggle({
           onClick={onToggle}
           className={`flex size-12 items-center justify-center rounded-xl border-2 transition-all ${
             filled
-              ? 'border-emerald-500 bg-linear-to-br from-emerald-400 to-teal-500 shadow-lg'
+              ? 'border-emerald-500 bg-gradient-to-br from-emerald-400 to-teal-500 shadow-lg'
               : 'border-dashed border-emerald-400 bg-white hover:border-emerald-500 dark:bg-emerald-900/30'
           }`}
           aria-label={`Companion hope ${filled ? 'filled' : 'empty'}`}

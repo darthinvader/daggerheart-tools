@@ -87,7 +87,7 @@ function AncestryCard({
         className="hover:border-primary/50 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg"
         onClick={onClick}
       >
-        <div className={`h-1.5 bg-linear-to-r ${gradient}`} />
+        <div className={`h-1.5 bg-gradient-to-r ${gradient}`} />
         <CardHeader className="pb-2">
           <CardTitle className="text-lg">{ancestry.name}</CardTitle>
           <div className="text-muted-foreground flex gap-2 text-xs">
@@ -121,7 +121,7 @@ function AncestryCard({
       className="h-full cursor-pointer overflow-hidden transition-all hover:scale-[1.01] hover:shadow-lg"
       onClick={onClick}
     >
-      <div className={`h-1.5 bg-linear-to-r ${gradient}`} />
+      <div className={`h-1.5 bg-gradient-to-r ${gradient}`} />
       <CardHeader>
         <div className="flex items-start justify-between gap-3">
           <CardTitle className="text-2xl">{ancestry.name}</CardTitle>
@@ -229,7 +229,7 @@ function AncestryDetail({ ancestry }: { ancestry: Ancestry }) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className={`-mx-4 -mt-4 bg-linear-to-r p-6 ${gradient}`}>
+      <div className={`-mx-4 -mt-4 bg-gradient-to-r p-6 ${gradient}`}>
         <div className="rounded-xl bg-black/30 p-4">
           <h2 className="text-2xl font-semibold text-white drop-shadow">
             <Users className="mr-2 inline-block size-6" />
@@ -290,7 +290,7 @@ function AncestryDetail({ ancestry }: { ancestry: Ancestry }) {
       </div>
 
       {/* Primary Feature */}
-      <div className="rounded-lg border border-amber-500/30 bg-linear-to-br from-amber-500/10 to-orange-500/10 p-4">
+      <div className="rounded-lg border border-amber-500/30 bg-gradient-to-br from-amber-500/10 to-orange-500/10 p-4">
         <Tooltip>
           <TooltipTrigger asChild>
             <div className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/20 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-amber-700 uppercase dark:text-amber-300">
@@ -310,7 +310,7 @@ function AncestryDetail({ ancestry }: { ancestry: Ancestry }) {
       </div>
 
       {/* Secondary Feature */}
-      <div className="rounded-lg border border-cyan-500/30 bg-linear-to-br from-cyan-500/10 to-blue-500/10 p-4">
+      <div className="rounded-lg border border-cyan-500/30 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 p-4">
         <Tooltip>
           <TooltipTrigger asChild>
             <div className="inline-flex items-center gap-1 rounded-full border border-cyan-500/30 bg-cyan-500/20 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-cyan-700 uppercase dark:text-cyan-300">
@@ -398,7 +398,7 @@ function AncestriesHeader({
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 text-lg font-semibold">
               <Users className="size-4 text-teal-500" />
-              <span className="bg-linear-to-r from-teal-500 to-cyan-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-teal-500 to-cyan-600 bg-clip-text text-transparent">
                 Ancestries
               </span>
             </div>

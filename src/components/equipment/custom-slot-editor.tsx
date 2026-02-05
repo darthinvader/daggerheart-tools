@@ -43,7 +43,7 @@ export function CustomSlotEditor({
   };
 
   return (
-    <div className="border-primary/20 from-primary/5 relative rounded-lg border-2 border-dashed bg-linear-to-br to-transparent p-4">
+    <div className="border-primary/20 from-primary/5 relative rounded-lg border-2 border-dashed bg-gradient-to-br to-transparent p-4">
       <DragHandle />
 
       <Header

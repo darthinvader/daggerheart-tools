@@ -135,7 +135,7 @@ function CommunityCard({
         className="hover:border-primary/50 cursor-pointer overflow-hidden transition-all hover:scale-[1.02] hover:shadow-lg"
         onClick={onClick}
       >
-        <div className={`h-2 bg-linear-to-r ${gradient}`} />
+        <div className={`h-2 bg-gradient-to-r ${gradient}`} />
         <CardHeader className="pb-2">
           <CardTitle className="truncate text-lg">{community.name}</CardTitle>
           <CardDescription className="mt-1 line-clamp-2 text-xs">
@@ -187,7 +187,7 @@ function CommunityCard({
       className="h-full cursor-pointer overflow-hidden transition-all hover:scale-[1.01] hover:shadow-lg"
       onClick={onClick}
     >
-      <div className={`h-3 bg-linear-to-r ${gradient}`} />
+      <div className={`h-3 bg-gradient-to-r ${gradient}`} />
       <CardHeader>
         <CardTitle className="text-2xl">{community.name}</CardTitle>
         <CardDescription className="mt-2 text-sm leading-relaxed">
@@ -250,7 +250,7 @@ function CommunityDetail({ community }: { community: Community }) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className={`-mx-4 -mt-4 bg-linear-to-r p-6 ${gradient}`}>
+      <div className={`-mx-4 -mt-4 bg-gradient-to-r p-6 ${gradient}`}>
         <div className="rounded-xl bg-black/30 p-4">
           <h2 className="text-2xl font-semibold text-white drop-shadow">
             <Home className="mr-2 inline-block size-6" />
@@ -383,7 +383,7 @@ function CommunitiesHeader({
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 text-lg font-semibold">
               <Home className="size-4 text-green-500" />
-              <span className="bg-linear-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent">
                 Communities
               </span>
             </div>

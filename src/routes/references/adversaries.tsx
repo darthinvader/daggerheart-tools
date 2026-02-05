@@ -285,7 +285,7 @@ function AdversariesHeader({
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 text-lg font-semibold">
               <Skull className="size-4 text-red-500" />
-              <span className="bg-linear-to-r from-red-500 to-rose-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-red-500 to-rose-600 bg-clip-text text-transparent">
                 Adversaries Reference
               </span>
             </div>
@@ -535,7 +535,7 @@ const AdversaryCard = React.memo(function AdversaryCard({
       className="reference-card card-grid-item hover:border-primary/50 group h-full cursor-pointer overflow-hidden transition-all hover:scale-[1.01] hover:shadow-xl"
       onClick={onClick}
     >
-      <div className="h-1 bg-linear-to-r from-red-500 via-rose-500 to-orange-500" />
+      <div className="h-1 bg-gradient-to-r from-red-500 via-rose-500 to-orange-500" />
       <CardHeader className={compact ? 'pb-2' : 'pb-3'}>
         <div className="flex flex-wrap items-center gap-2">
           <CardTitle className={compact ? 'text-base' : 'text-xl'}>
@@ -723,7 +723,7 @@ const AdversaryCard = React.memo(function AdversaryCard({
 
 function AdversaryDetailHeader({ adversary }: { adversary: AdversaryItem }) {
   return (
-    <div className="-mx-4 -mt-4 bg-linear-to-r from-red-600 via-rose-600 to-orange-600 p-6">
+    <div className="-mx-4 -mt-4 bg-gradient-to-r from-red-600 via-rose-600 to-orange-600 p-6">
       <div className="rounded-xl bg-black/30 p-4">
         <h2 className="text-2xl font-semibold text-white drop-shadow">
           <Skull className="mr-2 inline-block size-7" />
@@ -809,7 +809,7 @@ function AdversaryStatsGrid({ adversary }: { adversary: AdversaryItem }) {
 
 function AdversaryAttackPanel({ adversary }: { adversary: AdversaryItem }) {
   return (
-    <div className="rounded-lg border border-red-500/30 bg-linear-to-r from-red-500/10 to-rose-500/10 p-4">
+    <div className="rounded-lg border border-red-500/30 bg-gradient-to-r from-red-500/10 to-rose-500/10 p-4">
       <div className="mb-2 flex items-center gap-2">
         <Tooltip>
           <TooltipTrigger asChild>

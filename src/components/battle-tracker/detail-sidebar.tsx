@@ -122,7 +122,7 @@ export function DetailSidebar({
 
   return (
     <Card className="border-muted-foreground/20 flex h-[calc(100vh-200px)] min-h-125 flex-col border-2">
-      <CardHeader className="from-muted/50 to-background flex-none border-b bg-linear-to-r py-3">
+      <CardHeader className="from-muted/50 to-background flex-none border-b bg-gradient-to-r py-3">
         <div className="flex items-center gap-2">
           <Info className="text-primary size-4 shrink-0 self-center" />
           <CardTitle className="text-base">Details</CardTitle>
@@ -267,7 +267,7 @@ function SpotlightSection({
         )}
       </div>
       {spotlight ? (
-        <div className="rounded-lg border-2 border-amber-400/50 bg-linear-to-r from-amber-500/10 to-yellow-500/10 p-3">
+        <div className="rounded-lg border-2 border-amber-400/50 bg-gradient-to-r from-amber-500/10 to-yellow-500/10 p-3">
           <div className="flex items-center gap-2">
             {kindIcons[spotlight.kind]}
             <span className="font-semibold text-amber-700 dark:text-amber-400">

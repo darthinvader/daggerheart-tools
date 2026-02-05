@@ -92,7 +92,7 @@ function SectionBlock({
 
 function TipsAlert({ tips }: { tips: string[] }) {
   return (
-    <Alert className="overflow-hidden rounded-xl border-emerald-500/40 bg-linear-to-br from-emerald-500/15 via-emerald-500/10 to-emerald-500/5">
+    <Alert className="overflow-hidden rounded-xl border-emerald-500/40 bg-gradient-to-br from-emerald-500/15 via-emerald-500/10 to-emerald-500/5">
       <div className="absolute -top-4 -right-4 size-24 rounded-full bg-emerald-500/10 blur-2xl" />
       <AlertTitle className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300">
         <div className="rounded-lg bg-emerald-500/20 p-1.5">
@@ -119,7 +119,7 @@ function TipsAlert({ tips }: { tips: string[] }) {
 
 function CautionsAlert({ cautions }: { cautions: string[] }) {
   return (
-    <Alert className="overflow-hidden rounded-xl border-amber-500/40 bg-linear-to-br from-amber-500/15 via-amber-500/10 to-amber-500/5">
+    <Alert className="overflow-hidden rounded-xl border-amber-500/40 bg-gradient-to-br from-amber-500/15 via-amber-500/10 to-amber-500/5">
       <div className="absolute -top-4 -right-4 size-24 rounded-full bg-amber-500/10 blur-2xl" />
       <AlertTitle className="flex items-center gap-2 text-amber-700 dark:text-amber-300">
         <div className="rounded-lg bg-amber-500/20 p-1.5">
@@ -151,12 +151,12 @@ function PanelTitle({ section }: { section: RulesPage['sections'][number] }) {
       <span
         className={cn(
           'inline-flex items-center justify-center rounded-lg p-1.5',
-          'from-primary/20 to-primary/5 bg-linear-to-br'
+          'from-primary/20 to-primary/5 bg-gradient-to-br'
         )}
       >
         {DetailIcon && <DetailIcon className="text-primary size-5" />}
       </span>
-      <span className="from-foreground to-foreground/70 bg-linear-to-r bg-clip-text">
+      <span className="from-foreground to-foreground/70 bg-gradient-to-r bg-clip-text">
         {section.title}
       </span>
     </span>
@@ -193,7 +193,7 @@ function SectionContent({
           ))}
         </div>
       )}
-      <Separator className="via-border bg-linear-to-r from-transparent to-transparent" />
+      <Separator className="via-border bg-gradient-to-r from-transparent to-transparent" />
       <SectionBlock
         theme="covers"
         title="What it covers"
@@ -227,7 +227,7 @@ function SectionContent({
           items={section.examples}
         />
       )}
-      <Separator className="via-border bg-linear-to-r from-transparent to-transparent" />
+      <Separator className="via-border bg-gradient-to-r from-transparent to-transparent" />
       {section.tips && section.tips.length > 0 && (
         <TipsAlert tips={section.tips} />
       )}

@@ -33,11 +33,11 @@ function RulesSectionCard({
       className="group border-border/50 hover:border-primary/50 relative cursor-pointer overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
       onClick={onClick}
     >
-      <div className={cn('h-1.5 bg-linear-to-r', gradient)} />
+      <div className={cn('h-1.5 bg-gradient-to-r', gradient)} />
       <div
         className={cn(
           'pointer-events-none absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100',
-          'from-primary/5 bg-linear-to-br via-transparent to-transparent'
+          'from-primary/5 bg-gradient-to-br via-transparent to-transparent'
         )}
       />
       <CardHeader className="relative">
@@ -45,7 +45,7 @@ function RulesSectionCard({
           <div
             className={cn(
               'shrink-0 rounded-xl p-2.5 shadow-sm transition-transform group-hover:scale-110',
-              'from-muted to-muted/50 bg-linear-to-br',
+              'from-muted to-muted/50 bg-gradient-to-br',
               'ring-border/50 ring-1'
             )}
           >
@@ -110,7 +110,7 @@ export function RulesPageLayout({ page }: { page: RulesPage }) {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-10 text-center">
-        <h1 className="bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-4xl font-bold text-transparent">
+        <h1 className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-4xl font-bold text-transparent">
           {PageIcon && <PageIcon className="mr-2 inline-block size-8" />}
           {page.title}
         </h1>

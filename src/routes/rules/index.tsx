@@ -17,7 +17,7 @@ function RulesIndexPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-10 text-center">
-        <h1 className="bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-4xl font-bold text-transparent">
+        <h1 className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-4xl font-bold text-transparent">
           <Scroll className="mr-2 inline-block size-8" />
           Daggerheart Rules Guide
         </h1>
@@ -31,7 +31,7 @@ function RulesIndexPage() {
         {RULES_INDEX_CARDS.map(card => (
           <Link key={card.to} to={card.to} className="group">
             <Card className="group-hover:border-primary/50 h-full overflow-hidden transition-all hover:scale-[1.02] hover:shadow-xl">
-              <div className={`h-2 bg-linear-to-r ${card.gradient}`} />
+              <div className={`h-2 bg-gradient-to-r ${card.gradient}`} />
               <CardHeader>
                 <div className="flex items-start gap-4">
                   <div

@@ -154,7 +154,7 @@ function GoldDetailedDisplay({ gold }: { gold: Gold }) {
         </div>
       </div>
 
-      <div className="rounded-lg border bg-linear-to-r from-yellow-500/5 to-amber-500/5 p-3">
+      <div className="rounded-lg border bg-gradient-to-r from-yellow-500/5 to-amber-500/5 p-3">
         <p className="text-muted-foreground text-center text-sm">
           Total wealth:{' '}
           <strong className="text-foreground">{formatTotal()}</strong>{' '}

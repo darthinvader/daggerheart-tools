@@ -129,7 +129,7 @@ function ReferencesIndexPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-10 text-center">
-        <h1 className="bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-4xl font-bold text-transparent">
+        <h1 className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-4xl font-bold text-transparent">
           Daggerheart Reference Guide
         </h1>
         <p className="text-muted-foreground mx-auto mt-3 max-w-2xl text-lg">
@@ -142,7 +142,7 @@ function ReferencesIndexPage() {
         {referenceCategories.map(category => (
           <Link key={category.to} to={category.to} className="group">
             <Card className="group-hover:border-primary/50 h-full overflow-hidden transition-all hover:scale-[1.02] hover:shadow-xl">
-              <div className={`h-2 bg-linear-to-r ${category.gradient}`} />
+              <div className={`h-2 bg-gradient-to-r ${category.gradient}`} />
               <CardHeader>
                 <div className="flex items-start gap-4">
                   <div

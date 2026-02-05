@@ -415,7 +415,9 @@ function CardDetail({ card }: { card: DomainCard }) {
   return (
     <div className="space-y-4">
       {/* Gradient header with title and badges */}
-      <div className={`-mx-4 -mt-4 bg-linear-to-r p-6 ${domainColor.gradient}`}>
+      <div
+        className={`-mx-4 -mt-4 bg-gradient-to-r p-6 ${domainColor.gradient}`}
+      >
         <div className="rounded-xl bg-black/30 p-4">
           <h2 className="text-xl font-bold text-white drop-shadow">
             {card.name}
@@ -613,7 +615,7 @@ function DomainCardsHeader({
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 text-lg font-semibold">
             <Sparkles className="size-4 text-violet-500" />
-            <span className="bg-linear-to-r from-violet-500 to-purple-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-violet-500 to-purple-600 bg-clip-text text-transparent">
               Domain Cards
             </span>
           </div>
@@ -840,7 +842,7 @@ const DomainCardsGridSections = React.memo(function DomainCardsGridSections({
               <button className="hover:bg-muted/50 bg-card flex w-full items-center justify-between rounded-lg border p-3 transition-colors">
                 <div className="flex items-center gap-3">
                   <span
-                    className={`inline-block h-3 w-3 rounded-full bg-linear-to-r ${domainColor.gradient}`}
+                    className={`inline-block h-3 w-3 rounded-full bg-gradient-to-r ${domainColor.gradient}`}
                   />
                   <h2 className="text-lg font-semibold">{domain}</h2>
                   <Badge variant="secondary">{cards.length}</Badge>

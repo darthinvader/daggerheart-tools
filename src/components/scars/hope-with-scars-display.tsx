@@ -229,7 +229,7 @@ export function HopeWithScarsDisplay({
                 disabled={readOnly}
                 className={`flex size-10 items-center justify-center rounded-xl border-2 transition-all duration-200 sm:size-12 ${
                   companionHopeFilled
-                    ? 'border-emerald-500 bg-linear-to-br from-emerald-400 to-teal-500 shadow-lg shadow-emerald-500/30'
+                    ? 'border-emerald-500 bg-gradient-to-br from-emerald-400 to-teal-500 shadow-lg shadow-emerald-500/30'
                     : 'border-dashed border-emerald-400 bg-emerald-50 hover:border-emerald-500 hover:bg-emerald-100 dark:bg-emerald-950/30 dark:hover:bg-emerald-900/40'
                 }`}
                 aria-label={`Companion hope slot ${companionHopeFilled ? '(filled)' : '(empty)'}`}
