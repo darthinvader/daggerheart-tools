@@ -439,7 +439,7 @@ export function getTraitExample(
   action: string,
   difficulty: number
 ): string | undefined {
-  const guidance = TRAIT_GUIDANCE_BY_NAME[trait];
+  const guidance = TRAIT_DIFFICULTY_GUIDANCE[trait];
   if (!guidance) return undefined;
 
   const actionData = guidance.actions.find(

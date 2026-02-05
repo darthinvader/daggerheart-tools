@@ -199,6 +199,32 @@ export type TrackerSelection = {
   id: string;
 };
 
+/** Extended spotlight history entry with timestamp and round info */
+export type SpotlightHistoryEntry = {
+  selection: TrackerSelection;
+  timestamp: number;
+  round?: number;
+  entityName: string;
+};
+
+/** Roll history entry for tracking attack/damage rolls */
+export type RollHistoryEntry = {
+  id: string;
+  type: 'attack' | 'damage';
+  entityId: string;
+  entityName: string;
+  entityKind: TrackerKind;
+  roll: number;
+  total: number;
+  dice: string;
+  rolls?: number[];
+  modifier?: string | number;
+  isCritical?: boolean;
+  isFumble?: boolean;
+  timestamp: number;
+  round?: number;
+};
+
 export type NewCharacterDraft = {
   name: string;
   evasion: string;

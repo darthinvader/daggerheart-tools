@@ -1,6 +1,13 @@
 import { z } from 'zod';
 
 import { BattleStateSchema } from './battle';
+import {
+  BeastFeastRecipeSchema,
+  CharacterCookingStateSchema,
+  CookingSessionSchema,
+  IngredientSchema,
+  MealSchema,
+} from './beast-feast-cooking';
 import { SessionZeroSchema } from './session-zero';
 
 // =====================================================================================
@@ -595,6 +602,25 @@ export const CampaignSchema = z.object({
   battles: z.array(BattleStateSchema).default([]),
   // Session Zero Framework - CATS method, safety tools, and table agreements
   sessionZero: SessionZeroSchema.optional(),
+  // Beast Feast Campaign Frame - Cooking mechanics and inventory
+  beastFeast: z
+    .object({
+      // Party's shared ingredient inventory
+      ingredients: z.array(IngredientSchema).default([]),
+      // Party's cookbook (recipes they've discovered/created)
+      recipes: z.array(BeastFeastRecipeSchema).default([]),
+      // Meals prepared during downtime
+      meals: z.array(MealSchema).default([]),
+      // Cooking sessions (for tracking history and benefits)
+      cookingSessions: z.array(CookingSessionSchema).default([]),
+      // Per-character cooking stats (meals contributed, recipes discovered, etc.)
+      characterCookingStats: z.array(CharacterCookingStateSchema).default([]),
+      // Total meals prepared by the party
+      totalMealsPrepared: z.number().default(0),
+      // Notes about Beast Feast mechanics
+      notes: z.string().default(''),
+    })
+    .optional(),
   sessionPrepChecklist: z
     .array(
       z.object({
@@ -665,9 +691,27 @@ export type CampaignQuest = z.infer<typeof CampaignQuestSchema>;
 export type CampaignOrganization = z.infer<typeof CampaignOrganizationSchema>;
 export type StoryThread = z.infer<typeof StoryThreadSchema>;
 export type Campaign = z.infer<typeof CampaignSchema>;
+export type BeastFeastState = NonNullable<Campaign['beastFeast']>;
 
 // Re-export battle types for convenience
 export type { BattleState } from './battle';
+
+// Re-export beast-feast-cooking types for convenience
+export type {
+  BeastFeastRecipe,
+  CharacterCookingState,
+  Cookbook,
+  CookingSession,
+  FlavorDie,
+  FlavorProfile,
+  FlavorType,
+  Ingredient,
+  IngredientQuality,
+  IngredientSourceType,
+  Meal,
+  MealQuality,
+  SpecialIngredient,
+} from './beast-feast-cooking';
 
 // Re-export session-zero types and utilities for convenience
 // Note: SafetyLineSchema, SafetyVeilSchema, SafetyLine, SafetyVeil are NOT re-exported here
@@ -678,7 +722,10 @@ export {
   CONNECTION_TYPE_OPTIONS,
   createEmptySessionZero,
   DEFAULT_TONE_OPTIONS,
+  DefinedRangesSchema,
   generateSessionZeroItemId,
+  HouseRuleSchema,
+  OptionalRulesConfigSchema,
   SESSION_ZERO_CHECKLIST,
   SessionZeroQuestionAnswerSchema,
   SessionZeroSchema,
@@ -690,6 +737,9 @@ export {
 } from './session-zero';
 export type {
   CharacterConnection,
+  DefinedRanges,
+  HouseRule,
+  OptionalRulesConfig,
   SessionZero,
   SessionZeroQuestionAnswer,
   TableAgreement,

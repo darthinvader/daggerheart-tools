@@ -1,6 +1,7 @@
 import { Moon, Sparkles } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
+import { ActiveEffectsDisplay } from '@/components/active-effects';
 import { DeathMoveModal } from '@/components/death-move';
 import { DowntimeMoves } from '@/components/downtime-moves';
 import { GameActions } from '@/components/game-actions';
@@ -8,12 +9,23 @@ import { RestModal } from '@/components/rest';
 import { SessionTracker } from '@/components/session-tracker';
 import { Button } from '@/components/ui/button';
 import { getTierFromLevel } from '@/lib/character-stats-engine';
+import type { ActiveEffect } from '@/lib/schemas/equipment';
 
 import { createRestHandler } from '../demo-handlers';
 import type { TabProps } from '../demo-types';
 import { useDeathMoveHandler } from '../use-death-move-handler';
 
-export function SessionTab({ state, handlers }: TabProps) {
+interface SessionTabProps extends TabProps {
+  activeEffects: ActiveEffect[];
+  onActiveEffectsChange: (effects: ActiveEffect[]) => void;
+}
+
+export function SessionTab({
+  state,
+  handlers,
+  activeEffects,
+  onActiveEffectsChange,
+}: SessionTabProps) {
   const [isRestModalOpen, setIsRestModalOpen] = useState(false);
 
   const handleRest = useMemo(
@@ -137,6 +149,13 @@ export function SessionTab({ state, handlers }: TabProps) {
           handleRest(result);
           setIsRestModalOpen(false);
         }}
+      />
+
+      {/* Active Effects Section */}
+      <ActiveEffectsDisplay
+        effects={activeEffects}
+        onChange={onActiveEffectsChange}
+        onClearAll={() => onActiveEffectsChange([])}
       />
 
       <div className="grid gap-4 sm:gap-6 md:grid-cols-2">

@@ -6,6 +6,7 @@ import { createCampaignFrameFromTemplate } from '@/lib/data/campaign-frames';
 import { BattleStateSchema } from '@/lib/schemas/battle';
 import type {
   BattleState,
+  BeastFeastState,
   Campaign,
   CampaignFrame,
   CampaignLocation,
@@ -38,6 +39,7 @@ interface CampaignRow {
   story_threads: Campaign['storyThreads'];
   battles: BattleState[];
   session_zero: Campaign['sessionZero'];
+  beast_feast: Campaign['beastFeast'];
   session_prep_checklist: Campaign['sessionPrepChecklist'];
   invite_code: string | null;
   status: Campaign['status'];
@@ -101,6 +103,7 @@ function rowToCampaign(row: CampaignRow): Campaign {
     storyThreads: row.story_threads ?? [],
     battles: row.battles ?? [],
     sessionZero: row.session_zero ?? undefined,
+    beastFeast: row.beast_feast ?? undefined,
     sessionPrepChecklist: row.session_prep_checklist ?? [],
     inviteCode: row.invite_code ?? undefined,
     status: row.status,
@@ -142,6 +145,7 @@ const CAMPAIGN_TO_ROW_FIELDS: Record<string, string> = {
   storyThreads: 'story_threads',
   battles: 'battles',
   sessionZero: 'session_zero',
+  beastFeast: 'beast_feast',
   sessionPrepChecklist: 'session_prep_checklist',
   inviteCode: 'invite_code',
   status: 'status',
@@ -425,6 +429,33 @@ export async function updateCampaignFrame(
   if (error) {
     if (error.code === 'PGRST116') return undefined;
     console.error('Error updating campaign frame:', error);
+    throw error;
+  }
+
+  return rowToCampaign(data as CampaignRow);
+}
+
+/**
+ * Update a campaign's Beast Feast state
+ */
+export async function updateBeastFeastState(
+  id: string,
+  beastFeast: BeastFeastState
+): Promise<Campaign | undefined> {
+  const { data, error } = await supabase
+    .from('campaigns')
+    .update({
+      beast_feast: beastFeast,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .is('deleted_at', null)
+    .select()
+    .single();
+
+  if (error) {
+    if (error.code === 'PGRST116') return undefined;
+    console.error('Error updating Beast Feast state:', error);
     throw error;
   }
 

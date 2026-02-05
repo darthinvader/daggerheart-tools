@@ -8,6 +8,7 @@ import {
   ModeTabs,
   StandardIcon,
 } from '@/components/shared';
+import { HomebrewSourceTabs } from '@/components/shared/homebrew-source-tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -36,6 +37,7 @@ import type { ItemCategory } from '@/lib/schemas/homebrew';
 import { ItemFilters } from './item-filters';
 import { ItemPickerGrid } from './item-picker-grid';
 import { ItemSearchHeader } from './item-search-header';
+import { useHomebrewItemData } from './use-homebrew-item-data';
 import {
   useItemFilters,
   useItemSelection,
@@ -85,6 +87,7 @@ interface ItemPickerModalProps {
   maxSlots?: number;
   onConvertToHomebrew?: (item: AnyItem) => void;
   allowedTiers?: string[];
+  campaignId?: string;
 }
 
 function PickerHeader({
@@ -206,11 +209,13 @@ export function ItemPickerModal({
   maxSlots = 50,
   onConvertToHomebrew,
   allowedTiers,
+  campaignId,
 }: ItemPickerModalProps) {
   const [mode, setMode] = useState<ItemPickerMode>('official');
   const [customFormData, setCustomFormData] = useState<ItemFormData | null>(
     null
   );
+  const [showHomebrewFilters, setShowHomebrewFilters] = useState(false);
 
   const currentInventoryQuantity = inventoryItems.reduce(
     (sum, i) => sum + i.quantity,
@@ -234,10 +239,15 @@ export function ItemPickerModal({
     lockTiers: Boolean(allowedTiers && allowedTiers.length > 0),
   });
 
+  // Homebrew items data
+  const homebrewData = useHomebrewItemData({ campaignId });
+
   usePickerReset(open, () => {
     reset();
     setMode('official');
     setCustomFormData(null);
+    setShowHomebrewFilters(false);
+    homebrewData.clearFilters();
   });
 
   const filteredItems = useItemFilters(
@@ -329,14 +339,83 @@ export function ItemPickerModal({
         )}
 
         {mode === 'homebrew' && (
-          <div className="flex flex-1 flex-col items-center justify-center py-12 text-center">
-            <Wrench className="text-muted-foreground mb-4 size-12 opacity-50" />
-            <h3 className="mb-2 text-lg font-medium">Homebrew Items</h3>
-            <p className="text-muted-foreground max-w-sm text-sm">
-              Homebrew items from your campaigns and collection will appear
-              here. This feature is coming soon!
-            </p>
-          </div>
+          <>
+            {isAtCapacity && <CapacityWarning maxSlots={maxSlots} />}
+
+            <div className="shrink-0 space-y-4">
+              <HomebrewSourceTabs
+                activeSource={homebrewData.source}
+                onSourceChange={homebrewData.setSource}
+                hasCampaign={homebrewData.hasCampaign}
+              />
+
+              <ItemSearchHeader
+                search={homebrewData.searchQuery}
+                onSearchChange={homebrewData.setSearchQuery}
+                showFilters={showHomebrewFilters}
+                onToggleFilters={() => setShowHomebrewFilters(v => !v)}
+                activeFilterCount={homebrewData.activeFilterCount}
+                onClearFilters={homebrewData.clearFilters}
+              />
+
+              {showHomebrewFilters && (
+                <ItemFilters
+                  selectedCategories={homebrewData.selectedCategories}
+                  selectedRarities={homebrewData.selectedRarities}
+                  selectedTiers={homebrewData.selectedTiers}
+                  onToggleCategory={homebrewData.toggleCategory}
+                  onToggleRarity={homebrewData.toggleRarity}
+                  onToggleTier={homebrewData.toggleTier}
+                  allowedTiers={allowedTiers}
+                  lockTiers={false}
+                />
+              )}
+            </div>
+
+            <div className="mt-4 flex-1 touch-pan-y overflow-y-auto pr-2">
+              {homebrewData.isLoading ? (
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="bg-muted h-32 animate-pulse rounded-lg"
+                    />
+                  ))}
+                </div>
+              ) : homebrewData.filteredItems.length === 0 ? (
+                <div className="flex flex-1 flex-col items-center justify-center py-12 text-center">
+                  <Wrench className="text-muted-foreground mb-4 size-12 opacity-50" />
+                  <h3 className="mb-2 text-lg font-medium">
+                    No Homebrew Items
+                  </h3>
+                  <p className="text-muted-foreground max-w-sm text-sm">
+                    {homebrewData.source === 'linked'
+                      ? 'No homebrew items are linked to this campaign yet.'
+                      : homebrewData.source === 'private'
+                        ? "You haven't created any homebrew items yet."
+                        : homebrewData.source === 'quicklist'
+                          ? "You haven't added any items to your quicklist."
+                          : 'No public homebrew items found.'}
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div className="text-muted-foreground mb-2 text-sm">
+                    {homebrewData.filteredItems.length} homebrew items found
+                  </div>
+                  <ItemPickerGrid
+                    items={homebrewData.filteredItems.map(h => h.item)}
+                    selectedItems={tempSelected}
+                    onToggleItem={toggleItem}
+                    onQuantityChange={handleQuantityChange}
+                    inventoryItems={inventoryItems}
+                    unlimitedQuantity={unlimitedQuantity}
+                    onConvertToHomebrew={onConvertToHomebrew}
+                  />
+                </>
+              )}
+            </div>
+          </>
         )}
 
         {mode === 'custom' && (

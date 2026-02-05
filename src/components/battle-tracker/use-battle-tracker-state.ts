@@ -17,6 +17,8 @@ import type {
   CharacterTracker,
   EnvironmentTracker,
   NewCharacterDraft,
+  RollHistoryEntry,
+  SpotlightHistoryEntry,
   TrackerItem,
   TrackerSelection,
 } from './types';
@@ -97,6 +99,40 @@ function updateSpotlightHistory(
   return [next, ...filtered].slice(0, 5);
 }
 
+function getEntityName(
+  selection: TrackerSelection,
+  characters: CharacterTracker[],
+  adversaries: AdversaryTracker[],
+  environments: EnvironmentTracker[]
+): string {
+  if (selection.kind === 'character') {
+    return characters.find(c => c.id === selection.id)?.name ?? 'Unknown';
+  }
+  if (selection.kind === 'adversary') {
+    return (
+      adversaries.find(a => a.id === selection.id)?.source.name ?? 'Unknown'
+    );
+  }
+  return (
+    environments.find(e => e.id === selection.id)?.source.name ?? 'Unknown'
+  );
+}
+
+function updateSpotlightHistoryTimeline(
+  previous: SpotlightHistoryEntry[],
+  next: TrackerSelection,
+  entityName: string,
+  currentRound: number
+): SpotlightHistoryEntry[] {
+  const newEntry: SpotlightHistoryEntry = {
+    selection: next,
+    timestamp: Date.now(),
+    round: currentRound,
+    entityName,
+  };
+  return [newEntry, ...previous].slice(0, 50); // Keep last 50 entries
+}
+
 function addEntry<T extends TrackerItem>(
   entry: T,
   setItems: Dispatch<SetStateAction<T[]>>,
@@ -156,6 +192,11 @@ export function useBattleRosterState() {
   const [spotlightHistory, setSpotlightHistory] = useState<TrackerSelection[]>(
     []
   );
+  const [spotlightHistoryTimeline, setSpotlightHistoryTimeline] = useState<
+    SpotlightHistoryEntry[]
+  >([]);
+  const [rollHistory, setRollHistory] = useState<RollHistoryEntry[]>([]);
+  const [currentRound, setCurrentRound] = useState(1);
   const [fearPool, setFearPool] = useState(0); // GM Fear pool
   /**
    * Custom max fear value. If undefined, defaults to 2 * party size.
@@ -186,8 +227,17 @@ export function useBattleRosterState() {
   };
   const handleSpotlight = (item: TrackerItem) => {
     const next = { kind: item.kind, id: item.id } as TrackerSelection;
+    const entityName = getEntityName(
+      next,
+      characters,
+      adversaries,
+      environments
+    );
     setSpotlight(next);
     setSpotlightHistory(prev => updateSpotlightHistory(prev, next));
+    setSpotlightHistoryTimeline(prev =>
+      updateSpotlightHistoryTimeline(prev, next, entityName, currentRound)
+    );
     bumpRosterVersion();
   };
   const handleRemove = (item: TrackerItem) => {
@@ -251,6 +301,9 @@ export function useBattleRosterState() {
       selection,
       spotlight,
       spotlightHistory,
+      spotlightHistoryTimeline,
+      rollHistory,
+      currentRound,
       fearPool,
       maxFear,
       useMassiveThreshold,
@@ -287,6 +340,39 @@ export function useBattleRosterState() {
       updateCharacter,
       updateAdversary,
       updateEnvironment,
+      // Round management
+      setCurrentRound: (value: number) => {
+        setCurrentRound(value);
+        bumpRosterVersion();
+      },
+      advanceRound: () => {
+        setCurrentRound(prev => prev + 1);
+        bumpRosterVersion();
+      },
+      // Roll history management
+      addRollToHistory: (entry: RollHistoryEntry) => {
+        setRollHistory(prev => [entry, ...prev].slice(0, 100)); // Keep last 100 rolls
+        bumpRosterVersion();
+      },
+      clearRollHistory: () => {
+        setRollHistory([]);
+        bumpRosterVersion();
+      },
+      setRollHistory: (value: SetStateAction<RollHistoryEntry[]>) => {
+        setRollHistory(value);
+        bumpRosterVersion();
+      },
+      // Spotlight history timeline management
+      clearSpotlightHistoryTimeline: () => {
+        setSpotlightHistoryTimeline([]);
+        bumpRosterVersion();
+      },
+      setSpotlightHistoryTimeline: (
+        value: SetStateAction<SpotlightHistoryEntry[]>
+      ) => {
+        setSpotlightHistoryTimeline(value);
+        bumpRosterVersion();
+      },
       // Bulk setters for loading battle state
       setCharacters: (value: SetStateAction<CharacterTracker[]>) => {
         setCharacters(value);

@@ -33,6 +33,8 @@ import { RosterColumn } from '@/components/battle-tracker/roster-column';
 import type {
   AdversaryTracker,
   EnvironmentTracker,
+  RollHistoryEntry,
+  SpotlightHistoryEntry,
 } from '@/components/battle-tracker/types';
 import type {
   useBattleDialogState,
@@ -275,12 +277,17 @@ interface RosterGridProps {
     item: RosterState['selectedItem'];
     spotlight: RosterState['spotlight'];
     spotlightHistory: RosterState['spotlightHistory'];
+    spotlightHistoryTimeline: SpotlightHistoryEntry[];
+    rollHistory: RollHistoryEntry[];
+    currentRound: number;
     characters: RosterState['characters'];
     adversaries: RosterState['adversaries'];
     environments: RosterState['environments'];
     useMassiveThreshold: boolean;
     onClearSpotlight: () => void;
     onSetSpotlight: RosterActions['setSpotlight'];
+    onClearSpotlightHistoryTimeline?: () => void;
+    onClearRollHistory?: () => void;
     onCharacterChange: RosterActions['updateCharacter'];
     onAdversaryChange: RosterActions['updateAdversary'];
     onEnvironmentChange: RosterActions['updateEnvironment'];
@@ -354,12 +361,19 @@ export function RosterGrid({
         item={rosterState.selectedItem}
         spotlight={rosterState.spotlight}
         spotlightHistory={rosterState.spotlightHistory}
+        spotlightHistoryTimeline={rosterState.spotlightHistoryTimeline}
+        rollHistory={rosterState.rollHistory}
+        currentRound={rosterState.currentRound}
         characters={rosterState.characters}
         adversaries={rosterState.adversaries}
         environments={rosterState.environments}
         useMassiveThreshold={rosterState.useMassiveThreshold}
         onClearSpotlight={() => rosterActions.setSpotlight(null)}
         onSetSpotlight={rosterActions.setSpotlight}
+        onClearSpotlightHistoryTimeline={
+          rosterActions.clearSpotlightHistoryTimeline
+        }
+        onClearRollHistory={rosterActions.clearRollHistory}
         onCharacterChange={rosterActions.updateCharacter}
         onAdversaryChange={rosterActions.updateAdversary}
         onEnvironmentChange={rosterActions.updateEnvironment}

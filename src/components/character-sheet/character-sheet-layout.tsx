@@ -524,6 +524,8 @@ function CharacterSheetTabs({
             state={state}
             handlers={handlers}
             isHydrated={isHydrated}
+            activeEffects={state.activeEffects ?? []}
+            onActiveEffectsChange={handlers.setActiveEffects}
           />
         </TabsContent>
       </div>

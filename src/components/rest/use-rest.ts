@@ -3,6 +3,8 @@
  */
 import { useCallback, useState } from 'react';
 
+import { type ActiveEffect, clearEffectsOnRest } from '@/lib/schemas/equipment';
+
 import { getMovesForRestType } from './constants';
 import {
   calculateFearGain,
@@ -47,6 +49,10 @@ interface UseRestOptions {
    * When true, Fear gain will be calculated per Chapter 3 rules.
    */
   showFearGain?: boolean;
+  /** Current active effects on the character */
+  activeEffects?: ActiveEffect[];
+  /** Callback when active effects change (e.g., cleared on rest) */
+  onActiveEffectsChange?: (effects: ActiveEffect[]) => void;
 }
 
 interface UseRestReturn {
@@ -98,6 +104,8 @@ export function useRest(options: UseRestOptions): UseRestReturn {
     onComplete,
     partySize = 0,
     showFearGain = false,
+    activeEffects,
+    onActiveEffectsChange,
   } = options;
 
   const [phase, setPhase] = useState<RestPhase>('select-type');
@@ -194,6 +202,12 @@ export function useRest(options: UseRestOptions): UseRestReturn {
     setResults(moveResults);
     setPhase('results');
 
+    // Clear active effects based on rest type
+    if (activeEffects && onActiveEffectsChange) {
+      const clearedEffects = clearEffectsOnRest(activeEffects, restType);
+      onActiveEffectsChange(clearedEffects);
+    }
+
     const fullResult = createRestResult(restType, moveResults, fearGainResult);
     onComplete(fullResult);
   }, [
@@ -205,6 +219,8 @@ export function useRest(options: UseRestOptions): UseRestReturn {
     onComplete,
     showFearGain,
     partySize,
+    activeEffects,
+    onActiveEffectsChange,
   ]);
 
   const reset = useCallback(() => {

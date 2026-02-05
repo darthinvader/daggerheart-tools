@@ -7,5 +7,6 @@ export const DEFAULT_INVENTORY: InventoryDraft = {
   maxItems: 50,
   weightCapacity: undefined,
   currentWeight: 0,
+  trackWeight: false,
   metadata: {},
 };

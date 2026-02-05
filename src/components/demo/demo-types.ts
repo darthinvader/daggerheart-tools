@@ -21,6 +21,7 @@ import type {
   ThresholdsSettings,
 } from '@/lib/schemas/character-state';
 import type { ClassSelection } from '@/lib/schemas/class-selection';
+import type { ActiveEffect } from '@/lib/schemas/equipment';
 import type { CommunitySelection } from '@/lib/schemas/identity';
 import type { LoadoutSelection } from '@/lib/schemas/loadout';
 import type { QuickViewPreferences } from '@/lib/schemas/quick-view';
@@ -53,6 +54,7 @@ export interface DemoState {
   sessions: SessionEntry[];
   currentSessionId: string | null;
   quickView: QuickViewPreferences;
+  activeEffects: ActiveEffect[];
 }
 
 export interface DemoHandlers {
@@ -82,6 +84,7 @@ export interface DemoHandlers {
   setDowntimeActivities: (v: DowntimeActivity[]) => void;
   setSessions: (s: SessionEntry[], id: string | null) => void;
   setQuickView: (v: QuickViewPreferences) => void;
+  setActiveEffects: (effects: ActiveEffect[]) => void;
 }
 
 export interface TabProps {

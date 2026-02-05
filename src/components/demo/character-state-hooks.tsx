@@ -31,6 +31,7 @@ import type {
   ThresholdsSettings,
 } from '@/lib/schemas/character-state';
 import type { ClassSelection } from '@/lib/schemas/class-selection';
+import type { ActiveEffect } from '@/lib/schemas/equipment';
 import type { CommunitySelection } from '@/lib/schemas/identity';
 import type { LoadoutSelection } from '@/lib/schemas/loadout';
 import {
@@ -81,6 +82,7 @@ export interface CharacterSheetState {
   sessions: SessionEntry[];
   currentSessionId: string | null;
   quickView: QuickViewPreferences;
+  activeEffects: ActiveEffect[];
 }
 
 export function useCharacterState(
@@ -180,6 +182,7 @@ export function useSessionState() {
   const [quickView, setQuickView] = useState<QuickViewPreferences>(
     DEFAULT_QUICK_VIEW_PREFERENCES
   );
+  const [activeEffects, setActiveEffects] = useState<ActiveEffect[]>([]);
 
   return {
     scars,
@@ -208,5 +211,7 @@ export function useSessionState() {
     setCurrentSessionId,
     quickView,
     setQuickView,
+    activeEffects,
+    setActiveEffects,
   };
 }

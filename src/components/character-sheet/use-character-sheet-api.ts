@@ -672,6 +672,7 @@ const buildReadOnlyHandlers = (): ReturnType<
   setDowntimeActivities: () => {},
   setSessions: () => {},
   setQuickView: () => {},
+  setActiveEffects: () => {},
 });
 
 export function useCharacterSheetWithApi(

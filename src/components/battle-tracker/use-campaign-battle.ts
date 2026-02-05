@@ -6,6 +6,8 @@ import type {
   AdversaryTracker,
   CharacterTracker,
   EnvironmentTracker,
+  RollHistoryEntry,
+  SpotlightHistoryEntry,
   TrackerSelection,
 } from './types';
 import { normalizeEnvironmentFeature } from './utils';
@@ -77,6 +79,9 @@ export function useCampaignBattle(
     environments: EnvironmentTracker[];
     spotlight: TrackerSelection | null;
     spotlightHistory: TrackerSelection[];
+    spotlightHistoryTimeline: SpotlightHistoryEntry[];
+    rollHistory: RollHistoryEntry[];
+    currentRound: number;
     fearPool: number;
     useMassiveThreshold: boolean;
     rosterVersion: number;
@@ -89,6 +94,11 @@ export function useCampaignBattle(
     setSpotlightHistory: React.Dispatch<
       React.SetStateAction<TrackerSelection[]>
     >;
+    setSpotlightHistoryTimeline: React.Dispatch<
+      React.SetStateAction<SpotlightHistoryEntry[]>
+    >;
+    setRollHistory: React.Dispatch<React.SetStateAction<RollHistoryEntry[]>>;
+    setCurrentRound: (value: number) => void;
     setFearPool: (value: number) => void;
     setUseMassiveThreshold: (value: boolean) => void;
   },
@@ -187,6 +197,9 @@ export function useCampaignBattle(
       })),
       spotlight: rosterState.spotlight,
       spotlightHistory: rosterState.spotlightHistory,
+      spotlightHistoryTimeline: rosterState.spotlightHistoryTimeline,
+      rollHistory: rosterState.rollHistory,
+      currentRound: rosterState.currentRound,
       fearPool: rosterState.fearPool,
       useMassiveThreshold: rosterState.useMassiveThreshold,
       notes,
@@ -204,6 +217,9 @@ export function useCampaignBattle(
     rosterState.environments,
     rosterState.spotlight,
     rosterState.spotlightHistory,
+    rosterState.spotlightHistoryTimeline,
+    rosterState.rollHistory,
+    rosterState.currentRound,
     rosterState.fearPool,
     rosterState.useMassiveThreshold,
     notes,
@@ -238,6 +254,17 @@ export function useCampaignBattle(
 
       // Spotlight history - always set, even if empty
       rosterActions.setSpotlightHistory(state.spotlightHistory ?? []);
+
+      // Extended spotlight history timeline - always set, even if empty
+      rosterActions.setSpotlightHistoryTimeline(
+        state.spotlightHistoryTimeline ?? []
+      );
+
+      // Roll history - always set, even if empty
+      rosterActions.setRollHistory(state.rollHistory ?? []);
+
+      // Current round - default to 1
+      rosterActions.setCurrentRound(state.currentRound ?? 1);
 
       // Skip the dirty check on next effect run and mark clean
       skipNextDirtyCheckRef.current = true;

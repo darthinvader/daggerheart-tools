@@ -105,9 +105,6 @@ function GmDashboard() {
             <CardTitle className="flex items-center gap-2 text-lg">
               <Users className="size-5 text-purple-500" />
               Player Management
-              <span className="rounded-full bg-purple-500/20 px-2 py-0.5 text-xs font-normal text-purple-600 dark:text-purple-400">
-                Coming Soon
-              </span>
             </CardTitle>
           </CardHeader>
           <CardContent>

@@ -45,6 +45,8 @@ export function RestModal({
   shortRestsToday = 0,
   partySize = 0,
   showFearGain = false,
+  activeEffects,
+  onActiveEffectsChange,
 }: RestModalProps) {
   const rest = useRest({
     tier,
@@ -57,6 +59,8 @@ export function RestModal({
     onComplete: onRestComplete,
     partySize,
     showFearGain,
+    activeEffects,
+    onActiveEffectsChange,
   });
 
   const shortRestDisabled = shortRestsToday >= MAX_SHORT_RESTS;

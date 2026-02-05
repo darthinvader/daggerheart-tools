@@ -268,6 +268,36 @@ export const BattleSelectionSchema = z.object({
 });
 
 /**
+ * Extended spotlight history entry with timestamp and round info
+ */
+export const SpotlightHistoryEntrySchema = z.object({
+  selection: BattleSelectionSchema,
+  timestamp: z.number(),
+  round: z.number().optional(),
+  entityName: z.string(),
+});
+
+/**
+ * Roll history entry for tracking attack/damage rolls
+ */
+export const RollHistoryEntrySchema = z.object({
+  id: z.string(),
+  type: z.enum(['attack', 'damage']),
+  entityId: z.string(),
+  entityName: z.string(),
+  entityKind: z.enum(['character', 'adversary', 'environment']),
+  roll: z.number(),
+  total: z.number(),
+  dice: z.string(),
+  rolls: z.array(z.number()).optional(),
+  modifier: z.union([z.string(), z.number()]).optional(),
+  isCritical: z.boolean().optional(),
+  isFumble: z.boolean().optional(),
+  timestamp: z.number(),
+  round: z.number().optional(),
+});
+
+/**
  * Complete battle state that can be saved/loaded
  */
 export const BattleStateSchema = z.object({
@@ -280,6 +310,12 @@ export const BattleStateSchema = z.object({
   environments: z.array(BattleEnvironmentSchema).default([]),
   spotlight: BattleSelectionSchema.nullable().default(null),
   spotlightHistory: z.array(BattleSelectionSchema).default([]),
+  /** Extended spotlight history with timestamps and round numbers */
+  spotlightHistoryTimeline: z.array(SpotlightHistoryEntrySchema).default([]),
+  /** History of attack and damage rolls during combat */
+  rollHistory: z.array(RollHistoryEntrySchema).default([]),
+  /** Current combat round number */
+  currentRound: z.number().default(1),
   fearPool: z.number().default(0),
   /**
    * Maximum fear pool size. If not set, defaults to 2 * party size.
@@ -302,4 +338,6 @@ export type BattleEnvironmentFeature = z.infer<
 >;
 export type BattleEnvironment = z.infer<typeof BattleEnvironmentSchema>;
 export type BattleSelection = z.infer<typeof BattleSelectionSchema>;
+export type SpotlightHistoryEntry = z.infer<typeof SpotlightHistoryEntrySchema>;
+export type RollHistoryEntry = z.infer<typeof RollHistoryEntrySchema>;
 export type BattleState = z.infer<typeof BattleStateSchema>;

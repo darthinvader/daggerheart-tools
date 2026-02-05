@@ -251,7 +251,7 @@ const featureSections: FeatureSection[] = [
       { text: 'Campaign frame templates' },
       { text: 'Themes & distinctions' },
       { text: 'Session zero questions' },
-      { text: 'Invite players (coming soon)' },
+      { text: 'Invite players via shareable links' },
     ],
   },
   {

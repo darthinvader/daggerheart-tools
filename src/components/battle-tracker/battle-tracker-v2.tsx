@@ -190,12 +190,19 @@ function BattleTrackerLayout({
           item={rosterState.selectedItem}
           spotlight={rosterState.spotlight}
           spotlightHistory={rosterState.spotlightHistory}
+          spotlightHistoryTimeline={rosterState.spotlightHistoryTimeline}
+          rollHistory={rosterState.rollHistory}
+          currentRound={rosterState.currentRound}
           characters={rosterState.characters}
           adversaries={rosterState.adversaries}
           environments={rosterState.environments}
           useMassiveThreshold={rosterState.useMassiveThreshold}
           onClearSpotlight={() => rosterActions.setSpotlight(null)}
           onSetSpotlight={rosterActions.setSpotlight}
+          onClearSpotlightHistoryTimeline={
+            rosterActions.clearSpotlightHistoryTimeline
+          }
+          onClearRollHistory={rosterActions.clearRollHistory}
           onCharacterChange={rosterActions.updateCharacter}
           onAdversaryChange={rosterActions.updateAdversary}
           onEnvironmentChange={rosterActions.updateEnvironment}

@@ -53,6 +53,8 @@ export const EMPTY_THRESHOLDS: ThresholdsSettings = {
 export const EMPTY_INVENTORY: InventoryState = {
   maxSlots: 30,
   items: [],
+  trackWeight: false,
+  weightCapacity: undefined,
 };
 
 export const EMPTY_LOADOUT: LoadoutSelection = {

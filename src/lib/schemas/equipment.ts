@@ -408,6 +408,7 @@ export const InventorySchema = z.object({
   maxItems: z.number().min(1).default(50),
   weightCapacity: z.number().min(0).optional(),
   currentWeight: z.number().min(0).default(0),
+  trackWeight: z.boolean().default(false),
   metadata: MetadataSchema,
 });
 
@@ -447,4 +448,215 @@ export interface InventoryState {
   maxSlots: number;
   unlimitedSlots?: boolean;
   unlimitedQuantity?: boolean;
+  /** Maximum weight capacity (undefined = no limit) */
+  weightCapacity?: number;
+  /** Whether weight tracking is enabled */
+  trackWeight?: boolean;
+}
+
+// =============================
+// Weight Constants & Utilities
+// =============================
+
+/** Weight values for qualitative weights */
+export const WEIGHT_VALUES: Record<string, number> = {
+  light: 1,
+  medium: 2,
+  heavy: 3,
+};
+
+/** Get the numeric weight value for an item */
+export function getItemWeight(item: AnyItem | Item): number {
+  const weight = (item as Item).weight;
+  if (!weight) return 0;
+  if (typeof weight === 'string' && weight in WEIGHT_VALUES) {
+    return WEIGHT_VALUES[weight];
+  }
+  // Try to parse as number for custom weights
+  const parsed = parseFloat(weight);
+  return isNaN(parsed) ? 0 : parsed;
+}
+
+/** Calculate total weight of inventory items */
+export function calculateInventoryWeight(items: InventoryItemEntry[]): number {
+  return items.reduce((total, entry) => {
+    const weight = getItemWeight(entry.item);
+    return total + weight * entry.quantity;
+  }, 0);
+}
+
+/** Check if adding items would exceed weight capacity */
+export function wouldExceedWeightCapacity(
+  currentItems: InventoryItemEntry[],
+  newItem: AnyItem,
+  quantity: number,
+  weightCapacity: number | undefined
+): boolean {
+  if (weightCapacity === undefined) return false;
+  const currentWeight = calculateInventoryWeight(currentItems);
+  const additionalWeight = getItemWeight(newItem) * quantity;
+  return currentWeight + additionalWeight > weightCapacity;
+}
+
+// =============================
+// Active Effects (Potion/Consumable Tracking)
+// =============================
+
+/**
+ * Duration types for active effects.
+ * - next_roll: Expires after the next roll
+ * - until_rest: Expires on short or long rest
+ * - until_long_rest: Expires only on long rest
+ * - permanent: Does not expire automatically
+ * - rounds: Expires after a number of rounds (combat only)
+ */
+export const EffectDurationTypeEnum = z.enum([
+  'next_roll',
+  'until_rest',
+  'until_long_rest',
+  'permanent',
+  'rounds',
+]);
+
+/**
+ * Active effect from a consumed potion or item.
+ */
+export const ActiveEffectSchema = z.object({
+  id: z.string(),
+  /** Name of the effect (usually the item name) */
+  name: z.string(),
+  /** Description of what the effect does */
+  description: z.string().default(''),
+  /** Source item name */
+  sourceName: z.string().default(''),
+  /** Duration type */
+  durationType: EffectDurationTypeEnum,
+  /** Remaining rounds (only for 'rounds' duration type) */
+  roundsRemaining: z.number().min(0).optional(),
+  /** When the effect was applied */
+  appliedAt: z.string().datetime(),
+  /** Session number when applied (for tracking across sessions) */
+  sessionNumber: z.number().optional(),
+  /** Trait bonus from effect */
+  traitBonus: z
+    .object({
+      trait: z.string(),
+      bonus: z.number(),
+    })
+    .optional(),
+  /** Other modifiers from the effect */
+  modifiers: z.record(z.string(), z.number()).optional(),
+  /** Whether this effect has been used (for next_roll effects) */
+  hasBeenUsed: z.boolean().default(false),
+});
+
+export type EffectDurationType = z.infer<typeof EffectDurationTypeEnum>;
+export type ActiveEffect = z.infer<typeof ActiveEffectSchema>;
+
+/**
+ * State for tracking active effects.
+ */
+export const ActiveEffectsStateSchema = z.object({
+  effects: z.array(ActiveEffectSchema).default([]),
+});
+
+export type ActiveEffectsState = z.infer<typeof ActiveEffectsStateSchema>;
+
+/**
+ * Create an active effect from a consumed potion.
+ */
+export function createActiveEffectFromPotion(
+  potion: Potion,
+  sessionNumber?: number
+): ActiveEffect {
+  const now = new Date().toISOString();
+  const durationType =
+    (potion.traitBonus?.duration as EffectDurationType) ?? 'until_rest';
+
+  return {
+    id: `effect-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    name: potion.name,
+    description: potion.effect ?? potion.description ?? '',
+    sourceName: potion.name,
+    durationType,
+    appliedAt: now,
+    sessionNumber,
+    traitBonus: potion.traitBonus
+      ? {
+          trait: potion.traitBonus.trait,
+          bonus: potion.traitBonus.bonus,
+        }
+      : undefined,
+    hasBeenUsed: false,
+  };
+}
+
+/**
+ * Clear effects on rest based on their duration type.
+ */
+export function clearEffectsOnRest(
+  effects: ActiveEffect[],
+  restType: 'short' | 'long'
+): ActiveEffect[] {
+  return effects.filter(effect => {
+    // Permanent effects never clear
+    if (effect.durationType === 'permanent') return true;
+    // until_rest clears on any rest
+    if (effect.durationType === 'until_rest') return false;
+    // until_long_rest only clears on long rest
+    if (effect.durationType === 'until_long_rest') return restType !== 'long';
+    // Others (next_roll, rounds) don't clear on rest
+    return true;
+  });
+}
+
+/**
+ * Clear next_roll effects that have been used.
+ */
+export function clearUsedNextRollEffects(
+  effects: ActiveEffect[]
+): ActiveEffect[] {
+  return effects.filter(effect => {
+    if (effect.durationType === 'next_roll' && effect.hasBeenUsed) return false;
+    return true;
+  });
+}
+
+/**
+ * Mark a next_roll effect as used.
+ */
+export function markEffectAsUsed(
+  effects: ActiveEffect[],
+  effectId: string
+): ActiveEffect[] {
+  return effects.map(effect =>
+    effect.id === effectId ? { ...effect, hasBeenUsed: true } : effect
+  );
+}
+
+/**
+ * Decrement round counters and remove expired effects.
+ */
+export function decrementRoundCounters(
+  effects: ActiveEffect[]
+): ActiveEffect[] {
+  return effects
+    .map(effect => {
+      if (
+        effect.durationType !== 'rounds' ||
+        effect.roundsRemaining === undefined
+      ) {
+        return effect;
+      }
+      return { ...effect, roundsRemaining: effect.roundsRemaining - 1 };
+    })
+    .filter(effect => {
+      if (
+        effect.durationType === 'rounds' &&
+        effect.roundsRemaining !== undefined
+      ) {
+        return effect.roundsRemaining > 0;
+      }
+      return true;
+    });
 }

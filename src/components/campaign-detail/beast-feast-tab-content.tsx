@@ -1,7 +1,15 @@
 // Beast Feast Campaign Frame - Cooking Mechanics Tab Content
 // Provides ingredient inventory, cooking UI, and party cookbook management
 
-import { ChefHat, Plus, Trash2, UtensilsCrossed } from 'lucide-react';
+import {
+  ChefHat,
+  Loader2,
+  Package,
+  Plus,
+  Trash2,
+  User,
+  UtensilsCrossed,
+} from 'lucide-react';
 import { useCallback, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +21,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Select,
@@ -22,6 +31,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { TabsContent } from '@/components/ui/tabs';
+import { useCampaign } from '@/features/campaigns/use-campaign-query';
 import { PLOVER_CAVE_INGREDIENTS } from '@/lib/data/beast-feast/cooking-data';
 import type {
   BeastFeastRecipe,
@@ -29,6 +39,19 @@ import type {
   Ingredient,
 } from '@/lib/schemas/beast-feast-cooking';
 import { FLAVOR_DIE_MAP } from '@/lib/schemas/beast-feast-cooking';
+import type { CharacterCookingState } from '@/lib/schemas/campaign';
+
+import {
+  calculateMealRating,
+  type CookingResult,
+  CookingResultDialog,
+  findMatchedSets,
+  type FlavorDiceEntry,
+  generateMealName,
+  getMealQuality,
+  rollFlavorDice,
+} from './cooking-result-dialog';
+import { useBeastFeastState } from './use-beast-feast-state';
 
 // =====================================================================================
 // Flavor Badge Component
@@ -162,61 +185,72 @@ function RecipeCard({ recipe }: RecipeCardProps) {
 }
 
 // =====================================================================================
+// Character Cooking Stats Card Component
+// =====================================================================================
+
+interface CharacterCookingStatsCardProps {
+  characterName: string;
+  stats: CharacterCookingState | undefined;
+  ingredientCount: number;
+}
+
+function CharacterCookingStatsCard({
+  characterName,
+  stats,
+  ingredientCount,
+}: CharacterCookingStatsCardProps) {
+  const maxIngredients = stats?.maxIngredients ?? 6;
+  const mealsContributed = stats?.mealsContributed ?? 0;
+  const recipesDiscovered = stats?.recipesContributed?.length ?? 0;
+  const capacityPercentage = Math.min(
+    100,
+    (ingredientCount / maxIngredients) * 100
+  );
+
+  return (
+    <div className="space-y-3 rounded-lg border p-3">
+      <div className="flex items-center gap-2">
+        <User className="text-muted-foreground h-4 w-4" />
+        <span className="font-medium">{characterName}</span>
+      </div>
+
+      <div className="space-y-2">
+        {/* Ingredient Capacity */}
+        <div className="space-y-1">
+          <div className="flex items-center justify-between text-xs">
+            <span className="flex items-center gap-1">
+              <Package className="h-3 w-3" />
+              Ingredient Capacity
+            </span>
+            <span className="text-muted-foreground">
+              {ingredientCount} / {maxIngredients}
+            </span>
+          </div>
+          <Progress value={capacityPercentage} className="h-2" />
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-2 gap-2 text-sm">
+          <div className="bg-muted/50 flex items-center justify-between rounded px-2 py-1">
+            <span className="text-muted-foreground">Meals contributed:</span>
+            <span className="font-medium">{mealsContributed}</span>
+          </div>
+          <div className="bg-muted/50 flex items-center justify-between rounded px-2 py-1">
+            <span className="text-muted-foreground">Recipes discovered:</span>
+            <span className="font-medium">{recipesDiscovered}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// =====================================================================================
 // Sample Data - Initial state for demo purposes
 // =====================================================================================
 
 function generateIngredientId(): string {
   return `ing-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-}
-
-function createSampleIngredients(): Ingredient[] {
-  // Take a few sample ingredients from the predefined list
-  const samples = PLOVER_CAVE_INGREDIENTS.slice(0, 5);
-  return samples.map(ing => ({
-    ...ing,
-    id: generateIngredientId(),
-    createdAt: new Date().toISOString(),
-  }));
-}
-
-function createSampleRecipes(): BeastFeastRecipe[] {
-  const now = new Date().toISOString();
-  return [
-    {
-      id: 'recipe-1',
-      name: 'Cave Mushroom Stew',
-      description: 'A hearty stew made from cave mushrooms and bitter roots.',
-      ingredientTypes: ['Mushroom', 'Root'],
-      flavorProfile: [
-        { name: 'Bitter', die: 'd8', strength: 2 },
-        { name: 'Savory', die: 'd12', strength: 1 },
-      ],
-      cookingMethod: 'Slow cook over low heat',
-      notes: 'Party favorite',
-      timesCooked: 3,
-      bestMealRating: 12,
-      createdBy: '',
-      createdAt: now,
-      updatedAt: now,
-    },
-    {
-      id: 'recipe-2',
-      name: 'Sweet Honey Glaze',
-      description: 'A sweet glaze perfect for roasted meats.',
-      ingredientTypes: ['Honey', 'Berries'],
-      flavorProfile: [
-        { name: 'Sweet', die: 'd4', strength: 2 },
-        { name: 'Sour', die: 'd10', strength: 1 },
-      ],
-      cookingMethod: 'Reduce until thick',
-      notes: '',
-      timesCooked: 1,
-      bestMealRating: 8,
-      createdBy: '',
-      createdAt: now,
-      updatedAt: now,
-    },
-  ];
 }
 
 // =====================================================================================
@@ -228,19 +262,39 @@ interface BeastFeastTabContentProps {
 }
 
 export function BeastFeastTabContent({
-  campaignId: _campaignId,
+  campaignId,
 }: BeastFeastTabContentProps) {
-  // State for ingredient inventory
-  const [ingredients, setIngredients] = useState<Ingredient[]>(() =>
-    createSampleIngredients()
-  );
+  // Get campaign data for players
+  const { data: campaign } = useCampaign(campaignId);
+  const players = campaign?.players ?? [];
 
-  // State for party cookbook
-  const [recipes] = useState<BeastFeastRecipe[]>(() => createSampleRecipes());
+  // Use persistent state from campaign storage
+  const {
+    loading,
+    saving,
+    beastFeast,
+    addIngredient,
+    removeIngredient,
+    addRecipe,
+    setIngredients,
+    getCharacterCookingStats,
+    incrementMealsContributed,
+    addRecipeContribution,
+  } = useBeastFeastState({ campaignId });
+
+  const ingredients = beastFeast.ingredients;
+  const recipes = beastFeast.recipes;
 
   // State for cooking UI
   const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
   const [ingredientToAdd, setIngredientToAdd] = useState<string>('');
+  const [selectedCookId, setSelectedCookId] = useState<string>('');
+
+  // State for cooking result dialog
+  const [showCookingResult, setShowCookingResult] = useState(false);
+  const [cookingResult, setCookingResult] = useState<CookingResult | null>(
+    null
+  );
 
   // Toggle ingredient selection for cooking
   const toggleIngredientSelection = useCallback((ingredientId: string) => {
@@ -252,7 +306,7 @@ export function BeastFeastTabContent({
   }, []);
 
   // Add a new ingredient from the predefined list
-  const handleAddIngredient = useCallback(() => {
+  const handleAddIngredient = useCallback(async () => {
     if (!ingredientToAdd) return;
 
     const template = PLOVER_CAVE_INGREDIENTS.find(
@@ -266,41 +320,171 @@ export function BeastFeastTabContent({
       createdAt: new Date().toISOString(),
     };
 
-    setIngredients(prev => [...prev, newIngredient]);
+    await addIngredient(newIngredient);
     setIngredientToAdd('');
-  }, [ingredientToAdd]);
+  }, [ingredientToAdd, addIngredient]);
 
   // Remove an ingredient from inventory
-  const handleRemoveIngredient = useCallback((ingredientId: string) => {
-    setIngredients(prev => prev.filter(ing => ing.id !== ingredientId));
-    setSelectedIngredients(prev => prev.filter(id => id !== ingredientId));
-  }, []);
+  const handleRemoveIngredient = useCallback(
+    async (ingredientId: string) => {
+      await removeIngredient(ingredientId);
+      setSelectedIngredients(prev => prev.filter(id => id !== ingredientId));
+    },
+    [removeIngredient]
+  );
 
-  // Cook selected ingredients (basic demo - just removes them)
-  const handleCookMeal = useCallback(() => {
+  // Cook selected ingredients
+  const handleCookMeal = useCallback(async () => {
     if (selectedIngredients.length === 0) return;
 
-    // In a full implementation, this would:
-    // 1. Calculate the flavor dice pool
-    // 2. Roll the dice
-    // 3. Find matching sets
-    // 4. Calculate meal rating
-    // 5. Apply benefits to characters
-    // 6. Potentially record a new recipe
-
-    // For now, just remove the used ingredients
-    setIngredients(prev =>
-      prev.filter(ing => !selectedIngredients.includes(ing.id))
+    // Get the selected ingredient objects
+    const selectedObjects = ingredients.filter(ing =>
+      selectedIngredients.includes(ing.id)
     );
+
+    // Step 1: Build the flavor dice pool from selected ingredients
+    const flavorDicePool: FlavorDiceEntry[] = [];
+    const flavorMap = new Map<FlavorType, number>();
+
+    for (const ing of selectedObjects) {
+      for (const fp of ing.flavorProfiles) {
+        const current = flavorMap.get(fp.name) ?? 0;
+        flavorMap.set(fp.name, current + fp.strength);
+      }
+    }
+
+    for (const [flavorType, count] of flavorMap) {
+      flavorDicePool.push({
+        die: FLAVOR_DIE_MAP[flavorType],
+        count,
+        flavorType,
+      });
+    }
+
+    // Step 2: Roll the dice
+    const rollResults = rollFlavorDice(flavorDicePool);
+
+    // Step 3: Find matched sets
+    const matchedSets = findMatchedSets(rollResults);
+
+    // Step 4: Calculate meal rating and quality
+    const mealRating = calculateMealRating(matchedSets);
+    const quality = getMealQuality(mealRating);
+
+    // Step 5: Extract special effects from featured ingredients
+    const specialEffects = selectedObjects
+      .filter(ing => ing.feature)
+      .map(ing => ({
+        name: ing.feature!.name,
+        effect: ing.feature!.description,
+        ingredientName: ing.name,
+        isRisky: false,
+      }));
+
+    // Step 6: Build the cooking result
+    const ingredientNames = selectedObjects.map(ing => ing.name);
+    const result: CookingResult = {
+      mealName: generateMealName(ingredientNames),
+      ingredientNames,
+      flavorDicePool,
+      rollResults,
+      matchedSets,
+      mealRating,
+      quality,
+      specialEffects,
+    };
+
+    // Step 7: Show the result dialog
+    setCookingResult(result);
+    setShowCookingResult(true);
+
+    // Step 8: Remove the used ingredients (persist to storage)
+    const remainingIngredients = ingredients.filter(
+      ing => !selectedIngredients.includes(ing.id)
+    );
+    await setIngredients(remainingIngredients);
     setSelectedIngredients([]);
 
-    // TODO: Show cooking result dialog
-  }, [selectedIngredients]);
+    // Step 9: Track character cooking contribution
+    if (selectedCookId) {
+      const selectedPlayer = players.find(
+        p => p.characterId === selectedCookId
+      );
+      await incrementMealsContributed(
+        selectedCookId,
+        selectedPlayer?.characterName
+      );
+    }
+  }, [
+    selectedIngredients,
+    ingredients,
+    setIngredients,
+    selectedCookId,
+    players,
+    incrementMealsContributed,
+  ]);
+
+  // Save a new recipe from cooking result
+  const handleSaveRecipe = useCallback(
+    async (mealName: string) => {
+      if (!cookingResult) return;
+
+      // Find the selected cook's name
+      const selectedPlayer = players.find(
+        p => p.characterId === selectedCookId
+      );
+      const createdByName = selectedPlayer?.characterName ?? '';
+
+      const recipeId = `recipe-${Date.now()}`;
+      const newRecipe: BeastFeastRecipe = {
+        id: recipeId,
+        name: mealName,
+        description: `A dish made from ${cookingResult.ingredientNames.join(', ')}.`,
+        ingredientTypes: cookingResult.ingredientNames,
+        flavorProfile: cookingResult.flavorDicePool.map(entry => ({
+          name: entry.flavorType,
+          die: entry.die,
+          strength: entry.count,
+        })),
+        cookingMethod: '',
+        notes: '',
+        timesCooked: 1,
+        bestMealRating: cookingResult.mealRating,
+        createdBy: createdByName,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      await addRecipe(newRecipe);
+
+      // Track recipe contribution for the selected cook
+      if (selectedCookId) {
+        await addRecipeContribution(selectedCookId, recipeId, createdByName);
+      }
+    },
+    [cookingResult, addRecipe, selectedCookId, players, addRecipeContribution]
+  );
 
   // Get selected ingredient objects
   const selectedIngredientObjects = ingredients.filter(ing =>
     selectedIngredients.includes(ing.id)
   );
+
+  // Show loading state
+  if (loading) {
+    return (
+      <TabsContent value="beast-feast" className="space-y-6">
+        <Card>
+          <CardContent className="flex items-center justify-center py-12">
+            <div className="flex items-center gap-3">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              <span>Loading Beast Feast data...</span>
+            </div>
+          </CardContent>
+        </Card>
+      </TabsContent>
+    );
+  }
 
   return (
     <TabsContent value="beast-feast" className="space-y-6">
@@ -310,6 +494,12 @@ export function BeastFeastTabContent({
           <CardTitle className="flex items-center gap-2">
             <ChefHat className="h-5 w-5 text-orange-500" />
             Beast Feast Cooking
+            {saving && (
+              <Badge variant="outline" className="ml-2 gap-1">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Saving...
+              </Badge>
+            )}
           </CardTitle>
           <CardDescription>
             Manage ingredients, cook meals, and record recipes for your Beast
@@ -350,7 +540,7 @@ export function BeastFeastTabContent({
                 variant="outline"
                 size="icon"
                 onClick={handleAddIngredient}
-                disabled={!ingredientToAdd}
+                disabled={!ingredientToAdd || saving}
               >
                 <Plus className="h-4 w-4" />
               </Button>
@@ -390,10 +580,41 @@ export function BeastFeastTabContent({
                 Cook a Meal
               </CardTitle>
               <CardDescription>
-                Select ingredients from inventory, then cook to create a meal.
+                Select a chef and ingredients from inventory, then cook to
+                create a meal.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Chef Selection */}
+              {players.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-1 text-sm font-medium">
+                    <User className="h-3 w-3" />
+                    Chef
+                  </div>
+                  <Select
+                    value={selectedCookId}
+                    onValueChange={setSelectedCookId}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select who's cooking..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {players
+                        .filter(p => p.characterId && p.characterName)
+                        .map(player => (
+                          <SelectItem
+                            key={player.characterId}
+                            value={player.characterId!}
+                          >
+                            {player.characterName}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
               {selectedIngredientObjects.length === 0 ? (
                 <p className="text-muted-foreground py-4 text-center text-sm">
                   Select ingredients from the inventory to cook.
@@ -436,7 +657,7 @@ export function BeastFeastTabContent({
                   <Button
                     className="w-full"
                     onClick={handleCookMeal}
-                    disabled={selectedIngredientObjects.length === 0}
+                    disabled={selectedIngredientObjects.length === 0 || saving}
                   >
                     <ChefHat className="mr-2 h-4 w-4" />
                     Cook Meal
@@ -471,8 +692,46 @@ export function BeastFeastTabContent({
               </ScrollArea>
             </CardContent>
           </Card>
+
+          {/* Character Cooking Stats */}
+          {players.filter(p => p.characterId && p.characterName).length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <User className="h-4 w-4 text-blue-500" />
+                  Chef Stats
+                </CardTitle>
+                <CardDescription>
+                  Track each character's cooking contributions and ingredient
+                  capacity.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {players
+                    .filter(p => p.characterId && p.characterName)
+                    .map(player => (
+                      <CharacterCookingStatsCard
+                        key={player.characterId}
+                        characterName={player.characterName!}
+                        stats={getCharacterCookingStats(player.characterId!)}
+                        ingredientCount={ingredients.length}
+                      />
+                    ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
+
+      {/* Cooking Result Dialog */}
+      <CookingResultDialog
+        isOpen={showCookingResult}
+        onClose={() => setShowCookingResult(false)}
+        cookingResult={cookingResult}
+        onSaveRecipe={handleSaveRecipe}
+      />
     </TabsContent>
   );
 }

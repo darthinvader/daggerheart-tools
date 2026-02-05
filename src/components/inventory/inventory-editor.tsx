@@ -6,6 +6,7 @@ import type {
   InventoryItemEntry,
   InventoryState,
 } from '@/lib/schemas/equipment';
+import { calculateInventoryWeight } from '@/lib/schemas/equipment';
 import { generateId } from '@/lib/utils';
 import { rankBy } from '@/utils/search/rank';
 
@@ -22,7 +23,14 @@ interface InventoryEditorProps {
   hideHeader?: boolean;
 }
 
-const DEFAULT_STATE: InventoryState = { items: [], maxSlots: 50 };
+const DEFAULT_STATE: InventoryState = {
+  items: [],
+  maxSlots: 50,
+  trackWeight: false,
+  weightCapacity: undefined,
+};
+
+const DEFAULT_WEIGHT_CAPACITY = 30;
 
 function useInventoryActions(
   state: InventoryState,
@@ -154,8 +162,22 @@ export function InventoryEditor({
   const [customFormOpen, setCustomFormOpen] = useState(false);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [unlimitedSlots, setUnlimitedSlots] = useState(false);
-  const [unlimitedQuantity, setUnlimitedQuantity] = useState(false);
+  const [unlimitedSlots, setUnlimitedSlots] = useState(
+    state.unlimitedSlots ?? false
+  );
+  const [unlimitedQuantity, setUnlimitedQuantity] = useState(
+    state.unlimitedQuantity ?? false
+  );
+
+  // Weight tracking from state
+  const trackWeight = state.trackWeight ?? false;
+  const weightCapacity = state.weightCapacity;
+
+  // Calculate current weight
+  const currentWeight = useMemo(
+    () => calculateInventoryWeight(state.items),
+    [state.items]
+  );
 
   const updateState = (updates: Partial<InventoryState>) => {
     const newState = { ...state, ...updates };
@@ -211,6 +233,27 @@ export function InventoryEditor({
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           onAddClick={() => setPickerOpen(true)}
+          currentWeight={currentWeight}
+          weightCapacity={weightCapacity}
+          trackWeight={trackWeight}
+          onTrackWeightChange={enabled => {
+            updateState({
+              trackWeight: enabled,
+              // Initialize capacity when enabling weight tracking
+              weightCapacity:
+                enabled && weightCapacity === undefined
+                  ? DEFAULT_WEIGHT_CAPACITY
+                  : weightCapacity,
+            });
+          }}
+          onWeightCapacityChange={delta =>
+            updateState({
+              weightCapacity: Math.max(
+                1,
+                (weightCapacity ?? DEFAULT_WEIGHT_CAPACITY) + delta
+              ),
+            })
+          }
         />
       )}
       {hideHeader && <CompactToolbar onAddClick={() => setPickerOpen(true)} />}

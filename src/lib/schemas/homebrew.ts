@@ -355,6 +355,7 @@ export const HomebrewItemSchema = HomebrewMetadataSchema.extend({
 });
 
 export type HomebrewItem = z.infer<typeof HomebrewItemSchema>;
+export type HomebrewItemContent = z.infer<typeof HomebrewItemContentSchema>;
 
 // =====================================================================================
 // Union Type for Any Homebrew Content

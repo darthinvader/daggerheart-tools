@@ -33,7 +33,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { DIFFICULTY_LADDER } from '@/lib/data/core/difficulty';
+import { DIFFICULTY_LEVELS } from '@/lib/data/core/difficulty';
 import { cn } from '@/lib/utils';
 import type { FearGainResult } from '../rest';
 import { PartyRestDialog } from './party-rest-dialog';
@@ -358,7 +358,7 @@ function DifficultyReference() {
           </p>
         </div>
         <div className="grid gap-1 p-2">
-          {DIFFICULTY_LADDER.map(level => (
+          {DIFFICULTY_LEVELS.map(level => (
             <div
               key={level.value}
               className="hover:bg-muted/50 flex items-center gap-3 rounded-md px-3 py-2 transition-colors"

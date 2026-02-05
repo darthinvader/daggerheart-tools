@@ -883,6 +883,159 @@ export const ARMOR_MODIFICATIONS: ArmorModification[] = [
       },
     ],
   },
+  {
+    name: 'Wardstone',
+    tier: '2',
+    category: 'Armor Modification',
+    rarity: 'Uncommon',
+    modificationType: 'stone',
+    isConsumable: false,
+    maxQuantity: 3,
+    compatibleArmor: ["Any armor that doesn't already have a feature"],
+    featureAdded: {
+      name: 'Warded',
+      description:
+        'Before you mark damage from a magical source, roll a d6. On a result of 5-6, reduce the severity by one threshold.',
+    },
+    features: [
+      {
+        name: 'Armor Enhancement',
+        description:
+          "You can attach this stone to armor that doesn't already have a feature. The armor gains the Warded feature.",
+      },
+    ],
+  },
+  {
+    name: 'Ironstone',
+    tier: '2',
+    category: 'Armor Modification',
+    rarity: 'Uncommon',
+    modificationType: 'stone',
+    isConsumable: false,
+    maxQuantity: 3,
+    compatibleArmor: ["Any armor that doesn't already have a feature"],
+    featureAdded: {
+      name: 'Fortified',
+      description:
+        'When you take Minor damage, you can mark a Stress to prevent marking a Hit Point.',
+    },
+    features: [
+      {
+        name: 'Armor Enhancement',
+        description:
+          "You can attach this stone to armor that doesn't already have a feature. The armor gains the Fortified feature.",
+      },
+    ],
+  },
+  {
+    name: 'Shadowstone',
+    tier: '2',
+    category: 'Armor Modification',
+    rarity: 'Uncommon',
+    modificationType: 'stone',
+    isConsumable: false,
+    maxQuantity: 3,
+    compatibleArmor: ["Any armor that doesn't already have a feature"],
+    featureAdded: {
+      name: 'Quiet',
+      description:
+        'This armor makes no noise when you move. You have advantage on rolls to move silently.',
+    },
+    features: [
+      {
+        name: 'Armor Enhancement',
+        description:
+          "You can attach this stone to armor that doesn't already have a feature. The armor gains the Quiet feature.",
+      },
+    ],
+  },
+  {
+    name: 'Hopestone',
+    tier: '3',
+    category: 'Armor Modification',
+    rarity: 'Rare',
+    modificationType: 'stone',
+    isConsumable: false,
+    maxQuantity: 3,
+    compatibleArmor: ["Any armor that doesn't already have a feature"],
+    featureAdded: {
+      name: 'Hopeful',
+      description: 'When you clear an Armor Slot during a rest, gain a Hope.',
+    },
+    features: [
+      {
+        name: 'Armor Enhancement',
+        description:
+          "You can attach this stone to armor that doesn't already have a feature. The armor gains the Hopeful feature.",
+      },
+    ],
+  },
+  {
+    name: 'Shiftstone',
+    tier: '3',
+    category: 'Armor Modification',
+    rarity: 'Rare',
+    modificationType: 'stone',
+    isConsumable: false,
+    maxQuantity: 3,
+    compatibleArmor: ["Any armor that doesn't already have a feature"],
+    featureAdded: {
+      name: 'Shifting',
+      description:
+        'Once per short rest, you can spend a Hope to shift this armor between light and heavy modes, adjusting its Armor Score and Armor Slots accordingly.',
+    },
+    features: [
+      {
+        name: 'Armor Enhancement',
+        description:
+          "You can attach this stone to armor that doesn't already have a feature. The armor gains the Shifting feature.",
+      },
+    ],
+  },
+  {
+    name: 'Arcanestone',
+    tier: '3',
+    category: 'Armor Modification',
+    rarity: 'Rare',
+    modificationType: 'stone',
+    isConsumable: false,
+    maxQuantity: 1,
+    compatibleArmor: ['Any armor'],
+    featureAdded: {
+      name: 'Spellweave',
+      description:
+        'While wearing this armor, you gain a +1 bonus to Spellcast rolls.',
+    },
+    features: [
+      {
+        name: 'Magical Enhancement',
+        description:
+          'You can attach this stone to any armor. While wearing it, you gain a +1 bonus to Spellcast rolls.',
+      },
+    ],
+  },
+  {
+    name: 'Swiftstone',
+    tier: '2',
+    category: 'Armor Modification',
+    rarity: 'Uncommon',
+    modificationType: 'stone',
+    isConsumable: false,
+    maxQuantity: 3,
+    compatibleArmor: ["Any armor that doesn't already have a feature"],
+    featureAdded: {
+      name: 'Flexible',
+      description:
+        'This armor is lightweight and easy to move in. It does not count against your Evasion.',
+    },
+    features: [
+      {
+        name: 'Armor Enhancement',
+        description:
+          "You can attach this stone to armor that doesn't already have a feature. The armor gains the Flexible feature.",
+      },
+    ],
+  },
 ];
 
 // RELICS (Legendary items that provide permanent bonuses)
@@ -2261,6 +2414,7 @@ export const CONSUMABLES: Consumable[] = [
 
 // POTIONS (Subset of consumables with specific potion mechanics)
 export const POTIONS: Potion[] = [
+  // ==================== TIER 1 - COMMON POTIONS ====================
   {
     name: 'Minor Health Potion',
     tier: '1',
@@ -2320,6 +2474,117 @@ export const POTIONS: Potion[] = [
     ],
   },
   {
+    name: 'Bolster Potion',
+    tier: '1',
+    category: 'Consumable',
+    subcategory: 'Potion',
+    rarity: 'Common',
+    isConsumable: true,
+    maxQuantity: 5,
+    potionType: 'Trait Boost',
+    effect: 'You gain a +1 bonus to your next Strength Roll.',
+    traitBonus: {
+      trait: 'Strength',
+      bonus: 1,
+      duration: 'next_roll',
+    },
+    features: [
+      {
+        name: 'Strength Enhancement',
+        description: 'Provides +1 bonus to next Strength roll.',
+      },
+    ],
+  },
+  {
+    name: 'Control Potion',
+    tier: '1',
+    category: 'Consumable',
+    subcategory: 'Potion',
+    rarity: 'Common',
+    isConsumable: true,
+    maxQuantity: 5,
+    potionType: 'Trait Boost',
+    effect: 'You gain a +1 bonus to your next Finesse Roll.',
+    traitBonus: {
+      trait: 'Finesse',
+      bonus: 1,
+      duration: 'next_roll',
+    },
+    features: [
+      {
+        name: 'Finesse Enhancement',
+        description: 'Provides +1 bonus to next Finesse roll.',
+      },
+    ],
+  },
+  {
+    name: 'Attune Potion',
+    tier: '1',
+    category: 'Consumable',
+    subcategory: 'Potion',
+    rarity: 'Common',
+    isConsumable: true,
+    maxQuantity: 5,
+    potionType: 'Trait Boost',
+    effect: 'You gain a +1 bonus to your next Instinct Roll.',
+    traitBonus: {
+      trait: 'Instinct',
+      bonus: 1,
+      duration: 'next_roll',
+    },
+    features: [
+      {
+        name: 'Instinct Enhancement',
+        description: 'Provides +1 bonus to next Instinct roll.',
+      },
+    ],
+  },
+  {
+    name: 'Charm Potion',
+    tier: '1',
+    category: 'Consumable',
+    subcategory: 'Potion',
+    rarity: 'Common',
+    isConsumable: true,
+    maxQuantity: 5,
+    potionType: 'Trait Boost',
+    effect: 'You gain a +1 bonus to your next Presence Roll.',
+    traitBonus: {
+      trait: 'Presence',
+      bonus: 1,
+      duration: 'next_roll',
+    },
+    features: [
+      {
+        name: 'Presence Enhancement',
+        description: 'Provides +1 bonus to next Presence roll.',
+      },
+    ],
+  },
+  {
+    name: 'Enlighten Potion',
+    tier: '1',
+    category: 'Consumable',
+    subcategory: 'Potion',
+    rarity: 'Common',
+    isConsumable: true,
+    maxQuantity: 5,
+    potionType: 'Trait Boost',
+    effect: 'You gain a +1 bonus to your next Knowledge Roll.',
+    traitBonus: {
+      trait: 'Knowledge',
+      bonus: 1,
+      duration: 'next_roll',
+    },
+    features: [
+      {
+        name: 'Knowledge Enhancement',
+        description: 'Provides +1 bonus to next Knowledge roll.',
+      },
+    ],
+  },
+  // ==================== TIER 2 - UNCOMMON POTIONS ====================
+  {
     name: 'Health Potion',
     tier: '2',
     category: 'Consumable',
@@ -2338,6 +2603,194 @@ export const POTIONS: Potion[] = [
     ],
   },
   {
+    name: 'Stamina Potion',
+    tier: '2',
+    category: 'Consumable',
+    subcategory: 'Potion',
+    rarity: 'Uncommon',
+    isConsumable: true,
+    maxQuantity: 5,
+    potionType: 'Stamina',
+    effect: 'Clear 1d4+1 Stress.',
+    healingAmount: '1d4+1',
+    features: [
+      {
+        name: 'Stress Recovery',
+        description: 'Clears 1d4+1 Stress when consumed.',
+      },
+    ],
+  },
+  {
+    name: 'Greater Stride Potion',
+    tier: '2',
+    category: 'Consumable',
+    subcategory: 'Potion',
+    rarity: 'Uncommon',
+    isConsumable: true,
+    maxQuantity: 5,
+    potionType: 'Trait Boost',
+    effect: 'You gain a +2 bonus to your next Agility Roll.',
+    traitBonus: {
+      trait: 'Agility',
+      bonus: 2,
+      duration: 'next_roll',
+    },
+    features: [
+      {
+        name: 'Greater Agility Enhancement',
+        description: 'Provides +2 bonus to next Agility roll.',
+      },
+    ],
+  },
+  {
+    name: 'Greater Bolster Potion',
+    tier: '2',
+    category: 'Consumable',
+    subcategory: 'Potion',
+    rarity: 'Uncommon',
+    isConsumable: true,
+    maxQuantity: 5,
+    potionType: 'Trait Boost',
+    effect: 'You gain a +2 bonus to your next Strength Roll.',
+    traitBonus: {
+      trait: 'Strength',
+      bonus: 2,
+      duration: 'next_roll',
+    },
+    features: [
+      {
+        name: 'Greater Strength Enhancement',
+        description: 'Provides +2 bonus to next Strength roll.',
+      },
+    ],
+  },
+  {
+    name: 'Greater Control Potion',
+    tier: '2',
+    category: 'Consumable',
+    subcategory: 'Potion',
+    rarity: 'Uncommon',
+    isConsumable: true,
+    maxQuantity: 5,
+    potionType: 'Trait Boost',
+    effect: 'You gain a +2 bonus to your next Finesse Roll.',
+    traitBonus: {
+      trait: 'Finesse',
+      bonus: 2,
+      duration: 'next_roll',
+    },
+    features: [
+      {
+        name: 'Greater Finesse Enhancement',
+        description: 'Provides +2 bonus to next Finesse roll.',
+      },
+    ],
+  },
+  {
+    name: 'Greater Attune Potion',
+    tier: '2',
+    category: 'Consumable',
+    subcategory: 'Potion',
+    rarity: 'Uncommon',
+    isConsumable: true,
+    maxQuantity: 5,
+    potionType: 'Trait Boost',
+    effect: 'You gain a +2 bonus to your next Instinct Roll.',
+    traitBonus: {
+      trait: 'Instinct',
+      bonus: 2,
+      duration: 'next_roll',
+    },
+    features: [
+      {
+        name: 'Greater Instinct Enhancement',
+        description: 'Provides +2 bonus to next Instinct roll.',
+      },
+    ],
+  },
+  {
+    name: 'Greater Charm Potion',
+    tier: '2',
+    category: 'Consumable',
+    subcategory: 'Potion',
+    rarity: 'Uncommon',
+    isConsumable: true,
+    maxQuantity: 5,
+    potionType: 'Trait Boost',
+    effect: 'You gain a +2 bonus to your next Presence Roll.',
+    traitBonus: {
+      trait: 'Presence',
+      bonus: 2,
+      duration: 'next_roll',
+    },
+    features: [
+      {
+        name: 'Greater Presence Enhancement',
+        description: 'Provides +2 bonus to next Presence roll.',
+      },
+    ],
+  },
+  {
+    name: 'Greater Enlighten Potion',
+    tier: '2',
+    category: 'Consumable',
+    subcategory: 'Potion',
+    rarity: 'Uncommon',
+    isConsumable: true,
+    maxQuantity: 5,
+    potionType: 'Trait Boost',
+    effect: 'You gain a +2 bonus to your next Knowledge Roll.',
+    traitBonus: {
+      trait: 'Knowledge',
+      bonus: 2,
+      duration: 'next_roll',
+    },
+    features: [
+      {
+        name: 'Greater Knowledge Enhancement',
+        description: 'Provides +2 bonus to next Knowledge roll.',
+      },
+    ],
+  },
+  {
+    name: 'Antidote',
+    tier: '2',
+    category: 'Consumable',
+    subcategory: 'Potion',
+    rarity: 'Uncommon',
+    isConsumable: true,
+    maxQuantity: 5,
+    potionType: 'Special Effect',
+    effect:
+      'Remove the Poisoned condition from yourself or an ally within Very Close range.',
+    features: [
+      {
+        name: 'Cure Poison',
+        description: 'Removes the Poisoned condition.',
+      },
+    ],
+  },
+  {
+    name: 'Clarity Tonic',
+    tier: '2',
+    category: 'Consumable',
+    subcategory: 'Potion',
+    rarity: 'Uncommon',
+    isConsumable: true,
+    maxQuantity: 5,
+    potionType: 'Special Effect',
+    effect:
+      'Remove the Distracted condition and gain advantage on your next mental trait roll.',
+    features: [
+      {
+        name: 'Mental Focus',
+        description:
+          'Removes Distracted and grants advantage on next mental roll.',
+      },
+    ],
+  },
+  // ==================== TIER 3 - RARE POTIONS ====================
+  {
     name: 'Major Health Potion',
     tier: '3',
     category: 'Consumable',
@@ -2355,12 +2808,1100 @@ export const POTIONS: Potion[] = [
       },
     ],
   },
+  {
+    name: 'Major Stamina Potion',
+    tier: '3',
+    category: 'Consumable',
+    subcategory: 'Potion',
+    rarity: 'Rare',
+    isConsumable: true,
+    maxQuantity: 5,
+    potionType: 'Stamina',
+    effect: 'Clear 1d4+2 Stress.',
+    healingAmount: '1d4+2',
+    features: [
+      {
+        name: 'Major Stress Relief',
+        description: 'Clears 1d4+2 Stress when consumed.',
+      },
+    ],
+  },
+  {
+    name: 'Major Stride Potion',
+    tier: '3',
+    category: 'Consumable',
+    subcategory: 'Potion',
+    rarity: 'Rare',
+    isConsumable: true,
+    maxQuantity: 3,
+    potionType: 'Major Trait Boost',
+    effect:
+      'You gain a +1 bonus to all Agility Rolls until your next short rest.',
+    traitBonus: {
+      trait: 'Agility',
+      bonus: 1,
+      duration: 'short_rest',
+    },
+    features: [
+      {
+        name: 'Sustained Agility',
+        description: 'Provides +1 bonus to all Agility rolls until short rest.',
+      },
+    ],
+  },
+  {
+    name: 'Major Bolster Potion',
+    tier: '3',
+    category: 'Consumable',
+    subcategory: 'Potion',
+    rarity: 'Rare',
+    isConsumable: true,
+    maxQuantity: 3,
+    potionType: 'Major Trait Boost',
+    effect:
+      'You gain a +1 bonus to all Strength Rolls until your next short rest.',
+    traitBonus: {
+      trait: 'Strength',
+      bonus: 1,
+      duration: 'short_rest',
+    },
+    features: [
+      {
+        name: 'Sustained Strength',
+        description:
+          'Provides +1 bonus to all Strength rolls until short rest.',
+      },
+    ],
+  },
+  {
+    name: 'Major Control Potion',
+    tier: '3',
+    category: 'Consumable',
+    subcategory: 'Potion',
+    rarity: 'Rare',
+    isConsumable: true,
+    maxQuantity: 3,
+    potionType: 'Major Trait Boost',
+    effect:
+      'You gain a +1 bonus to all Finesse Rolls until your next short rest.',
+    traitBonus: {
+      trait: 'Finesse',
+      bonus: 1,
+      duration: 'short_rest',
+    },
+    features: [
+      {
+        name: 'Sustained Finesse',
+        description: 'Provides +1 bonus to all Finesse rolls until short rest.',
+      },
+    ],
+  },
+  {
+    name: 'Major Attune Potion',
+    tier: '3',
+    category: 'Consumable',
+    subcategory: 'Potion',
+    rarity: 'Rare',
+    isConsumable: true,
+    maxQuantity: 3,
+    potionType: 'Major Trait Boost',
+    effect:
+      'You gain a +1 bonus to all Instinct Rolls until your next short rest.',
+    traitBonus: {
+      trait: 'Instinct',
+      bonus: 1,
+      duration: 'short_rest',
+    },
+    features: [
+      {
+        name: 'Sustained Instinct',
+        description:
+          'Provides +1 bonus to all Instinct rolls until short rest.',
+      },
+    ],
+  },
+  {
+    name: 'Major Charm Potion',
+    tier: '3',
+    category: 'Consumable',
+    subcategory: 'Potion',
+    rarity: 'Rare',
+    isConsumable: true,
+    maxQuantity: 3,
+    potionType: 'Major Trait Boost',
+    effect:
+      'You gain a +1 bonus to all Presence Rolls until your next short rest.',
+    traitBonus: {
+      trait: 'Presence',
+      bonus: 1,
+      duration: 'short_rest',
+    },
+    features: [
+      {
+        name: 'Sustained Presence',
+        description:
+          'Provides +1 bonus to all Presence rolls until short rest.',
+      },
+    ],
+  },
+  {
+    name: 'Major Enlighten Potion',
+    tier: '3',
+    category: 'Consumable',
+    subcategory: 'Potion',
+    rarity: 'Rare',
+    isConsumable: true,
+    maxQuantity: 3,
+    potionType: 'Major Trait Boost',
+    effect:
+      'You gain a +1 bonus to all Knowledge Rolls until your next short rest.',
+    traitBonus: {
+      trait: 'Knowledge',
+      bonus: 1,
+      duration: 'short_rest',
+    },
+    features: [
+      {
+        name: 'Sustained Knowledge',
+        description:
+          'Provides +1 bonus to all Knowledge rolls until short rest.',
+      },
+    ],
+  },
+  {
+    name: 'Invisibility Potion',
+    tier: '3',
+    category: 'Consumable',
+    subcategory: 'Potion',
+    rarity: 'Rare',
+    isConsumable: true,
+    maxQuantity: 3,
+    potionType: 'Special Effect',
+    effect:
+      'You become invisible until you make an attack or cast a spell. The effect lasts up to 1 hour.',
+    features: [
+      {
+        name: 'Invisibility',
+        description:
+          'Grants invisibility until you attack or cast a spell (up to 1 hour).',
+      },
+    ],
+  },
+  {
+    name: 'Fireproof Elixir',
+    tier: '3',
+    category: 'Consumable',
+    subcategory: 'Potion',
+    rarity: 'Rare',
+    isConsumable: true,
+    maxQuantity: 3,
+    potionType: 'Special Effect',
+    effect: 'You gain resistance to fire damage until your next short rest.',
+    features: [
+      {
+        name: 'Fire Resistance',
+        description: 'Halves fire damage taken until short rest.',
+      },
+    ],
+  },
+  {
+    name: 'Frostward Elixir',
+    tier: '3',
+    category: 'Consumable',
+    subcategory: 'Potion',
+    rarity: 'Rare',
+    isConsumable: true,
+    maxQuantity: 3,
+    potionType: 'Special Effect',
+    effect: 'You gain resistance to cold damage until your next short rest.',
+    features: [
+      {
+        name: 'Cold Resistance',
+        description: 'Halves cold damage taken until short rest.',
+      },
+    ],
+  },
+  // ==================== TIER 4 - LEGENDARY POTIONS ====================
+  {
+    name: 'Supreme Health Potion',
+    tier: '4',
+    category: 'Consumable',
+    subcategory: 'Potion',
+    rarity: 'Legendary',
+    isConsumable: true,
+    maxQuantity: 3,
+    potionType: 'Health',
+    effect: 'Clear all HP.',
+    healingAmount: 'all',
+    features: [
+      {
+        name: 'Complete Restoration',
+        description: 'Clears all Hit Points when consumed.',
+      },
+    ],
+  },
+  {
+    name: 'Supreme Stamina Potion',
+    tier: '4',
+    category: 'Consumable',
+    subcategory: 'Potion',
+    rarity: 'Legendary',
+    isConsumable: true,
+    maxQuantity: 3,
+    potionType: 'Stamina',
+    effect: 'Clear all Stress.',
+    healingAmount: 'all',
+    features: [
+      {
+        name: 'Complete Calm',
+        description: 'Clears all Stress when consumed.',
+      },
+    ],
+  },
+  {
+    name: 'Elixir of Heroism',
+    tier: '4',
+    category: 'Consumable',
+    subcategory: 'Potion',
+    rarity: 'Legendary',
+    isConsumable: true,
+    maxQuantity: 1,
+    potionType: 'Special Effect',
+    effect:
+      'You gain +1 to all trait rolls and gain 2 temporary Hope until your next long rest.',
+    features: [
+      {
+        name: 'Heroic Surge',
+        description:
+          'Provides +1 to all traits and 2 temporary Hope until long rest.',
+      },
+    ],
+  },
+  {
+    name: 'Phoenix Tears',
+    tier: '4',
+    category: 'Consumable',
+    subcategory: 'Potion',
+    rarity: 'Legendary',
+    isConsumable: true,
+    maxQuantity: 1,
+    potionType: 'Special Effect',
+    effect:
+      'If consumed while you have 0 HP remaining, immediately clear all HP and Stress without making a death move.',
+    features: [
+      {
+        name: 'Resurrection',
+        description: 'Prevents death and fully heals when consumed at 0 HP.',
+      },
+    ],
+  },
+  {
+    name: 'Potion of Giant Strength',
+    tier: '4',
+    category: 'Consumable',
+    subcategory: 'Potion',
+    rarity: 'Legendary',
+    isConsumable: true,
+    maxQuantity: 1,
+    potionType: 'Major Trait Boost',
+    effect:
+      'Your Strength becomes +4 for the next hour, regardless of your current modifier.',
+    traitBonus: {
+      trait: 'Strength',
+      bonus: 4,
+      duration: '1_hour',
+    },
+    features: [
+      {
+        name: 'Giant Strength',
+        description: 'Sets Strength to +4 for 1 hour.',
+      },
+    ],
+  },
+  {
+    name: 'Potion of Haste',
+    tier: '4',
+    category: 'Consumable',
+    subcategory: 'Potion',
+    rarity: 'Legendary',
+    isConsumable: true,
+    maxQuantity: 1,
+    potionType: 'Special Effect',
+    effect:
+      'You can take two actions on each of your turns until your next short rest. After the effect ends, mark 2 Stress.',
+    features: [
+      {
+        name: 'Time Warp',
+        description:
+          'Grants extra action each turn until short rest (then mark 2 Stress).',
+      },
+    ],
+  },
+];
+
+// =====================================================================================
+// OILS - Applied to weapons/armor for temporary effects
+// =====================================================================================
+
+export const OILS: Consumable[] = [
+  // Tier 1 - Common Oils
+  {
+    name: 'Sharpening Oil',
+    tier: '1',
+    category: 'Consumable',
+    rarity: 'Common',
+    isConsumable: true,
+    maxQuantity: 5,
+    effect:
+      'Apply to a melee weapon. The weapon deals +1 damage on your next attack.',
+    targetType: 'weapon',
+    features: [
+      {
+        name: 'Sharpened Edge',
+        description: '+1 damage on next melee attack.',
+      },
+    ],
+  },
+  {
+    name: 'Lubricating Oil',
+    tier: '1',
+    category: 'Consumable',
+    rarity: 'Common',
+    isConsumable: true,
+    maxQuantity: 5,
+    effect:
+      'Apply to armor or equipment. Clear 1 Armor Slot and prevent rust or wear.',
+    targetType: 'armor',
+    features: [
+      {
+        name: 'Equipment Maintenance',
+        description: 'Clear 1 Armor Slot and protect equipment.',
+      },
+    ],
+  },
+  {
+    name: 'Tracking Oil',
+    tier: '1',
+    category: 'Consumable',
+    rarity: 'Common',
+    isConsumable: true,
+    maxQuantity: 5,
+    effect:
+      'Apply to an arrow or thrown weapon. The projectile leaves a glowing trail visible until your next rest.',
+    targetType: 'weapon',
+    features: [
+      {
+        name: 'Luminescent Trail',
+        description: 'Projectile leaves visible trail for tracking.',
+      },
+    ],
+  },
+
+  // Tier 2 - Uncommon Oils
+  {
+    name: 'Flaming Oil',
+    tier: '2',
+    category: 'Consumable',
+    rarity: 'Uncommon',
+    isConsumable: true,
+    maxQuantity: 5,
+    effect:
+      'Apply to a weapon. Your next successful attack deals an additional d6 fire damage.',
+    targetType: 'weapon',
+    features: [
+      {
+        name: 'Burning Strike',
+        description: 'Next successful attack deals +d6 fire damage.',
+      },
+    ],
+  },
+  {
+    name: 'Frost Oil',
+    tier: '2',
+    category: 'Consumable',
+    rarity: 'Uncommon',
+    isConsumable: true,
+    maxQuantity: 5,
+    effect:
+      'Apply to a weapon. Your next successful attack deals an additional d6 cold damage and the target is slowed.',
+    targetType: 'weapon',
+    features: [
+      {
+        name: 'Freezing Strike',
+        description: 'Next successful attack deals +d6 cold damage and slows.',
+      },
+    ],
+  },
+  {
+    name: 'Silencing Oil',
+    tier: '2',
+    category: 'Consumable',
+    rarity: 'Uncommon',
+    isConsumable: true,
+    maxQuantity: 5,
+    effect:
+      'Apply to armor or boots. You make no sound when moving until your next rest.',
+    targetType: 'armor',
+    duration: 'Until next rest',
+    features: [
+      {
+        name: 'Silent Movement',
+        description: 'Complete silence when moving until next rest.',
+      },
+    ],
+  },
+  {
+    name: 'Warding Oil',
+    tier: '2',
+    category: 'Consumable',
+    rarity: 'Uncommon',
+    isConsumable: true,
+    maxQuantity: 5,
+    effect:
+      'Apply to armor. Reduce the first magic damage you take by 1d6 before your next rest.',
+    targetType: 'armor',
+    features: [
+      {
+        name: 'Magic Ward',
+        description: 'Reduce first magic damage by 1d6.',
+      },
+    ],
+  },
+
+  // Tier 3 - Rare Oils
+  {
+    name: 'Banishing Oil',
+    tier: '3',
+    category: 'Consumable',
+    rarity: 'Rare',
+    isConsumable: true,
+    maxQuantity: 3,
+    effect:
+      'Apply to a weapon. Your next successful attack against a summoned or undead creature deals double damage.',
+    targetType: 'weapon',
+    features: [
+      {
+        name: 'Unholy Bane',
+        description: 'Double damage vs summoned or undead creatures.',
+      },
+    ],
+  },
+  {
+    name: 'Phasing Oil',
+    tier: '3',
+    category: 'Consumable',
+    rarity: 'Rare',
+    isConsumable: true,
+    maxQuantity: 3,
+    effect:
+      'Apply to yourself. You can pass through solid objects until the end of your next turn.',
+    targetType: 'self',
+    features: [
+      {
+        name: 'Ethereal Form',
+        description: 'Pass through solid objects for one turn.',
+      },
+    ],
+  },
+  {
+    name: 'Vampiric Oil',
+    tier: '3',
+    category: 'Consumable',
+    rarity: 'Rare',
+    isConsumable: true,
+    maxQuantity: 3,
+    effect:
+      'Apply to a weapon. Your next successful attack heals you for half the damage dealt.',
+    targetType: 'weapon',
+    features: [
+      {
+        name: 'Life Drain',
+        description: 'Heal for half damage dealt on next attack.',
+      },
+    ],
+  },
+
+  // Tier 4 - Legendary Oils
+  {
+    name: 'Godslayer Oil',
+    tier: '4',
+    category: 'Consumable',
+    rarity: 'Legendary',
+    isConsumable: true,
+    maxQuantity: 1,
+    effect:
+      'Apply to a weapon. Your next successful attack ignores all damage resistances and immunities.',
+    targetType: 'weapon',
+    features: [
+      {
+        name: 'Armor Piercing',
+        description: 'Next attack ignores all resistances and immunities.',
+      },
+    ],
+  },
+  {
+    name: 'Dimensional Oil',
+    tier: '4',
+    category: 'Consumable',
+    rarity: 'Legendary',
+    isConsumable: true,
+    maxQuantity: 1,
+    effect:
+      'Apply to armor. The next time you would take damage, you instead teleport up to Far range to safety.',
+    targetType: 'armor',
+    features: [
+      {
+        name: 'Emergency Escape',
+        description: 'Auto-teleport when taking damage.',
+      },
+    ],
+  },
+];
+
+// =====================================================================================
+// ELIXIRS - Longer-lasting consumable effects
+// =====================================================================================
+
+export const ELIXIRS: Consumable[] = [
+  // Tier 2 - Uncommon Elixirs
+  {
+    name: 'Elixir of Darkvision',
+    tier: '2',
+    category: 'Consumable',
+    rarity: 'Uncommon',
+    isConsumable: true,
+    maxQuantity: 5,
+    effect:
+      'You can see in complete darkness as if it were dim light. Lasts until your next long rest.',
+    targetType: 'self',
+    duration: 'Until next long rest',
+    features: [
+      {
+        name: 'Night Eyes',
+        description: 'See in complete darkness until long rest.',
+      },
+    ],
+  },
+  {
+    name: 'Elixir of Endurance',
+    tier: '2',
+    category: 'Consumable',
+    rarity: 'Uncommon',
+    isConsumable: true,
+    maxQuantity: 5,
+    effect:
+      'You do not need to rest for the next 24 hours and automatically succeed on rolls to avoid exhaustion.',
+    targetType: 'self',
+    duration: '24 hours',
+    features: [
+      {
+        name: 'Tireless',
+        description: 'No need to rest for 24 hours.',
+      },
+    ],
+  },
+  {
+    name: 'Elixir of Water Breathing',
+    tier: '2',
+    category: 'Consumable',
+    rarity: 'Uncommon',
+    isConsumable: true,
+    maxQuantity: 5,
+    effect: 'You can breathe underwater until your next long rest.',
+    targetType: 'self',
+    duration: 'Until next long rest',
+    features: [
+      {
+        name: 'Aquatic Adaptation',
+        description: 'Breathe underwater until long rest.',
+      },
+    ],
+  },
+  {
+    name: 'Elixir of Spider Climbing',
+    tier: '2',
+    category: 'Consumable',
+    rarity: 'Uncommon',
+    isConsumable: true,
+    maxQuantity: 5,
+    effect:
+      'You can climb vertical surfaces and across ceilings without making rolls. Lasts until your next rest.',
+    targetType: 'self',
+    duration: 'Until next rest',
+    features: [
+      {
+        name: 'Wall Walker',
+        description: 'Climb walls and ceilings until rest.',
+      },
+    ],
+  },
+
+  // Tier 3 - Rare Elixirs
+  {
+    name: 'Elixir of Fire Resistance',
+    tier: '3',
+    category: 'Consumable',
+    rarity: 'Rare',
+    isConsumable: true,
+    maxQuantity: 3,
+    effect: 'You take half damage from fire sources until your next long rest.',
+    targetType: 'self',
+    duration: 'Until next long rest',
+    features: [
+      {
+        name: 'Flame Ward',
+        description: 'Half fire damage until long rest.',
+      },
+    ],
+  },
+  {
+    name: 'Elixir of Cold Resistance',
+    tier: '3',
+    category: 'Consumable',
+    rarity: 'Rare',
+    isConsumable: true,
+    maxQuantity: 3,
+    effect: 'You take half damage from cold sources until your next long rest.',
+    targetType: 'self',
+    duration: 'Until next long rest',
+    features: [
+      {
+        name: 'Frost Ward',
+        description: 'Half cold damage until long rest.',
+      },
+    ],
+  },
+  {
+    name: 'Elixir of Mind Shielding',
+    tier: '3',
+    category: 'Consumable',
+    rarity: 'Rare',
+    isConsumable: true,
+    maxQuantity: 3,
+    effect:
+      'You are immune to mind-affecting magic and cannot be charmed until your next long rest.',
+    targetType: 'self',
+    duration: 'Until next long rest',
+    features: [
+      {
+        name: 'Mental Fortress',
+        description: 'Immune to charm and mind control until long rest.',
+      },
+    ],
+  },
+  {
+    name: 'Elixir of True Sight',
+    tier: '3',
+    category: 'Consumable',
+    rarity: 'Rare',
+    isConsumable: true,
+    maxQuantity: 3,
+    effect:
+      'You can see through illusions and invisibility until your next rest.',
+    targetType: 'self',
+    duration: 'Until next rest',
+    features: [
+      {
+        name: 'Piercing Sight',
+        description: 'See through illusions and invisibility.',
+      },
+    ],
+  },
+
+  // Tier 4 - Legendary Elixirs
+  {
+    name: 'Elixir of Immortality',
+    tier: '4',
+    category: 'Consumable',
+    rarity: 'Legendary',
+    isConsumable: true,
+    maxQuantity: 1,
+    effect:
+      'The next time you would be reduced to 0 HP, you are instead reduced to 1 HP and clear all Stress.',
+    targetType: 'self',
+    duration: 'Until triggered or next long rest',
+    features: [
+      {
+        name: 'Death Ward',
+        description: 'Survive fatal damage once and clear all Stress.',
+      },
+    ],
+  },
+  {
+    name: 'Elixir of the Titan',
+    tier: '4',
+    category: 'Consumable',
+    rarity: 'Legendary',
+    isConsumable: true,
+    maxQuantity: 1,
+    effect:
+      'You gain +2 to all Strength rolls and your melee attacks deal an additional d8 damage until your next rest.',
+    targetType: 'self',
+    duration: 'Until next rest',
+    features: [
+      {
+        name: 'Titan Strength',
+        description: '+2 Strength and +d8 melee damage until rest.',
+      },
+    ],
+  },
+  {
+    name: 'Elixir of the Archmage',
+    tier: '4',
+    category: 'Consumable',
+    rarity: 'Legendary',
+    isConsumable: true,
+    maxQuantity: 1,
+    effect:
+      'You gain +2 to all Spellcast rolls and your spells deal an additional d8 damage until your next rest.',
+    targetType: 'self',
+    duration: 'Until next rest',
+    features: [
+      {
+        name: 'Arcane Mastery',
+        description: '+2 Spellcast and +d8 spell damage until rest.',
+      },
+    ],
+  },
+];
+
+// =====================================================================================
+// SCROLLS - Single-use magical spells anyone can cast
+// =====================================================================================
+
+export const SCROLLS: Consumable[] = [
+  // Tier 1 - Common Scrolls
+  {
+    name: 'Scroll of Light',
+    tier: '1',
+    category: 'Consumable',
+    rarity: 'Common',
+    isConsumable: true,
+    maxQuantity: 5,
+    effect:
+      'Creates a bright light that follows you for 1 hour, illuminating a Close range area.',
+    targetType: 'self',
+    duration: '1 hour',
+    features: [
+      {
+        name: 'Dancing Light',
+        description: 'Create light for 1 hour.',
+      },
+    ],
+  },
+  {
+    name: 'Scroll of Mending',
+    tier: '1',
+    category: 'Consumable',
+    rarity: 'Common',
+    isConsumable: true,
+    maxQuantity: 5,
+    effect:
+      'Repair a single break or tear in an object (a broken chain link, two halves of a key, a torn cloak).',
+    targetType: 'area',
+    features: [
+      {
+        name: 'Repair',
+        description: 'Fix a break or tear in an object.',
+      },
+    ],
+  },
+  {
+    name: 'Scroll of Minor Illusion',
+    tier: '1',
+    category: 'Consumable',
+    rarity: 'Common',
+    isConsumable: true,
+    maxQuantity: 5,
+    effect:
+      'Create an illusory sound or image that lasts for 1 minute. The illusion cannot move.',
+    targetType: 'area',
+    duration: '1 minute',
+    features: [
+      {
+        name: 'Simple Illusion',
+        description: 'Create static illusion for 1 minute.',
+      },
+    ],
+  },
+  {
+    name: 'Scroll of Message',
+    tier: '1',
+    category: 'Consumable',
+    rarity: 'Common',
+    isConsumable: true,
+    maxQuantity: 5,
+    effect:
+      'Send a whispered message to a creature you can see within Far range. They can whisper a reply.',
+    targetType: 'ally',
+    features: [
+      {
+        name: 'Secret Message',
+        description: 'Whisper to someone at Far range.',
+      },
+    ],
+  },
+
+  // Tier 2 - Uncommon Scrolls
+  {
+    name: 'Scroll of Shield',
+    tier: '2',
+    category: 'Consumable',
+    rarity: 'Uncommon',
+    isConsumable: true,
+    maxQuantity: 5,
+    effect:
+      'When attacked, add +4 to your Evasion against that attack. If the attack misses, you take no damage.',
+    targetType: 'self',
+    features: [
+      {
+        name: 'Magic Shield',
+        description: '+4 Evasion against one attack.',
+      },
+    ],
+  },
+  {
+    name: 'Scroll of Knock',
+    tier: '2',
+    category: 'Consumable',
+    rarity: 'Uncommon',
+    isConsumable: true,
+    maxQuantity: 5,
+    effect:
+      'Instantly unlock any non-magical lock. Magical locks require a Spellcast roll (15).',
+    targetType: 'area',
+    features: [
+      {
+        name: 'Open Lock',
+        description: 'Instantly unlock non-magical locks.',
+      },
+    ],
+  },
+  {
+    name: 'Scroll of Detect Magic',
+    tier: '2',
+    category: 'Consumable',
+    rarity: 'Uncommon',
+    isConsumable: true,
+    maxQuantity: 5,
+    effect:
+      'For 10 minutes, you sense the presence of magic within Close range and can identify its school.',
+    targetType: 'self',
+    duration: '10 minutes',
+    features: [
+      {
+        name: 'Magic Sense',
+        description: 'Detect magical auras for 10 minutes.',
+      },
+    ],
+  },
+  {
+    name: 'Scroll of Comprehend Languages',
+    tier: '2',
+    category: 'Consumable',
+    rarity: 'Uncommon',
+    isConsumable: true,
+    maxQuantity: 5,
+    effect:
+      'For 1 hour, you understand any spoken or written language you encounter.',
+    targetType: 'self',
+    duration: '1 hour',
+    features: [
+      {
+        name: 'Universal Understanding',
+        description: 'Understand all languages for 1 hour.',
+      },
+    ],
+  },
+  {
+    name: 'Scroll of Healing Word',
+    tier: '2',
+    category: 'Consumable',
+    rarity: 'Uncommon',
+    isConsumable: true,
+    maxQuantity: 5,
+    effect:
+      'An ally within Close range clears 1d6 HP. Can be used as a reaction.',
+    targetType: 'ally',
+    features: [
+      {
+        name: 'Quick Heal',
+        description: 'Ally clears 1d6 HP as a reaction.',
+      },
+    ],
+  },
+
+  // Tier 3 - Rare Scrolls
+  {
+    name: 'Scroll of Fireball',
+    tier: '3',
+    category: 'Consumable',
+    rarity: 'Rare',
+    isConsumable: true,
+    maxQuantity: 3,
+    effect:
+      'A point within Far range explodes in flame. All creatures in Very Close range of that point take 3d20 magic damage.',
+    targetType: 'area',
+    features: [
+      {
+        name: 'Explosive Flame',
+        description: 'Deal 3d20 magic damage in an area.',
+      },
+    ],
+  },
+  {
+    name: 'Scroll of Dispel Magic',
+    tier: '3',
+    category: 'Consumable',
+    rarity: 'Rare',
+    isConsumable: true,
+    maxQuantity: 3,
+    effect:
+      'End any ongoing magical effect within Close range. Powerful magic may require a Spellcast roll.',
+    targetType: 'area',
+    features: [
+      {
+        name: 'Counterspell',
+        description: 'End magical effects in Close range.',
+      },
+    ],
+  },
+  {
+    name: 'Scroll of Fly',
+    tier: '3',
+    category: 'Consumable',
+    rarity: 'Rare',
+    isConsumable: true,
+    maxQuantity: 3,
+    effect:
+      'You gain a flying speed equal to your walking speed for 10 minutes.',
+    targetType: 'self',
+    duration: '10 minutes',
+    features: [
+      {
+        name: 'Flight',
+        description: 'Fly for 10 minutes.',
+      },
+    ],
+  },
+  {
+    name: 'Scroll of Teleportation',
+    tier: '3',
+    category: 'Consumable',
+    rarity: 'Rare',
+    isConsumable: true,
+    maxQuantity: 3,
+    effect:
+      'Instantly teleport yourself and up to two willing creatures to a location you can see within Very Far range.',
+    targetType: 'ally',
+    features: [
+      {
+        name: 'Short Range Teleport',
+        description: 'Teleport up to 3 creatures within Very Far range.',
+      },
+    ],
+  },
+  {
+    name: 'Scroll of Revivify',
+    tier: '3',
+    category: 'Consumable',
+    rarity: 'Rare',
+    isConsumable: true,
+    maxQuantity: 1,
+    effect:
+      'Touch a creature that died within the last minute. They return to life with 1 HP and clear all Stress.',
+    targetType: 'ally',
+    features: [
+      {
+        name: 'Resurrection',
+        description: 'Revive a recently deceased creature.',
+      },
+    ],
+  },
+
+  // Tier 4 - Legendary Scrolls
+  {
+    name: 'Scroll of Meteor Swarm',
+    tier: '4',
+    category: 'Consumable',
+    rarity: 'Legendary',
+    isConsumable: true,
+    maxQuantity: 1,
+    effect:
+      'Four meteors streak from the sky, each hitting a point within Very Far range. All creatures in Close range of each impact point take 4d20 magic damage.',
+    targetType: 'area',
+    features: [
+      {
+        name: 'Cataclysm',
+        description: 'Deal 4d20 damage in four areas.',
+      },
+    ],
+  },
+  {
+    name: 'Scroll of Time Stop',
+    tier: '4',
+    category: 'Consumable',
+    rarity: 'Legendary',
+    isConsumable: true,
+    maxQuantity: 1,
+    effect:
+      'Time freezes for everyone but you. You can take 3 turns in a row before time resumes. You cannot attack or affect other creatures during this time.',
+    targetType: 'self',
+    features: [
+      {
+        name: 'Frozen Time',
+        description: 'Take 3 extra turns while time is frozen.',
+      },
+    ],
+  },
+  {
+    name: 'Scroll of Wish',
+    tier: '4',
+    category: 'Consumable',
+    rarity: 'Legendary',
+    isConsumable: true,
+    maxQuantity: 1,
+    effect:
+      'State a wish to the GM. The spell attempts to fulfill it, but powerful wishes may have unintended consequences.',
+    targetType: 'self',
+    features: [
+      {
+        name: 'Reality Warp',
+        description: 'Make a wish (GM determines outcome).',
+      },
+    ],
+  },
+  {
+    name: 'Scroll of Mass Resurrection',
+    tier: '4',
+    category: 'Consumable',
+    rarity: 'Legendary',
+    isConsumable: true,
+    maxQuantity: 1,
+    effect:
+      'All allies within Close range who have died within the last hour return to life with full HP and no Stress.',
+    targetType: 'ally',
+    features: [
+      {
+        name: 'Mass Revival',
+        description: 'Resurrect all recently dead allies.',
+      },
+    ],
+  },
 ];
 
 // Export collections
 export const ALL_UTILITY_ITEMS = UTILITY_ITEMS;
-export const ALL_CONSUMABLES = CONSUMABLES;
+export const ALL_CONSUMABLES = [
+  ...CONSUMABLES,
+  ...OILS,
+  ...ELIXIRS,
+  ...SCROLLS,
+];
 export const ALL_POTIONS = POTIONS;
+export const ALL_OILS = OILS;
+export const ALL_ELIXIRS = ELIXIRS;
+export const ALL_SCROLLS = SCROLLS;
 export const ALL_RELICS = RELICS;
 export const ALL_WEAPON_MODIFICATIONS = WEAPON_MODIFICATIONS;
 export const ALL_ARMOR_MODIFICATIONS = ARMOR_MODIFICATIONS;

@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronUp, Plus, Search } from 'lucide-react';
+import { ChevronDown, ChevronUp, Plus, Scale, Search } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,12 @@ interface InventoryHeaderProps {
   searchQuery: string;
   onSearchChange: (v: string) => void;
   onAddClick: () => void;
+  /** Weight tracking */
+  currentWeight?: number;
+  weightCapacity?: number;
+  trackWeight?: boolean;
+  onTrackWeightChange?: (v: boolean) => void;
+  onWeightCapacityChange?: (delta: number) => void;
 }
 
 export function InventoryHeader({
@@ -30,11 +36,21 @@ export function InventoryHeader({
   searchQuery,
   onSearchChange,
   onAddClick,
+  currentWeight = 0,
+  weightCapacity,
+  trackWeight = false,
+  onTrackWeightChange,
+  onWeightCapacityChange,
 }: InventoryHeaderProps) {
+  const isOverweight =
+    trackWeight &&
+    weightCapacity !== undefined &&
+    currentWeight > weightCapacity;
+
   return (
     <CardHeader className="pb-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex flex-wrap items-center gap-2">
           <Backpack size={ICON_SIZE_LG} />
           Inventory
           {unlimitedSlots ? (
@@ -62,6 +78,36 @@ export function InventoryHeader({
               </Button>
             </div>
           )}
+          {trackWeight && (
+            <div className="flex items-center gap-1">
+              <Scale className="text-muted-foreground h-4 w-4" />
+              {weightCapacity === undefined ? (
+                <Badge variant="secondary">{currentWeight} wt</Badge>
+              ) : (
+                <>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 w-6 p-0"
+                    onClick={() => onWeightCapacityChange?.(-5)}
+                  >
+                    <ChevronDown className="h-3 w-3" />
+                  </Button>
+                  <Badge variant={isOverweight ? 'destructive' : 'secondary'}>
+                    {currentWeight}/{weightCapacity} wt
+                  </Badge>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 w-6 p-0"
+                    onClick={() => onWeightCapacityChange?.(5)}
+                  >
+                    <ChevronUp className="h-3 w-3" />
+                  </Button>
+                </>
+              )}
+            </div>
+          )}
         </CardTitle>
         <div className="flex gap-2">
           <Button size="sm" onClick={onAddClick}>
@@ -87,6 +133,15 @@ export function InventoryHeader({
           className="text-xs"
         >
           {unlimitedQuantity ? '∞ Qty ON' : '∞ Qty'}
+        </Button>
+        <Button
+          size="sm"
+          variant={trackWeight ? 'default' : 'outline'}
+          onClick={() => onTrackWeightChange?.(!trackWeight)}
+          className="text-xs"
+        >
+          <Scale className="mr-1 h-3 w-3" />
+          {trackWeight ? 'Weight ON' : 'Weight'}
         </Button>
       </div>
 

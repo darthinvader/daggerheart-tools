@@ -146,4 +146,10 @@ export interface RestModalProps {
    * When true, Fear gain will be calculated and shown in results.
    */
   showFearGain?: boolean;
+  /** Current active effects on the character */
+  activeEffects?: import('@/lib/schemas/equipment').ActiveEffect[];
+  /** Callback when active effects change (e.g., cleared on rest) */
+  onActiveEffectsChange?: (
+    effects: import('@/lib/schemas/equipment').ActiveEffect[]
+  ) => void;
 }

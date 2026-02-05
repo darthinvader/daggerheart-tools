@@ -14,6 +14,7 @@ import {
   Link2,
   MessageSquare,
   Plus,
+  Settings,
   Shield,
   Target,
   Trash2,
@@ -71,6 +72,8 @@ import type {
   WorldbuildingNote,
 } from '@/lib/schemas/campaign';
 import type { SafetyLine, SafetyVeil } from '@/lib/schemas/session-zero';
+
+import { OptionalRulesSection } from './optional-rules-section';
 
 interface SessionZeroPanelProps {
   sessionZero: SessionZero | undefined;
@@ -1274,6 +1277,50 @@ export function SessionZeroPanel({
                   update({ worldbuildingNotes: notes });
                   onBlur();
                 }}
+              />
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
+
+      {/* Optional Rules */}
+      <Collapsible open={openSections.has('optional-rules')}>
+        <Card>
+          <CardHeader className="pb-3">
+            <CollapsibleTrigger
+              className="flex w-full items-center justify-between"
+              onClick={() => toggleSection('optional-rules')}
+            >
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Settings className="h-4 w-4 text-orange-500" />
+                Optional Rules
+                {(data.optionalRules?.massiveDamage ||
+                  data.optionalRules?.spotlightTrackers ||
+                  data.optionalRules?.definedRanges ||
+                  data.optionalRules?.goldCoins ||
+                  (data.optionalRules?.customHouseRules?.length ?? 0) > 0) && (
+                  <Badge variant="outline" className="text-green-500">
+                    Configured
+                  </Badge>
+                )}
+              </CardTitle>
+              <ChevronDown
+                className={`h-4 w-4 transition-transform ${openSections.has('optional-rules') ? 'rotate-180' : ''}`}
+              />
+            </CollapsibleTrigger>
+            <CardDescription>
+              Tune risk and pacing with optional rules from Chapter 3
+            </CardDescription>
+          </CardHeader>
+          <CollapsibleContent>
+            <CardContent>
+              <OptionalRulesSection
+                optionalRules={data.optionalRules}
+                onChange={optionalRules => {
+                  update({ optionalRules });
+                  onBlur();
+                }}
+                onBlur={onBlur}
               />
             </CardContent>
           </CollapsibleContent>

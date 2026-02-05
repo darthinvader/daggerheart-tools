@@ -5,6 +5,7 @@ import {
   Minus,
   Pencil,
   Plus,
+  Scale,
   Sparkles,
   Trash2,
 } from 'lucide-react';
@@ -14,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import { DynamicIcon } from '@/lib/icons';
 import type { AnyItem, EquipmentTier, Rarity } from '@/lib/schemas/equipment';
+import { getItemWeight } from '@/lib/schemas/equipment';
 import { cn } from '@/lib/utils';
 
 import {
@@ -40,13 +42,29 @@ export function ItemHeader({
   tierConfig,
 }: ItemHeaderProps) {
   const itemIcon = getItemIcon(item);
+  const weight = getItemWeight(item);
   return (
     <div className="flex items-start gap-3">
       <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-white/70 shadow-inner dark:bg-gray-800/70">
         <DynamicIcon icon={itemIcon} className="size-6" />
       </div>
       <div className="min-w-0">
-        <p className="leading-tight font-semibold">{item.name}</p>
+        <div className="flex items-center gap-2">
+          <p className="leading-tight font-semibold">{item.name}</p>
+          {weight > 0 && (
+            <SmartTooltip
+              content={`Weight: ${weight} unit${weight !== 1 ? 's' : ''}`}
+            >
+              <Badge
+                variant="outline"
+                className="text-muted-foreground border-muted gap-1 px-1.5 py-0 text-xs font-medium"
+              >
+                <Scale className="size-3" />
+                {weight}
+              </Badge>
+            </SmartTooltip>
+          )}
+        </div>
         <div className="mt-1 flex flex-wrap items-center gap-1.5">
           {catConfig && (
             <Badge

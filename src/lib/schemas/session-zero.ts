@@ -131,6 +131,78 @@ export const WorldbuildingNoteSchema = z.object({
   notes: z.string().default(''),
 });
 
+// =====================================================================================
+// Optional Rules Configuration
+// From Chapter 3: Optional rules should be agreed on during session zero
+// =====================================================================================
+
+/**
+ * Range definitions for grid-based play
+ * From the rulebook: Melee 1, Very Close 3, Close 6, Far 12, Very Far 13+ squares
+ */
+export const DefinedRangesSchema = z.object({
+  melee: z.number().default(1),
+  veryClose: z.number().default(3),
+  close: z.number().default(6),
+  far: z.number().default(12),
+  veryFar: z.number().default(13),
+});
+
+/**
+ * Custom house rule agreed upon during session zero
+ */
+export const HouseRuleSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string(),
+  enabled: z.boolean().default(true),
+});
+
+/**
+ * Optional rules that can be enabled/disabled during session zero
+ * From Chapter 3: "Table options let you tune risk and pacing."
+ */
+export const OptionalRulesConfigSchema = z.object({
+  /**
+   * Massive Damage Rule
+   * When enabled, damage ≥ 2× Severe threshold marks 4 HP
+   */
+  massiveDamage: z.boolean().default(false),
+
+  /**
+   * Spotlight Trackers
+   * Adds turn structure to scenes if desired
+   */
+  spotlightTrackers: z.boolean().default(false),
+
+  /**
+   * Defined Ranges
+   * Maps distances to a 1-inch grid for tactical play
+   */
+  definedRanges: z.boolean().default(false),
+
+  /**
+   * Custom defined ranges (if definedRanges is enabled)
+   */
+  rangeDefinitions: DefinedRangesSchema.optional(),
+
+  /**
+   * Gold Coins
+   * Adds a granular currency step (10 coins = 1 handful)
+   */
+  goldCoins: z.boolean().default(false),
+
+  /**
+   * Custom house rules agreed upon during session zero
+   */
+  customHouseRules: z.array(HouseRuleSchema).default([]),
+
+  /**
+   * Notes about optional rules decisions
+   */
+  notes: z.string().default(''),
+});
+
 /**
  * Tone preference - circled, crossed out, or neutral
  * From Chapter 3: "Circle a few everyone is excited to focus on and
@@ -243,6 +315,17 @@ export const SessionZeroSchema = z.object({
    * General worldbuilding summary
    */
   worldbuildingSummary: z.string().default(''),
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Optional Rules
+  // From Chapter 3: Optional rules should be agreed on during session zero
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Optional rules configuration for this campaign
+   * Includes massive damage, spotlight trackers, defined ranges, gold coins, and house rules
+   */
+  optionalRules: OptionalRulesConfigSchema.optional(),
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Questions & Discussion
@@ -471,6 +554,9 @@ export type SessionZeroQuestionAnswer = z.infer<
 >;
 export type WorldbuildingNote = z.infer<typeof WorldbuildingNoteSchema>;
 export type TonePreference = z.infer<typeof TonePreferenceSchema>;
+export type OptionalRulesConfig = z.infer<typeof OptionalRulesConfigSchema>;
+export type DefinedRanges = z.infer<typeof DefinedRangesSchema>;
+export type HouseRule = z.infer<typeof HouseRuleSchema>;
 
 // =====================================================================================
 // Helper Functions

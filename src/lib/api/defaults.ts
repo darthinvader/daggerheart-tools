@@ -39,6 +39,7 @@ export const EMPTY_INVENTORY: CharacterRecord['inventory'] = {
   maxItems: 50,
   weightCapacity: undefined,
   currentWeight: 0,
+  trackWeight: false,
   metadata: {},
 };
 

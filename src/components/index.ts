@@ -1,6 +1,7 @@
 // Feature components
 export * from './ancestry-selector';
 export * from './armor-slots';
+export * from './beast-feast';
 export * from './character-notes';
 export * from './class-selector';
 export * from './community-selector';
