@@ -33,6 +33,8 @@ export function DetailPanel({
     return (
       <Sheet open={isOpen} onOpenChange={open => !open && onClose()}>
         <SheetContent side="right" className="flex w-full flex-col p-0 sm:w-96">
+          {/* Visual swipe handle indicator for mobile users */}
+          <div className="bg-muted-foreground/20 mx-auto mt-2 h-1 w-12 shrink-0 rounded-full" />
           <SheetHeader className="border-b p-4">
             <SheetTitle className="pr-8">{title}</SheetTitle>
           </SheetHeader>

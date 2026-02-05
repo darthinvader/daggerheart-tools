@@ -629,7 +629,7 @@ function EnvironmentDetail({ environment }: { environment: EnvironmentItem }) {
   return (
     <div className="space-y-6">
       <div className="-mx-4 -mt-4 bg-linear-to-r from-emerald-600 via-teal-600 to-sky-600 p-6">
-        <div className="rounded-xl bg-black/25 p-4">
+        <div className="rounded-xl bg-black/30 p-4">
           <h2 className="text-2xl font-semibold text-white drop-shadow">
             <TreePine className="mr-2 inline-block size-7" />
             {environment.name}

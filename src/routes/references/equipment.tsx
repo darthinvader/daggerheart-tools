@@ -655,6 +655,7 @@ function getEquipmentId(item: EquipmentItem): string {
 }
 
 // Compact card for grid view - memoized to prevent unnecessary re-renders
+// Uses content-visibility CSS for browser-native virtualization
 const EquipmentCard = React.memo(function EquipmentCard({
   item,
   onClick,
@@ -675,9 +676,14 @@ const EquipmentCard = React.memo(function EquipmentCard({
     <Card
       className={`reference-card card-grid-item hover:border-primary/50 cursor-pointer overflow-hidden transition-all hover:scale-[1.02] hover:shadow-lg ${inCompare ? 'ring-primary ring-2' : ''}`}
       onClick={onClick}
+      style={{
+        // Browser-native content visibility virtualization
+        contentVisibility: 'auto',
+        containIntrinsicSize: '0 280px',
+      }}
     >
       {/* Tier indicator bar */}
-      <div className={`h-1 ${tierDotColors[data.tier]}`} />
+      <div className={`h-1.5 ${tierDotColors[data.tier]}`} />
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
           <CardTitle
@@ -724,13 +730,15 @@ const EquipmentCard = React.memo(function EquipmentCard({
   );
 });
 
-// Table row component - memoized for performance
+// Table row component - memoized for performance with content-visibility
 const EquipmentTableRow = React.memo(function EquipmentTableRow({
   item,
   onClick,
+  style,
 }: {
   item: EquipmentItem;
   onClick: () => void;
+  style?: React.CSSProperties;
 }) {
   const { isInCompare } = useCompare();
   const { type, data } = item;
@@ -743,6 +751,12 @@ const EquipmentTableRow = React.memo(function EquipmentTableRow({
     <TableRow
       className={`reference-card hover:bg-muted/50 cursor-pointer ${inCompare ? 'bg-primary/10' : ''}`}
       onClick={onClick}
+      style={{
+        ...style,
+        // Browser-native content visibility virtualization
+        contentVisibility: 'auto',
+        containIntrinsicSize: '0 48px',
+      }}
     >
       {/* Name + compare button - always visible */}
       <TableCell className="font-medium">
@@ -900,7 +914,7 @@ function ItemDetailHeader({
 
   return (
     <div className={`-mx-4 -mt-4 bg-linear-to-r p-6 ${gradient}`}>
-      <div className="rounded-xl bg-black/25 p-4">
+      <div className="rounded-xl bg-black/30 p-4">
         <h2 className="text-xl font-bold text-white drop-shadow">{name}</h2>
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <Tooltip>
@@ -933,8 +947,12 @@ function ItemDetailHeader({
   );
 }
 
-// Detail panel content
-function ItemDetail({ item }: { item: EquipmentItem }) {
+// Detail panel content - memoized to prevent re-renders during navigation
+const ItemDetail = React.memo(function ItemDetail({
+  item,
+}: {
+  item: EquipmentItem;
+}) {
   const { type, data } = item;
 
   if (type === 'armor') {
@@ -1168,7 +1186,7 @@ function ItemDetail({ item }: { item: EquipmentItem }) {
       <CollapsibleFeatureList features={weapon.features ?? []} />
     </div>
   );
-}
+});
 
 type EquipmentSortKey = 'name' | 'tier' | 'type' | 'trait';
 
@@ -1612,9 +1630,25 @@ function EquipmentEmptyState({
   onClearFilters: () => void;
 }) {
   return (
-    <div className="text-muted-foreground py-12 text-center">
-      <p>No equipment matches your filters.</p>
-      <Button variant="link" onClick={onClearFilters} className="mt-2">
+    <div
+      className="flex flex-col items-center justify-center py-12 text-center"
+      role="status"
+      aria-live="polite"
+    >
+      <div className="bg-muted/50 mb-4 rounded-full p-4">
+        <Sword className="text-muted-foreground size-8" />
+      </div>
+      <h3 className="text-foreground mb-2 text-lg font-semibold">
+        No equipment found
+      </h3>
+      <p className="text-muted-foreground mb-1 max-w-sm text-sm">
+        No equipment matches your current filters.
+      </p>
+      <p className="text-muted-foreground/80 mb-4 max-w-sm text-xs italic">
+        Tip: Try adjusting tier, category, or trait filters to find what you're
+        looking for.
+      </p>
+      <Button variant="outline" onClick={onClearFilters} size="sm">
         Clear all filters
       </Button>
     </div>

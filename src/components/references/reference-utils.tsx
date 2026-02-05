@@ -159,6 +159,7 @@ export function SortableTableHead<T extends string>({
 
 /**
  * Results counter with filter indicator
+ * Includes accessibility attributes for screen readers
  */
 export function ResultsCounter({
   filtered,
@@ -172,8 +173,17 @@ export function ResultsCounter({
   suffix?: string;
 }) {
   const isFiltered = filtered !== total;
+  const ariaLabel = isFiltered
+    ? `Showing ${filtered} of ${total} ${label}${suffix ?? ''}`
+    : `${total} ${label}${suffix ?? ''}`;
+
   return (
-    <span className="text-muted-foreground text-sm">
+    <span
+      className="text-muted-foreground text-sm"
+      role="status"
+      aria-live="polite"
+      aria-label={ariaLabel}
+    >
       {isFiltered ? (
         <>
           <span className="text-foreground font-medium">{filtered}</span> of{' '}

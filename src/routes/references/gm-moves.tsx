@@ -426,7 +426,7 @@ function GMMovesEmptyState({ onClear }: { onClear: () => void }) {
 function GMMoveDetailHeader({ move }: { move: GMMove }) {
   return (
     <div className="-mx-4 -mt-4 bg-linear-to-r from-blue-600 via-cyan-600 to-teal-600 p-6">
-      <div className="rounded-xl bg-black/25 p-4">
+      <div className="rounded-xl bg-black/30 p-4">
         <h2 className="text-2xl font-semibold text-white drop-shadow">
           {move.name}
         </h2>

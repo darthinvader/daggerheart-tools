@@ -87,7 +87,7 @@ function AncestryCard({
         className="hover:border-primary/50 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg"
         onClick={onClick}
       >
-        <div className={`h-2 bg-linear-to-r ${gradient}`} />
+        <div className={`h-1.5 bg-linear-to-r ${gradient}`} />
         <CardHeader className="pb-2">
           <CardTitle className="text-lg">{ancestry.name}</CardTitle>
           <div className="text-muted-foreground flex gap-2 text-xs">
@@ -121,7 +121,7 @@ function AncestryCard({
       className="h-full cursor-pointer overflow-hidden transition-all hover:scale-[1.01] hover:shadow-lg"
       onClick={onClick}
     >
-      <div className={`h-3 bg-linear-to-r ${gradient}`} />
+      <div className={`h-1.5 bg-linear-to-r ${gradient}`} />
       <CardHeader>
         <div className="flex items-start justify-between gap-3">
           <CardTitle className="text-2xl">{ancestry.name}</CardTitle>
@@ -230,7 +230,7 @@ function AncestryDetail({ ancestry }: { ancestry: Ancestry }) {
     <div className="space-y-6">
       {/* Header */}
       <div className={`-mx-4 -mt-4 bg-linear-to-r p-6 ${gradient}`}>
-        <div className="rounded-xl bg-black/25 p-4">
+        <div className="rounded-xl bg-black/30 p-4">
           <h2 className="text-2xl font-semibold text-white drop-shadow">
             <Users className="mr-2 inline-block size-6" />
             {ancestry.name}

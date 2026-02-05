@@ -86,12 +86,13 @@ function FilterGroupComponent({
             return (
               <Tooltip key={option.value}>
                 <TooltipTrigger asChild>
-                  <label className="hover:text-primary hover:bg-muted/30 flex cursor-pointer items-center gap-2 rounded px-1.5 py-1 text-sm transition-colors">
+                  <label className="hover:text-primary hover:bg-muted/50 flex cursor-pointer items-center gap-2 rounded-md px-2 py-2.5 text-sm transition-colors">
                     <Checkbox
                       checked={isChecked}
                       onCheckedChange={checked =>
                         onFilterChange(option.value, checked === true)
                       }
+                      className="size-5"
                     />
                     <span className="flex-1 truncate">{option.label}</span>
                     {option.count !== undefined && (

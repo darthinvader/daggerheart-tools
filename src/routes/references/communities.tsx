@@ -251,7 +251,7 @@ function CommunityDetail({ community }: { community: Community }) {
     <div className="space-y-6">
       {/* Header */}
       <div className={`-mx-4 -mt-4 bg-linear-to-r p-6 ${gradient}`}>
-        <div className="rounded-xl bg-black/25 p-4">
+        <div className="rounded-xl bg-black/30 p-4">
           <h2 className="text-2xl font-semibold text-white drop-shadow">
             <Home className="mr-2 inline-block size-6" />
             {community.name}

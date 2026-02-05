@@ -411,7 +411,7 @@ function ItemDetail({ item }: { item: InventoryItem }) {
   return (
     <div className="space-y-4">
       <div className={`-mx-4 -mt-4 bg-linear-to-r p-6 ${gradient}`}>
-        <div className="rounded-xl bg-black/25 p-4">
+        <div className="rounded-xl bg-black/30 p-4">
           <h2 className="text-xl font-bold text-white drop-shadow">
             {item.data.name}
           </h2>

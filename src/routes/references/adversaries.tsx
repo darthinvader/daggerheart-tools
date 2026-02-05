@@ -724,7 +724,7 @@ const AdversaryCard = React.memo(function AdversaryCard({
 function AdversaryDetailHeader({ adversary }: { adversary: AdversaryItem }) {
   return (
     <div className="-mx-4 -mt-4 bg-linear-to-r from-red-600 via-rose-600 to-orange-600 p-6">
-      <div className="rounded-xl bg-black/25 p-4">
+      <div className="rounded-xl bg-black/30 p-4">
         <h2 className="text-2xl font-semibold text-white drop-shadow">
           <Skull className="mr-2 inline-block size-7" />
           {adversary.name}
