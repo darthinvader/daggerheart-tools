@@ -7,10 +7,18 @@ import {
 } from 'react';
 
 import {
+  type AccentTheme,
   type Theme,
   ThemeProviderContext,
   type ThemeProviderState,
 } from './theme-context';
+
+const ACCENT_CLASSES = [
+  'theme-parchment',
+  'theme-crimson',
+  'theme-arcane',
+] as const;
+const ACCENT_STORAGE_KEY = 'daggerheart-accent-theme';
 
 interface ThemeProviderProps {
   children: ReactNode;
@@ -28,6 +36,10 @@ export function ThemeProvider({
     () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
   );
 
+  const [accentTheme, setAccentThemeRaw] = useState<AccentTheme>(
+    () => (localStorage.getItem(ACCENT_STORAGE_KEY) as AccentTheme) || 'classic'
+  );
+
   useEffect(() => {
     const root = window.document.documentElement;
     root.classList.remove('light', 'dark');
@@ -42,6 +54,14 @@ export function ThemeProvider({
     root.classList.add(theme);
   }, [theme]);
 
+  useEffect(() => {
+    const root = window.document.documentElement;
+    root.classList.remove(...ACCENT_CLASSES);
+    if (accentTheme !== 'classic') {
+      root.classList.add(`theme-${accentTheme}`);
+    }
+  }, [accentTheme]);
+
   const handleSetTheme = useCallback(
     (t: Theme) => {
       localStorage.setItem(storageKey, t);
@@ -50,9 +70,19 @@ export function ThemeProvider({
     [storageKey]
   );
 
+  const handleSetAccentTheme = useCallback((accent: AccentTheme) => {
+    localStorage.setItem(ACCENT_STORAGE_KEY, accent);
+    setAccentThemeRaw(accent);
+  }, []);
+
   const value: ThemeProviderState = useMemo(
-    () => ({ theme, setTheme: handleSetTheme }),
-    [theme, handleSetTheme]
+    () => ({
+      theme,
+      setTheme: handleSetTheme,
+      accentTheme,
+      setAccentTheme: handleSetAccentTheme,
+    }),
+    [theme, handleSetTheme, accentTheme, handleSetAccentTheme]
   );
 
   return (

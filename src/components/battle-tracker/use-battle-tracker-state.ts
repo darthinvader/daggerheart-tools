@@ -323,6 +323,16 @@ export function useBattleRosterState() {
         setFearPool(value);
         bumpRosterVersion();
       },
+      spendFear: (amount: number): boolean => {
+        let succeeded = false;
+        setFearPool(prev => {
+          if (prev < amount) return prev;
+          succeeded = true;
+          return prev - amount;
+        });
+        if (succeeded) bumpRosterVersion();
+        return succeeded;
+      },
       setMaxFear: (value: number | undefined) => {
         setMaxFear(value);
         bumpRosterVersion();

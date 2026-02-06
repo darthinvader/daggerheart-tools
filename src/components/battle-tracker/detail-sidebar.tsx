@@ -45,6 +45,8 @@ interface DetailSidebarProps {
   adversaries: AdversaryTracker[];
   environments: EnvironmentTracker[];
   useMassiveThreshold: boolean;
+  fearPool?: number;
+  onSpendFear?: (cost: number, featureName: string) => void;
   onClearSpotlight: () => void;
   onSetSpotlight: (s: TrackerSelection) => void;
   onClearSpotlightHistoryTimeline?: () => void;
@@ -74,6 +76,8 @@ export function DetailSidebar({
   adversaries,
   environments,
   useMassiveThreshold,
+  fearPool,
+  onSpendFear,
   onClearSpotlight,
   onSetSpotlight,
   onClearSpotlightHistoryTimeline,
@@ -166,6 +170,8 @@ export function DetailSidebar({
                     onCharacterChange={onCharacterChange}
                     onAdversaryChange={onAdversaryChange}
                     onEnvironmentChange={onEnvironmentChange}
+                    fearPool={fearPool}
+                    onSpendFear={onSpendFear}
                   />
                 ) : (
                   <div className="text-muted-foreground py-8 text-center">

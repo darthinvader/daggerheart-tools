@@ -36,6 +36,7 @@ import type {
   CharacterTracker,
   EnvironmentTracker,
 } from './types';
+import { parseFearCost } from './utils';
 
 // ============== Dice Parsing Utilities ==============
 
@@ -208,6 +209,9 @@ function FeatureItem({
   const description = isString ? '' : feature.description;
   const isCustom = !isString && 'isCustom' in feature && feature.isCustom;
 
+  // Detect fear cost from description
+  const fearCost = description ? parseFearCost(description) : 0;
+
   return (
     <div className="text-xs">
       <div className="flex items-center gap-1.5">
@@ -222,6 +226,11 @@ function FeatureItem({
           {type || 'Feature'}
         </span>
         <span className="font-semibold">{name}</span>
+        {fearCost > 0 && (
+          <span className="rounded bg-purple-600/20 px-1 text-[10px] font-medium text-purple-500">
+            💀 {fearCost}
+          </span>
+        )}
         {isCustom && (
           <span className="rounded bg-blue-500/20 px-1 text-[10px] font-medium text-blue-600 dark:text-blue-400">
             Custom
@@ -1182,6 +1191,7 @@ function CardActions({
         className={cn('size-6', isSpotlight && 'text-amber-500')}
         onClick={onSpotlight}
         title="Set spotlight"
+        aria-label="Set spotlight"
       >
         <Sparkles className="size-3" />
       </Button>
@@ -1192,6 +1202,7 @@ function CardActions({
           className="size-6"
           onClick={onEdit}
           title="Edit"
+          aria-label="Edit"
         >
           <Pencil className="size-3" />
         </Button>
@@ -1201,6 +1212,7 @@ function CardActions({
         variant="ghost"
         className="text-destructive size-6"
         onClick={onRemove}
+        aria-label="Remove"
       >
         <X className="size-3" />
       </Button>

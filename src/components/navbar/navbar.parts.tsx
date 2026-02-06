@@ -4,7 +4,9 @@ import * as React from 'react';
 
 import { UserMenu } from '@/components/auth';
 import { useAuth } from '@/components/providers';
+import { AccentThemeSelector } from '@/components/ui/accent-theme-selector';
 import { Button } from '@/components/ui/button';
+import { MeasurementToggle } from '@/components/ui/measurement-toggle';
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -164,6 +166,8 @@ function DesktopNavbar({ links, brandName }: NavbarInternalProps) {
         </NavigationMenu>
 
         <div className="ml-auto flex items-center gap-2">
+          <AccentThemeSelector />
+          <MeasurementToggle />
           <ThemeToggle />
           <AuthNavItems />
         </div>
@@ -208,6 +212,8 @@ function MobileNavbar({ links, brandShortName }: NavbarInternalProps) {
         </Link>
 
         <div className="mr-2 ml-auto flex items-center gap-2">
+          <AccentThemeSelector />
+          <MeasurementToggle />
           <ThemeToggle />
           <AuthNavItems />
         </div>

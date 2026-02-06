@@ -5,6 +5,7 @@ import {
 } from '@tanstack/react-router';
 import { lazy, Suspense } from 'react';
 
+import { AriaLiveAnnouncer } from '@/components/ui/aria-live-announcer';
 import { RouteErrorFallback } from '@/components/ui/route-error-fallback';
 import { Toaster } from '@/components/ui/sonner';
 
@@ -42,7 +43,7 @@ export const Route = createRootRoute({
     <RouteErrorFallback error={error} />
   ),
   component: () => (
-    <>
+    <AriaLiveAnnouncer>
       <SkipToContent />
       <Suspense fallback={<NavbarSkeleton />}>
         <Navbar />
@@ -66,6 +67,6 @@ export const Route = createRootRoute({
           .
         </p>
       </footer>
-    </>
+    </AriaLiveAnnouncer>
   ),
 });

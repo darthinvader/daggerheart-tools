@@ -144,6 +144,15 @@ export function formatAttack(attack: Adversary['attack']) {
   return `${attack.modifier} · ${attack.range} · ${attack.damage}`;
 }
 
+const FEAR_COST_REGEX = /spend\s+(?:a|(\d+))\s+fear/i;
+
+/** Extract the fear cost from a feature description (0 if none). */
+export function parseFearCost(description: string): number {
+  const match = FEAR_COST_REGEX.exec(description);
+  if (!match) return 0;
+  return match[1] ? parseInt(match[1], 10) : 1;
+}
+
 export function formatThresholds(thresholds: Adversary['thresholds']) {
   if (typeof thresholds === 'string') return thresholds;
   const major = thresholds.major ?? '—';

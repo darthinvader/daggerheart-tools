@@ -159,6 +159,7 @@ function FearCounter({
                   onFearChange(Math.max(0, fearPool - 1));
                 }}
                 disabled={isEmpty}
+                aria-label="Decrease fear"
               >
                 <Minus className="size-4" />
               </Button>
@@ -189,6 +190,7 @@ function FearCounter({
                   onFearChange(Math.min(maxFear, fearPool + 1));
                 }}
                 disabled={isFull}
+                aria-label="Increase fear"
               >
                 <Plus className="size-4" />
               </Button>
@@ -463,6 +465,7 @@ function EnvironmentCountdownControl({
             countdown: Math.max(0, (e.countdown ?? 0) - 1),
           }))
         }
+        aria-label="Decrease countdown"
       >
         <Minus className="size-3" />
       </Button>
@@ -488,6 +491,7 @@ function EnvironmentCountdownControl({
             countdown: (e.countdown ?? 0) + 1,
           }))
         }
+        aria-label="Increase countdown"
       >
         <Plus className="size-3" />
       </Button>

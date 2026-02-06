@@ -273,6 +273,7 @@ interface RosterGridProps {
   rosterState: RosterState;
   rosterActions: RosterActions;
   onEditAdversary: (adversary: AdversaryTracker) => void;
+  onSpendFear?: (cost: number, featureName: string) => void;
   DetailSidebarComponent: React.ComponentType<{
     item: RosterState['selectedItem'];
     spotlight: RosterState['spotlight'];
@@ -284,6 +285,8 @@ interface RosterGridProps {
     adversaries: RosterState['adversaries'];
     environments: RosterState['environments'];
     useMassiveThreshold: boolean;
+    fearPool?: number;
+    onSpendFear?: (cost: number, featureName: string) => void;
     onClearSpotlight: () => void;
     onSetSpotlight: RosterActions['setSpotlight'];
     onClearSpotlightHistoryTimeline?: () => void;
@@ -298,6 +301,7 @@ export function RosterGrid({
   rosterState,
   rosterActions,
   onEditAdversary,
+  onSpendFear,
   DetailSidebarComponent,
 }: RosterGridProps) {
   return (
@@ -368,6 +372,8 @@ export function RosterGrid({
         adversaries={rosterState.adversaries}
         environments={rosterState.environments}
         useMassiveThreshold={rosterState.useMassiveThreshold}
+        fearPool={rosterState.fearPool}
+        onSpendFear={onSpendFear}
         onClearSpotlight={() => rosterActions.setSpotlight(null)}
         onSetSpotlight={rosterActions.setSpotlight}
         onClearSpotlightHistoryTimeline={

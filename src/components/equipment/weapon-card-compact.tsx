@@ -1,6 +1,9 @@
 import { Check } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
+import { ConditionalTooltip } from '@/components/ui/conditional-tooltip';
+import { RangeDisplay } from '@/components/ui/range-display';
+import { getEquipmentTooltip } from '@/lib/data/equipment-tooltips';
 import { DynamicIcon, Wheelchair } from '@/lib/icons';
 import type {
   CombatWheelchair,
@@ -65,26 +68,44 @@ export function WeaponCardCompact({
             <DynamicIcon icon={rangeIcon} className="h-5 w-5" />
             <div>
               <div className="text-muted-foreground text-[10px]">Range</div>
-              <div className="text-sm font-bold">{weapon.range}</div>
+              <div className="text-sm font-bold">
+                <RangeDisplay range={weapon.range} />
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       <div className="text-muted-foreground mb-2 flex gap-2 text-sm">
-        <Badge variant="secondary" className="text-xs">
-          {weapon.trait}
-        </Badge>
-        <Badge variant="secondary" className="text-xs">
-          {weapon.burden}
-        </Badge>
+        <ConditionalTooltip content={getEquipmentTooltip(weapon.trait)}>
+          <Badge
+            variant="secondary"
+            className={`text-xs ${getEquipmentTooltip(weapon.trait) ? 'cursor-help' : ''}`}
+          >
+            {weapon.trait}
+          </Badge>
+        </ConditionalTooltip>
+        <ConditionalTooltip content={getEquipmentTooltip(weapon.burden)}>
+          <Badge
+            variant="secondary"
+            className={`text-xs ${getEquipmentTooltip(weapon.burden) ? 'cursor-help' : ''}`}
+          >
+            {weapon.burden}
+          </Badge>
+        </ConditionalTooltip>
       </div>
 
       {weapon.features.length > 0 && (
         <div className="mt-3 space-y-1.5">
           {weapon.features.slice(0, 3).map((feature, idx) => (
             <div key={idx} className="bg-muted/50 rounded px-2 py-1.5 text-xs">
-              <span className="font-semibold">{feature.name}</span>
+              <ConditionalTooltip content={getEquipmentTooltip(feature.name)}>
+                <span
+                  className={`font-semibold ${getEquipmentTooltip(feature.name) ? 'cursor-help underline decoration-dotted' : ''}`}
+                >
+                  {feature.name}
+                </span>
+              </ConditionalTooltip>
               {feature.description && (
                 <span className="text-muted-foreground">
                   {' — '}

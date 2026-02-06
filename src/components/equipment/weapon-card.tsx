@@ -1,5 +1,8 @@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ConditionalTooltip } from '@/components/ui/conditional-tooltip';
+import { RangeDisplay } from '@/components/ui/range-display';
+import { getEquipmentTooltip } from '@/lib/data/equipment-tooltips';
 import { DynamicIcon, Sparkles, Wheelchair } from '@/lib/icons';
 import type {
   CombatWheelchair,
@@ -41,23 +44,53 @@ export function WeaponCard({ weapon, isSelected, onSelect }: WeaponCardProps) {
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="flex flex-wrap gap-2">
-          <Badge variant="secondary" className="text-xs">
-            <DynamicIcon icon={damageIcon} className="mr-1 h-3 w-3" />
-            {formatDamage(weapon.damage)}{' '}
-            {weapon.damage.type === 'mag' ? 'Magic' : 'Physical'}
-          </Badge>
-          <Badge variant="secondary" className="text-xs">
-            <DynamicIcon icon={rangeIcon} className="mr-1 h-3 w-3" />
-            {weapon.range}
-          </Badge>
-          <Badge variant="secondary" className="text-xs">
-            <DynamicIcon icon={burdenIcon} className="mr-1 h-3 w-3" />
-            {weapon.burden}
-          </Badge>
+          <ConditionalTooltip
+            content={getEquipmentTooltip(
+              weapon.damage.type === 'mag' ? 'Magic' : 'Physical'
+            )}
+          >
+            <Badge
+              variant="secondary"
+              className={`text-xs ${getEquipmentTooltip(weapon.damage.type === 'mag' ? 'Magic' : 'Physical') ? 'cursor-help' : ''}`}
+            >
+              <DynamicIcon icon={damageIcon} className="mr-1 h-3 w-3" />
+              {formatDamage(weapon.damage)}{' '}
+              {weapon.damage.type === 'mag' ? 'Magic' : 'Physical'}
+            </Badge>
+          </ConditionalTooltip>
+          <ConditionalTooltip content={getEquipmentTooltip(weapon.range)}>
+            <Badge
+              variant="secondary"
+              className={`text-xs ${getEquipmentTooltip(weapon.range) ? 'cursor-help' : ''}`}
+            >
+              <DynamicIcon icon={rangeIcon} className="mr-1 h-3 w-3" />
+              <RangeDisplay range={weapon.range} />
+            </Badge>
+          </ConditionalTooltip>
+          <ConditionalTooltip content={getEquipmentTooltip(weapon.burden)}>
+            <Badge
+              variant="secondary"
+              className={`text-xs ${getEquipmentTooltip(weapon.burden) ? 'cursor-help' : ''}`}
+            >
+              <DynamicIcon icon={burdenIcon} className="mr-1 h-3 w-3" />
+              {weapon.burden}
+            </Badge>
+          </ConditionalTooltip>
         </div>
 
         <div className="text-muted-foreground text-sm">
-          <span className="font-medium">Trait:</span> {weapon.trait}
+          <span className="font-medium">Trait:</span>{' '}
+          <ConditionalTooltip content={getEquipmentTooltip(weapon.trait)}>
+            <span
+              className={
+                getEquipmentTooltip(weapon.trait)
+                  ? 'cursor-help underline decoration-dotted'
+                  : ''
+              }
+            >
+              {weapon.trait}
+            </span>
+          </ConditionalTooltip>
         </div>
 
         {weapon.features.length > 0 && (
@@ -67,7 +100,13 @@ export function WeaponCard({ weapon, isSelected, onSelect }: WeaponCardProps) {
             </p>
             {weapon.features.map((feature, idx) => (
               <div key={idx} className="bg-muted rounded p-2 text-xs">
-                <span className="font-semibold">{feature.name}:</span>{' '}
+                <ConditionalTooltip content={getEquipmentTooltip(feature.name)}>
+                  <span
+                    className={`font-semibold ${getEquipmentTooltip(feature.name) ? 'cursor-help underline decoration-dotted' : ''}`}
+                  >
+                    {feature.name}:
+                  </span>
+                </ConditionalTooltip>{' '}
                 {feature.description}
               </div>
             ))}

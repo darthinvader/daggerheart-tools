@@ -1,5 +1,6 @@
 import { Swords, User, Wand2 } from 'lucide-react';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -107,6 +108,28 @@ function BattleTrackerLayout({
     });
   };
 
+  const handleSpendFear = useCallback(
+    (amount: number, featureName: string) => {
+      const previousFear = rosterState.fearPool;
+      if (rosterActions.spendFear(amount)) {
+        toast.success(`Spent ${amount} Fear — ${featureName}`, {
+          description: `${previousFear - amount} Fear remaining`,
+          action: {
+            label: 'Undo',
+            onClick: () => rosterActions.setFearPool(previousFear),
+          },
+          duration: 5000,
+        });
+      } else {
+        toast.warning(
+          `Not enough Fear (need ${amount}, have ${rosterState.fearPool})`,
+          { description: featureName }
+        );
+      }
+    },
+    [rosterState.fearPool, rosterActions]
+  );
+
   return (
     <>
       <GMResourcesBar
@@ -197,6 +220,8 @@ function BattleTrackerLayout({
           adversaries={rosterState.adversaries}
           environments={rosterState.environments}
           useMassiveThreshold={rosterState.useMassiveThreshold}
+          fearPool={rosterState.fearPool}
+          onSpendFear={handleSpendFear}
           onClearSpotlight={() => rosterActions.setSpotlight(null)}
           onSetSpotlight={rosterActions.setSpotlight}
           onClearSpotlightHistoryTimeline={

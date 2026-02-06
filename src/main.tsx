@@ -6,6 +6,7 @@ import { createRoot } from 'react-dom/client';
 import {
   AuthProvider,
   DeviceTypeProvider,
+  MeasurementProvider,
   ThemeProvider,
 } from '@/components/providers';
 import { queryClient } from '@/lib/api/query-client';
@@ -55,9 +56,11 @@ createRoot(document.getElementById('root')!).render(
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-          <DeviceTypeProvider>
-            <RouterProvider router={router} />
-          </DeviceTypeProvider>
+          <MeasurementProvider>
+            <DeviceTypeProvider>
+              <RouterProvider router={router} />
+            </DeviceTypeProvider>
+          </MeasurementProvider>
         </ThemeProvider>
       </AuthProvider>
     </QueryClientProvider>

@@ -43,6 +43,7 @@ import type {
   EnvironmentTracker,
   TrackerItem,
 } from './types';
+import { parseFearCost } from './utils';
 
 // ============== Style Constants ==============
 
@@ -575,9 +576,13 @@ type AdversaryFeature =
 function AdversaryFeatureList({
   features,
   isModified,
+  fearPool,
+  onSpendFear,
 }: {
   features: AdversaryFeature[];
   isModified: boolean;
+  fearPool?: number;
+  onSpendFear?: (cost: number, featureName: string) => void;
 }) {
   if (features.length === 0) return null;
   return (
@@ -610,8 +615,45 @@ function AdversaryFeatureList({
               : ''
             : f.description;
           const isCustom = !isString && 'isCustom' in f && Boolean(f.isCustom);
+          const fearCost = description ? parseFearCost(description) : 0;
+          const canAfford =
+            fearCost > 0 && fearPool !== undefined && fearPool >= fearCost;
+          const isClickable = fearCost > 0 && onSpendFear;
+
           return (
-            <li key={i} className="bg-background/50 rounded p-2 text-sm">
+            <li
+              key={i}
+              className={cn(
+                'bg-background/50 rounded p-2 text-sm',
+                isClickable &&
+                  (canAfford
+                    ? 'cursor-pointer transition-colors hover:bg-purple-500/10'
+                    : 'cursor-not-allowed opacity-50')
+              )}
+              role={isClickable ? 'button' : undefined}
+              tabIndex={isClickable ? 0 : undefined}
+              aria-disabled={isClickable && !canAfford ? true : undefined}
+              aria-label={
+                isClickable
+                  ? `Spend ${fearCost} fear to activate ${name}`
+                  : undefined
+              }
+              onClick={
+                isClickable && canAfford
+                  ? () => onSpendFear(fearCost, name)
+                  : undefined
+              }
+              onKeyDown={
+                isClickable && canAfford
+                  ? (e: React.KeyboardEvent) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        onSpendFear(fearCost, name);
+                      }
+                    }
+                  : undefined
+              }
+            >
               <div className="flex flex-wrap items-center gap-2">
                 <span className="font-medium">{name}</span>
                 {type && (
@@ -620,6 +662,14 @@ function AdversaryFeatureList({
                     className={cn('text-[10px]', FEATURE_TYPE_STYLES[type])}
                   >
                     {type}
+                  </Badge>
+                )}
+                {fearCost > 0 && (
+                  <Badge
+                    variant="outline"
+                    className="border-purple-500/40 bg-purple-500/20 text-[10px] text-purple-600 dark:text-purple-400"
+                  >
+                    💀 {fearCost}
                   </Badge>
                 )}
                 {isCustom && (
@@ -650,6 +700,8 @@ export function SelectedItemDetails({
   onCharacterChange,
   onAdversaryChange,
   onEnvironmentChange,
+  fearPool,
+  onSpendFear,
 }: {
   item: TrackerItem;
   useMassiveThreshold?: boolean;
@@ -665,6 +717,8 @@ export function SelectedItemDetails({
     id: string,
     fn: (e: EnvironmentTracker) => EnvironmentTracker
   ) => void;
+  fearPool?: number;
+  onSpendFear?: (cost: number, featureName: string) => void;
 }) {
   if (item.kind === 'character') {
     return (
@@ -681,10 +735,19 @@ export function SelectedItemDetails({
         item={item}
         useMassiveThreshold={useMassiveThreshold}
         onChange={onAdversaryChange}
+        fearPool={fearPool}
+        onSpendFear={onSpendFear}
       />
     );
   }
-  return <EnvironmentDetails item={item} onChange={onEnvironmentChange} />;
+  return (
+    <EnvironmentDetails
+      item={item}
+      onChange={onEnvironmentChange}
+      fearPool={fearPool}
+      onSpendFear={onSpendFear}
+    />
+  );
 }
 
 function CharacterLinkedNotice({ isLinked }: { isLinked: boolean }) {
@@ -1401,10 +1464,14 @@ function AdversaryDetails({
   item,
   useMassiveThreshold,
   onChange,
+  fearPool,
+  onSpendFear,
 }: {
   item: AdversaryTracker;
   useMassiveThreshold?: boolean;
   onChange: (id: string, fn: (a: AdversaryTracker) => AdversaryTracker) => void;
+  fearPool?: number;
+  onSpendFear?: (cost: number, featureName: string) => void;
 }) {
   const {
     effectiveAttack,
@@ -1445,6 +1512,8 @@ function AdversaryDetails({
       <AdversaryFeatureList
         features={effectiveFeatures}
         isModified={!!item.featuresOverride}
+        fearPool={fearPool}
+        onSpendFear={onSpendFear}
       />
 
       <NotesField
@@ -1533,12 +1602,16 @@ function AdversaryHeaderSection({
 function EnvironmentDetails({
   item,
   onChange,
+  fearPool,
+  onSpendFear,
 }: {
   item: EnvironmentTracker;
   onChange: (
     id: string,
     fn: (e: EnvironmentTracker) => EnvironmentTracker
   ) => void;
+  fearPool?: number;
+  onSpendFear?: (cost: number, featureName: string) => void;
 }) {
   const activeCount = item.features.filter(f => f.active).length;
 
@@ -1551,6 +1624,8 @@ function EnvironmentDetails({
         item={item}
         activeCount={activeCount}
         onChange={onChange}
+        fearPool={fearPool}
+        onSpendFear={onSpendFear}
       />
 
       <NotesField
@@ -1648,6 +1723,8 @@ function EnvironmentFeaturesList({
   item,
   activeCount,
   onChange,
+  fearPool,
+  onSpendFear,
 }: {
   item: EnvironmentTracker;
   activeCount: number;
@@ -1655,6 +1732,8 @@ function EnvironmentFeaturesList({
     id: string,
     fn: (e: EnvironmentTracker) => EnvironmentTracker
   ) => void;
+  fearPool?: number;
+  onSpendFear?: (cost: number, featureName: string) => void;
 }) {
   return (
     <div className="space-y-2 rounded-lg border-2 border-emerald-500/20 bg-gradient-to-r from-emerald-500/5 to-teal-500/5 p-3">
@@ -1675,63 +1754,100 @@ function EnvironmentFeaturesList({
         </Badge>
       </div>
       <div className="space-y-2">
-        {item.features.map(f => (
-          <TooltipProvider key={f.id}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <label
-                  className={cn(
-                    'flex cursor-pointer items-start gap-3 rounded-lg border-2 p-3 text-sm transition-all',
-                    f.active
-                      ? 'border-emerald-400 bg-emerald-500/10 shadow-sm'
-                      : 'border-muted-foreground/20 hover:border-emerald-400/50'
-                  )}
-                >
-                  <input
-                    type="checkbox"
-                    checked={f.active}
-                    onChange={e =>
-                      onChange(item.id, env => ({
-                        ...env,
-                        features: env.features.map(ef =>
-                          ef.id === f.id
-                            ? { ...ef, active: e.target.checked }
-                            : ef
-                        ),
-                      }))
-                    }
-                    className="mt-1 accent-emerald-500"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <p
-                        className={cn(
-                          'font-medium',
-                          f.active && 'text-emerald-700 dark:text-emerald-400'
+        {item.features.map(f => {
+          const fearCost = parseFearCost(f.description);
+          const canAfford =
+            fearCost > 0 && fearPool !== undefined && fearPool >= fearCost;
+          const isClickable = fearCost > 0 && onSpendFear;
+
+          return (
+            <TooltipProvider key={f.id}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <label
+                    className={cn(
+                      'flex cursor-pointer items-start gap-3 rounded-lg border-2 p-3 text-sm transition-all',
+                      f.active
+                        ? 'border-emerald-400 bg-emerald-500/10 shadow-sm'
+                        : 'border-muted-foreground/20 hover:border-emerald-400/50',
+                      isClickable &&
+                        !canAfford &&
+                        'cursor-not-allowed opacity-50'
+                    )}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={f.active}
+                      onChange={e =>
+                        onChange(item.id, env => ({
+                          ...env,
+                          features: env.features.map(ef =>
+                            ef.id === f.id
+                              ? { ...ef, active: e.target.checked }
+                              : ef
+                          ),
+                        }))
+                      }
+                      className="mt-1 accent-emerald-500"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <p
+                          className={cn(
+                            'font-medium',
+                            f.active && 'text-emerald-700 dark:text-emerald-400'
+                          )}
+                        >
+                          {f.name}
+                        </p>
+                        {fearCost > 0 && (
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              'border-purple-500/40 bg-purple-500/20 text-[10px] text-purple-600 dark:text-purple-400',
+                              isClickable &&
+                                canAfford &&
+                                'cursor-pointer hover:bg-purple-500/30'
+                            )}
+                            onClick={
+                              isClickable && canAfford
+                                ? e => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    onSpendFear(fearCost, f.name);
+                                  }
+                                : undefined
+                            }
+                          >
+                            💀 {fearCost}
+                          </Badge>
                         )}
-                      >
-                        {f.name}
+                        {f.active && (
+                          <Badge className="bg-emerald-500/30 text-[10px] text-emerald-700 dark:text-emerald-400">
+                            Active
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-muted-foreground mt-1 text-xs">
+                        {f.description}
                       </p>
-                      {f.active && (
-                        <Badge className="bg-emerald-500/30 text-[10px] text-emerald-700 dark:text-emerald-400">
-                          Active
-                        </Badge>
-                      )}
                     </div>
-                    <p className="text-muted-foreground mt-1 text-xs">
-                      {f.description}
+                  </label>
+                </TooltipTrigger>
+                <TooltipContent side="left">
+                  <p>
+                    Click to {f.active ? 'deactivate' : 'activate'} this feature
+                  </p>
+                  {fearCost > 0 && (
+                    <p className="text-purple-400">
+                      Click 💀 badge to spend {fearCost} Fear
                     </p>
-                  </div>
-                </label>
-              </TooltipTrigger>
-              <TooltipContent side="left">
-                <p>
-                  Click to {f.active ? 'deactivate' : 'activate'} this feature
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        ))}
+                  )}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          );
+        })}
       </div>
     </div>
   );

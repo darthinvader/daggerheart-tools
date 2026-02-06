@@ -14,6 +14,7 @@ import {
   Wand2,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 import { AddAdversaryDialogEnhanced } from '@/components/battle-tracker/adversary-dialog-enhanced';
 import { CampaignCharacterDialog } from '@/components/battle-tracker/campaign-character-dialog';
@@ -162,6 +163,28 @@ function BattleRosterLayout({
   rosterActions: ReturnType<typeof useBattleRosterState>['rosterActions'];
   setEditingAdversary: (value: AdversaryTracker | null) => void;
 }) {
+  const handleSpendFear = useCallback(
+    (amount: number, featureName: string) => {
+      const previousFear = rosterState.fearPool;
+      if (rosterActions.spendFear(amount)) {
+        toast.success(`Spent ${amount} Fear — ${featureName}`, {
+          description: `${previousFear - amount} Fear remaining`,
+          action: {
+            label: 'Undo',
+            onClick: () => rosterActions.setFearPool(previousFear),
+          },
+          duration: 5000,
+        });
+      } else {
+        toast.warning(
+          `Not enough Fear (need ${amount}, have ${rosterState.fearPool})`,
+          { description: featureName }
+        );
+      }
+    },
+    [rosterState.fearPool, rosterActions]
+  );
+
   return (
     <div className="grid gap-6 xl:grid-cols-[1fr_1fr_minmax(320px,400px)]">
       <RosterColumn
@@ -230,6 +253,8 @@ function BattleRosterLayout({
         adversaries={rosterState.adversaries}
         environments={rosterState.environments}
         useMassiveThreshold={rosterState.useMassiveThreshold}
+        fearPool={rosterState.fearPool}
+        onSpendFear={handleSpendFear}
         onClearSpotlight={() => rosterActions.setSpotlight(null)}
         onSetSpotlight={rosterActions.setSpotlight}
         onClearSpotlightHistoryTimeline={

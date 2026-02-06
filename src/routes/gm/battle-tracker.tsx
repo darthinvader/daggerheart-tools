@@ -3,8 +3,9 @@ import {
   type ErrorComponentProps,
   useSearch,
 } from '@tanstack/react-router';
+import { useCallback } from 'react';
+import { toast } from 'sonner';
 import { z } from 'zod';
-
 import { DetailSidebar } from '@/components/battle-tracker/detail-sidebar';
 import { GMResourcesBar } from '@/components/battle-tracker/gm-resources-bar';
 import { RouteErrorFallback } from '@/components/ui/route-error-fallback';
@@ -72,6 +73,28 @@ function BattleTrackerPage() {
   const handlePauseBattle = () => setBattleStatus('paused');
   const handleEndBattle = () => setBattleStatus('completed');
 
+  const handleSpendFear = useCallback(
+    (amount: number, featureName: string) => {
+      const previousFear = rosterState.fearPool;
+      if (rosterActions.spendFear(amount)) {
+        toast.success(`Spent ${amount} Fear — ${featureName}`, {
+          description: `${previousFear - amount} Fear remaining`,
+          action: {
+            label: 'Undo',
+            onClick: () => rosterActions.setFearPool(previousFear),
+          },
+          duration: 5000,
+        });
+      } else {
+        toast.warning(
+          `Not enough Fear (need ${amount}, have ${rosterState.fearPool})`,
+          { description: featureName }
+        );
+      }
+    },
+    [rosterState.fearPool, rosterActions]
+  );
+
   return (
     <div className="container mx-auto px-4 py-4 sm:py-8">
       <BattleHeader
@@ -118,6 +141,7 @@ function BattleTrackerPage() {
         rosterState={rosterState}
         rosterActions={rosterActions}
         onEditAdversary={setEditingAdversary}
+        onSpendFear={handleSpendFear}
         DetailSidebarComponent={DetailSidebar}
       />
 

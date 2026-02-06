@@ -15,10 +15,12 @@ import type {
   EnvironmentTracker,
   TrackerItem,
 } from './types';
-import { formatAttack, formatThresholds } from './utils';
+import { formatAttack, formatThresholds, parseFearCost } from './utils';
 
 interface DetailedPanelProps {
   item: TrackerItem;
+  fearPool?: number;
+  onSpendFear?: (cost: number, featureName: string) => void;
   onCharacterChange: (
     id: string,
     updater: (prev: CharacterTracker) => CharacterTracker
@@ -35,6 +37,8 @@ interface DetailedPanelProps {
 
 export function DetailedPanel({
   item,
+  fearPool,
+  onSpendFear,
   onCharacterChange,
   onAdversaryChange,
   onEnvironmentChange,
@@ -43,9 +47,23 @@ export function DetailedPanel({
     return <CharacterDetail item={item} onChange={onCharacterChange} />;
   }
   if (item.kind === 'adversary') {
-    return <AdversaryDetail item={item} onChange={onAdversaryChange} />;
+    return (
+      <AdversaryDetail
+        item={item}
+        onChange={onAdversaryChange}
+        fearPool={fearPool}
+        onSpendFear={onSpendFear}
+      />
+    );
   }
-  return <EnvironmentDetail item={item} onChange={onEnvironmentChange} />;
+  return (
+    <EnvironmentDetail
+      item={item}
+      onChange={onEnvironmentChange}
+      fearPool={fearPool}
+      onSpendFear={onSpendFear}
+    />
+  );
 }
 
 function CharacterDetail({
@@ -128,12 +146,16 @@ function CharacterDetail({
 function AdversaryDetail({
   item,
   onChange,
+  fearPool,
+  onSpendFear,
 }: {
   item: AdversaryTracker;
   onChange: (
     id: string,
     updater: (prev: AdversaryTracker) => AdversaryTracker
   ) => void;
+  fearPool?: number;
+  onSpendFear?: (cost: number, featureName: string) => void;
 }) {
   return (
     <Card>
@@ -185,13 +207,66 @@ function AdversaryDetail({
             {item.source.features.length === 0 ? (
               <li>No special features</li>
             ) : (
-              item.source.features.map((feature, index) => (
-                <li key={`${item.id}-feature-${index}`}>
-                  {typeof feature === 'string'
+              item.source.features.map((feature, index) => {
+                const featureName =
+                  typeof feature === 'string'
+                    ? feature.split(' - ')[0]
+                    : feature.name;
+                const featureDesc =
+                  typeof feature === 'string'
                     ? feature
-                    : `${feature.name} - ${feature.description}`}
-                </li>
-              ))
+                    : (feature.description ?? '');
+                const fearCost = parseFearCost(featureDesc);
+                const canAfford =
+                  fearCost > 0 &&
+                  fearPool !== undefined &&
+                  fearPool >= fearCost;
+                const isClickable = fearCost > 0 && onSpendFear;
+
+                return (
+                  <li
+                    key={`${item.id}-feature-${index}`}
+                    className={cn(
+                      isClickable &&
+                        (canAfford
+                          ? 'cursor-pointer rounded px-1 transition-colors hover:bg-purple-500/10'
+                          : 'cursor-not-allowed opacity-50')
+                    )}
+                    role={isClickable ? 'button' : undefined}
+                    tabIndex={isClickable ? 0 : undefined}
+                    aria-disabled={isClickable && !canAfford ? true : undefined}
+                    aria-label={
+                      isClickable
+                        ? `Spend ${fearCost} fear to activate ${featureName}`
+                        : undefined
+                    }
+                    onClick={
+                      isClickable && canAfford
+                        ? () => onSpendFear(fearCost, featureName)
+                        : undefined
+                    }
+                    onKeyDown={
+                      isClickable && canAfford
+                        ? (e: React.KeyboardEvent) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              onSpendFear(fearCost, featureName);
+                            }
+                          }
+                        : undefined
+                    }
+                  >
+                    {typeof feature === 'string'
+                      ? feature
+                      : `${feature.name} - ${feature.description}`}
+                    {fearCost > 0 && (
+                      <span className="ml-1 rounded bg-purple-500/20 px-1 text-[10px] font-medium text-purple-600 dark:text-purple-400">
+                        💀 {fearCost}
+                      </span>
+                    )}
+                  </li>
+                );
+              })
             )}
           </ul>
         </div>
@@ -226,12 +301,16 @@ function AdversaryDetail({
 function EnvironmentDetail({
   item,
   onChange,
+  fearPool,
+  onSpendFear,
 }: {
   item: EnvironmentTracker;
   onChange: (
     id: string,
     updater: (prev: EnvironmentTracker) => EnvironmentTracker
   ) => void;
+  fearPool?: number;
+  onSpendFear?: (cost: number, featureName: string) => void;
 }) {
   return (
     <Card>
@@ -253,37 +332,67 @@ function EnvironmentDetail({
         <div className="space-y-2">
           <p className="font-semibold">Features</p>
           <div className="space-y-2">
-            {item.features.map(feature => (
-              <div
-                key={feature.id}
-                className={cn(
-                  'rounded-md border p-3 text-sm',
-                  feature.active && 'border-emerald-400 bg-emerald-500/10'
-                )}
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="font-semibold">{feature.name}</p>
-                    <p className="text-muted-foreground text-xs">
-                      {feature.description}
-                    </p>
+            {item.features.map(feature => {
+              const fearCost = parseFearCost(feature.description);
+              const canAfford =
+                fearCost > 0 && fearPool !== undefined && fearPool >= fearCost;
+              const isClickable = fearCost > 0 && onSpendFear;
+
+              return (
+                <div
+                  key={feature.id}
+                  className={cn(
+                    'rounded-md border p-3 text-sm',
+                    feature.active && 'border-emerald-400 bg-emerald-500/10',
+                    isClickable && !canAfford && 'cursor-not-allowed opacity-50'
+                  )}
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold">{feature.name}</p>
+                        {fearCost > 0 && (
+                          <span
+                            className={cn(
+                              'rounded bg-purple-500/20 px-1 text-[10px] font-medium text-purple-600 dark:text-purple-400',
+                              isClickable &&
+                                canAfford &&
+                                'cursor-pointer hover:bg-purple-500/30'
+                            )}
+                            onClick={
+                              isClickable && canAfford
+                                ? e => {
+                                    e.stopPropagation();
+                                    onSpendFear(fearCost, feature.name);
+                                  }
+                                : undefined
+                            }
+                          >
+                            💀 {fearCost}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-muted-foreground text-xs">
+                        {feature.description}
+                      </p>
+                    </div>
+                    <Checkbox
+                      checked={feature.active}
+                      onCheckedChange={checked =>
+                        onChange(item.id, prev => ({
+                          ...prev,
+                          features: prev.features.map(entry =>
+                            entry.id === feature.id
+                              ? { ...entry, active: Boolean(checked) }
+                              : entry
+                          ),
+                        }))
+                      }
+                    />
                   </div>
-                  <Checkbox
-                    checked={feature.active}
-                    onCheckedChange={checked =>
-                      onChange(item.id, prev => ({
-                        ...prev,
-                        features: prev.features.map(entry =>
-                          entry.id === feature.id
-                            ? { ...entry, active: Boolean(checked) }
-                            : entry
-                        ),
-                      }))
-                    }
-                  />
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
         <Separator />
