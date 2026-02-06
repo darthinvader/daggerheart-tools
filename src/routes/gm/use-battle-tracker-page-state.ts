@@ -15,15 +15,13 @@ import type {
   TrackerSelection,
 } from '@/components/battle-tracker/types';
 import type { CharacterTracker } from '@/components/battle-tracker/types';
-import {
-  useBattleDialogState,
-  useBattleRosterState,
-} from '@/components/battle-tracker/use-battle-tracker-state';
+import { useBattleDialogState } from '@/components/battle-tracker/use-battle-tracker-state';
 import {
   battleAdversariesToTrackers,
   battleCharactersToTrackers,
   battleEnvironmentsToTrackers,
 } from '@/components/battle-tracker/use-campaign-battle';
+import { useUndoableRosterState } from '@/components/battle-tracker/use-undoable-roster-state';
 import type { ConditionsState } from '@/components/conditions';
 import {
   createBattle,
@@ -151,7 +149,7 @@ export function buildBattlePayload(
 export function useBattleTrackerPageState(initialBattleId?: string) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { rosterState, rosterActions } = useBattleRosterState();
+  const { rosterState, rosterActions, undoActions } = useUndoableRosterState();
   const { dialogState, dialogActions } = useBattleDialogState();
 
   // Store rosterActions in ref to avoid dependency on unstable object reference
@@ -331,6 +329,7 @@ export function useBattleTrackerPageState(initialBattleId?: string) {
     // State
     rosterState,
     rosterActions,
+    undoActions,
     dialogState,
     dialogActions,
     battleName,

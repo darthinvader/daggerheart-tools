@@ -46,6 +46,8 @@ import type {
   EnvironmentTracker,
   TrackerSelection,
 } from './types';
+import { UndoRedoControls } from './undo-redo-controls';
+import type { UndoActions } from './use-undoable-roster-state';
 
 type Selection = TrackerSelection | null;
 type Spotlight = { id: string; kind: string } | null;
@@ -836,6 +838,7 @@ export function GMResourcesBar({
   selection,
   spotlight,
   useMassiveThreshold,
+  undoActions,
   onFearChange,
   onUseMassiveThresholdChange,
   onAddEnvironment,
@@ -859,6 +862,7 @@ export function GMResourcesBar({
   selection: Selection | null;
   spotlight: Spotlight | null;
   useMassiveThreshold: boolean;
+  undoActions?: UndoActions;
   onFearChange: (value: number) => void;
   onUseMassiveThresholdChange: (value: boolean) => void;
   onAddEnvironment: () => void;
@@ -924,6 +928,18 @@ export function GMResourcesBar({
         <GlobalSaveDC value={saveDC} onChange={setSaveDC} />
         <TurnTimer compact spotlightActive={!!spotlight} />
         <DifficultyReference />
+        {/* Undo/Redo Controls */}
+        {undoActions && (
+          <UndoRedoControls
+            canUndo={undoActions.canUndo}
+            canRedo={undoActions.canRedo}
+            undoStack={undoActions.undoStack}
+            redoStack={undoActions.redoStack}
+            onUndo={undoActions.undo}
+            onRedo={undoActions.redo}
+            onClearHistory={undoActions.clearHistory}
+          />
+        )}
         {/* Reduce All Counters Button */}
         <TooltipProvider>
           <Tooltip>

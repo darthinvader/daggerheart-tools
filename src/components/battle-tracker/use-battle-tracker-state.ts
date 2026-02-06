@@ -403,6 +403,10 @@ export function useBattleRosterState() {
         setSpotlightHistory(value);
         bumpRosterVersion();
       },
+      setSelection: (value: SetStateAction<TrackerSelection | null>) => {
+        setSelection(value);
+        bumpRosterVersion();
+      },
     },
   };
 }

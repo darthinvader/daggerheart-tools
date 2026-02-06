@@ -9,6 +9,7 @@ import { z } from 'zod';
 import { DetailSidebar } from '@/components/battle-tracker/detail-sidebar';
 import { GMResourcesBar } from '@/components/battle-tracker/gm-resources-bar';
 import { RouteErrorFallback } from '@/components/ui/route-error-fallback';
+import { useUndoShortcuts } from '@/lib/undo';
 
 import {
   BattleDialogs,
@@ -38,6 +39,7 @@ function BattleTrackerPage() {
   const {
     rosterState,
     rosterActions,
+    undoActions,
     dialogState,
     dialogActions,
     battleName,
@@ -68,6 +70,11 @@ function BattleTrackerPage() {
     handleReduceAllCountdowns,
     handleLinkToCampaign,
   } = useBattleTrackerPageState(initialBattleId);
+
+  useUndoShortcuts({
+    onUndo: undoActions.undo,
+    onRedo: undoActions.redo,
+  });
 
   const handleStartBattle = () => setBattleStatus('active');
   const handlePauseBattle = () => setBattleStatus('paused');
@@ -125,6 +132,7 @@ function BattleTrackerPage() {
         selection={rosterState.selection}
         spotlight={rosterState.spotlight}
         useMassiveThreshold={rosterState.useMassiveThreshold}
+        undoActions={undoActions}
         onFearChange={rosterActions.setFearPool}
         onUseMassiveThresholdChange={rosterActions.setUseMassiveThreshold}
         onAddEnvironment={() => dialogActions.setIsAddEnvironmentOpen(true)}

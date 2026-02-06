@@ -1,0 +1,382 @@
+import { type SetStateAction, useCallback, useState } from 'react';
+import { toast } from 'sonner';
+
+import type { Adversary } from '@/lib/schemas/adversaries';
+import type { Environment } from '@/lib/schemas/environments';
+import { MAX_UNDO_DEPTH } from '@/lib/undo';
+import type { UndoEntryMeta } from '@/lib/undo';
+
+import type {
+  AdversaryTracker,
+  CharacterTracker,
+  EnvironmentTracker,
+  NewCharacterDraft,
+  RollHistoryEntry,
+  SpotlightHistoryEntry,
+  TrackerItem,
+  TrackerSelection,
+} from './types';
+import { useBattleRosterState } from './use-battle-tracker-state';
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+/** Snapshot of every combat-relevant field that can be undone. */
+interface UndoableSnapshot {
+  characters: CharacterTracker[];
+  adversaries: AdversaryTracker[];
+  environments: EnvironmentTracker[];
+  selection: TrackerSelection | null;
+  spotlight: TrackerSelection | null;
+  spotlightHistory: TrackerSelection[];
+  spotlightHistoryTimeline: SpotlightHistoryEntry[];
+  rollHistory: RollHistoryEntry[];
+  currentRound: number;
+  fearPool: number;
+  maxFear: number | undefined;
+  useMassiveThreshold: boolean;
+}
+
+interface UndoEntry {
+  meta: UndoEntryMeta;
+  snapshot: UndoableSnapshot;
+}
+
+export interface UndoActions {
+  undo: () => void;
+  redo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
+  undoStack: readonly UndoEntryMeta[];
+  redoStack: readonly UndoEntryMeta[];
+  clearHistory: () => void;
+}
+
+type RosterResult = ReturnType<typeof useBattleRosterState>;
+type RosterActions = RosterResult['rosterActions'];
+type RosterState = RosterResult['rosterState'];
+
+// ---------------------------------------------------------------------------
+// Snapshot helpers (pure functions — no hooks)
+// ---------------------------------------------------------------------------
+
+function captureSnapshot(state: RosterState): UndoableSnapshot {
+  return {
+    characters: state.characters,
+    adversaries: state.adversaries,
+    environments: state.environments,
+    selection: state.selection,
+    spotlight: state.spotlight,
+    spotlightHistory: state.spotlightHistory,
+    spotlightHistoryTimeline: state.spotlightHistoryTimeline,
+    rollHistory: state.rollHistory,
+    currentRound: state.currentRound,
+    fearPool: state.fearPool,
+    maxFear: state.maxFear,
+    useMassiveThreshold: state.useMassiveThreshold,
+  };
+}
+
+function restoreSnapshot(snap: UndoableSnapshot, actions: RosterActions): void {
+  actions.setCharacters(snap.characters);
+  actions.setAdversaries(snap.adversaries);
+  actions.setEnvironments(snap.environments);
+  actions.setSelection(snap.selection);
+  actions.setSpotlight(snap.spotlight);
+  actions.setSpotlightHistory(snap.spotlightHistory);
+  actions.setSpotlightHistoryTimeline(snap.spotlightHistoryTimeline);
+  actions.setRollHistory(snap.rollHistory);
+  actions.setCurrentRound(snap.currentRound);
+  actions.setFearPool(snap.fearPool);
+  actions.setMaxFear(snap.maxFear);
+  actions.setUseMassiveThreshold(snap.useMassiveThreshold);
+}
+
+// ---------------------------------------------------------------------------
+// Undo stack management hook (extracted to keep main hook short)
+// ---------------------------------------------------------------------------
+
+function useUndoStacks(state: RosterState, actions: RosterActions) {
+  const [past, setPast] = useState<UndoEntry[]>([]);
+  const [future, setFuture] = useState<UndoEntry[]>([]);
+
+  const pushUndo = useCallback(
+    (label: string) => {
+      const snapshot = captureSnapshot(state);
+      const meta: UndoEntryMeta = {
+        id: crypto.randomUUID(),
+        label,
+        timestamp: Date.now(),
+      };
+      setPast(prev => [{ meta, snapshot }, ...prev].slice(0, MAX_UNDO_DEPTH));
+      setFuture([]);
+    },
+    [state]
+  );
+
+  /** Pop undo entry and discard — used to roll back no-op actions. */
+  const popUndo = useCallback(() => {
+    setPast(prev => prev.slice(1));
+  }, []);
+
+  const undo = useCallback(() => {
+    setPast(prevPast => {
+      if (prevPast.length === 0) return prevPast;
+      const [entry, ...remaining] = prevPast;
+      const current = captureSnapshot(state);
+      const currentMeta: UndoEntryMeta = {
+        id: crypto.randomUUID(),
+        label: entry.meta.label,
+        timestamp: Date.now(),
+      };
+      setFuture(prevFuture =>
+        [{ meta: currentMeta, snapshot: current }, ...prevFuture].slice(
+          0,
+          MAX_UNDO_DEPTH
+        )
+      );
+      restoreSnapshot(entry.snapshot, actions);
+      toast(`Undone: ${entry.meta.label}`);
+      return remaining;
+    });
+  }, [state, actions]);
+
+  const redo = useCallback(() => {
+    setFuture(prevFuture => {
+      if (prevFuture.length === 0) return prevFuture;
+      const [entry, ...remaining] = prevFuture;
+      const current = captureSnapshot(state);
+      const currentMeta: UndoEntryMeta = {
+        id: crypto.randomUUID(),
+        label: entry.meta.label,
+        timestamp: Date.now(),
+      };
+      setPast(prevPast =>
+        [{ meta: currentMeta, snapshot: current }, ...prevPast].slice(
+          0,
+          MAX_UNDO_DEPTH
+        )
+      );
+      restoreSnapshot(entry.snapshot, actions);
+      toast(`Redone: ${entry.meta.label}`);
+      return remaining;
+    });
+  }, [state, actions]);
+
+  const clearHistory = useCallback(() => {
+    setPast([]);
+    setFuture([]);
+  }, []);
+
+  return { past, future, pushUndo, popUndo, undo, redo, clearHistory };
+}
+
+// ---------------------------------------------------------------------------
+// Wrapped action builders (extracted to keep main hook short)
+// ---------------------------------------------------------------------------
+
+function buildWrappedActions(
+  pushUndo: (label: string) => void,
+  popUndo: () => void,
+  rosterActions: RosterActions,
+  currentRound: number
+) {
+  // -- Spotlight -----------------------------------------------------------
+  const setSpotlight = (value: TrackerSelection | null) => {
+    pushUndo('Set spotlight');
+    rosterActions.setSpotlight(value);
+  };
+  const handleSpotlight = (item: TrackerItem) => {
+    pushUndo('Change spotlight');
+    rosterActions.handleSpotlight(item);
+  };
+
+  // -- Fear ----------------------------------------------------------------
+  const setFearPool = (value: number) => {
+    pushUndo('Set fear pool');
+    rosterActions.setFearPool(value);
+  };
+  const spendFear = (amount: number): boolean => {
+    pushUndo(`Spend ${amount} Fear`);
+    const result = rosterActions.spendFear(amount);
+    if (!result) popUndo();
+    return result;
+  };
+
+  // -- Max fear / massive threshold ----------------------------------------
+  const setMaxFear = (value: number | undefined) => {
+    pushUndo('Set max fear');
+    rosterActions.setMaxFear(value);
+  };
+  const setUseMassiveThreshold = (value: boolean) => {
+    pushUndo(value ? 'Enable massive threshold' : 'Disable massive threshold');
+    rosterActions.setUseMassiveThreshold(value);
+  };
+
+  // -- Remove --------------------------------------------------------------
+  const handleRemove = (item: TrackerItem) => {
+    pushUndo(`Remove ${item.kind}`);
+    rosterActions.handleRemove(item);
+  };
+
+  // -- Add entities --------------------------------------------------------
+  const addCharacter = (draft: NewCharacterDraft) => {
+    pushUndo('Add character');
+    const result = rosterActions.addCharacter(draft);
+    if (result === null) popUndo();
+    return result;
+  };
+  const addAdversary = (adversary: Adversary) => {
+    pushUndo(`Add adversary: ${adversary.name}`);
+    rosterActions.addAdversary(adversary);
+  };
+  const addEnvironment = (environment: Environment) => {
+    pushUndo(`Add environment: ${environment.name}`);
+    rosterActions.addEnvironment(environment);
+  };
+
+  // -- Update entities -----------------------------------------------------
+  const updateCharacter = (
+    id: string,
+    updater: (prev: CharacterTracker) => CharacterTracker
+  ) => {
+    pushUndo('Update character');
+    rosterActions.updateCharacter(id, updater);
+  };
+  const updateAdversary = (
+    id: string,
+    updater: (prev: AdversaryTracker) => AdversaryTracker
+  ) => {
+    pushUndo('Update adversary');
+    rosterActions.updateAdversary(id, updater);
+  };
+  const updateEnvironment = (
+    id: string,
+    updater: (prev: EnvironmentTracker) => EnvironmentTracker
+  ) => {
+    pushUndo('Update environment');
+    rosterActions.updateEnvironment(id, updater);
+  };
+
+  // -- Rounds --------------------------------------------------------------
+  const setCurrentRound = (value: number) => {
+    pushUndo(`Set round to ${value}`);
+    rosterActions.setCurrentRound(value);
+  };
+  const advanceRound = () => {
+    pushUndo(`Advance to round ${currentRound + 1}`);
+    rosterActions.advanceRound();
+  };
+
+  // -- Roll history --------------------------------------------------------
+  const addRollToHistory = (entry: RollHistoryEntry) => {
+    pushUndo('Add roll to history');
+    rosterActions.addRollToHistory(entry);
+  };
+  const clearRollHistory = () => {
+    pushUndo('Clear roll history');
+    rosterActions.clearRollHistory();
+  };
+  const setRollHistory = (value: SetStateAction<RollHistoryEntry[]>) => {
+    pushUndo('Set roll history');
+    rosterActions.setRollHistory(value);
+  };
+
+  // -- Spotlight history timeline ------------------------------------------
+  const clearSpotlightHistoryTimeline = () => {
+    pushUndo('Clear spotlight history timeline');
+    rosterActions.clearSpotlightHistoryTimeline();
+  };
+  const setSpotlightHistoryTimeline = (
+    value: SetStateAction<SpotlightHistoryEntry[]>
+  ) => {
+    pushUndo('Set spotlight history timeline');
+    rosterActions.setSpotlightHistoryTimeline(value);
+  };
+
+  // -- Bulk setters (loading) ----------------------------------------------
+  const setCharacters = (value: SetStateAction<CharacterTracker[]>) => {
+    pushUndo('Set characters');
+    rosterActions.setCharacters(value);
+  };
+  const setAdversaries = (value: SetStateAction<AdversaryTracker[]>) => {
+    pushUndo('Set adversaries');
+    rosterActions.setAdversaries(value);
+  };
+  const setEnvironments = (value: SetStateAction<EnvironmentTracker[]>) => {
+    pushUndo('Set environments');
+    rosterActions.setEnvironments(value);
+  };
+  const setSpotlightHistory = (value: SetStateAction<TrackerSelection[]>) => {
+    pushUndo('Set spotlight history');
+    rosterActions.setSpotlightHistory(value);
+  };
+
+  return {
+    setSpotlight,
+    handleSpotlight,
+    setFearPool,
+    spendFear,
+    setMaxFear,
+    setUseMassiveThreshold,
+    handleRemove,
+    addCharacter,
+    addAdversary,
+    addEnvironment,
+    updateCharacter,
+    updateAdversary,
+    updateEnvironment,
+    setCurrentRound,
+    advanceRound,
+    addRollToHistory,
+    clearRollHistory,
+    setRollHistory,
+    clearSpotlightHistoryTimeline,
+    setSpotlightHistoryTimeline,
+    setCharacters,
+    setAdversaries,
+    setEnvironments,
+    setSpotlightHistory,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Main hook
+// ---------------------------------------------------------------------------
+
+export function useUndoableRosterState() {
+  const { rosterState, rosterActions } = useBattleRosterState();
+
+  const { past, future, pushUndo, popUndo, undo, redo, clearHistory } =
+    useUndoStacks(rosterState, rosterActions);
+
+  const wrappedActions = buildWrappedActions(
+    pushUndo,
+    popUndo,
+    rosterActions,
+    rosterState.currentRound
+  );
+
+  return {
+    rosterState,
+    rosterActions: {
+      // Non-undoable — pass through unchanged
+      setActiveRosterTab: rosterActions.setActiveRosterTab,
+      setActiveDetailTab: rosterActions.setActiveDetailTab,
+      handleSelect: rosterActions.handleSelect,
+      setSelection: rosterActions.setSelection,
+      // Undoable wrappers
+      ...wrappedActions,
+    },
+    undoActions: {
+      undo,
+      redo,
+      canUndo: past.length > 0,
+      canRedo: future.length > 0,
+      undoStack: past.map(e => e.meta),
+      redoStack: future.map(e => e.meta),
+      clearHistory,
+    } satisfies UndoActions,
+  };
+}

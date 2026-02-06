@@ -36,12 +36,11 @@ import type {
   CharacterTracker,
   EnvironmentTracker,
 } from '@/components/battle-tracker/types';
-import {
-  useBattleDialogState,
-  useBattleRosterState,
-} from '@/components/battle-tracker/use-battle-tracker-state';
+import { useBattleDialogState } from '@/components/battle-tracker/use-battle-tracker-state';
+import { useBattleRosterState } from '@/components/battle-tracker/use-battle-tracker-state';
 import { useCampaignBattle } from '@/components/battle-tracker/use-campaign-battle';
 import { useCharacterRealtimeSync } from '@/components/battle-tracker/use-character-realtime';
+import { useUndoableRosterState } from '@/components/battle-tracker/use-undoable-roster-state';
 import { DEFAULT_CHARACTER_DRAFT } from '@/components/battle-tracker/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -56,6 +55,7 @@ import { getCampaign } from '@/features/campaigns/campaign-storage';
 import type { Adversary } from '@/lib/schemas/adversaries';
 import type { BattleState } from '@/lib/schemas/battle';
 import type { Campaign } from '@/lib/schemas/campaign';
+import { useUndoShortcuts } from '@/lib/undo';
 
 import { useCampaignBattleState } from './use-campaign-battle-state';
 import { useLinkedCharacterRefresh } from './use-linked-character-refresh';
@@ -517,8 +517,14 @@ function CampaignBattlePage() {
   });
 
   // Core roster state
-  const { rosterState, rosterActions } = useBattleRosterState();
+  const { rosterState, rosterActions, undoActions } = useUndoableRosterState();
   const { dialogState, dialogActions } = useBattleDialogState(campaignId);
+
+  // Keyboard shortcuts for undo/redo
+  useUndoShortcuts({
+    onUndo: undoActions.undo,
+    onRedo: undoActions.redo,
+  });
 
   // Subscribe to realtime character updates from players
   useCharacterRealtimeSync(
@@ -634,6 +640,7 @@ function CampaignBattlePage() {
         selection={rosterState.selection}
         spotlight={rosterState.spotlight}
         useMassiveThreshold={rosterState.useMassiveThreshold}
+        undoActions={undoActions}
         onFearChange={rosterActions.setFearPool}
         onUseMassiveThresholdChange={rosterActions.setUseMassiveThreshold}
         onAddEnvironment={() => dialogActions.setIsAddEnvironmentOpen(true)}
