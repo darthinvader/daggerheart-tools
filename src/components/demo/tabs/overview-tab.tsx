@@ -82,29 +82,43 @@ export function OverviewTab({ state, handlers, isHydrated }: TabProps) {
         onExecuteMove={handleExecuteDeathMove}
       />
 
-      <IdentityProgressionGrid state={state} handlers={handlers} />
-      <AncestryClassGrid state={state} handlers={handlers} />
-      <TraitsScoresGrid
-        state={state}
-        handlers={handlers}
-        isHydrated={isHydrated}
-      />
-      <HopeScoresThresholdsGrid
-        state={state}
-        handlers={handlers}
-        isHydrated={isHydrated}
-      />
-      <GoldConditionsGrid state={state} handlers={handlers} />
+      <div className="animate-fade-up">
+        <IdentityProgressionGrid state={state} handlers={handlers} />
+      </div>
+      <div className="animate-fade-up stagger-1">
+        <AncestryClassGrid state={state} handlers={handlers} />
+      </div>
+      <div className="animate-fade-up stagger-2">
+        <TraitsScoresGrid
+          state={state}
+          handlers={handlers}
+          isHydrated={isHydrated}
+        />
+      </div>
+      <div className="animate-fade-up stagger-3">
+        <HopeScoresThresholdsGrid
+          state={state}
+          handlers={handlers}
+          isHydrated={isHydrated}
+        />
+      </div>
+      <div className="animate-fade-up stagger-4">
+        <GoldConditionsGrid state={state} handlers={handlers} />
+      </div>
 
-      <CompanionSection
-        hasCompanionFeature={hasCompanionFeature}
-        companionEnabled={state.companionEnabled}
-        companion={state.companion}
-        setCompanion={handlers.setCompanion}
-        setCompanionEnabled={handlers.setCompanionEnabled}
-      />
+      <div className="animate-fade-up stagger-5">
+        <CompanionSection
+          hasCompanionFeature={hasCompanionFeature}
+          companionEnabled={state.companionEnabled}
+          companion={state.companion}
+          setCompanion={handlers.setCompanion}
+          setCompanionEnabled={handlers.setCompanionEnabled}
+        />
+      </div>
 
-      <ExperiencesEquipmentGrid state={state} handlers={handlers} />
+      <div className="animate-fade-up stagger-6">
+        <ExperiencesEquipmentGrid state={state} handlers={handlers} />
+      </div>
 
       <LoadoutDisplay
         selection={state.loadout}

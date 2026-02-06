@@ -1,4 +1,4 @@
-import { Heart, HeartCrack, Shield, Skull, Sparkles, Zap } from 'lucide-react';
+import { Shield, Skull, Sparkles } from 'lucide-react';
 
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import { cn } from '@/lib/utils';
@@ -10,74 +10,134 @@ interface CharacterStatusBarProps {
   className?: string;
 }
 
-function StatusPip({
-  filled,
-  color,
-  scarred,
-}: {
-  filled: boolean;
-  color: string;
-  scarred?: boolean;
-}) {
-  return (
-    <div
-      className={cn(
-        'h-2 w-2 rounded-full border transition-colors',
-        scarred && 'border-destructive bg-destructive/30 line-through',
-        !scarred && filled && color,
-        !scarred && !filled && 'border-muted-foreground/30 bg-transparent'
-      )}
-    />
-  );
-}
+/* ── Circular SVG Gauge ─────────────────────────────────────────── */
 
-function ResourceMeter({
+const GAUGE_SIZE = 48;
+const GAUGE_STROKE = 4;
+const GAUGE_RADIUS = (GAUGE_SIZE - GAUGE_STROKE) / 2;
+const GAUGE_CIRCUMFERENCE = 2 * Math.PI * GAUGE_RADIUS;
+
+function CircularGauge({
   current,
   max,
   label,
-  icon: Icon,
   color,
-  bgColor,
-  criticalThreshold,
-  scarredSlots,
+  trackColor,
+  isCritical,
 }: {
   current: number;
   max: number;
   label: string;
-  icon: React.ComponentType<{ className?: string }>;
   color: string;
-  bgColor: string;
-  criticalThreshold?: number;
-  scarredSlots?: number;
+  trackColor: string;
+  isCritical?: boolean;
 }) {
-  const percentage = max > 0 ? (current / max) * 100 : 0;
-  const isCritical =
-    criticalThreshold !== undefined && current <= criticalThreshold;
+  const pct = max > 0 ? current / max : 0;
+  const offset = GAUGE_CIRCUMFERENCE * (1 - pct);
 
   return (
-    <SmartTooltip
-      content={`${label}: ${current}/${max}${scarredSlots ? ` (${scarredSlots} scarred)` : ''}`}
-    >
-      <div className="flex items-center gap-1.5">
-        <Icon
+    <SmartTooltip content={`${label}: ${current}/${max}`}>
+      <div
+        className={cn(
+          'relative flex items-center gap-1.5',
+          isCritical && 'animate-pulse-danger'
+        )}
+      >
+        <svg
+          width={GAUGE_SIZE}
+          height={GAUGE_SIZE}
+          viewBox={`0 0 ${GAUGE_SIZE} ${GAUGE_SIZE}`}
+          className="shrink-0 -rotate-90"
+        >
+          {/* Track */}
+          <circle
+            cx={GAUGE_SIZE / 2}
+            cy={GAUGE_SIZE / 2}
+            r={GAUGE_RADIUS}
+            className="gauge-track"
+            stroke={trackColor}
+            strokeWidth={GAUGE_STROKE}
+          />
+          {/* Fill ring */}
+          <circle
+            cx={GAUGE_SIZE / 2}
+            cy={GAUGE_SIZE / 2}
+            r={GAUGE_RADIUS}
+            className="gauge-ring animate-gauge-fill"
+            stroke={color}
+            strokeWidth={GAUGE_STROKE}
+            strokeDasharray={GAUGE_CIRCUMFERENCE}
+            strokeDashoffset={offset}
+            style={
+              {
+                '--gauge-circumference': GAUGE_CIRCUMFERENCE,
+                '--gauge-offset': offset,
+              } as React.CSSProperties
+            }
+          />
+        </svg>
+        {/* Central label */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span
+            className="font-mono text-xs leading-none font-bold"
+            style={{ color }}
+          >
+            {current}
+          </span>
+        </div>
+      </div>
+    </SmartTooltip>
+  );
+}
+
+/* ── Segmented Bar (for compact linear display) ─────────────────── */
+
+function SegmentedBar({
+  current,
+  max,
+  label,
+  color,
+  trackClass,
+  icon: Icon,
+  isCritical,
+}: {
+  current: number;
+  max: number;
+  label: string;
+  color: string;
+  trackClass: string;
+  icon: React.ComponentType<{ className?: string }>;
+  isCritical?: boolean;
+}) {
+  const pct = max > 0 ? (current / max) * 100 : 0;
+
+  return (
+    <SmartTooltip content={`${label}: ${current}/${max}`}>
+      <div
+        className={cn(
+          'flex items-center gap-1.5',
+          isCritical && 'animate-pulse-danger'
+        )}
+      >
+        <Icon className={cn('size-3.5 shrink-0', color)} />
+        <div
           className={cn(
-            'size-3.5 shrink-0',
-            isCritical ? 'animate-pulse-danger text-destructive' : color
+            'h-1.5 w-10 overflow-hidden rounded-full sm:w-14',
+            trackClass
           )}
-        />
-        <div className={cn('h-1.5 w-12 overflow-hidden rounded-full', bgColor)}>
+        >
           <div
             className={cn(
               'h-full rounded-full transition-all duration-500',
-              isCritical ? 'bg-destructive' : color.replace('text-', 'bg-')
+              color.replace('text-', 'bg-')
             )}
-            style={{ width: `${percentage}%` }}
+            style={{ width: `${pct}%` }}
           />
         </div>
         <span
           className={cn(
             'min-w-[2ch] text-right font-mono text-xs font-bold',
-            isCritical ? 'animate-pulse-danger text-destructive' : color
+            color
           )}
         >
           {current}
@@ -86,6 +146,53 @@ function ResourceMeter({
     </SmartTooltip>
   );
 }
+
+/* ── Hope Pips ──────────────────────────────────────────────────── */
+
+function HopePips({
+  current,
+  max,
+  scarCount,
+}: {
+  current: number;
+  max: number;
+  scarCount: number;
+}) {
+  return (
+    <SmartTooltip
+      content={`Hope: ${current}/${max}${scarCount > 0 ? ` (${scarCount} scarred)` : ''}`}
+    >
+      <div className="flex items-center gap-1.5">
+        <Sparkles
+          className={cn(
+            'text-hope size-3.5 shrink-0',
+            current >= 3 && 'animate-glow-hope'
+          )}
+        />
+        <div className="flex gap-0.5">
+          {Array.from({ length: max }).map((_, i) => {
+            const isScarred = i >= max - scarCount;
+            const isFilled = !isScarred && i < current;
+            return (
+              <div
+                key={i}
+                className={cn(
+                  'hope-pip',
+                  isFilled && 'hope-pip-filled animate-pip-fill',
+                  isScarred && 'hope-pip-scarred'
+                )}
+                style={isFilled ? { animationDelay: `${i * 40}ms` } : undefined}
+              />
+            );
+          })}
+        </div>
+        <span className="text-hope font-mono text-xs font-bold">{current}</span>
+      </div>
+    </SmartTooltip>
+  );
+}
+
+/* ── Main Status Bar ────────────────────────────────────────────── */
 
 export function CharacterStatusBar({
   state,
@@ -98,83 +205,76 @@ export function CharacterStatusBar({
   const isUnconscious = state.deathState?.isUnconscious;
   const scarCount = hope.scars?.length ?? 0;
 
-  const hpPercentage = hp.max > 0 ? hp.current / hp.max : 1;
+  const hpRemaining = hp.max - hp.current;
+  const stressRemaining = stress.max - stress.current;
+  const hpPct = hp.max > 0 ? hpRemaining / hp.max : 1;
+  const hpCritical = hpPct <= 0.25;
+  const stressCritical = stressRemaining <= 1;
+
+  // Pick contextual status bar background
+  const statusClass = isUnconscious
+    ? 'status-bar-unconscious'
+    : hpCritical
+      ? 'status-bar-critical'
+      : hpPct <= 0.5
+        ? 'status-bar-wounded'
+        : 'status-bar-healthy';
 
   return (
-    <div
-      className={cn(
-        'flex flex-wrap items-center gap-3 rounded-lg border px-3 py-2 text-xs sm:gap-4',
-        isUnconscious &&
-          'animate-pulse-danger border-destructive/50 bg-destructive/5',
-        !isUnconscious && hpPercentage <= 0.25 && 'status-bar-critical',
-        !isUnconscious &&
-          hpPercentage > 0.25 &&
-          hpPercentage <= 0.5 &&
-          'status-bar-wounded',
-        !isUnconscious && hpPercentage > 0.5 && 'status-bar-healthy',
-        className
-      )}
-    >
+    <div className={cn('status-bar animate-fade-up', statusClass, className)}>
+      {/* Unconscious warning badge */}
       {isUnconscious && (
-        <div className="text-destructive flex items-center gap-1">
+        <div className="text-destructive animate-pulse-danger bg-destructive/10 flex items-center gap-1 rounded-md px-2 py-0.5">
           <Skull className="size-3.5" />
-          <span className="text-xs font-bold">UNCONSCIOUS</span>
+          <span className="text-[10px] font-bold tracking-wider uppercase">
+            Unconscious
+          </span>
         </div>
       )}
 
-      <ResourceMeter
-        current={hp.max - hp.current}
+      {/* HP Gauge */}
+      <CircularGauge
+        current={hpRemaining}
         max={hp.max}
-        label="Hit Points"
-        icon={hpPercentage <= 0.25 ? HeartCrack : Heart}
-        color="text-hp-healthy"
-        bgColor="bg-hp-healthy/20"
-        criticalThreshold={Math.ceil(hp.max * 0.25)}
+        label="HP"
+        color={
+          hpCritical
+            ? 'var(--hp-critical)'
+            : hpPct <= 0.5
+              ? 'var(--hp-wounded)'
+              : 'var(--hp-healthy)'
+        }
+        trackColor={hpCritical ? 'var(--hp-critical)' : 'var(--hp-healthy)'}
+        isCritical={hpCritical}
       />
 
-      <ResourceMeter
-        current={stress.max - stress.current}
+      {/* Stress Gauge */}
+      <CircularGauge
+        current={stressRemaining}
         max={stress.max}
         label="Stress"
-        icon={Zap}
-        color="text-stress-ok"
-        bgColor="bg-stress-ok/20"
-        criticalThreshold={1}
+        color={stressCritical ? 'var(--stress-high)' : 'var(--stress-ok)'}
+        trackColor={stressCritical ? 'var(--stress-high)' : 'var(--stress-ok)'}
+        isCritical={stressCritical}
       />
 
+      {/* Armor (segmented bar, only when armor exists) */}
       {armor.max > 0 && (
-        <ResourceMeter
+        <SegmentedBar
           current={armor.current}
           max={armor.max}
           label="Armor"
-          icon={Shield}
           color="text-primary"
-          bgColor="bg-primary/20"
+          trackClass="bg-primary/20"
+          icon={Shield}
         />
       )}
 
-      <SmartTooltip
-        content={`Hope: ${hope.current}/${hope.max}${scarCount > 0 ? ` (${scarCount} scarred)` : ''}`}
-      >
-        <div className="flex items-center gap-1">
-          <Sparkles
-            className={cn(
-              'text-hope size-3.5 shrink-0',
-              hope.current >= 3 && 'animate-glow-hope'
-            )}
-          />
-          <div className="flex gap-0.5">
-            {Array.from({ length: hope.max }).map((_, i) => (
-              <StatusPip
-                key={i}
-                filled={i < hope.current}
-                color="border-hope bg-hope"
-                scarred={i >= hope.max - scarCount}
-              />
-            ))}
-          </div>
-        </div>
-      </SmartTooltip>
+      {/* Separator */}
+      <div className="bg-border hidden h-5 w-px sm:block" />
+
+      {/* Hope Pips */}
+      <HopePips current={hope.current} max={hope.max} scarCount={scarCount} />
     </div>
   );
 }

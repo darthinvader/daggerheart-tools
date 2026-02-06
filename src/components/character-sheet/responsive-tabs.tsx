@@ -26,7 +26,7 @@ interface ResponsiveTabsListProps {
 
 /**
  * A responsive tabs list that hides on mobile (replaced by bottom nav),
- * and shows all tabs as buttons on desktop.
+ * and shows all tabs with enhanced styling on desktop.
  */
 export function ResponsiveTabsList({
   primaryTabs,
@@ -42,22 +42,24 @@ export function ResponsiveTabsList({
     return null;
   }
 
-  // On desktop, show all tabs as buttons
+  // On desktop, show all tabs with enhanced styling
   return (
-    <TabsList
-      className={cn('grid w-full', className)}
-      style={{
-        gridTemplateColumns: `repeat(${allTabs.length}, minmax(0, 1fr))`,
-      }}
-    >
-      {allTabs.map(tab => (
-        <TabsTrigger key={tab.value} value={tab.value}>
-          <span className="flex items-center gap-1.5">
-            {tab.icon}
-            {tab.label}
-          </span>
-        </TabsTrigger>
-      ))}
-    </TabsList>
+    <div className="character-tabs-bar">
+      <TabsList
+        className={cn('grid w-full', className)}
+        style={{
+          gridTemplateColumns: `repeat(${allTabs.length}, minmax(0, 1fr))`,
+        }}
+      >
+        {allTabs.map(tab => (
+          <TabsTrigger key={tab.value} value={tab.value}>
+            <span className="flex items-center gap-1.5">
+              {tab.icon}
+              {tab.label}
+            </span>
+          </TabsTrigger>
+        ))}
+      </TabsList>
+    </div>
   );
 }

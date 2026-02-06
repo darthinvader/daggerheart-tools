@@ -116,7 +116,12 @@ export function CharacterSheetLayout({
   ];
 
   return (
-    <div className="has-bottom-nav container mx-auto px-3 py-3 sm:px-4 sm:py-6">
+    <div
+      className={cn(
+        'has-bottom-nav container mx-auto px-3 py-3 sm:px-4 sm:py-6',
+        `tier-accent-${tier}`
+      )}
+    >
       <div className="space-y-4 sm:space-y-6">
         <CharacterOnboardingSection
           isOpen={isOnboardingOpen}
@@ -425,37 +430,37 @@ function CharacterSheetTabs({
       <div
         className={cn(
           readOnly &&
-            '[&_button]:pointer-events-none [&_button]:opacity-60 [&_input]:pointer-events-none [&_input]:opacity-70 [&_select]:pointer-events-none [&_select]:opacity-70 [&_textarea]:pointer-events-none [&_textarea]:opacity-70 **:[[role=button]]:pointer-events-none **:[[role=button]]:opacity-60'
+            'after:bg-muted/5 pointer-events-none relative opacity-80 after:pointer-events-none after:absolute after:inset-0 after:z-10 after:rounded-lg'
         )}
       >
-        <TabsContent value="quick">
+        <TabsContent value="quick" className="animate-fade-up">
           <QuickViewTab state={state} handlers={handlers} />
         </TabsContent>
-        <TabsContent value="overview">
+        <TabsContent value="overview" className="animate-fade-up">
           <OverviewTab
             state={state}
             handlers={handlers}
             isHydrated={isHydrated}
           />
         </TabsContent>
-        <TabsContent value="identity">
+        <TabsContent value="identity" className="animate-fade-up">
           <IdentityTab
             state={state}
             handlers={handlers}
             isHydrated={isHydrated}
           />
         </TabsContent>
-        <TabsContent value="combat">
+        <TabsContent value="combat" className="animate-fade-up">
           <CombatTab
             state={state}
             handlers={handlers}
             isHydrated={isHydrated}
           />
         </TabsContent>
-        <TabsContent value="items">
+        <TabsContent value="items" className="animate-fade-up">
           <ItemsTab state={state} handlers={handlers} isHydrated={isHydrated} />
         </TabsContent>
-        <TabsContent value="session">
+        <TabsContent value="session" className="animate-fade-up">
           <SessionTab
             state={state}
             handlers={handlers}

@@ -115,39 +115,47 @@ export function QuickViewTab({ state, handlers }: QuickViewTabProps) {
 
   return (
     <div className="space-y-2 pt-3 sm:space-y-3 sm:pt-4">
-      <QuickViewPrimarySections
-        state={state}
-        handlers={handlers}
-        isMobile={isMobile}
-        isSectionOpen={isSectionOpen}
-        onToggle={handleToggleSection}
-        bonusHopeSlots={bonusHopeSlots}
-        equipmentModifiers={{
-          ...combinedModifiers,
-          parsedFeatures: equipmentModifiers.parsedFeatures,
-        }}
-      />
-      <QuickViewIdentitySections
-        state={state}
-        isMobile={isMobile}
-        isSectionOpen={isSectionOpen}
-        onToggle={handleToggleSection}
-      />
-      <QuickViewStatusSections
-        state={state}
-        handlers={handlers}
-        isMobile={isMobile}
-        isSectionOpen={isSectionOpen}
-        onToggle={handleToggleSection}
-        hasCompanion={hasCompanion}
-      />
-      <QuickViewInventorySections
-        state={state}
-        handlers={handlers}
-        isMobile={isMobile}
-        isSectionOpen={isSectionOpen}
-        onToggle={handleToggleSection}
-      />
+      <div className="animate-fade-up">
+        <QuickViewPrimarySections
+          state={state}
+          handlers={handlers}
+          isMobile={isMobile}
+          isSectionOpen={isSectionOpen}
+          onToggle={handleToggleSection}
+          bonusHopeSlots={bonusHopeSlots}
+          equipmentModifiers={{
+            ...combinedModifiers,
+            parsedFeatures: equipmentModifiers.parsedFeatures,
+          }}
+        />
+      </div>
+      <div className="animate-fade-up stagger-1">
+        <QuickViewIdentitySections
+          state={state}
+          isMobile={isMobile}
+          isSectionOpen={isSectionOpen}
+          onToggle={handleToggleSection}
+        />
+      </div>
+      <div className="animate-fade-up stagger-2">
+        <QuickViewStatusSections
+          state={state}
+          handlers={handlers}
+          isMobile={isMobile}
+          isSectionOpen={isSectionOpen}
+          onToggle={handleToggleSection}
+          hasCompanion={hasCompanion}
+        />
+      </div>
+      <div className="animate-fade-up stagger-3">
+        <QuickViewInventorySections
+          state={state}
+          handlers={handlers}
+          isMobile={isMobile}
+          isSectionOpen={isSectionOpen}
+          onToggle={handleToggleSection}
+        />
+      </div>
     </div>
   );
 }

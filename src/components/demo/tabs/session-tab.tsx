@@ -69,14 +69,14 @@ export function SessionTab({
       />
 
       {/* Game Actions Section */}
-      <section className="bg-card overflow-hidden rounded-xl border shadow-sm transition-all hover:shadow-md">
-        <div className="from-hope/10 flex items-center justify-between border-b bg-gradient-to-r to-transparent px-4 py-3 sm:px-6">
-          <div className="flex items-center gap-2">
+      <section className="game-card game-card-tier animate-fade-up">
+        <div className="game-card-header">
+          <h3>
             <Sparkles className="text-hope size-5" />
-            <h3 className="text-lg font-semibold">Game Actions</h3>
-          </div>
+            Game Actions
+          </h3>
         </div>
-        <div className="p-4 sm:p-6">
+        <div className="game-card-body">
           <GameActions
             state={{
               currentStress: state.resources.stress.current,
@@ -116,15 +116,17 @@ export function SessionTab({
       </section>
 
       {/* Rest Management Section */}
-      <section className="bg-card overflow-hidden rounded-xl border shadow-sm transition-all hover:shadow-md">
-        <div className="from-fear-muted/30 flex items-center justify-between border-b bg-gradient-to-r to-transparent px-4 py-3 sm:px-6">
-          <div className="flex items-center gap-2">
+      <section className="game-card game-card-tier animate-fade-up stagger-1">
+        <div className="game-card-header">
+          <h3>
             <Moon className="text-fear size-5" />
-            <h3 className="text-lg font-semibold">Rest</h3>
-          </div>
-          <Button onClick={() => setIsRestModalOpen(true)}>Take a Rest</Button>
+            Rest
+          </h3>
+          <Button onClick={() => setIsRestModalOpen(true)} size="sm">
+            Take a Rest
+          </Button>
         </div>
-        <div className="p-4 sm:p-6">
+        <div className="game-card-body">
           <div className="text-muted-foreground text-sm">
             <p>Short rests allow 2 downtime moves with 1d4+Tier recovery.</p>
             <p>Long rests allow 2 downtime moves with full recovery.</p>
@@ -152,13 +154,15 @@ export function SessionTab({
       />
 
       {/* Active Effects Section */}
-      <ActiveEffectsDisplay
-        effects={activeEffects}
-        onChange={onActiveEffectsChange}
-        onClearAll={() => onActiveEffectsChange([])}
-      />
+      <div className="animate-fade-up stagger-2">
+        <ActiveEffectsDisplay
+          effects={activeEffects}
+          onChange={onActiveEffectsChange}
+          onClearAll={() => onActiveEffectsChange([])}
+        />
+      </div>
 
-      <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
+      <div className="animate-fade-up stagger-3 grid gap-4 sm:gap-6 md:grid-cols-2">
         <DowntimeMoves
           activities={state.downtimeActivities}
           onChange={handlers.setDowntimeActivities}

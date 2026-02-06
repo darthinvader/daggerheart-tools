@@ -36,23 +36,27 @@ export function MobileBottomNav({
               type="button"
               onClick={() => onTabChange(tab.value)}
               className={cn(
-                'flex flex-col items-center justify-center gap-0.5 text-[10px] font-medium transition-colors',
+                'relative flex flex-col items-center justify-center gap-0.5 text-[10px] font-medium transition-all',
                 isActive
-                  ? 'text-primary'
-                  : 'text-muted-foreground hover:text-foreground'
+                  ? 'bottom-nav-item-active text-primary'
+                  : 'text-muted-foreground active:scale-95'
               )}
               aria-selected={isActive}
               role="tab"
             >
+              {/* Active indicator pill at top */}
+              <span className="bottom-nav-indicator" />
               <div
                 className={cn(
-                  'flex size-7 items-center justify-center rounded-lg transition-colors',
-                  isActive && 'bg-primary/10'
+                  'flex size-7 items-center justify-center rounded-lg transition-all duration-200',
+                  isActive ? 'bg-primary/10 shadow-sm' : 'hover:bg-muted/50'
                 )}
               >
                 {tab.icon}
               </div>
-              <span>{tab.label}</span>
+              <span className={cn(isActive && 'font-semibold')}>
+                {tab.label}
+              </span>
             </button>
           );
         })}

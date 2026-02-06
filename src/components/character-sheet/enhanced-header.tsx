@@ -5,7 +5,9 @@ import {
   CloudOff,
   Crown,
   Loader2,
+  Shield,
   Sparkles,
+  Swords,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
 
@@ -28,10 +30,10 @@ interface EnhancedHeaderProps {
 }
 
 const tierColors: Record<number, string> = {
-  1: 'bg-tier-1 text-white',
-  2: 'bg-tier-2 text-white',
-  3: 'bg-tier-3 text-white',
-  4: 'bg-tier-4 text-tier-4-foreground',
+  1: 'bg-tier-1',
+  2: 'bg-tier-2',
+  3: 'bg-tier-3',
+  4: 'bg-tier-4',
 };
 
 const tierLabels: Record<number, string> = {
@@ -41,30 +43,38 @@ const tierLabels: Record<number, string> = {
   4: 'Legend',
 };
 
+const tierIcons: Record<number, typeof Shield> = {
+  1: Shield,
+  2: Swords,
+  3: Crown,
+  4: Sparkles,
+};
+
+/* ── Sub-components ─────────────────────────────────────────────── */
+
 function LevelBadge({ level, tier }: { level: number; tier: number }) {
-  const colorClass = tierColors[tier] ?? tierColors[1];
+  const bg = tierColors[tier] ?? tierColors[1];
+  const TierIcon = tierIcons[tier] ?? Shield;
 
   return (
     <SmartTooltip
-      content={`Level ${level} · Tier ${tier} (${tierLabels[tier] ?? 'Adventurer'})`}
+      content={`Level ${level} · Tier ${tier} — ${tierLabels[tier] ?? 'Adventurer'}`}
     >
-      <div className="relative">
+      <div className="group relative">
+        {/* Ambient glow behind badge */}
         <div
           className={cn(
-            'flex size-10 items-center justify-center rounded-xl font-bold shadow-sm sm:size-12 sm:rounded-2xl sm:text-lg',
-            colorClass
+            'absolute inset-0 rounded-xl opacity-40 blur-md transition-opacity group-hover:opacity-60',
+            bg
           )}
-        >
-          {level}
-        </div>
+        />
+        <div className={cn('level-badge relative text-white', bg)}>{level}</div>
         <div
-          className={cn(
-            'absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-full px-1.5 py-0 text-[9px] leading-tight font-semibold whitespace-nowrap',
-            colorClass,
-            'opacity-90'
-          )}
+          className={cn('level-badge-tier-label text-white', bg, 'opacity-90')}
         >
-          T{tier}
+          <span className="flex items-center gap-0.5">
+            <TierIcon className="size-2" />T{tier}
+          </span>
         </div>
       </div>
     </SmartTooltip>
@@ -81,8 +91,8 @@ function SaveIndicator({
   if (isSaving) {
     return (
       <div className="text-muted-foreground flex items-center gap-1.5 text-xs">
-        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-        <span className="hidden sm:inline">Saving...</span>
+        <Loader2 className="size-3.5 animate-spin" />
+        <span className="hidden sm:inline">Saving…</span>
       </div>
     );
   }
@@ -91,7 +101,7 @@ function SaveIndicator({
     return (
       <SmartTooltip content={`Last saved: ${lastSaved.toLocaleTimeString()}`}>
         <div className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400">
-          <Cloud className="h-3.5 w-3.5" />
+          <Cloud className="size-3.5" />
           <span className="hidden sm:inline">Saved</span>
         </div>
       </SmartTooltip>
@@ -100,16 +110,13 @@ function SaveIndicator({
 
   return (
     <div className="text-muted-foreground flex items-center gap-1.5 text-xs">
-      <CloudOff className="h-3.5 w-3.5" />
+      <CloudOff className="size-3.5" />
       <span className="hidden sm:inline">Not saved</span>
     </div>
   );
 }
 
-function ClassIcon({ className }: { className?: string }) {
-  // Decorative class icon using existing icons
-  return <Crown className={cn('text-hope', className)} />;
-}
+/* ── Main Header ────────────────────────────────────────────────── */
 
 export function EnhancedCharacterHeader({
   characterName,
@@ -124,12 +131,20 @@ export function EnhancedCharacterHeader({
   statusBar,
 }: EnhancedHeaderProps) {
   return (
-    <div className={cn('space-y-3', cssClassName)}>
+    <div
+      className={cn(
+        `character-header tier-accent-${tier} animate-fade-up space-y-3`,
+        cssClassName
+      )}
+    >
+      {/* Radial gradient background driven by tier */}
+      <div className="character-header-bg" />
+
       {/* Top bar: Back + Save + Campaign */}
-      <div className="flex items-center justify-between">
+      <div className="relative flex items-center justify-between">
         <Button variant="ghost" size="sm" asChild className="h-8 gap-1 px-2">
           <Link to="/character">
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="size-4" />
             <span className="hidden sm:inline">Characters</span>
           </Link>
         </Button>
@@ -146,28 +161,31 @@ export function EnhancedCharacterHeader({
       </div>
 
       {/* Character identity section */}
-      <div className="flex items-center gap-3 sm:gap-4">
+      <div className="relative flex items-center gap-3 sm:gap-4">
         <LevelBadge level={level} tier={tier} />
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="truncate text-lg font-bold tracking-tight sm:text-xl lg:text-2xl">
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            <h1 className="truncate text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl">
               {characterName || 'Untitled Character'}
             </h1>
             {characterTitle && (
               <Badge
                 variant="outline"
-                className="border-hope/50 bg-hope-muted text-hope-foreground shrink-0 gap-1"
+                className="border-hope/40 bg-hope-muted text-hope-foreground shrink-0 gap-1 text-xs"
               >
                 <Sparkles className="size-3" />
                 {characterTitle}
               </Badge>
             )}
           </div>
-          <p className="text-muted-foreground text-xs sm:text-sm">
+          <p className="text-muted-foreground mt-0.5 flex items-center gap-1.5 text-xs sm:text-sm">
+            <span
+              className="inline-block size-1.5 rounded-full"
+              style={{ background: `var(--tier-${tier})` }}
+            />
             {tierLabels[tier] ?? 'Adventurer'} · Level {level}
           </p>
         </div>
-        <ClassIcon className="hidden size-8 opacity-30 sm:block lg:size-10" />
       </div>
 
       {/* Dagger divider */}

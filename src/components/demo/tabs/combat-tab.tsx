@@ -276,7 +276,7 @@ export function CombatTab({
   return (
     <div className="space-y-6 pt-4">
       {/* Row 1: Class and Equipment */}
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="animate-fade-up grid gap-4 lg:grid-cols-2">
         <ClassDisplay
           selection={state.classSelection}
           onChange={handlers.setClassSelection}
@@ -290,7 +290,7 @@ export function CombatTab({
       </div>
 
       {/* Row 2: Traits and Resources */}
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="animate-fade-up stagger-1 grid gap-4 md:grid-cols-2">
         <TraitsDisplay
           traits={state.traits}
           onChange={handlers.setTraits}
@@ -314,7 +314,7 @@ export function CombatTab({
       </div>
 
       {/* Row 3: Hope/Scars, Core Scores, and Thresholds */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="animate-fade-up stagger-2 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <HopeWithScarsDisplay
           state={state.hopeWithScars}
           onChange={handlers.setHopeWithScars}
@@ -334,46 +334,50 @@ export function CombatTab({
       </div>
 
       {/* Game Actions - Combat actions for Critical Success and Tag Team */}
-      <GameActions
-        state={{
-          currentStress: state.resources.stress.current,
-          maxStress: state.resources.stress.max,
-          currentHope: state.hopeWithScars.current,
-          tagTeamUsedThisSession:
-            state.restState?.tagTeamUsedThisSession ?? false,
-        }}
-        callbacks={{
-          onStressChange: newStress => {
-            handlers.setResources({
-              ...state.resources,
-              stress: { ...state.resources.stress, current: newStress },
-            });
-          },
-          onHopeChange: newHope => {
-            handlers.setHopeWithScars({
-              ...state.hopeWithScars,
-              current: newHope,
-            });
-          },
-          onTagTeamUsed: () => {
-            handlers.setRestState({
-              ...state.restState,
-              tagTeamUsedThisSession: true,
-            });
-          },
-        }}
-      />
+      <div className="animate-fade-up stagger-3">
+        <GameActions
+          state={{
+            currentStress: state.resources.stress.current,
+            maxStress: state.resources.stress.max,
+            currentHope: state.hopeWithScars.current,
+            tagTeamUsedThisSession:
+              state.restState?.tagTeamUsedThisSession ?? false,
+          }}
+          callbacks={{
+            onStressChange: newStress => {
+              handlers.setResources({
+                ...state.resources,
+                stress: { ...state.resources.stress, current: newStress },
+              });
+            },
+            onHopeChange: newHope => {
+              handlers.setHopeWithScars({
+                ...state.hopeWithScars,
+                current: newHope,
+              });
+            },
+            onTagTeamUsed: () => {
+              handlers.setRestState({
+                ...state.restState,
+                tagTeamUsedThisSession: true,
+              });
+            },
+          }}
+        />
+      </div>
 
       {/* Rest Section */}
-      <section className="bg-card overflow-hidden rounded-xl border shadow-sm transition-all hover:shadow-md">
-        <div className="from-fear-muted/30 flex items-center justify-between border-b bg-gradient-to-r to-transparent px-4 py-3 sm:px-6">
-          <div className="flex items-center gap-2">
+      <section className="game-card game-card-tier animate-fade-up stagger-4">
+        <div className="game-card-header">
+          <h3>
             <Moon className="text-fear size-5" />
-            <h3 className="text-lg font-semibold">Rest</h3>
-          </div>
-          <Button onClick={() => setIsRestModalOpen(true)}>Take a Rest</Button>
+            Rest
+          </h3>
+          <Button onClick={() => setIsRestModalOpen(true)} size="sm">
+            Take a Rest
+          </Button>
         </div>
-        <div className="p-4 sm:p-6">
+        <div className="game-card-body">
           <div className="text-muted-foreground text-sm">
             <p>Short rests allow 2 downtime moves with 1d4+Tier recovery.</p>
             <p>Long rests allow 2 downtime moves with full recovery.</p>
@@ -401,21 +405,25 @@ export function CombatTab({
       />
 
       {/* Row 4: Companion (if exists) */}
-      <CompanionSection
-        hasCompanionFeature={hasCompanionFeature}
-        companionEnabled={state.companionEnabled}
-        companion={state.companion}
-        setCompanion={handlers.setCompanion}
-        setCompanionEnabled={handlers.setCompanionEnabled}
-      />
+      <div className="animate-fade-up stagger-5">
+        <CompanionSection
+          hasCompanionFeature={hasCompanionFeature}
+          companionEnabled={state.companionEnabled}
+          companion={state.companion}
+          setCompanion={handlers.setCompanion}
+          setCompanionEnabled={handlers.setCompanionEnabled}
+        />
+      </div>
 
       {/* Row 5: Loadout */}
-      <LoadoutDisplay
-        selection={state.loadout}
-        onChange={handlers.setLoadout}
-        classDomains={state.classSelection?.domains ?? ['Arcana', 'Codex']}
-        tier={state.progression.currentTier as '1' | '2-4' | '5-7' | '8-10'}
-      />
+      <div className="animate-fade-up stagger-6">
+        <LoadoutDisplay
+          selection={state.loadout}
+          onChange={handlers.setLoadout}
+          classDomains={state.classSelection?.domains ?? ['Arcana', 'Codex']}
+          tier={state.progression.currentTier as '1' | '2-4' | '5-7' | '8-10'}
+        />
+      </div>
     </div>
   );
 }
