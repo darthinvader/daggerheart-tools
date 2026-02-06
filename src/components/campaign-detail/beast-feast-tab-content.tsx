@@ -387,9 +387,15 @@ export function BeastFeastTabContent({
       .filter(ing => ing.feature)
       .map(ing => ({
         name: ing.feature!.name,
-        effect: ing.feature!.effect,
+        effect:
+          'effect' in ing.feature!
+            ? (ing.feature as { effect: string }).effect
+            : ing.feature!.description,
         ingredientName: ing.name,
-        isRisky: ing.feature?.isRisky ?? false,
+        isRisky:
+          'isRisky' in ing.feature!
+            ? !!(ing.feature as { isRisky?: boolean }).isRisky
+            : false,
       }));
 
     // Step 6: Build the cooking result

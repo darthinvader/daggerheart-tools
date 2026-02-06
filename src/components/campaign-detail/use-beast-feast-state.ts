@@ -72,7 +72,21 @@ export function useBeastFeastState({
       try {
         const campaign = await getCampaign(campaignId);
         if (!cancelled && campaign) {
-          setBeastFeast(campaign.beastFeast ?? DEFAULT_BEAST_FEAST_STATE);
+          const raw = campaign.beastFeast ?? DEFAULT_BEAST_FEAST_STATE;
+          setBeastFeast({
+            ...DEFAULT_BEAST_FEAST_STATE,
+            ...raw,
+            // Ensure arrays are always arrays even if stored data is malformed
+            ingredients: Array.isArray(raw.ingredients) ? raw.ingredients : [],
+            recipes: Array.isArray(raw.recipes) ? raw.recipes : [],
+            meals: Array.isArray(raw.meals) ? raw.meals : [],
+            cookingSessions: Array.isArray(raw.cookingSessions)
+              ? raw.cookingSessions
+              : [],
+            characterCookingStats: Array.isArray(raw.characterCookingStats)
+              ? raw.characterCookingStats
+              : [],
+          });
         }
       } catch (error) {
         console.error('Error loading Beast Feast state:', error);
