@@ -104,7 +104,6 @@ function getWeaponSummary(equipment: EquipmentState): WeaponSummary[] {
   const secondary = buildWeaponSummary(secondaryWeapon, 'Secondary');
   if (secondary) weapons.push(secondary);
 
-  // Add combat wheelchair if enabled
   if (equipment.useCombatWheelchair) {
     const wheelchair =
       equipment.wheelchairMode === 'homebrew'
@@ -146,47 +145,55 @@ function WeaponCard({ weapon }: { weapon: WeaponSummary }) {
   const hasFeatures = weapon.features.length > 0;
 
   return (
-    <div className="rounded border p-1.5 sm:p-2">
+    <div className="quick-equipment-item">
       <button
         type="button"
         onClick={() => hasFeatures && setExpanded(!expanded)}
         className={cn(
-          'flex w-full items-center justify-between gap-1 text-left sm:gap-2',
+          'quick-equipment-item-header',
           hasFeatures && 'cursor-pointer hover:opacity-80'
         )}
         disabled={!hasFeatures}
       >
-        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-1 gap-y-0.5 sm:gap-x-2 sm:gap-y-1">
-          <span className="flex shrink-0 items-center gap-0.5 text-sm font-medium sm:gap-1 sm:text-base">
+        <div className="quick-equipment-item-info">
+          <span className="quick-equipment-item-name">
             {hasFeatures && (
               <span className="text-muted-foreground">
                 {expanded ? (
-                  <ChevronDown className="inline h-3 w-3" />
+                  <ChevronDown className="inline size-3" />
                 ) : (
-                  <ChevronRight className="inline h-3 w-3" />
+                  <ChevronRight className="inline size-3" />
                 )}
               </span>
             )}
-            <TypeIcon className="size-3 sm:size-4" /> {weapon.name}
-          </span>
-          <span className="text-muted-foreground flex shrink-0 items-center gap-0.5 text-[10px] sm:gap-1 sm:text-xs">
-            <Target className="size-2.5 sm:size-3" /> {weapon.damage} ·{' '}
-            <Ruler className="size-2.5 sm:size-3" /> {weapon.range} ·{' '}
-            <Hand className="size-2.5 sm:size-3" /> {weapon.burden}
+            <TypeIcon className="size-3.5" /> {weapon.name}
           </span>
         </div>
-        <Badge variant="outline" className="shrink-0 text-[10px] sm:text-xs">
+        <Badge variant="outline" className="quick-equipment-type-badge">
           {weapon.type}
           {weapon.frameType && ` (${weapon.frameType})`}
         </Badge>
       </button>
+      {/* Prominent damage/range/burden row */}
+      <div className="quick-equipment-stats-row">
+        <span className="quick-equipment-damage-dice">
+          <Target className="size-3" />
+          {weapon.damage}
+        </span>
+        <span className="quick-equipment-stat-pill">
+          <Ruler className="size-2.5" /> {weapon.range}
+        </span>
+        <span className="quick-equipment-stat-pill">
+          <Hand className="size-2.5" /> {weapon.burden}
+        </span>
+      </div>
       {expanded && hasFeatures && (
-        <div className="mt-2 ml-4 space-y-2 border-l pl-2">
+        <div className="quick-equipment-features">
           {weapon.features.map((f, i) => (
-            <div key={i} className="text-sm">
+            <div key={i} className="quick-equipment-feature">
               <span className="font-medium">{f.name}</span>
               {f.description && (
-                <p className="text-muted-foreground text-xs leading-relaxed">
+                <p className="text-muted-foreground text-[11px] leading-relaxed">
                   {f.description}
                 </p>
               )}
@@ -207,51 +214,56 @@ function ArmorCard({ armor }: { armor: ArmorSummary }) {
       : '';
 
   return (
-    <div className="rounded border p-1.5 sm:p-2">
+    <div className="quick-equipment-item">
       <button
         type="button"
         onClick={() => hasFeatures && setExpanded(!expanded)}
         className={cn(
-          'flex w-full items-center justify-between gap-1 text-left sm:gap-2',
+          'quick-equipment-item-header',
           hasFeatures && 'cursor-pointer hover:opacity-80'
         )}
         disabled={!hasFeatures}
       >
-        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-1 gap-y-0.5 sm:gap-x-2 sm:gap-y-1">
-          <span className="flex shrink-0 items-center gap-0.5 text-sm font-medium sm:gap-1 sm:text-base">
+        <div className="quick-equipment-item-info">
+          <span className="quick-equipment-item-name">
             {hasFeatures && (
               <span className="text-muted-foreground">
                 {expanded ? (
-                  <ChevronDown className="inline h-3 w-3" />
+                  <ChevronDown className="inline size-3" />
                 ) : (
-                  <ChevronRight className="inline h-3 w-3" />
+                  <ChevronRight className="inline size-3" />
                 )}
               </span>
             )}
-            <Shield className="size-3 sm:size-4" /> {armor.name}
-          </span>
-          <span className="text-muted-foreground flex shrink-0 flex-wrap items-center gap-0.5 text-[10px] sm:gap-1 sm:text-xs">
-            Score: {armor.score} · Major: {armor.major}+ · Severe:{' '}
-            {armor.severe}+
-            {armor.evasionMod !== 0 && (
-              <>
-                · <Footprints className="size-2.5 sm:size-3" />
-                {evasionStr}
-              </>
-            )}
+            <Shield className="size-3.5" /> {armor.name}
           </span>
         </div>
-        <Badge variant="outline" className="shrink-0 text-[10px] sm:text-xs">
+        <Badge variant="outline" className="quick-equipment-type-badge">
           Armor
         </Badge>
       </button>
+      <div className="quick-equipment-stats-row">
+        <span className="quick-equipment-stat-pill">Score: {armor.score}</span>
+        <span className="quick-equipment-stat-pill text-yellow-500">
+          Major: {armor.major}+
+        </span>
+        <span className="quick-equipment-stat-pill text-orange-500">
+          Severe: {armor.severe}+
+        </span>
+        {armor.evasionMod !== 0 && (
+          <span className="quick-equipment-stat-pill">
+            <Footprints className="size-2.5" />
+            {evasionStr}
+          </span>
+        )}
+      </div>
       {expanded && hasFeatures && (
-        <div className="mt-2 ml-4 space-y-2 border-l pl-2">
+        <div className="quick-equipment-features">
           {armor.features.map((f, i) => (
-            <div key={i} className="text-sm">
+            <div key={i} className="quick-equipment-feature">
               <span className="font-medium">{f.name}</span>
               {f.description && (
-                <p className="text-muted-foreground text-xs leading-relaxed">
+                <p className="text-muted-foreground text-[11px] leading-relaxed">
                   {f.description}
                 </p>
               )}
@@ -268,42 +280,44 @@ function CustomSlotCard({ slot }: { slot: CustomEquipment }) {
   const hasContent = slot.features.length > 0 || Boolean(slot.description);
 
   return (
-    <div className="rounded border p-2">
+    <div className="quick-equipment-item">
       <button
         type="button"
         onClick={() => hasContent && setExpanded(!expanded)}
         className={cn(
-          'flex w-full items-center justify-between gap-2 text-left',
+          'quick-equipment-item-header',
           hasContent && 'cursor-pointer hover:opacity-80'
         )}
         disabled={!hasContent}
       >
-        <span className="font-medium">
+        <span className="quick-equipment-item-name">
           {hasContent && (
-            <span className="text-muted-foreground mr-1">
+            <span className="text-muted-foreground">
               {expanded ? (
-                <ChevronDown className="inline h-3 w-3" />
+                <ChevronDown className="inline size-3" />
               ) : (
-                <ChevronRight className="inline h-3 w-3" />
+                <ChevronRight className="inline size-3" />
               )}
             </span>
           )}
           {slot.name}
         </span>
-        <Badge variant="outline" className="shrink-0 text-xs">
+        <Badge variant="outline" className="quick-equipment-type-badge">
           {slot.slotName}
         </Badge>
       </button>
       {expanded && hasContent && (
-        <div className="mt-2 ml-4 space-y-2 border-l pl-2">
+        <div className="quick-equipment-features">
           {slot.description && (
-            <p className="text-muted-foreground text-xs">{slot.description}</p>
+            <p className="text-muted-foreground text-[11px]">
+              {slot.description}
+            </p>
           )}
           {slot.features.map((f, i) => (
-            <div key={i} className="text-sm">
+            <div key={i} className="quick-equipment-feature">
               <span className="font-medium">{f.name}</span>
               {f.description && (
-                <p className="text-muted-foreground text-xs leading-relaxed">
+                <p className="text-muted-foreground text-[11px] leading-relaxed">
                   {f.description}
                 </p>
               )}
@@ -328,30 +342,52 @@ export function QuickEquipmentInfo({
 
   if (!hasEquipment) {
     return (
-      <div className={cn('bg-card rounded-lg border p-3', className)}>
-        <div className="flex items-center gap-2">
-          <Shield className="size-5" />
-          <span className="text-muted-foreground">No equipment</span>
-        </div>
+      <div className={cn('quick-equipment-empty', className)}>
+        <Shield className="size-4" />
+        <span className="text-muted-foreground text-sm">No equipment</span>
       </div>
     );
   }
 
   return (
-    <div className={cn('bg-card rounded-lg border p-2 sm:p-3', className)}>
-      <div className="mb-1.5 flex items-center gap-2 sm:mb-2">
-        <Shield className="size-4 sm:size-5" />
-        <span className="text-sm font-semibold sm:text-base">Equipment</span>
-      </div>
-      <div className="grid gap-1.5 sm:grid-cols-2 sm:gap-2">
-        {weapons.map((w, i) => (
-          <WeaponCard key={i} weapon={w} />
-        ))}
-        {armor && <ArmorCard armor={armor} />}
-        {customSlots.map(slot => (
-          <CustomSlotCard key={slot.id} slot={slot} />
-        ))}
-      </div>
+    <div className={cn('quick-equipment-card', className)}>
+      {/* Weapons category */}
+      {weapons.length > 0 && (
+        <div className="quick-equipment-category">
+          <h4 className="quick-equipment-category-label">
+            <Sword className="size-3" /> Weapons
+          </h4>
+          <div className="quick-equipment-list">
+            {weapons.map((w, i) => (
+              <WeaponCard key={i} weapon={w} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Armor category */}
+      {armor && (
+        <div className="quick-equipment-category">
+          <h4 className="quick-equipment-category-label">
+            <Shield className="size-3" /> Armor & Defense
+          </h4>
+          <div className="quick-equipment-list">
+            <ArmorCard armor={armor} />
+          </div>
+        </div>
+      )}
+
+      {/* Custom slots category */}
+      {customSlots.length > 0 && (
+        <div className="quick-equipment-category">
+          <h4 className="quick-equipment-category-label">Custom Gear</h4>
+          <div className="quick-equipment-list">
+            {customSlots.map(slot => (
+              <CustomSlotCard key={slot.id} slot={slot} />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

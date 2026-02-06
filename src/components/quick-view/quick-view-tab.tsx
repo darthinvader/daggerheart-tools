@@ -1,10 +1,11 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import type { DemoHandlers, DemoState } from '@/components/demo/demo-types';
 import type { EquipmentState } from '@/components/equipment';
 import type { TraitsState } from '@/components/traits';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { getEquipmentFeatureModifiers } from '@/lib/equipment-feature-parser';
+import type { ActiveEffect } from '@/lib/schemas/equipment';
 import {
   DEFAULT_QUICK_VIEW_PREFERENCES,
   type QuickViewSections,
@@ -14,11 +15,17 @@ import {
   combineModifiers,
 } from '@/lib/utils/feature-modifiers';
 
+import { QuickActiveEffects } from './quick-active-effects';
+import { QuickCombatSummary } from './quick-combat-summary';
+import { QuickCountdowns } from './quick-countdowns';
+import { QuickLevelBadge } from './quick-level-badge';
+import { QuickStatusBanner } from './quick-status-banner';
 import {
-  QuickViewIdentitySections,
-  QuickViewInventorySections,
-  QuickViewPrimarySections,
-  QuickViewStatusSections,
+  QuickViewCombatSection,
+  QuickViewGearSection,
+  QuickViewHeroSection,
+  QuickViewIdentitySection,
+  QuickViewSessionSection,
 } from './quick-view-sections';
 
 interface QuickViewTabProps {
@@ -113,10 +120,48 @@ export function QuickViewTab({ state, handlers }: QuickViewTabProps) {
   const isSectionOpen = (id: QuickSectionKey) =>
     !isMobile || quickView.sections[id];
 
+  // Active effects handler — remove by filtering
+  const handleRemoveEffect = useCallback(
+    (effectId: string) => {
+      const updated = (state.activeEffects ?? []).filter(
+        (e: ActiveEffect) => e.id !== effectId
+      );
+      handlers.setActiveEffects(updated);
+    },
+    [state.activeEffects, handlers]
+  );
+
+  // HP danger state for CSS class
+  const hpPercent =
+    state.resources.hp.max > 0
+      ? state.resources.hp.current / state.resources.hp.max
+      : 1;
+  const isDanger = hpPercent <= 0.25 && state.resources.hp.current > 0;
+
   return (
-    <div className="space-y-2 pt-3 sm:space-y-3 sm:pt-4">
+    <div className={`quick-tab-root${isDanger ? 'quick-tab-danger' : ''}`}>
+      {/* Status banner — death, unconscious, critical HP, full stress */}
+      <QuickStatusBanner
+        deathState={state.deathState}
+        hpCurrent={state.resources.hp.current}
+        hpMax={state.resources.hp.max}
+        stressCurrent={state.resources.stress.current}
+        stressMax={state.resources.stress.max}
+      />
+
+      {/* Active effects strip — potions, buffs, temporary bonuses */}
+      <QuickActiveEffects
+        effects={state.activeEffects ?? []}
+        onRemove={handleRemoveEffect}
+      />
+
+      {/* Active countdowns — threat/opportunity progress rings */}
+      <QuickCountdowns countdowns={state.countdowns ?? []} />
+
+      {/* Hero Section: Level badge + Vitals bar + Traits */}
       <div className="animate-fade-up">
-        <QuickViewPrimarySections
+        <QuickLevelBadge progression={state.progression} />
+        <QuickViewHeroSection
           state={state}
           handlers={handlers}
           isMobile={isMobile}
@@ -129,16 +174,36 @@ export function QuickViewTab({ state, handlers }: QuickViewTabProps) {
           }}
         />
       </div>
+
+      {/* Combat Summary — inline stat line always visible */}
+      <QuickCombatSummary
+        coreScores={state.coreScores}
+        thresholds={state.thresholds}
+      />
+
+      {/* Combat Section: Core Scores + Thresholds unified */}
       <div className="animate-fade-up stagger-1">
-        <QuickViewIdentitySections
+        <QuickViewCombatSection
           state={state}
           isMobile={isMobile}
           isSectionOpen={isSectionOpen}
           onToggle={handleToggleSection}
         />
       </div>
+
+      {/* Identity Section: Ancestry / Community / Class as cards */}
       <div className="animate-fade-up stagger-2">
-        <QuickViewStatusSections
+        <QuickViewIdentitySection
+          state={state}
+          isMobile={isMobile}
+          isSectionOpen={isSectionOpen}
+          onToggle={handleToggleSection}
+        />
+      </div>
+
+      {/* Session Section: Gold, Conditions, Companion, Experiences */}
+      <div className="animate-fade-up stagger-3">
+        <QuickViewSessionSection
           state={state}
           handlers={handlers}
           isMobile={isMobile}
@@ -147,8 +212,10 @@ export function QuickViewTab({ state, handlers }: QuickViewTabProps) {
           hasCompanion={hasCompanion}
         />
       </div>
-      <div className="animate-fade-up stagger-3">
-        <QuickViewInventorySections
+
+      {/* Gear Section: Equipment + Loadout + Inventory */}
+      <div className="animate-fade-up stagger-4">
+        <QuickViewGearSection
           state={state}
           handlers={handlers}
           isMobile={isMobile}

@@ -1,6 +1,5 @@
 import {
   Activity,
-  BarChart3,
   Crosshair,
   Eye,
   Footprints,
@@ -29,13 +28,13 @@ interface QuickTraitsInfoProps {
   className?: string;
 }
 
-const TRAIT_CONFIG: { name: string; icon: LucideIcon }[] = [
-  { name: 'Agility', icon: Footprints },
-  { name: 'Strength', icon: Activity },
-  { name: 'Finesse', icon: Crosshair },
-  { name: 'Instinct', icon: Eye },
-  { name: 'Presence', icon: Sparkles },
-  { name: 'Knowledge', icon: Library },
+const TRAIT_CONFIG: { name: string; icon: LucideIcon; accent: string }[] = [
+  { name: 'Agility', icon: Footprints, accent: 'quick-trait-agility' },
+  { name: 'Strength', icon: Activity, accent: 'quick-trait-strength' },
+  { name: 'Finesse', icon: Crosshair, accent: 'quick-trait-finesse' },
+  { name: 'Instinct', icon: Eye, accent: 'quick-trait-instinct' },
+  { name: 'Presence', icon: Sparkles, accent: 'quick-trait-presence' },
+  { name: 'Knowledge', icon: Library, accent: 'quick-trait-knowledge' },
 ];
 
 export function QuickTraitsInfo({
@@ -44,57 +43,50 @@ export function QuickTraitsInfo({
   className,
 }: QuickTraitsInfoProps) {
   return (
-    <div className={cn('bg-card rounded-lg border p-2 sm:p-3', className)}>
-      <div className="mb-1.5 flex items-center gap-2 sm:mb-2">
-        <BarChart3 className="size-4 sm:size-5" />
-        <span className="text-sm font-semibold sm:text-base">Traits</span>
-      </div>
-      <div className="grid grid-cols-3 gap-1 sm:grid-cols-6 sm:gap-2">
-        {TRAIT_CONFIG.map(({ name, icon: Icon }) => {
-          const trait = traits[name as keyof TraitsState];
-          const equipMod = equipmentModifiers?.[name as CharacterTrait] ?? 0;
-          const total = trait.value + trait.bonus + equipMod;
-          const modifier = total >= 0 ? `+${total}` : `${total}`;
-          const hasEquipMod = equipMod !== 0;
-          const hasBonus = trait.bonus !== 0 || hasEquipMod;
+    <div className={cn('quick-traits-grid', className)}>
+      {TRAIT_CONFIG.map(({ name, icon: Icon, accent }) => {
+        const trait = traits[name as keyof TraitsState];
+        const equipMod = equipmentModifiers?.[name as CharacterTrait] ?? 0;
+        const total = trait.value + trait.bonus + equipMod;
+        const modifier = total >= 0 ? `+${total}` : `${total}`;
+        const hasEquipMod = equipMod !== 0;
+        const hasBonus = trait.bonus !== 0 || hasEquipMod;
 
-          return (
-            <div
-              key={name}
-              className={cn(
-                'flex flex-col items-center rounded border p-1 sm:p-2',
-                trait.marked && 'bg-primary/10 border-primary/30'
-              )}
-            >
-              <Icon className="size-3 sm:size-4" />
-              <span className="text-muted-foreground text-[10px] sm:text-xs">
-                {name}
-              </span>
-              <span className="text-primary text-base font-bold sm:text-lg">
-                {modifier}
-              </span>
-              {hasBonus && (
-                <span className="text-muted-foreground text-[9px] sm:text-xs">
-                  ({trait.value}
-                  {trait.bonus >= 0 ? '+' : ''}
-                  {trait.bonus}
-                  {hasEquipMod && (
-                    <span
-                      className={
-                        equipMod < 0 ? 'text-destructive' : 'text-green-600'
-                      }
-                    >
-                      {equipMod >= 0 ? '+' : ''}
-                      {equipMod}
-                    </span>
-                  )}
-                  )
-                </span>
-              )}
+        return (
+          <div
+            key={name}
+            className={cn(
+              'quick-trait-cell',
+              accent,
+              trait.marked && 'quick-trait-marked'
+            )}
+          >
+            <div className="quick-trait-icon-wrap">
+              <Icon className="size-3.5 sm:size-4" />
             </div>
-          );
-        })}
-      </div>
+            <span className="quick-trait-value">{modifier}</span>
+            <span className="quick-trait-name">{name}</span>
+            <span className="quick-trait-roll-hint">d12 {modifier}</span>
+            {hasBonus && (
+              <span className="quick-trait-breakdown">
+                {trait.value}
+                {trait.bonus >= 0 ? '+' : ''}
+                {trait.bonus}
+                {hasEquipMod && (
+                  <span
+                    className={
+                      equipMod < 0 ? 'text-destructive' : 'text-green-500'
+                    }
+                  >
+                    {equipMod >= 0 ? '+' : ''}
+                    {equipMod}
+                  </span>
+                )}
+              </span>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }

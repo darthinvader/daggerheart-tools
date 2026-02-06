@@ -10,7 +10,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Sparkles, Zap } from '@/lib/icons';
+import { Sparkles } from '@/lib/icons';
 import { cn } from '@/lib/utils';
 
 interface QuickConditionsInfoProps {
@@ -44,17 +44,23 @@ export function QuickConditionsInfo({
   );
 
   return (
-    <div className={cn('bg-card rounded-lg border p-2 sm:p-3', className)}>
-      <div className="mb-1.5 flex items-center justify-between sm:mb-2">
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          <Zap className="size-4 sm:size-5" />
-          <span className="text-sm font-semibold sm:text-base">Conditions</span>
-        </div>
+    <div className={cn('quick-conditions-card', className)}>
+      {/* Header with add button */}
+      <div className="quick-conditions-header">
+        <span className="quick-conditions-count">
+          {conditions.items.length === 0
+            ? 'No conditions'
+            : `${conditions.items.length} active`}
+        </span>
         {onChange && (
           <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
             <PopoverTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
-                <Plus className="size-4" />
+              <Button
+                variant="ghost"
+                size="sm"
+                className="quick-conditions-add-btn"
+              >
+                <Plus className="size-3.5" />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-64 p-2" align="end">
@@ -80,25 +86,26 @@ export function QuickConditionsInfo({
         )}
       </div>
 
+      {/* Conditions list */}
       {conditions.items.length === 0 ? (
-        <p className="text-muted-foreground flex items-center justify-center gap-1 text-sm">
-          <Sparkles className="size-4" /> No conditions
+        <p className="quick-conditions-empty">
+          <Sparkles className="size-3.5" /> All clear
         </p>
       ) : (
-        <div className="flex flex-wrap gap-1">
+        <div className="quick-conditions-list">
           {conditions.items.map((condition, idx) => (
             <Badge
               key={idx}
               variant="secondary"
-              className="gap-1 py-0.5 text-xs"
+              className="quick-condition-badge"
             >
               {condition}
               {onChange && (
                 <button
                   onClick={() => handleRemove(idx)}
-                  className="hover:bg-destructive/20 ml-0.5 rounded-full"
+                  className="quick-condition-remove"
                 >
-                  <X className="size-3" />
+                  <X className="size-2.5" />
                 </button>
               )}
             </Badge>

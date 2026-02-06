@@ -29,7 +29,7 @@ function CardMiniDisplay({ card }: { card: DomainCardLite }) {
   return (
     <div
       className={cn(
-        'rounded border p-1.5 sm:p-2',
+        'quick-loadout-card-item',
         domainBg,
         hasDescription && 'cursor-pointer hover:opacity-90'
       )}
@@ -44,21 +44,21 @@ function CardMiniDisplay({ card }: { card: DomainCardLite }) {
         }
       }}
     >
-      <div className="mb-0.5 flex items-center justify-between gap-1 sm:mb-1 sm:gap-2">
+      <div className="quick-loadout-card-header">
         <button
           type="button"
           onClick={event => {
             event.stopPropagation();
             toggleExpanded();
           }}
-          className="flex items-center gap-0.5 text-left text-xs font-medium hover:opacity-80 sm:gap-1 sm:text-sm"
+          className="quick-loadout-card-name"
         >
           {card.description && (
             <span className="text-muted-foreground shrink-0">
               {expanded ? (
-                <ChevronDown className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                <ChevronDown className="size-2.5 sm:size-3" />
               ) : (
-                <ChevronRight className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                <ChevronRight className="size-2.5 sm:size-3" />
               )}
             </span>
           )}
@@ -66,16 +66,14 @@ function CardMiniDisplay({ card }: { card: DomainCardLite }) {
           <span className="truncate">{card.name}</span>
         </button>
         <div
-          className="flex shrink-0 items-center gap-0.5 text-[10px] sm:gap-1 sm:text-xs"
+          className="quick-loadout-card-costs"
           onClick={event => event.stopPropagation()}
         >
           <CardCostBadges costs={costs} compact />
         </div>
       </div>
       {card.description && expanded && (
-        <p className="text-muted-foreground mt-0.5 text-[10px] whitespace-pre-line sm:mt-1 sm:text-xs">
-          {card.description}
-        </p>
+        <p className="quick-loadout-card-description">{card.description}</p>
       )}
     </div>
   );
@@ -91,34 +89,22 @@ export function QuickLoadoutInfo({
 
   if (!hasCards) {
     return (
-      <div className={cn('bg-card rounded-lg border p-3', className)}>
-        <div className="flex items-center gap-2">
-          <Scroll className="size-5" />
-          <span className="text-muted-foreground">No domain cards</span>
-        </div>
+      <div className={cn('quick-loadout-empty', className)}>
+        <Scroll className="size-4" />
+        <span className="text-muted-foreground text-sm">No domain cards</span>
       </div>
     );
   }
 
   return (
-    <div className={cn('bg-card rounded-lg border p-2 sm:p-3', className)}>
-      <div className="mb-1.5 flex items-center gap-1.5 sm:mb-2 sm:gap-2">
-        <Scroll className="size-4 sm:size-5" />
-        <span className="text-sm font-semibold sm:text-base">
-          Domain Loadout
-        </span>
-        <span className="text-muted-foreground text-[10px] sm:text-xs">
-          ({activeCards.length} active, {vaultCards.length} vault)
-        </span>
-      </div>
-
+    <div className={cn('quick-loadout-card', className)}>
       {/* Active cards */}
       {activeCards.length > 0 && (
-        <div className="space-y-1 sm:space-y-2">
-          <h4 className="text-muted-foreground text-[10px] font-medium uppercase sm:text-xs">
-            Active
+        <div className="quick-loadout-section">
+          <h4 className="quick-loadout-section-label">
+            Active ({activeCards.length})
           </h4>
-          <div className="grid gap-1.5 sm:grid-cols-2 sm:gap-2">
+          <div className="quick-loadout-grid">
             {activeCards.map((card, i) => (
               <CardMiniDisplay key={i} card={card} />
             ))}
@@ -128,11 +114,11 @@ export function QuickLoadoutInfo({
 
       {/* Vault cards */}
       {vaultCards.length > 0 && (
-        <div className="mt-2 space-y-1 sm:mt-3 sm:space-y-2">
-          <h4 className="text-muted-foreground text-[10px] font-medium uppercase sm:text-xs">
-            Vault
+        <div className="quick-loadout-section">
+          <h4 className="quick-loadout-section-label">
+            Vault ({vaultCards.length})
           </h4>
-          <div className="grid gap-1.5 sm:grid-cols-2 sm:gap-2">
+          <div className="quick-loadout-grid">
             {vaultCards.map((card, i) => (
               <CardMiniDisplay key={i} card={card} />
             ))}

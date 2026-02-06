@@ -43,12 +43,21 @@ export function QuickCommunityInfo({
   const feature = getCommunityFeature(selection);
 
   return (
-    <div className={cn('bg-card rounded-lg border p-2 sm:p-3', className)}>
-      <div className="mb-1.5 flex items-center gap-1.5 sm:mb-2 sm:gap-2">
-        <Home className="size-4 sm:size-5" />
-        <span className="text-sm font-semibold sm:text-base">{name}</span>
+    <div className={cn('quick-identity-card', className)}>
+      <div className="quick-identity-header">
+        <div className="quick-identity-icon-wrap community">
+          <Home className="size-4" />
+        </div>
+        <div className="quick-identity-title">
+          <span className="quick-identity-label">Community</span>
+          <span className="quick-identity-name">{name}</span>
+        </div>
       </div>
-      {feature && <ExpandableFeature feature={feature} />}
+      {feature && (
+        <div className="quick-identity-features">
+          <ExpandableFeature feature={feature} />
+        </div>
+      )}
     </div>
   );
 }

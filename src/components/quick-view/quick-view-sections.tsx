@@ -28,7 +28,12 @@ interface SectionProps {
   onToggle: (id: QuickSectionKey) => void;
 }
 
-export function QuickViewPrimarySections({
+/**
+ * Hero Section — The most critical at-a-glance data:
+ * Vitals bar (HP, Armor, Stress, Hope) + Traits grid.
+ * On mobile, vitals is always expanded; traits can collapse.
+ */
+export function QuickViewHeroSection({
   state,
   handlers,
   isMobile,
@@ -41,10 +46,23 @@ export function QuickViewPrimarySections({
   equipmentModifiers: AggregatedEquipmentStats;
 }) {
   return (
-    <>
+    <div className="quick-section-group">
+      {/* Vitals — always visible, no collapse on mobile */}
+      <QuickVitalsInfo
+        resources={state.resources}
+        hopeState={state.hopeWithScars}
+        onResourcesChange={handlers.setResources}
+        onHopeChange={handlers.setHopeWithScars}
+        bonusHopeSlots={bonusHopeSlots}
+        conditions={state.conditions}
+        onConditionsChange={handlers.setConditions}
+      />
+
+      {/* Traits — collapsible on mobile */}
       <QuickSection
         id="traits"
         label="Traits"
+        icon="traits"
         isOpen={isSectionOpen('traits')}
         isMobile={isMobile}
         onToggle={onToggle}
@@ -54,29 +72,27 @@ export function QuickViewPrimarySections({
           equipmentModifiers={equipmentModifiers.traits}
         />
       </QuickSection>
+    </div>
+  );
+}
 
-      <QuickSection
-        id="vitals"
-        label="Vitals"
-        isOpen={isSectionOpen('vitals')}
-        isMobile={isMobile}
-        onToggle={onToggle}
-      >
-        <QuickVitalsInfo
-          resources={state.resources}
-          hopeState={state.hopeWithScars}
-          onResourcesChange={handlers.setResources}
-          onHopeChange={handlers.setHopeWithScars}
-          bonusHopeSlots={bonusHopeSlots}
-          conditions={state.conditions}
-          onConditionsChange={handlers.setConditions}
-        />
-      </QuickSection>
-
-      <div className="grid items-stretch gap-2 sm:grid-cols-2 sm:gap-3">
+/**
+ * Combat Section — Core Scores + Thresholds side by side,
+ * combined into a single "Combat Stats" area.
+ */
+export function QuickViewCombatSection({
+  state,
+  isMobile,
+  isSectionOpen,
+  onToggle,
+}: Omit<SectionProps, 'handlers'>) {
+  return (
+    <div className="quick-section-group">
+      <div className="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 sm:gap-6">
         <QuickSection
           id="coreScores"
           label="Core Scores"
+          icon="combat"
           isOpen={isSectionOpen('coreScores')}
           isMobile={isMobile}
           onToggle={onToggle}
@@ -86,6 +102,7 @@ export function QuickViewPrimarySections({
         <QuickSection
           id="thresholds"
           label="Thresholds"
+          icon="thresholds"
           isOpen={isSectionOpen('thresholds')}
           isMobile={isMobile}
           onToggle={onToggle}
@@ -93,53 +110,67 @@ export function QuickViewPrimarySections({
           <QuickThresholdsInfo thresholds={state.thresholds} />
         </QuickSection>
       </div>
-    </>
+    </div>
   );
 }
 
-export function QuickViewIdentitySections({
+/**
+ * Identity Section — Ancestry, Community, Class.
+ * On mobile these stack vertically as compact expandable cards.
+ * On desktop they sit in a 3-column grid.
+ */
+export function QuickViewIdentitySection({
   state,
   isMobile,
   isSectionOpen,
   onToggle,
 }: Omit<SectionProps, 'handlers'>) {
   return (
-    <div className="grid items-stretch gap-2 sm:grid-cols-3 sm:gap-3">
-      <QuickSection
-        id="ancestry"
-        label="Ancestry"
-        isOpen={isSectionOpen('ancestry')}
-        isMobile={isMobile}
-        onToggle={onToggle}
-      >
-        <QuickAncestryInfo selection={state.ancestry} />
-      </QuickSection>
-      <QuickSection
-        id="community"
-        label="Community"
-        isOpen={isSectionOpen('community')}
-        isMobile={isMobile}
-        onToggle={onToggle}
-      >
-        <QuickCommunityInfo selection={state.community} />
-      </QuickSection>
-      <QuickSection
-        id="class"
-        label="Class"
-        isOpen={isSectionOpen('class')}
-        isMobile={isMobile}
-        onToggle={onToggle}
-      >
-        <QuickClassInfo
-          selection={state.classSelection}
-          unlockedSubclassFeatures={state.unlockedSubclassFeatures}
-        />
-      </QuickSection>
+    <div className="quick-section-group">
+      <div className="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+        <QuickSection
+          id="ancestry"
+          label="Ancestry"
+          icon="ancestry"
+          isOpen={isSectionOpen('ancestry')}
+          isMobile={isMobile}
+          onToggle={onToggle}
+        >
+          <QuickAncestryInfo selection={state.ancestry} />
+        </QuickSection>
+        <QuickSection
+          id="community"
+          label="Community"
+          icon="community"
+          isOpen={isSectionOpen('community')}
+          isMobile={isMobile}
+          onToggle={onToggle}
+        >
+          <QuickCommunityInfo selection={state.community} />
+        </QuickSection>
+        <QuickSection
+          id="class"
+          label="Class"
+          icon="class"
+          isOpen={isSectionOpen('class')}
+          isMobile={isMobile}
+          onToggle={onToggle}
+        >
+          <QuickClassInfo
+            selection={state.classSelection}
+            unlockedSubclassFeatures={state.unlockedSubclassFeatures}
+          />
+        </QuickSection>
+      </div>
     </div>
   );
 }
 
-export function QuickViewStatusSections({
+/**
+ * Session Section — Gold, Conditions, Companion, Experiences.
+ * Compact dashboard for tracking session-level state.
+ */
+export function QuickViewSessionSection({
   state,
   handlers,
   isMobile,
@@ -148,11 +179,12 @@ export function QuickViewStatusSections({
   hasCompanion,
 }: SectionProps & { hasCompanion: boolean }) {
   return (
-    <>
-      <div className="grid items-stretch gap-2 sm:grid-cols-2 sm:gap-3">
+    <div className="quick-section-group">
+      <div className="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 sm:gap-6">
         <QuickSection
           id="gold"
           label="Gold"
+          icon="gold"
           isOpen={isSectionOpen('gold')}
           isMobile={isMobile}
           onToggle={onToggle}
@@ -162,6 +194,7 @@ export function QuickViewStatusSections({
         <QuickSection
           id="conditions"
           label="Conditions"
+          icon="conditions"
           isOpen={isSectionOpen('conditions')}
           isMobile={isMobile}
           onToggle={onToggle}
@@ -173,37 +206,41 @@ export function QuickViewStatusSections({
         </QuickSection>
       </div>
 
-      <div className="grid items-stretch gap-2 sm:grid-cols-2 sm:gap-3">
-        {hasCompanion && (
-          <QuickSection
-            id="companion"
-            label="Companion"
-            isOpen={isSectionOpen('companion')}
-            isMobile={isMobile}
-            onToggle={onToggle}
-          >
-            <QuickCompanionInfo
-              companion={state.companion}
-              onChange={handlers.setCompanion}
-            />
-          </QuickSection>
-        )}
+      {hasCompanion && (
         <QuickSection
-          id="experiences"
-          label="Experiences"
-          isOpen={isSectionOpen('experiences')}
+          id="companion"
+          label="Companion"
+          icon="companion"
+          isOpen={isSectionOpen('companion')}
           isMobile={isMobile}
           onToggle={onToggle}
-          className={hasCompanion ? '' : 'sm:col-span-2'}
         >
-          <QuickExperiencesInfo experiences={state.experiences} />
+          <QuickCompanionInfo
+            companion={state.companion}
+            onChange={handlers.setCompanion}
+          />
         </QuickSection>
-      </div>
-    </>
+      )}
+
+      <QuickSection
+        id="experiences"
+        label="Experiences"
+        icon="experiences"
+        isOpen={isSectionOpen('experiences')}
+        isMobile={isMobile}
+        onToggle={onToggle}
+      >
+        <QuickExperiencesInfo experiences={state.experiences} />
+      </QuickSection>
+    </div>
   );
 }
 
-export function QuickViewInventorySections({
+/**
+ * Gear Section — Equipment, Domain Loadout, Inventory.
+ * All the items and gear your character carries.
+ */
+export function QuickViewGearSection({
   state,
   handlers,
   isMobile,
@@ -211,10 +248,11 @@ export function QuickViewInventorySections({
   onToggle,
 }: SectionProps) {
   return (
-    <>
+    <div className="quick-section-group">
       <QuickSection
         id="equipment"
         label="Equipment"
+        icon="equipment"
         isOpen={isSectionOpen('equipment')}
         isMobile={isMobile}
         onToggle={onToggle}
@@ -225,6 +263,7 @@ export function QuickViewInventorySections({
       <QuickSection
         id="loadout"
         label="Domain Loadout"
+        icon="loadout"
         isOpen={isSectionOpen('loadout')}
         isMobile={isMobile}
         onToggle={onToggle}
@@ -235,6 +274,7 @@ export function QuickViewInventorySections({
       <QuickSection
         id="inventory"
         label="Inventory"
+        icon="inventory"
         isOpen={isSectionOpen('inventory')}
         isMobile={isMobile}
         onToggle={onToggle}
@@ -244,6 +284,6 @@ export function QuickViewInventorySections({
           onChange={handlers.setInventory}
         />
       </QuickSection>
-    </>
+    </div>
   );
 }

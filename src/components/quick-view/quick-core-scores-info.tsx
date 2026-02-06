@@ -1,3 +1,5 @@
+import { Footprints, Target } from 'lucide-react';
+
 import type { CoreScoresState } from '@/components/core-scores';
 import { cn } from '@/lib/utils';
 
@@ -18,26 +20,25 @@ export function QuickCoreScoresInfo({
   className,
 }: QuickCoreScoresInfoProps) {
   return (
-    <div
-      className={cn(
-        'bg-card flex items-center justify-center gap-4 rounded-lg border p-2 sm:gap-6 sm:p-3',
-        className
-      )}
-    >
-      <div className="flex flex-col items-center">
-        <span className="text-muted-foreground text-[10px] sm:text-xs">
-          Evasion
-        </span>
-        <span className="text-lg font-bold sm:text-xl">{scores.evasion}</span>
+    <div className={cn('quick-core-scores-card', className)}>
+      <div className="quick-core-score">
+        <div className="quick-core-score-icon-wrap evasion">
+          <Footprints className="size-4 sm:size-5" />
+        </div>
+        <div className="quick-core-score-data">
+          <span className="quick-core-score-value">{scores.evasion}</span>
+          <span className="quick-core-score-label">Evasion</span>
+        </div>
       </div>
-      <div className="bg-border h-6 w-px sm:h-8" />
-      <div className="flex flex-col items-center">
-        <span className="text-muted-foreground text-[10px] sm:text-xs">
-          Proficiency
-        </span>
-        <span className="text-lg font-bold sm:text-xl">
-          +{scores.proficiency}
-        </span>
+      <div className="quick-core-scores-divider" />
+      <div className="quick-core-score">
+        <div className="quick-core-score-icon-wrap proficiency">
+          <Target className="size-4 sm:size-5" />
+        </div>
+        <div className="quick-core-score-data">
+          <span className="quick-core-score-value">+{scores.proficiency}</span>
+          <span className="quick-core-score-label">Proficiency</span>
+        </div>
       </div>
     </div>
   );

@@ -1,5 +1,4 @@
 import type { ExperiencesState } from '@/components/experiences';
-import { Library } from '@/lib/icons';
 import { cn } from '@/lib/utils';
 
 interface QuickExperiencesInfoProps {
@@ -18,21 +17,12 @@ export function QuickExperiencesInfo({
   }
 
   return (
-    <div className={cn('bg-card rounded-lg border p-2 sm:p-3', className)}>
-      <div className="mb-1.5 flex items-center gap-1.5 sm:mb-2 sm:gap-2">
-        <Library className="size-4 sm:size-5" />
-        <span className="text-sm font-semibold sm:text-base">Experiences</span>
-      </div>
-      <div className="grid grid-cols-2 gap-1.5 text-xs sm:grid-cols-3 sm:gap-2 sm:text-sm">
+    <div className={cn('quick-experiences-card', className)}>
+      <div className="quick-experiences-grid">
         {items.map(exp => (
-          <div
-            key={exp.id}
-            className="flex items-center justify-between rounded border px-2 py-1"
-          >
-            <span className="truncate font-medium">{exp.name}</span>
-            <span className="text-primary ml-1 shrink-0 text-xs font-semibold">
-              +{exp.value}
-            </span>
+          <div key={exp.id} className="quick-experience-item">
+            <span className="quick-experience-name">{exp.name}</span>
+            <span className="quick-experience-bonus">+{exp.value}</span>
           </div>
         ))}
       </div>

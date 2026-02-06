@@ -34,46 +34,58 @@ interface QuickVitalsInfoProps {
   onConditionsChange?: (conditions: ConditionsState) => void;
 }
 
-interface VitalProps {
+interface VitalBarProps {
   label: string;
   icon: LucideIcon;
   current: number;
   max: number;
   onChange?: (value: number) => void;
-  colorClass?: string;
+  barColorClass: string;
+  textColorClass: string;
 }
 
-function Vital({
+function VitalBar({
   label,
   icon: Icon,
   current,
   max,
   onChange,
-  colorClass = 'text-foreground',
-}: VitalProps) {
+  barColorClass,
+  textColorClass,
+}: VitalBarProps) {
+  const percent = max > 0 ? Math.min((current / max) * 100, 100) : 0;
+
   return (
-    <div className="flex flex-col items-center gap-0.5 sm:gap-1">
-      <span className="text-muted-foreground text-[10px] sm:text-xs">
-        {label}
-      </span>
-      <div className="flex items-center gap-0.5 sm:gap-1">
-        <Icon className="size-3 sm:size-4" />
-        {onChange ? (
-          <NumberControl
-            value={current}
-            onChange={onChange}
-            min={0}
-            max={max}
-            size="sm"
-          />
-        ) : (
-          <span className={cn('text-sm font-bold sm:text-base', colorClass)}>
-            {current}
+    <div className="quick-vital-bar">
+      <div className="quick-vital-bar-header">
+        <div className="quick-vital-bar-label">
+          <Icon className={cn('size-3.5', textColorClass)} />
+          <span className="text-[11px] font-semibold tracking-wide uppercase">
+            {label}
           </span>
-        )}
-        <span className="text-muted-foreground text-[10px] sm:text-xs">
-          / {max}
-        </span>
+        </div>
+        <div className="quick-vital-bar-value">
+          {onChange ? (
+            <NumberControl
+              value={current}
+              onChange={onChange}
+              min={0}
+              max={max}
+              size="sm"
+            />
+          ) : (
+            <span className={cn('text-sm font-bold', textColorClass)}>
+              {current}
+            </span>
+          )}
+          <span className="text-muted-foreground text-[10px]">/ {max}</span>
+        </div>
+      </div>
+      <div className="quick-vital-bar-track">
+        <div
+          className={cn('quick-vital-bar-fill', barColorClass)}
+          style={{ width: `${percent}%` }}
+        />
       </div>
     </div>
   );
@@ -81,8 +93,8 @@ function Vital({
 
 function ScarItem({ scar }: { scar: Scar }) {
   return (
-    <span className="text-destructive flex items-center gap-1 text-xs">
-      <Skull className="size-3" /> {scar.description}
+    <span className="text-destructive flex items-center gap-1 text-[11px]">
+      <Skull className="size-2.5" /> {scar.description}
     </span>
   );
 }
@@ -126,7 +138,6 @@ export function QuickVitalsInfo({
     (value: number) => {
       if (!onResourcesChange) return;
 
-      // Per SRD: stress overflow marks HP, full stress = Vulnerable
       const result = applyStressWithOverflow(
         resources.stress.current,
         resources.stress.max,
@@ -140,7 +151,6 @@ export function QuickVitalsInfo({
         hp: { ...resources.hp, current: result.newHp },
       });
 
-      // Auto-add Vulnerable condition when stress is full
       if (
         result.shouldBecomeVulnerable &&
         conditions &&
@@ -172,84 +182,98 @@ export function QuickVitalsInfo({
     onHopeChange({ ...hopeState, companionHopeFilled: !companionHopeFilled });
   }, [hopeState, onHopeChange, bonusHopeSlots, companionHopeFilled]);
 
+  // Determine HP bar color based on percentage
+  const hpPercent =
+    resources.hp.max > 0 ? resources.hp.current / resources.hp.max : 1;
+  const hpBarColor =
+    hpPercent <= 0.25
+      ? 'bg-red-500'
+      : hpPercent <= 0.5
+        ? 'bg-yellow-500'
+        : 'bg-emerald-500';
+  const hpTextColor =
+    hpPercent <= 0.25
+      ? 'text-red-500'
+      : hpPercent <= 0.5
+        ? 'text-yellow-500'
+        : 'text-emerald-500';
+
   return (
-    <div className={cn('bg-card rounded-lg border p-2 sm:p-3', className)}>
-      <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4">
+    <div className={cn('quick-vitals-card', className)}>
+      <div className="quick-vitals-grid">
         {/* HP */}
-        <Vital
+        <VitalBar
           label="HP"
           icon={Heart}
           current={resources.hp.current}
           max={resources.hp.max}
           onChange={onResourcesChange ? handleHpChange : undefined}
-          colorClass={
-            resources.hp.current <= resources.hp.max * 0.25
-              ? 'text-red-500'
-              : resources.hp.current <= resources.hp.max * 0.5
-                ? 'text-yellow-500'
-                : 'text-green-500'
-          }
+          barColorClass={hpBarColor}
+          textColorClass={hpTextColor}
         />
-        <div className="bg-border hidden h-6 w-px sm:block sm:h-8" />
 
         {/* Armor */}
-        <Vital
+        <VitalBar
           label="Armor"
           icon={Shield}
           current={resources.armorScore.current}
           max={resources.armorScore.max}
           onChange={onResourcesChange ? handleArmorChange : undefined}
-          colorClass="text-blue-400"
+          barColorClass="bg-blue-500"
+          textColorClass="text-blue-400"
         />
-        <div className="bg-border hidden h-6 w-px sm:block sm:h-8" />
 
         {/* Stress */}
-        <Vital
+        <VitalBar
           label="Stress"
           icon={HeartCrack}
           current={resources.stress.current}
           max={resources.stress.max}
           onChange={onResourcesChange ? handleStressChange : undefined}
-          colorClass="text-purple-400"
+          barColorClass="bg-purple-500"
+          textColorClass="text-purple-400"
         />
-        <div className="bg-border hidden h-6 w-px sm:block sm:h-8" />
 
         {/* Hope */}
-        <Vital
+        <VitalBar
           label="Hope"
           icon={Sparkles}
           current={hopeState.current}
           max={effectiveMax}
           onChange={onHopeChange ? handleHopeChange : undefined}
-          colorClass="text-amber-400"
+          barColorClass="bg-amber-500"
+          textColorClass="text-amber-400"
         />
+      </div>
 
-        {/* Companion bonus hope slot */}
-        {bonusHopeSlots > 0 && (
-          <button
-            type="button"
-            onClick={handleCompanionHopeToggle}
-            className={cn(
-              'flex items-center gap-1 text-xs transition-colors',
-              companionHopeFilled
-                ? 'text-emerald-500'
-                : 'text-muted-foreground hover:text-emerald-500'
-            )}
-            disabled={!onHopeChange}
-          >
-            <PawPrint className="size-3" />
+      {/* Companion bonus hope */}
+      {bonusHopeSlots > 0 && (
+        <button
+          type="button"
+          onClick={handleCompanionHopeToggle}
+          className={cn(
+            'mt-1.5 flex items-center gap-1 self-end text-[11px] transition-colors',
+            companionHopeFilled
+              ? 'text-emerald-500'
+              : 'text-muted-foreground hover:text-emerald-500'
+          )}
+          disabled={!onHopeChange}
+        >
+          <PawPrint className="size-3" />
+          <span className="flex items-center gap-0.5">
+            Companion Hope:{' '}
             {companionHopeFilled ? (
               <Check className="size-3" />
             ) : (
               <span>○</span>
             )}
-          </button>
-        )}
-      </div>
+          </span>
+        </button>
+      )}
 
-      {/* Scars display (read-only) */}
+      {/* Scars */}
       {scars.length > 0 && (
-        <div className="mt-2 flex flex-wrap justify-center gap-2">
+        <div className="quick-vitals-scars">
           {scars.map(scar => (
             <ScarItem key={scar.id} scar={scar} />
           ))}
