@@ -7,6 +7,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import * as React from 'react';
 import { useCallback, useState } from 'react';
+import { toast } from 'sonner';
 
 import type {
   AdversaryTracker,
@@ -248,6 +249,7 @@ export function useBattleTrackerPageState(initialBattleId?: string) {
       }
       void queryClient.invalidateQueries({ queryKey: ['standalone-battles'] });
     },
+    onError: () => toast.error('Failed to save battle'),
   });
 
   // Link to campaign mutation
@@ -284,6 +286,7 @@ export function useBattleTrackerPageState(initialBattleId?: string) {
         search: { battleId, tab: 'overview' as const },
       });
     },
+    onError: () => toast.error('Failed to link battle to campaign'),
   });
 
   // Entity handlers (extracted to separate hook)

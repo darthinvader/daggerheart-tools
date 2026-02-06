@@ -95,5 +95,9 @@ export function useHomebrewDashboardState() {
     handlePermanentDelete: contentHandlers.handlePermanentDelete,
     handleEmptyRecycleBin: contentHandlers.handleEmptyRecycleBin,
     handleFork: contentHandlers.handleFork,
+    // Confirmation dialog state
+    pendingAction: contentHandlers.pendingAction,
+    confirmPendingAction: contentHandlers.confirmPendingAction,
+    cancelPendingAction: contentHandlers.cancelPendingAction,
   };
 }

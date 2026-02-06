@@ -109,6 +109,7 @@ export function useOrganizationEntityHandlers({
         tags: [],
         role: 'neutral',
         features: [],
+        disposition: 'neutral',
       });
       onNPCsChange?.();
       if (!newNpc) throw new Error('Failed to create NPC');
@@ -136,6 +137,7 @@ export function useOrganizationEntityHandlers({
         pointsOfInterest: [],
         tags: [],
         notes: '',
+        atmosphere: '',
       });
       onLocationsChange?.();
       if (!newLoc) throw new Error('Failed to create location');

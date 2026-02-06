@@ -35,6 +35,7 @@ import {
   ResponsiveSheetHeader,
   ResponsiveSheetTitle,
 } from '@/components/ui/responsive-sheet';
+import { RouteErrorFallback } from '@/components/ui/route-error-fallback';
 import { SheetContentSkeleton } from '@/components/ui/skeleton';
 import {
   Tooltip,
@@ -62,7 +63,7 @@ export const Route = createFileRoute('/references/environments')({
   component: EnvironmentsReferencePage,
   pendingComponent: () => <ReferencePageSkeleton showFilters={false} />,
   errorComponent: ({ error }: ErrorComponentProps) => (
-    <div className="text-destructive p-6">Error: {error.message}</div>
+    <RouteErrorFallback error={error} />
   ),
 });
 

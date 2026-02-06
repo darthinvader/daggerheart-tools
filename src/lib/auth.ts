@@ -1,4 +1,5 @@
 import type { AuthError, Session, User } from '@supabase/supabase-js';
+import { redirect } from '@tanstack/react-router';
 
 import { supabase } from './supabase';
 
@@ -101,4 +102,16 @@ export async function updatePassword(newPassword: string): Promise<AuthResult> {
     password: newPassword,
   });
   return { user: data.user, error };
+}
+
+/**
+ * Route guard helper — throws a redirect to /login if user is not authenticated.
+ * Use in TanStack Router `beforeLoad` hooks.
+ */
+export async function requireAuth(): Promise<User> {
+  const { user } = await getUser();
+  if (!user) {
+    throw redirect({ to: '/login' });
+  }
+  return user;
 }

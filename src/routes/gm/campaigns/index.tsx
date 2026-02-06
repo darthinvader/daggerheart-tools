@@ -1,14 +1,23 @@
 // Campaigns list page with inline campaign card components
 
-import { createFileRoute, Link } from '@tanstack/react-router';
 import {
+  createFileRoute,
+  type ErrorComponentProps,
+  Link,
+} from '@tanstack/react-router';
+import {
+  ArrowDownAZ,
+  ArrowUpAZ,
   ChevronDown,
   FolderOpen,
   LogIn,
   Plus,
   RotateCcw,
+  Search,
   Trash2,
 } from 'lucide-react';
+import { useMemo, useState } from 'react';
+
 import { useAuth } from '@/components/providers';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
@@ -34,6 +43,8 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import { Input } from '@/components/ui/input';
+import { RouteErrorFallback } from '@/components/ui/route-error-fallback';
 import {
   Tooltip,
   TooltipContent,
@@ -52,13 +63,25 @@ function getComplexityLabel(
 ): ComplexityLabel {
   switch (complexity) {
     case '1':
-      return { label: 'Simple', color: 'bg-green-500/20 text-green-600' };
+      return {
+        label: 'Simple',
+        color: 'bg-green-500/20 text-green-600 dark:text-green-400',
+      };
     case '2':
-      return { label: 'Standard', color: 'bg-blue-500/20 text-blue-600' };
+      return {
+        label: 'Standard',
+        color: 'bg-blue-500/20 text-blue-600 dark:text-blue-400',
+      };
     case '3':
-      return { label: 'Complex', color: 'bg-purple-500/20 text-purple-600' };
+      return {
+        label: 'Complex',
+        color: 'bg-purple-500/20 text-purple-600 dark:text-purple-400',
+      };
     case '4':
-      return { label: 'Epic', color: 'bg-red-500/20 text-red-600' };
+      return {
+        label: 'Epic',
+        color: 'bg-red-500/20 text-red-600 dark:text-red-400',
+      };
   }
 }
 
@@ -125,6 +148,14 @@ function CampaignCard({ campaign, onDelete }: CampaignCardProps) {
         <p className="text-muted-foreground line-clamp-2 text-sm">
           {campaign.frame.pitch || 'No pitch defined'}
         </p>
+        <div className="text-muted-foreground mt-2 flex gap-2 text-xs">
+          {campaign.sessions.length > 0 && (
+            <span>{campaign.sessions.length} sessions</span>
+          )}
+          {campaign.players.length > 0 && (
+            <span>· {campaign.players.length} players</span>
+          )}
+        </div>
         {campaign.frame.themes.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-1">
             {campaign.frame.themes.slice(0, 3).map(theme => (
@@ -301,6 +332,9 @@ function RecycleBinSection({
 
 export const Route = createFileRoute('/gm/campaigns/')({
   component: CampaignsList,
+  errorComponent: ({ error }: ErrorComponentProps) => (
+    <RouteErrorFallback error={error} />
+  ),
 });
 
 function CampaignsList() {
@@ -324,6 +358,35 @@ function CampaignsList() {
     handlePermanentDelete,
     handleEmptyTrash,
   } = useCampaignsListState();
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [complexityFilter, setComplexityFilter] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+
+  const filteredCampaigns = useMemo(() => {
+    let result = campaigns;
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        c =>
+          c.name.toLowerCase().includes(query) ||
+          c.frame.pitch.toLowerCase().includes(query) ||
+          c.frame.themes.some(t => t.toLowerCase().includes(query))
+      );
+    }
+
+    if (complexityFilter) {
+      result = result.filter(c => c.frame.complexity === complexityFilter);
+    }
+
+    result = [...result].sort((a, b) => {
+      const cmp = a.name.localeCompare(b.name);
+      return sortOrder === 'asc' ? cmp : -cmp;
+    });
+
+    return result;
+  }, [campaigns, searchQuery, complexityFilter, sortOrder]);
 
   if (loading) {
     return (
@@ -384,8 +447,54 @@ function CampaignsList() {
         </Alert>
       )}
 
+      {/* Search, Filter & Sort Controls */}
+      {campaigns.length > 0 && (
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="relative flex-1">
+            <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+            <Input
+              placeholder="Search campaigns..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            {(['1', '2', '3', '4'] as const).map(level => {
+              const { label, color } = getComplexityLabel(level);
+              const isActive = complexityFilter === level;
+              return (
+                <Button
+                  key={level}
+                  variant={isActive ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setComplexityFilter(isActive ? null : level)}
+                  className={isActive ? '' : `${color} border-transparent`}
+                >
+                  {label}
+                </Button>
+              );
+            })}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() =>
+                setSortOrder(prev => (prev === 'asc' ? 'desc' : 'asc'))
+              }
+              title={sortOrder === 'asc' ? 'Sort A→Z' : 'Sort Z→A'}
+            >
+              {sortOrder === 'asc' ? (
+                <ArrowDownAZ className="h-4 w-4" />
+              ) : (
+                <ArrowUpAZ className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+        </div>
+      )}
+
       <CampaignGrid
-        campaigns={campaigns}
+        campaigns={filteredCampaigns}
         onDelete={campaign => setDeleteTarget(campaign)}
       />
 

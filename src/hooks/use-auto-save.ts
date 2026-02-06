@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
+import { toast } from 'sonner';
 
 const AUTO_SAVE_DELAY = 1000;
 
@@ -60,6 +61,7 @@ export function useAutoSave<T>({
         onSaveRef.current(dataToSave).catch(error => {
           if (isMountedRef.current) {
             console.error('[useAutoSave] Failed to save:', error);
+            toast.error('Failed to save — please try again');
           }
         });
       }, delay);
@@ -83,6 +85,7 @@ export function useAutoSave<T>({
     onSaveRef.current(dataToSave).catch(error => {
       if (isMountedRef.current) {
         console.error('[useAutoSave] Failed to save on flush:', error);
+        toast.error('Failed to save — please try again');
       }
     });
   }, []);

@@ -14,6 +14,7 @@ import type {
   CampaignOrganization,
   CampaignQuest,
   SessionNote,
+  StoryThread,
 } from '@/lib/schemas/campaign';
 /**
  * Campaign storage using Supabase.
@@ -40,8 +41,11 @@ interface CampaignRow {
   battles: BattleState[];
   session_zero: Campaign['sessionZero'];
   beast_feast: Campaign['beastFeast'];
+  beast_feast_enabled: boolean;
   session_prep_checklist: Campaign['sessionPrepChecklist'];
+  party_inventory: Campaign['partyInventory'];
   invite_code: string | null;
+  phase: Campaign['phase'];
   status: Campaign['status'];
   notes: string;
   deleted_at: string | null;
@@ -104,8 +108,11 @@ function rowToCampaign(row: CampaignRow): Campaign {
     battles: row.battles ?? [],
     sessionZero: row.session_zero ?? undefined,
     beastFeast: row.beast_feast ?? undefined,
+    beastFeastEnabled: row.beast_feast_enabled ?? false,
     sessionPrepChecklist: row.session_prep_checklist ?? [],
+    partyInventory: row.party_inventory ?? [],
     inviteCode: row.invite_code ?? undefined,
+    phase: row.phase ?? 'act-1',
     status: row.status,
     notes: row.notes,
     createdAt: row.created_at,
@@ -146,8 +153,11 @@ const CAMPAIGN_TO_ROW_FIELDS: Record<string, string> = {
   battles: 'battles',
   sessionZero: 'session_zero',
   beastFeast: 'beast_feast',
+  beastFeastEnabled: 'beast_feast_enabled',
   sessionPrepChecklist: 'session_prep_checklist',
+  partyInventory: 'party_inventory',
   inviteCode: 'invite_code',
+  phase: 'phase',
   status: 'status',
   notes: 'notes',
 };
@@ -386,7 +396,14 @@ export async function updateCampaign(
   updates: Partial<
     Pick<
       Campaign,
-      'name' | 'status' | 'notes' | 'players' | 'sessionPrepChecklist'
+      | 'name'
+      | 'phase'
+      | 'status'
+      | 'notes'
+      | 'players'
+      | 'sessionPrepChecklist'
+      | 'partyInventory'
+      | 'beastFeastEnabled'
     >
   >
 ): Promise<Campaign | undefined> {
@@ -1101,6 +1118,93 @@ export async function saveCampaign(
   }
 
   return rowToCampaign(data as CampaignRow);
+}
+
+// =====================================================================================
+// Story Thread CRUD
+// =====================================================================================
+
+function generateStoryThreadId(): string {
+  return `thread-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+/**
+ * Add a new story thread to a campaign
+ */
+export async function addStoryThread(
+  campaignId: string,
+  storyThread: Omit<StoryThread, 'id' | 'createdAt' | 'updatedAt'>
+): Promise<StoryThread | undefined> {
+  const campaign = await getCampaign(campaignId);
+  if (!campaign) return undefined;
+
+  const now = new Date().toISOString();
+  const newThread: StoryThread = {
+    ...storyThread,
+    id: generateStoryThreadId(),
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  const storyThreads = [...(campaign.storyThreads ?? []), newThread];
+  await supabase
+    .from('campaigns')
+    .update({ story_threads: storyThreads })
+    .eq('id', campaignId)
+    .is('deleted_at', null);
+  return newThread;
+}
+
+/**
+ * Update a story thread
+ */
+export async function updateStoryThread(
+  campaignId: string,
+  threadId: string,
+  updates: Partial<Omit<StoryThread, 'id' | 'createdAt' | 'updatedAt'>>
+): Promise<StoryThread | undefined> {
+  const campaign = await getCampaign(campaignId);
+  if (!campaign) return undefined;
+
+  const storyThreads = campaign.storyThreads ?? [];
+  const threadIndex = storyThreads.findIndex(t => t.id === threadId);
+  if (threadIndex === -1) return undefined;
+
+  const now = new Date().toISOString();
+  storyThreads[threadIndex] = {
+    ...storyThreads[threadIndex],
+    ...updates,
+    updatedAt: now,
+  };
+
+  await supabase
+    .from('campaigns')
+    .update({ story_threads: storyThreads })
+    .eq('id', campaignId)
+    .is('deleted_at', null);
+  return storyThreads[threadIndex];
+}
+
+/**
+ * Delete a story thread
+ */
+export async function deleteStoryThread(
+  campaignId: string,
+  threadId: string
+): Promise<boolean> {
+  const campaign = await getCampaign(campaignId);
+  if (!campaign) return false;
+
+  const storyThreads = campaign.storyThreads ?? [];
+  const filtered = storyThreads.filter(t => t.id !== threadId);
+  if (filtered.length === storyThreads.length) return false;
+
+  await supabase
+    .from('campaigns')
+    .update({ story_threads: filtered })
+    .eq('id', campaignId)
+    .is('deleted_at', null);
+  return true;
 }
 
 // =====================================================================================

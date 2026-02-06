@@ -54,6 +54,7 @@ export function useLocationEntityHandlers({
       pointsOfInterest: [],
       tags: [],
       notes: '',
+      atmosphere: '',
     });
     onLocationsChange();
   }, [campaignId, onSaveStart, onLocationsChange]);
@@ -104,6 +105,7 @@ export function useLocationEntityHandlers({
         tags: [],
         role: 'neutral',
         features: [],
+        disposition: 'neutral',
       });
       onNPCsChange?.();
       if (!newNpc) throw new Error('Failed to create NPC');

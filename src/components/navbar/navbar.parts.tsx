@@ -21,6 +21,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { useCreateCharacterMutation } from '@/features/characters/use-characters-query';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
@@ -126,7 +127,10 @@ function DesktopNavbar({ links, brandName }: NavbarInternalProps) {
                                 to={child.to}
                                 className={cn(
                                   'hover:bg-accent hover:text-accent-foreground flex items-center gap-2 rounded-md p-2 text-sm transition-colors',
-                                  location.pathname === child.to && 'bg-accent'
+                                  location.pathname === child.to ||
+                                    location.pathname.startsWith(`${child.to}/`)
+                                    ? 'bg-accent'
+                                    : ''
                                 )}
                               >
                                 {child.icon}
@@ -160,6 +164,7 @@ function DesktopNavbar({ links, brandName }: NavbarInternalProps) {
         </NavigationMenu>
 
         <div className="ml-auto flex items-center gap-2">
+          <ThemeToggle />
           <AuthNavItems />
         </div>
       </nav>
@@ -202,7 +207,8 @@ function MobileNavbar({ links, brandShortName }: NavbarInternalProps) {
           {brandShortName}
         </Link>
 
-        <div className="mr-2 ml-auto flex items-center">
+        <div className="mr-2 ml-auto flex items-center gap-2">
+          <ThemeToggle />
           <AuthNavItems />
         </div>
 

@@ -114,6 +114,7 @@ export function useQuestEntityHandlers({
         tags: [],
         role: 'neutral',
         features: [],
+        disposition: 'neutral',
       });
       onNPCsChange?.();
       if (!newNpc) throw new Error('Failed to create NPC');
@@ -141,6 +142,7 @@ export function useQuestEntityHandlers({
         pointsOfInterest: [],
         tags: [],
         notes: '',
+        atmosphere: '',
       });
       onLocationsChange?.();
       if (!newLoc) throw new Error('Failed to create location');

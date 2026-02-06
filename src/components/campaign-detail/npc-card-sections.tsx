@@ -51,6 +51,7 @@ import type {
   CampaignNPC,
   CampaignOrganization,
   CampaignQuest,
+  NPCDisposition,
   NPCFeature,
   NPCRole,
 } from '@/lib/schemas/campaign';
@@ -76,10 +77,49 @@ export interface NPCStatusOption {
 // Header Section
 // =====================================================================================
 
+// =====================================================================================
+// Disposition Options - How NPC feels about the party
+// =====================================================================================
+
+export interface NPCDispositionOption {
+  value: NPCDisposition;
+  label: string;
+  color: string;
+}
+
+export const NPC_DISPOSITION_OPTIONS: NPCDispositionOption[] = [
+  {
+    value: 'friendly',
+    label: 'Friendly',
+    color: 'bg-green-500/20 text-green-700 dark:text-green-400',
+  },
+  {
+    value: 'neutral',
+    label: 'Neutral',
+    color: 'bg-gray-500/20 text-gray-700 dark:text-gray-400',
+  },
+  {
+    value: 'cautious',
+    label: 'Cautious',
+    color: 'bg-amber-500/20 text-amber-700 dark:text-amber-400',
+  },
+  {
+    value: 'hostile',
+    label: 'Hostile',
+    color: 'bg-red-500/20 text-red-700 dark:text-red-400',
+  },
+  {
+    value: 'unknown',
+    label: 'Unknown',
+    color: 'bg-purple-500/20 text-purple-700 dark:text-purple-400',
+  },
+];
+
 interface HeaderSectionProps {
   localNPC: CampaignNPC;
   isExpanded: boolean;
   statusInfo?: NPCStatusOption;
+  dispositionInfo?: NPCDispositionOption;
   onOpenDeleteModal: () => void;
 }
 
@@ -87,6 +127,7 @@ export function NPCCardHeader({
   localNPC,
   isExpanded,
   statusInfo,
+  dispositionInfo,
   onOpenDeleteModal,
 }: HeaderSectionProps) {
   return (
@@ -113,6 +154,11 @@ export function NPCCardHeader({
                   <Badge className={statusInfo?.color ?? ''}>
                     {localNPC.status}
                   </Badge>
+                  {dispositionInfo && (
+                    <Badge className={dispositionInfo.color}>
+                      {dispositionInfo.label}
+                    </Badge>
+                  )}
                   {localNPC.faction && (
                     <span className="text-muted-foreground text-xs">
                       {localNPC.faction}
@@ -121,7 +167,7 @@ export function NPCCardHeader({
                 </div>
               </div>
               <ChevronDown
-                className={`ml-2 h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                className={`ml-2 h-4 w-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
               />
             </div>
           </Button>
@@ -132,6 +178,7 @@ export function NPCCardHeader({
               <Button
                 variant="ghost"
                 size="icon"
+                aria-label="Delete"
                 className="text-destructive hover:bg-destructive/10 h-8 w-8"
                 onClick={e => {
                   e.stopPropagation();
@@ -159,6 +206,7 @@ interface BasicInfoSectionProps {
   handleTextChange: (field: keyof CampaignNPC, value: string) => void;
   handleBlur: () => void;
   handleStatusChange: (value: CampaignNPC['status']) => void;
+  handleDispositionChange: (value: NPCDisposition) => void;
 }
 
 export function NPCBasicInfoSection({
@@ -167,6 +215,7 @@ export function NPCBasicInfoSection({
   handleTextChange,
   handleBlur,
   handleStatusChange,
+  handleDispositionChange,
 }: BasicInfoSectionProps) {
   return (
     <>
@@ -234,6 +283,52 @@ export function NPCBasicInfoSection({
           />
         </div>
       </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="space-y-2">
+          <Label className="flex items-center gap-2 text-xs">
+            <Heart className="h-3 w-3 text-rose-500" />
+            Disposition Toward Party
+          </Label>
+          <Select
+            value={localNPC.disposition ?? 'neutral'}
+            onValueChange={value =>
+              handleDispositionChange(value as NPCDisposition)
+            }
+          >
+            <SelectTrigger>
+              <SelectValue>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`inline-block h-2 w-2 rounded-full ${
+                      NPC_DISPOSITION_OPTIONS.find(
+                        d => d.value === (localNPC.disposition ?? 'neutral')
+                      )?.color.split(' ')[0] ?? 'bg-gray-500/20'
+                    }`}
+                  />
+                  <span>
+                    {NPC_DISPOSITION_OPTIONS.find(
+                      d => d.value === (localNPC.disposition ?? 'neutral')
+                    )?.label ?? 'Neutral'}
+                  </span>
+                </div>
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {NPC_DISPOSITION_OPTIONS.map(opt => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`inline-block h-2 w-2 rounded-full ${opt.color.split(' ')[0]}`}
+                    />
+                    <span>{opt.label}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
     </>
   );
 }
@@ -271,6 +366,20 @@ export function NPCDescriptionFieldsSection({
 
       <div className="space-y-2">
         <Label className="flex items-center gap-2 text-xs">
+          <Heart className="h-3 w-3 text-red-500" />
+          Motive — What does this NPC want?
+        </Label>
+        <Textarea
+          value={localNPC.motivation}
+          onChange={e => handleTextChange('motivation', e.target.value)}
+          onBlur={handleBlur}
+          placeholder="What drives them? What do they want?"
+          rows={2}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label className="flex items-center gap-2 text-xs">
           <Brain className="h-3 w-3 text-pink-500" />
           Personality
         </Label>
@@ -279,20 +388,6 @@ export function NPCDescriptionFieldsSection({
           onChange={e => handleTextChange('personality', e.target.value)}
           onBlur={handleBlur}
           placeholder="How do they act? What quirks do they have?"
-          rows={2}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label className="flex items-center gap-2 text-xs">
-          <Heart className="h-3 w-3 text-red-500" />
-          Motivation
-        </Label>
-        <Textarea
-          value={localNPC.motivation}
-          onChange={e => handleTextChange('motivation', e.target.value)}
-          onBlur={handleBlur}
-          placeholder="What drives them? What do they want?"
           rows={2}
         />
       </div>

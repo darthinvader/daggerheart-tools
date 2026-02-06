@@ -1,7 +1,7 @@
 // NPC components - Enhanced with organization links and ally/enemy relationships
 
 import { Building2, MapPin as Map, Plus, User } from 'lucide-react';
-import { useState } from 'react';
+import { useDeferredValue, useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -36,6 +36,7 @@ import {
 } from './entity-relationship-components';
 import { TagInputSection } from './entity-tag-input';
 import {
+  NPC_DISPOSITION_OPTIONS,
   NPCAlliesSection,
   NPCBasicInfoSection,
   NPCCardHeader,
@@ -117,6 +118,7 @@ export function EditableNPCs({
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [tagFilter, setTagFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const deferredSearchQuery = useDeferredValue(searchQuery);
 
   // Entity CRUD handlers (extracted hook)
   const {
@@ -134,21 +136,29 @@ export function EditableNPCs({
     onOrganizationsChange,
   });
 
-  const allTags = [...new Set(npcs.flatMap(npc => npc.tags))].sort();
+  const allTags = useMemo(
+    () => [...new Set(npcs.flatMap(npc => npc.tags))].sort(),
+    [npcs]
+  );
 
-  const filteredNPCs = npcs
-    .filter(npc => (tagFilter ? npc.tags.includes(tagFilter) : true))
-    .filter(npc => {
-      const query = searchQuery.trim().toLowerCase();
-      if (!query) return true;
-      return [npc.name, npc.titleRole, npc.faction, npc.tags.join(' ')]
-        .join(' ')
-        .toLowerCase()
-        .includes(query);
-    });
+  const filteredNPCs = useMemo(
+    () =>
+      npcs
+        .filter(npc => (tagFilter ? npc.tags.includes(tagFilter) : true))
+        .filter(npc => {
+          const query = deferredSearchQuery.trim().toLowerCase();
+          if (!query) return true;
+          return [npc.name, npc.titleRole, npc.faction, npc.tags.join(' ')]
+            .join(' ')
+            .toLowerCase()
+            .includes(query);
+        }),
+    [npcs, tagFilter, deferredSearchQuery]
+  );
 
-  const sortedNPCs = [...filteredNPCs].sort((a, b) =>
-    a.name.localeCompare(b.name)
+  const sortedNPCs = useMemo(
+    () => [...filteredNPCs].sort((a, b) => a.name.localeCompare(b.name)),
+    [filteredNPCs]
   );
 
   return (
@@ -187,20 +197,30 @@ export function EditableNPCs({
         )}
       </div>
 
-      {sortedNPCs.length === 0 ? (
+      {npcs.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="py-12 text-center">
             <div className="bg-muted mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
               <User className="text-muted-foreground h-6 w-6" />
             </div>
             <h3 className="mb-2 font-medium">No characters created yet</h3>
-            <p className="text-muted-foreground mb-4 text-sm">
-              Add NPCs, villains, and allies to track in your campaign
+            <p className="text-muted-foreground mx-auto mb-4 max-w-sm text-sm">
+              Add the NPCs your players will encounter — allies, villains,
+              shopkeepers, quest givers, and more. Each character needs a name,
+              description, and motive to bring them to life.
             </p>
             <Button onClick={handleAddNPC} variant="outline">
               <Plus className="mr-2 h-4 w-4" />
               Add First Character
             </Button>
+          </CardContent>
+        </Card>
+      ) : sortedNPCs.length === 0 ? (
+        <Card className="border-dashed">
+          <CardContent className="py-12 text-center">
+            <p className="text-muted-foreground text-sm">
+              No results match your search or filters
+            </p>
           </CardContent>
         </Card>
       ) : (
@@ -349,6 +369,7 @@ function NPCCard({
     handleAddEnemyOrg,
     handleStatusChange,
     handleRoleChange,
+    handleDispositionChange,
     handleAddFeature,
     handleUpdateFeature,
     handleDeleteFeature,
@@ -368,6 +389,9 @@ function NPCCard({
   });
 
   const statusInfo = NPC_STATUS_OPTIONS.find(s => s.value === localNPC.status);
+  const dispositionInfo = NPC_DISPOSITION_OPTIONS.find(
+    d => d.value === (localNPC.disposition ?? 'neutral')
+  );
 
   return (
     <>
@@ -377,6 +401,7 @@ function NPCCard({
             localNPC={localNPC}
             isExpanded={isExpanded}
             statusInfo={statusInfo}
+            dispositionInfo={dispositionInfo}
             onOpenDeleteModal={() => openModal('deleteConfirm')}
           />
 
@@ -388,6 +413,7 @@ function NPCCard({
                 handleTextChange={handleTextChange}
                 handleBlur={handleBlur}
                 handleStatusChange={handleStatusChange}
+                handleDispositionChange={handleDispositionChange}
               />
 
               {/* Party Relationship Role */}

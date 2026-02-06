@@ -1,6 +1,11 @@
-import { createRootRoute, Outlet } from '@tanstack/react-router';
+import {
+  createRootRoute,
+  type ErrorComponentProps,
+  Outlet,
+} from '@tanstack/react-router';
 import { lazy, Suspense } from 'react';
 
+import { RouteErrorFallback } from '@/components/ui/route-error-fallback';
 import { Toaster } from '@/components/ui/sonner';
 
 const Navbar = lazy(() =>
@@ -33,6 +38,9 @@ function SkipToContent() {
 }
 
 export const Route = createRootRoute({
+  errorComponent: ({ error }: ErrorComponentProps) => (
+    <RouteErrorFallback error={error} />
+  ),
   component: () => (
     <>
       <SkipToContent />

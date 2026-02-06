@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { type ReactNode, useMemo } from 'react';
 import { useMediaQuery } from 'react-responsive';
 
 import {
@@ -28,12 +28,15 @@ export function DeviceTypeProvider({ children }: DeviceTypeProviderProps) {
     deviceType = 'tablet';
   }
 
-  const value: DeviceTypeProviderState = {
-    deviceType,
-    isPhone: deviceType === 'phone',
-    isTablet: deviceType === 'tablet',
-    isPc: deviceType === 'pc',
-  };
+  const value: DeviceTypeProviderState = useMemo(
+    () => ({
+      deviceType,
+      isPhone: deviceType === 'phone',
+      isTablet: deviceType === 'tablet',
+      isPc: deviceType === 'pc',
+    }),
+    [deviceType]
+  );
 
   return (
     <DeviceTypeProviderContext.Provider value={value}>

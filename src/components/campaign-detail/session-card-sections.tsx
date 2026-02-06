@@ -4,6 +4,8 @@ import {
   Building2,
   Calendar,
   ChevronDown,
+  ChevronRight,
+  FileText,
   Lightbulb,
   Map,
   Plus,
@@ -11,6 +13,7 @@ import {
   Sparkles,
   Target,
   Trash2,
+  Trophy,
   User,
   Users,
   X,
@@ -19,7 +22,11 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { CollapsibleTrigger } from '@/components/ui/collapsible';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -51,17 +58,38 @@ import {
 // Header Component
 // =====================================================================================
 
+const SESSION_STATUS_CONFIG = {
+  planned: {
+    label: 'Planned',
+    className: 'border-blue-300 text-blue-700 bg-blue-50',
+  },
+  'in-progress': {
+    label: 'In Progress',
+    className: 'border-amber-300 text-amber-700 bg-amber-50',
+  },
+  completed: {
+    label: 'Completed',
+    className: 'border-green-300 text-green-700 bg-green-50',
+  },
+} as const;
+
 interface SessionCardHeaderProps {
   session: SessionNote;
   isExpanded: boolean;
   onDelete: () => void;
+  onStatusChange?: (status: SessionNote['status']) => void;
+  onGenerateRecap?: () => void;
 }
 
 export function SessionCardHeader({
   session,
   isExpanded,
   onDelete,
+  onStatusChange,
+  onGenerateRecap,
 }: SessionCardHeaderProps) {
+  const status = session.status ?? 'planned';
+  const statusConfig = SESSION_STATUS_CONFIG[status];
   return (
     <CardHeader className="bg-muted/30 py-3">
       <div className="flex items-center justify-between">
@@ -81,6 +109,12 @@ export function SessionCardHeader({
                     {session.date}
                   </div>
                 )}
+                <Badge
+                  variant="outline"
+                  className={`mt-1 text-xs ${statusConfig.className}`}
+                >
+                  {statusConfig.label}
+                </Badge>
               </div>
               <ChevronDown
                 className={`ml-2 h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
@@ -88,24 +122,64 @@ export function SessionCardHeader({
             </div>
           </Button>
         </CollapsibleTrigger>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-destructive hover:bg-destructive/10 h-8 w-8"
-                onClick={e => {
-                  e.stopPropagation();
-                  onDelete();
-                }}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Delete Session</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <div className="flex items-center gap-2">
+          {onGenerateRecap && (session.summary?.length ?? 0) < 20 && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Generate recap template"
+                    className="h-8 w-8 text-amber-600 hover:bg-amber-50"
+                    onClick={e => {
+                      e.stopPropagation();
+                      onGenerateRecap();
+                    }}
+                  >
+                    <FileText className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Generate Recap Template</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+          {onStatusChange && (
+            <select
+              aria-label="Session status"
+              className="border-input bg-background text-foreground h-8 rounded-md border px-2 text-xs"
+              value={status}
+              onClick={e => e.stopPropagation()}
+              onChange={e => {
+                e.stopPropagation();
+                onStatusChange(e.target.value as SessionNote['status']);
+              }}
+            >
+              <option value="planned">Planned</option>
+              <option value="in-progress">In Progress</option>
+              <option value="completed">Completed</option>
+            </select>
+          )}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Delete"
+                  className="text-destructive hover:bg-destructive/10 h-8 w-8"
+                  onClick={e => {
+                    e.stopPropagation();
+                    onDelete();
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Delete Session</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
       </div>
     </CardHeader>
   );
@@ -158,6 +232,25 @@ export function SessionBasicInfoSection({
           />
         </div>
       </div>
+
+      <Collapsible>
+        <CollapsibleTrigger className="flex w-full items-center gap-2 py-1">
+          <ChevronRight className="h-4 w-4 transition-transform" />
+          <span className="text-sm font-medium">Session Agenda</span>
+          {!session.agenda && (
+            <span className="text-muted-foreground text-xs">(empty)</span>
+          )}
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <Textarea
+            value={session.agenda ?? ''}
+            onChange={e => onTextChange('agenda', e.target.value)}
+            onBlur={onBlur}
+            placeholder="Plan what you want to cover this session: scenes, encounters, key NPCs, story beats..."
+            className="mt-1 min-h-[60px] text-sm"
+          />
+        </CollapsibleContent>
+      </Collapsible>
 
       <div className="space-y-2">
         <Label className="flex items-center gap-2 text-xs">
@@ -561,6 +654,47 @@ export function SessionQuestProgressSection({
         rows={2}
       />
     </div>
+  );
+}
+
+// =====================================================================================
+// Rewards & XP Section
+// =====================================================================================
+
+interface SessionRewardsSectionProps {
+  rewards: string;
+  onTextChange: <K extends keyof SessionNote>(
+    field: K,
+    value: SessionNote[K]
+  ) => void;
+  onBlur: () => void;
+}
+
+export function SessionRewardsSection({
+  rewards,
+  onTextChange,
+  onBlur,
+}: SessionRewardsSectionProps) {
+  return (
+    <Collapsible>
+      <CollapsibleTrigger className="flex w-full items-center gap-2 py-1">
+        <ChevronRight className="h-4 w-4 transition-transform" />
+        <Trophy className="h-4 w-4 text-yellow-500" />
+        <span className="text-sm font-medium">Rewards & XP</span>
+        {!rewards && (
+          <span className="text-muted-foreground text-xs">(empty)</span>
+        )}
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <Textarea
+          value={rewards}
+          onChange={e => onTextChange('rewards', e.target.value)}
+          onBlur={onBlur}
+          placeholder="Experience awarded, items gained, Fear spent on XP..."
+          className="mt-1 min-h-[60px] text-sm"
+        />
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
 

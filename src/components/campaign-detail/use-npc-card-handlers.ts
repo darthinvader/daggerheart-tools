@@ -14,6 +14,7 @@ import type {
   CampaignLocation,
   CampaignNPC,
   CampaignOrganization,
+  NPCDisposition,
   NPCFeature,
   NPCRole,
 } from '@/lib/schemas/campaign';
@@ -121,6 +122,18 @@ export function useNPCCardHandlers({
     (value: NPCRole) => {
       setLocalNPC(current => {
         const updated = { ...current, role: value };
+        scheduleAutoSave(updated);
+        return updated;
+      });
+    },
+    [setLocalNPC, scheduleAutoSave]
+  );
+
+  // Disposition change handler (how NPC feels about the party)
+  const handleDispositionChange = useCallback(
+    (value: NPCDisposition) => {
+      setLocalNPC(current => {
+        const updated = { ...current, disposition: value };
         scheduleAutoSave(updated);
         return updated;
       });
@@ -257,6 +270,9 @@ export function useNPCCardHandlers({
 
     // Role handler (party relationship)
     handleRoleChange,
+
+    // Disposition handler
+    handleDispositionChange,
 
     // Feature handlers
     handleAddFeature,

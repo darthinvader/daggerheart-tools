@@ -5,7 +5,7 @@
  * Reduces complexity by extracting handlers from HomebrewDashboard.
  */
 import type { NavigateOptions } from '@tanstack/react-router';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 
 import type {
   useDeleteHomebrewContent,
@@ -14,6 +14,12 @@ import type {
   useRestoreHomebrewContent,
 } from '@/features/homebrew';
 import type { HomebrewContent } from '@/lib/schemas/homebrew';
+
+/** Discriminated union describing a destructive action awaiting confirmation. */
+export type PendingAction =
+  | { type: 'delete'; item: HomebrewContent }
+  | { type: 'permanentDelete'; item: HomebrewContent }
+  | { type: 'emptyBin'; deletedItemsCount: number };
 
 interface UseHomebrewContentHandlersOptions {
   deleteMutation: ReturnType<typeof useDeleteHomebrewContent>;
@@ -27,16 +33,21 @@ interface UseHomebrewContentHandlersOptions {
 }
 
 export interface ContentHandlers {
-  handleDelete: (item: HomebrewContent) => Promise<void>;
+  handleDelete: (item: HomebrewContent) => void;
   handleRestore: (item: HomebrewContent) => Promise<void>;
-  handlePermanentDelete: (item: HomebrewContent) => Promise<void>;
-  handleEmptyRecycleBin: () => Promise<void>;
+  handlePermanentDelete: (item: HomebrewContent) => void;
+  handleEmptyRecycleBin: () => void;
   handleFork: (item: HomebrewContent) => void;
+  pendingAction: PendingAction | null;
+  confirmPendingAction: () => Promise<void>;
+  cancelPendingAction: () => void;
 }
 
 /**
  * Hook for homebrew content CRUD operations.
  * Provides memoized callbacks for delete, restore, permanent delete, and fork operations.
+ * Destructive actions populate `pendingAction` state for AlertDialog confirmation
+ * instead of using `window.confirm()`.
  */
 export function useHomebrewContentHandlers({
   deleteMutation,
@@ -46,18 +57,13 @@ export function useHomebrewContentHandlers({
   deletedItemsCount,
   navigate,
 }: UseHomebrewContentHandlersOptions): ContentHandlers {
-  const handleDelete = useCallback(
-    async (item: HomebrewContent) => {
-      if (
-        confirm(
-          `Are you sure you want to delete "${item.name}"? It will be moved to the Recycle Bin.`
-        )
-      ) {
-        await deleteMutation.mutateAsync(item.id);
-      }
-    },
-    [deleteMutation]
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(
+    null
   );
+
+  const handleDelete = useCallback((item: HomebrewContent) => {
+    setPendingAction({ type: 'delete', item });
+  }, []);
 
   const handleRestore = useCallback(
     async (item: HomebrewContent) => {
@@ -66,28 +72,40 @@ export function useHomebrewContentHandlers({
     [restoreMutation]
   );
 
-  const handlePermanentDelete = useCallback(
-    async (item: HomebrewContent) => {
-      if (
-        confirm(
-          `Are you sure you want to permanently delete "${item.name}"? This cannot be undone.`
-        )
-      ) {
-        await permanentDeleteMutation.mutateAsync(item.id);
-      }
-    },
-    [permanentDeleteMutation]
-  );
+  const handlePermanentDelete = useCallback((item: HomebrewContent) => {
+    setPendingAction({ type: 'permanentDelete', item });
+  }, []);
 
-  const handleEmptyRecycleBin = useCallback(async () => {
-    if (
-      confirm(
-        `Are you sure you want to permanently delete all ${deletedItemsCount} items in the recycle bin? This cannot be undone.`
-      )
-    ) {
-      await emptyRecycleBinMutation.mutateAsync();
+  const handleEmptyRecycleBin = useCallback(() => {
+    setPendingAction({ type: 'emptyBin', deletedItemsCount });
+  }, [deletedItemsCount]);
+
+  const confirmPendingAction = useCallback(async () => {
+    if (!pendingAction) return;
+
+    switch (pendingAction.type) {
+      case 'delete':
+        await deleteMutation.mutateAsync(pendingAction.item.id);
+        break;
+      case 'permanentDelete':
+        await permanentDeleteMutation.mutateAsync(pendingAction.item.id);
+        break;
+      case 'emptyBin':
+        await emptyRecycleBinMutation.mutateAsync();
+        break;
     }
-  }, [emptyRecycleBinMutation, deletedItemsCount]);
+
+    setPendingAction(null);
+  }, [
+    pendingAction,
+    deleteMutation,
+    permanentDeleteMutation,
+    emptyRecycleBinMutation,
+  ]);
+
+  const cancelPendingAction = useCallback(() => {
+    setPendingAction(null);
+  }, []);
 
   const handleFork = useCallback(
     (item: HomebrewContent) => {
@@ -103,5 +121,8 @@ export function useHomebrewContentHandlers({
     handlePermanentDelete,
     handleEmptyRecycleBin,
     handleFork,
+    pendingAction,
+    confirmPendingAction,
+    cancelPendingAction,
   };
 }

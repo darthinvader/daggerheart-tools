@@ -9,6 +9,7 @@ import {
   Target,
 } from 'lucide-react';
 
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -89,6 +90,19 @@ export function AdversaryRoster({
                   label={`Diff ${adversary.source.difficulty}`}
                 />
               </div>
+              {adversary.conditions.items.length > 0 && (
+                <div className="mt-1 flex flex-wrap gap-1">
+                  {adversary.conditions.items.map((condition: string) => (
+                    <Badge
+                      key={condition}
+                      variant="destructive"
+                      className="px-1.5 py-0 text-[10px]"
+                    >
+                      {condition}
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </RosterCard>
           ))
         )}

@@ -20,6 +20,7 @@ export { EditableNPCs } from './npc-components-new';
 export { EditableOrganizations } from './organization-components-new';
 export { EditableQuests } from './quest-components-new';
 export { EditableSessions } from './session-components-new';
+export { EditableStoryThreads } from './story-thread-components';
 
 // Entity modals for reuse
 export {

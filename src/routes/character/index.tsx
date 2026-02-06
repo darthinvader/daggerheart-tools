@@ -1,7 +1,18 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Plus, Trash2, User, Users } from 'lucide-react';
+import { useState } from 'react';
 
 import { useAuth } from '@/components/providers';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import {
   CharacterCard,
@@ -252,6 +263,19 @@ function CharactersPage() {
       ? createMutation.error.message
       : 'Unknown error';
 
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [permanentDeleteTargetId, setPermanentDeleteTargetId] = useState<
+    string | null
+  >(null);
+  const [showEmptyBinConfirm, setShowEmptyBinConfirm] = useState(false);
+
+  const deleteTargetName =
+    characters?.find(c => c.id === deleteTargetId)?.name ?? 'this character';
+  const permanentDeleteTargetName =
+    characters?.find(c => c.id === permanentDeleteTargetId)?.name ??
+    'this character';
+  const deletedCount = characters?.filter(c => c.deletedAt).length ?? 0;
+
   const handleCreateNew = () => {
     if (!isAuthenticated) return;
     createMutation.mutate(undefined, {
@@ -267,8 +291,13 @@ function CharactersPage() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this character?')) {
-      deleteMutation.mutate(id);
+    setDeleteTargetId(id);
+  };
+
+  const handleConfirmDelete = () => {
+    if (deleteTargetId) {
+      deleteMutation.mutate(deleteTargetId);
+      setDeleteTargetId(null);
     }
   };
 
@@ -277,23 +306,23 @@ function CharactersPage() {
   };
 
   const handlePermanentDelete = (id: string) => {
-    if (
-      confirm(
-        'This will permanently delete this character. This cannot be undone. Are you sure?'
-      )
-    ) {
-      permanentDeleteMutation.mutate(id);
+    setPermanentDeleteTargetId(id);
+  };
+
+  const handleConfirmPermanentDelete = () => {
+    if (permanentDeleteTargetId) {
+      permanentDeleteMutation.mutate(permanentDeleteTargetId);
+      setPermanentDeleteTargetId(null);
     }
   };
 
   const handleEmptyBin = () => {
-    if (
-      confirm(
-        'This will permanently delete ALL characters in the recycling bin. This cannot be undone. Are you sure?'
-      )
-    ) {
-      emptyBinMutation.mutate();
-    }
+    setShowEmptyBinConfirm(true);
+  };
+
+  const handleConfirmEmptyBin = () => {
+    emptyBinMutation.mutate();
+    setShowEmptyBinConfirm(false);
   };
 
   if (isLoading) {
@@ -305,21 +334,98 @@ function CharactersPage() {
   }
 
   return (
-    <CharactersContent
-      characters={characters}
-      createErrorMessage={createErrorMessage}
-      isCreating={createMutation.isPending || isAuthLoading}
-      isCreateError={createMutation.isError}
-      isDeleting={deleteMutation.isPending}
-      isRestoring={restoreMutation.isPending}
-      isPermanentlyDeleting={permanentDeleteMutation.isPending}
-      isEmptyingBin={emptyBinMutation.isPending}
-      isAuthenticated={isAuthenticated}
-      onCreateNew={handleCreateNew}
-      onDelete={handleDelete}
-      onRestore={handleRestore}
-      onPermanentDelete={handlePermanentDelete}
-      onEmptyBin={handleEmptyBin}
-    />
+    <>
+      <CharactersContent
+        characters={characters}
+        createErrorMessage={createErrorMessage}
+        isCreating={createMutation.isPending || isAuthLoading}
+        isCreateError={createMutation.isError}
+        isDeleting={deleteMutation.isPending}
+        isRestoring={restoreMutation.isPending}
+        isPermanentlyDeleting={permanentDeleteMutation.isPending}
+        isEmptyingBin={emptyBinMutation.isPending}
+        isAuthenticated={isAuthenticated}
+        onCreateNew={handleCreateNew}
+        onDelete={handleDelete}
+        onRestore={handleRestore}
+        onPermanentDelete={handlePermanentDelete}
+        onEmptyBin={handleEmptyBin}
+      />
+
+      {/* Move to Trash Confirmation */}
+      <AlertDialog
+        open={!!deleteTargetId}
+        onOpenChange={() => setDeleteTargetId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Move to Trash</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to move &ldquo;{deleteTargetName}&rdquo; to
+              the recycling bin? You can restore it later.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-destructive hover:bg-destructive/90 text-white"
+            >
+              Move to Trash
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Permanent Delete Confirmation */}
+      <AlertDialog
+        open={!!permanentDeleteTargetId}
+        onOpenChange={() => setPermanentDeleteTargetId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Permanently</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to permanently delete &ldquo;
+              {permanentDeleteTargetName}&rdquo;? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmPermanentDelete}
+              className="bg-destructive hover:bg-destructive/90 text-white"
+            >
+              Delete Forever
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Empty Recycling Bin Confirmation */}
+      <AlertDialog
+        open={showEmptyBinConfirm}
+        onOpenChange={setShowEmptyBinConfirm}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Empty Recycling Bin</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to permanently delete all {deletedCount}{' '}
+              character(s) in the recycling bin? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmEmptyBin}
+              className="bg-destructive hover:bg-destructive/90 text-white"
+            >
+              Empty Bin
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

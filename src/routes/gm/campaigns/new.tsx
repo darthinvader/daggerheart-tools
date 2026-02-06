@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { ArrowLeft, ArrowRight, LogIn, Map } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 import {
   FrameCard,
@@ -42,6 +43,8 @@ function NewCampaignPage() {
         params: { id: campaign.id },
         search: { tab: 'overview' },
       });
+    } catch {
+      toast.error('Failed to create campaign — please try again');
     } finally {
       setIsCreating(false);
     }

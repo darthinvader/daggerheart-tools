@@ -2,6 +2,7 @@
 
 import {
   createFileRoute,
+  type ErrorComponentProps,
   Outlet,
   useMatches,
   useNavigate,
@@ -22,7 +23,8 @@ import {
   Users,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-
+import { toast } from 'sonner';
+import { z } from 'zod';
 import {
   BeastFeastTabContent,
   CampaignHeader,
@@ -41,7 +43,13 @@ import {
 } from '@/components/campaign-detail';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { RouteErrorFallback } from '@/components/ui/route-error-fallback';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import {
   addLocation,
   addNPC,
@@ -51,7 +59,11 @@ import {
   updateCampaign,
   updateCampaignFrame,
 } from '@/features/campaigns/campaign-storage';
-import type { Campaign, CampaignFrame } from '@/lib/schemas/campaign';
+import type {
+  Campaign,
+  CampaignFrame,
+  CampaignPhase,
+} from '@/lib/schemas/campaign';
 
 const validTabs = [
   'overview',
@@ -75,12 +87,15 @@ type AddNPCInput = Parameters<typeof addNPC>[1];
 type AddLocationInput = Parameters<typeof addLocation>[1];
 type AddQuestInput = Parameters<typeof addQuest>[1];
 
-const buildNPCPayload = (name: string): AddNPCInput => ({
+const buildNPCPayload = (
+  name: string,
+  extra?: { personality?: string; motivation?: string }
+): AddNPCInput => ({
   name,
   titleRole: '',
   description: '',
-  personality: '',
-  motivation: '',
+  personality: extra?.personality ?? '',
+  motivation: extra?.motivation ?? '',
   backgroundHistory: '',
   secrets: '',
   connections: [],
@@ -98,6 +113,7 @@ const buildNPCPayload = (name: string): AddNPCInput => ({
   tags: [],
   role: 'neutral',
   features: [],
+  disposition: 'neutral',
 });
 
 const buildLocationPayload = (name: string): AddLocationInput => ({
@@ -117,6 +133,7 @@ const buildLocationPayload = (name: string): AddLocationInput => ({
   pointsOfInterest: [],
   tags: [],
   notes: '',
+  atmosphere: '',
 });
 
 const buildQuestPayload = (title: string): AddQuestInput => ({
@@ -161,8 +178,12 @@ type CampaignTabsProps = {
   onNPCsChange: () => void;
   onLocationsChange: () => void;
   onQuestsChange: () => void;
+  onStoryThreadsChange: () => void;
   onOrganizationsChange: () => void;
-  onAddNPC: (name: string) => void | Promise<void>;
+  onAddNPC: (
+    name: string,
+    extra?: { personality?: string; motivation?: string }
+  ) => void | Promise<void>;
   onAddLocation: (name: string) => void | Promise<void>;
   onAddQuest: (title: string) => void | Promise<void>;
   onChecklistChange: (items: Campaign['sessionPrepChecklist']) => void;
@@ -170,12 +191,40 @@ type CampaignTabsProps = {
     sessionZero: NonNullable<Campaign['sessionZero']>
   ) => void;
   onDeleteBattle: (battleId: string) => void | Promise<void>;
+  onPartyInventoryChange: (items: Campaign['partyInventory']) => void;
+  onPlayersChange: (players: Campaign['players']) => void;
 };
 
 function CampaignLoadingState() {
   return (
-    <div className="container mx-auto px-4 py-4">
-      <div className="bg-muted h-64 animate-pulse rounded-lg" />
+    <div className="container mx-auto space-y-4 px-4 py-4">
+      {/* Header skeleton */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="bg-muted h-8 w-8 animate-pulse rounded" />
+          <div className="bg-muted h-8 w-60 animate-pulse rounded" />
+          <div className="bg-muted h-5 w-16 animate-pulse rounded-full" />
+        </div>
+        <div className="bg-muted h-9 w-28 animate-pulse rounded" />
+      </div>
+      {/* Tab bar skeleton */}
+      <div className="flex gap-1 overflow-hidden">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div
+            key={i}
+            className="bg-muted h-9 w-20 animate-pulse rounded"
+            style={{ animationDelay: `${i * 50}ms` }}
+          />
+        ))}
+      </div>
+      {/* Content skeleton */}
+      <div className="space-y-4">
+        <div className="bg-muted h-32 animate-pulse rounded-lg" />
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="bg-muted h-40 animate-pulse rounded-lg" />
+          <div className="bg-muted h-40 animate-pulse rounded-lg" />
+        </div>
+      </div>
     </div>
   );
 }
@@ -284,6 +333,7 @@ function useCampaignAutoSave(
       performSaveRef.current().catch(error => {
         if (isMountedRef.current) {
           console.error('[CampaignAutoSave] Failed to save:', error);
+          toast.error('Failed to save campaign');
         }
       });
     }, 1000);
@@ -324,15 +374,17 @@ function useGeneratorHandler<TValue>(
   campaign: Campaign | null,
   reloadCampaignData: () => Promise<void>,
   action: (campaignId: string, payload: TValue) => Promise<unknown>,
-  buildPayload: (value: string) => TValue
+  buildPayload: (value: string) => TValue,
+  entityLabel = 'Item'
 ) {
   return useCallback(
     async (value: string) => {
       if (!campaign) return;
       await action(campaign.id, buildPayload(value));
       await reloadCampaignData();
+      toast.success(`${entityLabel} "${value}" created`);
     },
-    [campaign, reloadCampaignData, action, buildPayload]
+    [campaign, reloadCampaignData, action, buildPayload, entityLabel]
   );
 }
 
@@ -368,7 +420,11 @@ function useCampaignDetailState(
     if (!campaign || saving) return;
     setSaving(true);
     try {
-      await updateCampaign(id, { name: campaign.name });
+      await updateCampaign(id, {
+        name: campaign.name,
+        phase: campaign.phase,
+        beastFeastEnabled: campaign.beastFeastEnabled,
+      });
       await updateCampaignFrame(id, campaign.frame);
       setChangeVersion(0);
     } finally {
@@ -382,25 +438,33 @@ function useCampaignDetailState(
     saving
   );
 
-  const handleAddNPCFromGenerator = useGeneratorHandler(
-    campaign,
-    reloadCampaignData,
-    addNPC,
-    buildNPCPayload
+  const handleAddNPCFromGenerator = useCallback(
+    async (
+      name: string,
+      extra?: { personality?: string; motivation?: string }
+    ) => {
+      if (!campaign) return;
+      await addNPC(campaign.id, buildNPCPayload(name, extra));
+      await reloadCampaignData();
+      toast.success(`NPC "${name}" created`);
+    },
+    [campaign, reloadCampaignData]
   );
 
   const handleAddLocationFromGenerator = useGeneratorHandler(
     campaign,
     reloadCampaignData,
     addLocation,
-    buildLocationPayload
+    buildLocationPayload,
+    'Location'
   );
 
   const handleAddQuestFromGenerator = useGeneratorHandler(
     campaign,
     reloadCampaignData,
     addQuest,
-    buildQuestPayload
+    buildQuestPayload,
+    'Quest'
   );
 
   const handleNameChange = useCallback(
@@ -429,6 +493,30 @@ function useCampaignDetailState(
     [setCampaign]
   );
 
+  const handlePhaseChange = useCallback(
+    (phase: CampaignPhase) => {
+      setCampaign(current => {
+        if (!current) {
+          return current;
+        }
+        setChangeVersion(v => v + 1);
+        return { ...current, phase };
+      });
+    },
+    [setCampaign]
+  );
+
+  const handleBeastFeastToggle = useCallback(
+    (enabled: boolean) => {
+      setCampaign(current => {
+        if (!current) return current;
+        setChangeVersion(v => v + 1);
+        return { ...current, beastFeastEnabled: enabled };
+      });
+    },
+    [setCampaign]
+  );
+
   const handleSessionZeroChange = useCallback(
     (sessionZero: NonNullable<Campaign['sessionZero']>) => {
       setCampaign(current => {
@@ -442,6 +530,32 @@ function useCampaignDetailState(
     [setCampaign]
   );
 
+  const handlePartyInventoryChange = useCallback(
+    (partyInventory: Campaign['partyInventory']) => {
+      setCampaign(current => {
+        if (!current) {
+          return current;
+        }
+        setChangeVersion(v => v + 1);
+        return { ...current, partyInventory };
+      });
+    },
+    [setCampaign]
+  );
+
+  const handlePlayersChange = useCallback(
+    (players: Campaign['players']) => {
+      setCampaign(current => {
+        if (!current) {
+          return current;
+        }
+        setChangeVersion(v => v + 1);
+        return { ...current, players };
+      });
+    },
+    [setCampaign]
+  );
+
   const handleDeleteBattle = useCallback(
     async (battleId: string) => {
       if (!campaign) return;
@@ -449,6 +563,7 @@ function useCampaignDetailState(
       try {
         await deleteBattle(campaign.id, battleId);
         await reloadCampaignData();
+        toast.success('Battle deleted');
       } finally {
         setDirectSaving(false);
       }
@@ -494,9 +609,13 @@ function useCampaignDetailState(
     updateFrame,
     handleSave,
     handleNameChange,
+    handlePhaseChange,
+    handleBeastFeastToggle,
     handleChecklistChange,
     handleSessionZeroChange,
     handleDeleteBattle,
+    handlePartyInventoryChange,
+    handlePlayersChange,
     handleAddNPCFromGenerator,
     handleAddLocationFromGenerator,
     handleAddQuestFromGenerator,
@@ -504,6 +623,77 @@ function useCampaignDetailState(
     markSaving,
     markPendingChange,
   };
+}
+
+const MAX_PREVIEW_NAMES = 3;
+
+function buildNamesTooltip(
+  label: string,
+  items: { name: string }[]
+): string | undefined {
+  if (items.length === 0) return undefined;
+  const plural = `${label}${items.length === 1 ? '' : 's'}`;
+  const names = items.slice(0, MAX_PREVIEW_NAMES).map(i => i.name);
+  const suffix =
+    items.length > MAX_PREVIEW_NAMES
+      ? `, +${String(items.length - MAX_PREVIEW_NAMES)} more`
+      : '';
+  return `${String(items.length)} ${plural}: ${names.join(', ')}${suffix}`;
+}
+
+function buildSessionsTooltip(
+  sessions: { date?: string; status: string }[]
+): string | undefined {
+  if (sessions.length === 0) return undefined;
+  const label = sessions.length === 1 ? 'session' : 'sessions';
+  const lastPlayed = [...sessions]
+    .filter(s => s.date)
+    .sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''))
+    .at(0);
+  if (lastPlayed?.date) {
+    const formatted = new Date(lastPlayed.date).toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+    });
+    return `${String(sessions.length)} ${label}, last played ${formatted}`;
+  }
+  return `${String(sessions.length)} ${label}`;
+}
+
+function buildQuestsTooltip(quests: { status: string }[]): string | undefined {
+  if (quests.length === 0) return undefined;
+  const active = quests.filter(q => q.status === 'active').length;
+  const completed = quests.filter(q => q.status === 'completed').length;
+  const parts: string[] = [];
+  if (active > 0) parts.push(`${String(active)} active`);
+  if (completed > 0) parts.push(`${String(completed)} completed`);
+  if (parts.length === 0)
+    return `${String(quests.length)} quest${quests.length === 1 ? '' : 's'}`;
+  return parts.join(', ');
+}
+
+function TabCountBadge({
+  count,
+  tooltip,
+}: {
+  count: number;
+  tooltip?: string;
+}) {
+  if (count === 0) return null;
+  const badge = (
+    <span className="bg-muted-foreground/20 text-muted-foreground ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] leading-none font-medium">
+      {count}
+    </span>
+  );
+  if (!tooltip) return badge;
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{badge}</TooltipTrigger>
+      <TooltipContent side="bottom" sideOffset={4}>
+        {tooltip}
+      </TooltipContent>
+    </Tooltip>
+  );
 }
 
 function CampaignTabs({
@@ -522,6 +712,7 @@ function CampaignTabs({
   onNPCsChange,
   onLocationsChange,
   onQuestsChange,
+  onStoryThreadsChange,
   onOrganizationsChange,
   onAddNPC,
   onAddLocation,
@@ -529,10 +720,12 @@ function CampaignTabs({
   onChecklistChange,
   onSessionZeroChange,
   onDeleteBattle,
+  onPartyInventoryChange,
+  onPlayersChange,
 }: CampaignTabsProps) {
   return (
     <Tabs value={tab} onValueChange={setActiveTab}>
-      <TabsList className="scrollbar-thin mb-4 h-auto w-full justify-start gap-0.5 overflow-x-auto overflow-y-hidden p-1">
+      <TabsList className="scrollbar-thin mb-4 h-auto w-full justify-start gap-0.5 overflow-x-auto overflow-y-hidden scroll-smooth p-1 pr-6">
         <TabsTrigger value="overview">
           <Map className="h-4 w-4 text-sky-500" />
           <span className="ml-2 hidden lg:inline">Overview</span>
@@ -548,22 +741,42 @@ function CampaignTabs({
         <TabsTrigger value="sessions">
           <Scroll className="h-4 w-4 text-amber-500" />
           <span className="ml-2 hidden lg:inline">Sessions</span>
+          <TabCountBadge
+            count={(campaign.sessions ?? []).length}
+            tooltip={buildSessionsTooltip(campaign.sessions ?? [])}
+          />
         </TabsTrigger>
         <TabsTrigger value="characters">
           <User className="h-4 w-4 text-blue-500" />
           <span className="ml-2 hidden lg:inline">NPCs</span>
+          <TabCountBadge
+            count={(campaign.npcs ?? []).length}
+            tooltip={buildNamesTooltip('NPC', campaign.npcs ?? [])}
+          />
         </TabsTrigger>
         <TabsTrigger value="locations">
           <MapPin className="h-4 w-4 text-rose-500" />
           <span className="ml-2 hidden lg:inline">Locations</span>
+          <TabCountBadge
+            count={(campaign.locations ?? []).length}
+            tooltip={buildNamesTooltip('location', campaign.locations ?? [])}
+          />
         </TabsTrigger>
         <TabsTrigger value="quests">
           <Target className="h-4 w-4 text-orange-500" />
           <span className="ml-2 hidden lg:inline">Quests</span>
+          <TabCountBadge
+            count={(campaign.quests ?? []).length}
+            tooltip={buildQuestsTooltip(campaign.quests ?? [])}
+          />
         </TabsTrigger>
         <TabsTrigger value="organizations">
           <Building2 className="h-4 w-4 text-indigo-500" />
           <span className="ml-2 hidden lg:inline">Orgs</span>
+          <TabCountBadge
+            count={(campaign.organizations ?? []).length}
+            tooltip={buildNamesTooltip('org', campaign.organizations ?? [])}
+          />
         </TabsTrigger>
         <TabsTrigger value="session-zero">
           <MessageSquare className="h-4 w-4 text-cyan-500" />
@@ -577,127 +790,161 @@ function CampaignTabs({
           <Beaker className="h-4 w-4 text-purple-500" />
           <span className="ml-2 hidden lg:inline">Homebrew</span>
         </TabsTrigger>
-        <TabsTrigger value="beast-feast">
-          <ChefHat className="h-4 w-4 text-orange-500" />
-          <span className="ml-2 hidden lg:inline">Beast Feast</span>
-        </TabsTrigger>
+        {campaign.beastFeastEnabled && (
+          <TabsTrigger value="beast-feast">
+            <ChefHat className="h-4 w-4 text-orange-500" />
+            <span className="ml-2 hidden lg:inline">Beast Feast</span>
+          </TabsTrigger>
+        )}
         <TabsTrigger value="players">
           <Users className="h-4 w-4 text-green-500" />
           <span className="ml-2 hidden lg:inline">Players</span>
+          <TabCountBadge
+            count={(campaign.players ?? []).length}
+            tooltip={buildNamesTooltip('player', campaign.players ?? [])}
+          />
         </TabsTrigger>
       </TabsList>
 
-      <OverviewTabContent
-        frame={frame}
-        updateFrame={updateFrame}
-        onBlur={onFrameBlur}
-      />
-      <WorldTabContent
-        frame={frame}
-        updateFrame={updateFrame}
-        onBlur={onFrameBlur}
-      />
-      <MechanicsTabContent
-        frame={frame}
-        updateFrame={updateFrame}
-        onBlur={onFrameBlur}
-      />
-      <SessionsTabContent
-        sessions={campaign.sessions ?? []}
-        npcs={campaign.npcs ?? []}
-        locations={campaign.locations}
-        quests={campaign.quests}
-        organizations={campaign.organizations ?? []}
-        campaignId={campaign.id}
-        onSaveStart={onSaveStart}
-        onPendingChange={onPendingChange}
-        onSessionsChange={onSessionsChange}
-      />
-      <CharactersTabContent
-        npcs={campaign.npcs ?? []}
-        locations={campaign.locations}
-        quests={campaign.quests}
-        sessions={campaign.sessions}
-        organizations={campaign.organizations ?? []}
-        campaignId={campaign.id}
-        onSaveStart={onSaveStart}
-        onPendingChange={onPendingChange}
-        onNPCsChange={onNPCsChange}
-      />
-      <LocationsTabContent
-        locations={campaign.locations}
-        npcs={campaign.npcs ?? []}
-        quests={campaign.quests}
-        sessions={campaign.sessions}
-        organizations={campaign.organizations ?? []}
-        campaignId={campaign.id}
-        onSaveStart={onSaveStart}
-        onPendingChange={onPendingChange}
-        onLocationsChange={onLocationsChange}
-      />
-      <QuestsTabContent
-        quests={campaign.quests}
-        npcs={campaign.npcs ?? []}
-        locations={campaign.locations}
-        sessions={campaign.sessions}
-        organizations={campaign.organizations ?? []}
-        campaignId={campaign.id}
-        onSaveStart={onSaveStart}
-        onPendingChange={onPendingChange}
-        onQuestsChange={onQuestsChange}
-      />
-      <OrganizationsTabContent
-        organizations={campaign.organizations ?? []}
-        npcs={campaign.npcs ?? []}
-        locations={campaign.locations}
-        quests={campaign.quests}
-        campaignId={campaign.id}
-        onSaveStart={onSaveStart}
-        onPendingChange={onPendingChange}
-        onOrganizationsChange={onOrganizationsChange}
-        onNPCsChange={onNPCsChange}
-        onLocationsChange={onLocationsChange}
-        onQuestsChange={onQuestsChange}
-      />
-      <GMToolsTabContent
-        campaignId={campaign.id}
-        battles={campaign.battles ?? []}
-        sessionPrepChecklist={campaign.sessionPrepChecklist}
-        onAddNPC={onAddNPC}
-        onAddLocation={onAddLocation}
-        onAddQuest={onAddQuest}
-        onNavigateToTab={setActiveTab}
-        onChecklistChange={onChecklistChange}
-        onDeleteBattle={onDeleteBattle}
-      />
-      <SessionZeroTabContent
-        frame={frame}
-        updateFrame={updateFrame}
-        sessionZero={campaign.sessionZero}
-        onSessionZeroChange={onSessionZeroChange}
-        onBlur={onFrameBlur}
-      />
-      <HomebrewTabContent campaignId={campaign.id} />
-      <BeastFeastTabContent campaignId={campaign.id} />
-      <PlayersTabContent
-        campaign={campaign}
-        inviteLink={inviteLink}
-        onCopyInviteCode={onCopyInviteCode}
-        onCopyInviteLink={onCopyInviteLink}
-      />
+      {tab === 'overview' && (
+        <OverviewTabContent
+          frame={frame}
+          updateFrame={updateFrame}
+          onBlur={onFrameBlur}
+        />
+      )}
+      {tab === 'world' && (
+        <WorldTabContent
+          frame={frame}
+          updateFrame={updateFrame}
+          onBlur={onFrameBlur}
+        />
+      )}
+      {tab === 'mechanics' && (
+        <MechanicsTabContent
+          frame={frame}
+          updateFrame={updateFrame}
+          onBlur={onFrameBlur}
+        />
+      )}
+      {tab === 'sessions' && (
+        <SessionsTabContent
+          sessions={campaign.sessions ?? []}
+          npcs={campaign.npcs ?? []}
+          locations={campaign.locations}
+          quests={campaign.quests}
+          organizations={campaign.organizations ?? []}
+          campaignId={campaign.id}
+          onSaveStart={onSaveStart}
+          onPendingChange={onPendingChange}
+          onSessionsChange={onSessionsChange}
+        />
+      )}
+      {tab === 'characters' && (
+        <CharactersTabContent
+          npcs={campaign.npcs ?? []}
+          locations={campaign.locations}
+          quests={campaign.quests}
+          sessions={campaign.sessions}
+          organizations={campaign.organizations ?? []}
+          campaignId={campaign.id}
+          onSaveStart={onSaveStart}
+          onPendingChange={onPendingChange}
+          onNPCsChange={onNPCsChange}
+        />
+      )}
+      {tab === 'locations' && (
+        <LocationsTabContent
+          locations={campaign.locations}
+          npcs={campaign.npcs ?? []}
+          quests={campaign.quests}
+          sessions={campaign.sessions}
+          organizations={campaign.organizations ?? []}
+          campaignId={campaign.id}
+          onSaveStart={onSaveStart}
+          onPendingChange={onPendingChange}
+          onLocationsChange={onLocationsChange}
+        />
+      )}
+      {tab === 'quests' && (
+        <QuestsTabContent
+          quests={campaign.quests}
+          storyThreads={campaign.storyThreads ?? []}
+          npcs={campaign.npcs ?? []}
+          locations={campaign.locations}
+          sessions={campaign.sessions}
+          organizations={campaign.organizations ?? []}
+          campaignId={campaign.id}
+          onSaveStart={onSaveStart}
+          onPendingChange={onPendingChange}
+          onQuestsChange={onQuestsChange}
+          onStoryThreadsChange={onStoryThreadsChange}
+        />
+      )}
+      {tab === 'organizations' && (
+        <OrganizationsTabContent
+          organizations={campaign.organizations ?? []}
+          npcs={campaign.npcs ?? []}
+          locations={campaign.locations}
+          quests={campaign.quests}
+          campaignId={campaign.id}
+          onSaveStart={onSaveStart}
+          onPendingChange={onPendingChange}
+          onOrganizationsChange={onOrganizationsChange}
+          onNPCsChange={onNPCsChange}
+          onLocationsChange={onLocationsChange}
+          onQuestsChange={onQuestsChange}
+        />
+      )}
+      {tab === 'gm-tools' && (
+        <GMToolsTabContent
+          campaignId={campaign.id}
+          battles={campaign.battles ?? []}
+          playerNames={(campaign.players ?? []).map(p => p.name)}
+          sessionPrepChecklist={campaign.sessionPrepChecklist}
+          onAddNPC={onAddNPC}
+          onAddLocation={onAddLocation}
+          onAddQuest={onAddQuest}
+          onNavigateToTab={setActiveTab}
+          onChecklistChange={onChecklistChange}
+          onDeleteBattle={onDeleteBattle}
+        />
+      )}
+      {tab === 'session-zero' && (
+        <SessionZeroTabContent
+          frame={frame}
+          updateFrame={updateFrame}
+          sessionZero={campaign.sessionZero}
+          onSessionZeroChange={onSessionZeroChange}
+          onBlur={onFrameBlur}
+        />
+      )}
+      {tab === 'homebrew' && <HomebrewTabContent campaignId={campaign.id} />}
+      {tab === 'beast-feast' && campaign.beastFeastEnabled && (
+        <BeastFeastTabContent campaignId={campaign.id} />
+      )}
+      {tab === 'players' && (
+        <PlayersTabContent
+          campaign={campaign}
+          inviteLink={inviteLink}
+          onCopyInviteCode={onCopyInviteCode}
+          onCopyInviteLink={onCopyInviteLink}
+          onUpdatePartyInventory={onPartyInventoryChange}
+          onUpdatePlayers={onPlayersChange}
+        />
+      )}
     </Tabs>
   );
 }
 
 export const Route = createFileRoute('/gm/campaigns/$id')({
   component: CampaignDetailPage,
-  validateSearch: (search: Record<string, unknown>): { tab: TabValue } => {
-    const tab = search.tab as string;
-    if (tab && validTabs.includes(tab as TabValue)) {
-      return { tab: tab as TabValue };
-    }
-    return { tab: 'overview' };
-  },
+  errorComponent: ({ error }: ErrorComponentProps) => (
+    <RouteErrorFallback error={error} />
+  ),
+  validateSearch: z.object({
+    tab: z.enum(validTabs).catch('overview'),
+  }),
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -726,9 +973,13 @@ function CampaignDetailPage() {
     updateFrame,
     handleSave,
     handleNameChange,
+    handlePhaseChange,
+    handleBeastFeastToggle,
     handleChecklistChange,
     handleSessionZeroChange,
     handleDeleteBattle,
+    handlePartyInventoryChange,
+    handlePlayersChange,
     handleAddNPCFromGenerator,
     handleAddLocationFromGenerator,
     handleAddQuestFromGenerator,
@@ -753,9 +1004,14 @@ function CampaignDetailPage() {
     navigate({ to: '/gm/campaigns' });
   }, [navigate]);
 
-  const copyInviteCode = useCallback(() => {
+  const copyInviteCode = useCallback(async () => {
     if (campaign?.inviteCode) {
-      navigator.clipboard.writeText(campaign.inviteCode);
+      try {
+        await navigator.clipboard.writeText(campaign.inviteCode);
+        toast.success('Invite code copied');
+      } catch {
+        toast.error('Failed to copy — try selecting the text manually');
+      }
     }
   }, [campaign]);
 
@@ -767,11 +1023,28 @@ function CampaignDetailPage() {
     )}`;
   }, [campaign?.inviteCode]);
 
-  const copyInviteLink = useCallback(() => {
+  const copyInviteLink = useCallback(async () => {
     if (inviteLink) {
-      navigator.clipboard.writeText(inviteLink);
+      try {
+        await navigator.clipboard.writeText(inviteLink);
+        toast.success('Invite link copied');
+      } catch {
+        toast.error('Failed to copy — try selecting the text manually');
+      }
     }
   }, [inviteLink]);
+
+  // Ctrl+S / Cmd+S keyboard shortcut to force-save
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        handleSave();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [handleSave]);
 
   // Now we can have conditional returns after all hooks are called
 
@@ -803,6 +1076,8 @@ function CampaignDetailPage() {
         onNameBlur={handleSave}
         onCopyInviteCode={copyInviteCode}
         onSave={handleSave}
+        onPhaseChange={handlePhaseChange}
+        onBeastFeastToggle={handleBeastFeastToggle}
       />
 
       <CampaignTabs
@@ -821,6 +1096,7 @@ function CampaignDetailPage() {
         onNPCsChange={handleDirectSaveChange}
         onLocationsChange={handleDirectSaveChange}
         onQuestsChange={handleDirectSaveChange}
+        onStoryThreadsChange={handleDirectSaveChange}
         onOrganizationsChange={handleDirectSaveChange}
         onAddNPC={handleAddNPCFromGenerator}
         onAddLocation={handleAddLocationFromGenerator}
@@ -828,6 +1104,8 @@ function CampaignDetailPage() {
         onChecklistChange={handleChecklistChange}
         onSessionZeroChange={handleSessionZeroChange}
         onDeleteBattle={handleDeleteBattle}
+        onPartyInventoryChange={handlePartyInventoryChange}
+        onPlayersChange={handlePlayersChange}
       />
     </div>
   );

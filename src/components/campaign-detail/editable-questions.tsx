@@ -19,7 +19,7 @@ export function EditableQuestions({
     onChange([
       ...questions,
       {
-        id: `question-${Date.now()}`,
+        id: `question-${crypto.randomUUID()}`,
         question: '',
         category: 'custom',
       },

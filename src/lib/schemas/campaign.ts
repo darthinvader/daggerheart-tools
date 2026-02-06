@@ -24,6 +24,18 @@ import { SessionZeroSchema } from './session-zero';
 export const CampaignComplexitySchema = z.enum(['1', '2', '3', '4']);
 
 /**
+ * Campaign phase/act to track campaign arc progression
+ */
+export const CampaignPhaseSchema = z.enum([
+  'prologue',
+  'act-1',
+  'act-2',
+  'act-3',
+  'climax',
+  'epilogue',
+]);
+
+/**
  * Tone descriptors for campaign feel
  */
 export const CampaignToneSchema = z.array(z.string()).default([]);
@@ -117,6 +129,9 @@ export const CampaignFrameSchema = z.object({
   // World details
   distinctions: z.array(CampaignDistinctionSchema).default([]),
 
+  // Ongoing world lore — GM notes that evolve as the campaign progresses
+  worldNotes: z.string().default(''),
+
   // Starting point
   incitingIncident: IncitingIncidentSchema.optional(),
 
@@ -156,6 +171,8 @@ export const SessionNoteSchema = z.object({
   sessionNumber: z.number().min(1),
   title: z.string().default(''),
   date: z.string().optional(), // When the session was played (date_played)
+  status: z.enum(['planned', 'in-progress', 'completed']).default('planned'),
+  agenda: z.string().default(''), // Pre-session planning notes
   summary: z.string().default(''), // GM's summary of events
   keyHighlights: z.array(z.string()).default([]), // Key moments (renamed from highlights)
   playerNotes: z
@@ -181,6 +198,8 @@ export const SessionNoteSchema = z.object({
   questsInvolvedCustom: z.array(z.string()).default([]), // Custom quest labels (legacy)
   // Organizations mentioned
   organizationIds: z.array(z.string()).default([]),
+  // Rewards & XP tracking (Fear → Experience)
+  rewards: z.string().default(''),
   // Legacy
   questProgress: z.string().default(''), // Notes on quest/story progress (legacy)
   createdAt: z.string().datetime(),
@@ -257,6 +276,18 @@ export const NPCFeatureSchema = z.object({
  */
 export const NPCRoleSchema = z.enum(['ally', 'neutral', 'rival', 'villain']);
 
+/**
+ * Disposition tracks how an NPC currently feels about the party.
+ * Supports Daggerheart's narrative-first design by surfacing NPC attitudes at a glance.
+ */
+export const NPCDispositionSchema = z.enum([
+  'friendly',
+  'neutral',
+  'cautious',
+  'hostile',
+  'unknown',
+]);
+
 // =====================================================================================
 // Campaign NPCs/Characters - Story characters the GM creates
 // =====================================================================================
@@ -264,7 +295,8 @@ export const NPCRoleSchema = z.enum(['ally', 'neutral', 'rival', 'villain']);
 export const CampaignNPCSchema = z.object({
   id: z.string(),
   name: z.string().min(1),
-  titleRole: z.string().default(''), // e.g., "The Merchant Prince", "Village Elder" (renamed from title)
+  titleRole: z.string().default(''),
+  disposition: NPCDispositionSchema.default('neutral'), // How the NPC feels about the party // e.g., "The Merchant Prince", "Village Elder" (renamed from title)
   role: NPCRoleSchema.default('neutral'), // Relationship to the party
   status: z
     .enum(['active', 'deceased', 'missing', 'retired'])
@@ -346,6 +378,7 @@ export const CampaignLocationSchema = z.object({
     ])
     .default('other'),
   description: z.string().default(''), // What the place looks like
+  atmosphere: z.string().default(''), // Sensory details — smells, sounds, lighting, mood
   currentState: z.string().default(''), // What's happening there now
   historyLore: z.string().default(''), // Background and lore (renamed from history)
   secrets: z.string().default(''), // Hidden info only GM knows
@@ -585,6 +618,17 @@ export const CampaignPlayerSchema = z.object({
   characterName: z.string().optional(),
   joinedAt: z.string().datetime(),
   role: z.enum(['player', 'co-gm']).default('player'),
+  notes: z.string().default(''),
+});
+
+// =====================================================================================
+// Party Inventory - Shared loot tracking
+// =====================================================================================
+
+export const PartyInventoryItemSchema = z.object({
+  name: z.string(),
+  quantity: z.number().default(1),
+  notes: z.string().default(''),
 });
 
 export const CampaignSchema = z.object({
@@ -654,7 +698,12 @@ export const CampaignSchema = z.object({
       },
       { id: 'default-7', text: 'Check the Fear track', checked: false },
     ]),
+  // Party-wide inventory / shared loot
+  partyInventory: z.array(PartyInventoryItemSchema).default([]),
+  // Beast Feast feature toggle — many campaigns don't use it
+  beastFeastEnabled: z.boolean().default(false),
   inviteCode: z.string().optional(),
+  phase: CampaignPhaseSchema.default('act-1'),
   status: z.enum(['draft', 'active', 'paused', 'completed']).default('draft'),
   notes: z.string().default(''),
   createdAt: z.string().datetime(),
@@ -666,6 +715,7 @@ export const CampaignSchema = z.object({
 // =====================================================================================
 
 export type CampaignComplexity = z.infer<typeof CampaignComplexitySchema>;
+export type CampaignPhase = z.infer<typeof CampaignPhaseSchema>;
 export type SessionZeroQuestion = z.infer<typeof SessionZeroQuestionSchema>;
 export type CampaignDistinction = z.infer<typeof CampaignDistinctionSchema>;
 export type CampaignMechanic = z.infer<typeof CampaignMechanicSchema>;
@@ -680,6 +730,7 @@ export type NPCSessionAppearance = z.infer<typeof NPCSessionAppearanceSchema>;
 export type NPCQuestAppearance = z.infer<typeof NPCQuestAppearanceSchema>;
 export type NPCFeature = z.infer<typeof NPCFeatureSchema>;
 export type NPCRole = z.infer<typeof NPCRoleSchema>;
+export type NPCDisposition = z.infer<typeof NPCDispositionSchema>;
 export type CampaignNPC = z.infer<typeof CampaignNPCSchema>;
 export type PointOfInterest = z.infer<typeof PointOfInterestSchema>;
 export type CampaignLocation = z.infer<typeof CampaignLocationSchema>;
@@ -690,6 +741,7 @@ export type QuestCharacterInvolvement = z.infer<
 export type CampaignQuest = z.infer<typeof CampaignQuestSchema>;
 export type CampaignOrganization = z.infer<typeof CampaignOrganizationSchema>;
 export type StoryThread = z.infer<typeof StoryThreadSchema>;
+export type PartyInventoryItem = z.infer<typeof PartyInventoryItemSchema>;
 export type Campaign = z.infer<typeof CampaignSchema>;
 export type BeastFeastState = NonNullable<Campaign['beastFeast']>;
 

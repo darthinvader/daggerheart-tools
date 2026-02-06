@@ -24,7 +24,7 @@ export function EditablePrinciples({
     onChange([
       ...principles,
       {
-        id: `principle-${Date.now()}`,
+        id: `principle-${crypto.randomUUID()}`,
         title: 'New Principle',
         description: '',
         target,

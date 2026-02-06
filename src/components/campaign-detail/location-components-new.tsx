@@ -8,7 +8,7 @@ import {
   Plus,
   TreePine,
 } from 'lucide-react';
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useDeferredValue, useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -165,6 +165,7 @@ export function EditableLocations({
     null
   );
   const [searchQuery, setSearchQuery] = useState('');
+  const deferredSearchQuery = useDeferredValue(searchQuery);
 
   // Entity CRUD handlers (extracted hook)
   const {
@@ -183,19 +184,24 @@ export function EditableLocations({
     onOrganizationsChange,
   });
 
-  const filteredLocations = locations
-    .filter(location => (typeFilter ? location.type === typeFilter : true))
-    .filter(location => {
-      const query = searchQuery.trim().toLowerCase();
-      if (!query) return true;
-      return [location.name, location.type, location.tags.join(' ')]
-        .join(' ')
-        .toLowerCase()
-        .includes(query);
-    });
+  const filteredLocations = useMemo(
+    () =>
+      locations
+        .filter(location => (typeFilter ? location.type === typeFilter : true))
+        .filter(location => {
+          const query = deferredSearchQuery.trim().toLowerCase();
+          if (!query) return true;
+          return [location.name, location.type, location.tags.join(' ')]
+            .join(' ')
+            .toLowerCase()
+            .includes(query);
+        }),
+    [locations, typeFilter, deferredSearchQuery]
+  );
 
-  const sortedLocations = [...filteredLocations].sort((a, b) =>
-    a.name.localeCompare(b.name)
+  const sortedLocations = useMemo(
+    () => [...filteredLocations].sort((a, b) => a.name.localeCompare(b.name)),
+    [filteredLocations]
   );
 
   return (
@@ -236,20 +242,30 @@ export function EditableLocations({
         </Select>
       </div>
 
-      {sortedLocations.length === 0 ? (
+      {locations.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="py-12 text-center">
             <div className="bg-muted mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
               <MapIcon className="text-muted-foreground h-6 w-6" />
             </div>
             <h3 className="mb-2 font-medium">No locations created yet</h3>
-            <p className="text-muted-foreground mb-4 text-sm">
-              Add cities, dungeons, and points of interest
+            <p className="text-muted-foreground mx-auto mb-4 max-w-sm text-sm">
+              Build out your world with cities, dungeons, taverns, and
+              landmarks. Link NPCs and quests to each location so you always
+              know what's happening where.
             </p>
             <Button onClick={handleAddLocation} variant="outline">
               <Plus className="mr-2 h-4 w-4" />
               Add First Location
             </Button>
+          </CardContent>
+        </Card>
+      ) : sortedLocations.length === 0 ? (
+        <Card className="border-dashed">
+          <CardContent className="py-12 text-center">
+            <p className="text-muted-foreground text-sm">
+              No results match your search or filters
+            </p>
           </CardContent>
         </Card>
       ) : (

@@ -2,7 +2,19 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { FolderOpen, Play, Plus, Swords, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -69,12 +81,18 @@ function SavedEncountersPage() {
         search: { battleId: battle.id },
       });
     },
+    onError: () => {
+      toast.error('Failed to create encounter');
+    },
   });
 
   const deleteBattleMutation = useMutation({
     mutationFn: deleteStandaloneBattle,
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['standalone-battles'] });
+    },
+    onError: () => {
+      toast.error('Failed to delete encounter');
     },
   });
 
@@ -138,8 +156,13 @@ function SavedEncountersPage() {
 
             {/* List of standalone battles */}
             {isLoadingStandalone ? (
-              <div className="text-muted-foreground py-4 text-center text-sm">
-                Loading encounters...
+              <div className="space-y-2">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="bg-muted h-16 animate-pulse rounded-lg"
+                  />
+                ))}
               </div>
             ) : standaloneBattles.length === 0 ? (
               <div className="text-muted-foreground py-4 text-center text-sm">
@@ -168,14 +191,39 @@ function SavedEncountersPage() {
                           Open
                         </Link>
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => deleteBattleMutation.mutate(battle.id)}
-                        disabled={deleteBattleMutation.isPending}
-                      >
-                        <Trash2 className="text-destructive h-4 w-4" />
-                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive opacity-0 group-hover:opacity-100"
+                            aria-label="Delete"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              Delete Encounter
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will permanently delete this encounter. This
+                              action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() =>
+                                deleteBattleMutation.mutate(battle.id)
+                              }
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </div>
                 ))}
@@ -197,8 +245,13 @@ function SavedEncountersPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             {isLoadingCampaigns ? (
-              <div className="text-muted-foreground py-4 text-center text-sm">
-                Loading campaigns...
+              <div className="space-y-2">
+                {Array.from({ length: 2 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="bg-muted h-16 animate-pulse rounded-lg"
+                  />
+                ))}
               </div>
             ) : campaignBattles.length === 0 ? (
               <div className="space-y-4">

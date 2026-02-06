@@ -126,7 +126,7 @@ export function EditableMechanics({
     onChange([
       ...mechanics,
       {
-        id: `mechanic-${Date.now()}`,
+        id: `mechanic-${crypto.randomUUID()}`,
         name: 'New Mechanic',
         description: '',
         rules: [],

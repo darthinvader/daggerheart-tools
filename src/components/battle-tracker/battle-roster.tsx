@@ -1,5 +1,6 @@
 import { AlertTriangle, Heart, Shield, Swords, User } from 'lucide-react';
 
+import { Badge } from '@/components/ui/badge';
 import {
   Card,
   CardContent,
@@ -209,6 +210,19 @@ function CharacterRoster({
                   />
                 )}
               </div>
+              {character.conditions.items.length > 0 && (
+                <div className="mt-1 flex flex-wrap gap-1">
+                  {character.conditions.items.map((condition: string) => (
+                    <Badge
+                      key={condition}
+                      variant="destructive"
+                      className="px-1.5 py-0 text-[10px]"
+                    >
+                      {condition}
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </RosterCard>
           ))
         )}

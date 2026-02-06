@@ -1,13 +1,18 @@
 import {
   createFileRoute,
+  type ErrorComponentProps,
   Outlet,
   useRouterState,
 } from '@tanstack/react-router';
 
 import { ReferencePageSkeleton } from '@/components/references';
+import { RouteErrorFallback } from '@/components/ui/route-error-fallback';
 
 export const Route = createFileRoute('/references')({
   component: ReferencesLayout,
+  errorComponent: ({ error }: ErrorComponentProps) => (
+    <RouteErrorFallback error={error} />
+  ),
   pendingComponent: ReferencesLoadingState,
   pendingMs: 100, // Show skeleton after 100ms to avoid flash
   pendingMinMs: 200, // Keep skeleton visible for at least 200ms to avoid flicker

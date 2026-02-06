@@ -57,6 +57,7 @@ import type { BattleState } from '@/lib/schemas/battle';
 import type {
   Campaign,
   CampaignFrame,
+  CampaignGuidance,
   CampaignLocation,
   CampaignNPC,
   CampaignOrganization,
@@ -64,6 +65,7 @@ import type {
   CampaignQuest,
   SessionNote,
   SessionZero,
+  StoryThread,
 } from '@/lib/schemas/campaign';
 
 import { EditableDistinctions } from './editable-distinctions';
@@ -74,9 +76,11 @@ import { type ChecklistItem, GMToolsPanel } from './gm-tools-panel';
 import { EditableLocations } from './location-components-new';
 import { EditableNPCs } from './npc-components-new';
 import { EditableOrganizations } from './organization-components-new';
+import { PartyInventory } from './party-inventory';
 import { EditableQuests } from './quest-components-new';
 import { EditableSessions } from './session-components-new';
 import { SessionZeroPanel } from './session-zero-panel';
+import { EditableStoryThreads } from './story-thread-components';
 import { TagInput } from './tag-input';
 
 interface OverviewTabProps {
@@ -271,9 +275,79 @@ interface WorldTabProps {
   onBlur: () => void;
 }
 
+function GuidanceSection({
+  title,
+  items,
+}: {
+  title: string;
+  items: CampaignGuidance[];
+}) {
+  if (items.length === 0) return null;
+  return (
+    <div className="space-y-3">
+      <h4 className="text-muted-foreground text-sm font-medium">{title}</h4>
+      <div className="space-y-3">
+        {items.map(item => (
+          <div
+            key={item.id}
+            className="bg-muted/30 space-y-2 rounded-lg border p-3"
+          >
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="text-xs">
+                {item.type}
+              </Badge>
+              <span className="text-sm font-medium">{item.name}</span>
+            </div>
+            <p className="text-muted-foreground text-sm">{item.description}</p>
+            {item.questions.length > 0 && (
+              <div className="space-y-1 pt-1">
+                <span className="text-muted-foreground text-xs font-medium">
+                  Character Questions:
+                </span>
+                <ul className="space-y-1">
+                  {item.questions.map((q, i) => (
+                    <li
+                      key={i}
+                      className="text-muted-foreground flex items-start gap-2 text-xs italic"
+                    >
+                      <span className="text-primary mt-0.5">•</span>
+                      <span>{q}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function WorldTabContent({ frame, updateFrame, onBlur }: WorldTabProps) {
   return (
     <TabsContent value="world" className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Scroll className="h-4 w-4 text-amber-500" />
+            World Lore
+          </CardTitle>
+          <CardDescription>
+            Ongoing world-building notes — history, factions, evolving lore
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Textarea
+            value={frame.worldNotes ?? ''}
+            onChange={e => updateFrame({ worldNotes: e.target.value })}
+            onBlur={onBlur}
+            rows={6}
+            placeholder="Record evolving world lore, history, faction developments, and other details that emerge during play..."
+          />
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
@@ -369,8 +443,69 @@ export function WorldTabContent({ frame, updateFrame, onBlur }: WorldTabProps) {
               className="mt-1"
             />
           </div>
+          {(frame.incitingIncident?.hooks ?? []).length > 0 && (
+            <div>
+              <Label className="text-xs">Adventure Hooks</Label>
+              <ul className="mt-1 space-y-1">
+                {frame.incitingIncident!.hooks.map((hook, i) => (
+                  <li
+                    key={i}
+                    className="text-muted-foreground flex items-start gap-2 text-sm"
+                  >
+                    <span className="text-primary mt-0.5">•</span>
+                    <span>{hook}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      {/* Character Creation Guidance */}
+      {(frame.communityGuidance.length > 0 ||
+        frame.ancestryGuidance.length > 0 ||
+        frame.classGuidance.length > 0) && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Users className="h-4 w-4 text-teal-500" />
+              Character Creation Guidance
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="text-muted-foreground h-4 w-4 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="max-w-xs">
+                    <p>
+                      Frame-specific guidance for communities, ancestries, and
+                      classes to help players create characters that fit this
+                      campaign.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </CardTitle>
+            <CardDescription>
+              Suggestions for players building characters in this setting
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <GuidanceSection
+              title="Community Guidance"
+              items={frame.communityGuidance}
+            />
+            <GuidanceSection
+              title="Ancestry Guidance"
+              items={frame.ancestryGuidance}
+            />
+            <GuidanceSection
+              title="Class Guidance"
+              items={frame.classGuidance}
+            />
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
@@ -716,6 +851,7 @@ export function LocationsTabContent({
 
 interface QuestsTabProps {
   quests: Campaign['quests'];
+  storyThreads: StoryThread[];
   npcs: CampaignNPC[];
   locations: CampaignLocation[];
   sessions: SessionNote[];
@@ -724,6 +860,7 @@ interface QuestsTabProps {
   onSaveStart: () => void;
   onPendingChange: () => void;
   onQuestsChange: () => void | Promise<void>;
+  onStoryThreadsChange: () => void | Promise<void>;
   onNPCsChange?: () => void | Promise<void>;
   onLocationsChange?: () => void | Promise<void>;
   onOrganizationsChange?: () => void | Promise<void>;
@@ -731,6 +868,7 @@ interface QuestsTabProps {
 
 export function QuestsTabContent({
   quests,
+  storyThreads,
   npcs,
   locations,
   sessions,
@@ -739,6 +877,7 @@ export function QuestsTabContent({
   onSaveStart,
   onPendingChange,
   onQuestsChange,
+  onStoryThreadsChange,
   onNPCsChange,
   onLocationsChange,
   onOrganizationsChange,
@@ -782,6 +921,40 @@ export function QuestsTabContent({
             onNPCsChange={onNPCsChange}
             onLocationsChange={onLocationsChange}
             onOrganizationsChange={onOrganizationsChange}
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Sparkles className="h-4 w-4 text-purple-500" />
+            Story Threads
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="text-muted-foreground h-4 w-4 cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent side="right" className="max-w-xs">
+                  <p>
+                    Narrative arcs that weave through your campaign. Track
+                    foreshadowing from seeding through to resolution.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </CardTitle>
+          <CardDescription>
+            Foreshadowing, plot arcs, and narrative threads
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <EditableStoryThreads
+            storyThreads={storyThreads ?? []}
+            campaignId={campaignId}
+            onSaveStart={onSaveStart}
+            onPendingChange={onPendingChange}
+            onStoryThreadsChange={onStoryThreadsChange}
           />
         </CardContent>
       </Card>
@@ -882,8 +1055,12 @@ const DEFAULT_CHECKLIST_ITEMS: ChecklistItem[] = [
 interface GMToolsTabProps {
   campaignId: string;
   battles: BattleState[];
+  playerNames?: string[];
   sessionPrepChecklist: ChecklistItem[] | undefined;
-  onAddNPC: (name: string) => void | Promise<void>;
+  onAddNPC: (
+    name: string,
+    extra?: { personality?: string; motivation?: string }
+  ) => void | Promise<void>;
   onAddLocation: (name: string) => void | Promise<void>;
   onAddQuest: (title: string) => void | Promise<void>;
   onNavigateToTab: (tab: string) => void;
@@ -894,6 +1071,7 @@ interface GMToolsTabProps {
 export function GMToolsTabContent({
   campaignId,
   battles,
+  playerNames,
   sessionPrepChecklist,
   onAddNPC,
   onAddLocation,
@@ -907,6 +1085,7 @@ export function GMToolsTabContent({
       <GMToolsPanel
         campaignId={campaignId}
         battles={battles}
+        playerNames={playerNames}
         onAddNPC={onAddNPC}
         onAddLocation={onAddLocation}
         onAddQuest={onAddQuest}
@@ -989,6 +1168,8 @@ interface PlayersTabProps {
   inviteLink: string;
   onCopyInviteCode: () => void;
   onCopyInviteLink: () => void;
+  onUpdatePartyInventory: (items: Campaign['partyInventory']) => void;
+  onUpdatePlayers: (players: Campaign['players']) => void;
 }
 
 export function PlayersTabContent({
@@ -996,6 +1177,8 @@ export function PlayersTabContent({
   inviteLink,
   onCopyInviteCode,
   onCopyInviteLink,
+  onUpdatePartyInventory,
+  onUpdatePlayers,
 }: PlayersTabProps) {
   const players = campaign.players ?? [];
 
@@ -1076,10 +1259,14 @@ export function PlayersTabContent({
         </CardHeader>
         <CardContent>
           {players.length === 0 ? (
-            <div className="py-8 text-center">
-              <Users className="text-muted-foreground mx-auto mb-3 h-10 w-10" />
-              <p className="text-muted-foreground">
-                No players have joined yet.
+            <div className="py-12 text-center">
+              <div className="bg-muted mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
+                <Users className="text-muted-foreground h-6 w-6" />
+              </div>
+              <h3 className="mb-2 font-medium">No players have joined yet</h3>
+              <p className="text-muted-foreground mx-auto max-w-sm text-sm">
+                Share the invite link or code above with your players. Once they
+                join, they can select or create a character for this campaign.
               </p>
             </div>
           ) : (
@@ -1089,6 +1276,7 @@ export function PlayersTabContent({
                   <TableHead>Player</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead>Character</TableHead>
+                  <TableHead>Notes</TableHead>
                   <TableHead className="text-right">View</TableHead>
                 </TableRow>
               </TableHeader>
@@ -1105,6 +1293,22 @@ export function PlayersTabContent({
                     </TableCell>
                     <TableCell>
                       <CharacterNameCell player={player} />
+                    </TableCell>
+                    <TableCell>
+                      <Textarea
+                        value={player.notes ?? ''}
+                        onChange={e => {
+                          const updated = players.map(p =>
+                            p.id === player.id
+                              ? { ...p, notes: e.target.value }
+                              : p
+                          );
+                          onUpdatePlayers(updated);
+                        }}
+                        rows={2}
+                        placeholder="GM notes..."
+                        className="min-w-[160px] text-xs"
+                      />
                     </TableCell>
                     <TableCell className="text-right">
                       {player.characterId ? (
@@ -1128,6 +1332,11 @@ export function PlayersTabContent({
           )}
         </CardContent>
       </Card>
+
+      <PartyInventory
+        items={campaign.partyInventory ?? []}
+        onUpdate={onUpdatePartyInventory}
+      />
     </TabsContent>
   );
 }
@@ -1141,7 +1350,7 @@ function CharacterNameCell({ player }: { player: CampaignPlayer }) {
     queryKey: ['character-name', player.characterId],
     queryFn: () => fetchCharacter(player.characterId!),
     enabled: Boolean(player.characterId),
-    staleTime: 0, // Always fetch fresh
+    staleTime: 30_000, // Cache for 30s — names change rarely
     select: data => data.identity?.name,
   });
 

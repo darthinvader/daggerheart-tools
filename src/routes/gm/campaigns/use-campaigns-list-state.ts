@@ -3,6 +3,7 @@
  * Extracted from CampaignsList to reduce complexity
  */
 import { useCallback, useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 import {
   deleteCampaign,
@@ -43,6 +44,7 @@ export function useCampaignsListState() {
     } catch (error) {
       if (signal?.aborted) return;
       console.error('Failed to load campaigns:', error);
+      toast.error('Failed to load campaigns');
     } finally {
       if (!signal?.aborted) {
         setLoading(false);
@@ -69,6 +71,7 @@ export function useCampaignsListState() {
       await loadData();
     } catch (error) {
       console.error('Failed to delete campaign:', error);
+      toast.error('Failed to delete campaign');
       setDeleteTarget(null);
     }
   }, [deleteTarget, loadData]);
@@ -80,6 +83,7 @@ export function useCampaignsListState() {
         await loadData();
       } catch (error) {
         console.error('Failed to restore campaign:', error);
+        toast.error('Failed to restore campaign');
       }
     },
     [loadData]
@@ -93,6 +97,7 @@ export function useCampaignsListState() {
       await loadData();
     } catch (error) {
       console.error('Failed to permanently delete campaign:', error);
+      toast.error('Failed to permanently delete campaign');
       setPermanentDeleteTarget(null);
     }
   }, [permanentDeleteTarget, loadData]);
@@ -104,6 +109,7 @@ export function useCampaignsListState() {
       await loadData();
     } catch (error) {
       console.error('Failed to empty trash:', error);
+      toast.error('Failed to empty trash');
       setShowEmptyTrashConfirm(false);
     }
   }, [loadData]);

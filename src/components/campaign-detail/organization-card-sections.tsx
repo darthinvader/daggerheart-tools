@@ -102,6 +102,7 @@ export function OrganizationCardHeader({
               <Button
                 variant="ghost"
                 size="icon"
+                aria-label="Delete"
                 className="text-destructive hover:bg-destructive/10 h-8 w-8"
                 onClick={e => {
                   e.stopPropagation();

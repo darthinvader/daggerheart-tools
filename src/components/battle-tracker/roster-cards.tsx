@@ -1,4 +1,5 @@
 import {
+  Check,
   Crosshair,
   Dices,
   Heart,
@@ -986,7 +987,8 @@ export function AdversaryCard({
         'group relative rounded-lg border p-3 transition-all',
         TIER_COLORS[source.tier] ?? 'border-border',
         isSelected && 'ring-primary ring-2',
-        isSpotlight && 'shadow-lg ring-2 shadow-amber-400/20 ring-amber-400'
+        isSpotlight && 'shadow-lg ring-2 shadow-amber-400/20 ring-amber-400',
+        adversary.hasActedThisRound && 'opacity-50'
       )}
     >
       <AdversaryHeader
@@ -1029,6 +1031,26 @@ export function AdversaryCard({
           onChange(adversary.id, a => ({ ...a, countdownEnabled: enabled }))
         }
       />
+      <div className="mt-2 flex items-center">
+        <Button
+          size="sm"
+          variant={adversary.hasActedThisRound ? 'secondary' : 'outline'}
+          className={cn(
+            'h-7 gap-1.5 text-xs',
+            adversary.hasActedThisRound &&
+              'border-green-500/50 bg-green-500/20 text-green-700 dark:text-green-400'
+          )}
+          onClick={() =>
+            onChange(adversary.id, a => ({
+              ...a,
+              hasActedThisRound: !a.hasActedThisRound,
+            }))
+          }
+        >
+          <Check className="size-3" />
+          {adversary.hasActedThisRound ? 'Acted' : 'Mark acted'}
+        </Button>
+      </div>
     </div>
   );
 }

@@ -168,6 +168,8 @@ export type AdversaryTracker = {
   countdown?: number;
   /** Whether countdown is enabled (can be ticked down) */
   countdownEnabled?: boolean;
+  /** Whether this adversary has acted in the current round */
+  hasActedThisRound?: boolean;
 };
 
 export type EnvironmentFeatureEntry = {

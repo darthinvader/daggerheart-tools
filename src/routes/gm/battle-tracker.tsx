@@ -1,8 +1,13 @@
-import { createFileRoute, useSearch } from '@tanstack/react-router';
+import {
+  createFileRoute,
+  type ErrorComponentProps,
+  useSearch,
+} from '@tanstack/react-router';
 import { z } from 'zod';
 
 import { DetailSidebar } from '@/components/battle-tracker/detail-sidebar';
 import { GMResourcesBar } from '@/components/battle-tracker/gm-resources-bar';
+import { RouteErrorFallback } from '@/components/ui/route-error-fallback';
 
 import {
   BattleDialogs,
@@ -18,6 +23,9 @@ const searchSchema = z.object({
 
 export const Route = createFileRoute('/gm/battle-tracker')({
   component: BattleTrackerPage,
+  errorComponent: ({ error }: ErrorComponentProps) => (
+    <RouteErrorFallback error={error} />
+  ),
   validateSearch: search => searchSchema.parse(search),
 });
 

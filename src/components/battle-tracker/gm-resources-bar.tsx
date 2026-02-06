@@ -1,4 +1,5 @@
 import {
+  CircleDot,
   Crosshair,
   Dices,
   Flame,
@@ -8,6 +9,7 @@ import {
   Moon,
   Pencil,
   Plus,
+  RotateCcw,
   Skull,
   Sparkles,
   Swords,
@@ -15,7 +17,7 @@ import {
   X,
   Zap,
 } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -111,7 +113,7 @@ function FearCounter({
             className={cn(
               'flex min-h-14 items-center gap-3 rounded-xl border-2 px-4 py-2 shadow-md transition-all',
               hasSubstantialFear
-                ? 'animate-pulse border-purple-500/60 bg-gradient-to-r from-purple-600/25 via-violet-500/20 to-purple-600/25 shadow-purple-500/20'
+                ? 'animate-glow-fear border-purple-500/60 bg-gradient-to-r from-purple-600/25 via-violet-500/20 to-purple-600/25 shadow-purple-500/20'
                 : 'border-purple-500/40 bg-gradient-to-r from-purple-500/15 to-violet-500/15',
               isFull && 'border-purple-400 shadow-lg shadow-purple-500/30'
             )}
@@ -632,6 +634,190 @@ function EmptyEnvironmentPanel({
 }
 
 // =====================================================================================
+// Action Token Tracker
+// =====================================================================================
+
+function ActionTokenTracker({ characterCount }: { characterCount: number }) {
+  const [spentTokens, setSpentTokens] = useState<boolean[]>([]);
+
+  // Derive effective tokens at render time instead of using useEffect+setState
+  const effectiveTokens = useMemo(() => {
+    if (spentTokens.length === characterCount) return spentTokens;
+    return Array.from(
+      { length: characterCount },
+      (_, i) => spentTokens[i] ?? false
+    );
+  }, [characterCount, spentTokens]);
+
+  const allSpent =
+    characterCount > 0 &&
+    effectiveTokens.length === characterCount &&
+    effectiveTokens.every(Boolean);
+  const spentCount = effectiveTokens.filter(Boolean).length;
+
+  const toggleToken = (index: number) => {
+    setSpentTokens(
+      Array.from({ length: characterCount }, (_, i) =>
+        i === index ? !effectiveTokens[i] : (effectiveTokens[i] ?? false)
+      )
+    );
+  };
+
+  const resetTokens = () => {
+    setSpentTokens(Array.from({ length: characterCount }, () => false));
+  };
+
+  if (characterCount === 0) return null;
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div
+            className={cn(
+              'flex min-h-14 items-center gap-3 rounded-xl border-2 px-4 py-2 shadow-md transition-all',
+              allSpent
+                ? 'animate-pulse border-amber-500/60 bg-gradient-to-r from-amber-600/25 via-yellow-500/20 to-amber-600/25 shadow-amber-500/20'
+                : 'border-cyan-500/40 bg-gradient-to-r from-cyan-500/15 to-sky-500/15'
+            )}
+          >
+            {/* Icon and Label */}
+            <div className="flex items-center gap-2">
+              <div
+                className={cn(
+                  'flex size-8 items-center justify-center rounded-lg',
+                  allSpent ? 'bg-amber-500/30' : 'bg-cyan-500/20'
+                )}
+              >
+                <CircleDot
+                  className={cn(
+                    'size-5',
+                    allSpent ? 'text-amber-400' : 'text-cyan-500'
+                  )}
+                />
+              </div>
+              <span
+                className={cn(
+                  'text-xs font-black tracking-wide',
+                  allSpent
+                    ? 'text-amber-400'
+                    : 'text-cyan-600 dark:text-cyan-400'
+                )}
+              >
+                TOKENS
+              </span>
+            </div>
+
+            {/* Token Dots */}
+            <div className="flex items-center gap-1.5">
+              {effectiveTokens.map((spent, i) => (
+                <button
+                  key={i}
+                  onClick={e => {
+                    e.stopPropagation();
+                    toggleToken(i);
+                  }}
+                  className={cn(
+                    'flex size-7 items-center justify-center rounded-full border-2 transition-all hover:scale-110',
+                    spent
+                      ? 'border-gray-500/50 bg-gray-500/20 text-gray-500'
+                      : 'border-cyan-400/60 bg-cyan-500/20 text-cyan-400 shadow-sm shadow-cyan-500/20'
+                  )}
+                  aria-label={`Action token ${i + 1}: ${spent ? 'spent' : 'available'}`}
+                >
+                  <CircleDot className={cn('size-4', spent && 'opacity-30')} />
+                </button>
+              ))}
+            </div>
+
+            {/* Count */}
+            <span
+              className={cn(
+                'text-xs font-bold tabular-nums',
+                allSpent ? 'text-amber-400' : 'text-cyan-600 dark:text-cyan-400'
+              )}
+            >
+              {spentCount}/{characterCount}
+            </span>
+
+            {/* GM Turn Indicator */}
+            {allSpent && (
+              <Badge
+                variant="outline"
+                className="animate-bounce border-amber-400 bg-amber-500/20 text-xs font-bold text-amber-300"
+              >
+                GM Turn
+              </Badge>
+            )}
+
+            {/* Reset Button */}
+            <Button
+              size="sm"
+              variant="ghost"
+              className={cn(
+                'h-7 gap-1 px-2 text-xs font-medium',
+                allSpent
+                  ? 'text-amber-400 hover:bg-amber-500/20 hover:text-amber-300'
+                  : 'text-cyan-500 hover:bg-cyan-500/20 hover:text-cyan-400'
+              )}
+              onClick={e => {
+                e.stopPropagation();
+                resetTokens();
+              }}
+              disabled={spentCount === 0}
+            >
+              <RotateCcw className="size-3" />
+              Reset
+            </Button>
+          </div>
+        </TooltipTrigger>
+        <TooltipContent
+          side="bottom"
+          className="bg-popover text-popover-foreground max-w-xs border-cyan-500/30 p-3"
+        >
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 border-b border-cyan-500/20 pb-2">
+              <CircleDot className="size-4 text-cyan-500" />
+              <span className="font-bold text-cyan-600 dark:text-cyan-400">
+                Action Tokens
+              </span>
+            </div>
+            <p className="text-sm">
+              Click tokens to mark them as spent when players act.
+            </p>
+            <ul className="space-y-1 text-sm">
+              <li className="flex items-start gap-1.5">
+                <span className="mt-0.5 text-cyan-500">&bull;</span>
+                <span>
+                  One token per player character ({characterCount} total)
+                </span>
+              </li>
+              <li className="flex items-start gap-1.5">
+                <span className="mt-0.5 text-cyan-500">&bull;</span>
+                <span>When a PC acts, spend their token</span>
+              </li>
+              <li className="flex items-start gap-1.5">
+                <span className="mt-0.5 text-cyan-500">&bull;</span>
+                <span>
+                  When all tokens are spent, it's the{' '}
+                  <strong>GM&apos;s turn</strong>
+                </span>
+              </li>
+              <li className="flex items-start gap-1.5">
+                <span className="mt-0.5 text-cyan-500">&bull;</span>
+                <span>
+                  After the GM acts, <strong>Reset</strong> the tokens
+                </span>
+              </li>
+            </ul>
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
+
+// =====================================================================================
 // GM Resources Bar - Fear, GM Die, Environment
 // =====================================================================================
 
@@ -717,6 +903,7 @@ export function GMResourcesBar({
           characterCount={characterCount}
           onFearChange={onFearChange}
         />
+        <ActionTokenTracker characterCount={characterCount} />
         <GmDieRoller
           gmDieResult={gmDieResult}
           isRolling={isRolling}

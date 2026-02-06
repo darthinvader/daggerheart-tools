@@ -2,7 +2,6 @@
 // Based on Chapter 3: Session Zero and Safety Tools from the Daggerheart rulebook
 
 import {
-  AlertTriangle,
   Check,
   CheckCircle2,
   ChevronDown,
@@ -10,6 +9,7 @@ import {
   Clock,
   Eye,
   EyeOff,
+  Globe,
   HelpCircle,
   Link2,
   MessageSquare,
@@ -190,6 +190,7 @@ function SafetyLinesEditor({
     <div className="space-y-3">
       <div className="flex gap-2">
         <Input
+          aria-label="New safety line topic"
           value={newTopic}
           onChange={e => setNewTopic(e.target.value)}
           placeholder="Add a topic that should never appear..."
@@ -263,6 +264,7 @@ function SafetyVeilsEditor({
     <div className="space-y-3">
       <div className="flex gap-2">
         <Input
+          aria-label="New safety veil topic"
           value={newTopic}
           onChange={e => setNewTopic(e.target.value)}
           placeholder="Add a topic that happens off-screen..."
@@ -460,7 +462,7 @@ function TableAgreementsEditor({
                     onCheckedChange={() => toggleAgreement(agreement.id)}
                   />
                   <span
-                    className={`flex-1 text-sm ${agreement.isAgreed ? 'text-muted-foreground line-through' : ''}`}
+                    className={`flex-1 text-sm ${agreement.isAgreed ? 'text-green-700 dark:text-green-400' : ''}`}
                   >
                     {agreement.agreement}
                   </span>
@@ -922,13 +924,13 @@ export function SessionZeroPanel({
       </Card>
 
       {/* CATS Section */}
-      <Collapsible open={openSections.has('cats')}>
+      <Collapsible
+        open={openSections.has('cats')}
+        onOpenChange={() => toggleSection('cats')}
+      >
         <Card>
           <CardHeader className="pb-3">
-            <CollapsibleTrigger
-              className="flex w-full items-center justify-between"
-              onClick={() => toggleSection('cats')}
-            >
+            <CollapsibleTrigger className="flex w-full items-center justify-between">
               <CardTitle className="flex items-center gap-2 text-base">
                 <MessageSquare className="h-4 w-4 text-blue-500" />
                 CATS Method
@@ -1039,13 +1041,13 @@ export function SessionZeroPanel({
       </Collapsible>
 
       {/* Safety Tools */}
-      <Collapsible open={openSections.has('safety')}>
+      <Collapsible
+        open={openSections.has('safety')}
+        onOpenChange={() => toggleSection('safety')}
+      >
         <Card>
           <CardHeader className="pb-3">
-            <CollapsibleTrigger
-              className="flex w-full items-center justify-between"
-              onClick={() => toggleSection('safety')}
-            >
+            <CollapsibleTrigger className="flex w-full items-center justify-between">
               <CardTitle className="flex items-center gap-2 text-base">
                 <Shield className="h-4 w-4 text-amber-500" />
                 Safety Tools
@@ -1157,13 +1159,13 @@ export function SessionZeroPanel({
       </Collapsible>
 
       {/* Table Agreements */}
-      <Collapsible open={openSections.has('agreements')}>
+      <Collapsible
+        open={openSections.has('agreements')}
+        onOpenChange={() => toggleSection('agreements')}
+      >
         <Card>
           <CardHeader className="pb-3">
-            <CollapsibleTrigger
-              className="flex w-full items-center justify-between"
-              onClick={() => toggleSection('agreements')}
-            >
+            <CollapsibleTrigger className="flex w-full items-center justify-between">
               <CardTitle className="flex items-center gap-2 text-base">
                 <Users className="h-4 w-4 text-green-500" />
                 Table Agreements
@@ -1194,13 +1196,13 @@ export function SessionZeroPanel({
       </Collapsible>
 
       {/* Character Connections */}
-      <Collapsible open={openSections.has('connections')}>
+      <Collapsible
+        open={openSections.has('connections')}
+        onOpenChange={() => toggleSection('connections')}
+      >
         <Card>
           <CardHeader className="pb-3">
-            <CollapsibleTrigger
-              className="flex w-full items-center justify-between"
-              onClick={() => toggleSection('connections')}
-            >
+            <CollapsibleTrigger className="flex w-full items-center justify-between">
               <CardTitle className="flex items-center gap-2 text-base">
                 <Link2 className="h-4 w-4 text-purple-500" />
                 Character Connections
@@ -1233,15 +1235,15 @@ export function SessionZeroPanel({
       </Collapsible>
 
       {/* Worldbuilding */}
-      <Collapsible open={openSections.has('worldbuilding')}>
+      <Collapsible
+        open={openSections.has('worldbuilding')}
+        onOpenChange={() => toggleSection('worldbuilding')}
+      >
         <Card>
           <CardHeader className="pb-3">
-            <CollapsibleTrigger
-              className="flex w-full items-center justify-between"
-              onClick={() => toggleSection('worldbuilding')}
-            >
+            <CollapsibleTrigger className="flex w-full items-center justify-between">
               <CardTitle className="flex items-center gap-2 text-base">
-                <AlertTriangle className="h-4 w-4 text-emerald-500" />
+                <Globe className="h-4 w-4 text-emerald-500" />
                 Worldbuilding Notes
                 {data.worldbuildingNotes.length > 0 && (
                   <Badge variant="outline">
@@ -1284,13 +1286,13 @@ export function SessionZeroPanel({
       </Collapsible>
 
       {/* Optional Rules */}
-      <Collapsible open={openSections.has('optional-rules')}>
+      <Collapsible
+        open={openSections.has('optional-rules')}
+        onOpenChange={() => toggleSection('optional-rules')}
+      >
         <Card>
           <CardHeader className="pb-3">
-            <CollapsibleTrigger
-              className="flex w-full items-center justify-between"
-              onClick={() => toggleSection('optional-rules')}
-            >
+            <CollapsibleTrigger className="flex w-full items-center justify-between">
               <CardTitle className="flex items-center gap-2 text-base">
                 <Settings className="h-4 w-4 text-orange-500" />
                 Optional Rules
@@ -1328,13 +1330,13 @@ export function SessionZeroPanel({
       </Collapsible>
 
       {/* Session Zero Checklist */}
-      <Collapsible open={openSections.has('checklist')}>
+      <Collapsible
+        open={openSections.has('checklist')}
+        onOpenChange={() => toggleSection('checklist')}
+      >
         <Card>
           <CardHeader className="pb-3">
-            <CollapsibleTrigger
-              className="flex w-full items-center justify-between"
-              onClick={() => toggleSection('checklist')}
-            >
+            <CollapsibleTrigger className="flex w-full items-center justify-between">
               <CardTitle className="flex items-center gap-2 text-base">
                 <CheckCircle2 className="h-4 w-4 text-cyan-500" />
                 Session Zero Checklist

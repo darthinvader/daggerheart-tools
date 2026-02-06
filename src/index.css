@@ -140,6 +140,7 @@ h1 {
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -831,16 +832,18 @@ h1 {
 
 /* HP danger pulse animation */
 .quick-tab-danger .quick-vitals-card {
+  --danger-color: rgb(239 68 68);
   animation: danger-pulse 2s ease-in-out infinite;
   border-color: oklch(0.637 0.237 25.331 / 0.4);
 }
 @keyframes danger-pulse {
   0%,
   100% {
-    box-shadow: 0 0 0 0 oklch(0.637 0.237 25.331 / 0.15);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--danger-color) 15%, transparent);
   }
   50% {
-    box-shadow: 0 0 12px 2px oklch(0.637 0.237 25.331 / 0.25);
+    box-shadow: 0 0 12px 2px
+      color-mix(in srgb, var(--danger-color) 25%, transparent);
   }
 }
 
@@ -874,21 +877,13 @@ h1 {
   border: 1px solid oklch(0.637 0.237 25.331 / 0.3);
 }
 .quick-status-unconscious {
+  --danger-color: rgb(234 179 8);
   background: oklch(0.795 0.184 86.047 / 0.15);
   color: oklch(0.795 0.184 86.047);
   border: 1px solid oklch(0.795 0.184 86.047 / 0.3);
   animation:
     banner-slide-in 0.3s ease-out,
-    danger-pulse-yellow 2s ease-in-out infinite;
-}
-@keyframes danger-pulse-yellow {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 oklch(0.795 0.184 86.047 / 0.1);
-  }
-  50% {
-    box-shadow: 0 0 10px 2px oklch(0.795 0.184 86.047 / 0.2);
-  }
+    danger-pulse 2s ease-in-out infinite;
 }
 .quick-status-critical {
   background: oklch(0.637 0.237 25.331 / 0.12);
@@ -2428,6 +2423,27 @@ h1 {
     var(--tier-accent-muted, transparent) 0%,
     transparent 70%
   );
+}
+
+/* ---- Reduced motion ---- */
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse,
+  .animate-spin,
+  .animate-pulse-danger,
+  .animate-glow-hope,
+  .animate-glow-fear,
+  .animate-badge-pop,
+  .animate-fade-up,
+  .animate-slide-in-bottom,
+  .animate-gauge-fill,
+  .animate-pip-fill,
+  .animate-counter-bump {
+    animation: none !important;
+  }
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
 }
 
 /* ---- Print mode ---- */

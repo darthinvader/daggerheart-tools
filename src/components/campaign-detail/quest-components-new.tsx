@@ -1,7 +1,7 @@
 // Quest components - Enhanced with NPC/PC involvement and organization links
 
 import { Clock, MapPin as Map, Plus, Target, User } from 'lucide-react';
-import { useState } from 'react';
+import { useDeferredValue, useMemo, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -105,6 +105,7 @@ export function EditableQuests({
     null
   );
   const [searchQuery, setSearchQuery] = useState('');
+  const deferredSearchQuery = useDeferredValue(searchQuery);
 
   // Entity CRUD handlers (extracted hook)
   const {
@@ -123,17 +124,21 @@ export function EditableQuests({
     onOrganizationsChange,
   });
 
-  const filteredQuests = quests
-    .filter(q => (statusFilter ? q.status === statusFilter : true))
-    .filter(q => (typeFilter ? q.type === typeFilter : true))
-    .filter(q => {
-      const query = searchQuery.trim().toLowerCase();
-      if (!query) return true;
-      return [q.title, q.description, q.tags.join(' ')]
-        .join(' ')
-        .toLowerCase()
-        .includes(query);
-    });
+  const filteredQuests = useMemo(
+    () =>
+      quests
+        .filter(q => (statusFilter ? q.status === statusFilter : true))
+        .filter(q => (typeFilter ? q.type === typeFilter : true))
+        .filter(q => {
+          const query = deferredSearchQuery.trim().toLowerCase();
+          if (!query) return true;
+          return [q.title, q.description, q.tags.join(' ')]
+            .join(' ')
+            .toLowerCase()
+            .includes(query);
+        }),
+    [quests, statusFilter, typeFilter, deferredSearchQuery]
+  );
 
   const priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3 };
   const statusOrder = {
@@ -144,11 +149,15 @@ export function EditableQuests({
     abandoned: 4,
   };
 
-  const sortedQuests = [...filteredQuests].sort((a, b) => {
-    const statusDiff = statusOrder[a.status] - statusOrder[b.status];
-    if (statusDiff !== 0) return statusDiff;
-    return priorityOrder[a.priority] - priorityOrder[b.priority];
-  });
+  const sortedQuests = useMemo(
+    () =>
+      [...filteredQuests].sort((a, b) => {
+        const statusDiff = statusOrder[a.status] - statusOrder[b.status];
+        if (statusDiff !== 0) return statusDiff;
+        return priorityOrder[a.priority] - priorityOrder[b.priority];
+      }),
+    [filteredQuests]
+  );
 
   return (
     <div className="space-y-4">
@@ -204,20 +213,30 @@ export function EditableQuests({
         </Select>
       </div>
 
-      {sortedQuests.length === 0 ? (
+      {quests.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="py-12 text-center">
             <div className="bg-muted mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
               <Target className="text-muted-foreground h-6 w-6" />
             </div>
             <h3 className="mb-2 font-medium">No quests created yet</h3>
-            <p className="text-muted-foreground mb-4 text-sm">
-              Add main quests, side quests, and plot hooks
+            <p className="text-muted-foreground mx-auto mb-4 max-w-sm text-sm">
+              Track your story threads — main storylines, side quests, rumors,
+              and plot hooks. Link NPCs and locations involved to keep
+              everything connected.
             </p>
             <Button onClick={handleAddQuest} variant="outline">
               <Plus className="mr-2 h-4 w-4" />
               Add First Quest
             </Button>
+          </CardContent>
+        </Card>
+      ) : sortedQuests.length === 0 ? (
+        <Card className="border-dashed">
+          <CardContent className="py-12 text-center">
+            <p className="text-muted-foreground text-sm">
+              No results match your search or filters
+            </p>
           </CardContent>
         </Card>
       ) : (

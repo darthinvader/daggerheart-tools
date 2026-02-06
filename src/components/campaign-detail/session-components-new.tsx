@@ -1,7 +1,13 @@
 // Session components - Enhanced with NPC involvement tracking
 
 import { Plus, Scroll } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import {
+  Fragment,
+  useCallback,
+  useDeferredValue,
+  useMemo,
+  useState,
+} from 'react';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -9,6 +15,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import type {
   CampaignLocation,
   CampaignNPC,
@@ -34,6 +45,7 @@ import {
   SessionPlayerNotesSection,
   SessionQuestProgressSection,
   SessionQuestsSection,
+  SessionRewardsSection,
 } from './session-card-sections';
 import { useHighlightHandlers } from './use-highlight-handlers';
 import { useSessionCardHandlers } from './use-session-card-handlers';
@@ -60,6 +72,47 @@ interface EditableSessionsProps {
 }
 
 // =====================================================================================
+// Session Timeline
+// =====================================================================================
+
+function SessionTimeline({ sessions }: { sessions: SessionNote[] }) {
+  if (sessions.length < 2) return null;
+
+  return (
+    <div className="mb-4 overflow-x-auto pb-2">
+      <div className="flex min-w-fit items-center gap-1 px-2">
+        {sessions.map((s, i) => {
+          const color =
+            s.status === 'completed'
+              ? 'bg-green-500'
+              : s.status === 'in-progress'
+                ? 'bg-amber-500'
+                : 'bg-blue-400';
+          return (
+            <Fragment key={s.id}>
+              {i > 0 && <div className="bg-border h-0.5 w-4 flex-shrink-0" />}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    className={`h-3 w-3 flex-shrink-0 rounded-full ${color} ring-offset-1 transition-all hover:ring-2`}
+                    onClick={() =>
+                      document
+                        .getElementById(`session-${s.id}`)
+                        ?.scrollIntoView({ behavior: 'smooth' })
+                    }
+                  />
+                </TooltipTrigger>
+                <TooltipContent>Session {s.sessionNumber}</TooltipContent>
+              </Tooltip>
+            </Fragment>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// =====================================================================================
 // Main Component
 // =====================================================================================
 
@@ -78,8 +131,9 @@ export function EditableSessions({
   onQuestsChange,
   onOrganizationsChange,
 }: EditableSessionsProps) {
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
+  const deferredSearchQuery = useDeferredValue(searchQuery);
 
   const nextSessionNumber =
     sessions.length > 0
@@ -107,22 +161,27 @@ export function EditableSessions({
     onOrganizationsChange,
   });
 
-  const sortedSessions = [...sessions].sort(
-    (a, b) => b.sessionNumber - a.sessionNumber
+  const sortedSessions = useMemo(
+    () => [...sessions].sort((a, b) => b.sessionNumber - a.sessionNumber),
+    [sessions]
   );
-  const filteredSessions = sortedSessions.filter(session => {
-    const query = searchQuery.trim().toLowerCase();
-    if (!query) return true;
-    return [
-      session.title,
-      session.summary,
-      session.questProgress,
-      String(session.sessionNumber),
-    ]
-      .join(' ')
-      .toLowerCase()
-      .includes(query);
-  });
+  const filteredSessions = useMemo(
+    () =>
+      sortedSessions.filter(session => {
+        const query = deferredSearchQuery.trim().toLowerCase();
+        if (!query) return true;
+        return [
+          session.title,
+          session.summary,
+          session.questProgress,
+          String(session.sessionNumber),
+        ]
+          .join(' ')
+          .toLowerCase()
+          .includes(query);
+      }),
+    [sortedSessions, deferredSearchQuery]
+  );
 
   return (
     <div className="space-y-4">
@@ -157,8 +216,10 @@ export function EditableSessions({
               <Scroll className="text-muted-foreground h-6 w-6" />
             </div>
             <h3 className="mb-2 font-medium">No sessions recorded yet</h3>
-            <p className="text-muted-foreground mb-4 text-sm">
-              Start tracking your campaign by adding your first session
+            <p className="text-muted-foreground mx-auto mb-4 max-w-sm text-sm">
+              Record what happens each session — key events, NPC interactions,
+              quest progress, and memorable moments. Great session notes make it
+              easy to pick up where you left off.
             </p>
             <Button onClick={handleAddSession} variant="outline">
               <Plus className="mr-2 h-4 w-4" />
@@ -167,28 +228,60 @@ export function EditableSessions({
           </CardContent>
         </Card>
       ) : (
-        filteredSessions.map(session => (
-          <SessionCard
-            key={`${session.id}-${session.updatedAt}`}
-            session={session}
-            npcs={npcs}
-            locations={locations}
-            quests={quests}
-            organizations={organizations}
-            isExpanded={expandedId === session.id}
-            onToggle={() =>
-              setExpandedId(expandedId === session.id ? null : session.id)
-            }
-            onUpdate={updates => handleUpdateSession(session.id, updates)}
-            onDelete={() => handleDeleteSession(session.id)}
-            onCreateNPC={handleCreateNPC}
-            onCreateLocation={handleCreateLocation}
-            onCreateQuest={handleCreateQuest}
-            onCreateOrganization={handleCreateOrganization}
-            onSaveStart={onSaveStart}
-            onPendingChange={onPendingChange}
-          />
-        ))
+        <>
+          <SessionTimeline sessions={filteredSessions} />
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-muted-foreground text-sm">
+              {filteredSessions.length} sessions
+            </span>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                const allExpanded = filteredSessions.every(s =>
+                  expandedIds.has(s.id)
+                );
+                setExpandedIds(
+                  allExpanded
+                    ? new Set()
+                    : new Set(filteredSessions.map(s => s.id))
+                );
+              }}
+            >
+              {filteredSessions.every(s => expandedIds.has(s.id))
+                ? 'Collapse All'
+                : 'Expand All'}
+            </Button>
+          </div>
+          {filteredSessions.map(session => (
+            <div key={session.id} id={`session-${session.id}`}>
+              <SessionCard
+                session={session}
+                npcs={npcs}
+                locations={locations}
+                quests={quests}
+                organizations={organizations}
+                isExpanded={expandedIds.has(session.id)}
+                onToggle={() =>
+                  setExpandedIds(prev => {
+                    const next = new Set(prev);
+                    if (next.has(session.id)) next.delete(session.id);
+                    else next.add(session.id);
+                    return next;
+                  })
+                }
+                onUpdate={updates => handleUpdateSession(session.id, updates)}
+                onDelete={() => handleDeleteSession(session.id)}
+                onCreateNPC={handleCreateNPC}
+                onCreateLocation={handleCreateLocation}
+                onCreateQuest={handleCreateQuest}
+                onCreateOrganization={handleCreateOrganization}
+                onSaveStart={onSaveStart}
+                onPendingChange={onPendingChange}
+              />
+            </div>
+          ))}
+        </>
       )}
     </div>
   );
@@ -355,6 +448,11 @@ function SessionCard({
             session={localSession}
             isExpanded={isExpanded}
             onDelete={onDelete}
+            onStatusChange={value => handleTextChange('status', value)}
+            onGenerateRecap={() => {
+              const template = `## Session ${localSession.sessionNumber} Recap\n**Date**: ${localSession.date ?? 'TBD'}\n\n### What Happened\n- \n\n### Key NPCs Encountered\n- \n\n### Important Decisions\n- \n\n### Cliffhanger / Next Session Hook\n- \n\n### Player Highlights\n- `;
+              handleTextChange('summary', template);
+            }}
           />
 
           <CollapsibleContent>
@@ -416,6 +514,12 @@ function SessionCard({
 
               <SessionQuestProgressSection
                 questProgress={localSession.questProgress ?? ''}
+                onTextChange={handleTextChange}
+                onBlur={handleBlur}
+              />
+
+              <SessionRewardsSection
+                rewards={localSession.rewards ?? ''}
                 onTextChange={handleTextChange}
                 onBlur={handleBlur}
               />

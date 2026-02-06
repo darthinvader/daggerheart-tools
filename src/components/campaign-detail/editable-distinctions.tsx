@@ -27,7 +27,7 @@ export function EditableDistinctions({
     onChange([
       ...distinctions,
       {
-        id: `distinction-${Date.now()}`,
+        id: `distinction-${crypto.randomUUID()}`,
         title: 'New Distinction',
         description: '',
       },

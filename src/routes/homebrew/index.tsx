@@ -19,10 +19,19 @@ import {
 } from 'lucide-react';
 
 import { HomebrewFormDialog, HomebrewViewDialog } from '@/components/homebrew';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Tabs } from '@/components/ui/tabs';
 import type { HomebrewContentType } from '@/lib/schemas/homebrew';
-
 import {
   CreateCollectionDialog,
   InfiniteScrollLoader,
@@ -39,6 +48,7 @@ import {
   QuicklistTab,
   RecycleBinTab,
 } from './homebrew-tabs';
+import type { PendingAction } from './use-homebrew-content-handlers';
 import { useHomebrewDashboardState } from './use-homebrew-dashboard-state';
 
 export const Route = createFileRoute('/homebrew/')({
@@ -157,6 +167,9 @@ function HomebrewDashboard() {
     handlePermanentDelete,
     handleEmptyRecycleBin,
     handleFork,
+    pendingAction,
+    confirmPendingAction,
+    cancelPendingAction,
   } = useHomebrewDashboardState();
 
   if (!user) {
@@ -335,6 +348,75 @@ function HomebrewDashboard() {
         onSubmit={handleCreateCollection}
         isSubmitting={isCreatingCollection}
       />
+
+      {/* Confirmation AlertDialog for destructive actions */}
+      <DestructiveConfirmDialog
+        pendingAction={pendingAction}
+        onConfirm={confirmPendingAction}
+        onCancel={cancelPendingAction}
+      />
     </div>
   );
+}
+
+/** Renders an AlertDialog for destructive action confirmation. */
+function DestructiveConfirmDialog({
+  pendingAction,
+  onConfirm,
+  onCancel,
+}: {
+  pendingAction: PendingAction | null;
+  onConfirm: () => Promise<void>;
+  onCancel: () => void;
+}) {
+  const { title, description } = getConfirmDialogCopy(pendingAction);
+
+  return (
+    <AlertDialog
+      open={pendingAction !== null}
+      onOpenChange={open => {
+        if (!open) onCancel();
+      }}
+    >
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
+          <AlertDialogDescription>{description}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction variant="destructive" onClick={onConfirm}>
+            Confirm
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
+function getConfirmDialogCopy(action: PendingAction | null): {
+  title: string;
+  description: string;
+} {
+  if (!action) return { title: '', description: '' };
+
+  switch (action.type) {
+    case 'delete':
+      return {
+        title: `Delete "${action.item.name}"?`,
+        description:
+          'This item will be moved to the Recycle Bin. You can restore it later.',
+      };
+    case 'permanentDelete':
+      return {
+        title: `Permanently delete "${action.item.name}"?`,
+        description:
+          'This action cannot be undone. The item will be permanently removed.',
+      };
+    case 'emptyBin':
+      return {
+        title: 'Empty Recycle Bin?',
+        description: `This will permanently delete all ${action.deletedItemsCount} items in the recycle bin. This action cannot be undone.`,
+      };
+  }
 }

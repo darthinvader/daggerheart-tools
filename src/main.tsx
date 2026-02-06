@@ -16,6 +16,7 @@ import { routeTree } from './routeTree.gen';
 
 const router = createRouter({
   routeTree,
+  defaultPreload: 'intent',
   defaultPendingMs: 100, // Show pending UI after 100ms
   defaultPendingMinMs: 200, // Keep pending visible for at least 200ms to avoid flicker
 });

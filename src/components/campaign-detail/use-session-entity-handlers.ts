@@ -65,6 +65,9 @@ export function useSessionEntityHandlers({
         questsInvolvedCustom: [],
         organizationIds: [],
         questProgress: '',
+        status: 'planned',
+        agenda: '',
+        rewards: '',
       });
       onSessionsChange();
     } catch (err) {
@@ -137,6 +140,7 @@ export function useSessionEntityHandlers({
         tags: [],
         role: 'neutral',
         features: [],
+        disposition: 'neutral',
       });
       onNPCsChange?.();
       if (!newNpc) throw new Error('Failed to create NPC');
@@ -164,6 +168,7 @@ export function useSessionEntityHandlers({
         pointsOfInterest: [],
         tags: [],
         notes: '',
+        atmosphere: '',
       });
       onLocationsChange?.();
       if (!newLocation) throw new Error('Failed to create location');

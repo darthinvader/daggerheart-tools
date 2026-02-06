@@ -16,6 +16,7 @@ import {
   Star,
   Trash2,
   User,
+  Wind,
   X,
 } from 'lucide-react';
 
@@ -94,6 +95,7 @@ export function LocationCardHeader({
               <Button
                 variant="ghost"
                 size="icon"
+                aria-label="Delete"
                 className="text-destructive hover:bg-destructive/10 h-8 w-8"
                 onClick={e => {
                   e.stopPropagation();
@@ -199,6 +201,19 @@ export function LocationStateHistorySection({
 }: LocationStateHistorySectionProps) {
   return (
     <>
+      <div className="space-y-2">
+        <Label className="flex items-center gap-2 text-xs">
+          <Wind className="h-3 w-3 text-teal-500" />
+          Atmosphere
+        </Label>
+        <Input
+          value={location.atmosphere}
+          onChange={e => onTextChange('atmosphere', e.target.value)}
+          onBlur={onBlur}
+          placeholder="Smells of sulfur, dim red light, distant clanging..."
+        />
+      </div>
+
       <div className="space-y-2">
         <Label className="flex items-center gap-2 text-xs">
           <Sparkles className="h-3 w-3 text-blue-500" />

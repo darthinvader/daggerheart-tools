@@ -57,6 +57,7 @@ export function useNPCEntityHandlers({
       tags: [],
       role: 'neutral',
       features: [],
+      disposition: 'neutral',
     });
     onNPCsChange();
   }, [campaignId, onSaveStart, onNPCsChange]);
@@ -101,6 +102,7 @@ export function useNPCEntityHandlers({
         pointsOfInterest: [],
         tags: [],
         notes: '',
+        atmosphere: '',
       });
       onLocationsChange?.();
       if (!newLocation) throw new Error('Failed to create location');
@@ -165,6 +167,7 @@ export function useNPCEntityHandlers({
         tags: [],
         role: 'neutral',
         features: [],
+        disposition: 'neutral',
       });
       onNPCsChange();
       if (!newNPC) throw new Error('Failed to create NPC');

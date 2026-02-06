@@ -11,7 +11,7 @@ import {
   Swords,
   Users,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useDeferredValue, useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -68,55 +68,55 @@ export const ORGANIZATION_TYPE_OPTIONS: OrganizationTypeOption[] = [
     value: 'guild',
     label: 'Guild',
     Icon: Building2,
-    color: 'bg-blue-500/20 text-blue-600',
+    color: 'bg-blue-500/20 text-blue-600 dark:text-blue-400',
   },
   {
     value: 'faction',
     label: 'Faction',
     Icon: Flag,
-    color: 'bg-red-500/20 text-red-600',
+    color: 'bg-red-500/20 text-red-600 dark:text-red-400',
   },
   {
     value: 'government',
     label: 'Government',
     Icon: Crown,
-    color: 'bg-purple-500/20 text-purple-600',
+    color: 'bg-purple-500/20 text-purple-600 dark:text-purple-400',
   },
   {
     value: 'religious',
     label: 'Religious',
     Icon: Eye,
-    color: 'bg-amber-500/20 text-amber-600',
+    color: 'bg-amber-500/20 text-amber-600 dark:text-amber-400',
   },
   {
     value: 'criminal',
     label: 'Criminal',
     Icon: Swords,
-    color: 'bg-slate-500/20 text-slate-600',
+    color: 'bg-slate-500/20 text-slate-600 dark:text-slate-400',
   },
   {
     value: 'mercenary',
     label: 'Mercenary',
     Icon: Shield,
-    color: 'bg-orange-500/20 text-orange-600',
+    color: 'bg-orange-500/20 text-orange-600 dark:text-orange-400',
   },
   {
     value: 'merchant',
     label: 'Merchant',
     Icon: Building2,
-    color: 'bg-emerald-500/20 text-emerald-600',
+    color: 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400',
   },
   {
     value: 'secret',
     label: 'Secret Society',
     Icon: Key,
-    color: 'bg-indigo-500/20 text-indigo-600',
+    color: 'bg-indigo-500/20 text-indigo-600 dark:text-indigo-400',
   },
   {
     value: 'other',
     label: 'Other',
     Icon: Users,
-    color: 'bg-gray-500/20 text-gray-600',
+    color: 'bg-gray-500/20 text-gray-600 dark:text-gray-400',
   },
 ];
 
@@ -158,6 +158,7 @@ export function EditableOrganizations({
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<OrganizationType | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const deferredSearchQuery = useDeferredValue(searchQuery);
 
   // Entity CRUD handlers (extracted hook)
   const {
@@ -177,19 +178,25 @@ export function EditableOrganizations({
     onQuestsChange,
   });
 
-  const filteredOrganizations = organizations
-    .filter(org => (typeFilter ? org.type === typeFilter : true))
-    .filter(org => {
-      const query = searchQuery.trim().toLowerCase();
-      if (!query) return true;
-      return [org.name, org.type, org.tags.join(' ')]
-        .join(' ')
-        .toLowerCase()
-        .includes(query);
-    });
+  const filteredOrganizations = useMemo(
+    () =>
+      organizations
+        .filter(org => (typeFilter ? org.type === typeFilter : true))
+        .filter(org => {
+          const query = deferredSearchQuery.trim().toLowerCase();
+          if (!query) return true;
+          return [org.name, org.type, org.tags.join(' ')]
+            .join(' ')
+            .toLowerCase()
+            .includes(query);
+        }),
+    [organizations, typeFilter, deferredSearchQuery]
+  );
 
-  const sortedOrganizations = [...filteredOrganizations].sort((a, b) =>
-    a.name.localeCompare(b.name)
+  const sortedOrganizations = useMemo(
+    () =>
+      [...filteredOrganizations].sort((a, b) => a.name.localeCompare(b.name)),
+    [filteredOrganizations]
   );
 
   return (
@@ -228,20 +235,30 @@ export function EditableOrganizations({
         </Select>
       </div>
 
-      {sortedOrganizations.length === 0 ? (
+      {organizations.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="py-12 text-center">
             <div className="bg-muted mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
               <Building2 className="text-muted-foreground h-6 w-6" />
             </div>
             <h3 className="mb-2 font-medium">No organizations created yet</h3>
-            <p className="text-muted-foreground mb-4 text-sm">
-              Add guilds, factions, and groups that exist in your world
+            <p className="text-muted-foreground mx-auto mb-4 max-w-sm text-sm">
+              Create the guilds, governments, cults, and factions that shape
+              your world. Track their goals, resources, and relationships with
+              the party.
             </p>
             <Button onClick={handleAddOrganization} variant="outline">
               <Plus className="mr-2 h-4 w-4" />
               Add First Organization
             </Button>
+          </CardContent>
+        </Card>
+      ) : sortedOrganizations.length === 0 ? (
+        <Card className="border-dashed">
+          <CardContent className="py-12 text-center">
+            <p className="text-muted-foreground text-sm">
+              No results match your search or filters
+            </p>
           </CardContent>
         </Card>
       ) : (

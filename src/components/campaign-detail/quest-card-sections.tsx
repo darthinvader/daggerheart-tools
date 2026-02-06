@@ -25,6 +25,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
 import {
   Select,
   SelectContent,
@@ -66,32 +67,36 @@ export const QUEST_TYPE_OPTIONS: Array<{
   {
     value: 'main',
     label: 'Main Quest',
-    color: 'bg-amber-500/20 text-amber-600 border-amber-500/30',
+    color:
+      'bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30',
   },
   {
     value: 'side',
     label: 'Side Quest',
-    color: 'bg-blue-500/20 text-blue-600 border-blue-500/30',
+    color: 'bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/30',
   },
   {
     value: 'personal',
     label: 'Personal Quest',
-    color: 'bg-purple-500/20 text-purple-600 border-purple-500/30',
+    color:
+      'bg-purple-500/20 text-purple-600 dark:text-purple-400 border-purple-500/30',
   },
   {
     value: 'faction',
     label: 'Faction Quest',
-    color: 'bg-green-500/20 text-green-600 border-green-500/30',
+    color:
+      'bg-green-500/20 text-green-600 dark:text-green-400 border-green-500/30',
   },
   {
     value: 'rumor',
     label: 'Rumor',
-    color: 'bg-slate-500/20 text-slate-600 border-slate-500/30',
+    color:
+      'bg-slate-500/20 text-slate-600 dark:text-slate-400 border-slate-500/30',
   },
   {
     value: 'hook',
     label: 'Plot Hook',
-    color: 'bg-pink-500/20 text-pink-600 border-pink-500/30',
+    color: 'bg-pink-500/20 text-pink-600 dark:text-pink-400 border-pink-500/30',
   },
 ];
 
@@ -104,31 +109,31 @@ export const QUEST_STATUS_OPTIONS: Array<{
   {
     value: 'available',
     label: 'Available',
-    color: 'bg-yellow-500/20 text-yellow-600',
+    color: 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400',
     icon: Circle,
   },
   {
     value: 'active',
     label: 'Active',
-    color: 'bg-blue-500/20 text-blue-600',
+    color: 'bg-blue-500/20 text-blue-600 dark:text-blue-400',
     icon: Circle,
   },
   {
     value: 'completed',
     label: 'Completed',
-    color: 'bg-green-500/20 text-green-600',
+    color: 'bg-green-500/20 text-green-600 dark:text-green-400',
     icon: CheckCircle2,
   },
   {
     value: 'failed',
     label: 'Failed',
-    color: 'bg-red-500/20 text-red-600',
+    color: 'bg-red-500/20 text-red-600 dark:text-red-400',
     icon: X,
   },
   {
     value: 'abandoned',
     label: 'Abandoned',
-    color: 'bg-gray-500/20 text-gray-600',
+    color: 'bg-gray-500/20 text-gray-600 dark:text-gray-400',
     icon: X,
   },
 ];
@@ -184,14 +189,31 @@ export function QuestCardHeader({
                 <div className="flex items-center gap-2">
                   <span className="font-medium">{quest.title}</span>
                   <Badge variant="outline" className={statusInfo?.color ?? ''}>
-                    {quest.status}
+                    {statusInfo?.icon && (
+                      <statusInfo.icon className="mr-1 h-3 w-3" />
+                    )}
+                    {statusInfo?.label ?? quest.status}
                   </Badge>
+                  {priorityInfo && priorityInfo.value !== 'medium' && (
+                    <Badge
+                      variant="outline"
+                      className={`text-xs ${priorityInfo.color}`}
+                    >
+                      {priorityInfo.label}
+                    </Badge>
+                  )}
                 </div>
                 <div className="text-muted-foreground text-sm">
                   {typeInfo?.label ?? 'Quest'}
                   {totalCount > 0 &&
                     ` • ${completedCount}/${totalCount} objectives`}
                 </div>
+                {totalCount > 0 && (
+                  <Progress
+                    value={(completedCount / totalCount) * 100}
+                    className="mt-1 h-1.5 w-32"
+                  />
+                )}
               </div>
               <ChevronDown
                 className={`ml-2 h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
@@ -205,6 +227,7 @@ export function QuestCardHeader({
               <Button
                 variant="ghost"
                 size="icon"
+                aria-label="Delete"
                 className="text-destructive hover:bg-destructive/10 h-8 w-8"
                 onClick={e => {
                   e.stopPropagation();
@@ -292,7 +315,12 @@ export function QuestBasicInfoSection({
               <SelectContent>
                 {QUEST_STATUS_OPTIONS.map(option => (
                   <SelectItem key={option.value} value={option.value}>
-                    {option.label}
+                    <span
+                      className={`flex items-center gap-1.5 ${option.color}`}
+                    >
+                      <option.icon className="h-3 w-3" />
+                      {option.label}
+                    </span>
                   </SelectItem>
                 ))}
               </SelectContent>

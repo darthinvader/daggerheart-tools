@@ -23,6 +23,7 @@ export const CAMPAIGN_FRAME_TEMPLATES: CampaignFrame[] = [
     mechanics: [],
     sessionZeroQuestions: [],
     isTemplate: true,
+    worldNotes: '',
   },
   {
     id: 'witherwild',
@@ -284,6 +285,7 @@ export const CAMPAIGN_FRAME_TEMPLATES: CampaignFrame[] = [
       },
     ],
     isTemplate: true,
+    worldNotes: '',
   },
   {
     id: 'five-banners',
@@ -517,6 +519,7 @@ export const CAMPAIGN_FRAME_TEMPLATES: CampaignFrame[] = [
       },
     ],
     isTemplate: true,
+    worldNotes: '',
   },
   {
     id: 'beast-feast',
@@ -816,6 +819,7 @@ export const CAMPAIGN_FRAME_TEMPLATES: CampaignFrame[] = [
       },
     ],
     isTemplate: true,
+    worldNotes: '',
   },
   {
     id: 'age-of-umbra',
@@ -1195,6 +1199,7 @@ export const CAMPAIGN_FRAME_TEMPLATES: CampaignFrame[] = [
       },
     ],
     isTemplate: true,
+    worldNotes: '',
   },
   {
     id: 'motherboard',
@@ -1596,6 +1601,7 @@ export const CAMPAIGN_FRAME_TEMPLATES: CampaignFrame[] = [
       },
     ],
     isTemplate: true,
+    worldNotes: '',
   },
   {
     id: 'colossus-drylands',
@@ -1978,6 +1984,7 @@ export const CAMPAIGN_FRAME_TEMPLATES: CampaignFrame[] = [
       },
     ],
     isTemplate: true,
+    worldNotes: '',
   },
 ];
 

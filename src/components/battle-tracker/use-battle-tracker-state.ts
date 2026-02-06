@@ -347,6 +347,9 @@ export function useBattleRosterState() {
       },
       advanceRound: () => {
         setCurrentRound(prev => prev + 1);
+        setAdversaries(prev =>
+          prev.map(a => ({ ...a, hasActedThisRound: false }))
+        );
         bumpRosterVersion();
       },
       // Roll history management
