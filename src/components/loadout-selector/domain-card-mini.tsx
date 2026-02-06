@@ -8,6 +8,9 @@ import {
 import { useMemo } from 'react';
 
 import { CardCostBadges } from '@/components/loadout-selector/card-cost-badges';
+import { EnhancementOverlay } from '@/components/loadout-selector/enhancement-overlay';
+import { TapIndicator } from '@/components/loadout-selector/tap-indicator';
+import { UsageCounter } from '@/components/loadout-selector/usage-counter';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
@@ -21,6 +24,7 @@ import {
   X,
   Zap,
 } from '@/lib/icons';
+import type { CardUsageState } from '@/lib/schemas/card-state';
 import type { DomainCardLite } from '@/lib/schemas/loadout';
 import { DOMAIN_BG_COLORS, DOMAIN_COLORS } from '@/lib/schemas/loadout';
 import { cn } from '@/lib/utils';
@@ -112,6 +116,8 @@ export type DomainCardMiniProps = {
   onConvertToHomebrew?: () => void;
   onRemove?: () => void;
   onToggleActivated?: () => void;
+  cardUsageState?: CardUsageState;
+  onCardUsageChange?: (patch: Partial<CardUsageState>) => void;
 };
 
 export function DomainCardMini({
@@ -137,6 +143,8 @@ export function DomainCardMini({
   onConvertToHomebrew,
   onRemove,
   onToggleActivated,
+  cardUsageState,
+  onCardUsageChange,
 }: DomainCardMiniProps) {
   const visualState = getCardVisualState(
     card,
@@ -168,7 +176,11 @@ export function DomainCardMini({
 
   return (
     <div
-      className={cardClassNames}
+      className={cn(
+        'relative',
+        cardClassNames,
+        cardUsageState?.tapped && 'rotate-3 opacity-60'
+      )}
       draggable={!!onDragStart && !isCoarse}
       onDragStart={() => onDragStart?.(location, index)}
       onDragOver={e => onDragOver?.(e, location, index)}
@@ -177,6 +189,14 @@ export function DomainCardMini({
       onDrop={() => onDrop?.(location, index)}
       onClick={handleCardClick}
     >
+      <TapIndicator
+        tapped={cardUsageState?.tapped ?? false}
+        onTap={
+          onCardUsageChange
+            ? () => onCardUsageChange({ tapped: !cardUsageState?.tapped })
+            : undefined
+        }
+      />
       <CardHeader
         card={card}
         DomainIcon={visualState.DomainIcon}
@@ -196,6 +216,26 @@ export function DomainCardMini({
         onToggleActivated={onToggleActivated}
       />
       <p className="text-muted-foreground text-xs">{card.description}</p>
+      {cardUsageState?.maxUses != null && (
+        <UsageCounter
+          current={cardUsageState.usesRemaining ?? cardUsageState.maxUses}
+          max={cardUsageState.maxUses}
+          onChange={
+            onCardUsageChange
+              ? v => onCardUsageChange({ usesRemaining: v })
+              : undefined
+          }
+        />
+      )}
+      <EnhancementOverlay
+        text={cardUsageState?.enhancementText}
+        onChange={
+          onCardUsageChange
+            ? t => onCardUsageChange({ enhancementText: t })
+            : undefined
+        }
+        readOnly={!onCardUsageChange}
+      />
       <CardBadges card={card} costs={costs} />
     </div>
   );

@@ -1,6 +1,7 @@
 import { Dice5 } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
+import { DualityRollDialog } from '@/components/dice-roller';
 import { EditableSection } from '@/components/shared/editable-section';
 import { LabeledCounter } from '@/components/shared/labeled-counter';
 import { cn } from '@/lib/utils';
@@ -41,14 +42,22 @@ interface TraitsDisplayProps {
   readOnly?: boolean;
   /** Equipment modifiers from parsed weapon features (e.g., "Cumbersome: −1 to Finesse") */
   equipmentModifiers?: TraitEquipmentModifiers;
+  /** Callback when Hope pool changes from a roll */
+  onHopeChange?: (delta: number) => void;
+  /** Callback when Fear pool changes from a roll */
+  onFearChange?: (delta: number) => void;
+  /** Callback when stress is cleared from a critical success */
+  onStressClear?: () => void;
 }
 
 function TraitsDetailedDisplay({
   traits,
   equipmentModifiers,
+  onTraitClick,
 }: {
   traits: TraitsState;
   equipmentModifiers?: TraitEquipmentModifiers;
+  onTraitClick?: (name: TraitName, modifier: number) => void;
 }) {
   return (
     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-4">
@@ -57,13 +66,32 @@ function TraitsDetailedDisplay({
         const equipMod = equipmentModifiers?.[name] ?? 0;
         const total = trait.value + trait.bonus + equipMod;
         const sign = total >= 0 ? '+' : '';
+        const isClickable = !!onTraitClick;
 
         return (
           <div
             key={name}
+            role={isClickable ? 'button' : undefined}
+            tabIndex={isClickable ? 0 : undefined}
+            aria-label={
+              isClickable ? `Roll ${name} (${sign}${total})` : undefined
+            }
+            onClick={isClickable ? () => onTraitClick(name, total) : undefined}
+            onKeyDown={
+              isClickable
+                ? e => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      onTraitClick(name, total);
+                    }
+                  }
+                : undefined
+            }
             className={cn(
               'flex flex-col items-center rounded-lg border p-2 transition-colors sm:p-3',
-              trait.marked && 'border-primary bg-primary/10'
+              trait.marked && 'border-primary bg-primary/10',
+              isClickable &&
+                'cursor-pointer hover:border-sky-500/50 hover:bg-sky-500/5 active:scale-95'
             )}
           >
             <span className="text-muted-foreground text-xs sm:text-sm">
@@ -133,9 +161,22 @@ export function TraitsDisplay({
   className,
   readOnly = false,
   equipmentModifiers,
+  onHopeChange,
+  onFearChange,
+  onStressClear,
 }: TraitsDisplayProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState<TraitsState>(traits);
+  const [rollDialogOpen, setRollDialogOpen] = useState(false);
+  const [rollTrait, setRollTrait] = useState<{
+    name: TraitName;
+    modifier: number;
+  } | null>(null);
+
+  const handleTraitClick = useCallback((name: TraitName, modifier: number) => {
+    setRollTrait({ name, modifier });
+    setRollDialogOpen(true);
+  }, []);
 
   const handleEditToggle = useCallback(() => {
     setIsEditing(prev => !prev);
@@ -172,7 +213,19 @@ export function TraitsDisplay({
       <TraitsDetailedDisplay
         traits={traits}
         equipmentModifiers={equipmentModifiers}
+        onTraitClick={!readOnly ? handleTraitClick : undefined}
       />
+      {rollTrait && (
+        <DualityRollDialog
+          open={rollDialogOpen}
+          onOpenChange={setRollDialogOpen}
+          defaultModifier={rollTrait.modifier}
+          rollLabel={`${rollTrait.name} Check`}
+          onHopeChange={onHopeChange}
+          onFearChange={onFearChange}
+          onStressClear={onStressClear}
+        />
+      )}
     </EditableSection>
   );
 }

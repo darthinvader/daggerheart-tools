@@ -36,3 +36,6 @@ export * from './session-zero';
 
 // Safety tools (Lines & Veils, X-Card, Content Warnings, Open Door Policy)
 export * from './safety-tools';
+
+// Dice roll schemas (Duality Roll, effect dice, outcomes)
+export * from './dice';

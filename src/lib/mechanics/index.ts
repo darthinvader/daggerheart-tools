@@ -8,3 +8,11 @@ export {
   type TagTeamResult,
   tryTagTeam,
 } from './stress-hp-utils';
+
+export {
+  parseDiceNotation,
+  resolveDualityRoll,
+  rollDice,
+  rollDuality,
+  rollEffectDie,
+} from './dice-engine';

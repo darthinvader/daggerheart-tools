@@ -2,6 +2,8 @@ import { Plus, X } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
 import type { ConditionsState } from '@/components/conditions';
+import { DEFAULT_CONDITION_STYLE } from '@/components/conditions/condition-defaults';
+import { CONDITION_ICON_MAP } from '@/components/conditions/custom-condition-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +13,8 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Sparkles } from '@/lib/icons';
+import type { CustomConditionDefinition } from '@/lib/schemas/character-state';
+import { CONDITION_PRESET_ICONS } from '@/lib/schemas/character-state';
 import { cn } from '@/lib/utils';
 
 interface QuickConditionsInfoProps {
@@ -93,23 +97,49 @@ export function QuickConditionsInfo({
         </p>
       ) : (
         <div className="quick-conditions-list">
-          {conditions.items.map((condition, idx) => (
-            <Badge
-              key={idx}
-              variant="secondary"
-              className="quick-condition-badge"
-            >
-              {condition}
-              {onChange && (
-                <button
-                  onClick={() => handleRemove(idx)}
-                  className="quick-condition-remove"
-                >
-                  <X className="size-2.5" />
-                </button>
-              )}
-            </Badge>
-          ))}
+          {conditions.items.map((condition, idx) => {
+            const def: CustomConditionDefinition | undefined =
+              conditions.customDefinitions?.[condition] ??
+              DEFAULT_CONDITION_STYLE[condition];
+            const iconName = def?.icon as
+              | (typeof CONDITION_PRESET_ICONS)[number]
+              | undefined;
+            const IconComp =
+              iconName && iconName in CONDITION_ICON_MAP
+                ? CONDITION_ICON_MAP[iconName]
+                : undefined;
+            const color = def?.color;
+
+            return (
+              <Badge
+                key={idx}
+                variant="secondary"
+                className="quick-condition-badge gap-1"
+                style={
+                  color
+                    ? {
+                        backgroundColor: `${color}20`,
+                        color,
+                        borderColor: `${color}40`,
+                        borderWidth: '1px',
+                      }
+                    : undefined
+                }
+                title={def?.description}
+              >
+                {IconComp && <IconComp className="size-2.5" />}
+                {condition}
+                {onChange && (
+                  <button
+                    onClick={() => handleRemove(idx)}
+                    className="quick-condition-remove"
+                  >
+                    <X className="size-2.5" />
+                  </button>
+                )}
+              </Badge>
+            );
+          })}
         </div>
       )}
     </div>

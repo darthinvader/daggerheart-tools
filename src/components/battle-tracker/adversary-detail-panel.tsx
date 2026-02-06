@@ -13,6 +13,7 @@ import {
   Target,
   X,
 } from 'lucide-react';
+import { useRef, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -32,6 +33,7 @@ import {
   ROLE_POINT_COSTS,
   TIER_COLORS,
 } from './adversary-card-shared';
+import TierScalingControls from './tier-scaling-controls';
 
 // ============== Role Descriptions ==============
 
@@ -190,6 +192,15 @@ export function AdversaryDetailPanel({
   onAdd,
   canAdd = true,
 }: AdversaryDetailPanelProps) {
+  const [tierOverride, setTierOverride] = useState<number | undefined>();
+  const prevAdversaryRef = useRef(adversary?.name);
+
+  // Reset tier override when switching adversaries (adjust state during render)
+  if (prevAdversaryRef.current !== adversary?.name) {
+    prevAdversaryRef.current = adversary?.name;
+    setTierOverride(undefined);
+  }
+
   if (!adversary) {
     return (
       <div className="bg-muted/30 flex min-h-0 w-96 shrink-0 flex-col overflow-hidden border-l">
@@ -291,6 +302,17 @@ export function AdversaryDetailPanel({
               colorClass="text-purple-500"
             />
           </div>
+
+          {/* Tier Scaling */}
+          <TierScalingControls
+            adversary={adversary}
+            currentTierOverride={tierOverride}
+            onTierChange={newTier =>
+              setTierOverride(
+                newTier === Number(adversary.tier) ? undefined : newTier
+              )
+            }
+          />
 
           <Separator />
 

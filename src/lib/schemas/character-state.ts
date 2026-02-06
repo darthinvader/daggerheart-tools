@@ -19,6 +19,47 @@ export const ConditionItemSchema = z.object({
 });
 export const ConditionsSchema = z.array(ConditionItemSchema);
 
+// Custom condition definition (extended styling for user-created conditions)
+export const CONDITION_PRESET_COLORS = [
+  '#ef4444', // red
+  '#f97316', // orange
+  '#eab308', // yellow
+  '#22c55e', // green
+  '#06b6d4', // cyan
+  '#3b82f6', // blue
+  '#a855f7', // purple
+  '#ec4899', // pink
+] as const;
+
+export const CONDITION_PRESET_ICONS = [
+  'Shield',
+  'Heart',
+  'Eye',
+  'Skull',
+  'Flame',
+  'Snowflake',
+  'Zap',
+  'Sun',
+  'Moon',
+  'CloudRain',
+  'Wind',
+  'Target',
+  'AlertTriangle',
+  'Ban',
+  'Clock',
+  'Star',
+] as const;
+
+export const CustomConditionDefinitionSchema = z.object({
+  description: z.string().max(200).optional(),
+  color: z.string().optional(),
+  icon: z.string().optional(),
+});
+
+export type CustomConditionDefinition = z.infer<
+  typeof CustomConditionDefinitionSchema
+>;
+
 // Gold currency
 export const GoldDenominationEnum = z.enum([
   'coins',

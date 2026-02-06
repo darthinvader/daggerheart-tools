@@ -39,6 +39,7 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
+import { LootGenerator } from '@/components/loot-generator';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -67,6 +68,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  resolveDualityRoll,
+  rollDice,
+  rollDuality,
+} from '@/lib/mechanics/dice-engine';
 import type { BattleState } from '@/lib/schemas/battle';
 
 const RANDOM_NPC_NAMES = [
@@ -1428,27 +1434,29 @@ function DiceRollerCard() {
   } | null>(null);
 
   const roll = useCallback((sides: number) => {
-    const value = Math.floor(Math.random() * sides) + 1;
-    setResult({ type: `d${sides}`, detail: `${value}`, total: value });
+    const diceResult = rollDice(sides);
+    setResult({
+      type: `d${sides}`,
+      detail: `${diceResult.total}`,
+      total: diceResult.total,
+    });
   }, []);
 
   const dualityRoll = useCallback(() => {
-    const hope = Math.floor(Math.random() * 12) + 1;
-    const fear = Math.floor(Math.random() * 12) + 1;
-    const total = hope + fear;
-    const isHope = hope >= fear;
-    const isCrit = hope === fear;
-    const type = isCrit
-      ? total >= 13
+    const raw = rollDuality();
+    const resolved = resolveDualityRoll(raw, 15);
+    const outcomeLabel =
+      resolved.outcome === 'critical_success'
         ? 'Critical Success!'
-        : 'Critical Failure!'
-      : isHope
-        ? 'with Hope'
-        : 'with Fear';
+        : resolved.outcome === 'success_with_hope'
+          ? 'with Hope'
+          : resolved.outcome === 'success_with_fear'
+            ? 'with Fear'
+            : 'Failure with Fear';
     setResult({
-      type: `Duality Roll — ${type}`,
-      detail: `Hope: ${hope} | Fear: ${fear}`,
-      total,
+      type: `Duality Roll — ${outcomeLabel}`,
+      detail: `Hope: ${raw.hopeDie} | Fear: ${raw.fearDie}`,
+      total: raw.total,
     });
   }, []);
 
@@ -2218,6 +2226,7 @@ export function GMToolsPanel({
               ),
             },
             { name: 'Quick Notes', el: <QuickNotesCard key="notes" /> },
+            { name: 'Loot Generator', el: <LootGenerator key="loot" /> },
           ] as const
         )
           .filter(

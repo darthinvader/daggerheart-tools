@@ -38,7 +38,9 @@ import {
 import { DIFFICULTY_LEVELS } from '@/lib/data/core/difficulty';
 import { cn } from '@/lib/utils';
 import type { FearGainResult } from '../rest';
+import GlobalSaveDC from './global-save-dc';
 import { PartyRestDialog } from './party-rest-dialog';
+import { TurnTimer } from './turn-timer';
 import type {
   AdversaryTracker,
   EnvironmentTracker,
@@ -883,6 +885,8 @@ export function GMResourcesBar({
 
   // Party Rest dialog state
   const [isPartyRestOpen, setIsPartyRestOpen] = useState(false);
+  // Global Save DC state
+  const [saveDC, setSaveDC] = useState(15);
 
   // Handle party rest completion - auto-add Fear to pool
   const handlePartyRestComplete = useCallback(
@@ -917,6 +921,8 @@ export function GMResourcesBar({
           useMassiveThreshold={useMassiveThreshold}
           onUseMassiveThresholdChange={onUseMassiveThresholdChange}
         />
+        <GlobalSaveDC value={saveDC} onChange={setSaveDC} />
+        <TurnTimer compact spotlightActive={!!spotlight} />
         <DifficultyReference />
         {/* Reduce All Counters Button */}
         <TooltipProvider>

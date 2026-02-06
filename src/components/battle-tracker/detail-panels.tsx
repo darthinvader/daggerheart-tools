@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import type { ReactNode } from 'react';
 
+import { DEFAULT_CONDITION_STYLE } from '@/components/conditions/condition-defaults';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -1180,11 +1181,28 @@ function CharacterConditionsSection({
     <div className="space-y-1.5">
       <p className="text-xs font-medium text-red-500">Active Conditions</p>
       <div className="flex flex-wrap gap-1">
-        {conditions.items.map(condition => (
-          <Badge key={condition} variant="destructive" className="text-xs">
-            {condition}
-          </Badge>
-        ))}
+        {conditions.items.map(condition => {
+          const def =
+            conditions.customDefinitions?.[condition] ??
+            DEFAULT_CONDITION_STYLE[condition];
+          const tooltip = def?.description;
+          const badge = (
+            <Badge key={condition} variant="destructive" className="text-xs">
+              {condition}
+            </Badge>
+          );
+          if (!tooltip) return badge;
+          return (
+            <TooltipProvider key={condition}>
+              <Tooltip>
+                <TooltipTrigger asChild>{badge}</TooltipTrigger>
+                <TooltipContent side="top">
+                  <p className="text-xs">{tooltip}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          );
+        })}
       </div>
     </div>
   );

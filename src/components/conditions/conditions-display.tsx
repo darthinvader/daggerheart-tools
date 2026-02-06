@@ -1,6 +1,11 @@
-import { Plus, Sparkles, X, Zap } from 'lucide-react';
+import { Palette, Plus, Sparkles, X, Zap } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
+import { DEFAULT_CONDITION_STYLE } from '@/components/conditions/condition-defaults';
+import {
+  CONDITION_ICON_MAP,
+  CustomConditionDialog,
+} from '@/components/conditions/custom-condition-dialog';
 import { CONDITION_SUGGESTIONS } from '@/components/identity-editor/trait-suggestions';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,10 +15,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import type { CustomConditionDefinition } from '@/lib/schemas/character-state';
+import { CONDITION_PRESET_ICONS } from '@/lib/schemas/character-state';
 import { cn } from '@/lib/utils';
 
 export interface ConditionsState {
   items: string[];
+  customDefinitions?: Record<string, CustomConditionDefinition>;
 }
 
 interface ConditionsDisplayProps {
@@ -93,14 +101,65 @@ function ConditionInput({
   );
 }
 
+/** Renders a single condition badge, applying custom styling if a definition exists. */
+function ConditionBadge({
+  name,
+  definition,
+  onRemove,
+}: {
+  name: string;
+  definition?: CustomConditionDefinition;
+  onRemove?: () => void;
+}) {
+  const iconName = definition?.icon as
+    | (typeof CONDITION_PRESET_ICONS)[number]
+    | undefined;
+  const IconComp =
+    iconName && iconName in CONDITION_ICON_MAP
+      ? CONDITION_ICON_MAP[iconName]
+      : undefined;
+  const color = definition?.color;
+
+  return (
+    <Badge
+      variant="secondary"
+      className="gap-1 px-3 py-1 text-sm"
+      style={
+        color
+          ? {
+              backgroundColor: `${color}20`,
+              color,
+              borderColor: `${color}40`,
+              borderWidth: '1px',
+            }
+          : undefined
+      }
+      title={definition?.description}
+    >
+      {IconComp && <IconComp className="size-3" />}
+      {name}
+      {onRemove && (
+        <button
+          onClick={onRemove}
+          className="hover:bg-destructive/20 ml-1 rounded-full"
+        >
+          <X className="size-3" />
+        </button>
+      )}
+    </Badge>
+  );
+}
+
 function ConditionsDetailedDisplay({
   conditions,
   onAdd,
   onRemove,
+  onAddCustom,
 }: {
   conditions: ConditionsState;
   onAdd?: (condition: string) => void;
   onRemove?: (idx: number) => void;
+  onAddCustom?: (name: string, def: CustomConditionDefinition) => void;
 }) {
   const [popoverOpen, setPopoverOpen] = useState(false);
 
@@ -113,21 +172,35 @@ function ConditionsDetailedDisplay({
           Your character is in good shape!
         </p>
         {onAdd && (
-          <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-            <PopoverTrigger asChild>
-              <Button variant="outline">
-                <Plus className="mr-1 size-4" />
-                Add Condition
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-72 p-2">
-              <ConditionInput
-                conditions={conditions}
-                onAdd={onAdd}
-                onClose={() => setPopoverOpen(false)}
+          <div className="flex gap-2">
+            <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline">
+                  <Plus className="mr-1 size-4" />
+                  Add Condition
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-72 p-2">
+                <ConditionInput
+                  conditions={conditions}
+                  onAdd={onAdd}
+                  onClose={() => setPopoverOpen(false)}
+                />
+              </PopoverContent>
+            </Popover>
+            {onAddCustom && (
+              <CustomConditionDialog
+                existingNames={conditions.items}
+                onSave={onAddCustom}
+                trigger={
+                  <Button variant="outline">
+                    <Palette className="mr-1 size-4" />
+                    Custom Condition
+                  </Button>
+                }
               />
-            </PopoverContent>
-          </Popover>
+            )}
+          </div>
         )}
       </div>
     );
@@ -137,39 +210,41 @@ function ConditionsDetailedDisplay({
     <div className="space-y-3">
       <div className="flex flex-wrap gap-2">
         {conditions.items.map((condition, idx) => (
-          <Badge
+          <ConditionBadge
             key={idx}
-            variant="secondary"
-            className="gap-1 px-3 py-1 text-sm"
-          >
-            {condition}
-            {onRemove && (
-              <button
-                onClick={() => onRemove(idx)}
-                className="hover:bg-destructive/20 ml-1 rounded-full"
-              >
-                <X className="size-3" />
-              </button>
-            )}
-          </Badge>
+            name={condition}
+            definition={
+              conditions.customDefinitions?.[condition] ??
+              DEFAULT_CONDITION_STYLE[condition]
+            }
+            onRemove={onRemove ? () => onRemove(idx) : undefined}
+          />
         ))}
       </div>
       {onAdd && (
-        <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-          <PopoverTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-7 gap-1">
-              <Plus className="size-4" />
-              Add
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-72 p-2" align="start">
-            <ConditionInput
-              conditions={conditions}
-              onAdd={onAdd}
-              onClose={() => setPopoverOpen(false)}
+        <div className="flex gap-2">
+          <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-7 gap-1">
+                <Plus className="size-4" />
+                Add
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-72 p-2" align="start">
+              <ConditionInput
+                conditions={conditions}
+                onAdd={onAdd}
+                onClose={() => setPopoverOpen(false)}
+              />
+            </PopoverContent>
+          </Popover>
+          {onAddCustom && (
+            <CustomConditionDialog
+              existingNames={conditions.items}
+              onSave={onAddCustom}
             />
-          </PopoverContent>
-        </Popover>
+          )}
+        </div>
       )}
     </div>
   );
@@ -183,14 +258,43 @@ export function ConditionsDisplay({
 }: ConditionsDisplayProps) {
   const handleAdd = useCallback(
     (condition: string) => {
-      onChange?.({ items: [...conditions.items, condition] });
+      onChange?.({
+        ...conditions,
+        items: [...conditions.items, condition],
+      });
     },
     [conditions, onChange]
   );
 
   const handleRemove = useCallback(
     (idx: number) => {
-      onChange?.({ items: conditions.items.filter((_, i) => i !== idx) });
+      const removedName = conditions.items[idx];
+      const nextItems = conditions.items.filter((_, i) => i !== idx);
+      // Clean up custom definition if condition is fully removed
+      const nextDefs = { ...conditions.customDefinitions };
+      if (removedName && !nextItems.includes(removedName)) {
+        delete nextDefs[removedName];
+      }
+      onChange?.({
+        ...conditions,
+        items: nextItems,
+        customDefinitions:
+          Object.keys(nextDefs).length > 0 ? nextDefs : undefined,
+      });
+    },
+    [conditions, onChange]
+  );
+
+  const handleAddCustom = useCallback(
+    (name: string, definition: CustomConditionDefinition) => {
+      onChange?.({
+        ...conditions,
+        items: [...conditions.items, name],
+        customDefinitions: {
+          ...conditions.customDefinitions,
+          [name]: definition,
+        },
+      });
     },
     [conditions, onChange]
   );
@@ -205,6 +309,7 @@ export function ConditionsDisplay({
         conditions={conditions}
         onAdd={!readOnly && onChange ? handleAdd : undefined}
         onRemove={!readOnly && onChange ? handleRemove : undefined}
+        onAddCustom={!readOnly && onChange ? handleAddCustom : undefined}
       />
     </div>
   );
