@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { useAuth } from '@/components/providers';
 import { Button } from '@/components/ui/button';
@@ -15,9 +15,11 @@ import {
   useCharacterCampaign,
 } from '@/features/campaigns/use-campaign-query';
 import type { Campaign } from '@/lib/schemas/campaign';
+import { useUndoShortcuts } from '@/lib/undo';
 
 import { CharacterSheetLayout } from './character-sheet-layout';
 import { useCharacterSheetWithApi } from './use-character-sheet-api';
+import { useUndoableCharacterState } from './use-undoable-character-state';
 
 interface CharacterSheetProps {
   characterId: string;
@@ -98,6 +100,29 @@ export function CharacterSheet({
     lastSaved,
     isHydrated,
   } = useCharacterSheetWithApi(characterId, { readOnly });
+
+  // Wrap handlers with undo/redo capability
+  const { undoHandlers, undoActions, pushUndo } = useUndoableCharacterState(
+    state,
+    handlers,
+    { enabled: !readOnly }
+  );
+
+  // Wrap level-up with a single undo entry
+  const undoableLevelUpConfirm = useCallback(
+    (result: import('@/components/level-up').LevelUpResult) => {
+      pushUndo(`Level up to ${result.newLevel}`);
+      handleLevelUpConfirm(result);
+    },
+    [pushUndo, handleLevelUpConfirm]
+  );
+
+  // Register keyboard shortcuts (Ctrl+Z / Ctrl+Shift+Z)
+  useUndoShortcuts({
+    onUndo: undoActions.undo,
+    onRedo: undoActions.redo,
+    enabled: !readOnly,
+  });
 
   // Fetch the campaign this character belongs to (if any)
   const { data: campaign } = useCharacterCampaign(characterId);
@@ -193,7 +218,7 @@ export function CharacterSheet({
   return (
     <CharacterSheetLayout
       activeTab={activeTab}
-      handlers={handlers}
+      handlers={undoHandlers}
       isHydrated={isHydrated}
       isLevelUpOpen={isLevelUpOpen}
       isOnboardingOpen={isOnboardingOpen}
@@ -205,7 +230,8 @@ export function CharacterSheet({
       readOnly={readOnly}
       setIsNewCharacter={setIsNewCharacter}
       state={state}
-      handleLevelUpConfirm={handleLevelUpConfirm}
+      undoActions={undoActions}
+      handleLevelUpConfirm={undoableLevelUpConfirm}
       currentExperiencesForModal={currentExperiencesForModal}
       currentTraitsForModal={currentTraitsForModal}
       ownedCardNames={ownedCardNames}

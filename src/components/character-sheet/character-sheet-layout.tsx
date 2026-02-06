@@ -1,6 +1,7 @@
 import { Loader2, Unlink, Users } from 'lucide-react';
 import { useState } from 'react';
 
+import { UndoRedoControls } from '@/components/battle-tracker/undo-redo-controls';
 import { CharacterOnboardingWizard } from '@/components/character-onboarding';
 import {
   CombatTab,
@@ -26,6 +27,7 @@ import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Backpack, BarChart3, Dice5, Swords, User, Zap } from '@/lib/icons';
 import type { Campaign } from '@/lib/schemas/campaign';
+import type { UndoActions } from '@/lib/undo';
 import { cn } from '@/lib/utils';
 
 import { CharacterStatusBar } from './character-status-bar';
@@ -33,6 +35,7 @@ import { EnhancedCharacterHeader } from './enhanced-header';
 import { MobileBottomNav } from './mobile-bottom-nav';
 import { ResponsiveTabsList } from './responsive-tabs';
 import type { CharacterSheetHandlers, CharacterSheetState } from './types.ts';
+import { UndoRedoFab } from './undo-redo-fab';
 
 interface CharacterSheetLayoutProps {
   activeTab: string;
@@ -68,6 +71,7 @@ interface CharacterSheetLayoutProps {
   joinCampaignSuccess: boolean;
   onUnlinkCampaign: (campaignId: string) => void;
   isUnlinkingCampaign: boolean;
+  undoActions?: UndoActions;
 }
 
 export function CharacterSheetLayout({
@@ -99,6 +103,7 @@ export function CharacterSheetLayout({
   joinCampaignSuccess,
   onUnlinkCampaign,
   isUnlinkingCampaign,
+  undoActions,
 }: CharacterSheetLayoutProps) {
   const tier = getTierNumber(state.progression.currentLevel);
 
@@ -156,6 +161,20 @@ export function CharacterSheetLayout({
             />
           }
           statusBar={<CharacterStatusBar state={state} />}
+          undoControls={
+            !readOnly && undoActions ? (
+              <UndoRedoControls
+                canUndo={undoActions.canUndo}
+                canRedo={undoActions.canRedo}
+                undoStack={undoActions.undoStack}
+                redoStack={undoActions.redoStack}
+                onUndo={undoActions.undo}
+                onRedo={undoActions.redo}
+                onClearHistory={undoActions.clearHistory}
+                compact
+              />
+            ) : undefined
+          }
         />
         <CharacterSheetTabs
           activeTab={activeTab}
@@ -176,6 +195,16 @@ export function CharacterSheetLayout({
           ownedCardNames={ownedCardNames}
         />
       </div>
+
+      {/* Mobile undo/redo FAB — positioned above bottom nav */}
+      {!readOnly && undoActions && (
+        <UndoRedoFab
+          canUndo={undoActions.canUndo}
+          canRedo={undoActions.canRedo}
+          onUndo={undoActions.undo}
+          onRedo={undoActions.redo}
+        />
+      )}
 
       {/* Mobile bottom navigation */}
       <MobileBottomNav

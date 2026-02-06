@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import type { Adversary } from '@/lib/schemas/adversaries';
 import type { Environment } from '@/lib/schemas/environments';
 import { MAX_UNDO_DEPTH } from '@/lib/undo';
-import type { UndoEntryMeta } from '@/lib/undo';
+import type { UndoActions, UndoEntryMeta } from '@/lib/undo';
 
 import type {
   AdversaryTracker,
@@ -43,15 +43,7 @@ interface UndoEntry {
   snapshot: UndoableSnapshot;
 }
 
-export interface UndoActions {
-  undo: () => void;
-  redo: () => void;
-  canUndo: boolean;
-  canRedo: boolean;
-  undoStack: readonly UndoEntryMeta[];
-  redoStack: readonly UndoEntryMeta[];
-  clearHistory: () => void;
-}
+// UndoActions is now imported from @/lib/undo
 
 type RosterResult = ReturnType<typeof useBattleRosterState>;
 type RosterActions = RosterResult['rosterActions'];

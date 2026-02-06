@@ -11,5 +11,16 @@ export interface UndoEntryMeta {
   readonly timestamp: number;
 }
 
+/** Contract exposed by any hook that provides undo/redo capability. */
+export interface UndoActions {
+  undo: () => void;
+  redo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
+  undoStack: readonly UndoEntryMeta[];
+  redoStack: readonly UndoEntryMeta[];
+  clearHistory: () => void;
+}
+
 /** Maximum number of undo entries to retain. */
 export const MAX_UNDO_DEPTH = 50;

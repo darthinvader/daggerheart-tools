@@ -27,6 +27,7 @@ interface EnhancedHeaderProps {
   lastSaved: Date | null;
   campaignSection?: ReactNode;
   statusBar?: ReactNode;
+  undoControls?: ReactNode;
 }
 
 const tierColors: Record<number, string> = {
@@ -129,6 +130,7 @@ export function EnhancedCharacterHeader({
   lastSaved,
   campaignSection,
   statusBar,
+  undoControls,
 }: EnhancedHeaderProps) {
   return (
     <div
@@ -150,6 +152,7 @@ export function EnhancedCharacterHeader({
         </Button>
         <div className="flex items-center gap-2">
           {campaignSection}
+          {!readOnly && undoControls}
           {readOnly ? (
             <Badge variant="outline" className="text-xs">
               Read-only

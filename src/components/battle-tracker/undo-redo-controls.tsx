@@ -24,6 +24,8 @@ interface UndoRedoControlsProps {
   onUndo: () => void;
   onRedo: () => void;
   onClearHistory: () => void;
+  /** When true, renders a slimmer variant suitable for tight header rows. */
+  compact?: boolean;
 }
 
 function formatRelativeTime(timestamp: number): string {
@@ -44,6 +46,7 @@ export function UndoRedoControls({
   onUndo,
   onRedo,
   onClearHistory,
+  compact = false,
 }: UndoRedoControlsProps) {
   const [historyOpen, setHistoryOpen] = useState(false);
 
@@ -59,14 +62,22 @@ export function UndoRedoControls({
   const nextRedo = redoStack.at(0);
 
   return (
-    <div className="flex min-h-13 items-center gap-2 rounded-lg border-2 border-slate-500/30 bg-gradient-to-r from-slate-500/10 to-zinc-500/10 px-2.5 py-2">
-      {/* Icon + Label */}
-      <div className="flex items-center gap-1">
-        <History className="size-4 text-slate-500" />
-        <span className="text-sm font-bold text-slate-600 dark:text-slate-400">
-          History
-        </span>
-      </div>
+    <div
+      className={
+        compact
+          ? 'border-border/40 hidden items-center gap-0.5 border-l pl-2 md:flex'
+          : 'flex min-h-13 items-center gap-2 rounded-lg border-2 border-slate-500/30 bg-gradient-to-r from-slate-500/10 to-zinc-500/10 px-2.5 py-2'
+      }
+    >
+      {/* Icon + Label (hidden in compact mode) */}
+      {!compact && (
+        <div className="flex items-center gap-1">
+          <History className="size-4 text-slate-500" />
+          <span className="text-sm font-bold text-slate-600 dark:text-slate-400">
+            History
+          </span>
+        </div>
+      )}
 
       {/* Undo / Redo buttons */}
       <TooltipProvider>
@@ -132,7 +143,10 @@ export function UndoRedoControls({
               <ChevronDown className="size-3" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-72 p-0" align="start">
+          <PopoverContent
+            className="w-72 p-0"
+            align={compact ? 'end' : 'start'}
+          >
             <div className="border-b bg-gradient-to-r from-slate-500/10 to-zinc-500/10 px-4 py-3">
               <h4 className="flex items-center gap-2 font-semibold text-slate-700 dark:text-slate-300">
                 <History className="size-4" />

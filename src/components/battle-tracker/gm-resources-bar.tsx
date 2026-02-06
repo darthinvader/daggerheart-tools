@@ -36,6 +36,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { DIFFICULTY_LEVELS } from '@/lib/data/core/difficulty';
+import type { UndoActions } from '@/lib/undo';
 import { cn } from '@/lib/utils';
 import type { FearGainResult } from '../rest';
 import GlobalSaveDC from './global-save-dc';
@@ -47,7 +48,6 @@ import type {
   TrackerSelection,
 } from './types';
 import { UndoRedoControls } from './undo-redo-controls';
-import type { UndoActions } from './use-undoable-roster-state';
 
 type Selection = TrackerSelection | null;
 type Spotlight = { id: string; kind: string } | null;
