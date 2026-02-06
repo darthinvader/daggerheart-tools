@@ -2,6 +2,7 @@ import { Dice5 } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
 import { DualityRollDialog } from '@/components/dice-roller';
+import type { RollExperience } from '@/components/dice-roller';
 import { EditableSection } from '@/components/shared/editable-section';
 import { LabeledCounter } from '@/components/shared/labeled-counter';
 import { cn } from '@/lib/utils';
@@ -48,6 +49,12 @@ interface TraitsDisplayProps {
   onFearChange?: (delta: number) => void;
   /** Callback when stress is cleared from a critical success */
   onStressClear?: () => void;
+  /** Current Hope tokens available for pre-roll spending */
+  currentHope?: number;
+  /** Available experiences that can be burned for bonus */
+  experiences?: RollExperience[];
+  /** Callback when Hope is spent pre-roll */
+  onSpendHope?: (amount: number) => void;
 }
 
 function TraitsDetailedDisplay({
@@ -164,6 +171,9 @@ export function TraitsDisplay({
   onHopeChange,
   onFearChange,
   onStressClear,
+  currentHope,
+  experiences,
+  onSpendHope,
 }: TraitsDisplayProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState<TraitsState>(traits);
@@ -224,6 +234,9 @@ export function TraitsDisplay({
           onHopeChange={onHopeChange}
           onFearChange={onFearChange}
           onStressClear={onStressClear}
+          currentHope={currentHope}
+          experiences={experiences}
+          onSpendHope={onSpendHope}
         />
       )}
     </EditableSection>

@@ -2,4 +2,7 @@
 export { DualityRollDialog } from './duality-roll-dialog';
 
 // Types
-export type { DualityRollDialogProps } from './duality-roll-dialog';
+export type {
+  DualityRollDialogProps,
+  RollExperience,
+} from './duality-roll-dialog';

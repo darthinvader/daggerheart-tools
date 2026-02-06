@@ -1,7 +1,10 @@
 import {
+  BookOpen,
   ChevronDown,
   ChevronUp,
   Dices,
+  Minus,
+  Plus,
   RotateCcw,
   Sparkles,
   Swords,
@@ -29,6 +32,13 @@ import { cn } from '@/lib/utils';
 // Types
 // =====================================================================================
 
+/** Minimal experience info for pre-roll resource spending */
+export interface RollExperience {
+  id: string;
+  name: string;
+  value: number;
+}
+
 interface DualityRollDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -42,6 +52,12 @@ interface DualityRollDialogProps {
   onHopeChange?: (delta: number) => void;
   onFearChange?: (delta: number) => void;
   onStressClear?: () => void;
+  /** Current Hope tokens available for pre-roll spending */
+  currentHope?: number;
+  /** Available experiences that can be burned for bonus */
+  experiences?: RollExperience[];
+  /** Callback when Hope is spent pre-roll (amount to deduct) */
+  onSpendHope?: (amount: number) => void;
 }
 
 // =====================================================================================
@@ -266,6 +282,9 @@ export const DualityRollDialog = memo(function DualityRollDialog({
   onHopeChange,
   onFearChange,
   onStressClear,
+  currentHope,
+  experiences,
+  onSpendHope,
 }: DualityRollDialogProps) {
   const [modifier, setModifier] = useState(defaultModifier);
   const [advantage, setAdvantage] = useState(false);
@@ -275,6 +294,26 @@ export const DualityRollDialog = memo(function DualityRollDialog({
   const [effectDieNotation, setEffectDieNotation] = useState(defaultEffectDie);
   const [result, setResult] = useState<ResolvedDualityRoll | null>(null);
   const [isRolling, setIsRolling] = useState(false);
+
+  // Pre-roll resource spending
+  const [hopeSpent, setHopeSpent] = useState(0);
+  const [burnedExperienceId, setBurnedExperienceId] = useState<string | null>(
+    null
+  );
+
+  const hasResources =
+    currentHope !== undefined ||
+    (experiences !== undefined && experiences.length > 0);
+  const burnedExperience = useMemo(
+    () => experiences?.find(e => e.id === burnedExperienceId) ?? null,
+    [experiences, burnedExperienceId]
+  );
+  const experienceHopeCost = burnedExperience ? 1 : 0;
+  const totalHopeSpent = hopeSpent + experienceHopeCost;
+  const availableHope = (currentHope ?? 0) - totalHopeSpent;
+  const resourceBonus =
+    hopeSpent + (burnedExperience ? burnedExperience.value : 0);
+  const effectiveModifier = modifier + resourceBonus;
 
   const hasAdvantage = advantage && !disadvantage;
   const hasDisadvantage = disadvantage && !advantage;
@@ -286,9 +325,14 @@ export const DualityRollDialog = memo(function DualityRollDialog({
   const handleRoll = useCallback(() => {
     setIsRolling(true);
 
+    // Deduct spent Hope pre-roll
+    if (totalHopeSpent > 0) {
+      onSpendHope?.(totalHopeSpent);
+    }
+
     // Brief delay for animation feel
     setTimeout(() => {
-      const rawRoll = rollDuality(modifier, {
+      const rawRoll = rollDuality(effectiveModifier, {
         advantage: hasAdvantage,
         disadvantage: hasDisadvantage,
         effectDie: effectDieEnabled ? effectDieNotation : undefined,
@@ -310,7 +354,8 @@ export const DualityRollDialog = memo(function DualityRollDialog({
       }
     }, 150);
   }, [
-    modifier,
+    effectiveModifier,
+    totalHopeSpent,
     hasAdvantage,
     hasDisadvantage,
     effectDieEnabled,
@@ -319,6 +364,7 @@ export const DualityRollDialog = memo(function DualityRollDialog({
     onHopeChange,
     onFearChange,
     onStressClear,
+    onSpendHope,
   ]);
 
   const handleRollAgain = useCallback(() => {
@@ -344,6 +390,8 @@ export const DualityRollDialog = memo(function DualityRollDialog({
       if (!nextOpen) {
         setResult(null);
         setIsRolling(false);
+        setHopeSpent(0);
+        setBurnedExperienceId(null);
       }
       onOpenChange(nextOpen);
     },
@@ -420,6 +468,117 @@ export const DualityRollDialog = memo(function DualityRollDialog({
               Disadvantage
             </Button>
           </div>
+
+          {/* Resource Spending (Hope & Experience) */}
+          {hasResources && !result && (
+            <div className="flex flex-col gap-2 rounded-lg border border-sky-500/20 bg-sky-500/5 p-3">
+              <span className="text-xs font-semibold tracking-wider text-sky-700 uppercase dark:text-sky-300">
+                Spend Resources
+              </span>
+
+              {/* Spend Hope for +1 each */}
+              {currentHope !== undefined && (
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium">Spend Hope</span>
+                    <span className="text-muted-foreground text-xs">
+                      +1 per Hope ({availableHope} available)
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="size-7"
+                      disabled={hopeSpent <= 0}
+                      onClick={() => {
+                        setHopeSpent(prev => Math.max(0, prev - 1));
+                        resetResult();
+                      }}
+                    >
+                      <Minus className="size-3" />
+                    </Button>
+                    <span className="w-6 text-center text-sm font-bold tabular-nums">
+                      {hopeSpent}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="size-7"
+                      disabled={availableHope <= 0}
+                      onClick={() => {
+                        setHopeSpent(prev => prev + 1);
+                        resetResult();
+                      }}
+                    >
+                      <Plus className="size-3" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Burn Experience for bonus */}
+              {experiences && experiences.length > 0 && (
+                <div className="flex flex-col gap-1.5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium">
+                        Use Experience
+                      </span>
+                      <span className="text-muted-foreground text-xs">
+                        Costs 1 Hope, adds experience bonus
+                      </span>
+                    </div>
+                    {burnedExperience && (
+                      <Badge className="border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300">
+                        +{burnedExperience.value}
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {experiences.map(exp => (
+                      <Button
+                        key={exp.id}
+                        variant={
+                          burnedExperienceId === exp.id ? 'default' : 'outline'
+                        }
+                        size="sm"
+                        className={cn(
+                          'h-7 text-xs',
+                          burnedExperienceId === exp.id &&
+                            'bg-amber-600 text-white hover:bg-amber-700'
+                        )}
+                        disabled={
+                          burnedExperienceId !== exp.id && availableHope <= 0
+                        }
+                        onClick={() => {
+                          setBurnedExperienceId(prev =>
+                            prev === exp.id ? null : exp.id
+                          );
+                          resetResult();
+                        }}
+                      >
+                        <BookOpen className="size-3" />
+                        {exp.name} (+{exp.value})
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Total bonus summary */}
+              {resourceBonus > 0 && (
+                <div className="flex items-center justify-between border-t border-sky-500/20 pt-2">
+                  <span className="text-xs font-medium text-sky-700 dark:text-sky-300">
+                    Resource Bonus
+                  </span>
+                  <span className="text-sm font-bold text-sky-700 dark:text-sky-300">
+                    +{resourceBonus}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Effect Die toggle */}
           <div className="flex items-center justify-between gap-3 rounded-lg border p-3">

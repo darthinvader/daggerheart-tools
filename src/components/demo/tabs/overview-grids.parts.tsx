@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { AncestryDisplay } from '@/components/ancestry-selector';
 import { BonusSummaryDisplay } from '@/components/bonus-summary';
@@ -502,12 +502,39 @@ export function TraitsScoresGrid({ state, handlers, isHydrated }: TabProps) {
     [state.resources, state.deathState, handlers]
   );
 
+  const handleRollHopeChange = useCallback(
+    (delta: number) => {
+      handlers.setHopeWithScars({
+        ...state.hopeWithScars,
+        current: Math.min(
+          state.hopeWithScars.max,
+          state.hopeWithScars.current + delta
+        ),
+      });
+    },
+    [state.hopeWithScars, handlers]
+  );
+
+  const handleSpendHope = useCallback(
+    (amount: number) => {
+      handlers.setHopeWithScars({
+        ...state.hopeWithScars,
+        current: Math.max(0, state.hopeWithScars.current - amount),
+      });
+    },
+    [state.hopeWithScars, handlers]
+  );
+
   return (
     <div className="grid gap-3 sm:gap-6 md:grid-cols-2">
       <TraitsDisplay
         traits={state.traits}
         onChange={handlers.setTraits}
         equipmentModifiers={combinedFeatureModifiers.traits}
+        currentHope={state.hopeWithScars.current}
+        experiences={state.experiences.items}
+        onHopeChange={handleRollHopeChange}
+        onSpendHope={handleSpendHope}
       />
       <ResourcesDisplay
         resources={state.resources}

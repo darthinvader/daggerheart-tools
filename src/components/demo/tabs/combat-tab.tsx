@@ -1,5 +1,5 @@
 import { Moon } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { ClassDisplay } from '@/components/class-selector';
 import { CoreScoresDisplay } from '@/components/core-scores';
@@ -273,6 +273,29 @@ export function CombatTab({
     ]
   );
 
+  const handleRollHopeChange = useCallback(
+    (delta: number) => {
+      handlers.setHopeWithScars({
+        ...state.hopeWithScars,
+        current: Math.min(
+          state.hopeWithScars.max,
+          state.hopeWithScars.current + delta
+        ),
+      });
+    },
+    [state.hopeWithScars, handlers]
+  );
+
+  const handleSpendHope = useCallback(
+    (amount: number) => {
+      handlers.setHopeWithScars({
+        ...state.hopeWithScars,
+        current: Math.max(0, state.hopeWithScars.current - amount),
+      });
+    },
+    [state.hopeWithScars, handlers]
+  );
+
   return (
     <div className="space-y-6 pt-4">
       {/* Row 1: Class and Equipment */}
@@ -295,6 +318,10 @@ export function CombatTab({
           traits={state.traits}
           onChange={handlers.setTraits}
           equipmentModifiers={combinedFeatureModifiers.traits}
+          currentHope={state.hopeWithScars.current}
+          experiences={state.experiences.items}
+          onHopeChange={handleRollHopeChange}
+          onSpendHope={handleSpendHope}
         />
         <ResourcesDisplay
           resources={state.resources}
