@@ -16,7 +16,7 @@ export const WARRIOR = {
     {
       name: 'Attack of Opportunity',
       description:
-        'If an adversary within Melee range attempts to leave that range, make a reaction roll using a trait of your choice against their Difficulty.',
+        'If an adversary within Melee range attempts to leave that range, make a reaction roll using a trait of your choice against their Difficulty. Choose one effect on a success, or two if you critically succeed:\n\u2022 They can\u2019t move from where they are.\n\u2022 You deal damage to them equal to your primary weapon\u2019s damage.\n\u2022 You move with them.',
       type: 'triggered',
     },
     {
@@ -80,7 +80,7 @@ export const WARRIOR = {
         {
           name: 'Camaraderie',
           description:
-            'Your unwavering bravery is a rallying point for your allies. You can initiate a Tag Team Roll one additional time per session.',
+            'Your unwavering bravery is a rallying point for your allies. You can initiate a Tag Team Roll one additional time per session. Additionally, when an ally initiates a Tag Team Roll with you, they only need to spend 2 Hope to do so.',
           type: 'mastery',
           level: 8,
           availability: {
@@ -99,7 +99,7 @@ export const WARRIOR = {
         {
           name: 'Slayer',
           description:
-            'You gain a pool of dice called Slayer Dice. On a roll with Hope, you can place a d6 on this card instead of gaining a Hope, adding the die to the pool.',
+            'You gain a pool of dice called Slayer Dice. On a roll with Hope, you can place a d6 on this card instead of gaining a Hope, adding the die to the pool. You can store a number of Slayer Dice equal to your Proficiency. When you make an attack roll or damage roll, you can spend any number of these Slayer Dice, rolling them and adding their result to the roll. At the end of each session, clear any unspent Slayer Dice on this card and gain a Hope per die cleared.',
           type: 'foundation',
           level: 1,
           availability: {
@@ -111,7 +111,7 @@ export const WARRIOR = {
         {
           name: 'Weapon Specialist',
           description:
-            'You can wield multiple weapons with dangerous ease. When you succeed on an attack, you can spend a Hope to add one of the damage dice from your secondary weapon to the damage roll.',
+            'You can wield multiple weapons with dangerous ease. When you succeed on an attack, you can spend a Hope to add one of the damage dice from your secondary weapon to the damage roll. Additionally, once per long rest when you roll your Slayer Dice, reroll any 1s.',
           type: 'specialization',
           level: 5,
           availability: {
@@ -123,7 +123,7 @@ export const WARRIOR = {
         {
           name: 'Martial Preparation',
           description:
-            "You're an inspirational warrior to all who travel with you. Your party gains access to the Martial Preparation downtime move.",
+            "You're an inspirational warrior to all who travel with you. Your party gains access to the Martial Preparation downtime move. To use this move during a rest, describe how you instruct and train with your party. You and each ally who chooses this downtime move gain a d6 Slayer Die. A PC with a Slayer Die can spend it to roll the die and add the result to an attack or damage roll of their choice.",
           type: 'mastery',
           level: 8,
           availability: {

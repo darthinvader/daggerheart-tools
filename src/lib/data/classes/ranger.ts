@@ -16,7 +16,7 @@ export const RANGER = {
     {
       name: "Ranger's Focus",
       description:
-        "Spend a Hope and make an attack against a target. On a success, deal your attack's normal damage and temporarily make the attack's target your Focus.",
+        "Spend a Hope and make an attack against a target. On a success, deal your attack's normal damage and temporarily make the attack's target your Focus. Until this feature ends or you make a different creature your Focus, you gain the following benefits against your Focus:\n\u2022 You know precisely what direction they are in.\n\u2022 When you deal damage to them, they must mark a Stress.\n\u2022 When you fail an attack against them, you can end your Ranger's Focus feature to reroll your Duality Dice.",
       type: 'active',
     },
   ],
@@ -40,7 +40,7 @@ export const RANGER = {
         {
           name: 'Companion',
           description:
-            "You have an animal companion of your choice (at the GM's discretion). They stay by your side unless you tell them otherwise.",
+            "You have an animal companion of your choice (at the GM's discretion). They stay by your side unless you tell them otherwise.\n\nTake the Ranger Companion sheet. When you level up your character, choose a level-up option for your companion from this sheet as well.",
           type: 'foundation',
           level: 1,
           availability: {
@@ -138,11 +138,11 @@ export const RANGER = {
           description:
             "When you're traveling to a place you've previously visited or you carry an object that has been at the location before, you can identify the shortest, most direct path to your destination.",
           type: 'foundation',
-          level: 2,
+          level: 1,
           availability: {
-            tier: '2-4',
-            minLevel: 2,
-            unlockCondition: 'Take an upgraded subclass card',
+            tier: '1',
+            minLevel: 1,
+            unlockCondition: 'Starting feature',
           },
         },
         {

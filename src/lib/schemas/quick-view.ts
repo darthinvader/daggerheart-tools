@@ -15,6 +15,7 @@ export const QuickViewSectionsSchema = z.object({
   equipment: z.boolean().default(true),
   loadout: z.boolean().default(true),
   inventory: z.boolean().default(true),
+  beastform: z.boolean().default(true),
 });
 
 export const QuickViewPreferencesSchema = z.object({
@@ -39,6 +40,7 @@ export const DEFAULT_QUICK_VIEW_SECTIONS: QuickViewSections = {
   equipment: true,
   loadout: true,
   inventory: true,
+  beastform: true,
 };
 
 export const DEFAULT_QUICK_VIEW_PREFERENCES: QuickViewPreferences = {

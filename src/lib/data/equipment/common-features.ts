@@ -49,6 +49,12 @@ export const COMMON_EQUIPMENT_FEATURES: Record<string, BaseFeature> = {
     type: 'passive',
     modifiers: { armorScore: 1, evasion: -1 },
   },
+  BARRIER_2: {
+    name: 'Barrier',
+    description: '+2 to Armor Score; −1 to Evasion',
+    type: 'passive',
+    modifiers: { armorScore: 2, evasion: -1 },
+  },
   BARRIER_3: {
     name: 'Barrier',
     description: '+3 to Armor Score; −1 to Evasion',
@@ -90,6 +96,8 @@ export const getBarrierFeature = (armorBonus: number) => {
   switch (armorBonus) {
     case 1:
       return COMMON_EQUIPMENT_FEATURES.BARRIER_1;
+    case 2:
+      return COMMON_EQUIPMENT_FEATURES.BARRIER_2;
     case 3:
       return COMMON_EQUIPMENT_FEATURES.BARRIER_3;
     case 4:

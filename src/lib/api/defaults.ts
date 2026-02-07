@@ -94,6 +94,7 @@ export function createDefaultCharacter(id: string): CharacterRecord {
     experiences: { items: [] },
     companion: null,
     companionEnabled: false,
+    beastformEnabled: false,
     scars: [],
     countdowns: [],
     sessions: [],

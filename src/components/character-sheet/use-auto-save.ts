@@ -116,11 +116,22 @@ export function useAutoSave(characterId: string): UseAutoSaveReturn {
       saveTimeoutRef.current = setTimeout(() => {
         const toSave = pendingUpdatesRef.current;
         pendingUpdatesRef.current = {}; // Clear pending updates
-        saveMutation.mutate(toSave);
+        mutateRef.current?.(toSave);
       }, SAVE_DELAY);
     },
-    [saveMutation]
+    [] // mutateRef is stable
   );
+
+  // Guard against tab close with unsaved changes
+  useEffect(() => {
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (Object.keys(pendingUpdatesRef.current).length > 0) {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, []);
 
   // Cleanup: flush pending updates on unmount to prevent data loss
   useEffect(() => {

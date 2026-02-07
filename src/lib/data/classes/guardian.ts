@@ -15,7 +15,7 @@ export const GUARDIAN = {
     {
       name: 'Unstoppable',
       description:
-        'Once per long rest, you can become Unstoppable. You gain an Unstoppable Die. At level 1, your Unstoppable Die is a d4. Place it on your character sheet starting with the 1 value facing up. After you make a damage roll that deals 1 or more Hit Points to a target, increase the Unstoppable Die value by one.',
+        'Once per long rest, you can become Unstoppable. You gain an Unstoppable Die. At level 1, your Unstoppable Die is a d4. Place it on your character sheet in the space provided, starting with the 1 value facing up. After you make a damage roll that deals 1 or more Hit Points to a target, increase the Unstoppable Die value by one. When the die\u2019s value would exceed its maximum value or when the scene ends, remove the die and drop out of Unstoppable. At level 5, your Unstoppable Die increases to a d6.\n\nWhile Unstoppable, you gain the following benefits:\n\u2022 You reduce the severity of physical damage by one threshold (Severe to Major, Major to Minor, Minor to None).\n\u2022 You add the current value of the Unstoppable Die to your damage roll.\n\u2022 You can\u2019t be Restrained or Vulnerable.',
       type: 'active',
     },
   ],
@@ -152,7 +152,7 @@ export const GUARDIAN = {
         {
           name: 'Nemesis',
           description:
-            'Spend 2 Hope to Prioritize an adversary until your next rest. When you make an attack against your Prioritized adversary, you can swap the results of your Hope and Fear Dice.',
+            'Spend 2 Hope to Prioritize an adversary until your next rest. When you make an attack against your Prioritized adversary, you can swap the results of your Hope and Fear Dice. You can only Prioritize one adversary at a time.',
           type: 'mastery',
           level: 8,
           availability: {

@@ -47,107 +47,139 @@ export interface BeastformDefinition {
 // Tier 1 Beastforms
 // ============================================
 
-const SMALL_BEAST: BeastformDefinition = {
-  id: 'small-beast',
-  name: 'Small Beast',
+const AGILE_SCOUT: BeastformDefinition = {
+  id: 'agile-scout',
+  name: 'Agile Scout',
   tier: 1,
-  examples: ['Cat', 'Fox', 'Raven', 'Raccoon'],
+  examples: ['Fox', 'Mouse', 'Weasel'],
   traitBonus: { trait: 'Agility', value: 1 },
   evasionBonus: 2,
-  attack: { range: 'Melee', trait: 'Agility', damageDice: 'd6' },
-  advantages: ['Stealth', 'Perception'],
+  attack: { range: 'Melee', trait: 'Agility', damageDice: 'd4' },
+  advantages: ['deceive', 'locate', 'sneak'],
   features: [
     {
-      name: 'Nimble',
-      description: 'You have advantage on rolls to hide or escape.',
-    },
-  ],
-};
-
-const MEDIUM_BEAST: BeastformDefinition = {
-  id: 'medium-beast',
-  name: 'Medium Beast',
-  tier: 1,
-  examples: ['Wolf', 'Panther', 'Boar', 'Deer'],
-  traitBonus: { trait: 'Strength', value: 1 },
-  evasionBonus: 1,
-  attack: { range: 'Melee', trait: 'Strength', damageDice: 'd8' },
-  advantages: ['Tracking', 'Athletics'],
-  features: [
-    {
-      name: 'Pack Tactics',
+      name: 'Agile',
       description:
-        'When attacking a target that is adjacent to an ally, add +1 to your attack roll.',
+        'Your movement is silent, and you can spend a Hope to move up to Far range without rolling.',
+    },
+    {
+      name: 'Fragile',
+      description:
+        'When you take Major or greater damage, you drop out of Beastform.',
     },
   ],
 };
 
-const AQUATIC_BEAST: BeastformDefinition = {
-  id: 'aquatic-beast',
-  name: 'Aquatic Beast',
+const HOUSEHOLD_FRIEND: BeastformDefinition = {
+  id: 'household-friend',
+  name: 'Household Friend',
   tier: 1,
-  examples: ['Dolphin', 'Seal', 'Large Fish', 'Otter'],
-  traitBonus: { trait: 'Finesse', value: 1 },
+  examples: ['Cat', 'Dog', 'Rabbit'],
+  traitBonus: { trait: 'Instinct', value: 1 },
+  evasionBonus: 2,
+  attack: { range: 'Melee', trait: 'Instinct', damageDice: 'd6' },
+  advantages: ['climb', 'locate', 'protect'],
+  features: [
+    {
+      name: 'Companion',
+      description:
+        'When you Help an Ally, you can roll a d8 as your advantage die.',
+    },
+    {
+      name: 'Fragile',
+      description:
+        'When you take Major or greater damage, you drop out of Beastform.',
+    },
+  ],
+};
+
+const NIMBLE_GRAZER: BeastformDefinition = {
+  id: 'nimble-grazer',
+  name: 'Nimble Grazer',
+  tier: 1,
+  examples: ['Deer', 'Gazelle', 'Goat'],
+  traitBonus: { trait: 'Agility', value: 1 },
+  evasionBonus: 3,
+  attack: { range: 'Melee', trait: 'Agility', damageDice: 'd6' },
+  advantages: ['leap', 'sneak', 'sprint'],
+  features: [
+    {
+      name: 'Elusive Prey',
+      description:
+        'When an attack roll against you would succeed, you can mark a Stress and roll a d4. Add the result to your Evasion against this attack.',
+    },
+    {
+      name: 'Fragile',
+      description:
+        'When you take Major or greater damage, you drop out of Beastform.',
+    },
+  ],
+};
+
+const PACK_PREDATOR: BeastformDefinition = {
+  id: 'pack-predator',
+  name: 'Pack Predator',
+  tier: 1,
+  examples: ['Coyote', 'Hyena', 'Wolf'],
+  traitBonus: { trait: 'Strength', value: 2 },
   evasionBonus: 1,
-  attack: { range: 'Melee', trait: 'Finesse', damageDice: 'd6' },
-  advantages: ['Swimming', 'Underwater Navigation'],
+  attack: { range: 'Melee', trait: 'Strength', damageDice: 'd8+2' },
+  advantages: ['attack', 'sprint', 'track'],
+  features: [
+    {
+      name: 'Hobbling Strike',
+      description:
+        'When you succeed on an attack against a target within Melee range, you can mark a Stress to make the target temporarily Vulnerable.',
+    },
+    {
+      name: 'Pack Hunting',
+      description:
+        'When you succeed on an attack against the same target as an ally who acts immediately before you, add a d8 to your damage roll.',
+    },
+  ],
+};
+
+const AQUATIC_SCOUT: BeastformDefinition = {
+  id: 'aquatic-scout',
+  name: 'Aquatic Scout',
+  tier: 1,
+  examples: ['Eel', 'Fish', 'Octopus'],
+  traitBonus: { trait: 'Agility', value: 1 },
+  evasionBonus: 2,
+  attack: { range: 'Melee', trait: 'Agility', damageDice: 'd4' },
+  advantages: ['navigate', 'sneak', 'swim'],
   features: [
     {
       name: 'Aquatic',
-      description: 'You can breathe underwater and swim at full speed.',
+      description: 'You can breathe and move naturally underwater.',
     },
-  ],
-};
-
-const INSECT_SWARM: BeastformDefinition = {
-  id: 'insect-swarm',
-  name: 'Insect Swarm',
-  tier: 1,
-  examples: ['Swarm of Bees', 'Swarm of Beetles', 'Swarm of Ants'],
-  traitBonus: { trait: 'Instinct', value: 1 },
-  evasionBonus: 3,
-  attack: { range: 'Very Close', trait: 'Instinct', damageDice: 'd4' },
-  advantages: ['Scouting', 'Resisting physical attacks'],
-  features: [
     {
-      name: 'Dispersed',
+      name: 'Fragile',
       description:
-        'Physical attacks against you have disadvantage. You can squeeze through any gap that air can pass through.',
+        'When you take Major or greater damage, you drop out of Beastform.',
     },
   ],
 };
 
-const BIRD_OF_PREY: BeastformDefinition = {
-  id: 'bird-of-prey',
-  name: 'Bird of Prey',
+const STALKING_ARACHNID: BeastformDefinition = {
+  id: 'stalking-arachnid',
+  name: 'Stalking Arachnid',
   tier: 1,
-  examples: ['Hawk', 'Eagle', 'Owl', 'Falcon'],
-  traitBonus: { trait: 'Instinct', value: 1 },
-  evasionBonus: 2,
-  attack: { range: 'Melee', trait: 'Agility', damageDice: 'd6' },
-  advantages: ['Perception', 'Aerial Scouting'],
-  features: [
-    {
-      name: 'Flight',
-      description: 'You can fly at your normal movement speed.',
-    },
-  ],
-};
-
-const REPTILE: BeastformDefinition = {
-  id: 'reptile',
-  name: 'Reptile',
-  tier: 1,
-  examples: ['Snake', 'Lizard', 'Crocodile'],
+  examples: ['Tarantula', 'Wolf Spider'],
   traitBonus: { trait: 'Finesse', value: 1 },
-  evasionBonus: 1,
-  attack: { range: 'Melee', trait: 'Finesse', damageDice: 'd6' },
-  advantages: ['Stealth', 'Climbing'],
+  evasionBonus: 2,
+  attack: { range: 'Melee', trait: 'Finesse', damageDice: 'd6+1' },
+  advantages: ['attack', 'climb', 'sneak'],
   features: [
     {
-      name: 'Venomous',
+      name: 'Venomous Bite',
       description:
-        'When you deal damage with your attack, the target takes +1 additional damage at the start of their next turn.',
+        'When you succeed on an attack against a target within Melee range, the target becomes temporarily Poisoned. A Poisoned creature takes 1d10 direct physical damage each time they act.',
+    },
+    {
+      name: 'Webslinger',
+      description:
+        'You can create a strong web material useful for both adventuring and battle. The web is resilient enough to support one creature. You can temporarily Restrain a target within Close range by succeeding on a Finesse Roll against them.',
     },
   ],
 };
@@ -156,110 +188,137 @@ const REPTILE: BeastformDefinition = {
 // Tier 2 Beastforms
 // ============================================
 
-const LARGE_BEAST: BeastformDefinition = {
-  id: 'large-beast',
-  name: 'Large Beast',
+const ARMORED_SENTRY: BeastformDefinition = {
+  id: 'armored-sentry',
+  name: 'Armored Sentry',
   tier: 2,
-  examples: ['Bear', 'Tiger', 'Elk', 'Lion'],
-  traitBonus: { trait: 'Strength', value: 2 },
-  evasionBonus: 1,
-  attack: { range: 'Melee', trait: 'Strength', damageDice: 'd10' },
-  advantages: ['Intimidation', 'Athletics'],
-  features: [
-    {
-      name: 'Powerful Build',
-      description:
-        'You can carry, push, or drag heavy objects, and your attacks knock smaller creatures back.',
-    },
-  ],
-};
-
-const GIANT_INSECT: BeastformDefinition = {
-  id: 'giant-insect',
-  name: 'Giant Insect',
-  tier: 2,
-  examples: ['Giant Spider', 'Giant Scorpion', 'Giant Beetle'],
-  traitBonus: { trait: 'Instinct', value: 2 },
-  evasionBonus: 2,
-  attack: { range: 'Melee', trait: 'Instinct', damageDice: 'd8' },
-  advantages: ['Climbing', 'Web-spinning'],
-  features: [
-    {
-      name: 'Web/Venom',
-      description:
-        'Your attacks can restrain a target until the end of their next turn.',
-    },
-  ],
-};
-
-const DIRE_WOLF: BeastformDefinition = {
-  id: 'dire-wolf',
-  name: 'Dire Wolf',
-  tier: 2,
-  examples: ['Dire Wolf', 'Worg', 'Large Canine'],
+  examples: ['Armadillo', 'Pangolin', 'Turtle'],
   traitBonus: { trait: 'Strength', value: 1 },
   evasionBonus: 1,
-  attack: { range: 'Melee', trait: 'Strength', damageDice: 'd10' },
-  advantages: ['Tracking', 'Pack coordination'],
+  attack: { range: 'Melee', trait: 'Strength', damageDice: 'd8+2' },
+  advantages: ['dig', 'locate', 'protect'],
   features: [
     {
-      name: 'Pack Leader',
+      name: 'Armored Shell',
       description:
-        'Allies within Very Close range gain +1 to attack rolls against targets you have damaged this round.',
+        'Your hardened exterior gives you resistance to physical damage. Additionally, mark an Armor Slot to retract into your shell. While in your shell, physical damage is reduced by a number equal to your Armor Score (after applying resistance), but you can\u2019t perform other actions without leaving this form.',
+    },
+    {
+      name: 'Cannonball',
+      description:
+        'Mark a Stress to allow an ally to throw or launch you at an adversary. To do so, the ally makes an attack roll using Agility or Strength (their choice) against a target within Close range. On a success, the adversary takes d12+2 physical damage using the thrower\u2019s Proficiency. You can spend a Hope to target an additional adversary within Very Close range of the first. The second target takes half the damage dealt to the first target.',
     },
   ],
 };
 
-const LARGE_AQUATIC: BeastformDefinition = {
-  id: 'large-aquatic',
-  name: 'Large Aquatic Beast',
+const POWERFUL_BEAST: BeastformDefinition = {
+  id: 'powerful-beast',
+  name: 'Powerful Beast',
   tier: 2,
-  examples: ['Shark', 'Giant Octopus', 'Whale'],
-  traitBonus: { trait: 'Strength', value: 2 },
-  evasionBonus: 1,
-  attack: { range: 'Melee', trait: 'Strength', damageDice: 'd10' },
-  advantages: ['Swimming', 'Deep diving'],
+  examples: ['Bear', 'Bull', 'Moose'],
+  traitBonus: { trait: 'Strength', value: 1 },
+  evasionBonus: 3,
+  attack: { range: 'Melee', trait: 'Strength', damageDice: 'd10+4' },
+  advantages: ['navigate', 'protect', 'scare'],
   features: [
     {
-      name: 'Deep Dweller',
+      name: 'Rampage',
       description:
-        'You can breathe underwater, swim at double speed, and see in darkness.',
+        'When you roll a 1 on a damage die, you can roll a d10 and add the result to the damage roll. Additionally, before you make an attack roll, you can mark a Stress to gain a +1 bonus to your Proficiency for that attack.',
+    },
+    {
+      name: 'Thick Hide',
+      description: 'You gain a +2 bonus to your damage thresholds.',
     },
   ],
 };
 
-const GIANT_BIRD: BeastformDefinition = {
-  id: 'giant-bird',
-  name: 'Giant Bird',
+const MIGHTY_STRIDER: BeastformDefinition = {
+  id: 'mighty-strider',
+  name: 'Mighty Strider',
   tier: 2,
-  examples: ['Giant Eagle', 'Roc Hatchling', 'Thunderbird'],
-  traitBonus: { trait: 'Agility', value: 2 },
+  examples: ['Camel', 'Horse', 'Zebra'],
+  traitBonus: { trait: 'Agility', value: 1 },
   evasionBonus: 2,
-  attack: { range: 'Melee', trait: 'Agility', damageDice: 'd8' },
-  advantages: ['Aerial combat', 'Carrying allies'],
+  attack: { range: 'Melee', trait: 'Agility', damageDice: 'd8+1' },
+  advantages: ['leap', 'navigate', 'sprint'],
   features: [
     {
-      name: 'Soaring Flight',
+      name: 'Carrier',
       description:
-        'You can fly at double speed and carry one willing creature of your size or smaller.',
+        'You can carry up to two willing allies with you when you move.',
+    },
+    {
+      name: 'Trample',
+      description:
+        'Mark a Stress to move up to Close range in a straight line and make an attack against all targets within Melee range of the line. Targets you succeed against take d8+1 physical damage using your Proficiency and are temporarily Vulnerable.',
     },
   ],
 };
 
-const ELEMENTAL_BEAST: BeastformDefinition = {
-  id: 'elemental-beast',
-  name: 'Elemental Beast',
+const STRIKING_SERPENT: BeastformDefinition = {
+  id: 'striking-serpent',
+  name: 'Striking Serpent',
   tier: 2,
-  examples: ['Fire Cat', 'Stone Lizard', 'Storm Hawk'],
-  traitBonus: { trait: 'Instinct', value: 2 },
-  evasionBonus: 1,
-  attack: { range: 'Very Close', trait: 'Instinct', damageDice: 'd8' },
-  advantages: ['Elemental resistance'],
+  examples: ['Cobra', 'Rattlesnake', 'Viper'],
+  traitBonus: { trait: 'Finesse', value: 1 },
+  evasionBonus: 2,
+  attack: { range: 'Very Close', trait: 'Finesse', damageDice: 'd8+4' },
+  advantages: ['climb', 'deceive', 'sprint'],
   features: [
     {
-      name: 'Elemental Aura',
+      name: 'Venomous Strike',
       description:
-        'Creatures that end their turn within Very Close range of you take 1 damage from your element.',
+        'Make an attack against any number of targets within Very Close range. On a success, a target is temporarily Poisoned. A Poisoned creature takes 1d10 direct physical damage each time they act.',
+    },
+    {
+      name: 'Warning Hiss',
+      description:
+        'Mark a Stress to force any number of targets within Melee range to move back to Very Close range.',
+    },
+  ],
+};
+
+const POUNCING_PREDATOR: BeastformDefinition = {
+  id: 'pouncing-predator',
+  name: 'Pouncing Predator',
+  tier: 2,
+  examples: ['Cheetah', 'Lion', 'Panther'],
+  traitBonus: { trait: 'Instinct', value: 1 },
+  evasionBonus: 3,
+  attack: { range: 'Melee', trait: 'Instinct', damageDice: 'd8+6' },
+  advantages: ['attack', 'climb', 'sneak'],
+  features: [
+    {
+      name: 'Fleet',
+      description: 'Spend a Hope to move up to Far range without rolling.',
+    },
+    {
+      name: 'Takedown',
+      description:
+        'Mark a Stress to move into Melee range of a target and make an attack roll against them. On a success, you gain a +2 bonus to your Proficiency for this attack and the target must mark a Stress.',
+    },
+  ],
+};
+
+const WINGED_BEAST: BeastformDefinition = {
+  id: 'winged-beast',
+  name: 'Winged Beast',
+  tier: 2,
+  examples: ['Hawk', 'Owl', 'Raven'],
+  traitBonus: { trait: 'Finesse', value: 1 },
+  evasionBonus: 3,
+  attack: { range: 'Melee', trait: 'Finesse', damageDice: 'd4+2' },
+  advantages: ['deceive', 'locate', 'scare'],
+  features: [
+    {
+      name: 'Bird\u2019s-Eye View',
+      description:
+        'You can fly at will. Once per rest while you are airborne, you can ask the GM a question about the scene below you without needing to roll. The first time a character makes a roll to act on this information, they gain advantage on the roll.',
+    },
+    {
+      name: 'Hollow Bones',
+      description: 'You gain a \u22122 penalty to your damage thresholds.',
     },
   ],
 };
@@ -268,114 +327,128 @@ const ELEMENTAL_BEAST: BeastformDefinition = {
 // Tier 3 Beastforms
 // ============================================
 
-const DIRE_BEAR: BeastformDefinition = {
-  id: 'dire-bear',
-  name: 'Dire Bear',
+const GREAT_PREDATOR: BeastformDefinition = {
+  id: 'great-predator',
+  name: 'Great Predator',
   tier: 3,
-  examples: ['Dire Bear', 'Cave Bear', 'War Bear'],
-  traitBonus: { trait: 'Strength', value: 3 },
-  evasionBonus: 1,
-  attack: { range: 'Melee', trait: 'Strength', damageDice: 'd12' },
-  advantages: ['Intimidation', 'Grappling'],
-  features: [
-    {
-      name: 'Terrifying Presence',
-      description:
-        'Enemies within Close range must succeed on a Fear check or become frightened.',
-    },
-  ],
-};
-
-const WYVERN: BeastformDefinition = {
-  id: 'wyvern',
-  name: 'Wyvern',
-  tier: 3,
-  examples: ['Wyvern', 'Drake', 'Young Dragon'],
-  traitBonus: { trait: 'Agility', value: 2 },
-  evasionBonus: 2,
-  attack: { range: 'Very Close', trait: 'Agility', damageDice: 'd10' },
-  advantages: ['Flight', 'Diving attacks'],
-  features: [
-    {
-      name: 'Venomous Tail',
-      description:
-        'Your tail attack deals an additional d6 poison damage on a critical hit.',
-    },
-    {
-      name: 'Flight',
-      description: 'You can fly at your normal movement speed.',
-    },
-  ],
-};
-
-const GIANT_SERPENT: BeastformDefinition = {
-  id: 'giant-serpent',
-  name: 'Giant Serpent',
-  tier: 3,
-  examples: ['Giant Constrictor', 'Sea Serpent', 'Basilisk'],
-  traitBonus: { trait: 'Finesse', value: 3 },
-  evasionBonus: 2,
-  attack: { range: 'Melee', trait: 'Finesse', damageDice: 'd10' },
-  advantages: ['Stealth', 'Constriction'],
-  features: [
-    {
-      name: 'Constrict',
-      description:
-        'On a successful attack, you can grapple the target, restraining them until they break free.',
-    },
-  ],
-};
-
-const MAMMOTH: BeastformDefinition = {
-  id: 'mammoth',
-  name: 'Mammoth',
-  tier: 3,
-  examples: ['Mammoth', 'Elephant', 'War Rhino'],
-  traitBonus: { trait: 'Strength', value: 3 },
-  evasionBonus: 0,
-  attack: { range: 'Melee', trait: 'Strength', damageDice: 'd12' },
-  advantages: ['Charging', 'Trampling'],
-  features: [
-    {
-      name: 'Trample',
-      description:
-        'When you move through spaces occupied by smaller creatures, they must dodge or take d8 damage.',
-    },
-  ],
-};
-
-const ELEMENTAL_TITAN: BeastformDefinition = {
-  id: 'elemental-titan',
-  name: 'Elemental Titan',
-  tier: 3,
-  examples: ['Fire Elemental', 'Storm Elemental', 'Earth Golem'],
-  traitBonus: { trait: 'Instinct', value: 3 },
-  evasionBonus: 1,
-  attack: { range: 'Close', trait: 'Instinct', damageDice: 'd10' },
-  advantages: ['Elemental immunity', 'Area damage'],
-  features: [
-    {
-      name: 'Elemental Body',
-      description:
-        'You are immune to damage from your element. Creatures that touch you take d4 elemental damage.',
-    },
-  ],
-};
-
-const GIANT_APE: BeastformDefinition = {
-  id: 'giant-ape',
-  name: 'Giant Ape',
-  tier: 3,
-  examples: ['Giant Ape', 'Gorilla King', 'Sasquatch'],
+  examples: ['Dire Wolf', 'Velociraptor', 'Sabertooth Tiger'],
   traitBonus: { trait: 'Strength', value: 2 },
-  evasionBonus: 1,
-  attack: { range: 'Melee', trait: 'Strength', damageDice: 'd12' },
-  advantages: ['Climbing', 'Throwing'],
+  evasionBonus: 2,
+  attack: { range: 'Melee', trait: 'Strength', damageDice: 'd12+8' },
+  advantages: ['attack', 'sneak', 'sprint'],
   features: [
     {
-      name: 'Hurl',
+      name: 'Carrier',
       description:
-        'You can throw boulders or other large objects at Far range, dealing d10 damage.',
+        'You can carry up to two willing allies with you when you move.',
+    },
+    {
+      name: 'Vicious Maul',
+      description:
+        'When you succeed on an attack against a target, you can spend a Hope to make them temporarily Vulnerable and gain a +1 bonus to your Proficiency for this attack.',
+    },
+  ],
+};
+
+const MIGHTY_LIZARD: BeastformDefinition = {
+  id: 'mighty-lizard',
+  name: 'Mighty Lizard',
+  tier: 3,
+  examples: ['Alligator', 'Crocodile', 'Gila Monster'],
+  traitBonus: { trait: 'Instinct', value: 2 },
+  evasionBonus: 1,
+  attack: { range: 'Melee', trait: 'Instinct', damageDice: 'd10+7' },
+  advantages: ['attack', 'sneak', 'track'],
+  features: [
+    {
+      name: 'Physical Defense',
+      description: 'You gain a +3 bonus to your damage thresholds.',
+    },
+    {
+      name: 'Snapping Strike',
+      description:
+        'When you succeed on an attack against a target within Melee range, you can spend a Hope to clamp that opponent in your jaws, making them temporarily Restrained and Vulnerable.',
+    },
+  ],
+};
+
+const GREAT_WINGED_BEAST: BeastformDefinition = {
+  id: 'great-winged-beast',
+  name: 'Great Winged Beast',
+  tier: 3,
+  examples: ['Giant Eagle', 'Falcon'],
+  traitBonus: { trait: 'Finesse', value: 2 },
+  evasionBonus: 3,
+  attack: { range: 'Melee', trait: 'Finesse', damageDice: 'd8+6' },
+  advantages: ['deceive', 'distract', 'locate'],
+  features: [
+    {
+      name: 'Bird\u2019s-Eye View',
+      description:
+        'You can fly at will. Once per rest while you are airborne, you can ask the GM a question about the scene below you without needing to roll. The first time a character makes a roll to act on this information, they gain advantage on the roll.',
+    },
+    {
+      name: 'Carrier',
+      description:
+        'You can carry up to two willing allies with you when you move.',
+    },
+  ],
+};
+
+const AQUATIC_PREDATOR: BeastformDefinition = {
+  id: 'aquatic-predator',
+  name: 'Aquatic Predator',
+  tier: 3,
+  examples: ['Dolphin', 'Orca', 'Shark'],
+  traitBonus: { trait: 'Agility', value: 2 },
+  evasionBonus: 4,
+  attack: { range: 'Melee', trait: 'Agility', damageDice: 'd10+6' },
+  advantages: ['attack', 'swim', 'track'],
+  features: [
+    {
+      name: 'Aquatic',
+      description: 'You can breathe and move naturally underwater.',
+    },
+    {
+      name: 'Vicious Maul',
+      description:
+        'When you succeed on an attack against a target, you can spend a Hope to make them Vulnerable and gain a +1 bonus to your Proficiency for this attack.',
+    },
+  ],
+};
+
+const LEGENDARY_BEAST: BeastformDefinition = {
+  id: 'legendary-beast',
+  name: 'Legendary Beast',
+  tier: 3,
+  examples: ['Upgraded Tier 1 Options'],
+  traitBonus: { trait: 'Strength', value: 0 },
+  evasionBonus: 0,
+  attack: { range: 'Melee', trait: 'Strength', damageDice: 'd0' },
+  advantages: [],
+  features: [
+    {
+      name: 'Evolved',
+      description:
+        'Pick a Tier 1 Beastform option and become a larger, more powerful version of that creature. While you\u2019re in this form, you retain all traits and features from the original form and gain the following bonuses: a +6 bonus to damage rolls, a +1 bonus to the trait used by this form, and a +2 bonus to Evasion.',
+    },
+  ],
+};
+
+const LEGENDARY_HYBRID: BeastformDefinition = {
+  id: 'legendary-hybrid',
+  name: 'Legendary Hybrid',
+  tier: 3,
+  examples: ['Griffon', 'Sphinx'],
+  traitBonus: { trait: 'Strength', value: 2 },
+  evasionBonus: 3,
+  attack: { range: 'Melee', trait: 'Strength', damageDice: 'd10+8' },
+  advantages: [],
+  features: [
+    {
+      name: 'Hybrid Features',
+      description:
+        'To transform into this creature, mark an additional Stress. Choose any two Beastform options from Tiers 1\u20132. Choose a total of four advantages and two features from those options.',
     },
   ],
 };
@@ -384,156 +457,172 @@ const GIANT_APE: BeastformDefinition = {
 // Tier 4 Beastforms
 // ============================================
 
-const ANCIENT_WYRM: BeastformDefinition = {
-  id: 'ancient-wyrm',
-  name: 'Ancient Wyrm',
+const MASSIVE_BEHEMOTH: BeastformDefinition = {
+  id: 'massive-behemoth',
+  name: 'Massive Behemoth',
   tier: 4,
-  examples: ['Elder Dragon', 'Ancient Wyrm', 'Primordial Serpent'],
+  examples: ['Elephant', 'Mammoth', 'Rhinoceros'],
+  traitBonus: { trait: 'Strength', value: 3 },
+  evasionBonus: 1,
+  attack: { range: 'Melee', trait: 'Strength', damageDice: 'd12+12' },
+  advantages: ['locate', 'protect', 'scare', 'sprint'],
+  features: [
+    {
+      name: 'Carrier',
+      description:
+        'You can carry up to four willing allies with you when you move.',
+    },
+    {
+      name: 'Demolish',
+      description:
+        'Spend a Hope to move up to Far range in a straight line and make an attack against all targets within Melee range of the line. Targets you succeed against take d8+10 physical damage using your Proficiency and are temporarily Vulnerable.',
+    },
+    {
+      name: 'Undaunted',
+      description: 'You gain a +2 bonus to all your damage thresholds.',
+    },
+  ],
+};
+
+const TERRIBLE_LIZARD: BeastformDefinition = {
+  id: 'terrible-lizard',
+  name: 'Terrible Lizard',
+  tier: 4,
+  examples: ['Brachiosaurus', 'Tyrannosaurus'],
   traitBonus: { trait: 'Strength', value: 3 },
   evasionBonus: 2,
-  attack: { range: 'Close', trait: 'Strength', damageDice: '2d10' },
-  advantages: ['Flight', 'Breath weapon', 'Intimidation'],
+  attack: { range: 'Melee', trait: 'Strength', damageDice: 'd12+10' },
+  advantages: ['attack', 'deceive', 'scare', 'track'],
   features: [
     {
-      name: 'Breath Weapon',
+      name: 'Devastating Strikes',
       description:
-        'Once per beastform, unleash a devastating breath attack dealing 2d12 damage to all creatures in a cone.',
+        'When you deal Severe damage to a target within Melee range, you can mark a Stress to force them to mark an additional Hit Point.',
     },
     {
-      name: 'Flight',
-      description: 'You can fly at your normal movement speed.',
+      name: 'Massive Stride',
+      description:
+        'You can move up to Far range without rolling. You ignore rough terrain (at the GM\u2019s discretion) due to your size.',
     },
   ],
 };
 
-const BEHEMOTH: BeastformDefinition = {
-  id: 'behemoth',
-  name: 'Behemoth',
+const MYTHIC_AERIAL_HUNTER: BeastformDefinition = {
+  id: 'mythic-aerial-hunter',
+  name: 'Mythic Aerial Hunter',
   tier: 4,
-  examples: ['Tarrasque', 'Behemoth', 'Titan Beast'],
-  traitBonus: { trait: 'Strength', value: 4 },
-  evasionBonus: 0,
-  attack: { range: 'Melee', trait: 'Strength', damageDice: '2d12' },
-  advantages: ['Siege', 'Destruction', 'Unstoppable'],
-  features: [
-    {
-      name: 'Unstoppable',
-      description:
-        'You cannot be restrained, grappled, or knocked prone. You destroy terrain as you move through it.',
-    },
-  ],
-};
-
-const PHOENIX: BeastformDefinition = {
-  id: 'phoenix',
-  name: 'Phoenix',
-  tier: 4,
-  examples: ['Phoenix', 'Firebird', 'Sunbird'],
-  traitBonus: { trait: 'Instinct', value: 3 },
-  evasionBonus: 3,
-  attack: { range: 'Close', trait: 'Instinct', damageDice: '2d8' },
-  advantages: ['Flight', 'Fire immunity', 'Radiance'],
-  features: [
-    {
-      name: 'Rebirth',
-      description:
-        'Once per long rest, if you would drop to 0 HP while in this form, you instead heal to half HP and remain in beastform.',
-    },
-    {
-      name: 'Flight',
-      description: 'You can fly at your normal movement speed.',
-    },
-  ],
-};
-
-const LEVIATHAN: BeastformDefinition = {
-  id: 'leviathan',
-  name: 'Leviathan',
-  tier: 4,
-  examples: ['Kraken', 'Leviathan', 'Sea Dragon'],
+  examples: ['Dragon', 'Pterodactyl', 'Roc', 'Wyvern'],
   traitBonus: { trait: 'Finesse', value: 3 },
-  evasionBonus: 2,
-  attack: { range: 'Close', trait: 'Finesse', damageDice: '2d10' },
-  advantages: ['Swimming', 'Deep combat', 'Grappling'],
+  evasionBonus: 4,
+  attack: { range: 'Melee', trait: 'Finesse', damageDice: 'd10+11' },
+  advantages: ['attack', 'deceive', 'locate', 'navigate'],
   features: [
     {
-      name: 'Tentacles',
+      name: 'Carrier',
       description:
-        'You can grapple up to 3 targets simultaneously. Grappled targets take d6 damage at the start of each of their turns.',
+        'You can carry up to three willing allies with you when you move.',
+    },
+    {
+      name: 'Deadly Raptor',
+      description:
+        'You can fly at will and move up to Far range as part of your action. When you move in a straight line into Melee range of a target from at least Close range and make an attack against that target in the same action, you can reroll all damage dice that rolled a result lower than your Proficiency.',
     },
   ],
 };
 
-const STORM_COLOSSUS: BeastformDefinition = {
-  id: 'storm-colossus',
-  name: 'Storm Colossus',
+const EPIC_AQUATIC_BEAST: BeastformDefinition = {
+  id: 'epic-aquatic-beast',
+  name: 'Epic Aquatic Beast',
   tier: 4,
-  examples: ['Storm Giant Form', 'Thunder Titan', 'Tempest Elemental'],
-  traitBonus: { trait: 'Instinct', value: 4 },
-  evasionBonus: 1,
-  attack: { range: 'Far', trait: 'Instinct', damageDice: '2d8' },
-  advantages: ['Lightning', 'Area denial', 'Weather control'],
+  examples: ['Giant Squid', 'Whale'],
+  traitBonus: { trait: 'Agility', value: 3 },
+  evasionBonus: 3,
+  attack: { range: 'Melee', trait: 'Agility', damageDice: 'd10+10' },
+  advantages: ['locate', 'protect', 'scare', 'track'],
   features: [
     {
-      name: 'Storm Aura',
+      name: 'Ocean Master',
       description:
-        'Enemies within Close range take d4 lightning damage at the start of their turn. You control the weather within Far range.',
+        'You can breathe and move naturally underwater. When you succeed on an attack against a target within Melee range, you can temporarily Restrain them.',
+    },
+    {
+      name: 'Unyielding',
+      description:
+        'When you would mark an Armor Slot, roll a d6. On a result of 5 or higher, reduce the severity by one threshold without marking an Armor Slot.',
     },
   ],
 };
 
-const PRIMORDIAL_TREANT: BeastformDefinition = {
-  id: 'primordial-treant',
-  name: 'Primordial Treant',
+const MYTHIC_BEAST: BeastformDefinition = {
+  id: 'mythic-beast',
+  name: 'Mythic Beast',
   tier: 4,
-  examples: ['Ancient Treant', 'World Tree Guardian', 'Forest Spirit'],
-  traitBonus: { trait: 'Knowledge', value: 3 },
+  examples: ['Upgraded Tier 1 or Tier 2 Options'],
+  traitBonus: { trait: 'Strength', value: 0 },
   evasionBonus: 0,
-  attack: { range: 'Close', trait: 'Strength', damageDice: '2d10' },
-  advantages: ['Nature control', 'Healing', 'Siege'],
+  attack: { range: 'Melee', trait: 'Strength', damageDice: 'd0' },
+  advantages: [],
   features: [
     {
-      name: 'Root Network',
+      name: 'Evolved',
       description:
-        'Allies within Close range heal d4 HP at the start of each of their turns. You can communicate telepathically through plants.',
+        'Pick a Tier 1 or Tier 2 Beastform option and become a larger, more powerful version of that creature. While you\u2019re in this form, you retain all traits and features from the original form and gain the following bonuses: a +9 bonus to damage rolls, a +2 bonus to the trait used by this form, a +3 bonus to Evasion, and your damage die increases by one size (d6 becomes d8, d8 becomes d10, etc.).',
+    },
+  ],
+};
+
+const MYTHIC_HYBRID: BeastformDefinition = {
+  id: 'mythic-hybrid',
+  name: 'Mythic Hybrid',
+  tier: 4,
+  examples: ['Chimera', 'Cockatrice', 'Manticore'],
+  traitBonus: { trait: 'Strength', value: 3 },
+  evasionBonus: 2,
+  attack: { range: 'Melee', trait: 'Strength', damageDice: 'd12+10' },
+  advantages: [],
+  features: [
+    {
+      name: 'Hybrid Features',
+      description:
+        'To transform into this creature, mark 2 additional Stress. Choose any three Beastform options from Tiers 1\u20133. Choose a total of five advantages and three features from those options.',
     },
   ],
 };
 
 // ============================================
-// Complete collection
+// Exports & Helpers
 // ============================================
 
 /** All beastform definitions indexed by tier */
 export const BEASTFORMS: readonly BeastformDefinition[] = [
   // Tier 1
-  SMALL_BEAST,
-  MEDIUM_BEAST,
-  AQUATIC_BEAST,
-  INSECT_SWARM,
-  BIRD_OF_PREY,
-  REPTILE,
+  AGILE_SCOUT,
+  HOUSEHOLD_FRIEND,
+  NIMBLE_GRAZER,
+  PACK_PREDATOR,
+  AQUATIC_SCOUT,
+  STALKING_ARACHNID,
   // Tier 2
-  LARGE_BEAST,
-  GIANT_INSECT,
-  DIRE_WOLF,
-  LARGE_AQUATIC,
-  GIANT_BIRD,
-  ELEMENTAL_BEAST,
+  ARMORED_SENTRY,
+  POWERFUL_BEAST,
+  MIGHTY_STRIDER,
+  STRIKING_SERPENT,
+  POUNCING_PREDATOR,
+  WINGED_BEAST,
   // Tier 3
-  DIRE_BEAR,
-  WYVERN,
-  GIANT_SERPENT,
-  MAMMOTH,
-  ELEMENTAL_TITAN,
-  GIANT_APE,
+  GREAT_PREDATOR,
+  MIGHTY_LIZARD,
+  GREAT_WINGED_BEAST,
+  AQUATIC_PREDATOR,
+  LEGENDARY_BEAST,
+  LEGENDARY_HYBRID,
   // Tier 4
-  ANCIENT_WYRM,
-  BEHEMOTH,
-  PHOENIX,
-  LEVIATHAN,
-  STORM_COLOSSUS,
-  PRIMORDIAL_TREANT,
+  MASSIVE_BEHEMOTH,
+  TERRIBLE_LIZARD,
+  MYTHIC_AERIAL_HUNTER,
+  EPIC_AQUATIC_BEAST,
+  MYTHIC_BEAST,
+  MYTHIC_HYBRID,
 ] as const;
 
 /**

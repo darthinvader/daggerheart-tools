@@ -79,6 +79,7 @@ export interface CharacterSheetState {
   deathState: DeathMoveState;
   companion: CompanionState | undefined;
   companionEnabled: boolean;
+  beastformEnabled: boolean;
   notes: CharacterNote[];
   restState: RestState;
   countdowns: Countdown[];
@@ -172,6 +173,7 @@ export function useSessionState() {
     undefined
   );
   const [companionEnabled, setCompanionEnabled] = useState(false);
+  const [beastformEnabled, setBeastformEnabled] = useState(false);
   const [notes, setNotes] = useState<CharacterNote[]>([]);
   const [restState, setRestState] = useState<RestState>({
     lastShortRest: null,
@@ -205,6 +207,8 @@ export function useSessionState() {
     setCompanion,
     companionEnabled,
     setCompanionEnabled,
+    beastformEnabled,
+    setBeastformEnabled,
     notes,
     setNotes,
     restState,

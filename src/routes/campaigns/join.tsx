@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { RouteErrorFallback } from '@/components/ui/route-error-fallback';
 import {
   Select,
   SelectContent,
@@ -35,6 +36,7 @@ import type { CharacterSummary } from '@/lib/api/characters';
 
 export const Route = createFileRoute('/campaigns/join')({
   component: JoinCampaignPage,
+  errorComponent: ({ error }) => <RouteErrorFallback error={error} />,
   validateSearch: (search: Record<string, unknown>): { code?: string } => ({
     code: typeof search.code === 'string' ? search.code : undefined,
   }),

@@ -56,7 +56,7 @@ export function CustomAdversaryBuilder({
     roleColors,
     pointCost,
     isValid,
-  } = useCustomAdversaryBuilderState({ onSave, onOpenChange });
+  } = useCustomAdversaryBuilderState({ onSave, onOpenChange, open: isOpen });
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>

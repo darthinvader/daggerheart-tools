@@ -19,6 +19,7 @@ export interface CoreScoresAutoContext {
   armorEvasionModifier?: number;
   equipmentEvasionModifier?: number;
   bonusEvasionModifier?: number;
+  beastformEvasionModifier?: number;
 }
 
 interface CoreScoresDisplayProps {
@@ -34,7 +35,8 @@ function computeAutoEvasion(ctx: CoreScoresAutoContext): number {
     (ctx.classEvasion ?? 10) +
     (ctx.armorEvasionModifier ?? 0) +
     (ctx.equipmentEvasionModifier ?? 0) +
-    (ctx.bonusEvasionModifier ?? 0)
+    (ctx.bonusEvasionModifier ?? 0) +
+    (ctx.beastformEvasionModifier ?? 0)
   );
 }
 

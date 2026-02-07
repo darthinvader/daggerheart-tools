@@ -51,7 +51,7 @@ describe('Beastform data', () => {
       expect(form.tier).toBeGreaterThanOrEqual(1);
       expect(form.tier).toBeLessThanOrEqual(4);
       expect(form.traitBonus.trait).toBeTruthy();
-      expect(form.traitBonus.value).toBeGreaterThan(0);
+      expect(form.traitBonus.value).toBeGreaterThanOrEqual(0);
       expect(form.attack.range).toBeTruthy();
       expect(form.attack.trait).toBeTruthy();
       expect(form.attack.damageDice).toBeTruthy();
@@ -59,9 +59,9 @@ describe('Beastform data', () => {
   });
 
   it('getBeastformById returns correct form', () => {
-    const wolf = getBeastformById('medium-beast');
+    const wolf = getBeastformById('pack-predator');
     expect(wolf).toBeDefined();
-    expect(wolf!.name).toBe('Medium Beast');
+    expect(wolf!.name).toBe('Pack Predator');
   });
 
   it('getBeastformById returns undefined for unknown ID', () => {
@@ -116,46 +116,46 @@ describe('buildBeastformModifiers', () => {
   it('applies trait bonus and evasion bonus for stress activation', () => {
     const state: BeastformState = {
       active: true,
-      formId: 'medium-beast',
+      formId: 'pack-predator',
       activationMethod: 'stress',
       evolutionBonusTrait: null,
       activatedAt: new Date().toISOString(),
     };
     const mods = buildBeastformModifiers(state);
-    expect(mods.evasion).toBe(1); // Medium Beast has +1 evasion
-    expect(mods.traits.Strength).toBe(1); // Medium Beast has +1 Strength
+    expect(mods.evasion).toBe(1); // Pack Predator has +1 evasion
+    expect(mods.traits.Strength).toBe(2); // Pack Predator has +2 Strength
     expect(mods.traits.Agility).toBe(0);
   });
 
   it('applies evolution bonus trait on top of form trait', () => {
     const state: BeastformState = {
       active: true,
-      formId: 'medium-beast',
+      formId: 'pack-predator',
       activationMethod: 'evolution',
       evolutionBonusTrait: { trait: 'Instinct', value: 1 },
       activatedAt: new Date().toISOString(),
     };
     const mods = buildBeastformModifiers(state);
-    expect(mods.traits.Strength).toBe(1); // From form
+    expect(mods.traits.Strength).toBe(2); // From form
     expect(mods.traits.Instinct).toBe(1); // From evolution bonus
   });
 
   it('stacks evolution bonus with form trait when same trait', () => {
     const state: BeastformState = {
       active: true,
-      formId: 'medium-beast', // +1 Strength
+      formId: 'pack-predator', // +2 Strength
       activationMethod: 'evolution',
       evolutionBonusTrait: { trait: 'Strength', value: 1 },
       activatedAt: new Date().toISOString(),
     };
     const mods = buildBeastformModifiers(state);
-    expect(mods.traits.Strength).toBe(2); // +1 form + +1 evolution
+    expect(mods.traits.Strength).toBe(3); // +2 form + +1 evolution
   });
 
   it('does not modify non-trait stats like proficiency or armorScore', () => {
     const state: BeastformState = {
       active: true,
-      formId: 'large-beast',
+      formId: 'armored-sentry',
       activationMethod: 'stress',
       evolutionBonusTrait: null,
       activatedAt: new Date().toISOString(),
@@ -183,7 +183,7 @@ describe('buildEngineInput with beastform', () => {
   it('merges beastform modifiers into equipment modifiers', () => {
     const beastform: BeastformState = {
       active: true,
-      formId: 'small-beast', // +1 Agility, +2 evasion
+      formId: 'agile-scout', // +1 Agility, +2 evasion
       activationMethod: 'stress',
       evolutionBonusTrait: null,
       activatedAt: new Date().toISOString(),

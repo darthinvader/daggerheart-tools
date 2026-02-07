@@ -1,5 +1,3 @@
-'use client';
-
 import type { ReactNode } from 'react';
 
 import { TabsList, TabsTrigger } from '@/components/ui/tabs';

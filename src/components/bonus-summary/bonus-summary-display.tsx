@@ -93,6 +93,8 @@ function sourceLabel(entry: BonusSourceEntry) {
       return `Equipment Feature: ${entry.sourceName}`;
     case 'experience-bonus':
       return `Experience Bonus: ${entry.sourceName}`;
+    case 'beastform':
+      return `Beastform: ${entry.sourceName}`;
     default:
       return entry.sourceName;
   }

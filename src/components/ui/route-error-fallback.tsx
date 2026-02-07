@@ -14,8 +14,11 @@ export function RouteErrorFallback({ error }: RouteErrorFallbackProps) {
   console.error('[RouteError]', error);
 
   return (
-    <div className="flex flex-col items-center justify-center gap-4 p-8">
-      <AlertTriangle className="text-destructive h-10 w-10" />
+    <div
+      role="alert"
+      className="flex flex-col items-center justify-center gap-4 p-8"
+    >
+      <AlertTriangle className="text-destructive size-10" aria-hidden="true" />
       <p className="text-destructive text-center font-medium">
         Something went wrong
       </p>

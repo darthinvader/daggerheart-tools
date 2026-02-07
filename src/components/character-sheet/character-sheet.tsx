@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { useCallback, useMemo, useState } from 'react';
+import { toast } from 'sonner';
 
 import { useAuth } from '@/components/providers';
 import { Button } from '@/components/ui/button';
@@ -188,6 +189,10 @@ export function CharacterSheet({
       }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: campaignKeys.all });
+    },
+    onError: err => {
+      console.error('[UnlinkCampaign]', err);
+      toast.error('Failed to unlink from campaign');
     },
   });
 

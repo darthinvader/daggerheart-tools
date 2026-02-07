@@ -1,4 +1,11 @@
-import { type SetStateAction, useCallback, useState } from 'react';
+import {
+  type SetStateAction,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { toast } from 'sonner';
 
 import type { Adversary } from '@/lib/schemas/adversaries';
@@ -54,7 +61,7 @@ type RosterState = RosterResult['rosterState'];
 // ---------------------------------------------------------------------------
 
 function captureSnapshot(state: RosterState): UndoableSnapshot {
-  return {
+  return structuredClone({
     characters: state.characters,
     adversaries: state.adversaries,
     environments: state.environments,
@@ -67,7 +74,7 @@ function captureSnapshot(state: RosterState): UndoableSnapshot {
     fearPool: state.fearPool,
     maxFear: state.maxFear,
     useMassiveThreshold: state.useMassiveThreshold,
-  };
+  });
 }
 
 function restoreSnapshot(snap: UndoableSnapshot, actions: RosterActions): void {
@@ -93,19 +100,30 @@ function useUndoStacks(state: RosterState, actions: RosterActions) {
   const [past, setPast] = useState<UndoEntry[]>([]);
   const [future, setFuture] = useState<UndoEntry[]>([]);
 
-  const pushUndo = useCallback(
-    (label: string) => {
-      const snapshot = captureSnapshot(state);
-      const meta: UndoEntryMeta = {
-        id: crypto.randomUUID(),
-        label,
-        timestamp: Date.now(),
-      };
-      setPast(prev => [{ meta, snapshot }, ...prev].slice(0, MAX_UNDO_DEPTH));
-      setFuture([]);
-    },
-    [state]
-  );
+  // Keep refs to always-current values so callbacks are stable
+  const stateRef = useRef(state);
+  const actionsRef = useRef(actions);
+  const pastRef = useRef(past);
+  useEffect(() => {
+    stateRef.current = state;
+  });
+  useEffect(() => {
+    actionsRef.current = actions;
+  });
+  useEffect(() => {
+    pastRef.current = past;
+  });
+
+  const pushUndo = useCallback((label: string) => {
+    const snapshot = captureSnapshot(stateRef.current);
+    const meta: UndoEntryMeta = {
+      id: crypto.randomUUID(),
+      label,
+      timestamp: Date.now(),
+    };
+    setPast(prev => [{ meta, snapshot }, ...prev].slice(0, MAX_UNDO_DEPTH));
+    setFuture([]);
+  }, []);
 
   /** Pop undo entry and discard — used to roll back no-op actions. */
   const popUndo = useCallback(() => {
@@ -113,32 +131,35 @@ function useUndoStacks(state: RosterState, actions: RosterActions) {
   }, []);
 
   const undo = useCallback(() => {
-    setPast(prevPast => {
-      if (prevPast.length === 0) return prevPast;
-      const [entry, ...remaining] = prevPast;
-      const current = captureSnapshot(state);
-      const currentMeta: UndoEntryMeta = {
-        id: crypto.randomUUID(),
-        label: entry.meta.label,
-        timestamp: Date.now(),
-      };
-      setFuture(prevFuture =>
-        [{ meta: currentMeta, snapshot: current }, ...prevFuture].slice(
-          0,
-          MAX_UNDO_DEPTH
-        )
-      );
-      restoreSnapshot(entry.snapshot, actions);
-      toast(`Undone: ${entry.meta.label}`);
-      return remaining;
-    });
-  }, [state, actions]);
+    if (pastRef.current.length === 0) return;
+    const [entry, ...remaining] = pastRef.current;
+    const current = captureSnapshot(stateRef.current);
+    const currentMeta: UndoEntryMeta = {
+      id: crypto.randomUUID(),
+      label: entry.meta.label,
+      timestamp: Date.now(),
+    };
+
+    // Update stacks before side effects — safe for StrictMode
+    pastRef.current = remaining;
+    setPast(remaining);
+    setFuture(prevFuture =>
+      [{ meta: currentMeta, snapshot: current }, ...prevFuture].slice(
+        0,
+        MAX_UNDO_DEPTH
+      )
+    );
+
+    // Side effects outside updaters
+    restoreSnapshot(entry.snapshot, actionsRef.current);
+    toast(`Undone: ${entry.meta.label}`);
+  }, []);
 
   const redo = useCallback(() => {
     setFuture(prevFuture => {
       if (prevFuture.length === 0) return prevFuture;
       const [entry, ...remaining] = prevFuture;
-      const current = captureSnapshot(state);
+      const current = captureSnapshot(stateRef.current);
       const currentMeta: UndoEntryMeta = {
         id: crypto.randomUUID(),
         label: entry.meta.label,
@@ -150,11 +171,16 @@ function useUndoStacks(state: RosterState, actions: RosterActions) {
           MAX_UNDO_DEPTH
         )
       );
-      restoreSnapshot(entry.snapshot, actions);
-      toast(`Redone: ${entry.meta.label}`);
+
+      // Side effects: schedule outside the updater via microtask
+      queueMicrotask(() => {
+        restoreSnapshot(entry.snapshot, actionsRef.current);
+        toast(`Redone: ${entry.meta.label}`);
+      });
+
       return remaining;
     });
-  }, [state, actions]);
+  }, []);
 
   const clearHistory = useCallback(() => {
     setPast([]);
@@ -343,11 +369,28 @@ export function useUndoableRosterState() {
   const { past, future, pushUndo, popUndo, undo, redo, clearHistory } =
     useUndoStacks(rosterState, rosterActions);
 
-  const wrappedActions = buildWrappedActions(
-    pushUndo,
-    popUndo,
-    rosterActions,
-    rosterState.currentRound
+  const wrappedActions = useMemo(
+    () =>
+      buildWrappedActions(
+        pushUndo,
+        popUndo,
+        rosterActions,
+        rosterState.currentRound
+      ),
+    [pushUndo, popUndo, rosterActions, rosterState.currentRound]
+  );
+
+  const undoActions: UndoActions = useMemo(
+    () => ({
+      undo,
+      redo,
+      canUndo: past.length > 0,
+      canRedo: future.length > 0,
+      undoStack: past.map(e => e.meta),
+      redoStack: future.map(e => e.meta),
+      clearHistory,
+    }),
+    [undo, redo, past, future, clearHistory]
   );
 
   return {
@@ -361,14 +404,6 @@ export function useUndoableRosterState() {
       // Undoable wrappers
       ...wrappedActions,
     },
-    undoActions: {
-      undo,
-      redo,
-      canUndo: past.length > 0,
-      canRedo: future.length > 0,
-      undoStack: past.map(e => e.meta),
-      redoStack: future.map(e => e.meta),
-      clearHistory,
-    } satisfies UndoActions,
+    undoActions,
   };
 }

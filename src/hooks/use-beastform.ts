@@ -35,18 +35,21 @@ interface BeastformStateResult {
 export function useBeastformState(
   className: string | null | undefined,
   currentLevel: number,
-  beastform: BeastformState
+  beastform: BeastformState,
+  beastformEnabled?: boolean
 ): BeastformStateResult {
   const isDruid = useMemo(
     () => className?.toLowerCase() === 'druid',
     [className]
   );
 
+  const canUseBeastform = isDruid || !!beastformEnabled;
+
   const tier = useMemo(() => getTierFromLevel(currentLevel), [currentLevel]);
 
   const availableForms = useMemo(
-    () => (isDruid ? getBeastformsForTier(tier) : []),
-    [isDruid, tier]
+    () => (canUseBeastform ? getBeastformsForTier(tier) : []),
+    [canUseBeastform, tier]
   );
 
   const activeForm = useMemo(
@@ -57,20 +60,35 @@ export function useBeastformState(
     [beastform.active, beastform.formId]
   );
 
+  // Guard: only report active if form actually resolved (prevents ghost state)
+  const isActive = beastform.active && activeForm !== undefined;
+
   return {
-    isActive: beastform.active,
+    isActive,
     activeForm,
     availableForms,
-    isDruid,
+    isDruid: canUseBeastform,
     beastform,
   };
 }
 
+/** Optional configuration for special forms (Evolved / Hybrid) */
+export interface SpecialFormConfig {
+  evolvedBaseFormId?: string;
+  hybridBaseFormIds?: string[];
+  selectedAdvantages?: string[];
+  selectedFeatures?: { name: string; description: string }[];
+}
+
 interface BeastformActions {
   /** Activate beastform by spending 1 Stress */
-  activateWithStress: (formId: string) => void;
+  activateWithStress: (formId: string, config?: SpecialFormConfig) => void;
   /** Activate beastform via Evolution (3 Hope), with a bonus trait */
-  activateWithEvolution: (formId: string, bonusTrait: CharacterTrait) => void;
+  activateWithEvolution: (
+    formId: string,
+    bonusTrait: CharacterTrait,
+    config?: SpecialFormConfig
+  ) => void;
   /** Drop out of beastform (voluntary or forced) */
   deactivate: () => void;
 }
@@ -83,26 +101,32 @@ export function useBeastformActions(
   setBeastform: (value: BeastformState) => void
 ): BeastformActions {
   const activateWithStress = useCallback(
-    (formId: string) => {
+    (formId: string, config?: SpecialFormConfig) => {
       setBeastform({
         active: true,
         formId,
         activationMethod: 'stress',
         evolutionBonusTrait: null,
         activatedAt: new Date().toISOString(),
+        ...(config ?? {}),
       });
     },
     [setBeastform]
   );
 
   const activateWithEvolution = useCallback(
-    (formId: string, bonusTrait: CharacterTrait) => {
+    (
+      formId: string,
+      bonusTrait: CharacterTrait,
+      config?: SpecialFormConfig
+    ) => {
       setBeastform({
         active: true,
         formId,
         activationMethod: 'evolution',
         evolutionBonusTrait: { trait: bonusTrait, value: 1 },
         activatedAt: new Date().toISOString(),
+        ...(config ?? {}),
       });
     },
     [setBeastform]

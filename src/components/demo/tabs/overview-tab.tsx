@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 
+import { BeastformSection } from '@/components/beastform';
 import { CharacterNotesDisplay } from '@/components/character-notes';
 import { CountdownTracker } from '@/components/countdown-tracker';
 import { DeathMoveModal } from '@/components/death-move';
@@ -8,7 +9,6 @@ import { InventoryDisplay } from '@/components/inventory';
 import { LoadoutDisplay } from '@/components/loadout-selector';
 import { SessionTracker } from '@/components/session-tracker';
 import { getSubclassByName } from '@/lib/data/classes';
-
 import { CompanionSection } from '../companion-section';
 import { createRestHandler } from '../demo-handlers';
 import type { TabProps } from '../demo-types';
@@ -114,6 +114,10 @@ export function OverviewTab({ state, handlers, isHydrated }: TabProps) {
           setCompanion={handlers.setCompanion}
           setCompanionEnabled={handlers.setCompanionEnabled}
         />
+      </div>
+
+      <div className="animate-fade-up stagger-5">
+        <BeastformSection state={state} handlers={handlers} />
       </div>
 
       <div className="animate-fade-up stagger-6">

@@ -63,7 +63,9 @@ export function ClassFeaturesSection({
           content={
             <>
               <p className="font-medium">{feature.name}</p>
-              <p className="mt-1 text-xs">{feature.description}</p>
+              <p className="mt-1 text-xs whitespace-pre-line">
+                {feature.description}
+              </p>
             </>
           }
         >
@@ -97,7 +99,9 @@ export function HopeFeatureSection({
         content={
           <>
             <p className="font-medium">{hopeFeature.name}</p>
-            <p className="mt-1 text-xs">{hopeFeature.description}</p>
+            <p className="mt-1 text-xs whitespace-pre-line">
+              {hopeFeature.description}
+            </p>
           </>
         }
       >

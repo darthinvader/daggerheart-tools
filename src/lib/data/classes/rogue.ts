@@ -16,13 +16,13 @@ export const ROGUE = {
     {
       name: 'Cloaked',
       description:
-        'Any time you would be Hidden, you are instead Cloaked. In addition to the benefits of the Hidden condition, while Cloaked you remain unseen if you are stationary when an adversary moves to where they would normally see you.',
+        'Any time you would be Hidden, you are instead Cloaked. In addition to the benefits of the Hidden condition, while Cloaked you remain unseen if you are stationary when an adversary moves to where they would normally see you. After you make an attack or end a move within line of sight of an adversary, you are no longer Cloaked.',
       type: 'passive',
     },
     {
       name: 'Sneak Attack',
       description:
-        'When you succeed on an attack while Cloaked or while an ally is within Melee range of your target, add a number of d6s equal to your tier to your damage roll.',
+        'When you succeed on an attack while Cloaked or while an ally is within Melee range of your target, add a number of d6s equal to your tier to your damage roll.\n\u2022 Level 1: Tier 1\n\u2022 Levels 2\u20134: Tier 2\n\u2022 Levels 5\u20137: Tier 3\n\u2022 Levels 8\u201310: Tier 4',
       type: 'passive',
     },
   ],
@@ -46,7 +46,7 @@ export const ROGUE = {
         {
           name: 'Shadow Stepper',
           description:
-            'You can move from shadow to shadow. When you move into an area of darkness or a shadow cast by another creature or object, you can mark a Stress to disappear from where you are and reappear inside another shadow within Far range.',
+            'You can move from shadow to shadow. When you move into an area of darkness or a shadow cast by another creature or object, you can mark a Stress to disappear from where you are and reappear inside another shadow within Far range. When you reappear, you are Cloaked.',
           type: 'foundation',
           level: 1,
           availability: {
@@ -58,7 +58,7 @@ export const ROGUE = {
         {
           name: 'Dark Cloud',
           description:
-            'Make a Spellcast Roll (15). On a success, create a temporary dark cloud that covers any area within Close range.',
+            'Make a Spellcast Roll (15). On a success, create a temporary dark cloud that covers any area within Close range. Anyone in this cloud can\u2019t see outside of it, and anyone outside of it can\u2019t see in. You\u2019re considered Cloaked from any adversary for whom the cloud blocks line of sight.',
           type: 'specialization',
           level: 5,
           availability: {
@@ -95,7 +95,7 @@ export const ROGUE = {
         {
           name: 'Vanishing Act',
           description:
-            'Mark a Stress to become Cloaked at any time. When Cloaked from this feature, you automatically clear the Restrained condition if you have it.',
+            'Mark a Stress to become Cloaked at any time. When Cloaked from this feature, you automatically clear the Restrained condition if you have it. You remain Cloaked in this way until you roll with Fear or until your next rest.',
           type: 'mastery',
           level: 9,
           availability: {
@@ -115,7 +115,7 @@ export const ROGUE = {
         {
           name: 'Well-Connected',
           description:
-            'When you arrive in a prominent town or environment, you know somebody who calls this place home. Give them a name, note how you think they could be useful, and choose one fact from a list.',
+            'When you arrive in a prominent town or environment, you know somebody who calls this place home. Give them a name, note how you think they could be useful, and choose one fact from the following list:\n\u2022 They owe me a favor, but they\u2019ll be hard to find.\n\u2022 They\u2019re going to ask for something in exchange.\n\u2022 They\u2019re always in a great deal of trouble.\n\u2022 We used to be together. It\u2019s a long story.\n\u2022 We didn\u2019t part on great terms.',
           type: 'foundation',
           level: 1,
           availability: {
@@ -127,7 +127,7 @@ export const ROGUE = {
         {
           name: 'Contacts Everywhere',
           description:
-            'Once per session, you can briefly call on a shady contact. Choose one of several benefits and describe what brought them here to help you in this moment.',
+            'Once per session, you can briefly call on a shady contact. Choose one of the following benefits and describe what brought them here to help you in this moment:\n\u2022 They provide 1 handful of gold, a unique tool, or a mundane object that the situation requires.\n\u2022 On your next action roll, their help provides a +3 bonus to the result of your Hope or Fear Die.\n\u2022 The next time you deal damage, they snipe from the shadows, adding 2d8 to your damage roll.',
           type: 'specialization',
           level: 5,
           availability: {
@@ -139,7 +139,7 @@ export const ROGUE = {
         {
           name: 'Reliable Backup',
           description:
-            'You can use your "Contacts Everywhere" feature three times per session. Additional options are added to the list of benefits you can choose from.',
+            'You can use your "Contacts Everywhere" feature three times per session. The following options are added to the list of benefits you can choose from when you use that feature:\n\u2022 When you mark 1 or more Hit Points, they can rush out to shield you, reducing the Hit Points marked by 1.\n\u2022 When you make a Presence Roll in conversation, they back you up. You can roll a d20 as your Hope Die.',
           type: 'mastery',
           level: 8,
           availability: {

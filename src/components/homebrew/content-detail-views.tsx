@@ -493,7 +493,7 @@ export function SubclassDetail({ raw }: { raw: unknown }) {
                     </Badge>
                   )}
                 </div>
-                <p className="text-muted-foreground mt-1 text-sm">
+                <p className="text-muted-foreground mt-1 text-sm whitespace-pre-line">
                   {feat.description}
                 </p>
               </div>

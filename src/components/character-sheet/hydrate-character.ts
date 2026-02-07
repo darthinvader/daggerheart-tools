@@ -381,6 +381,7 @@ export function hydrateSessionStateHook(
     });
   }
   SessionStateHook.setCompanionEnabled(serverData.companionEnabled ?? false);
+  SessionStateHook.setBeastformEnabled(serverData.beastformEnabled ?? false);
   SessionStateHook.setScars(serverData.scars || []);
   SessionStateHook.setExtraHopeSlots(serverData.extraHopeSlots ?? 0);
   SessionStateHook.setCompanionHopeFilled(

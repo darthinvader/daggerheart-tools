@@ -85,6 +85,24 @@
   --stress-high: oklch(0.65 0.22 27);
 }
 
+@keyframes beastform-pop {
+  0% {
+    transform: scale(0.96);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.01);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-beastform-pop {
+  animation: beastform-pop 0.3s ease-out;
+}
+
 a:not([data-slot='button']) {
   font-weight: 500;
   color: var(--primary);

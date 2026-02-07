@@ -139,7 +139,6 @@ Additionally on a success, you can mark a Stress to remove a Fear from the GM's 
     type: 'Ability',
     recallCost: 2,
     description: `When 4 or more of the domain cards in your loadout are from the Bone domain, gain the following benefits:
-
 • +1 bonus to Agility
 • Once per rest, you can spend 3 Hope to cause an attack that succeeded against you to fail instead.`,
     modifiers: {

@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { lazy, Suspense, useCallback } from 'react';
 import { z } from 'zod';
 
+import { RouteErrorFallback } from '@/components/ui/route-error-fallback';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const CharacterSheet = lazy(() =>
@@ -43,6 +44,7 @@ function CharacterSheetSkeleton() {
 
 export const Route = createFileRoute('/character/$characterId')({
   component: CharacterPage,
+  errorComponent: ({ error }) => <RouteErrorFallback error={error} />,
   validateSearch: searchSchema,
 });
 

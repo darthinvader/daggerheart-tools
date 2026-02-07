@@ -26,6 +26,7 @@ interface EnhancedHeaderProps {
   isSaving: boolean;
   lastSaved: Date | null;
   campaignSection?: ReactNode;
+  settingsSection?: ReactNode;
   statusBar?: ReactNode;
   undoControls?: ReactNode;
 }
@@ -129,6 +130,7 @@ export function EnhancedCharacterHeader({
   isSaving,
   lastSaved,
   campaignSection,
+  settingsSection,
   statusBar,
   undoControls,
 }: EnhancedHeaderProps) {
@@ -152,6 +154,7 @@ export function EnhancedCharacterHeader({
         </Button>
         <div className="flex items-center gap-2">
           {campaignSection}
+          {settingsSection}
           {!readOnly && undoControls}
           {readOnly ? (
             <Badge variant="outline" className="text-xs">

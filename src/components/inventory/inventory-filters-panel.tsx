@@ -71,7 +71,15 @@ function CategoryFilter({
                 selectedCategories.includes(cat) &&
                   `${config.bgColor} ${config.color}`
               )}
+              role="button"
+              tabIndex={0}
               onClick={() => onToggle(cat)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onToggle(cat);
+                }
+              }}
             >
               <config.icon className="size-3" /> {cat}
             </Badge>
@@ -108,7 +116,15 @@ function RarityFilter({
                 selectedRarities.includes(rarity) &&
                   `${config.bgColor} ${config.color}`
               )}
+              role="button"
+              tabIndex={0}
               onClick={() => onToggle(rarity)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onToggle(rarity);
+                }
+              }}
             >
               <config.icon className="size-3" /> {rarity}
             </Badge>
@@ -142,7 +158,15 @@ function TierFilter({
                 'cursor-pointer transition-all hover:scale-105',
                 selectedTiers.includes(tier) && config.color
               )}
+              role="button"
+              tabIndex={0}
               onClick={() => onToggle(tier)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onToggle(tier);
+                }
+              }}
             >
               <config.icon className="size-3" /> {config.label}
             </Badge>

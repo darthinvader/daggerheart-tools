@@ -383,6 +383,13 @@ export function mapCompanionEnabledToApi(v: boolean): Partial<CharacterRecord> {
 }
 
 /**
+ * Maps beastform enabled to API format
+ */
+export function mapBeastformEnabledToApi(v: boolean): Partial<CharacterRecord> {
+  return { beastformEnabled: v };
+}
+
+/**
  * Maps countdowns to API format
  */
 export function mapCountdownsToApi(v: Countdown[]): Partial<CharacterRecord> {

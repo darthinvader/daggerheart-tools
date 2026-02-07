@@ -71,7 +71,7 @@ export function CommunityCard({
               >
                 <FeatureIcon /> {community.feature.name}
               </h4>
-              <p className={cn('text-sm', colors.accent)}>
+              <p className={cn('text-sm whitespace-pre-line', colors.accent)}>
                 {community.feature.description}
               </p>
             </div>

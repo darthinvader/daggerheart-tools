@@ -222,7 +222,9 @@ function DomainCardDisplayComponent({
         <SmartTooltip
           side="bottom"
           className="max-w-sm"
-          content={<p className="text-sm">{card.description}</p>}
+          content={
+            <p className="text-sm whitespace-pre-line">{card.description}</p>
+          }
         >
           <CardDescription className="line-clamp-3 cursor-help text-xs">
             {card.description}

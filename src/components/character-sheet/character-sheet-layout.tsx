@@ -1,8 +1,7 @@
-import { Loader2, Unlink, Users } from 'lucide-react';
-import { useState } from 'react';
+import { Loader2, PawPrint, Unlink, Users } from 'lucide-react';
+import { useMemo, useState } from 'react';
 
 import { UndoRedoControls } from '@/components/battle-tracker/undo-redo-controls';
-import { BeastformBanner, BeastformPanel } from '@/components/beastform';
 import { CharacterOnboardingWizard } from '@/components/character-onboarding';
 import {
   CombatTab,
@@ -26,12 +25,14 @@ import {
 import { Input } from '@/components/ui/input';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
-import { useBeastformActions, useBeastformState } from '@/hooks/use-beastform';
+import { useBeastformState } from '@/hooks/use-beastform';
+import { getSubclassByName } from '@/lib/data/classes';
 import { Backpack, BarChart3, Dice5, Swords, User, Zap } from '@/lib/icons';
 import type { Campaign } from '@/lib/schemas/campaign';
 import type { UndoActions } from '@/lib/undo';
 import { cn } from '@/lib/utils';
 
+import { CharacterSettingsDialog } from './character-settings-dialog';
 import { CharacterStatusBar } from './character-status-bar';
 import { EnhancedCharacterHeader } from './enhanced-header';
 import { MobileBottomNav } from './mobile-bottom-nav';
@@ -112,9 +113,32 @@ export function CharacterSheetLayout({
   const beastformState = useBeastformState(
     state.classSelection?.className ?? null,
     state.progression.currentLevel,
-    state.beastform
+    state.beastform,
+    state.beastformEnabled
   );
-  const beastformActions = useBeastformActions(handlers.setBeastform);
+
+  const isNativeDruid =
+    (state.classSelection?.className ?? '').toLowerCase() === 'druid';
+
+  const hasCompanionFeature = useMemo(() => {
+    const hasCompanionFlag = (
+      value: unknown
+    ): value is { companion?: boolean } =>
+      Boolean(value && typeof value === 'object' && 'companion' in value);
+    const selection = state.classSelection;
+    if (!selection?.className || !selection?.subclassName) return false;
+    if (selection.isHomebrew && selection.homebrewClass) {
+      const homebrewSubclass = selection.homebrewClass.subclasses.find(
+        s => s.name === selection.subclassName
+      );
+      return Boolean(homebrewSubclass?.companion);
+    }
+    const subclass = getSubclassByName(
+      selection.className,
+      selection.subclassName
+    );
+    return hasCompanionFlag(subclass) && Boolean(subclass.companion);
+  }, [state.classSelection]);
 
   const allTabs = [
     { value: 'quick', label: 'Quick', icon: <Zap className="size-4" /> },
@@ -128,6 +152,19 @@ export function CharacterSheetLayout({
     { value: 'items', label: 'Items', icon: <Backpack className="size-4" /> },
     { value: 'session', label: 'Session', icon: <Dice5 className="size-4" /> },
   ];
+
+  // Beastform slot for status bar — just a status indicator icon
+  const beastformSlot =
+    beastformState.isActive && beastformState.activeForm ? (
+      <SmartTooltip content={`Beastform: ${beastformState.activeForm.name}`}>
+        <div className="flex items-center">
+          <PawPrint
+            className="size-4 animate-pulse text-emerald-400"
+            aria-hidden
+          />
+        </div>
+      </SmartTooltip>
+    ) : undefined;
 
   return (
     <div
@@ -169,7 +206,22 @@ export function CharacterSheetLayout({
               isUnlinkingCampaign={isUnlinkingCampaign}
             />
           }
-          statusBar={<CharacterStatusBar state={state} />}
+          settingsSection={
+            !readOnly ? (
+              <CharacterSettingsDialog
+                beastformEnabled={state.beastformEnabled}
+                companionEnabled={state.companionEnabled}
+                onBeastformEnabledChange={handlers.setBeastformEnabled}
+                onCompanionEnabledChange={handlers.setCompanionEnabled}
+                isNativeDruid={isNativeDruid}
+                hasNativeCompanion={hasCompanionFeature}
+                readOnly={readOnly}
+              />
+            ) : undefined
+          }
+          statusBar={
+            <CharacterStatusBar state={state} beastformSlot={beastformSlot} />
+          }
           undoControls={
             !readOnly && undoActions ? (
               <UndoRedoControls
@@ -185,29 +237,6 @@ export function CharacterSheetLayout({
             ) : undefined
           }
         />
-        {beastformState.isDruid && (
-          <>
-            {beastformState.isActive && beastformState.activeForm && (
-              <BeastformBanner
-                activeForm={beastformState.activeForm}
-                activationMethod={state.beastform.activationMethod}
-                evolutionBonusTrait={state.beastform.evolutionBonusTrait}
-                onDeactivate={beastformActions.deactivate}
-                readOnly={readOnly}
-              />
-            )}
-            {!beastformState.isActive && !readOnly && (
-              <BeastformPanel
-                availableForms={beastformState.availableForms}
-                isActive={beastformState.isActive}
-                onActivateWithStress={beastformActions.activateWithStress}
-                onActivateWithEvolution={beastformActions.activateWithEvolution}
-                onDeactivate={beastformActions.deactivate}
-                readOnly={readOnly}
-              />
-            )}
-          </>
-        )}
         <CharacterSheetTabs
           activeTab={activeTab}
           handlers={handlers}
@@ -491,7 +520,7 @@ function CharacterSheetTabs({
       <div
         className={cn(
           readOnly &&
-            'after:bg-muted/5 pointer-events-none relative opacity-80 after:pointer-events-none after:absolute after:inset-0 after:z-10 after:rounded-lg'
+            'relative opacity-80 [&_[role=slider]]:pointer-events-none [&_button]:pointer-events-none [&_input]:pointer-events-none [&_select]:pointer-events-none [&_textarea]:pointer-events-none'
         )}
       >
         <TabsContent value="quick" className="animate-fade-up">

@@ -18,7 +18,7 @@ export const DRUID = {
     {
       name: 'Beastform',
       description:
-        'Mark a Stress to magically transform into a creature of your tier or lower from the Beastform list. You can drop out of this form at any time.',
+        "Mark a Stress to magically transform into a creature of your tier or lower from the Beastform list. You can drop out of this form at any time. While transformed, you can't use weapons or cast spells from domain cards, but you can still use other features or abilities you have access to. Spells you cast before you transform stay active and last for their normal duration, and you can talk and communicate as normal. Additionally, you gain the Beastform's features, add their Evasion bonus to your Evasion, and use the trait specified in their statistics for your attack. While you're in a Beastform, your armor becomes part of your body and you mark Armor Slots as usual; when you drop out of a Beastform, those marked Armor Slots remain marked. If you mark your last Hit Point, you automatically drop out of this form.",
       type: 'active',
     },
     {
@@ -48,7 +48,7 @@ export const DRUID = {
         {
           name: 'Elemental Incarnation',
           description:
-            'Mark a Stress to Channel one of the following elements until you take Severe damage or until your next rest: Fire, Earth, Water, Air.',
+            'Mark a Stress to Channel one of the following elements until you take Severe damage or until your next rest:\n\n• Fire: When an adversary within Melee range deals damage to you, they take 1d10 magic damage.\n• Earth: Gain a bonus to your damage thresholds equal to your Proficiency.\n• Water: When you deal damage to an adversary within Melee range, all other adversaries within Very Close range must mark a Stress.\n• Air: You can hover, gaining advantage on Agility Rolls.',
           type: 'foundation',
           level: 1,
           availability: {
@@ -60,7 +60,7 @@ export const DRUID = {
         {
           name: 'Elemental Aura',
           description:
-            'Once per rest while Channeling, you can assume an aura matching your element. The aura affects targets within Close range until your Channeling ends.',
+            'Once per rest while Channeling, you can assume an aura matching your element. The aura affects targets within Close range until your Channeling ends.\n\n• Fire: When an adversary marks 1 or more Hit Points, they must also mark a Stress.\n• Earth: Your allies gain a +1 bonus to Strength.\n• Water: When an adversary deals damage to you, you can mark a Stress to move them anywhere within Very Close range of where they are.\n• Air: When you or an ally takes damage from an attack beyond Melee range, reduce the damage by 1d8.',
           type: 'specialization',
           level: 5,
           availability: {
@@ -72,7 +72,7 @@ export const DRUID = {
         {
           name: 'Elemental Dominion',
           description:
-            'You further embody your element. While Channeling, you gain additional benefits based on your chosen element.',
+            'You further embody your element. While Channeling, you gain the following benefit:\n\n• Fire: You gain a +1 bonus to your Proficiency for attacks and spells that deal damage.\n• Earth: When you would mark Hit Points, roll a d6 per Hit Point marked. For each result of 6, reduce the number of Hit Points you mark by 1.\n• Water: When an attack against you succeeds, you can mark a Stress to make the attacker temporarily Vulnerable.\n• Air: You gain a +1 bonus to your Evasion and can fly.',
           type: 'mastery',
           level: 8,
           availability: {

@@ -78,6 +78,7 @@ export const CharacterRecordSchema = z.object({
   // Session state fields
   companion: CompanionStateSchema.nullish(),
   companionEnabled: z.boolean().nullish(),
+  beastformEnabled: z.boolean().nullish(),
   scars: z.array(ScarSchema).nullish(),
   extraHopeSlots: z.number().nullish(),
   companionHopeFilled: z.boolean().nullish(),
@@ -148,6 +149,7 @@ function mapDbRowToCharacter(row: Record<string, unknown>): CharacterRecord {
     experiences: row.experiences as CharacterRecord['experiences'],
     companion: row.companion as CharacterRecord['companion'],
     companionEnabled: row.companion_enabled as boolean,
+    beastformEnabled: (row.beastform_enabled as boolean) ?? false,
     scars: row.scars as CharacterRecord['scars'],
     extraHopeSlots: row.extra_hope_slots as number,
     companionHopeFilled: row.companion_hope_filled as boolean,
@@ -196,6 +198,8 @@ function mapCharacterToDbRow(
   if (char.companion !== undefined) row.companion = char.companion;
   if (char.companionEnabled !== undefined)
     row.companion_enabled = char.companionEnabled;
+  if (char.beastformEnabled !== undefined)
+    row.beastform_enabled = char.beastformEnabled;
   if (char.scars !== undefined) row.scars = char.scars;
   if (char.extraHopeSlots !== undefined)
     row.extra_hope_slots = char.extraHopeSlots;

@@ -25,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { buildBeastformModifiers } from '@/lib/character-stats-engine/adapters';
 import { getClassByName } from '@/lib/data/classes';
 import { getEquipmentFeatureModifiers } from '@/lib/equipment-feature-parser';
 import {
@@ -443,6 +444,26 @@ export function TraitsScoresGrid({ state, handlers, isHydrated }: TabProps) {
     [equipmentFeatureModifiers, bonusFeatureModifiers]
   );
 
+  // Beastform trait modifiers (only when active)
+  const beastformModifiers = useMemo(
+    () => buildBeastformModifiers(state.beastform),
+    [state.beastform]
+  );
+
+  // Merge beastform trait bonuses into combined modifiers for trait display
+  const traitModifiersWithBeastform = useMemo(() => {
+    const base = combinedFeatureModifiers.traits;
+    const bf = beastformModifiers.traits;
+    return {
+      Agility: base.Agility + bf.Agility,
+      Strength: base.Strength + bf.Strength,
+      Finesse: base.Finesse + bf.Finesse,
+      Instinct: base.Instinct + bf.Instinct,
+      Presence: base.Presence + bf.Presence,
+      Knowledge: base.Knowledge + bf.Knowledge,
+    };
+  }, [combinedFeatureModifiers.traits, beastformModifiers.traits]);
+
   const resourcesAutoContext = useMemo(
     () => ({
       classHp: classStats.hp,
@@ -530,7 +551,7 @@ export function TraitsScoresGrid({ state, handlers, isHydrated }: TabProps) {
       <TraitsDisplay
         traits={state.traits}
         onChange={handlers.setTraits}
-        equipmentModifiers={combinedFeatureModifiers.traits}
+        equipmentModifiers={traitModifiersWithBeastform}
         currentHope={state.hopeWithScars.current}
         experiences={state.experiences.items}
         onHopeChange={handleRollHopeChange}
@@ -613,18 +634,26 @@ export function HopeScoresThresholdsGrid({
     [equipmentFeatureModifiers, bonusFeatureModifiers]
   );
 
+  // Beastform evasion modifier (only when active)
+  const beastformModifiers = useMemo(
+    () => buildBeastformModifiers(state.beastform),
+    [state.beastform]
+  );
+
   const coreScoresAutoContext = useMemo(
     () => ({
       classEvasion: classStats.evasion,
       armorEvasionModifier: armorStats.evasionMod,
       equipmentEvasionModifier: equipmentFeatureModifiers.evasion,
       bonusEvasionModifier: bonusFeatureModifiers.evasion,
+      beastformEvasionModifier: beastformModifiers.evasion,
     }),
     [
       classStats.evasion,
       armorStats.evasionMod,
       equipmentFeatureModifiers.evasion,
       bonusFeatureModifiers.evasion,
+      beastformModifiers.evasion,
     ]
   );
 
@@ -653,11 +682,13 @@ export function HopeScoresThresholdsGrid({
     () =>
       classStats.evasion +
       armorStats.evasionMod +
-      combinedFeatureModifiers.evasion,
+      combinedFeatureModifiers.evasion +
+      beastformModifiers.evasion,
     [
       classStats.evasion,
       armorStats.evasionMod,
       combinedFeatureModifiers.evasion,
+      beastformModifiers.evasion,
     ]
   );
 
@@ -737,6 +768,7 @@ export function ExperiencesEquipmentGrid({ state, handlers }: TabProps) {
         community: state.community,
         loadout: state.loadout,
         inventory: state.inventory,
+        beastform: state.beastform,
         isWearingArmor: hasEquippedArmor(state.equipment),
         proficiency: state.coreScores.proficiency,
         level: state.progression.currentLevel,
@@ -748,6 +780,7 @@ export function ExperiencesEquipmentGrid({ state, handlers }: TabProps) {
       state.community,
       state.loadout,
       state.inventory,
+      state.beastform,
       state.equipment,
       state.coreScores.proficiency,
       state.progression.currentLevel,

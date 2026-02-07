@@ -67,6 +67,9 @@ export function WeaponCard({
             onToggleActivated();
           }}
           title={isActivated ? 'Deactivate equipment' : 'Activate equipment'}
+          aria-label={
+            isActivated ? 'Deactivate equipment' : 'Activate equipment'
+          }
         >
           <Power
             className={cn(
@@ -125,6 +128,9 @@ export function ArmorCard({
             onToggleActivated();
           }}
           title={isActivated ? 'Deactivate equipment' : 'Activate equipment'}
+          aria-label={
+            isActivated ? 'Deactivate equipment' : 'Activate equipment'
+          }
         >
           <Power
             className={cn(
@@ -191,6 +197,9 @@ export function WheelchairCard({
             onToggleActivated();
           }}
           title={isActivated ? 'Deactivate equipment' : 'Activate equipment'}
+          aria-label={
+            isActivated ? 'Deactivate equipment' : 'Activate equipment'
+          }
         >
           <Power
             className={cn(

@@ -2,7 +2,7 @@
  * Hook for managing CustomAdversaryBuilder state
  * Extracted to reduce component complexity
  */
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { Adversary } from '@/lib/schemas/adversaries';
 
@@ -16,11 +16,13 @@ import {
 interface UseCustomAdversaryBuilderStateProps {
   onSave: (adversary: Adversary) => void;
   onOpenChange: (open: boolean) => void;
+  open?: boolean;
 }
 
 export function useCustomAdversaryBuilderState({
   onSave,
   onOpenChange,
+  open,
 }: UseCustomAdversaryBuilderStateProps) {
   const [state, setState] = useState<CustomAdversaryState>(getInitialState());
   const [newExperience, setNewExperience] = useState('');
@@ -29,6 +31,19 @@ export function useCustomAdversaryBuilderState({
     type: 'Action',
     description: '',
   });
+
+  // Reset state when dialog opens
+  useEffect(() => {
+    if (open) {
+      // Defer state updates to avoid synchronous setState in effect warning
+      const timer = setTimeout(() => {
+        setState(getInitialState());
+        setNewExperience('');
+        setNewFeature({ name: '', type: 'Action', description: '' });
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [open]);
 
   const updateField = useCallback(
     <K extends keyof CustomAdversaryState>(

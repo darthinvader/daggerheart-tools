@@ -26,6 +26,7 @@ export function MobileBottomNav({
     >
       <div
         className="grid h-14"
+        role="tablist"
         style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}
       >
         {tabs.map(tab => {

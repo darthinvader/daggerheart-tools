@@ -1,5 +1,8 @@
+import { buildBeastformModifiers } from '@/lib/character-stats-engine/adapters';
+import { getBeastformById } from '@/lib/data/beastforms';
 import { getClassByName, getSubclassByName } from '@/lib/data/classes';
 import { getCardByName } from '@/lib/data/domains';
+import type { BeastformState } from '@/lib/schemas/beastform';
 import type { ClassSelection } from '@/lib/schemas/class-selection';
 import type { FeatureStatModifiers } from '@/lib/schemas/core';
 import type { InventoryState } from '@/lib/schemas/equipment';
@@ -36,7 +39,8 @@ export interface BonusSourceEntry {
     | 'inventory-feature'
     | 'equipment-item'
     | 'equipment-feature'
-    | 'experience-bonus';
+    | 'experience-bonus'
+    | 'beastform';
   sourceName: string;
   detail?: string;
   modifiers: FeatureStatModifiers;
@@ -139,6 +143,7 @@ export function aggregateBonusModifiers(params: {
   community: CommunitySelection | null | undefined;
   loadout: LoadoutSelection | null | undefined;
   inventory: InventoryState | null | undefined;
+  beastform?: BeastformState | null;
   isWearingArmor?: boolean;
   proficiency?: number;
   level?: number;
@@ -153,6 +158,7 @@ export function aggregateBonusBreakdown(params: {
   community: CommunitySelection | null | undefined;
   loadout: LoadoutSelection | null | undefined;
   inventory: InventoryState | null | undefined;
+  beastform?: BeastformState | null;
   isWearingArmor?: boolean;
   proficiency?: number;
   level?: number;
@@ -197,6 +203,7 @@ export function aggregateBonusBreakdown(params: {
     pushSource
   );
   collectInventorySources(params.inventory, modifierContext, pushSource);
+  collectBeastformSources(params.beastform, pushSource);
 
   return { total: totals, sources };
 }
@@ -777,4 +784,48 @@ function pushInventoryFeatureSources(
       modifiers: resolveModifiers(feature, context),
     });
   }
+}
+
+function collectBeastformSources(
+  beastform: BeastformState | null | undefined,
+  pushSource: (
+    entry: Omit<BonusSourceEntry, 'modifiers'> & {
+      modifiers?: FeatureStatModifiers;
+    }
+  ) => void
+) {
+  if (!beastform?.active || !beastform.formId) return;
+
+  const form = getBeastformById(beastform.formId);
+  if (!form) return;
+
+  const mods = buildBeastformModifiers(beastform);
+  const traitMods: Partial<ModifierTraits> = {};
+  for (const trait of TRAITS) {
+    if (mods.traits[trait] !== 0) {
+      traitMods[trait] = mods.traits[trait];
+    }
+  }
+
+  const hasTraits = Object.keys(traitMods).length > 0;
+  const hasEvasion = mods.evasion !== 0;
+
+  if (!hasTraits && !hasEvasion) return;
+
+  const detail =
+    beastform.activationMethod === 'evolution' && beastform.evolutionBonusTrait
+      ? `Wild Form (Evolution)`
+      : beastform.activationMethod === 'stress'
+        ? `Wild Touch / Wild Form`
+        : undefined;
+
+  pushSource({
+    type: 'beastform',
+    sourceName: form.name,
+    detail,
+    modifiers: {
+      ...(hasEvasion ? { evasion: mods.evasion } : {}),
+      ...(hasTraits ? { traits: traitMods } : {}),
+    },
+  });
 }

@@ -24,6 +24,14 @@ export function SessionCard({
     <Card
       className={`hover:bg-muted/50 cursor-pointer transition-colors ${isCurrent ? 'ring-primary ring-2' : ''}`}
       onClick={onSelect}
+      role="button"
+      tabIndex={0}
+      onKeyDown={e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onSelect();
+        }
+      }}
     >
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
         <CardTitle className="flex items-center gap-2 text-base">

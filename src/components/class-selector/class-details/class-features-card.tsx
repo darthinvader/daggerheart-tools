@@ -98,7 +98,7 @@ export function ClassFeaturesCard({
                 )}
               </div>
               <CollapsibleContent>
-                <p className="text-muted-foreground bg-muted/20 rounded-b border-x border-b px-2.5 py-2 text-xs">
+                <p className="text-muted-foreground bg-muted/20 rounded-b border-x border-b px-2.5 py-2 text-xs whitespace-pre-line">
                   {feature.description}
                 </p>
               </CollapsibleContent>

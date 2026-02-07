@@ -141,7 +141,8 @@ function ConditionBadge({
       {onRemove && (
         <button
           onClick={onRemove}
-          className="hover:bg-destructive/20 ml-1 rounded-full"
+          aria-label={`Remove ${name} condition`}
+          className="hover:bg-destructive/20 ml-1 rounded-full p-1"
         >
           <X className="size-3" />
         </button>

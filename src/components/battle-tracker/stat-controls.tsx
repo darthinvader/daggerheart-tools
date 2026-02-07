@@ -63,7 +63,8 @@ export function StatMini({
         <Button
           size="icon"
           variant="ghost"
-          className="size-5"
+          className="size-5 min-h-[44px] min-w-[44px]"
+          aria-label={`Decrease ${label}`}
           onClick={() => onChange?.(Math.max(0, value - 1))}
         >
           <Minus className="size-3" />
@@ -78,7 +79,8 @@ export function StatMini({
         <Button
           size="icon"
           variant="ghost"
-          className="size-5"
+          className="size-5 min-h-[44px] min-w-[44px]"
+          aria-label={`Increase ${label}`}
           onClick={() => onChange?.(Math.min(max, value + 1))}
         >
           <Plus className="size-3" />
@@ -135,7 +137,8 @@ export function CountdownControl({
         <Button
           size="icon"
           variant="ghost"
-          className="size-5"
+          className="size-5 min-h-[44px] min-w-[44px]"
+          aria-label="Decrease countdown"
           onClick={() => onChange(Math.max(0, value - 1))}
           disabled={!enabled}
         >
@@ -152,7 +155,8 @@ export function CountdownControl({
         <Button
           size="icon"
           variant="ghost"
-          className="size-5"
+          className="size-5 min-h-[44px] min-w-[44px]"
+          aria-label="Increase countdown"
           onClick={() => onChange(value + 1)}
           disabled={!enabled}
         >

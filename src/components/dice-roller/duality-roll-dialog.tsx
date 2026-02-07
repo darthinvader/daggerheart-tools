@@ -10,7 +10,7 @@ import {
   Swords,
   Target,
 } from 'lucide-react';
-import { memo, useCallback, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -301,6 +301,22 @@ export const DualityRollDialog = memo(function DualityRollDialog({
     null
   );
 
+  // Reset state when dialog opens with new props
+  useEffect(() => {
+    if (open) {
+      // Defer state updates to avoid synchronous setState in effect warning
+      const timer = setTimeout(() => {
+        setModifier(defaultModifier);
+        setEffectDieNotation(defaultEffectDie);
+        setResult(null);
+        setIsRolling(false);
+        setHopeSpent(0);
+        setBurnedExperienceId(null);
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [open, defaultModifier, defaultEffectDie]);
+
   const hasResources =
     currentHope !== undefined ||
     (experiences !== undefined && experiences.length > 0);
@@ -398,11 +414,11 @@ export const DualityRollDialog = memo(function DualityRollDialog({
     [onOpenChange]
   );
 
-  const title = useMemo(() => rollLabel ?? 'Duality Roll', [rollLabel]);
+  const title = rollLabel ?? 'Duality Roll';
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Target className="size-5" />

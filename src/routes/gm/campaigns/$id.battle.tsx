@@ -45,6 +45,7 @@ import { DEFAULT_CHARACTER_DRAFT } from '@/components/battle-tracker/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { RouteErrorFallback } from '@/components/ui/route-error-fallback';
 import {
   Tooltip,
   TooltipContent,
@@ -62,6 +63,7 @@ import { useLinkedCharacterRefresh } from './use-linked-character-refresh';
 
 export const Route = createFileRoute('/gm/campaigns/$id/battle')({
   component: CampaignBattlePage,
+  errorComponent: ({ error }) => <RouteErrorFallback error={error} />,
   validateSearch: (
     search: Record<string, unknown>
   ): { battleId?: string; new?: boolean } => {

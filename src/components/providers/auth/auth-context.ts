@@ -12,20 +12,7 @@ export interface AuthState {
   signOut: () => Promise<{ error: Error | null }>;
 }
 
-const initialState: AuthState = {
-  user: null,
-  session: null,
-  isLoading: true,
-  isAuthenticated: false,
-  signIn: async () => ({ error: new Error('AuthProvider not initialized') }),
-  signUp: async () => ({ error: new Error('AuthProvider not initialized') }),
-  signInWithGoogle: async () => ({
-    error: new Error('AuthProvider not initialized'),
-  }),
-  signOut: async () => ({ error: new Error('AuthProvider not initialized') }),
-};
-
-export const AuthContext = createContext<AuthState>(initialState);
+export const AuthContext = createContext<AuthState | null>(null);
 
 export function useAuth(): AuthState {
   const context = useContext(AuthContext);

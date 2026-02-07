@@ -16,7 +16,7 @@ export const SERAPH = {
     {
       name: 'Prayer Dice',
       description:
-        "At the beginning of each session, roll a number of d4s equal to your subclass's Spellcast trait and place them on your character sheet. These are your Prayer Dice. You can spend any number of Prayer Dice to aid yourself or an ally within Far range.",
+        "At the beginning of each session, roll a number of d4s equal to your subclass's Spellcast trait and place them on your character sheet in the space provided. These are your Prayer Dice. You can spend any number of Prayer Dice to aid yourself or an ally within Far range. You can use a spent die's value to reduce incoming damage, add to a roll's result after the roll is made, or gain Hope equal to the result. At the end of each session, clear all unspent Prayer Dice.",
       type: 'passive',
     },
   ],
@@ -40,7 +40,7 @@ export const SERAPH = {
         {
           name: 'Spirit Weapon',
           description:
-            'When you have an equipped weapon with a range of Melee or Very Close, it can fly from your hand to attack an adversary within Close range and then return to you.',
+            'When you have an equipped weapon with a range of Melee or Very Close, it can fly from your hand to attack an adversary within Close range and then return to you. You can mark a Stress to target an additional adversary within range with the same attack roll.',
           type: 'foundation',
           level: 1,
           availability: {
@@ -76,7 +76,7 @@ export const SERAPH = {
         {
           name: 'Sacred Resonance',
           description:
-            'When you roll damage for your "Spirit Weapon" feature, if any of the die results match, double the value of each matching die.',
+            'When you roll damage for your "Spirit Weapon" feature, if any of the die results match, double the value of each matching die. For example, if you roll two 5s, they count as two 10s.',
           type: 'mastery',
           level: 8,
           availability: {
@@ -96,7 +96,7 @@ export const SERAPH = {
         {
           name: 'Wings of Light',
           description:
-            'You can fly. While flying, you can mark a Stress to pick up and carry another willing creature approximately your size or smaller, or spend a Hope to deal an extra 1d8 damage on a successful attack.',
+            'You can fly. While flying, you can do the following:\n\u2022 Mark a Stress to pick up and carry another willing creature approximately your size or smaller.\n\u2022 Spend a Hope to deal an extra 1d8 damage on a successful attack.',
           type: 'foundation',
           level: 1,
           availability: {
@@ -108,7 +108,7 @@ export const SERAPH = {
         {
           name: 'Ethereal Visage',
           description:
-            'Your supernatural visage strikes awe and fear. While flying, you have advantage on Presence Rolls.',
+            'Your supernatural visage strikes awe and fear. While flying, you have advantage on Presence Rolls. When you succeed with Hope on a Presence Roll, you can remove a Fear from the GM\u2019s Fear pool instead of gaining Hope.',
           type: 'specialization',
           level: 5,
           availability: {

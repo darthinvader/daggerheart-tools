@@ -163,7 +163,7 @@ export function SubclassFeaturesCard({
               </div>
               <CollapsibleContent>
                 <div className="bg-muted/20 space-y-2 rounded-b border-x border-b px-2.5 py-2">
-                  <p className="text-muted-foreground text-xs">
+                  <p className="text-muted-foreground text-xs whitespace-pre-line">
                     {feature.description}
                   </p>
                   <div className="flex items-center gap-2">

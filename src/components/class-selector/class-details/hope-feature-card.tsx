@@ -93,7 +93,7 @@ export function HopeFeatureCard({
           </span>
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <p className="text-muted-foreground rounded-b border-x border-b border-yellow-500/30 bg-yellow-500/5 px-2.5 py-2 text-xs">
+          <p className="text-muted-foreground rounded-b border-x border-b border-yellow-500/30 bg-yellow-500/5 px-2.5 py-2 text-xs whitespace-pre-line">
             {feature.description}
           </p>
         </CollapsibleContent>

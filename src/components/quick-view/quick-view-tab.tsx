@@ -4,6 +4,7 @@ import type { DemoHandlers, DemoState } from '@/components/demo/demo-types';
 import type { EquipmentState } from '@/components/equipment';
 import type { TraitsState } from '@/components/traits';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { buildBeastformModifiers } from '@/lib/character-stats-engine/adapters';
 import { getEquipmentFeatureModifiers } from '@/lib/equipment-feature-parser';
 import type { ActiveEffect } from '@/lib/schemas/equipment';
 import {
@@ -16,6 +17,7 @@ import {
 } from '@/lib/utils/feature-modifiers';
 
 import { QuickActiveEffects } from './quick-active-effects';
+import { QuickBeastformStrip } from './quick-beastform-strip';
 import { QuickCombatSummary } from './quick-combat-summary';
 import { QuickCountdowns } from './quick-countdowns';
 import { QuickLevelBadge } from './quick-level-badge';
@@ -91,23 +93,32 @@ export function QuickViewTab({ state, handlers }: QuickViewTabProps) {
     ]
   );
 
-  const combinedModifiers = useMemo(
-    () =>
-      combineModifiers(
-        {
-          evasion: equipmentModifiers.evasion,
-          proficiency: equipmentModifiers.proficiency,
-          armorScore: equipmentModifiers.armorScore,
-          majorThreshold: equipmentModifiers.majorThreshold,
-          severeThreshold: equipmentModifiers.severeThreshold,
-          attackRolls: equipmentModifiers.attackRolls,
-          spellcastRolls: equipmentModifiers.spellcastRolls,
-          traits: equipmentModifiers.traits,
-        },
-        bonusModifiers
-      ),
-    [equipmentModifiers, bonusModifiers]
-  );
+  const combinedModifiers = useMemo(() => {
+    const base = combineModifiers(
+      {
+        evasion: equipmentModifiers.evasion,
+        proficiency: equipmentModifiers.proficiency,
+        armorScore: equipmentModifiers.armorScore,
+        majorThreshold: equipmentModifiers.majorThreshold,
+        severeThreshold: equipmentModifiers.severeThreshold,
+        attackRolls: equipmentModifiers.attackRolls,
+        spellcastRolls: equipmentModifiers.spellcastRolls,
+        traits: equipmentModifiers.traits,
+      },
+      bonusModifiers
+    );
+    const bf = buildBeastformModifiers(state.beastform);
+    return combineModifiers(base, {
+      evasion: bf.evasion,
+      proficiency: bf.proficiency,
+      armorScore: bf.armorScore,
+      majorThreshold: bf.majorThreshold,
+      severeThreshold: bf.severeThreshold,
+      attackRolls: bf.attackRolls,
+      spellcastRolls: bf.spellcastRolls,
+      traits: bf.traits,
+    });
+  }, [equipmentModifiers, bonusModifiers, state.beastform]);
 
   const handleToggleSection = (id: QuickSectionKey) => {
     if (!isMobile) return;
@@ -154,6 +165,11 @@ export function QuickViewTab({ state, handlers }: QuickViewTabProps) {
         effects={state.activeEffects ?? []}
         onRemove={handleRemoveEffect}
       />
+
+      {/* Beastform strip — compact form info when active */}
+      {isSectionOpen('beastform') && (
+        <QuickBeastformStrip beastform={state.beastform} />
+      )}
 
       {/* Active countdowns — threat/opportunity progress rings */}
       <QuickCountdowns countdowns={state.countdowns ?? []} />

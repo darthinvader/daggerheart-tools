@@ -1,6 +1,7 @@
 import { Moon } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 
+import { BeastformSection } from '@/components/beastform';
 import { ClassDisplay } from '@/components/class-selector';
 import { CoreScoresDisplay } from '@/components/core-scores';
 import { EquipmentDisplay } from '@/components/equipment';
@@ -12,13 +13,13 @@ import { HopeWithScarsDisplay } from '@/components/scars';
 import { ThresholdsEditableSection } from '@/components/thresholds-editor';
 import { TraitsDisplay } from '@/components/traits';
 import { Button } from '@/components/ui/button';
+import { buildBeastformModifiers } from '@/lib/character-stats-engine/adapters';
 import { getClassByName, getSubclassByName } from '@/lib/data/classes';
 import { getEquipmentFeatureModifiers } from '@/lib/equipment-feature-parser';
 import {
   aggregateBonusModifiers,
   combineModifiers,
 } from '@/lib/utils/feature-modifiers';
-
 import { CompanionSection } from '../companion-section';
 import { createDamageHandler, createRestHandler } from '../demo-handlers';
 import type { TabProps } from '../demo-types';
@@ -143,6 +144,26 @@ export function CombatTab({
     [equipmentFeatureModifiers, bonusFeatureModifiers]
   );
 
+  // Beastform trait + evasion modifiers (only when active)
+  const beastformModifiers = useMemo(
+    () => buildBeastformModifiers(state.beastform),
+    [state.beastform]
+  );
+
+  // Merge beastform trait bonuses into combined modifiers for trait display
+  const traitModifiersWithBeastform = useMemo(() => {
+    const base = combinedFeatureModifiers.traits;
+    const bf = beastformModifiers.traits;
+    return {
+      Agility: base.Agility + bf.Agility,
+      Strength: base.Strength + bf.Strength,
+      Finesse: base.Finesse + bf.Finesse,
+      Instinct: base.Instinct + bf.Instinct,
+      Presence: base.Presence + bf.Presence,
+      Knowledge: base.Knowledge + bf.Knowledge,
+    };
+  }, [combinedFeatureModifiers.traits, beastformModifiers.traits]);
+
   const resourcesAutoContext = useMemo(
     () => ({
       classHp: classStats.hp,
@@ -175,12 +196,14 @@ export function CombatTab({
       armorEvasionModifier: armorStats.evasionMod,
       equipmentEvasionModifier: equipmentFeatureModifiers.evasion,
       bonusEvasionModifier: bonusFeatureModifiers.evasion,
+      beastformEvasionModifier: beastformModifiers.evasion,
     }),
     [
       classStats.evasion,
       armorStats.evasionMod,
       equipmentFeatureModifiers.evasion,
       bonusFeatureModifiers.evasion,
+      beastformModifiers.evasion,
     ]
   );
 
@@ -317,7 +340,7 @@ export function CombatTab({
         <TraitsDisplay
           traits={state.traits}
           onChange={handlers.setTraits}
-          equipmentModifiers={combinedFeatureModifiers.traits}
+          equipmentModifiers={traitModifiersWithBeastform}
           currentHope={state.hopeWithScars.current}
           experiences={state.experiences.items}
           onHopeChange={handleRollHopeChange}
@@ -440,6 +463,11 @@ export function CombatTab({
           setCompanion={handlers.setCompanion}
           setCompanionEnabled={handlers.setCompanionEnabled}
         />
+      </div>
+
+      {/* Row 4b: Beastform */}
+      <div className="animate-fade-up stagger-5">
+        <BeastformSection state={state} handlers={handlers} />
       </div>
 
       {/* Row 5: Loadout */}

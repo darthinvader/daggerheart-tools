@@ -43,6 +43,7 @@ import type { ThresholdsSettings } from '@/lib/schemas/character-state';
 
 import {
   mapAncestryToApi,
+  mapBeastformEnabledToApi,
   mapBeastformToApi,
   mapClassSelectionToApi,
   mapCommunityToApi,
@@ -217,7 +218,7 @@ function computeUpdatedThresholds(
 
 /**
  * Creates a handler that wraps a setter with auto-save functionality.
- * Only saves when state is hydrated and value is not a function updater.
+ * Handles both direct values and function updaters.
  */
 function createAutoSaveHandler<T>(
   setter: React.Dispatch<React.SetStateAction<T>>,
@@ -226,9 +227,16 @@ function createAutoSaveHandler<T>(
   isHydrated: boolean
 ) {
   return (value: React.SetStateAction<T>) => {
-    setter(value);
-    if (isHydrated && typeof value !== 'function') {
-      scheduleSave(toApiUpdates(value));
+    if (typeof value === 'function') {
+      setter((prev: T) => {
+        const next = (value as (prev: T) => T)(prev);
+        // scheduleSave is debounced, so double-invocation in StrictMode is benign
+        if (isHydrated) scheduleSave(toApiUpdates(next));
+        return next;
+      });
+    } else {
+      setter(value);
+      if (isHydrated) scheduleSave(toApiUpdates(value));
     }
   };
 }
@@ -491,6 +499,12 @@ function buildAutoSaveHandlers({
       scheduleSave,
       isHydrated
     ),
+    setBeastformEnabled: createAutoSaveHandler(
+      sessionState.setBeastformEnabled,
+      mapBeastformEnabledToApi,
+      scheduleSave,
+      isHydrated
+    ),
     setHopeWithScars: createHopeWithScarsHandler({
       charState,
       sessionState,
@@ -673,6 +687,7 @@ const buildReadOnlyHandlers = (): ReturnType<
   setDeathState: () => {},
   setCompanion: () => {},
   setCompanionEnabled: () => {},
+  setBeastformEnabled: () => {},
   setNotes: () => {},
   setRestState: () => {},
   setCountdowns: () => {},

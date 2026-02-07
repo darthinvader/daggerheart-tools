@@ -1,4 +1,5 @@
 import { Shield, Skull, Sparkles } from 'lucide-react';
+import type { ReactNode } from 'react';
 
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import { cn } from '@/lib/utils';
@@ -8,6 +9,7 @@ import type { CharacterSheetState } from './types';
 interface CharacterStatusBarProps {
   state: CharacterSheetState;
   className?: string;
+  beastformSlot?: ReactNode;
 }
 
 /* ── Circular SVG Gauge ─────────────────────────────────────────── */
@@ -48,6 +50,8 @@ function CircularGauge({
           height={GAUGE_SIZE}
           viewBox={`0 0 ${GAUGE_SIZE} ${GAUGE_SIZE}`}
           className="shrink-0 -rotate-90"
+          role="img"
+          aria-label={`${label}: ${current} of ${max}`}
         >
           {/* Track */}
           <circle
@@ -57,6 +61,7 @@ function CircularGauge({
             className="gauge-track"
             stroke={trackColor}
             strokeWidth={GAUGE_STROKE}
+            fill="none"
           />
           {/* Fill ring */}
           <circle
@@ -68,6 +73,7 @@ function CircularGauge({
             strokeWidth={GAUGE_STROKE}
             strokeDasharray={GAUGE_CIRCUMFERENCE}
             strokeDashoffset={offset}
+            fill="none"
             style={
               {
                 '--gauge-circumference': GAUGE_CIRCUMFERENCE,
@@ -197,6 +203,7 @@ function HopePips({
 export function CharacterStatusBar({
   state,
   className,
+  beastformSlot,
 }: CharacterStatusBarProps) {
   const hp = state.resources.hp;
   const stress = state.resources.stress;
@@ -205,10 +212,11 @@ export function CharacterStatusBar({
   const isUnconscious = state.deathState?.isUnconscious;
   const scarCount = hope.scars?.length ?? 0;
 
-  const hpRemaining = hp.max - hp.current;
+  // Daggerheart: hp.current = damage slots marked (fills up as damage is taken)
+  const hpMarked = hp.current;
   const stressRemaining = stress.max - stress.current;
-  const hpPct = hp.max > 0 ? hpRemaining / hp.max : 1;
-  const hpCritical = hpPct <= 0.25;
+  const hpPct = hp.max > 0 ? hpMarked / hp.max : 0;
+  const hpCritical = hpPct >= 0.75;
   const stressCritical = stressRemaining <= 1;
 
   // Pick contextual status bar background
@@ -216,7 +224,7 @@ export function CharacterStatusBar({
     ? 'status-bar-unconscious'
     : hpCritical
       ? 'status-bar-critical'
-      : hpPct <= 0.5
+      : hpPct >= 0.5
         ? 'status-bar-wounded'
         : 'status-bar-healthy';
 
@@ -232,15 +240,15 @@ export function CharacterStatusBar({
         </div>
       )}
 
-      {/* HP Gauge */}
+      {/* HP Gauge — fills as damage is marked (Daggerheart tracks damage, not remaining) */}
       <CircularGauge
-        current={hpRemaining}
+        current={hpMarked}
         max={hp.max}
         label="HP"
         color={
           hpCritical
             ? 'var(--hp-critical)'
-            : hpPct <= 0.5
+            : hpPct >= 0.5
               ? 'var(--hp-wounded)'
               : 'var(--hp-healthy)'
         }
@@ -258,17 +266,29 @@ export function CharacterStatusBar({
         isCritical={stressCritical}
       />
 
-      {/* Armor (segmented bar, only when armor exists) */}
-      {armor.max > 0 && (
+      {/* Armor Score — always visible */}
+      {armor.max > 0 ? (
         <SegmentedBar
-          current={armor.current}
+          current={armor.max - armor.current}
           max={armor.max}
           label="Armor"
           color="text-primary"
           trackClass="bg-primary/20"
           icon={Shield}
         />
+      ) : (
+        <SmartTooltip content="Armor Score: 0 (unarmored)">
+          <div className="flex items-center gap-1">
+            <Shield className="text-muted-foreground size-3.5" />
+            <span className="text-muted-foreground font-mono text-xs font-bold">
+              0
+            </span>
+          </div>
+        </SmartTooltip>
       )}
+
+      {/* Beastform (Druids only) */}
+      {beastformSlot}
 
       {/* Separator */}
       <div className="bg-border hidden h-5 w-px sm:block" />

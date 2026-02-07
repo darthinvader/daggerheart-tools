@@ -103,7 +103,9 @@ export function FeatureCard({
         {showLabel && `${label}: `}
         {feature.name}
       </h4>
-      <p className={cn('text-sm', styles.text)}>{feature.description}</p>
+      <p className={cn('text-sm whitespace-pre-line', styles.text)}>
+        {feature.description}
+      </p>
     </div>
   );
 }

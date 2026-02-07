@@ -40,7 +40,7 @@ export const BARD = {
         {
           name: 'Gifted Performer',
           description:
-            'Describe how you perform for others. You can play each song once per long rest: Relaxing Song (You and all allies within Close range clear a Hit Point), Epic Song (Make a target within Close range temporarily Vulnerable), Heartbreaking Song (You and all allies within Close range gain a Hope).',
+            'You can play three different types of songs, once each per long rest; describe how you perform for others to gain the listed benefit:\n\u2022 Relaxing Song: You and all allies within Close range clear a Hit Point.\n\u2022 Epic Song: Make a target within Close range temporarily Vulnerable.\n\u2022 Heartbreaking Song: You and all allies within Close range gain a Hope.',
           type: 'foundation',
           level: 1,
           availability: {
@@ -108,7 +108,7 @@ export const BARD = {
         {
           name: 'Eloquent',
           description:
-            'Your moving words boost morale. Once per session, when you encourage an ally, you can do one of the following: Allow them to find a mundane object or tool they need, Help an Ally without spending Hope, Give them an additional downtime move during their next rest.',
+            'Your moving words boost morale. Once per session, when you encourage an ally, you can do one of the following:\n\u2022 Allow them to find a mundane object or tool they need.\n\u2022 Help an Ally without spending Hope.\n\u2022 Give them an additional downtime move during their next rest.',
           type: 'specialization',
           level: 5,
           availability: {

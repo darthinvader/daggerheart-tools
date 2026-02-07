@@ -46,16 +46,16 @@ export const LEVEL_PROGRESSION = {
   },
   AUTOMATIC_BENEFITS: {
     LEVEL_2: {
-      experience: '+2 Experience',
+      experience: 'Gain a new Experience at +2',
       proficiency: '+1 Proficiency',
     },
     LEVEL_5: {
-      experience: '+2 Experience',
+      experience: 'Gain a new Experience at +2',
       traitMarks: 'Clear all marks on character traits',
       proficiency: '+1 Proficiency',
     },
     LEVEL_8: {
-      experience: '+2 Experience',
+      experience: 'Gain a new Experience at +2',
       traitMarks: 'Clear all marks on character traits',
       proficiency: '+1 Proficiency',
     },

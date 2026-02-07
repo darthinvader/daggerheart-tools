@@ -15,6 +15,7 @@ import type { HopeWithScarsState } from '@/components/scars';
 import type { SessionEntry } from '@/components/session-tracker';
 import type { ProgressionState } from '@/components/shared/progression-display';
 import type { TraitsState } from '@/components/traits';
+import type { BeastformState } from '@/lib/schemas/beastform';
 import type {
   Gold,
   IdentityFormValues,
@@ -47,6 +48,7 @@ export interface DemoState {
   deathState: DeathMoveState;
   companion: CompanionState | undefined;
   companionEnabled: boolean;
+  beastformEnabled: boolean;
   notes: CharacterNote[];
   restState: RestState;
   countdowns: Countdown[];
@@ -55,6 +57,7 @@ export interface DemoState {
   currentSessionId: string | null;
   quickView: QuickViewPreferences;
   activeEffects: ActiveEffect[];
+  beastform: BeastformState;
 }
 
 export interface DemoHandlers {
@@ -78,6 +81,7 @@ export interface DemoHandlers {
   setDeathState: (v: DeathMoveState) => void;
   setCompanion: (v: CompanionState | undefined) => void;
   setCompanionEnabled: (v: boolean) => void;
+  setBeastformEnabled: (v: boolean) => void;
   setNotes: (v: CharacterNote[]) => void;
   setRestState: (v: RestState) => void;
   setCountdowns: (v: Countdown[]) => void;
@@ -85,6 +89,7 @@ export interface DemoHandlers {
   setSessions: (s: SessionEntry[], id: string | null) => void;
   setQuickView: (v: QuickViewPreferences) => void;
   setActiveEffects: (effects: ActiveEffect[]) => void;
+  setBeastform: (v: BeastformState) => void;
 }
 
 export interface TabProps {

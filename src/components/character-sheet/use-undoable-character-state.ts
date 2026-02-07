@@ -74,6 +74,11 @@ const UNDOABLE_FIELDS = [
     setter: 'setCompanionEnabled',
     label: 'Update companion enabled',
   },
+  {
+    key: 'beastformEnabled',
+    setter: 'setBeastformEnabled',
+    label: 'Update beastform enabled',
+  },
   { key: 'notes', setter: 'setNotes', label: 'Update notes' },
   {
     key: 'countdowns',
