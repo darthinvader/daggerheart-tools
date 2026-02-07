@@ -85,6 +85,11 @@ const UNDOABLE_FIELDS = [
     setter: 'setDowntimeActivities',
     label: 'Update downtime activities',
   },
+  {
+    key: 'beastform',
+    setter: 'setBeastform',
+    label: 'Update beastform',
+  },
 ] as const;
 
 type UndoableKey = (typeof UNDOABLE_FIELDS)[number]['key'];

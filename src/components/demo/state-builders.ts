@@ -43,6 +43,7 @@ export function buildCharacterSheetState(
     currentSessionId: sessionState.currentSessionId,
     quickView: sessionState.quickView,
     activeEffects: sessionState.activeEffects,
+    beastform: sessionState.beastform,
   };
 }
 
@@ -83,5 +84,6 @@ export function buildCharacterSheetHandlers(
     },
     setQuickView: sessionState.setQuickView,
     setActiveEffects: sessionState.setActiveEffects,
+    setBeastform: sessionState.setBeastform,
   };
 }

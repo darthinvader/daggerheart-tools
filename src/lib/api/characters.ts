@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { DomainsDraftSchema } from '@/features/characters/domains-storage';
+import { BeastformStateSchema } from '@/lib/schemas/beastform';
 import {
   ConditionsSchema,
   CustomFeaturesSchema,
@@ -86,6 +87,7 @@ export const CharacterRecordSchema = z.object({
   notes: z.array(CharacterNoteSchema).nullish(),
   downtimeActivities: z.array(DowntimeActivitySchema).nullish(),
   quickView: QuickViewPreferencesSchema.nullish(),
+  beastform: BeastformStateSchema.nullish(),
   deletedAt: z.string().nullable().optional(),
   createdAt: z.string().nullish(),
   updatedAt: z.string().nullish(),
@@ -156,6 +158,7 @@ function mapDbRowToCharacter(row: Record<string, unknown>): CharacterRecord {
     downtimeActivities:
       row.downtime_activities as CharacterRecord['downtimeActivities'],
     quickView: row.quick_view as CharacterRecord['quickView'],
+    beastform: row.beastform as CharacterRecord['beastform'],
     deletedAt: row.deleted_at as string | null,
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
@@ -206,6 +209,7 @@ function mapCharacterToDbRow(
   if (char.downtimeActivities !== undefined)
     row.downtime_activities = char.downtimeActivities;
   if (char.quickView !== undefined) row.quick_view = char.quickView;
+  if (char.beastform !== undefined) row.beastform = char.beastform;
   if (char.deletedAt !== undefined) row.deleted_at = char.deletedAt;
 
   return row;

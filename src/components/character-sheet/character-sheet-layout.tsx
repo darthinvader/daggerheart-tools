@@ -2,6 +2,7 @@ import { Loader2, Unlink, Users } from 'lucide-react';
 import { useState } from 'react';
 
 import { UndoRedoControls } from '@/components/battle-tracker/undo-redo-controls';
+import { BeastformBanner, BeastformPanel } from '@/components/beastform';
 import { CharacterOnboardingWizard } from '@/components/character-onboarding';
 import {
   CombatTab,
@@ -25,6 +26,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
+import { useBeastformActions, useBeastformState } from '@/hooks/use-beastform';
 import { Backpack, BarChart3, Dice5, Swords, User, Zap } from '@/lib/icons';
 import type { Campaign } from '@/lib/schemas/campaign';
 import type { UndoActions } from '@/lib/undo';
@@ -107,6 +109,13 @@ export function CharacterSheetLayout({
 }: CharacterSheetLayoutProps) {
   const tier = getTierNumber(state.progression.currentLevel);
 
+  const beastformState = useBeastformState(
+    state.classSelection?.className ?? null,
+    state.progression.currentLevel,
+    state.beastform
+  );
+  const beastformActions = useBeastformActions(handlers.setBeastform);
+
   const allTabs = [
     { value: 'quick', label: 'Quick', icon: <Zap className="size-4" /> },
     {
@@ -176,6 +185,29 @@ export function CharacterSheetLayout({
             ) : undefined
           }
         />
+        {beastformState.isDruid && (
+          <>
+            {beastformState.isActive && beastformState.activeForm && (
+              <BeastformBanner
+                activeForm={beastformState.activeForm}
+                activationMethod={state.beastform.activationMethod}
+                evolutionBonusTrait={state.beastform.evolutionBonusTrait}
+                onDeactivate={beastformActions.deactivate}
+                readOnly={readOnly}
+              />
+            )}
+            {!beastformState.isActive && !readOnly && (
+              <BeastformPanel
+                availableForms={beastformState.availableForms}
+                isActive={beastformState.isActive}
+                onActivateWithStress={beastformActions.activateWithStress}
+                onActivateWithEvolution={beastformActions.activateWithEvolution}
+                onDeactivate={beastformActions.deactivate}
+                readOnly={readOnly}
+              />
+            )}
+          </>
+        )}
         <CharacterSheetTabs
           activeTab={activeTab}
           handlers={handlers}

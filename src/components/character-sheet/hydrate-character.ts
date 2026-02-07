@@ -7,6 +7,7 @@ import type {
  */
 import type { CharacterRecord } from '@/lib/api/characters';
 import { getDomainsForClass } from '@/lib/data/classes';
+import { DEFAULT_BEASTFORM_STATE } from '@/lib/schemas/beastform';
 import type { InventoryItemEntry } from '@/lib/schemas/equipment';
 import { getAncestryByName, getCommunityByName } from '@/lib/schemas/identity';
 import { DEFAULT_QUICK_VIEW_PREFERENCES } from '@/lib/schemas/quick-view';
@@ -407,6 +408,9 @@ export function hydrateSessionStateHook(
   SessionStateHook.setDowntimeActivities(serverData.downtimeActivities || []);
   SessionStateHook.setQuickView(
     serverData.quickView ?? DEFAULT_QUICK_VIEW_PREFERENCES
+  );
+  SessionStateHook.setBeastform(
+    serverData.beastform ?? DEFAULT_BEASTFORM_STATE
   );
 }
 

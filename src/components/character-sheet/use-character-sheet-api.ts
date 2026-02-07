@@ -43,6 +43,7 @@ import type { ThresholdsSettings } from '@/lib/schemas/character-state';
 
 import {
   mapAncestryToApi,
+  mapBeastformToApi,
   mapClassSelectionToApi,
   mapCommunityToApi,
   mapCompanionEnabledToApi,
@@ -526,6 +527,12 @@ function buildAutoSaveHandlers({
       scheduleSave,
       isHydrated
     ),
+    setBeastform: createAutoSaveHandler(
+      sessionState.setBeastform,
+      mapBeastformToApi,
+      scheduleSave,
+      isHydrated
+    ),
   };
 }
 
@@ -673,6 +680,7 @@ const buildReadOnlyHandlers = (): ReturnType<
   setSessions: () => {},
   setQuickView: () => {},
   setActiveEffects: () => {},
+  setBeastform: () => {},
 });
 
 export function useCharacterSheetWithApi(

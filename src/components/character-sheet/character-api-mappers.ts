@@ -16,6 +16,7 @@ import type { SessionEntry } from '@/components/session-tracker';
 import type { ProgressionState } from '@/components/shared/progression-display';
 import type { TraitsState } from '@/components/traits';
 import type { CharacterRecord } from '@/lib/api/characters';
+import type { BeastformState } from '@/lib/schemas/beastform';
 import type {
   Gold,
   IdentityFormValues,
@@ -442,4 +443,11 @@ export function mapSessionsToApi(
   currentSessionId: string | null
 ): Partial<CharacterRecord> {
   return { sessions, currentSessionId };
+}
+
+/**
+ * Maps beastform state to API format
+ */
+export function mapBeastformToApi(v: BeastformState): Partial<CharacterRecord> {
+  return { beastform: v };
 }

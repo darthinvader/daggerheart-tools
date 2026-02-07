@@ -2,6 +2,7 @@ import {
   DEFAULT_DOMAINS,
   type DomainsDraft,
 } from '@/features/characters/domains-storage';
+import { DEFAULT_BEASTFORM_STATE } from '@/lib/schemas/beastform';
 import {
   DEFAULT_DESCRIPTION_DETAILS,
   DEFAULT_TRAITS,
@@ -100,6 +101,7 @@ export function createDefaultCharacter(id: string): CharacterRecord {
     notes: [],
     downtimeActivities: [],
     quickView: DEFAULT_QUICK_VIEW_PREFERENCES,
+    beastform: DEFAULT_BEASTFORM_STATE,
     deletedAt: null,
     createdAt: now,
     updatedAt: now,

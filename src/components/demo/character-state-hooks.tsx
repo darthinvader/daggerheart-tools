@@ -25,6 +25,10 @@ import type { RestState } from '@/components/rest';
 import type { SessionEntry } from '@/components/session-tracker';
 import type { ProgressionState } from '@/components/shared/progression-display';
 import { DEFAULT_TRAITS_STATE, type TraitsState } from '@/components/traits';
+import {
+  type BeastformState,
+  DEFAULT_BEASTFORM_STATE,
+} from '@/lib/schemas/beastform';
 import type {
   Gold,
   IdentityFormValues,
@@ -83,6 +87,7 @@ export interface CharacterSheetState {
   currentSessionId: string | null;
   quickView: QuickViewPreferences;
   activeEffects: ActiveEffect[];
+  beastform: BeastformState;
 }
 
 export function useCharacterState(
@@ -183,6 +188,9 @@ export function useSessionState() {
     DEFAULT_QUICK_VIEW_PREFERENCES
   );
   const [activeEffects, setActiveEffects] = useState<ActiveEffect[]>([]);
+  const [beastform, setBeastform] = useState<BeastformState>(
+    DEFAULT_BEASTFORM_STATE
+  );
 
   return {
     scars,
@@ -213,5 +221,7 @@ export function useSessionState() {
     setQuickView,
     activeEffects,
     setActiveEffects,
+    beastform,
+    setBeastform,
   };
 }

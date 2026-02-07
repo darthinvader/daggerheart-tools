@@ -7,8 +7,10 @@
 
 import type { EquipmentState } from '@/components/equipment';
 import type { TraitsState as ComponentTraitsState } from '@/components/traits';
+import { getBeastformById } from '@/lib/data/beastforms';
 import { getClassByName } from '@/lib/data/classes';
 import { getEquipmentFeatureModifiers } from '@/lib/equipment-feature-parser';
+import type { BeastformState } from '@/lib/schemas/beastform';
 
 import {
   type ArmorInput,
@@ -171,6 +173,67 @@ export function getTierFromLevel(level: number): number {
 }
 
 /**
+ * Build equipment-style modifiers from active beastform state.
+ * Returns DEFAULT_EQUIPMENT_MODIFIERS when beastform is inactive or invalid.
+ */
+export function buildBeastformModifiers(
+  beastform: BeastformState | null | undefined
+): EquipmentModifiersInput {
+  if (!beastform?.active || !beastform.formId) {
+    return DEFAULT_EQUIPMENT_MODIFIERS;
+  }
+
+  const form = getBeastformById(beastform.formId);
+  if (!form) {
+    return DEFAULT_EQUIPMENT_MODIFIERS;
+  }
+
+  const traits = { ...DEFAULT_EQUIPMENT_MODIFIERS.traits };
+  traits[form.traitBonus.trait] += form.traitBonus.value;
+
+  // Evolution activation grants an additional +1 to a chosen trait
+  if (
+    beastform.activationMethod === 'evolution' &&
+    beastform.evolutionBonusTrait
+  ) {
+    traits[beastform.evolutionBonusTrait.trait] +=
+      beastform.evolutionBonusTrait.value;
+  }
+
+  return {
+    ...DEFAULT_EQUIPMENT_MODIFIERS,
+    evasion: form.evasionBonus,
+    traits,
+  };
+}
+
+/**
+ * Merge two EquipmentModifiersInput objects by summing their values.
+ */
+function mergeEquipmentModifiers(
+  a: EquipmentModifiersInput,
+  b: EquipmentModifiersInput
+): EquipmentModifiersInput {
+  return {
+    evasion: a.evasion + b.evasion,
+    proficiency: a.proficiency + b.proficiency,
+    armorScore: a.armorScore + b.armorScore,
+    majorThreshold: a.majorThreshold + b.majorThreshold,
+    severeThreshold: a.severeThreshold + b.severeThreshold,
+    attackRolls: a.attackRolls + b.attackRolls,
+    spellcastRolls: a.spellcastRolls + b.spellcastRolls,
+    traits: {
+      Agility: a.traits.Agility + b.traits.Agility,
+      Strength: a.traits.Strength + b.traits.Strength,
+      Finesse: a.traits.Finesse + b.traits.Finesse,
+      Instinct: a.traits.Instinct + b.traits.Instinct,
+      Presence: a.traits.Presence + b.traits.Presence,
+      Knowledge: a.traits.Knowledge + b.traits.Knowledge,
+    },
+  };
+}
+
+/**
  * Build complete engine input from component states.
  * This is the main function to use in components.
  */
@@ -178,7 +241,8 @@ export function buildEngineInput(
   classSelection: ClassSelectionState | null | undefined,
   equipment: EquipmentState | null | undefined,
   progression: ProgressionState | null | undefined,
-  traits: ComponentTraitsState | null | undefined
+  traits: ComponentTraitsState | null | undefined,
+  beastform?: BeastformState | null
 ): CharacterStatsInput {
   const classInput = extractClassInput(classSelection);
   const progressionInput = extractProgressionInput(progression);
@@ -186,10 +250,17 @@ export function buildEngineInput(
   // Update class tier based on level
   classInput.tier = getTierFromLevel(progressionInput.level);
 
+  const equipmentMods = extractEquipmentModifiers(equipment);
+  const beastformMods = buildBeastformModifiers(beastform);
+  const combinedModifiers = mergeEquipmentModifiers(
+    equipmentMods,
+    beastformMods
+  );
+
   return {
     class: classInput,
     armor: extractArmorInput(equipment),
-    equipmentModifiers: extractEquipmentModifiers(equipment),
+    equipmentModifiers: combinedModifiers,
     progression: progressionInput,
     traits: extractTraitsInput(traits),
   };

@@ -8,6 +8,7 @@ import { useMemo } from 'react';
 
 import type { EquipmentState } from '@/components/equipment';
 import type { TraitsState as ComponentTraitsState } from '@/components/traits';
+import type { BeastformState } from '@/lib/schemas/beastform';
 
 import { buildEngineInput } from './adapters';
 import {
@@ -50,23 +51,26 @@ export interface UseCharacterStatsResult {
  * @param equipment - Equipment state
  * @param progression - Progression state
  * @param traits - Traits state
+ * @param beastform - Optional beastform state (modifiers merged into equipment modifiers)
  * @returns Calculated stats with breakdowns and totals
  */
 export function useCharacterStats(
   classSelection: ClassSelectionState | null | undefined,
   equipment: EquipmentState | null | undefined,
   progression: ProgressionState | null | undefined,
-  traits: ComponentTraitsState | null | undefined
+  traits: ComponentTraitsState | null | undefined,
+  beastform?: BeastformState | null
 ): UseCharacterStatsResult {
   const stats = useMemo(() => {
     const input = buildEngineInput(
       classSelection,
       equipment,
       progression,
-      traits
+      traits,
+      beastform
     );
     return calculateCharacterStats(input);
-  }, [classSelection, equipment, progression, traits]);
+  }, [classSelection, equipment, progression, traits, beastform]);
 
   const totals = useMemo(() => getStatTotals(stats), [stats]);
   const hasModifiers = useMemo(() => hasEquipmentModifiers(stats), [stats]);
