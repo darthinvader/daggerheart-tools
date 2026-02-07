@@ -8,6 +8,7 @@ import {
   IngredientSchema,
   MealSchema,
 } from './beast-feast-cooking';
+import { CalendarStateSchema } from './calendar';
 import { SessionZeroSchema } from './session-zero';
 
 // =====================================================================================
@@ -702,6 +703,9 @@ export const CampaignSchema = z.object({
   partyInventory: z.array(PartyInventoryItemSchema).default([]),
   // Beast Feast feature toggle — many campaigns don't use it
   beastFeastEnabled: z.boolean().default(false),
+  // Calendar tracking — world-building tool for campaign time
+  calendar: CalendarStateSchema.optional(),
+  calendarEnabled: z.boolean().default(false),
   inviteCode: z.string().optional(),
   phase: CampaignPhaseSchema.default('act-1'),
   status: z.enum(['draft', 'active', 'paused', 'completed']).default('draft'),
@@ -744,9 +748,20 @@ export type StoryThread = z.infer<typeof StoryThreadSchema>;
 export type PartyInventoryItem = z.infer<typeof PartyInventoryItemSchema>;
 export type Campaign = z.infer<typeof CampaignSchema>;
 export type BeastFeastState = NonNullable<Campaign['beastFeast']>;
+export type CalendarState = NonNullable<Campaign['calendar']>;
 
 // Re-export battle types for convenience
 export type { BattleState } from './battle';
+
+// Re-export calendar types for convenience
+export type {
+  CalendarDefinition,
+  CalendarEvent,
+  CalendarEventCategory,
+  CalendarMoon,
+  CalendarPreset,
+  CalendarSeason,
+} from './calendar';
 
 // Re-export beast-feast-cooking types for convenience
 export type {

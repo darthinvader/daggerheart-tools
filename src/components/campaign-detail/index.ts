@@ -1,5 +1,6 @@
 // Campaign detail page components
 export { BeastFeastTabContent } from './beast-feast-tab-content';
+export { CalendarTabContent } from './calendar-tab-content';
 export { CampaignHeader } from './campaign-header';
 export { EditableDistinctions } from './editable-distinctions';
 export { EditableMechanics } from './editable-mechanics';

@@ -2,6 +2,7 @@
 
 import { z } from 'zod';
 
+import { safeParseAndMigrateCalendar } from '@/lib/calendar/calendar-migration';
 import { createCampaignFrameFromTemplate } from '@/lib/data/campaign-frames';
 import { BattleStateSchema } from '@/lib/schemas/battle';
 import type {
@@ -42,6 +43,8 @@ interface CampaignRow {
   session_zero: Campaign['sessionZero'];
   beast_feast: Campaign['beastFeast'];
   beast_feast_enabled: boolean;
+  calendar: Campaign['calendar'] | null;
+  calendar_enabled: boolean;
   session_prep_checklist: Campaign['sessionPrepChecklist'];
   party_inventory: Campaign['partyInventory'];
   invite_code: string | null;
@@ -109,6 +112,10 @@ function rowToCampaign(row: CampaignRow): Campaign {
     sessionZero: row.session_zero ?? undefined,
     beastFeast: row.beast_feast ?? undefined,
     beastFeastEnabled: row.beast_feast_enabled ?? false,
+    calendar: row.calendar
+      ? (safeParseAndMigrateCalendar(row.calendar) ?? undefined)
+      : undefined,
+    calendarEnabled: row.calendar_enabled ?? false,
     sessionPrepChecklist: row.session_prep_checklist ?? [],
     partyInventory: row.party_inventory ?? [],
     inviteCode: row.invite_code ?? undefined,
@@ -154,6 +161,8 @@ const CAMPAIGN_TO_ROW_FIELDS: Record<string, string> = {
   sessionZero: 'session_zero',
   beastFeast: 'beast_feast',
   beastFeastEnabled: 'beast_feast_enabled',
+  calendar: 'calendar',
+  calendarEnabled: 'calendar_enabled',
   sessionPrepChecklist: 'session_prep_checklist',
   partyInventory: 'party_inventory',
   inviteCode: 'invite_code',
@@ -404,6 +413,8 @@ export async function updateCampaign(
       | 'sessionPrepChecklist'
       | 'partyInventory'
       | 'beastFeastEnabled'
+      | 'calendar'
+      | 'calendarEnabled'
     >
   >
 ): Promise<Campaign | undefined> {

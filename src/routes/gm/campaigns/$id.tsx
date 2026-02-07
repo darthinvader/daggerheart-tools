@@ -11,6 +11,7 @@ import {
   Beaker,
   BookOpen,
   Building2,
+  CalendarDays,
   ChefHat,
   Lightbulb,
   Map,
@@ -27,6 +28,7 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 import {
   BeastFeastTabContent,
+  CalendarTabContent,
   CampaignHeader,
   CharactersTabContent,
   GMToolsTabContent,
@@ -78,6 +80,7 @@ const validTabs = [
   'gm-tools',
   'homebrew',
   'beast-feast',
+  'calendar',
   'players',
 ] as const;
 
@@ -193,6 +196,8 @@ type CampaignTabsProps = {
   onDeleteBattle: (battleId: string) => void | Promise<void>;
   onPartyInventoryChange: (items: Campaign['partyInventory']) => void;
   onPlayersChange: (players: Campaign['players']) => void;
+  setCampaign: React.Dispatch<React.SetStateAction<Campaign | null>>;
+  markChanged: () => void;
 };
 
 function CampaignLoadingState() {
@@ -424,6 +429,8 @@ function useCampaignDetailState(
         name: campaign.name,
         phase: campaign.phase,
         beastFeastEnabled: campaign.beastFeastEnabled,
+        calendarEnabled: campaign.calendarEnabled,
+        calendar: campaign.calendar,
       });
       await updateCampaignFrame(id, campaign.frame);
       setChangeVersion(0);
@@ -516,6 +523,21 @@ function useCampaignDetailState(
     },
     [setCampaign]
   );
+
+  const handleCalendarToggle = useCallback(
+    (enabled: boolean) => {
+      setCampaign(current => {
+        if (!current) return current;
+        setChangeVersion(v => v + 1);
+        return { ...current, calendarEnabled: enabled };
+      });
+    },
+    [setCampaign]
+  );
+
+  const markChanged = useCallback(() => {
+    setChangeVersion(v => v + 1);
+  }, []);
 
   const handleSessionZeroChange = useCallback(
     (sessionZero: NonNullable<Campaign['sessionZero']>) => {
@@ -611,6 +633,9 @@ function useCampaignDetailState(
     handleNameChange,
     handlePhaseChange,
     handleBeastFeastToggle,
+    handleCalendarToggle,
+    setCampaign,
+    markChanged,
     handleChecklistChange,
     handleSessionZeroChange,
     handleDeleteBattle,
@@ -722,6 +747,8 @@ function CampaignTabs({
   onDeleteBattle,
   onPartyInventoryChange,
   onPlayersChange,
+  setCampaign,
+  markChanged,
 }: CampaignTabsProps) {
   return (
     <Tabs value={tab} onValueChange={setActiveTab}>
@@ -794,6 +821,12 @@ function CampaignTabs({
           <TabsTrigger value="beast-feast">
             <ChefHat className="h-4 w-4 text-orange-500" />
             <span className="ml-2 hidden lg:inline">Beast Feast</span>
+          </TabsTrigger>
+        )}
+        {campaign.calendarEnabled && (
+          <TabsTrigger value="calendar">
+            <CalendarDays className="h-4 w-4 text-teal-500" />
+            <span className="ml-2 hidden lg:inline">Calendar</span>
           </TabsTrigger>
         )}
         <TabsTrigger value="players">
@@ -923,6 +956,13 @@ function CampaignTabs({
       {tab === 'beast-feast' && campaign.beastFeastEnabled && (
         <BeastFeastTabContent campaignId={campaign.id} />
       )}
+      {tab === 'calendar' && campaign.calendarEnabled && (
+        <CalendarTabContent
+          campaign={campaign}
+          setCampaign={setCampaign}
+          markChanged={markChanged}
+        />
+      )}
       {tab === 'players' && (
         <PlayersTabContent
           campaign={campaign}
@@ -975,6 +1015,9 @@ function CampaignDetailPage() {
     handleNameChange,
     handlePhaseChange,
     handleBeastFeastToggle,
+    handleCalendarToggle,
+    setCampaign,
+    markChanged,
     handleChecklistChange,
     handleSessionZeroChange,
     handleDeleteBattle,
@@ -1078,6 +1121,7 @@ function CampaignDetailPage() {
         onSave={handleSave}
         onPhaseChange={handlePhaseChange}
         onBeastFeastToggle={handleBeastFeastToggle}
+        onCalendarToggle={handleCalendarToggle}
       />
 
       <CampaignTabs
@@ -1106,6 +1150,8 @@ function CampaignDetailPage() {
         onDeleteBattle={handleDeleteBattle}
         onPartyInventoryChange={handlePartyInventoryChange}
         onPlayersChange={handlePlayersChange}
+        setCampaign={setCampaign}
+        markChanged={markChanged}
       />
     </div>
   );
