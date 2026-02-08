@@ -12,7 +12,7 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config([
   {
-    ignores: ['dist/**', 'node_modules/**', 'coverage/**', '*.gen.ts'],
+    ignores: ['dist/**', 'node_modules/**', 'coverage/**', '**/*.gen.ts'],
   },
   {
     files: ['**/*.{ts,tsx,js,jsx}'],
@@ -22,15 +22,12 @@ export default tseslint.config([
       prettier,
     ],
     languageOptions: {
-      ecmaVersion: 2020,
+      ecmaVersion: 2022,
       globals: globals.browser,
     },
     rules: {
-      // TypeScript specific rules
-      '@typescript-eslint/no-unused-vars': [
-        'error',
-        { argsIgnorePattern: '^_' },
-      ],
+      // TypeScript specific rules (unused-vars handled by unused-imports plugin below)
+      '@typescript-eslint/no-unused-vars': 'off',
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',

@@ -80,7 +80,7 @@ function CoreScoresEditor({
   const isAutoEvasion = hasAutoContext && (scores.autoCalculateEvasion ?? true);
 
   const handleAutoToggle = () => {
-    const newAutoValue = !scores.autoCalculateEvasion;
+    const newAutoValue = !(scores.autoCalculateEvasion ?? true);
     onChange({
       ...scores,
       autoCalculateEvasion: newAutoValue,

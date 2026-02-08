@@ -45,17 +45,13 @@ export function ExperiencesCreationEditor({
 
   const updateExperience = (id: string, name: string) => {
     onChange({
-      items: items.map(exp =>
-        exp.id === id ? { ...exp, name, value: 2 } : { ...exp, value: 2 }
-      ),
+      items: items.map(exp => (exp.id === id ? { ...exp, name } : exp)),
     });
   };
 
   const removeExperience = (id: string) => {
     onChange({
-      items: items
-        .filter(exp => exp.id !== id)
-        .map(exp => ({ ...exp, value: 2 })),
+      items: items.filter(exp => exp.id !== id),
     });
   };
 

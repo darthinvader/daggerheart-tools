@@ -209,6 +209,7 @@ export function isCountdownComplete(countdown: Countdown): boolean {
 }
 
 export function getCountdownProgress(countdown: Countdown): number {
+  if (countdown.segments === 0) return 0;
   return countdown.filled / countdown.segments;
 }
 

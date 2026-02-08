@@ -16,16 +16,6 @@ export default defineConfig({
     }),
     react(),
     tailwindcss(),
-    // Enable automatic modulepreload for faster parallel chunk loading
-    {
-      name: 'ensure-modulepreload',
-      enforce: 'post',
-      apply: 'build',
-      transformIndexHtml: {
-        order: 'post',
-        handler: html => html,
-      },
-    },
     // Pre-compress built assets for optimal delivery (gzip + brotli)
     viteCompression({ algorithm: 'gzip' }),
     viteCompression({ algorithm: 'brotliCompress', ext: '.br' }),
@@ -63,7 +53,7 @@ export default defineConfig({
     // Use esbuild for faster builds; marginal size difference vs terser
     minify: 'esbuild',
     // Target modern browsers for smaller output
-    target: 'esnext',
+    target: 'es2022',
     // Enable CSS code splitting
     cssCodeSplit: true,
     rollupOptions: {
@@ -76,12 +66,24 @@ export default defineConfig({
           react: ['react', 'react-dom'],
           router: ['@tanstack/react-router'],
           radix: [
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-popover',
-            '@radix-ui/react-select',
-            '@radix-ui/react-navigation-menu',
-            '@radix-ui/react-tabs',
+            '@radix-ui/react-alert-dialog',
+            '@radix-ui/react-checkbox',
             '@radix-ui/react-collapsible',
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-dropdown-menu',
+            '@radix-ui/react-label',
+            '@radix-ui/react-navigation-menu',
+            '@radix-ui/react-popover',
+            '@radix-ui/react-scroll-area',
+            '@radix-ui/react-select',
+            '@radix-ui/react-separator',
+            '@radix-ui/react-slider',
+            '@radix-ui/react-slot',
+            '@radix-ui/react-switch',
+            '@radix-ui/react-tabs',
+            '@radix-ui/react-toggle-group',
+            '@radix-ui/react-tooltip',
+            '@radix-ui/react-visually-hidden',
           ],
         },
       },

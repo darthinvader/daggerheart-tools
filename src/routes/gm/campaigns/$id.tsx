@@ -635,7 +635,6 @@ function useCampaignDetailState(
     handlePhaseChange,
     handleBeastFeastToggle,
     handleCalendarToggle,
-    handleSchedulingToggle,
     setCampaign,
     markChanged,
     handleChecklistChange,

@@ -1,5 +1,11 @@
 import type { Session, User } from '@supabase/supabase-js';
-import { type ReactNode, useCallback, useEffect, useState } from 'react';
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 
 import {
   signInWithGoogle as authSignInWithGoogle,
@@ -68,16 +74,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return { error };
   }, []);
 
-  const value: AuthState = {
-    user,
-    session,
-    isLoading,
-    isAuthenticated: !!user,
-    signIn,
-    signUp,
-    signInWithGoogle,
-    signOut,
-  };
+  const value: AuthState = useMemo(
+    () => ({
+      user,
+      session,
+      isLoading,
+      isAuthenticated: !!user,
+      signIn,
+      signUp,
+      signInWithGoogle,
+      signOut,
+    }),
+    [user, session, isLoading, signIn, signUp, signInWithGoogle, signOut]
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

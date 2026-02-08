@@ -114,7 +114,13 @@ export function ExperiencesSection({
               min={0}
               value={exp.bonus}
               onChange={e =>
-                onChange(i, 'bonus', parseInt(e.target.value) || 2)
+                onChange(
+                  i,
+                  'bonus',
+                  Number.isNaN(parseInt(e.target.value))
+                    ? 2
+                    : parseInt(e.target.value)
+                )
               }
               className="w-16"
             />
@@ -216,7 +222,13 @@ export function EvasionSection({ evasion, onChange }: EvasionSectionProps) {
         type="number"
         min={0}
         value={evasion}
-        onChange={e => onChange(parseInt(e.target.value) || 10)}
+        onChange={e =>
+          onChange(
+            Number.isNaN(parseInt(e.target.value))
+              ? 10
+              : parseInt(e.target.value)
+          )
+        }
         className="w-24"
       />
     </div>
