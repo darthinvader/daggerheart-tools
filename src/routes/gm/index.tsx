@@ -9,6 +9,7 @@ import {
   FolderOpen,
   FolderPlus,
   MapPin,
+  Music,
   Scroll,
   Sparkles,
   Swords,
@@ -182,6 +183,23 @@ function GmDashboard() {
               <CardDescription>
                 Create availability polls and share voting links with your
                 players
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
+
+        <Link to="/gm/soundboard" className="block">
+          <Card className="h-full cursor-pointer border-pink-500/20 bg-gradient-to-br from-pink-500/5 to-pink-500/10 transition-all hover:scale-[1.02] hover:shadow-md">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-pink-500/10">
+                  <Music className="size-5 text-pink-500" />
+                </div>
+                Soundboard
+              </CardTitle>
+              <CardDescription>
+                Ambient music, SFX, and background tracks via YouTube,
+                SoundCloud, or direct audio links
               </CardDescription>
             </CardHeader>
           </Card>

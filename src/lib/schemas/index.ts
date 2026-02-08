@@ -42,3 +42,6 @@ export * from './safety-tools';
 
 // Dice roll schemas (Duality Roll, effect dice, outcomes)
 export * from './dice';
+
+// Soundboard / Audio Manager schemas (tracks, presets)
+export * from './soundboard';

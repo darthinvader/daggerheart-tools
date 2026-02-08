@@ -41,6 +41,7 @@ import { Route as ReferencesAncestriesRouteImport } from './routes/references/an
 import { Route as ReferencesAdversariesRouteImport } from './routes/references/adversaries'
 import { Route as HomebrewNewRouteImport } from './routes/homebrew/new'
 import { Route as HomebrewBrowseRouteImport } from './routes/homebrew/browse'
+import { Route as GmSoundboardRouteImport } from './routes/gm/soundboard'
 import { Route as GmSchedulingRouteImport } from './routes/gm/scheduling'
 import { Route as GmSavedEncountersRouteImport } from './routes/gm/saved-encounters'
 import { Route as GmCampaignsRouteImport } from './routes/gm/campaigns'
@@ -216,6 +217,11 @@ const HomebrewBrowseRoute = HomebrewBrowseRouteImport.update({
   path: '/browse',
   getParentRoute: () => HomebrewRoute,
 } as any)
+const GmSoundboardRoute = GmSoundboardRouteImport.update({
+  id: '/soundboard',
+  path: '/soundboard',
+  getParentRoute: () => GmRoute,
+} as any)
 const GmSchedulingRoute = GmSchedulingRouteImport.update({
   id: '/scheduling',
   path: '/scheduling',
@@ -294,6 +300,7 @@ export interface FileRoutesByFullPath {
   '/gm/campaigns': typeof GmCampaignsRouteWithChildren
   '/gm/saved-encounters': typeof GmSavedEncountersRoute
   '/gm/scheduling': typeof GmSchedulingRoute
+  '/gm/soundboard': typeof GmSoundboardRoute
   '/homebrew/browse': typeof HomebrewBrowseRoute
   '/homebrew/new': typeof HomebrewNewRoute
   '/references/adversaries': typeof ReferencesAdversariesRoute
@@ -334,6 +341,7 @@ export interface FileRoutesByTo {
   '/gm/battle-tracker': typeof GmBattleTrackerRoute
   '/gm/saved-encounters': typeof GmSavedEncountersRoute
   '/gm/scheduling': typeof GmSchedulingRoute
+  '/gm/soundboard': typeof GmSoundboardRoute
   '/homebrew/browse': typeof HomebrewBrowseRoute
   '/homebrew/new': typeof HomebrewNewRoute
   '/references/adversaries': typeof ReferencesAdversariesRoute
@@ -381,6 +389,7 @@ export interface FileRoutesById {
   '/gm/campaigns': typeof GmCampaignsRouteWithChildren
   '/gm/saved-encounters': typeof GmSavedEncountersRoute
   '/gm/scheduling': typeof GmSchedulingRoute
+  '/gm/soundboard': typeof GmSoundboardRoute
   '/homebrew/browse': typeof HomebrewBrowseRoute
   '/homebrew/new': typeof HomebrewNewRoute
   '/references/adversaries': typeof ReferencesAdversariesRoute
@@ -429,6 +438,7 @@ export interface FileRouteTypes {
     | '/gm/campaigns'
     | '/gm/saved-encounters'
     | '/gm/scheduling'
+    | '/gm/soundboard'
     | '/homebrew/browse'
     | '/homebrew/new'
     | '/references/adversaries'
@@ -469,6 +479,7 @@ export interface FileRouteTypes {
     | '/gm/battle-tracker'
     | '/gm/saved-encounters'
     | '/gm/scheduling'
+    | '/gm/soundboard'
     | '/homebrew/browse'
     | '/homebrew/new'
     | '/references/adversaries'
@@ -515,6 +526,7 @@ export interface FileRouteTypes {
     | '/gm/campaigns'
     | '/gm/saved-encounters'
     | '/gm/scheduling'
+    | '/gm/soundboard'
     | '/homebrew/browse'
     | '/homebrew/new'
     | '/references/adversaries'
@@ -784,6 +796,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomebrewBrowseRouteImport
       parentRoute: typeof HomebrewRoute
     }
+    '/gm/soundboard': {
+      id: '/gm/soundboard'
+      path: '/soundboard'
+      fullPath: '/gm/soundboard'
+      preLoaderRoute: typeof GmSoundboardRouteImport
+      parentRoute: typeof GmRoute
+    }
     '/gm/scheduling': {
       id: '/gm/scheduling'
       path: '/scheduling'
@@ -922,6 +941,7 @@ interface GmRouteChildren {
   GmCampaignsRoute: typeof GmCampaignsRouteWithChildren
   GmSavedEncountersRoute: typeof GmSavedEncountersRoute
   GmSchedulingRoute: typeof GmSchedulingRoute
+  GmSoundboardRoute: typeof GmSoundboardRoute
   GmIndexRoute: typeof GmIndexRoute
 }
 
@@ -930,6 +950,7 @@ const GmRouteChildren: GmRouteChildren = {
   GmCampaignsRoute: GmCampaignsRouteWithChildren,
   GmSavedEncountersRoute: GmSavedEncountersRoute,
   GmSchedulingRoute: GmSchedulingRoute,
+  GmSoundboardRoute: GmSoundboardRoute,
   GmIndexRoute: GmIndexRoute,
 }
 

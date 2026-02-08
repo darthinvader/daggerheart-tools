@@ -9,6 +9,7 @@ import {
   Globe,
   Home,
   Map,
+  Music,
   Plus,
   Scroll,
   Shield,
@@ -161,6 +162,11 @@ export const defaultNavLinks: NavLink[] = [
         to: '/gm/scheduling',
         label: 'Session Scheduling',
         icon: <Calendar className="size-4" />,
+      },
+      {
+        to: '/gm/soundboard',
+        label: 'Soundboard',
+        icon: <Music className="size-4" />,
       },
       {
         to: '/gm/campaigns/new',
