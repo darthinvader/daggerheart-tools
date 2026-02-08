@@ -39,6 +39,8 @@ interface PickerItemCardProps {
   onToggle: () => void;
   onQuantityChange: (delta: number) => void;
   onConvertToHomebrew?: () => void;
+  /** Optional price label displayed below rarity/tier (used by shop) */
+  priceLabel?: React.ReactNode;
 }
 
 export function PickerItemCard({
@@ -52,6 +54,7 @@ export function PickerItemCard({
   onToggle,
   onQuantityChange,
   onConvertToHomebrew,
+  priceLabel,
 }: PickerItemCardProps) {
   const category = (item as { category?: string }).category as ItemCategory;
   const catConfig = category ? CATEGORY_CONFIG[category] : null;
@@ -109,6 +112,11 @@ export function PickerItemCard({
           rarity={item.rarity}
           tier={item.tier}
         />
+        {priceLabel && (
+          <div className="text-muted-foreground mt-1 text-xs font-medium">
+            {priceLabel}
+          </div>
+        )}
         {item.features && item.features.length > 0 && (
           <div className="mt-2 space-y-1">
             {item.features.map((feature, idx) => (

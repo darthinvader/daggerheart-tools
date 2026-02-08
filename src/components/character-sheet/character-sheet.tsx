@@ -127,7 +127,6 @@ export function CharacterSheet({
 
   // Fetch the campaign this character belongs to (if any)
   const { data: campaign } = useCharacterCampaign(characterId);
-  const campaignId = campaign?.id;
   const { data: campaigns } = useCampaigns();
 
   const characterCampaigns = useMemo(() => {
@@ -153,6 +152,19 @@ export function CharacterSheet({
         };
       });
   }, [campaigns, characterId]);
+
+  // Active campaign selection — defaults to the auto-detected campaign
+  const [selectedCampaignId, setSelectedCampaignId] = useState<string>();
+  const activeCampaign = useMemo(() => {
+    if (!campaigns) return campaign;
+    // If user selected a specific campaign, use that
+    if (selectedCampaignId) {
+      return campaigns.find(c => c.id === selectedCampaignId) ?? campaign;
+    }
+    // Default to auto-detected campaign
+    return campaign;
+  }, [campaigns, campaign, selectedCampaignId]);
+  const campaignId = activeCampaign?.id;
 
   const playerName = useMemo(() => {
     const metadata = user?.user_metadata as {
@@ -251,6 +263,10 @@ export function CharacterSheet({
       joinCampaignSuccess={joinMutation.isSuccess}
       onUnlinkCampaign={campaignId => unlinkMutation.mutate(campaignId)}
       isUnlinkingCampaign={unlinkMutation.isPending}
+      campaign={activeCampaign}
+      pushUndo={pushUndo}
+      selectedCampaignId={selectedCampaignId ?? activeCampaign?.id}
+      onSelectCampaign={setSelectedCampaignId}
     />
   );
 }

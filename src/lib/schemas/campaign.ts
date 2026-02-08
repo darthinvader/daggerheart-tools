@@ -632,6 +632,21 @@ export const PartyInventoryItemSchema = z.object({
   notes: z.string().default(''),
 });
 
+// =====================================================================================
+// Shop Settings - Per-campaign pricing configuration
+// =====================================================================================
+
+export const ShopSettingsSchema = z.object({
+  /** Global price multiplier (e.g. 1.5 = 50% more expensive) */
+  priceMultiplier: z.number().min(0).default(1),
+  /** Per-category price multipliers (e.g. { Weapon: 1.2, Armor: 0.8 }) */
+  categoryMultipliers: z.record(z.string(), z.number().min(0)).default({}),
+  /** Per-item price overrides in handfuls (e.g. { "Dagger": 3 }) */
+  itemPriceOverrides: z.record(z.string(), z.number().min(0)).default({}),
+  /** Whether to show coins denomination in this campaign */
+  showCoins: z.boolean().default(false),
+});
+
 export const CampaignSchema = z.object({
   id: z.string(),
   name: z.string().min(1),
@@ -706,6 +721,9 @@ export const CampaignSchema = z.object({
   // Calendar tracking — world-building tool for campaign time
   calendar: CalendarStateSchema.optional(),
   calendarEnabled: z.boolean().default(false),
+  // Shop — one-click shopping with campaign pricing
+  shopEnabled: z.boolean().default(false),
+  shopSettings: ShopSettingsSchema.optional(),
   inviteCode: z.string().optional(),
   phase: CampaignPhaseSchema.default('act-1'),
   status: z.enum(['draft', 'active', 'paused', 'completed']).default('draft'),
@@ -746,6 +764,7 @@ export type CampaignQuest = z.infer<typeof CampaignQuestSchema>;
 export type CampaignOrganization = z.infer<typeof CampaignOrganizationSchema>;
 export type StoryThread = z.infer<typeof StoryThreadSchema>;
 export type PartyInventoryItem = z.infer<typeof PartyInventoryItemSchema>;
+export type ShopSettings = z.infer<typeof ShopSettingsSchema>;
 export type Campaign = z.infer<typeof CampaignSchema>;
 export type BeastFeastState = NonNullable<Campaign['beastFeast']>;
 export type CalendarState = NonNullable<Campaign['calendar']>;

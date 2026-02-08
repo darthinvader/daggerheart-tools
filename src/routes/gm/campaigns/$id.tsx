@@ -19,6 +19,7 @@ import {
   MessageSquare,
   Scroll,
   Sparkles,
+  Store,
   Target,
   User,
   Users,
@@ -43,6 +44,7 @@ import {
   SessionZeroTabContent,
   WorldTabContent,
 } from '@/components/campaign-detail';
+import { ShopSettingsPanel } from '@/components/shop/shop-settings-panel';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { RouteErrorFallback } from '@/components/ui/route-error-fallback';
@@ -81,6 +83,7 @@ const validTabs = [
   'homebrew',
   'beast-feast',
   'calendar',
+  'shop',
   'players',
 ] as const;
 
@@ -424,6 +427,8 @@ function useCampaignDetailState(
   // Perform the actual save
   const performSave = useCallback(async () => {
     if (!campaign || saving) return;
+    // Snapshot current version so we can detect changes arriving during save
+    const versionAtStart = changeVersion;
     setSaving(true);
     try {
       await updateCampaign(id, {
@@ -432,13 +437,17 @@ function useCampaignDetailState(
         beastFeastEnabled: campaign.beastFeastEnabled,
         calendarEnabled: campaign.calendarEnabled,
         calendar: campaign.calendar,
+        shopEnabled: campaign.shopEnabled,
+        shopSettings: campaign.shopSettings,
       });
       await updateCampaignFrame(id, campaign.frame);
-      setChangeVersion(0);
+      // Only reset if no new changes arrived while we were saving.
+      // If changeVersion increased, the auto-save effect will re-trigger.
+      setChangeVersion(v => (v <= versionAtStart ? 0 : v));
     } finally {
       setSaving(false);
     }
-  }, [campaign, id, saving]);
+  }, [campaign, id, saving, changeVersion]);
 
   const { handleSave } = useCampaignAutoSave(
     performSave,
@@ -531,6 +540,17 @@ function useCampaignDetailState(
         if (!current) return current;
         setChangeVersion(v => v + 1);
         return { ...current, calendarEnabled: enabled };
+      });
+    },
+    [setCampaign]
+  );
+
+  const handleShopToggle = useCallback(
+    (enabled: boolean) => {
+      setCampaign(current => {
+        if (!current) return current;
+        setChangeVersion(v => v + 1);
+        return { ...current, shopEnabled: enabled };
       });
     },
     [setCampaign]
@@ -635,6 +655,7 @@ function useCampaignDetailState(
     handlePhaseChange,
     handleBeastFeastToggle,
     handleCalendarToggle,
+    handleShopToggle,
     setCampaign,
     markChanged,
     handleChecklistChange,
@@ -831,6 +852,12 @@ function CampaignTabs({
             <span className="ml-2 hidden lg:inline">Calendar</span>
           </TabsTrigger>
         )}
+        {campaign.shopEnabled && (
+          <TabsTrigger value="shop">
+            <Store className="h-4 w-4 text-amber-500" />
+            <span className="ml-2 hidden lg:inline">Shop</span>
+          </TabsTrigger>
+        )}
         <TabsTrigger value="players">
           <Users className="h-4 w-4 text-green-500" />
           <span className="ml-2 hidden lg:inline">Players</span>
@@ -965,6 +992,16 @@ function CampaignTabs({
           markChanged={markChanged}
         />
       )}
+      {tab === 'shop' && campaign.shopEnabled && (
+        <ShopSettingsPanel
+          shopEnabled={campaign.shopEnabled ?? false}
+          shopSettings={campaign.shopSettings}
+          onUpdate={updates => {
+            setCampaign(prev => (prev ? { ...prev, ...updates } : prev));
+            markChanged();
+          }}
+        />
+      )}
       {tab === 'players' && (
         <PlayersTabContent
           campaign={campaign}
@@ -1018,6 +1055,7 @@ function CampaignDetailPage() {
     handlePhaseChange,
     handleBeastFeastToggle,
     handleCalendarToggle,
+    handleShopToggle,
     setCampaign,
     markChanged,
     handleChecklistChange,
@@ -1124,6 +1162,7 @@ function CampaignDetailPage() {
         onPhaseChange={handlePhaseChange}
         onBeastFeastToggle={handleBeastFeastToggle}
         onCalendarToggle={handleCalendarToggle}
+        onShopToggle={handleShopToggle}
       />
 
       <CampaignTabs

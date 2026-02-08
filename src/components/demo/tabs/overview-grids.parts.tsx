@@ -747,10 +747,18 @@ export function HopeScoresThresholdsGrid({
   );
 }
 
-export function GoldConditionsGrid({ state, handlers }: TabProps) {
+export function GoldConditionsGrid({
+  state,
+  handlers,
+  shopSettings,
+}: TabProps) {
   return (
     <div className="grid gap-3 sm:grid-cols-2 sm:gap-6">
-      <GoldDisplay gold={state.gold} onChange={handlers.setGold} />
+      <GoldDisplay
+        gold={state.gold}
+        onChange={handlers.setGold}
+        campaignShowCoins={shopSettings?.showCoins}
+      />
       <ConditionsDisplay
         conditions={state.conditions}
         onChange={handlers.setConditions}

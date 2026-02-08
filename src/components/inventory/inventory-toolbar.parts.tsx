@@ -26,6 +26,7 @@ interface InventoryToolbarProps {
   activeFilterCount: number;
   onClearFilters: () => void;
   readOnly?: boolean;
+  shopSlot?: React.ReactNode;
 }
 
 export function InventoryToolbar({
@@ -41,6 +42,7 @@ export function InventoryToolbar({
   activeFilterCount,
   onClearFilters,
   readOnly,
+  shopSlot,
 }: InventoryToolbarProps) {
   const items = inventory?.items ?? [];
   const totalQuantity = items.reduce((sum, i) => sum + i.quantity, 0);
@@ -59,6 +61,7 @@ export function InventoryToolbar({
           onClearFilters={onClearFilters}
           onUnlimitedSlotsChange={onUnlimitedSlotsChange}
           onUnlimitedQuantityChange={onUnlimitedQuantityChange}
+          shopSlot={shopSlot}
         />
       )}
 
@@ -85,6 +88,7 @@ interface ToolbarActionButtonsProps {
   onClearFilters: () => void;
   onUnlimitedSlotsChange?: (value: boolean) => void;
   onUnlimitedQuantityChange?: (value: boolean) => void;
+  shopSlot?: React.ReactNode;
 }
 
 function ToolbarActionButtons({
@@ -97,6 +101,7 @@ function ToolbarActionButtons({
   onClearFilters,
   onUnlimitedSlotsChange,
   onUnlimitedQuantityChange,
+  shopSlot,
 }: ToolbarActionButtonsProps) {
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -109,6 +114,7 @@ function ToolbarActionButtons({
           <Package size={ICON_SIZE_MD} /> Add Items
         </Button>
       )}
+      {shopSlot}
 
       {totalItems > 0 && (
         <SmartTooltip

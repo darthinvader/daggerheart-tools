@@ -16,6 +16,7 @@ import type { SessionEntry } from '@/components/session-tracker';
 import type { ProgressionState } from '@/components/shared/progression-display';
 import type { TraitsState } from '@/components/traits';
 import type { BeastformState } from '@/lib/schemas/beastform';
+import type { ShopSettings } from '@/lib/schemas/campaign';
 import type {
   Gold,
   IdentityFormValues,
@@ -96,4 +97,10 @@ export interface TabProps {
   state: DemoState;
   handlers: DemoHandlers;
   isHydrated?: boolean;
+  /** Optional: for compound undo in shop purchases */
+  pushUndo?: (label: string) => void;
+  /** Shop pricing config from active campaign */
+  shopSettings?: ShopSettings;
+  /** Active campaign name for shop header */
+  campaignName?: string;
 }

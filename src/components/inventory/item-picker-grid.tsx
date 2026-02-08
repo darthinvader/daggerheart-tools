@@ -10,6 +10,8 @@ interface ItemPickerGridProps {
   inventoryItems?: InventoryItemEntry[];
   unlimitedQuantity?: boolean;
   onConvertToHomebrew?: (item: AnyItem) => void;
+  /** Optional map of item name → formatted price label (used by shop) */
+  priceMap?: Map<string, string>;
 }
 
 export function ItemPickerGrid({
@@ -20,6 +22,7 @@ export function ItemPickerGrid({
   inventoryItems = [],
   unlimitedQuantity = false,
   onConvertToHomebrew,
+  priceMap,
 }: ItemPickerGridProps) {
   return (
     <div className="grid gap-2 pb-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -53,6 +56,7 @@ export function ItemPickerGrid({
             onConvertToHomebrew={
               onConvertToHomebrew ? () => onConvertToHomebrew(item) : undefined
             }
+            priceLabel={priceMap?.get(item.name)}
           />
         );
       })}

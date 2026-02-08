@@ -15,6 +15,7 @@ interface InventoryDisplayProps {
   className?: string;
   readOnly?: boolean;
   allowedTiers?: string[];
+  shopSlot?: React.ReactNode;
 }
 
 export function InventoryDisplay({
@@ -23,6 +24,7 @@ export function InventoryDisplay({
   className,
   readOnly = false,
   allowedTiers,
+  shopSlot,
 }: InventoryDisplayProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -76,6 +78,7 @@ export function InventoryDisplay({
           }
           onAddClick={readOnly ? undefined : () => setPickerOpen(true)}
           readOnly={readOnly}
+          shopSlot={shopSlot}
         />
       </div>
 

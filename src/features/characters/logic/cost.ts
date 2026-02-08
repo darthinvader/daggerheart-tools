@@ -17,7 +17,7 @@ type ItemExtended = Item & {
 };
 
 // Conversion: 10 handfuls = 1 bag, 10 bags = 1 chest (scales well for UI).
-function normalizeHandfuls(totalHandfuls: number): EstimatedCost {
+export function normalizeHandfuls(totalHandfuls: number): EstimatedCost {
   const safe = Math.max(0, Math.round(totalHandfuls));
   const bags = Math.floor(safe / 10);
   const handfuls = safe % 10;

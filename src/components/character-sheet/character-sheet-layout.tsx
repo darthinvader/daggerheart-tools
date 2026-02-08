@@ -1,4 +1,4 @@
-import { Loader2, PawPrint, Unlink, Users } from 'lucide-react';
+import { Check, Loader2, PawPrint, Unlink, Users } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import { UndoRedoControls } from '@/components/battle-tracker/undo-redo-controls';
@@ -28,7 +28,7 @@ import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { useBeastformState } from '@/hooks/use-beastform';
 import { getSubclassByName } from '@/lib/data/classes';
 import { Backpack, BarChart3, Dice5, Swords, User, Zap } from '@/lib/icons';
-import type { Campaign } from '@/lib/schemas/campaign';
+import type { Campaign, ShopSettings } from '@/lib/schemas/campaign';
 import type { UndoActions } from '@/lib/undo';
 import { cn } from '@/lib/utils';
 
@@ -75,6 +75,14 @@ interface CharacterSheetLayoutProps {
   onUnlinkCampaign: (campaignId: string) => void;
   isUnlinkingCampaign: boolean;
   undoActions?: UndoActions;
+  /** Full campaign object for shop settings */
+  campaign?: Campaign;
+  /** Push a single undo entry before compound mutations */
+  pushUndo?: (label: string) => void;
+  /** Currently selected campaign ID for shop pricing */
+  selectedCampaignId?: string;
+  /** Callback to select a different campaign */
+  onSelectCampaign?: (campaignId: string) => void;
 }
 
 export function CharacterSheetLayout({
@@ -107,6 +115,10 @@ export function CharacterSheetLayout({
   onUnlinkCampaign,
   isUnlinkingCampaign,
   undoActions,
+  campaign,
+  pushUndo,
+  selectedCampaignId,
+  onSelectCampaign,
 }: CharacterSheetLayoutProps) {
   const tier = getTierNumber(state.progression.currentLevel);
 
@@ -204,6 +216,8 @@ export function CharacterSheetLayout({
               readOnly={readOnly}
               onUnlinkCampaign={onUnlinkCampaign}
               isUnlinkingCampaign={isUnlinkingCampaign}
+              selectedCampaignId={selectedCampaignId}
+              onSelectCampaign={onSelectCampaign}
             />
           }
           settingsSection={
@@ -244,6 +258,11 @@ export function CharacterSheetLayout({
           onTabChange={onTabChange}
           readOnly={readOnly}
           state={state}
+          pushUndo={pushUndo}
+          shopSettings={
+            campaign?.shopEnabled ? campaign.shopSettings : undefined
+          }
+          campaignName={campaign?.name}
         />
         <LevelUpSection
           readOnly={readOnly}
@@ -333,6 +352,8 @@ function CharacterCampaignSection({
   readOnly,
   onUnlinkCampaign,
   isUnlinkingCampaign,
+  selectedCampaignId,
+  onSelectCampaign,
 }: {
   campaigns: Array<{
     id: string;
@@ -350,10 +371,14 @@ function CharacterCampaignSection({
   readOnly: boolean;
   onUnlinkCampaign: (campaignId: string) => void;
   isUnlinkingCampaign: boolean;
+  selectedCampaignId?: string;
+  onSelectCampaign?: (campaignId: string) => void;
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const hasCampaigns = campaigns.length > 0;
-  const campaignLabel = hasCampaigns ? campaigns[0].name : 'No campaign';
+  const activeCampaign = selectedCampaignId
+    ? campaigns.find(c => c.id === selectedCampaignId)
+    : campaigns[0];
+  const campaignLabel = activeCampaign?.name ?? 'No campaign';
   const multipleCampaigns = campaigns.length > 1;
 
   return (
@@ -394,45 +419,81 @@ function CharacterCampaignSection({
                 </p>
               ) : (
                 <div className="space-y-2">
-                  {campaigns.map(campaign => (
-                    <div
-                      key={campaign.id}
-                      className="bg-muted/50 flex items-center justify-between rounded-lg border p-3"
-                    >
-                      <span className="font-medium">{campaign.name}</span>
-                      <div className="flex items-center gap-1.5">
-                        <Badge variant="outline" className="text-xs capitalize">
-                          {campaign.status}
-                        </Badge>
-                        {campaign.role && (
+                  {campaigns.map(campaign => {
+                    const isActive =
+                      campaign.id === (selectedCampaignId ?? campaigns[0]?.id);
+                    return (
+                      <button
+                        key={campaign.id}
+                        type="button"
+                        className={`flex w-full items-center justify-between rounded-lg border p-3 text-left transition-colors ${
+                          isActive
+                            ? 'border-primary bg-primary/5 ring-primary/20 ring-1'
+                            : 'bg-muted/50 hover:bg-muted'
+                        } ${multipleCampaigns && onSelectCampaign ? 'cursor-pointer' : 'cursor-default'}`}
+                        onClick={() =>
+                          multipleCampaigns && onSelectCampaign?.(campaign.id)
+                        }
+                      >
+                        <div className="flex items-center gap-2">
+                          {multipleCampaigns && (
+                            <div
+                              className={`flex size-4 items-center justify-center rounded-full border ${
+                                isActive
+                                  ? 'border-primary bg-primary text-primary-foreground'
+                                  : 'border-muted-foreground/40'
+                              }`}
+                            >
+                              {isActive && <Check className="size-3" />}
+                            </div>
+                          )}
+                          <span className="font-medium">{campaign.name}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          {isActive && multipleCampaigns && (
+                            <Badge variant="default" className="text-[10px]">
+                              Active
+                            </Badge>
+                          )}
                           <Badge
-                            variant="secondary"
+                            variant="outline"
                             className="text-xs capitalize"
                           >
-                            {campaign.role}
+                            {campaign.status}
                           </Badge>
-                        )}
-                        {!readOnly && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="ml-1 h-7 w-7 p-0 text-red-500 hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-950"
-                            onClick={() => onUnlinkCampaign(campaign.id)}
-                            disabled={isUnlinkingCampaign}
-                          >
-                            {isUnlinkingCampaign ? (
-                              <Loader2 className="size-3.5 animate-spin" />
-                            ) : (
-                              <Unlink className="size-3.5" />
-                            )}
-                            <span className="sr-only">
-                              Leave {campaign.name}
-                            </span>
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                          {campaign.role && (
+                            <Badge
+                              variant="secondary"
+                              className="text-xs capitalize"
+                            >
+                              {campaign.role}
+                            </Badge>
+                          )}
+                          {!readOnly && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="ml-1 h-7 w-7 p-0 text-red-500 hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-950"
+                              onClick={e => {
+                                e.stopPropagation();
+                                onUnlinkCampaign(campaign.id);
+                              }}
+                              disabled={isUnlinkingCampaign}
+                            >
+                              {isUnlinkingCampaign ? (
+                                <Loader2 className="size-3.5 animate-spin" />
+                              ) : (
+                                <Unlink className="size-3.5" />
+                              )}
+                              <span className="sr-only">
+                                Leave {campaign.name}
+                              </span>
+                            </Button>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -484,6 +545,9 @@ function CharacterSheetTabs({
   onTabChange,
   readOnly,
   state,
+  pushUndo,
+  shopSettings,
+  campaignName,
 }: {
   activeTab: string;
   handlers: CharacterSheetHandlers;
@@ -491,6 +555,9 @@ function CharacterSheetTabs({
   onTabChange: (tab: string) => void;
   readOnly: boolean;
   state: CharacterSheetState;
+  pushUndo?: (label: string) => void;
+  shopSettings?: ShopSettings;
+  campaignName?: string;
 }) {
   const primaryTabs = [
     { value: 'quick', label: 'Quick', icon: <Zap className="size-4" /> },
@@ -531,6 +598,9 @@ function CharacterSheetTabs({
             state={state}
             handlers={handlers}
             isHydrated={isHydrated}
+            pushUndo={pushUndo}
+            shopSettings={shopSettings}
+            campaignName={campaignName}
           />
         </TabsContent>
         <TabsContent value="identity" className="animate-fade-up">
@@ -548,7 +618,14 @@ function CharacterSheetTabs({
           />
         </TabsContent>
         <TabsContent value="items" className="animate-fade-up">
-          <ItemsTab state={state} handlers={handlers} isHydrated={isHydrated} />
+          <ItemsTab
+            state={state}
+            handlers={handlers}
+            isHydrated={isHydrated}
+            pushUndo={pushUndo}
+            shopSettings={shopSettings}
+            campaignName={campaignName}
+          />
         </TabsContent>
         <TabsContent value="session" className="animate-fade-up">
           <SessionTab

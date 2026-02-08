@@ -45,6 +45,8 @@ interface CampaignRow {
   beast_feast_enabled: boolean;
   calendar: Campaign['calendar'] | null;
   calendar_enabled: boolean;
+  shop_enabled: boolean;
+  shop_settings: Campaign['shopSettings'] | null;
   session_prep_checklist: Campaign['sessionPrepChecklist'];
   party_inventory: Campaign['partyInventory'];
   invite_code: string | null;
@@ -116,6 +118,8 @@ function rowToCampaign(row: CampaignRow): Campaign {
       ? (safeParseAndMigrateCalendar(row.calendar) ?? undefined)
       : undefined,
     calendarEnabled: row.calendar_enabled ?? false,
+    shopEnabled: row.shop_enabled ?? false,
+    shopSettings: row.shop_settings ?? undefined,
     sessionPrepChecklist: row.session_prep_checklist ?? [],
     partyInventory: row.party_inventory ?? [],
     inviteCode: row.invite_code ?? undefined,
@@ -163,6 +167,8 @@ const CAMPAIGN_TO_ROW_FIELDS: Record<string, string> = {
   beastFeastEnabled: 'beast_feast_enabled',
   calendar: 'calendar',
   calendarEnabled: 'calendar_enabled',
+  shopEnabled: 'shop_enabled',
+  shopSettings: 'shop_settings',
   sessionPrepChecklist: 'session_prep_checklist',
   partyInventory: 'party_inventory',
   inviteCode: 'invite_code',
@@ -415,6 +421,8 @@ export async function updateCampaign(
       | 'beastFeastEnabled'
       | 'calendar'
       | 'calendarEnabled'
+      | 'shopEnabled'
+      | 'shopSettings'
     >
   >
 ): Promise<Campaign | undefined> {

@@ -14,6 +14,8 @@ interface GoldDisplayProps {
   className?: string;
   readOnly?: boolean;
   compactMode?: boolean;
+  /** Campaign-level override to show coins denomination */
+  campaignShowCoins?: boolean;
 }
 
 function GoldCompactDisplay({ gold }: { gold: Gold }) {
@@ -56,7 +58,13 @@ function GoldCompactDisplay({ gold }: { gold: Gold }) {
   );
 }
 
-function GoldDetailedDisplay({ gold }: { gold: Gold }) {
+function GoldDetailedDisplay({
+  gold,
+  showCoinsOverride,
+}: {
+  gold: Gold;
+  showCoinsOverride?: boolean;
+}) {
   const totalInCoins =
     (gold.coins ?? 0) +
     gold.handfuls * 10 +
@@ -64,6 +72,7 @@ function GoldDetailedDisplay({ gold }: { gold: Gold }) {
     gold.chests * 1000;
 
   const displayDenom = gold.displayDenomination ?? 'handfuls';
+  const showCoins = showCoinsOverride ?? gold.showCoins ?? false;
 
   const calculateTotal = (
     denomination: 'coins' | 'handfuls' | 'bags' | 'chests'
@@ -103,12 +112,9 @@ function GoldDetailedDisplay({ gold }: { gold: Gold }) {
   return (
     <div className="space-y-4">
       <div
-        className={cn(
-          'grid gap-4',
-          gold.showCoins ? 'grid-cols-4' : 'grid-cols-3'
-        )}
+        className={cn('grid gap-4', showCoins ? 'grid-cols-4' : 'grid-cols-3')}
       >
-        {gold.showCoins && (
+        {showCoins && (
           <div className="rounded-lg border border-stone-500/30 bg-stone-500/10 p-4 text-center">
             <Coins className="mx-auto size-8" />
             <p className="text-2xl font-bold text-stone-600 dark:text-stone-400">
@@ -171,6 +177,7 @@ export function GoldDisplay({
   className,
   readOnly = false,
   compactMode = false,
+  campaignShowCoins,
 }: GoldDisplayProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [draftGold, setDraftGold] = useState<Gold>(gold);
@@ -239,7 +246,10 @@ export function GoldDisplay({
       {compactMode ? (
         <GoldCompactDisplay gold={gold} />
       ) : (
-        <GoldDetailedDisplay gold={gold} />
+        <GoldDetailedDisplay
+          gold={gold}
+          showCoinsOverride={campaignShowCoins}
+        />
       )}
     </EditableSection>
   );

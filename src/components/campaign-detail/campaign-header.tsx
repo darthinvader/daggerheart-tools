@@ -84,6 +84,7 @@ interface CampaignHeaderProps {
   onPhaseChange?: (phase: CampaignPhase) => void;
   onBeastFeastToggle?: (enabled: boolean) => void;
   onCalendarToggle?: (enabled: boolean) => void;
+  onShopToggle?: (enabled: boolean) => void;
 }
 
 export function CampaignHeader({
@@ -99,6 +100,7 @@ export function CampaignHeader({
   onPhaseChange,
   onBeastFeastToggle,
   onCalendarToggle,
+  onShopToggle,
 }: CampaignHeaderProps) {
   // eslint-disable-next-line react-hooks/purity -- Date.now() in ref init is safe for relative time display
   const nowRef = useRef(Date.now());
@@ -280,6 +282,16 @@ export function CampaignHeader({
                 id="calendar-toggle"
                 checked={campaign.calendarEnabled ?? false}
                 onCheckedChange={v => onCalendarToggle?.(v)}
+              />
+            </div>
+            <div className="mt-2 flex items-center justify-between">
+              <Label htmlFor="shop-toggle" className="text-xs">
+                Enable Shop
+              </Label>
+              <Switch
+                id="shop-toggle"
+                checked={campaign.shopEnabled ?? false}
+                onCheckedChange={v => onShopToggle?.(v)}
               />
             </div>
           </PopoverContent>

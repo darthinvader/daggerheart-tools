@@ -24,6 +24,7 @@ interface InventoryContentProps {
   onUnlimitedQuantityChange?: (value: boolean) => void;
   onAddClick?: () => void;
   readOnly?: boolean;
+  shopSlot?: React.ReactNode;
 }
 
 export function InventoryContent({
@@ -39,6 +40,7 @@ export function InventoryContent({
   onUnlimitedQuantityChange,
   onAddClick,
   readOnly,
+  shopSlot,
 }: InventoryContentProps) {
   const [filters, setFilters] = useState<InventoryFilters>({
     categories: [],
@@ -74,6 +76,7 @@ export function InventoryContent({
         activeFilterCount={activeFilterCount}
         onClearFilters={clearFilters}
         readOnly={readOnly}
+        shopSlot={shopSlot}
       />
 
       {showFilters && hasItems && (

@@ -8,6 +8,7 @@ import { DowntimeMoves } from '@/components/downtime-moves';
 import { InventoryDisplay } from '@/components/inventory';
 import { LoadoutDisplay } from '@/components/loadout-selector';
 import { SessionTracker } from '@/components/session-tracker';
+import { ShopButton } from '@/components/shop';
 import { getSubclassByName } from '@/lib/data/classes';
 import { CompanionSection } from '../companion-section';
 import { createRestHandler } from '../demo-handlers';
@@ -23,7 +24,14 @@ import {
   TraitsScoresGrid,
 } from './overview-grids';
 
-export function OverviewTab({ state, handlers, isHydrated }: TabProps) {
+export function OverviewTab({
+  state,
+  handlers,
+  isHydrated,
+  pushUndo,
+  shopSettings,
+  campaignName,
+}: TabProps) {
   const hasCompanionFeature = useMemo(() => {
     const hasCompanionFlag = (
       value: unknown
@@ -103,7 +111,11 @@ export function OverviewTab({ state, handlers, isHydrated }: TabProps) {
         />
       </div>
       <div className="animate-fade-up stagger-4">
-        <GoldConditionsGrid state={state} handlers={handlers} />
+        <GoldConditionsGrid
+          state={state}
+          handlers={handlers}
+          shopSettings={shopSettings}
+        />
       </div>
 
       <div className="animate-fade-up stagger-5">
@@ -131,10 +143,23 @@ export function OverviewTab({ state, handlers, isHydrated }: TabProps) {
         tier={state.progression.currentTier as '1' | '2-4' | '5-7' | '8-10'}
       />
 
-      <InventoryDisplay
-        inventory={state.inventory}
-        onChange={handlers.setInventory}
-      />
+      <div>
+        <InventoryDisplay
+          inventory={state.inventory}
+          onChange={handlers.setInventory}
+          shopSlot={
+            <ShopButton
+              gold={state.gold}
+              setGold={handlers.setGold}
+              inventory={state.inventory}
+              setInventory={handlers.setInventory}
+              pushUndo={pushUndo}
+              shopSettings={shopSettings}
+              campaignName={campaignName}
+            />
+          }
+        />
+      </div>
 
       <div className="grid gap-3 sm:gap-4 sm:gap-6 md:h-112 md:grid-cols-2">
         <DowntimeMoves
