@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ScheduleRouteImport } from './routes/schedule'
 import { Route as RulesRouteImport } from './routes/rules'
 import { Route as ReferencesRouteImport } from './routes/references'
 import { Route as LoginRouteImport } from './routes/login'
@@ -21,6 +22,7 @@ import { Route as ReferencesIndexRouteImport } from './routes/references/index'
 import { Route as HomebrewIndexRouteImport } from './routes/homebrew/index'
 import { Route as GmIndexRouteImport } from './routes/gm/index'
 import { Route as CharacterIndexRouteImport } from './routes/character/index'
+import { Route as ScheduleShareCodeRouteImport } from './routes/schedule/$shareCode'
 import { Route as RulesGmGuideRouteImport } from './routes/rules/gm-guide'
 import { Route as RulesDowntimeAdvancementRouteImport } from './routes/rules/downtime-advancement'
 import { Route as RulesCoreMechanicsRouteImport } from './routes/rules/core-mechanics'
@@ -39,6 +41,7 @@ import { Route as ReferencesAncestriesRouteImport } from './routes/references/an
 import { Route as ReferencesAdversariesRouteImport } from './routes/references/adversaries'
 import { Route as HomebrewNewRouteImport } from './routes/homebrew/new'
 import { Route as HomebrewBrowseRouteImport } from './routes/homebrew/browse'
+import { Route as GmSchedulingRouteImport } from './routes/gm/scheduling'
 import { Route as GmSavedEncountersRouteImport } from './routes/gm/saved-encounters'
 import { Route as GmCampaignsRouteImport } from './routes/gm/campaigns'
 import { Route as GmBattleTrackerRouteImport } from './routes/gm/battle-tracker'
@@ -51,6 +54,11 @@ import { Route as GmCampaignsIdRouteImport } from './routes/gm/campaigns/$id'
 import { Route as CharacterViewCharacterIdRouteImport } from './routes/character/view/$characterId'
 import { Route as GmCampaignsIdBattleRouteImport } from './routes/gm/campaigns/$id.battle'
 
+const ScheduleRoute = ScheduleRouteImport.update({
+  id: '/schedule',
+  path: '/schedule',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RulesRoute = RulesRouteImport.update({
   id: '/rules',
   path: '/rules',
@@ -110,6 +118,11 @@ const CharacterIndexRoute = CharacterIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => CharacterRoute,
+} as any)
+const ScheduleShareCodeRoute = ScheduleShareCodeRouteImport.update({
+  id: '/$shareCode',
+  path: '/$shareCode',
+  getParentRoute: () => ScheduleRoute,
 } as any)
 const RulesGmGuideRoute = RulesGmGuideRouteImport.update({
   id: '/gm-guide',
@@ -203,6 +216,11 @@ const HomebrewBrowseRoute = HomebrewBrowseRouteImport.update({
   path: '/browse',
   getParentRoute: () => HomebrewRoute,
 } as any)
+const GmSchedulingRoute = GmSchedulingRouteImport.update({
+  id: '/scheduling',
+  path: '/scheduling',
+  getParentRoute: () => GmRoute,
+} as any)
 const GmSavedEncountersRoute = GmSavedEncountersRouteImport.update({
   id: '/saved-encounters',
   path: '/saved-encounters',
@@ -268,12 +286,14 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/references': typeof ReferencesRouteWithChildren
   '/rules': typeof RulesRouteWithChildren
+  '/schedule': typeof ScheduleRouteWithChildren
   '/campaigns/join': typeof CampaignsJoinRoute
   '/character/$characterId': typeof CharacterCharacterIdRoute
   '/character/new': typeof CharacterNewRoute
   '/gm/battle-tracker': typeof GmBattleTrackerRoute
   '/gm/campaigns': typeof GmCampaignsRouteWithChildren
   '/gm/saved-encounters': typeof GmSavedEncountersRoute
+  '/gm/scheduling': typeof GmSchedulingRoute
   '/homebrew/browse': typeof HomebrewBrowseRoute
   '/homebrew/new': typeof HomebrewNewRoute
   '/references/adversaries': typeof ReferencesAdversariesRoute
@@ -292,6 +312,7 @@ export interface FileRoutesByFullPath {
   '/rules/core-mechanics': typeof RulesCoreMechanicsRoute
   '/rules/downtime-advancement': typeof RulesDowntimeAdvancementRoute
   '/rules/gm-guide': typeof RulesGmGuideRoute
+  '/schedule/$shareCode': typeof ScheduleShareCodeRoute
   '/character/': typeof CharacterIndexRoute
   '/gm/': typeof GmIndexRoute
   '/homebrew/': typeof HomebrewIndexRoute
@@ -306,11 +327,13 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/schedule': typeof ScheduleRouteWithChildren
   '/campaigns/join': typeof CampaignsJoinRoute
   '/character/$characterId': typeof CharacterCharacterIdRoute
   '/character/new': typeof CharacterNewRoute
   '/gm/battle-tracker': typeof GmBattleTrackerRoute
   '/gm/saved-encounters': typeof GmSavedEncountersRoute
+  '/gm/scheduling': typeof GmSchedulingRoute
   '/homebrew/browse': typeof HomebrewBrowseRoute
   '/homebrew/new': typeof HomebrewNewRoute
   '/references/adversaries': typeof ReferencesAdversariesRoute
@@ -329,6 +352,7 @@ export interface FileRoutesByTo {
   '/rules/core-mechanics': typeof RulesCoreMechanicsRoute
   '/rules/downtime-advancement': typeof RulesDowntimeAdvancementRoute
   '/rules/gm-guide': typeof RulesGmGuideRoute
+  '/schedule/$shareCode': typeof ScheduleShareCodeRoute
   '/character': typeof CharacterIndexRoute
   '/gm': typeof GmIndexRoute
   '/homebrew': typeof HomebrewIndexRoute
@@ -349,12 +373,14 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/references': typeof ReferencesRouteWithChildren
   '/rules': typeof RulesRouteWithChildren
+  '/schedule': typeof ScheduleRouteWithChildren
   '/campaigns/join': typeof CampaignsJoinRoute
   '/character/$characterId': typeof CharacterCharacterIdRoute
   '/character/new': typeof CharacterNewRoute
   '/gm/battle-tracker': typeof GmBattleTrackerRoute
   '/gm/campaigns': typeof GmCampaignsRouteWithChildren
   '/gm/saved-encounters': typeof GmSavedEncountersRoute
+  '/gm/scheduling': typeof GmSchedulingRoute
   '/homebrew/browse': typeof HomebrewBrowseRoute
   '/homebrew/new': typeof HomebrewNewRoute
   '/references/adversaries': typeof ReferencesAdversariesRoute
@@ -373,6 +399,7 @@ export interface FileRoutesById {
   '/rules/core-mechanics': typeof RulesCoreMechanicsRoute
   '/rules/downtime-advancement': typeof RulesDowntimeAdvancementRoute
   '/rules/gm-guide': typeof RulesGmGuideRoute
+  '/schedule/$shareCode': typeof ScheduleShareCodeRoute
   '/character/': typeof CharacterIndexRoute
   '/gm/': typeof GmIndexRoute
   '/homebrew/': typeof HomebrewIndexRoute
@@ -394,12 +421,14 @@ export interface FileRouteTypes {
     | '/login'
     | '/references'
     | '/rules'
+    | '/schedule'
     | '/campaigns/join'
     | '/character/$characterId'
     | '/character/new'
     | '/gm/battle-tracker'
     | '/gm/campaigns'
     | '/gm/saved-encounters'
+    | '/gm/scheduling'
     | '/homebrew/browse'
     | '/homebrew/new'
     | '/references/adversaries'
@@ -418,6 +447,7 @@ export interface FileRouteTypes {
     | '/rules/core-mechanics'
     | '/rules/downtime-advancement'
     | '/rules/gm-guide'
+    | '/schedule/$shareCode'
     | '/character/'
     | '/gm/'
     | '/homebrew/'
@@ -432,11 +462,13 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/schedule'
     | '/campaigns/join'
     | '/character/$characterId'
     | '/character/new'
     | '/gm/battle-tracker'
     | '/gm/saved-encounters'
+    | '/gm/scheduling'
     | '/homebrew/browse'
     | '/homebrew/new'
     | '/references/adversaries'
@@ -455,6 +487,7 @@ export interface FileRouteTypes {
     | '/rules/core-mechanics'
     | '/rules/downtime-advancement'
     | '/rules/gm-guide'
+    | '/schedule/$shareCode'
     | '/character'
     | '/gm'
     | '/homebrew'
@@ -474,12 +507,14 @@ export interface FileRouteTypes {
     | '/login'
     | '/references'
     | '/rules'
+    | '/schedule'
     | '/campaigns/join'
     | '/character/$characterId'
     | '/character/new'
     | '/gm/battle-tracker'
     | '/gm/campaigns'
     | '/gm/saved-encounters'
+    | '/gm/scheduling'
     | '/homebrew/browse'
     | '/homebrew/new'
     | '/references/adversaries'
@@ -498,6 +533,7 @@ export interface FileRouteTypes {
     | '/rules/core-mechanics'
     | '/rules/downtime-advancement'
     | '/rules/gm-guide'
+    | '/schedule/$shareCode'
     | '/character/'
     | '/gm/'
     | '/homebrew/'
@@ -518,11 +554,19 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ReferencesRoute: typeof ReferencesRouteWithChildren
   RulesRoute: typeof RulesRouteWithChildren
+  ScheduleRoute: typeof ScheduleRouteWithChildren
   CampaignsJoinRoute: typeof CampaignsJoinRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/schedule': {
+      id: '/schedule'
+      path: '/schedule'
+      fullPath: '/schedule'
+      preLoaderRoute: typeof ScheduleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/rules': {
       id: '/rules'
       path: '/rules'
@@ -606,6 +650,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/character/'
       preLoaderRoute: typeof CharacterIndexRouteImport
       parentRoute: typeof CharacterRoute
+    }
+    '/schedule/$shareCode': {
+      id: '/schedule/$shareCode'
+      path: '/$shareCode'
+      fullPath: '/schedule/$shareCode'
+      preLoaderRoute: typeof ScheduleShareCodeRouteImport
+      parentRoute: typeof ScheduleRoute
     }
     '/rules/gm-guide': {
       id: '/rules/gm-guide'
@@ -732,6 +783,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/homebrew/browse'
       preLoaderRoute: typeof HomebrewBrowseRouteImport
       parentRoute: typeof HomebrewRoute
+    }
+    '/gm/scheduling': {
+      id: '/gm/scheduling'
+      path: '/scheduling'
+      fullPath: '/gm/scheduling'
+      preLoaderRoute: typeof GmSchedulingRouteImport
+      parentRoute: typeof GmRoute
     }
     '/gm/saved-encounters': {
       id: '/gm/saved-encounters'
@@ -863,6 +921,7 @@ interface GmRouteChildren {
   GmBattleTrackerRoute: typeof GmBattleTrackerRoute
   GmCampaignsRoute: typeof GmCampaignsRouteWithChildren
   GmSavedEncountersRoute: typeof GmSavedEncountersRoute
+  GmSchedulingRoute: typeof GmSchedulingRoute
   GmIndexRoute: typeof GmIndexRoute
 }
 
@@ -870,6 +929,7 @@ const GmRouteChildren: GmRouteChildren = {
   GmBattleTrackerRoute: GmBattleTrackerRoute,
   GmCampaignsRoute: GmCampaignsRouteWithChildren,
   GmSavedEncountersRoute: GmSavedEncountersRoute,
+  GmSchedulingRoute: GmSchedulingRoute,
   GmIndexRoute: GmIndexRoute,
 }
 
@@ -945,6 +1005,18 @@ const RulesRouteChildren: RulesRouteChildren = {
 
 const RulesRouteWithChildren = RulesRoute._addFileChildren(RulesRouteChildren)
 
+interface ScheduleRouteChildren {
+  ScheduleShareCodeRoute: typeof ScheduleShareCodeRoute
+}
+
+const ScheduleRouteChildren: ScheduleRouteChildren = {
+  ScheduleShareCodeRoute: ScheduleShareCodeRoute,
+}
+
+const ScheduleRouteWithChildren = ScheduleRoute._addFileChildren(
+  ScheduleRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CharacterRoute: CharacterRouteWithChildren,
@@ -953,6 +1025,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ReferencesRoute: ReferencesRouteWithChildren,
   RulesRoute: RulesRouteWithChildren,
+  ScheduleRoute: ScheduleRouteWithChildren,
   CampaignsJoinRoute: CampaignsJoinRoute,
 }
 export const routeTree = rootRouteImport

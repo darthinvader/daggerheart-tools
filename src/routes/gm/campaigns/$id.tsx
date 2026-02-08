@@ -393,6 +393,7 @@ function useGeneratorHandler<TValue>(
   );
 }
 
+// eslint-disable-next-line max-lines-per-function
 function useCampaignDetailState(
   id: string,
   tab: TabValue,
@@ -634,6 +635,7 @@ function useCampaignDetailState(
     handlePhaseChange,
     handleBeastFeastToggle,
     handleCalendarToggle,
+    handleSchedulingToggle,
     setCampaign,
     markChanged,
     handleChecklistChange,
@@ -721,6 +723,7 @@ function TabCountBadge({
   );
 }
 
+// eslint-disable-next-line max-lines-per-function, complexity
 function CampaignTabs({
   tab,
   setActiveTab,

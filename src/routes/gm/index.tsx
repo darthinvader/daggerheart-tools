@@ -81,6 +81,7 @@ function StatCard({
   );
 }
 
+// eslint-disable-next-line max-lines-per-function
 function GmDashboard() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -164,6 +165,23 @@ function GmDashboard() {
               <CardDescription>
                 Manage and run combat encounters for your campaigns or one-off
                 sessions
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
+
+        <Link to="/gm/scheduling" className="block">
+          <Card className="h-full cursor-pointer border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-purple-500/10 transition-all hover:scale-[1.02] hover:shadow-md">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-purple-500/10">
+                  <Clock className="size-5 text-purple-500" />
+                </div>
+                Session Scheduling
+              </CardTitle>
+              <CardDescription>
+                Create availability polls and share voting links with your
+                players
               </CardDescription>
             </CardHeader>
           </Card>

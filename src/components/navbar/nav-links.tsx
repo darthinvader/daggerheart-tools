@@ -1,6 +1,7 @@
 import {
   Backpack,
   Beaker,
+  Calendar,
   Compass,
   Crown,
   Dice5,
@@ -155,6 +156,11 @@ export const defaultNavLinks: NavLink[] = [
         to: '/gm/saved-encounters',
         label: 'Combat Encounters',
         icon: <Swords className="size-4" />,
+      },
+      {
+        to: '/gm/scheduling',
+        label: 'Session Scheduling',
+        icon: <Calendar className="size-4" />,
       },
       {
         to: '/gm/campaigns/new',

@@ -34,6 +34,9 @@ export * from './beast-feast-cooking';
 // Session Zero framework (CATS method, safety tools, table agreements)
 export * from './session-zero';
 
+// Session Scheduling (availability poll for next session)
+export * from './scheduling';
+
 // Safety tools (Lines & Veils, X-Card, Content Warnings, Open Door Policy)
 export * from './safety-tools';
 
