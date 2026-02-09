@@ -6,6 +6,7 @@ import type {
   CampaignQuest,
   QuestNPCInvolvement,
 } from '@/lib/schemas/campaign';
+import { generateId } from '@/lib/utils';
 
 import type { NPCPickerResult as NPCPickerResultHook } from './entity-card-utils';
 import {
@@ -70,7 +71,7 @@ export function useQuestCardInputHandlers({
   // NPC Involvement handlers
   const createQuestNPCInvolvement = useCallback(
     (result: NPCPickerResultHook): QuestNPCInvolvement => ({
-      id: crypto.randomUUID(),
+      id: generateId(),
       npcId: result.npcId,
       npcName: result.npcName,
       role: result.role ?? '',

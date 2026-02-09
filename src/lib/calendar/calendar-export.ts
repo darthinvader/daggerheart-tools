@@ -107,7 +107,7 @@ export function importFullCalendar(raw: string): ImportResult<Calendar> {
   const events = Array.isArray(source.events)
     ? source.events.map(e => {
         if (typeof e === 'object' && e !== null) {
-          return { ...e, id: crypto.randomUUID() };
+          return { ...e, id: generateId() };
         }
         return e;
       })

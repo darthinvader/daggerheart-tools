@@ -8,6 +8,7 @@ import type {
   SessionNote,
   SessionNPCInvolvement,
 } from '@/lib/schemas/campaign';
+import { generateId } from '@/lib/utils';
 import { useEntityIdListHandlers } from './entity-card-utils';
 
 interface NPCPickerResultHook {
@@ -63,7 +64,7 @@ export function useSessionCardHandlers({
   // NPC Involvement factory
   const createSessionNPCInvolvement = useCallback(
     (result: NPCPickerResultHook): SessionNPCInvolvement => ({
-      id: crypto.randomUUID(),
+      id: generateId(),
       npcId: result.npcId,
       npcName: result.npcName ?? '',
       role: result.role ?? '',

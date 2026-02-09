@@ -23,14 +23,19 @@ export function ModeTabs<T extends string>({
   className,
 }: ModeTabsProps<T>) {
   return (
-    <div className={cn('bg-muted flex gap-1 rounded-lg p-1', className)}>
+    <div
+      className={cn(
+        'bg-muted flex gap-1 overflow-x-auto rounded-lg p-1',
+        className
+      )}
+    >
       {modes.map(({ value, label, shortLabel, icon }) => (
         <button
           key={value}
           type="button"
           onClick={() => onModeChange(value)}
           className={cn(
-            'flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-all',
+            'flex flex-1 items-center justify-center gap-2 rounded-md px-2 py-2 text-sm font-medium transition-all sm:px-4',
             'focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
             activeMode === value
               ? 'bg-background text-foreground shadow-sm'

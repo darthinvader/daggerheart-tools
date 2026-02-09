@@ -12,7 +12,6 @@ import {
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import { DynamicIcon } from '@/lib/icons';
 import type { AnyItem, EquipmentTier, Rarity } from '@/lib/schemas/equipment';
 import { getItemWeight } from '@/lib/schemas/equipment';
@@ -52,17 +51,14 @@ export function ItemHeader({
         <div className="flex items-center gap-2">
           <p className="leading-tight font-semibold">{item.name}</p>
           {weight > 0 && (
-            <SmartTooltip
-              content={`Weight: ${weight} unit${weight !== 1 ? 's' : ''}`}
+            <Badge
+              variant="outline"
+              className="text-muted-foreground border-muted gap-1 px-1.5 py-0 text-xs font-medium"
+              title={`Weight: ${weight} unit${weight !== 1 ? 's' : ''}`}
             >
-              <Badge
-                variant="outline"
-                className="text-muted-foreground border-muted gap-1 px-1.5 py-0 text-xs font-medium"
-              >
-                <Scale className="size-3" />
-                {weight}
-              </Badge>
-            </SmartTooltip>
+              <Scale className="size-3" />
+              {weight}
+            </Badge>
           )}
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-1.5">
@@ -116,20 +112,17 @@ export function QuantityBadge({
   unlimitedQuantity,
 }: QuantityBadgeProps) {
   return (
-    <SmartTooltip
-      content={
+    <Badge
+      variant="secondary"
+      className="shrink-0 bg-white/90 px-3 py-1 text-base font-bold shadow-sm dark:bg-gray-800/90"
+      title={
         unlimitedQuantity
           ? `${quantity} in inventory (unlimited stacking)`
           : `${quantity}/${maxQuantity} max`
       }
     >
-      <Badge
-        variant="secondary"
-        className="shrink-0 bg-white/90 px-3 py-1 text-base font-bold shadow-sm dark:bg-gray-800/90"
-      >
-        ×{quantity}
-      </Badge>
-    </SmartTooltip>
+      ×{quantity}
+    </Badge>
   );
 }
 
@@ -181,22 +174,23 @@ export function ItemStats({
   return (
     <div className="mt-3 flex flex-wrap gap-2 text-xs">
       {showMaxStack && (
-        <SmartTooltip content="Maximum stack size for this item">
-          <Badge variant="outline" className="gap-1">
-            <Library className="size-3" /> Max Stack:{' '}
-            {unlimitedQuantity ? '∞' : maxQuantity}
-          </Badge>
-        </SmartTooltip>
+        <Badge
+          variant="outline"
+          className="gap-1"
+          title="Maximum stack size for this item"
+        >
+          <Library className="size-3" /> Max Stack:{' '}
+          {unlimitedQuantity ? '∞' : maxQuantity}
+        </Badge>
       )}
       {showCost && (
-        <SmartTooltip content="Item value in gold">
-          <Badge
-            variant="outline"
-            className="gap-1 border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-700 dark:bg-amber-950/50 dark:text-amber-300"
-          >
-            <Coins className="size-3" /> {cost} gold
-          </Badge>
-        </SmartTooltip>
+        <Badge
+          variant="outline"
+          className="gap-1 border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-700 dark:bg-amber-950/50 dark:text-amber-300"
+          title="Item value in gold"
+        >
+          <Coins className="size-3" /> {cost} gold
+        </Badge>
       )}
     </div>
   );
@@ -267,90 +261,77 @@ export function ItemActions({
       <div className="flex items-center gap-1.5">
         {onQuantityChange && (
           <>
-            <SmartTooltip
-              content={
-                canDecrease
-                  ? '➖ Decrease quantity'
-                  : '⚠️ Minimum quantity reached'
+            <Button
+              variant="outline"
+              size="icon"
+              className={cn(
+                'size-8',
+                !canDecrease && 'cursor-not-allowed opacity-40'
+              )}
+              onClick={() => onQuantityChange(entryId, -1)}
+              disabled={!canDecrease}
+              title={
+                canDecrease ? 'Decrease quantity' : 'Minimum quantity reached'
               }
             >
-              <Button
-                variant="outline"
-                size="icon"
-                className={cn(
-                  'size-8',
-                  !canDecrease && 'cursor-not-allowed opacity-40'
-                )}
-                onClick={() => onQuantityChange(entryId, -1)}
-                disabled={!canDecrease}
-              >
-                <Minus className="size-4" />
-              </Button>
-            </SmartTooltip>
+              <Minus className="size-4" />
+            </Button>
             <span className="w-10 text-center text-base font-bold">
               {quantity}
             </span>
-            <SmartTooltip
-              content={
-                canIncrease
-                  ? '➕ Increase quantity'
-                  : '⚠️ Maximum quantity reached'
+            <Button
+              variant="outline"
+              size="icon"
+              className={cn(
+                'size-8',
+                !canIncrease && 'cursor-not-allowed opacity-40'
+              )}
+              onClick={() => onQuantityChange(entryId, 1)}
+              disabled={!canIncrease}
+              title={
+                canIncrease ? 'Increase quantity' : 'Maximum quantity reached'
               }
             >
-              <Button
-                variant="outline"
-                size="icon"
-                className={cn(
-                  'size-8',
-                  !canIncrease && 'cursor-not-allowed opacity-40'
-                )}
-                onClick={() => onQuantityChange(entryId, 1)}
-                disabled={!canIncrease}
-              >
-                <Plus className="size-4" />
-              </Button>
-            </SmartTooltip>
+              <Plus className="size-4" />
+            </Button>
           </>
         )}
       </div>
 
       <div className="flex items-center gap-2">
         {isCustom && onEdit && (
-          <SmartTooltip content="✏️ Edit homebrew item">
-            <Button
-              variant="outline"
-              size="icon"
-              className="size-8 border-purple-300 text-purple-600 hover:bg-purple-50 hover:text-purple-700 dark:border-purple-700 dark:text-purple-400 dark:hover:bg-purple-950/50"
-              onClick={() => onEdit(entryId)}
-            >
-              <Pencil className="size-4" />
-            </Button>
-          </SmartTooltip>
+          <Button
+            variant="outline"
+            size="icon"
+            className="size-8 border-purple-300 text-purple-600 hover:bg-purple-50 hover:text-purple-700 dark:border-purple-700 dark:text-purple-400 dark:hover:bg-purple-950/50"
+            onClick={() => onEdit(entryId)}
+            title="Edit homebrew item"
+          >
+            <Pencil className="size-4" />
+          </Button>
         )}
         {onConvertToHomebrew && !isCustom && (
-          <SmartTooltip content="✨ Convert to homebrew - edit and customize this item">
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-1.5 border-purple-300 text-purple-600 hover:bg-purple-50 hover:text-purple-700 dark:border-purple-700 dark:text-purple-400 dark:hover:bg-purple-950/50"
-              onClick={() => onConvertToHomebrew(entryId)}
-            >
-              <Sparkles className="size-4" />
-              Homebrew
-            </Button>
-          </SmartTooltip>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5 border-purple-300 text-purple-600 hover:bg-purple-50 hover:text-purple-700 dark:border-purple-700 dark:text-purple-400 dark:hover:bg-purple-950/50"
+            onClick={() => onConvertToHomebrew(entryId)}
+            title="Convert to homebrew - edit and customize this item"
+          >
+            <Sparkles className="size-4" />
+            Homebrew
+          </Button>
         )}
         {onRemove && (
-          <SmartTooltip content="Remove from inventory">
-            <Button
-              variant="outline"
-              size="icon"
-              className="size-8 border-red-300 text-red-500 hover:bg-red-50 hover:text-red-600 dark:border-red-700 dark:hover:bg-red-950/50"
-              onClick={() => onRemove(entryId)}
-            >
-              <Trash2 className="size-4" />
-            </Button>
-          </SmartTooltip>
+          <Button
+            variant="outline"
+            size="icon"
+            className="size-8 border-red-300 text-red-500 hover:bg-red-50 hover:text-red-600 dark:border-red-700 dark:hover:bg-red-950/50"
+            onClick={() => onRemove(entryId)}
+            title="Remove from inventory"
+          >
+            <Trash2 className="size-4" />
+          </Button>
         )}
       </div>
     </div>

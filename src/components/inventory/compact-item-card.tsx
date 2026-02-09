@@ -1,3 +1,5 @@
+import { memo } from 'react';
+
 import { Pencil } from '@/lib/icons';
 import type { InventoryState } from '@/lib/schemas/equipment';
 import { cn } from '@/lib/utils';
@@ -22,7 +24,7 @@ export interface CompactItemCardProps {
   readOnly?: boolean;
 }
 
-export function CompactItemCard({
+export const CompactItemCard = memo(function CompactItemCard({
   entry,
   unlimitedQuantity,
   onQuantityChange,
@@ -100,4 +102,4 @@ export function CompactItemCard({
       )}
     </div>
   );
-}
+});

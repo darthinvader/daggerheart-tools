@@ -7,16 +7,39 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer';
 import { VisuallyHidden } from '@/components/ui/visually-hidden';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Axe, Gem, Shield, Sword, Wheelchair } from '@/lib/icons';
 import { cn } from '@/lib/utils';
 
 import { EditSectionContent } from './edit-section-content';
 import type { EquipmentState } from './equipment-editor';
-import {
-  type EditingSection,
-  getSectionIcon,
-  getSectionTitle,
-} from './use-equipment-editor';
+import { type EditingSection, getSectionTitle } from './use-equipment-editor';
+
+function renderSectionIcon(section: EditingSection) {
+  switch (section) {
+    case 'primary':
+      return <Sword className="size-5" />;
+    case 'secondary':
+      return <Axe className="size-5" />;
+    case 'armor':
+      return <Shield className="size-5" />;
+    case 'wheelchair':
+      return <Wheelchair className="size-5" />;
+    case 'custom':
+      return <Gem className="size-5" />;
+    default:
+      return <Shield className="size-5" />;
+  }
+}
 
 interface EquipmentEditDialogProps {
   editingSection: EditingSection;
@@ -39,6 +62,48 @@ export function EquipmentEditDialog({
   hideDialogHeader = false,
   allowedTiers,
 }: EquipmentEditDialogProps) {
+  const isMobile = useIsMobile();
+
+  if (isMobile) {
+    return (
+      <Drawer
+        open={editingSection !== null}
+        onOpenChange={() => closeSection()}
+      >
+        <DrawerContent className="flex max-h-[85vh] flex-col">
+          <DrawerHeader>
+            <DrawerTitle className="flex items-center gap-2">
+              {renderSectionIcon(editingSection)}
+              {getSectionTitle(editingSection)}
+            </DrawerTitle>
+            <DrawerDescription>
+              Select or customize your{' '}
+              {getSectionTitle(editingSection)?.toLowerCase()}
+            </DrawerDescription>
+          </DrawerHeader>
+
+          <div className="flex-1 overflow-y-auto px-4 pb-4">
+            <EditSectionContent
+              editingSection={editingSection}
+              draftEquipment={draftEquipment}
+              updateDraft={updateDraft}
+              handleAddCustomSlot={handleAddCustomSlot}
+              hideDialogHeader={hideDialogHeader}
+              allowedTiers={allowedTiers}
+            />
+          </div>
+
+          <DrawerFooter className="border-t pt-4">
+            <Button onClick={handleSave}>Save</Button>
+            <Button variant="outline" onClick={closeSection}>
+              Cancel
+            </Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+    );
+  }
+
   return (
     <Dialog open={editingSection !== null} onOpenChange={() => closeSection()}>
       <DialogContent
@@ -59,10 +124,7 @@ export function EquipmentEditDialog({
         {!hideDialogHeader && (
           <DialogHeader className="shrink-0 border-b p-6 pb-4">
             <DialogTitle className="flex items-center gap-2">
-              {(() => {
-                const SectionIcon = getSectionIcon(editingSection);
-                return <SectionIcon className="size-5" />;
-              })()}
+              {renderSectionIcon(editingSection)}
               {getSectionTitle(editingSection)}
             </DialogTitle>
             <DialogDescription>

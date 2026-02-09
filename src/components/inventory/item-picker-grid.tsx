@@ -1,3 +1,7 @@
+import { useVirtualizer } from '@tanstack/react-virtual';
+import { useMemo, useRef } from 'react';
+
+import { useIsMobile } from '@/hooks/use-mobile';
 import type { AnyItem, InventoryItemEntry } from '@/lib/schemas/equipment';
 
 import { PickerItemCard } from './picker-item-card';
@@ -24,42 +28,87 @@ export function ItemPickerGrid({
   onConvertToHomebrew,
   priceMap,
 }: ItemPickerGridProps) {
+  const isMobile = useIsMobile();
+  const columns = isMobile ? 1 : 2;
+  const parentRef = useRef<HTMLDivElement>(null);
+
+  const inventoryByName = useMemo(() => {
+    const map = new Map<string, InventoryItemEntry>();
+    for (const entry of inventoryItems) {
+      map.set(entry.item.name, entry);
+    }
+    return map;
+  }, [inventoryItems]);
+
+  const rows = useMemo(() => {
+    const result: AnyItem[][] = [];
+    for (let i = 0; i < items.length; i += columns) {
+      result.push(items.slice(i, i + columns));
+    }
+    return result;
+  }, [items, columns]);
+
+  const virtualizer = useVirtualizer({
+    count: rows.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 120,
+    overscan: 5,
+  });
+
   return (
-    <div className="grid gap-2 pb-4 sm:grid-cols-2 lg:grid-cols-3">
-      {items.map(item => {
-        const selectedEntry = selectedItems.get(item.name);
-        const selected = !!selectedEntry;
+    <div ref={parentRef} className="h-full overflow-y-auto pb-4">
+      <div
+        className="relative w-full"
+        style={{ height: `${virtualizer.getTotalSize()}px` }}
+      >
+        {virtualizer.getVirtualItems().map(virtualRow => (
+          <div
+            key={virtualRow.key}
+            className="absolute top-0 left-0 grid w-full gap-2"
+            style={{
+              height: `${virtualRow.size}px`,
+              transform: `translateY(${virtualRow.start}px)`,
+              gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
+            }}
+          >
+            {rows[virtualRow.index].map(item => {
+              const selectedEntry = selectedItems.get(item.name);
+              const selected = !!selectedEntry;
 
-        const inventoryEntry = inventoryItems.find(
-          i => i.item.name === item.name
-        );
-        const currentQty = inventoryEntry?.quantity ?? 0;
-        const isAtMax = !unlimitedQuantity && currentQty >= item.maxQuantity;
-        const availableToAdd = unlimitedQuantity
-          ? Infinity
-          : item.maxQuantity - currentQty;
+              const inventoryEntry = inventoryByName.get(item.name);
+              const currentQty = inventoryEntry?.quantity ?? 0;
+              const isAtMax =
+                !unlimitedQuantity && currentQty >= item.maxQuantity;
+              const availableToAdd = unlimitedQuantity
+                ? Infinity
+                : item.maxQuantity - currentQty;
 
-        return (
-          <PickerItemCard
-            key={item.name}
-            item={item}
-            selected={selected}
-            selectedQuantity={selectedEntry?.quantity ?? 0}
-            currentInventoryQty={currentQty}
-            availableToAdd={availableToAdd}
-            isAtMax={isAtMax}
-            unlimitedQuantity={unlimitedQuantity}
-            onToggle={() => onToggleItem(item)}
-            onQuantityChange={delta =>
-              onQuantityChange(item, delta, availableToAdd)
-            }
-            onConvertToHomebrew={
-              onConvertToHomebrew ? () => onConvertToHomebrew(item) : undefined
-            }
-            priceLabel={priceMap?.get(item.name)}
-          />
-        );
-      })}
+              return (
+                <PickerItemCard
+                  key={item.name}
+                  item={item}
+                  selected={selected}
+                  selectedQuantity={selectedEntry?.quantity ?? 0}
+                  currentInventoryQty={currentQty}
+                  availableToAdd={availableToAdd}
+                  isAtMax={isAtMax}
+                  unlimitedQuantity={unlimitedQuantity}
+                  onToggle={() => onToggleItem(item)}
+                  onQuantityChange={delta =>
+                    onQuantityChange(item, delta, availableToAdd)
+                  }
+                  onConvertToHomebrew={
+                    onConvertToHomebrew
+                      ? () => onConvertToHomebrew(item)
+                      : undefined
+                  }
+                  priceLabel={priceMap?.get(item.name)}
+                />
+              );
+            })}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
+import { useMemo } from 'react';
 
 import {
   Backpack,
@@ -47,12 +48,14 @@ export function CompactInventoryList({
   onEdit,
   readOnly,
 }: CompactInventoryListProps) {
-  const filteredItems = filterInventoryItems(
-    inventory.items,
-    searchQuery,
-    filters
+  const filteredItems = useMemo(
+    () => filterInventoryItems(inventory.items, searchQuery, filters),
+    [inventory.items, searchQuery, filters]
   );
-  const groupedByLocation = groupItemsByLocation(filteredItems);
+  const groupedByLocation = useMemo(
+    () => groupItemsByLocation(filteredItems),
+    [filteredItems]
+  );
 
   if (filteredItems.length === 0 && hasActiveFilters(searchQuery, filters)) {
     return (

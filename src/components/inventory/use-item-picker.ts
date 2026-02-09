@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import {
   ALL_ARMOR_MODIFICATIONS,
@@ -156,6 +163,7 @@ export function usePickerFiltersState({
   lockTiers?: boolean;
 } = {}) {
   const [search, setSearch] = useState('');
+  const deferredSearch = useDeferredValue(search);
   const [selectedCategories, setSelectedCategories] = useState<ItemCategory[]>(
     []
   );
@@ -191,6 +199,7 @@ export function usePickerFiltersState({
 
   return {
     search,
+    deferredSearch,
     setSearch,
     selectedCategories,
     selectedRarities,

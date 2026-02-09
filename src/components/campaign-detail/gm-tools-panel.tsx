@@ -74,6 +74,7 @@ import {
   rollDuality,
 } from '@/lib/mechanics/dice-engine';
 import type { BattleState } from '@/lib/schemas/battle';
+import { generateId } from '@/lib/utils';
 
 const RANDOM_NPC_NAMES = [
   'Aldric the Bold',
@@ -946,7 +947,7 @@ function ChecklistCard({
     if (!newChecklistItem.trim()) return;
     onChecklistChange([
       {
-        id: crypto.randomUUID(),
+        id: generateId(),
         text: newChecklistItem.trim(),
         checked: false,
       },
@@ -1769,7 +1770,7 @@ function CountdownClocksCard() {
     setClocks(prev => [
       ...prev,
       {
-        id: crypto.randomUUID(),
+        id: generateId(),
         label: newLabel.trim(),
         segments: newSegments,
         filled: 0,

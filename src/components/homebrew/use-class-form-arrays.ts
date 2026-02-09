@@ -5,6 +5,7 @@
 import { useCallback, useState } from 'react';
 
 import type { FeatureStatModifiers } from '@/lib/schemas/core';
+import { generateId } from '@/lib/utils';
 
 // =====================================================================================
 // Types
@@ -86,7 +87,7 @@ export function useFeatureArrayState(
   const addFeature = useCallback(() => {
     setFeatures(prev => [
       ...prev,
-      { id: crypto.randomUUID(), name: '', description: '' },
+      { id: generateId(), name: '', description: '' },
     ]);
   }, []);
 
@@ -124,7 +125,7 @@ export function useEquipmentArrayState(
   const addEquipment = useCallback(() => {
     setEquipment(prev => [
       ...prev,
-      { id: crypto.randomUUID(), name: '', description: '' },
+      { id: generateId(), name: '', description: '' },
     ]);
   }, []);
 
@@ -189,7 +190,7 @@ export function useSubclassArrayState(initial: SubclassInitial[]) {
     setSubclasses(prev => [
       ...prev,
       {
-        id: crypto.randomUUID(),
+        id: generateId(),
         name: '',
         description: '',
         features: [],
@@ -219,7 +220,7 @@ export function useSubclassArrayState(initial: SubclassInitial[]) {
               features: [
                 ...s.features,
                 {
-                  id: crypto.randomUUID(),
+                  id: generateId(),
                   name: '',
                   description: '',
                   type: 'foundation',

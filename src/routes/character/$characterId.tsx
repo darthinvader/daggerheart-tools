@@ -4,6 +4,8 @@ import { z } from 'zod';
 
 import { RouteErrorFallback } from '@/components/ui/route-error-fallback';
 import { Skeleton } from '@/components/ui/skeleton';
+import { fetchCharacter } from '@/lib/api/characters';
+import { characterQueryKeys, queryClient } from '@/lib/api/query-client';
 
 const CharacterSheet = lazy(() =>
   import('@/components/character-sheet').then(m => ({
@@ -46,6 +48,14 @@ export const Route = createFileRoute('/character/$characterId')({
   component: CharacterPage,
   errorComponent: ({ error }) => <RouteErrorFallback error={error} />,
   validateSearch: searchSchema,
+  // Pre-fetch character data in parallel with the lazy-loaded component chunk.
+  // This eliminates the waterfall: chunk download → render → fetch → render.
+  loader: ({ params }) => {
+    void queryClient.ensureQueryData({
+      queryKey: characterQueryKeys.detail(params.characterId),
+      queryFn: () => fetchCharacter(params.characterId),
+    });
+  },
 });
 
 function CharacterPage() {

@@ -22,6 +22,7 @@ import type {
  * Provides CRUD operations for campaigns and their nested entities.
  */
 import { supabase } from '@/lib/supabase';
+import { generateId } from '@/lib/utils';
 
 // =====================================================================================
 // Types for database row mapping
@@ -364,10 +365,7 @@ export async function createCampaign(
     throw new Error('Must be logged in to create a campaign');
   }
 
-  const frame = createCampaignFrameFromTemplate(
-    templateId,
-    crypto.randomUUID()
-  );
+  const frame = createCampaignFrameFromTemplate(templateId, generateId());
 
   if (!frame) {
     throw new Error(`Template not found: ${templateId}`);
@@ -1320,7 +1318,7 @@ export async function deleteOrganization(
 // =====================================================================================
 
 function generateBattleId(): string {
-  return `battle-${crypto.randomUUID()}`;
+  return `battle-${generateId()}`;
 }
 
 /**
@@ -1507,7 +1505,7 @@ export async function createStandaloneBattle(
 
   const newBattle: BattleState = {
     ...battle,
-    id: crypto.randomUUID(),
+    id: generateId(),
     createdAt: now,
     updatedAt: now,
   };

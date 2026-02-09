@@ -11,6 +11,7 @@ import { ADVERSARIES } from '@/lib/data/adversaries';
 import { ENVIRONMENTS } from '@/lib/data/environments';
 import type { Adversary } from '@/lib/schemas/adversaries';
 import type { Environment } from '@/lib/schemas/environments';
+import { generateId } from '@/lib/utils';
 
 import type {
   AdversaryTracker,
@@ -38,7 +39,7 @@ function createCharacterEntry(
   const stressMax = toNumber(draft.stressMax, 6);
   const evasion = toNumber(draft.evasion, 10);
   return {
-    id: crypto.randomUUID(),
+    id: generateId(),
     kind: 'character',
     name,
     evasion,
@@ -51,7 +52,7 @@ function createCharacterEntry(
 
 function createAdversaryEntry(adversary: Adversary): AdversaryTracker {
   return {
-    id: crypto.randomUUID(),
+    id: generateId(),
     kind: 'adversary',
     source: adversary,
     hp: { current: adversary.hp, max: adversary.hp },
@@ -63,7 +64,7 @@ function createAdversaryEntry(adversary: Adversary): AdversaryTracker {
 
 function createEnvironmentEntry(environment: Environment): EnvironmentTracker {
   return {
-    id: crypto.randomUUID(),
+    id: generateId(),
     kind: 'environment',
     source: environment,
     notes: '',

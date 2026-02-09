@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import type { CampaignPrinciple } from '@/lib/schemas/campaign';
+import { generateId } from '@/lib/utils';
 
 interface EditablePrinciplesProps {
   principles: CampaignPrinciple[];
@@ -24,7 +25,7 @@ export function EditablePrinciples({
     onChange([
       ...principles,
       {
-        id: `principle-${crypto.randomUUID()}`,
+        id: `principle-${generateId()}`,
         title: 'New Principle',
         description: '',
         target,

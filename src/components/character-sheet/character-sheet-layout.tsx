@@ -1,18 +1,52 @@
 import { Check, Loader2, PawPrint, Unlink, Users } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { lazy, Suspense, useMemo, useState } from 'react';
 
 import { UndoRedoControls } from '@/components/battle-tracker/undo-redo-controls';
-import { CharacterOnboardingWizard } from '@/components/character-onboarding';
-import {
-  CombatTab,
-  IdentityTab,
-  ItemsTab,
-  OverviewTab,
-  QuickViewTab,
-  SessionTab,
-} from '@/components/demo/demo-tabs';
 import type { LevelUpResult } from '@/components/level-up';
-import { LevelUpModal } from '@/components/level-up';
+
+// Lazy-load all tabs — only the active tab is rendered so the rest don't need to be in the initial bundle
+const QuickViewTab = lazy(() =>
+  import('@/components/quick-view/quick-view-tab').then(m => ({
+    default: m.QuickViewTab,
+  }))
+);
+const OverviewTab = lazy(() =>
+  import('@/components/demo/tabs/overview-tab').then(m => ({
+    default: m.OverviewTab,
+  }))
+);
+const IdentityTab = lazy(() =>
+  import('@/components/demo/tabs/identity-tab').then(m => ({
+    default: m.IdentityTab,
+  }))
+);
+const CombatTab = lazy(() =>
+  import('@/components/demo/tabs/combat-tab').then(m => ({
+    default: m.CombatTab,
+  }))
+);
+const ItemsTab = lazy(() =>
+  import('@/components/demo/tabs/items-tab').then(m => ({
+    default: m.ItemsTab,
+  }))
+);
+const SessionTab = lazy(() =>
+  import('@/components/demo/tabs/session-tab').then(m => ({
+    default: m.SessionTab,
+  }))
+);
+
+// Lazy-load heavy modals — only opened on user action
+const LevelUpModal = lazy(() =>
+  import('@/components/level-up/level-up-modal').then(m => ({
+    default: m.LevelUpModal,
+  }))
+);
+const CharacterOnboardingWizard = lazy(() =>
+  import('@/components/character-onboarding/character-onboarding-wizard').then(
+    m => ({ default: m.CharacterOnboardingWizard })
+  )
+);
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,6 +57,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { useBeastformState } from '@/hooks/use-beastform';
@@ -327,16 +362,20 @@ function CharacterOnboardingSection({
     setIsNewCharacter(false);
   };
 
+  if (!isOpen) return null;
+
   return (
-    <CharacterOnboardingWizard
-      isOpen={isOpen}
-      onClose={onDismiss}
-      onSkipWizard={handleSkip}
-      onFinish={handleSkip}
-      state={state}
-      handlers={handlers}
-      campaignId={campaignId}
-    />
+    <Suspense fallback={null}>
+      <CharacterOnboardingWizard
+        isOpen={isOpen}
+        onClose={onDismiss}
+        onSkipWizard={handleSkip}
+        onFinish={handleSkip}
+        state={state}
+        handlers={handlers}
+        campaignId={campaignId}
+      />
+    </Suspense>
   );
 }
 
@@ -591,50 +630,74 @@ function CharacterSheetTabs({
         )}
       >
         <TabsContent value="quick" className="animate-fade-up">
-          <QuickViewTab state={state} handlers={handlers} />
+          {activeTab === 'quick' && (
+            <Suspense fallback={<TabSkeleton />}>
+              <QuickViewTab state={state} handlers={handlers} />
+            </Suspense>
+          )}
         </TabsContent>
         <TabsContent value="overview" className="animate-fade-up">
-          <OverviewTab
-            state={state}
-            handlers={handlers}
-            isHydrated={isHydrated}
-            pushUndo={pushUndo}
-            shopSettings={shopSettings}
-            campaignName={campaignName}
-          />
+          {activeTab === 'overview' && (
+            <Suspense fallback={<TabSkeleton />}>
+              <OverviewTab
+                state={state}
+                handlers={handlers}
+                isHydrated={isHydrated}
+                pushUndo={pushUndo}
+                shopSettings={shopSettings}
+                campaignName={campaignName}
+              />
+            </Suspense>
+          )}
         </TabsContent>
         <TabsContent value="identity" className="animate-fade-up">
-          <IdentityTab
-            state={state}
-            handlers={handlers}
-            isHydrated={isHydrated}
-          />
+          {activeTab === 'identity' && (
+            <Suspense fallback={<TabSkeleton />}>
+              <IdentityTab
+                state={state}
+                handlers={handlers}
+                isHydrated={isHydrated}
+              />
+            </Suspense>
+          )}
         </TabsContent>
         <TabsContent value="combat" className="animate-fade-up">
-          <CombatTab
-            state={state}
-            handlers={handlers}
-            isHydrated={isHydrated}
-          />
+          {activeTab === 'combat' && (
+            <Suspense fallback={<TabSkeleton />}>
+              <CombatTab
+                state={state}
+                handlers={handlers}
+                isHydrated={isHydrated}
+              />
+            </Suspense>
+          )}
         </TabsContent>
         <TabsContent value="items" className="animate-fade-up">
-          <ItemsTab
-            state={state}
-            handlers={handlers}
-            isHydrated={isHydrated}
-            pushUndo={pushUndo}
-            shopSettings={shopSettings}
-            campaignName={campaignName}
-          />
+          {activeTab === 'items' && (
+            <Suspense fallback={<TabSkeleton />}>
+              <ItemsTab
+                state={state}
+                handlers={handlers}
+                isHydrated={isHydrated}
+                pushUndo={pushUndo}
+                shopSettings={shopSettings}
+                campaignName={campaignName}
+              />
+            </Suspense>
+          )}
         </TabsContent>
         <TabsContent value="session" className="animate-fade-up">
-          <SessionTab
-            state={state}
-            handlers={handlers}
-            isHydrated={isHydrated}
-            activeEffects={state.activeEffects ?? []}
-            onActiveEffectsChange={handlers.setActiveEffects}
-          />
+          {activeTab === 'session' && (
+            <Suspense fallback={<TabSkeleton />}>
+              <SessionTab
+                state={state}
+                handlers={handlers}
+                isHydrated={isHydrated}
+                activeEffects={state.activeEffects ?? []}
+                onActiveEffectsChange={handlers.setActiveEffects}
+              />
+            </Suspense>
+          )}
         </TabsContent>
       </div>
     </Tabs>
@@ -660,25 +723,40 @@ function LevelUpSection({
   currentExperiences: { id: string; name: string; value: number }[];
   ownedCardNames: string[];
 }) {
-  if (readOnly) return null;
+  if (readOnly || !isOpen) return null;
 
   return (
-    <LevelUpModal
-      isOpen={isOpen}
-      onClose={onClose}
-      onConfirm={onConfirm}
-      currentLevel={state.progression.currentLevel}
-      currentTier={state.progression.currentTier}
-      currentTraits={currentTraits}
-      currentExperiences={currentExperiences}
-      tierHistory={state.progression.tierHistory}
-      classSelection={state.classSelection}
-      unlockedSubclassFeatures={state.unlockedSubclassFeatures}
-      ownedCardNames={ownedCardNames}
-      currentCompanionTraining={state.companion?.training}
-      hasCompanion={!!state.companion}
-      companionName={state.companion?.name}
-      companionExperiences={state.companion?.experiences ?? []}
-    />
+    <Suspense fallback={null}>
+      <LevelUpModal
+        isOpen={isOpen}
+        onClose={onClose}
+        onConfirm={onConfirm}
+        currentLevel={state.progression.currentLevel}
+        currentTier={state.progression.currentTier}
+        currentTraits={currentTraits}
+        currentExperiences={currentExperiences}
+        tierHistory={state.progression.tierHistory}
+        classSelection={state.classSelection}
+        unlockedSubclassFeatures={state.unlockedSubclassFeatures}
+        ownedCardNames={ownedCardNames}
+        currentCompanionTraining={state.companion?.training}
+        hasCompanion={!!state.companion}
+        companionName={state.companion?.name}
+        companionExperiences={state.companion?.experiences ?? []}
+      />
+    </Suspense>
+  );
+}
+
+function TabSkeleton() {
+  return (
+    <div className="space-y-4 py-4">
+      <Skeleton className="h-8 w-48" />
+      <div className="grid gap-4 md:grid-cols-2">
+        <Skeleton className="h-40 w-full" />
+        <Skeleton className="h-40 w-full" />
+      </div>
+      <Skeleton className="h-32 w-full" />
+    </div>
   );
 }

@@ -3,6 +3,8 @@
  */
 import { useCallback, useState } from 'react';
 
+import { generateId } from '@/lib/utils';
+
 interface PointOfInterest {
   id: string;
   name: string;
@@ -29,7 +31,7 @@ export function usePOIHandlers<T>({
     const trimmedName = poiName.trim();
     if (!trimmedName) return;
     const newPOI: PointOfInterest = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       name: trimmedName,
       description: poiDesc.trim(),
       significance: poiSignificance.trim(),

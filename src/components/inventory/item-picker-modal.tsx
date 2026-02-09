@@ -19,6 +19,14 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer';
+import { useIsMobile } from '@/hooks/use-mobile';
+import {
   AlertTriangle,
   Backpack,
   Ban,
@@ -95,45 +103,69 @@ function PickerHeader({
   slotsRemaining,
   isAtCapacity,
   unlimitedSlots,
+  mobile,
 }: {
   totalQuantity: number;
   slotsRemaining: number;
   isAtCapacity: boolean;
   unlimitedSlots: boolean;
+  mobile: boolean;
 }) {
+  const Header = mobile ? DrawerHeader : DialogHeader;
+  const Title = mobile ? DrawerTitle : DialogTitle;
+
+  const titleContent = (
+    <>
+      <Backpack className="size-6" />
+      Add Items to Inventory
+      {totalQuantity > 0 && (
+        <Badge className="bg-green-500">{totalQuantity} selected</Badge>
+      )}
+      {!unlimitedSlots && (
+        <Badge
+          variant="outline"
+          className={
+            isAtCapacity
+              ? 'border-red-300 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/50 dark:text-red-300'
+              : 'border-blue-300 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/50 dark:text-blue-300'
+          }
+        >
+          {slotsRemaining <= 0 ? (
+            <span className="flex items-center gap-1">
+              <Ban className="size-3" /> Full
+            </span>
+          ) : (
+            <span className="flex items-center gap-1">
+              <Package className="size-3" /> {slotsRemaining} slots left
+            </span>
+          )}
+        </Badge>
+      )}
+    </>
+  );
+
+  if (mobile) {
+    return (
+      <Header className="shrink-0">
+        <Title className="flex flex-wrap items-center gap-2">
+          {titleContent}
+        </Title>
+        <DrawerDescription className="sr-only">
+          Browse and select items to add to your inventory
+        </DrawerDescription>
+      </Header>
+    );
+  }
+
   return (
-    <DialogHeader className="shrink-0">
-      <DialogTitle className="flex flex-wrap items-center gap-2">
-        <Backpack className="size-6" />
-        Add Items to Inventory
-        {totalQuantity > 0 && (
-          <Badge className="bg-green-500">{totalQuantity} selected</Badge>
-        )}
-        {!unlimitedSlots && (
-          <Badge
-            variant="outline"
-            className={
-              isAtCapacity
-                ? 'border-red-300 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/50 dark:text-red-300'
-                : 'border-blue-300 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/50 dark:text-blue-300'
-            }
-          >
-            {slotsRemaining <= 0 ? (
-              <span className="flex items-center gap-1">
-                <Ban className="size-3" /> Full
-              </span>
-            ) : (
-              <span className="flex items-center gap-1">
-                <Package className="size-3" /> {slotsRemaining} slots left
-              </span>
-            )}
-          </Badge>
-        )}
-      </DialogTitle>
+    <Header className="shrink-0">
+      <Title className="flex flex-wrap items-center gap-2">
+        {titleContent}
+      </Title>
       <DialogDescription className="sr-only">
         Browse and select items to add to your inventory
       </DialogDescription>
-    </DialogHeader>
+    </Header>
   );
 }
 
@@ -173,10 +205,7 @@ function PickerFooter({
           type="button"
           variant="outline"
           className="touch-manipulation"
-          onPointerUp={e => {
-            e.preventDefault();
-            onCancel();
-          }}
+          onClick={onCancel}
         >
           Cancel
         </Button>
@@ -185,10 +214,7 @@ function PickerFooter({
             type="button"
             className="touch-manipulation"
             disabled={disabled}
-            onPointerUp={e => {
-              e.preventDefault();
-              if (!disabled) onConfirm();
-            }}
+            onClick={onConfirm}
           >
             ✅ Add Items
           </Button>
@@ -254,7 +280,7 @@ export function ItemPickerModal({
     filters.selectedCategories,
     filters.selectedRarities,
     filters.selectedTiers,
-    filters.search,
+    filters.deferredSearch,
     allowedTiers
   );
 
@@ -277,174 +303,191 @@ export function ItemPickerModal({
 
   const isCustomValid = Boolean(customFormData?.name?.trim());
 
+  const isMobile = useIsMobile();
+
+  const pickerBody = (
+    <>
+      <PickerHeader
+        totalQuantity={totalQuantity}
+        slotsRemaining={slotsRemaining}
+        isAtCapacity={isAtCapacity}
+        unlimitedSlots={unlimitedSlots}
+        mobile={isMobile}
+      />
+
+      <ModeTabs
+        modes={ITEM_PICKER_MODES}
+        activeMode={mode}
+        onModeChange={setMode}
+        className="shrink-0"
+      />
+
+      {mode === 'official' && (
+        <>
+          {isAtCapacity && <CapacityWarning maxSlots={maxSlots} />}
+
+          <div className="shrink-0 space-y-4">
+            <ItemSearchHeader
+              search={filters.search}
+              onSearchChange={filters.setSearch}
+              showFilters={filters.showFilters}
+              onToggleFilters={() => filters.setShowFilters(v => !v)}
+              activeFilterCount={filters.activeFilterCount}
+              onClearFilters={filters.clearFilters}
+            />
+            {filters.showFilters && (
+              <ItemFilters
+                selectedCategories={filters.selectedCategories}
+                selectedRarities={filters.selectedRarities}
+                selectedTiers={filters.selectedTiers}
+                onToggleCategory={filters.toggleCategory}
+                onToggleRarity={filters.toggleRarity}
+                onToggleTier={filters.toggleTier}
+                allowedTiers={allowedTiers}
+                lockTiers={filters.lockTiers}
+              />
+            )}
+          </div>
+
+          <div className="mt-4 flex-1 touch-pan-y overflow-y-auto pr-2">
+            <div className="text-muted-foreground mb-2 text-sm">
+              {filteredItems.length} items found
+            </div>
+            <ItemPickerGrid
+              items={filteredItems}
+              selectedItems={tempSelected}
+              onToggleItem={toggleItem}
+              onQuantityChange={handleQuantityChange}
+              inventoryItems={inventoryItems}
+              unlimitedQuantity={unlimitedQuantity}
+              onConvertToHomebrew={onConvertToHomebrew}
+            />
+          </div>
+        </>
+      )}
+
+      {mode === 'homebrew' && (
+        <>
+          {isAtCapacity && <CapacityWarning maxSlots={maxSlots} />}
+
+          <div className="shrink-0 space-y-4">
+            <HomebrewSourceTabs
+              activeSource={homebrewData.source}
+              onSourceChange={homebrewData.setSource}
+              hasCampaign={homebrewData.hasCampaign}
+            />
+
+            <ItemSearchHeader
+              search={homebrewData.searchQuery}
+              onSearchChange={homebrewData.setSearchQuery}
+              showFilters={showHomebrewFilters}
+              onToggleFilters={() => setShowHomebrewFilters(v => !v)}
+              activeFilterCount={homebrewData.activeFilterCount}
+              onClearFilters={homebrewData.clearFilters}
+            />
+
+            {showHomebrewFilters && (
+              <ItemFilters
+                selectedCategories={homebrewData.selectedCategories}
+                selectedRarities={homebrewData.selectedRarities}
+                selectedTiers={homebrewData.selectedTiers}
+                onToggleCategory={homebrewData.toggleCategory}
+                onToggleRarity={homebrewData.toggleRarity}
+                onToggleTier={homebrewData.toggleTier}
+                allowedTiers={allowedTiers}
+                lockTiers={false}
+              />
+            )}
+          </div>
+
+          <div className="mt-4 flex-1 touch-pan-y overflow-y-auto pr-2">
+            {homebrewData.isLoading ? (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="bg-muted h-32 animate-pulse rounded-lg"
+                  />
+                ))}
+              </div>
+            ) : homebrewData.filteredItems.length === 0 ? (
+              <div className="flex flex-1 flex-col items-center justify-center py-12 text-center">
+                <Wrench className="text-muted-foreground mb-4 size-12 opacity-50" />
+                <h3 className="mb-2 text-lg font-medium">No Homebrew Items</h3>
+                <p className="text-muted-foreground max-w-sm text-sm">
+                  {homebrewData.source === 'linked'
+                    ? 'No homebrew items are linked to this campaign yet.'
+                    : homebrewData.source === 'private'
+                      ? "You haven't created any homebrew items yet."
+                      : homebrewData.source === 'quicklist'
+                        ? "You haven't added any items to your quicklist."
+                        : 'No public homebrew items found.'}
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="text-muted-foreground mb-2 text-sm">
+                  {homebrewData.filteredItems.length} homebrew items found
+                </div>
+                <ItemPickerGrid
+                  items={homebrewData.filteredItems.map(h => h.item)}
+                  selectedItems={tempSelected}
+                  onToggleItem={toggleItem}
+                  onQuantityChange={handleQuantityChange}
+                  inventoryItems={inventoryItems}
+                  unlimitedQuantity={unlimitedQuantity}
+                  onConvertToHomebrew={onConvertToHomebrew}
+                />
+              </>
+            )}
+          </div>
+        </>
+      )}
+
+      {mode === 'custom' && (
+        <div className="flex-1 overflow-y-auto">
+          <div className="space-y-4 py-4">
+            <div className="text-muted-foreground text-sm">
+              Create a custom item with your own properties.
+            </div>
+            <ItemForm onChange={setCustomFormData} showActions={false} />
+            <div className="flex justify-end pt-4">
+              <Button
+                onClick={handleCustomItemSave}
+                disabled={!isCustomValid}
+                className="gap-1.5"
+              >
+                <Check className="size-4" /> Create Item
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <PickerFooter
+        totalQuantity={totalQuantity}
+        onCancel={() => onOpenChange(false)}
+        onConfirm={handleConfirm}
+        disabled={tempSelected.size === 0}
+        mode={mode}
+      />
+    </>
+  );
+
+  if (isMobile) {
+    return (
+      <Drawer open={open} onOpenChange={onOpenChange}>
+        <DrawerContent className="flex max-h-[90vh] flex-col overflow-hidden px-4 pb-4">
+          {pickerBody}
+        </DrawerContent>
+      </Drawer>
+    );
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex h-full w-full flex-col overflow-hidden sm:h-auto sm:max-h-[90vh] sm:w-[98vw] sm:max-w-5xl lg:max-w-6xl">
-        <PickerHeader
-          totalQuantity={totalQuantity}
-          slotsRemaining={slotsRemaining}
-          isAtCapacity={isAtCapacity}
-          unlimitedSlots={unlimitedSlots}
-        />
-
-        <ModeTabs
-          modes={ITEM_PICKER_MODES}
-          activeMode={mode}
-          onModeChange={setMode}
-          className="shrink-0"
-        />
-
-        {mode === 'official' && (
-          <>
-            {isAtCapacity && <CapacityWarning maxSlots={maxSlots} />}
-
-            <div className="shrink-0 space-y-4">
-              <ItemSearchHeader
-                search={filters.search}
-                onSearchChange={filters.setSearch}
-                showFilters={filters.showFilters}
-                onToggleFilters={() => filters.setShowFilters(v => !v)}
-                activeFilterCount={filters.activeFilterCount}
-                onClearFilters={filters.clearFilters}
-              />
-              {filters.showFilters && (
-                <ItemFilters
-                  selectedCategories={filters.selectedCategories}
-                  selectedRarities={filters.selectedRarities}
-                  selectedTiers={filters.selectedTiers}
-                  onToggleCategory={filters.toggleCategory}
-                  onToggleRarity={filters.toggleRarity}
-                  onToggleTier={filters.toggleTier}
-                  allowedTiers={allowedTiers}
-                  lockTiers={filters.lockTiers}
-                />
-              )}
-            </div>
-
-            <div className="mt-4 flex-1 touch-pan-y overflow-y-auto pr-2">
-              <div className="text-muted-foreground mb-2 text-sm">
-                {filteredItems.length} items found
-              </div>
-              <ItemPickerGrid
-                items={filteredItems}
-                selectedItems={tempSelected}
-                onToggleItem={toggleItem}
-                onQuantityChange={handleQuantityChange}
-                inventoryItems={inventoryItems}
-                unlimitedQuantity={unlimitedQuantity}
-                onConvertToHomebrew={onConvertToHomebrew}
-              />
-            </div>
-          </>
-        )}
-
-        {mode === 'homebrew' && (
-          <>
-            {isAtCapacity && <CapacityWarning maxSlots={maxSlots} />}
-
-            <div className="shrink-0 space-y-4">
-              <HomebrewSourceTabs
-                activeSource={homebrewData.source}
-                onSourceChange={homebrewData.setSource}
-                hasCampaign={homebrewData.hasCampaign}
-              />
-
-              <ItemSearchHeader
-                search={homebrewData.searchQuery}
-                onSearchChange={homebrewData.setSearchQuery}
-                showFilters={showHomebrewFilters}
-                onToggleFilters={() => setShowHomebrewFilters(v => !v)}
-                activeFilterCount={homebrewData.activeFilterCount}
-                onClearFilters={homebrewData.clearFilters}
-              />
-
-              {showHomebrewFilters && (
-                <ItemFilters
-                  selectedCategories={homebrewData.selectedCategories}
-                  selectedRarities={homebrewData.selectedRarities}
-                  selectedTiers={homebrewData.selectedTiers}
-                  onToggleCategory={homebrewData.toggleCategory}
-                  onToggleRarity={homebrewData.toggleRarity}
-                  onToggleTier={homebrewData.toggleTier}
-                  allowedTiers={allowedTiers}
-                  lockTiers={false}
-                />
-              )}
-            </div>
-
-            <div className="mt-4 flex-1 touch-pan-y overflow-y-auto pr-2">
-              {homebrewData.isLoading ? (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {Array.from({ length: 6 }).map((_, i) => (
-                    <div
-                      key={i}
-                      className="bg-muted h-32 animate-pulse rounded-lg"
-                    />
-                  ))}
-                </div>
-              ) : homebrewData.filteredItems.length === 0 ? (
-                <div className="flex flex-1 flex-col items-center justify-center py-12 text-center">
-                  <Wrench className="text-muted-foreground mb-4 size-12 opacity-50" />
-                  <h3 className="mb-2 text-lg font-medium">
-                    No Homebrew Items
-                  </h3>
-                  <p className="text-muted-foreground max-w-sm text-sm">
-                    {homebrewData.source === 'linked'
-                      ? 'No homebrew items are linked to this campaign yet.'
-                      : homebrewData.source === 'private'
-                        ? "You haven't created any homebrew items yet."
-                        : homebrewData.source === 'quicklist'
-                          ? "You haven't added any items to your quicklist."
-                          : 'No public homebrew items found.'}
-                  </p>
-                </div>
-              ) : (
-                <>
-                  <div className="text-muted-foreground mb-2 text-sm">
-                    {homebrewData.filteredItems.length} homebrew items found
-                  </div>
-                  <ItemPickerGrid
-                    items={homebrewData.filteredItems.map(h => h.item)}
-                    selectedItems={tempSelected}
-                    onToggleItem={toggleItem}
-                    onQuantityChange={handleQuantityChange}
-                    inventoryItems={inventoryItems}
-                    unlimitedQuantity={unlimitedQuantity}
-                    onConvertToHomebrew={onConvertToHomebrew}
-                  />
-                </>
-              )}
-            </div>
-          </>
-        )}
-
-        {mode === 'custom' && (
-          <div className="flex-1 overflow-y-auto">
-            <div className="space-y-4 py-4">
-              <div className="text-muted-foreground text-sm">
-                Create a custom item with your own properties.
-              </div>
-              <ItemForm onChange={setCustomFormData} showActions={false} />
-              <div className="flex justify-end pt-4">
-                <Button
-                  onClick={handleCustomItemSave}
-                  disabled={!isCustomValid}
-                  className="gap-1.5"
-                >
-                  <Check className="size-4" /> Create Item
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <PickerFooter
-          totalQuantity={totalQuantity}
-          onCancel={() => onOpenChange(false)}
-          onConfirm={handleConfirm}
-          disabled={tempSelected.size === 0}
-          mode={mode}
-        />
+        {pickerBody}
       </DialogContent>
     </Dialog>
   );

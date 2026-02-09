@@ -12,6 +12,7 @@ import type { Adversary } from '@/lib/schemas/adversaries';
 import type { Environment } from '@/lib/schemas/environments';
 import { MAX_UNDO_DEPTH } from '@/lib/undo';
 import type { UndoActions, UndoEntryMeta } from '@/lib/undo';
+import { generateId } from '@/lib/utils';
 
 import type {
   AdversaryTracker,
@@ -117,7 +118,7 @@ function useUndoStacks(state: RosterState, actions: RosterActions) {
   const pushUndo = useCallback((label: string) => {
     const snapshot = captureSnapshot(stateRef.current);
     const meta: UndoEntryMeta = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       label,
       timestamp: Date.now(),
     };
@@ -135,7 +136,7 @@ function useUndoStacks(state: RosterState, actions: RosterActions) {
     const [entry, ...remaining] = pastRef.current;
     const current = captureSnapshot(stateRef.current);
     const currentMeta: UndoEntryMeta = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       label: entry.meta.label,
       timestamp: Date.now(),
     };
@@ -161,7 +162,7 @@ function useUndoStacks(state: RosterState, actions: RosterActions) {
       const [entry, ...remaining] = prevFuture;
       const current = captureSnapshot(stateRef.current);
       const currentMeta: UndoEntryMeta = {
-        id: crypto.randomUUID(),
+        id: generateId(),
         label: entry.meta.label,
         timestamp: Date.now(),
       };

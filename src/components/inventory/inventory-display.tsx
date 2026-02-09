@@ -1,13 +1,18 @@
-import { useState } from 'react';
+import { lazy, Suspense, useDeferredValue, useState } from 'react';
 
 import { Backpack } from '@/lib/icons';
 import type { InventoryState } from '@/lib/schemas/equipment';
 import { cn } from '@/lib/utils';
 
-import { CustomItemForm } from './custom-item-form';
 import { InventoryContent } from './inventory-content';
-import { ItemPickerModal } from './item-picker-modal';
 import { useInventoryHandlers } from './use-inventory-handlers';
+
+const ItemPickerModal = lazy(() =>
+  import('./item-picker-modal').then(m => ({ default: m.ItemPickerModal }))
+);
+const CustomItemForm = lazy(() =>
+  import('./custom-item-form').then(m => ({ default: m.CustomItemForm }))
+);
 
 interface InventoryDisplayProps {
   inventory: InventoryState;
@@ -27,6 +32,7 @@ export function InventoryDisplay({
   shopSlot,
 }: InventoryDisplayProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const deferredSearchQuery = useDeferredValue(searchQuery);
 
   const {
     pickerOpen,
@@ -63,7 +69,7 @@ export function InventoryDisplay({
       <div className="p-4 sm:p-6">
         <InventoryContent
           inventory={inventory}
-          searchQuery={searchQuery}
+          searchQuery={deferredSearchQuery}
           onSearchChange={readOnly ? undefined : setSearchQuery}
           onQuantityChange={readOnly ? undefined : handleQuantityChange}
           onRemove={readOnly ? undefined : handleRemove}
@@ -82,24 +88,32 @@ export function InventoryDisplay({
         />
       </div>
 
-      <ItemPickerModal
-        open={pickerOpen}
-        onOpenChange={setPickerOpen}
-        onSelectItems={handleAddItems}
-        onAddCustomItem={handleAddCustomItem}
-        inventoryItems={inventory.items}
-        unlimitedQuantity={inventory.unlimitedQuantity}
-        unlimitedSlots={inventory.unlimitedSlots}
-        maxSlots={inventory.maxSlots}
-        onConvertToHomebrew={handlePickerConvertToHomebrew}
-        allowedTiers={allowedTiers}
-      />
-      <CustomItemForm
-        open={customFormOpen}
-        onOpenChange={handleCustomFormClose}
-        onSave={handleAddCustomItem}
-        initialItem={editingItem}
-      />
+      {pickerOpen && (
+        <Suspense fallback={null}>
+          <ItemPickerModal
+            open={pickerOpen}
+            onOpenChange={setPickerOpen}
+            onSelectItems={handleAddItems}
+            onAddCustomItem={handleAddCustomItem}
+            inventoryItems={inventory.items}
+            unlimitedQuantity={inventory.unlimitedQuantity}
+            unlimitedSlots={inventory.unlimitedSlots}
+            maxSlots={inventory.maxSlots}
+            onConvertToHomebrew={handlePickerConvertToHomebrew}
+            allowedTiers={allowedTiers}
+          />
+        </Suspense>
+      )}
+      {customFormOpen && (
+        <Suspense fallback={null}>
+          <CustomItemForm
+            open={customFormOpen}
+            onOpenChange={handleCustomFormClose}
+            onSave={handleAddCustomItem}
+            initialItem={editingItem}
+          />
+        </Suspense>
+      )}
     </section>
   );
 }

@@ -32,6 +32,7 @@ import {
 } from '@/features/campaigns/campaign-storage';
 import { useCampaigns } from '@/features/campaigns/use-campaign-query';
 import type { BattleState } from '@/lib/schemas/battle';
+import { generateId } from '@/lib/utils';
 import { useBattleEntityHandlers } from './use-battle-entity-handlers';
 
 // =====================================
@@ -230,7 +231,7 @@ export function useBattleTrackerPageState(initialBattleId?: string) {
       );
       const payload: BattleState = {
         ...basePayload,
-        id: activeBattleId ?? crypto.randomUUID(),
+        id: activeBattleId ?? generateId(),
         createdAt: now,
         updatedAt: now,
       };

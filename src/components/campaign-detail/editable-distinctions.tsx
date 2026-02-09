@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import type { CampaignDistinction } from '@/lib/schemas/campaign';
+import { generateId } from '@/lib/utils';
 
 interface EditableDistinctionsProps {
   distinctions: CampaignDistinction[];
@@ -27,7 +28,7 @@ export function EditableDistinctions({
     onChange([
       ...distinctions,
       {
-        id: `distinction-${crypto.randomUUID()}`,
+        id: `distinction-${generateId()}`,
         title: 'New Distinction',
         description: '',
       },

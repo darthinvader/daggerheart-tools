@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import type { CampaignMechanic } from '@/lib/schemas/campaign';
+import { generateId } from '@/lib/utils';
 
 interface EditableMechanicsProps {
   mechanics: CampaignMechanic[];
@@ -126,7 +127,7 @@ export function EditableMechanics({
     onChange([
       ...mechanics,
       {
-        id: `mechanic-${crypto.randomUUID()}`,
+        id: `mechanic-${generateId()}`,
         name: 'New Mechanic',
         description: '',
         rules: [],

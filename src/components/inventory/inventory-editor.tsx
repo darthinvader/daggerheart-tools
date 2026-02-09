@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useDeferredValue, useMemo, useState } from 'react';
 
 import { Card, CardContent } from '@/components/ui/card';
 import type {
@@ -162,6 +162,7 @@ export function InventoryEditor({
   const [customFormOpen, setCustomFormOpen] = useState(false);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const deferredSearchQuery = useDeferredValue(searchQuery);
   const [unlimitedSlots, setUnlimitedSlots] = useState(
     state.unlimitedSlots ?? false
   );
@@ -189,7 +190,7 @@ export function InventoryEditor({
   };
 
   const actions = useInventoryActions(state, updateState, unlimitedQuantity);
-  const filteredItems = useFilteredItems(state.items, searchQuery);
+  const filteredItems = useFilteredItems(state.items, deferredSearchQuery);
 
   const editingItem = editingItemId
     ? (state.items.find(i => i.id === editingItemId)?.item ?? null)

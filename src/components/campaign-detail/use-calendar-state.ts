@@ -29,6 +29,7 @@ import type {
 } from '@/lib/schemas/calendar';
 import { MAX_EVENTS_PER_CALENDAR } from '@/lib/schemas/calendar';
 import type { Campaign } from '@/lib/schemas/campaign';
+import { generateId } from '@/lib/utils';
 
 // =====================================================================================
 // useCalendarState — v2 multi-calendar envelope support
@@ -179,7 +180,7 @@ export function useCalendarState({
     (event: Omit<CalendarEvent, 'id'>) => {
       updateActive(cal => {
         if (cal.events.length >= MAX_EVENTS_PER_CALENDAR) return cal;
-        const newEvent: CalendarEvent = { ...event, id: crypto.randomUUID() };
+        const newEvent: CalendarEvent = { ...event, id: generateId() };
         return { ...cal, events: [...cal.events, newEvent] };
       });
     },

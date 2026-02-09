@@ -6,6 +6,7 @@ import {
   SchedulingPollSchema,
 } from '@/lib/schemas/scheduling';
 import { supabase } from '@/lib/supabase';
+import { generateId } from '@/lib/utils';
 
 // =====================================================================================
 // Row ↔ Domain mapping
@@ -117,7 +118,7 @@ export async function createSchedulingPoll(
   input: CreatePollInput
 ): Promise<SchedulingPoll> {
   const slotsJson = input.slots.map(s => ({
-    id: crypto.randomUUID(),
+    id: generateId(),
     startTime: s.startTime,
     endTime: s.endTime,
     label: s.label ?? '',

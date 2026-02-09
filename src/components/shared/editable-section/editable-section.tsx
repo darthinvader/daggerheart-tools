@@ -11,6 +11,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 
 interface EditableSectionProps {
@@ -62,6 +71,8 @@ export function EditableSection({
   cancelLabel = 'Cancel',
   canSave = true,
 }: EditableSectionProps) {
+  const isMobile = useIsMobile();
+
   const handleCancel = () => {
     onCancel?.();
     onEditToggle();
@@ -111,41 +122,81 @@ export function EditableSection({
         <div className="p-4 sm:p-6">{children}</div>
       </section>
 
-      <Dialog open={isEditing} onOpenChange={open => !open && handleCancel()}>
-        <DialogContent
-          className={cn(
-            'grid h-full w-full grid-rows-[auto_1fr_auto] gap-0 overflow-hidden p-0 sm:h-auto sm:max-h-[90vh]',
-            MODAL_SIZE_CLASSES[modalSize]
-          )}
-        >
-          <DialogHeader className="shrink-0 border-b p-6 pb-4">
-            <DialogTitle className="flex items-center gap-2">
-              {Icon ? (
-                <Icon className="size-5" />
-              ) : (
-                emoji && <span>{emoji}</span>
+      {isEditing &&
+        (isMobile ? (
+          <Drawer
+            open={isEditing}
+            onOpenChange={open => !open && handleCancel()}
+          >
+            <DrawerContent className="flex max-h-[85vh] flex-col">
+              <DrawerHeader>
+                <DrawerTitle className="flex items-center gap-2">
+                  {Icon ? (
+                    <Icon className="size-5" />
+                  ) : (
+                    emoji && <span>{emoji}</span>
+                  )}
+                  {editTitle ?? `Edit ${title}`}
+                </DrawerTitle>
+                {editDescription && (
+                  <DrawerDescription>{editDescription}</DrawerDescription>
+                )}
+              </DrawerHeader>
+
+              <div className="flex-1 overflow-y-auto px-4 pb-4">
+                {editContent}
+              </div>
+
+              <DrawerFooter className="border-t pt-4">
+                <Button onClick={handleSave} disabled={!canSave}>
+                  {saveLabel}
+                </Button>
+                <Button variant="outline" onClick={handleCancel}>
+                  {cancelLabel}
+                </Button>
+              </DrawerFooter>
+            </DrawerContent>
+          </Drawer>
+        ) : (
+          <Dialog
+            open={isEditing}
+            onOpenChange={open => !open && handleCancel()}
+          >
+            <DialogContent
+              className={cn(
+                'grid h-full w-full grid-rows-[auto_1fr_auto] gap-0 overflow-hidden p-0 sm:h-auto sm:max-h-[90vh]',
+                MODAL_SIZE_CLASSES[modalSize]
               )}
-              {editTitle ?? `Edit ${title}`}
-            </DialogTitle>
-            {editDescription && (
-              <DialogDescription>{editDescription}</DialogDescription>
-            )}
-          </DialogHeader>
+            >
+              <DialogHeader className="shrink-0 border-b p-6 pb-4">
+                <DialogTitle className="flex items-center gap-2">
+                  {Icon ? (
+                    <Icon className="size-5" />
+                  ) : (
+                    emoji && <span>{emoji}</span>
+                  )}
+                  {editTitle ?? `Edit ${title}`}
+                </DialogTitle>
+                {editDescription && (
+                  <DialogDescription>{editDescription}</DialogDescription>
+                )}
+              </DialogHeader>
 
-          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4 sm:p-6">
-            {editContent}
-          </div>
+              <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4 sm:p-6">
+                {editContent}
+              </div>
 
-          <DialogFooter className="shrink-0 border-t p-4">
-            <Button variant="outline" onClick={handleCancel}>
-              {cancelLabel}
-            </Button>
-            <Button onClick={handleSave} disabled={!canSave}>
-              {saveLabel}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+              <DialogFooter className="shrink-0 border-t p-4">
+                <Button variant="outline" onClick={handleCancel}>
+                  {cancelLabel}
+                </Button>
+                <Button onClick={handleSave} disabled={!canSave}>
+                  {saveLabel}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        ))}
     </>
   );
 }

@@ -3,6 +3,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import type { SessionZeroQuestion } from '@/lib/schemas/campaign';
+import { generateId } from '@/lib/utils';
 
 interface EditableQuestionsProps {
   questions: SessionZeroQuestion[];
@@ -19,7 +20,7 @@ export function EditableQuestions({
     onChange([
       ...questions,
       {
-        id: `question-${crypto.randomUUID()}`,
+        id: `question-${generateId()}`,
         question: '',
         category: 'custom',
       },

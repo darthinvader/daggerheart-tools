@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { BattleState } from '@/lib/schemas/battle';
+import { generateId } from '@/lib/utils';
 
 import type {
   AdversaryTracker,
@@ -113,7 +114,7 @@ export function useCampaignBattle(
 
   // Battle metadata
   const [battleId, setBattleId] = useState(
-    () => options.battleId ?? `battle-${crypto.randomUUID()}`
+    () => options.battleId ?? `battle-${generateId()}`
   );
   const [name, setName] = useState('New Battle');
   const [notes, setNotes] = useState('');
@@ -308,7 +309,7 @@ export function useCampaignBattle(
   }, []);
 
   const resetBattle = useCallback(() => {
-    setBattleId(`battle-${crypto.randomUUID()}`);
+    setBattleId(`battle-${generateId()}`);
     setName('New Battle');
     setNotes('');
     setStatus('planning');

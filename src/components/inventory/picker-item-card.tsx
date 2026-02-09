@@ -1,4 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
+import { memo } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, Check, Package, Sparkles } from '@/lib/icons';
@@ -43,7 +44,7 @@ interface PickerItemCardProps {
   priceLabel?: React.ReactNode;
 }
 
-export function PickerItemCard({
+export const PickerItemCard = memo(function PickerItemCard({
   item,
   selected,
   selectedQuantity,
@@ -154,4 +155,4 @@ export function PickerItemCard({
       </div>
     </div>
   );
-}
+});

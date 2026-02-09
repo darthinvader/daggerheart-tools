@@ -9,6 +9,7 @@ import {
 import type { Adversary } from '@/lib/schemas/adversaries';
 import type { BattleEnvironmentFeature } from '@/lib/schemas/battle';
 import type { EnvironmentFeature } from '@/lib/schemas/environments';
+import { generateId } from '@/lib/utils';
 
 import type {
   AdversaryTracker,
@@ -333,7 +334,7 @@ function buildTrackerBase({
   equipmentSummary: ReturnType<typeof buildEquipmentSummary>;
 }): CharacterTracker {
   return {
-    id: crypto.randomUUID(),
+    id: generateId(),
     kind: 'character',
     name: identity.name,
     evasion: resourceSnapshot.evasion,

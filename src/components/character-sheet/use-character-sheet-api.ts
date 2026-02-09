@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import {
   type Dispatch,
   type SetStateAction,
+  startTransition,
   useCallback,
   useEffect,
   useMemo,
@@ -228,14 +229,18 @@ function createAutoSaveHandler<T>(
 ) {
   return (value: React.SetStateAction<T>) => {
     if (typeof value === 'function') {
-      setter((prev: T) => {
-        const next = (value as (prev: T) => T)(prev);
-        // scheduleSave is debounced, so double-invocation in StrictMode is benign
-        if (isHydrated) scheduleSave(toApiUpdates(next));
-        return next;
+      startTransition(() => {
+        setter((prev: T) => {
+          const next = (value as (prev: T) => T)(prev);
+          // scheduleSave is debounced, so double-invocation in StrictMode is benign
+          if (isHydrated) scheduleSave(toApiUpdates(next));
+          return next;
+        });
       });
     } else {
-      setter(value);
+      startTransition(() => {
+        setter(value);
+      });
       if (isHydrated) scheduleSave(toApiUpdates(value));
     }
   };
@@ -730,30 +735,41 @@ export function useCharacterSheetWithApi(
   const isSaving = options?.readOnly ? false : autoSave.isSaving;
   const lastSaved = options?.readOnly ? null : autoSave.lastSaved;
 
-  // Build state object to pass to components
-  const hopeWithScars = buildHopeWithScarsState(charState, sessionState);
+  // Build state object to pass to components — memoized to stabilize references
+  const hopeWithScars = useMemo(
+    () => buildHopeWithScarsState(charState, sessionState),
+    [charState, sessionState]
+  );
 
-  const state = buildCharacterSheetState(
-    charState,
-    sessionState,
-    hopeWithScars
+  const state = useMemo(
+    () => buildCharacterSheetState(charState, sessionState, hopeWithScars),
+    [charState, sessionState, hopeWithScars]
   );
 
   // Level up handler
   const handleLevelUp = useCallback(() => setIsLevelUpOpen(true), []);
 
+  // Use refs for level-up handler so the callback is stable
+  const charStateRef = useRef(charState);
+  const sessionStateRef = useRef(sessionState);
+  useEffect(() => {
+    charStateRef.current = charState;
+    sessionStateRef.current = sessionState;
+  });
+
   const handleLevelUpConfirm = useCallback(
     (result: LevelUpResult) => {
       createLevelUpConfirmHandler({
-        charState,
-        sessionState,
+        charState: charStateRef.current,
+        sessionState: sessionStateRef.current,
         setIsLevelUpOpen,
         scheduleSave,
       })(result);
     },
-    [charState, sessionState, scheduleSave, setIsLevelUpOpen]
+    [scheduleSave]
   );
 
+  // Use full objects as deps to satisfy React Compiler's inferred dependencies
   const handleSetHopeWithScars = useCallback(
     (newState: HopeWithScarsState) => {
       charState.setResources(prev => ({
@@ -769,12 +785,16 @@ export function useCharacterSheetWithApi(
     [charState, sessionState]
   );
 
-  // Build handlers with auto-save capability
-  const baseHandlers = buildCharacterSheetHandlers(
-    charState,
-    sessionState,
-    handleLevelUp,
-    handleSetHopeWithScars
+  // Build handlers with auto-save capability — memoized to stabilize reference
+  const baseHandlers = useMemo(
+    () =>
+      buildCharacterSheetHandlers(
+        charState,
+        sessionState,
+        handleLevelUp,
+        handleSetHopeWithScars
+      ),
+    [charState, sessionState, handleLevelUp, handleSetHopeWithScars]
   );
 
   const readOnlyHandlers = useMemo(() => buildReadOnlyHandlers(), []);
@@ -832,11 +852,18 @@ export function useCharacterSheetWithApi(
     [scheduleSave]
   );
 
-  const currentTraitsForModal = buildTraitModalItems(charState.traits);
-  const currentExperiencesForModal = buildExperienceModalItems(
-    charState.experiences
+  const currentTraitsForModal = useMemo(
+    () => buildTraitModalItems(charState.traits),
+    [charState.traits]
   );
-  const ownedCardNames = buildOwnedCardNames(charState.loadout);
+  const currentExperiencesForModal = useMemo(
+    () => buildExperienceModalItems(charState.experiences),
+    [charState.experiences]
+  );
+  const ownedCardNames = useMemo(
+    () => buildOwnedCardNames(charState.loadout),
+    [charState.loadout]
+  );
 
   return {
     state,

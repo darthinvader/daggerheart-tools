@@ -32,6 +32,7 @@ import type {
   CampaignQuest,
   SessionNote,
 } from '@/lib/schemas/campaign';
+import { generateId } from '@/lib/utils';
 import {
   DeleteConfirmDialog,
   useEntityCardState,
@@ -335,7 +336,7 @@ function normalizeLocation(location: CampaignLocation): CampaignLocation {
     questsAvailableCustom: location.questsAvailableCustom ?? [],
     sessionAppearances: location.sessionAppearances ?? [],
     pointsOfInterest: (location.pointsOfInterest ?? []).map(poi => ({
-      id: poi.id ?? crypto.randomUUID(),
+      id: poi.id ?? generateId(),
       name: poi.name,
       description: poi.description ?? '',
       significance: poi.significance ?? '',

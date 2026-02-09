@@ -2,19 +2,27 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import tailwindcss from '@tailwindcss/vite';
 import { tanstackRouter } from '@tanstack/router-plugin/vite';
-import react from '@vitejs/plugin-react-swc';
+import reactBabel from '@vitejs/plugin-react';
+import reactSwc from '@vitejs/plugin-react-swc';
 import { visualizer } from 'rollup-plugin-visualizer';
 import viteCompression from 'vite-plugin-compression';
 import { defineConfig } from 'vitest/config';
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [
     tanstackRouter({
       target: 'react',
       autoCodeSplitting: true,
     }),
-    react(),
+    // SWC is ~20x faster for dev HMR; React Compiler only matters for production
+    mode === 'production'
+      ? reactBabel({
+          babel: {
+            plugins: ['babel-plugin-react-compiler'],
+          },
+        })
+      : reactSwc(),
     tailwindcss(),
     // Pre-compress built assets for optimal delivery (gzip + brotli)
     viteCompression({ algorithm: 'gzip' }),
@@ -65,6 +73,8 @@ export default defineConfig({
         manualChunks: {
           react: ['react', 'react-dom'],
           router: ['@tanstack/react-router'],
+          query: ['@tanstack/react-query'],
+          supabase: ['@supabase/supabase-js'],
           radix: [
             '@radix-ui/react-alert-dialog',
             '@radix-ui/react-checkbox',
@@ -98,4 +108,4 @@ export default defineConfig({
     setupFiles: ['./vitest.setup.ts'],
     globals: true,
   },
-});
+}));

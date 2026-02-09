@@ -32,6 +32,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useAutoSave } from '@/hooks/use-auto-save';
+import { generateId } from '@/lib/utils';
 
 import { ENTITY_SYSTEM_KEYS, getEntityUpdates } from './entity-diff-utils';
 
@@ -328,7 +329,7 @@ export function useObjectivesHandlers<T>({
         const currentObjectives =
           (current[objectivesField] as QuestObjective[] | undefined) ?? [];
         const newObj: QuestObjective = {
-          id: crypto.randomUUID(),
+          id: generateId(),
           text: trimmed,
           completed: false,
         };

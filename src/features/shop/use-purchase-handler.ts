@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 
 import type { Gold } from '@/lib/schemas/character-state';
 import type { AnyItem, InventoryState } from '@/lib/schemas/equipment';
+import { generateId } from '@/lib/utils';
 
 import { subtractGold } from './gold-math';
 import type { CartEntry } from './use-shop-cart';
@@ -80,7 +81,7 @@ export function usePurchaseHandler({
 
 function createInventoryEntry(item: AnyItem) {
   return {
-    id: crypto.randomUUID(),
+    id: generateId(),
     item,
     quantity: 1,
     isEquipped: false,

@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 
 import { MAX_UNDO_DEPTH } from '@/lib/undo';
 import type { UndoActions, UndoEntryMeta } from '@/lib/undo';
+import { generateId } from '@/lib/utils';
 
 import type { CharacterSheetHandlers, CharacterSheetState } from './types';
 
@@ -184,6 +185,10 @@ function useCharacterUndoStacks(
   const pastRef = useRef(past);
   const futureRef = useRef(future);
 
+  // Debounce refs: coalesce rapid changes (e.g. typing) into one undo entry
+  const undoDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastUndoLabelRef = useRef<string | null>(null);
+
   useEffect(() => {
     stateRef.current = state;
     handlersRef.current = handlers;
@@ -192,14 +197,33 @@ function useCharacterUndoStacks(
   });
 
   const pushUndo = useCallback((label: string) => {
+    // Coalesce: if same label fires within 500ms, skip the snapshot
+    if (
+      undoDebounceRef.current !== null &&
+      lastUndoLabelRef.current === label
+    ) {
+      clearTimeout(undoDebounceRef.current);
+      undoDebounceRef.current = setTimeout(() => {
+        lastUndoLabelRef.current = null;
+        undoDebounceRef.current = null;
+      }, 500);
+      return;
+    }
+
     const snapshot = captureCharacterSnapshot(stateRef.current);
     const meta: UndoEntryMeta = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       label,
       timestamp: Date.now(),
     };
     setPast(prev => [{ meta, snapshot }, ...prev].slice(0, MAX_UNDO_DEPTH));
     setFuture([]);
+
+    lastUndoLabelRef.current = label;
+    undoDebounceRef.current = setTimeout(() => {
+      lastUndoLabelRef.current = null;
+      undoDebounceRef.current = null;
+    }, 500);
   }, []);
 
   const undo = useCallback(() => {
@@ -210,7 +234,7 @@ function useCharacterUndoStacks(
     pastRef.current = remaining; // close the race window for rapid-fire undo
     const current = captureCharacterSnapshot(stateRef.current);
     const currentMeta: UndoEntryMeta = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       label: entry.meta.label,
       timestamp: Date.now(),
     };
@@ -237,7 +261,7 @@ function useCharacterUndoStacks(
     futureRef.current = remaining; // close the race window for rapid-fire redo
     const current = captureCharacterSnapshot(stateRef.current);
     const currentMeta: UndoEntryMeta = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       label: entry.meta.label,
       timestamp: Date.now(),
     };

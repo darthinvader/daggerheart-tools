@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { generateId } from '@/lib/utils';
 
 interface SlotInput {
   id: string;
@@ -18,7 +19,7 @@ interface SlotInput {
 
 function createEmptySlot(): SlotInput {
   return {
-    id: crypto.randomUUID(),
+    id: generateId(),
     date: '',
     startTime: '',
     endTime: '',
