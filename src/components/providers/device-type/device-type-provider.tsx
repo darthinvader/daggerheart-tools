@@ -1,5 +1,4 @@
-import { type ReactNode, useMemo } from 'react';
-import { useMediaQuery } from 'react-responsive';
+import { type ReactNode, useMemo, useSyncExternalStore } from 'react';
 
 import {
   type DeviceType,
@@ -10,16 +9,28 @@ import {
 const TABLET_MIN_WIDTH = 768;
 const PC_MIN_WIDTH = 1024;
 
+/** Lightweight matchMedia hook — replaces react-responsive dependency. */
+function useMediaQuery(query: string): boolean {
+  return useSyncExternalStore(
+    cb => {
+      const mql = window.matchMedia(query);
+      mql.addEventListener('change', cb);
+      return () => mql.removeEventListener('change', cb);
+    },
+    () => window.matchMedia(query).matches,
+    () => false
+  );
+}
+
 interface DeviceTypeProviderProps {
   children: ReactNode;
 }
 
 export function DeviceTypeProvider({ children }: DeviceTypeProviderProps) {
-  const isPc = useMediaQuery({ minWidth: PC_MIN_WIDTH });
-  const isTablet = useMediaQuery({
-    minWidth: TABLET_MIN_WIDTH,
-    maxWidth: PC_MIN_WIDTH - 1,
-  });
+  const isPc = useMediaQuery(`(min-width: ${PC_MIN_WIDTH}px)`);
+  const isTablet = useMediaQuery(
+    `(min-width: ${TABLET_MIN_WIDTH}px) and (max-width: ${PC_MIN_WIDTH - 1}px)`
+  );
 
   let deviceType: DeviceType = 'phone';
   if (isPc) {

@@ -5,7 +5,7 @@ import { tanstackRouter } from '@tanstack/router-plugin/vite';
 import reactBabel from '@vitejs/plugin-react';
 import reactSwc from '@vitejs/plugin-react-swc';
 import { visualizer } from 'rollup-plugin-visualizer';
-import viteCompression from 'vite-plugin-compression';
+import { compression } from 'vite-plugin-compression2';
 import { defineConfig } from 'vitest/config';
 
 // https://vite.dev/config/
@@ -25,8 +25,7 @@ export default defineConfig(({ mode }) => ({
       : reactSwc(),
     tailwindcss(),
     // Pre-compress built assets for optimal delivery (gzip + brotli)
-    viteCompression({ algorithm: 'gzip' }),
-    viteCompression({ algorithm: 'brotliCompress', ext: '.br' }),
+    compression({ algorithms: ['gzip', 'brotliCompress'], threshold: 1024 }),
     ...(process.env.ANALYZE
       ? [
           visualizer({
@@ -77,26 +76,7 @@ export default defineConfig(({ mode }) => ({
           supabase: ['@supabase/supabase-js'],
           zod: ['zod'],
           icons: ['lucide-react'],
-          radix: [
-            '@radix-ui/react-alert-dialog',
-            '@radix-ui/react-checkbox',
-            '@radix-ui/react-collapsible',
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-label',
-            '@radix-ui/react-navigation-menu',
-            '@radix-ui/react-popover',
-            '@radix-ui/react-scroll-area',
-            '@radix-ui/react-select',
-            '@radix-ui/react-separator',
-            '@radix-ui/react-slider',
-            '@radix-ui/react-slot',
-            '@radix-ui/react-switch',
-            '@radix-ui/react-tabs',
-            '@radix-ui/react-toggle-group',
-            '@radix-ui/react-tooltip',
-            '@radix-ui/react-visually-hidden',
-          ],
+          radix: ['radix-ui'],
         },
       },
       treeshake: {

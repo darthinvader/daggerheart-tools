@@ -1,6 +1,6 @@
-import { Slot } from '@radix-ui/react-slot';
 import { type VariantProps } from 'class-variance-authority';
 import { Loader2 } from 'lucide-react';
+import { Slot as SlotPrimitive } from 'radix-ui';
 import * as React from 'react';
 
 import { cn } from '@/lib/utils';
@@ -32,7 +32,7 @@ function Button({
   children,
   ...props
 }: ButtonProps) {
-  const Comp = asChild ? Slot : 'button';
+  const Comp = asChild ? SlotPrimitive.Slot : 'button';
   const isDisabled = disabled || isLoading;
 
   return (

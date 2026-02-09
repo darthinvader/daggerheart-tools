@@ -60,7 +60,7 @@ export const Route = createRootRoute({
             href="https://www.daggerheart.com"
             className="text-foreground underline underline-offset-4"
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
           >
             daggerheart.com
           </a>
