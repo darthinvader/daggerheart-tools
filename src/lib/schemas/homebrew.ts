@@ -18,7 +18,7 @@ import {
   DomainNameSchema,
   FeatureStatModifiersSchema,
 } from './core';
-import { DomainCardSchema } from './domains';
+import { DomainCardBaseSchema } from './domains';
 import {
   EnvironmentSchema,
   EnvironmentTierEnum,
@@ -126,7 +126,7 @@ export type HomebrewEnvironment = z.infer<typeof HomebrewEnvironmentSchema>;
 // Homebrew Domain Card
 // =====================================================================================
 
-export const HomebrewDomainCardContentSchema = DomainCardSchema.omit({
+export const HomebrewDomainCardContentSchema = DomainCardBaseSchema.omit({
   metadata: true,
 }).extend({
   // Allow custom domains beyond the standard enum

@@ -12,30 +12,30 @@ import {
 export const DomainCardTypeEnum = z.enum(['Spell', 'Ability', 'Grimoire']);
 export const DomainCardTypeSchema = unionWithString(DomainCardTypeEnum);
 
-export const DomainCardSchema = z
-  .object({
-    name: z.string(),
-    level: z.number().int().min(1).max(10),
-    domain: DomainNameSchema,
-    type: DomainCardTypeSchema,
-    // Per SRD: recallCost is the standard field for domain card recall/equip cost
-    // hopeCost is kept for backward compatibility with legacy data
-    recallCost: z.number().int().min(0).optional(),
-    hopeCost: z.number().int().min(0).optional(),
-    stressCost: z.number().int().min(0).optional(),
-    description: z.string(),
-    tags: z.array(z.string()).optional(),
-    // Optional explicit modifiers for auto-calculation
-    modifiers: FeatureStatModifiersSchema.optional(),
-    metadata: MetadataSchema,
-  })
-  .refine(
-    v => typeof v.recallCost === 'number' || typeof v.hopeCost === 'number',
-    {
-      message:
-        'Domain card must include recallCost (preferred) or hopeCost (legacy)',
-    }
-  );
+export const DomainCardBaseSchema = z.object({
+  name: z.string(),
+  level: z.number().int().min(1).max(10),
+  domain: DomainNameSchema,
+  type: DomainCardTypeSchema,
+  // Per SRD: recallCost is the standard field for domain card recall/equip cost
+  // hopeCost is kept for backward compatibility with legacy data
+  recallCost: z.number().int().min(0).optional(),
+  hopeCost: z.number().int().min(0).optional(),
+  stressCost: z.number().int().min(0).optional(),
+  description: z.string(),
+  tags: z.array(z.string()).optional(),
+  // Optional explicit modifiers for auto-calculation
+  modifiers: FeatureStatModifiersSchema.optional(),
+  metadata: MetadataSchema,
+});
+
+export const DomainCardSchema = DomainCardBaseSchema.refine(
+  v => typeof v.recallCost === 'number' || typeof v.hopeCost === 'number',
+  {
+    message:
+      'Domain card must include recallCost (preferred) or hopeCost (legacy)',
+  }
+);
 
 export const DomainCardCollectionSchema = z.array(DomainCardSchema);
 
