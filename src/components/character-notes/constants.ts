@@ -1,8 +1,16 @@
 import type { LucideIcon } from 'lucide-react';
-
-import { NoteCategoryIcons } from '@/lib/icons';
+import { Calendar, Library, Map, Pencil, Sword, User } from 'lucide-react';
 
 import type { NoteCategory } from './types';
+
+export const NoteCategoryIcons: Record<string, LucideIcon> = {
+  general: Pencil,
+  session: Calendar,
+  npc: User,
+  location: Map,
+  quest: Sword,
+  lore: Library,
+} as const;
 
 export const NOTE_CATEGORIES: {
   value: NoteCategory;

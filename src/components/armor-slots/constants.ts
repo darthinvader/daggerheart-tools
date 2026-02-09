@@ -1,8 +1,14 @@
 import type { LucideIcon } from 'lucide-react';
-
-import { ArmorStateIcons } from '@/lib/icons';
+import { Shield, ShieldAlert, ShieldX, Zap } from 'lucide-react';
 
 import type { ArmorSlotState } from './types';
+
+export const ArmorStateIcons: Record<string, LucideIcon> = {
+  available: Shield,
+  used: Zap,
+  damaged: ShieldAlert,
+  broken: ShieldX,
+} as const;
 
 export const ARMOR_SLOT_STYLES: Record<
   ArmorSlotState,

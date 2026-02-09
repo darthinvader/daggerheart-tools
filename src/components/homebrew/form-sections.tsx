@@ -86,7 +86,7 @@ export function StringListSection({
         <div className="flex flex-wrap gap-2">
           {items.map((item, index) => (
             <Badge
-              key={index}
+              key={`${item}-${index}`}
               variant="secondary"
               className={`gap-1 border-${colorClass}/50 bg-${colorClass}/20`}
             >
@@ -104,7 +104,7 @@ export function StringListSection({
       ) : (
         <div className="space-y-2">
           {items.map((item, index) => (
-            <div key={index} className="flex items-center gap-2">
+            <div key={`${item}-${index}`} className="flex items-center gap-2">
               <div
                 className={`bg-background/50 flex-1 rounded border border-${colorClass}/20 p-2 text-sm`}
               >

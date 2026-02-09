@@ -4,6 +4,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { useLatestRef } from '@/hooks/use-latest-ref';
 import {
   createDefaultArmorContent,
   createDefaultCustomEquipmentContent,
@@ -26,6 +27,49 @@ interface UseEquipmentFormStateProps {
 }
 
 // =====================================================================================
+// Helpers
+// =====================================================================================
+
+/** Resolves initial data for each equipment type, falling back to defaults */
+function resolveInitialData(initialData: EquipmentFormData | undefined) {
+  return {
+    weapon:
+      initialData?.equipmentType === 'weapon'
+        ? initialData
+        : createDefaultWeaponContent(),
+    armor:
+      initialData?.equipmentType === 'armor'
+        ? initialData
+        : createDefaultArmorContent(),
+    wheelchair:
+      initialData?.equipmentType === 'wheelchair'
+        ? initialData
+        : createDefaultWheelchairContent(),
+    custom:
+      initialData?.equipmentType === 'custom'
+        ? initialData
+        : createDefaultCustomEquipmentContent(),
+  };
+}
+
+/** Notifies parent when equipment data changes (for inline/controlled mode) */
+function useOnChangeNotification(
+  currentData: EquipmentFormData,
+  onChange?: (data: EquipmentFormData) => void
+) {
+  const prevDataRef = useRef<string | undefined>(undefined);
+  const onChangeRef = useLatestRef(onChange);
+
+  useEffect(() => {
+    const serialized = JSON.stringify(currentData);
+    if (onChangeRef.current && serialized !== prevDataRef.current) {
+      prevDataRef.current = serialized;
+      onChangeRef.current(currentData);
+    }
+  }, [currentData]);
+}
+
+// =====================================================================================
 // Main Hook
 // =====================================================================================
 
@@ -39,27 +83,12 @@ export function useEquipmentFormState({
     'weapon' | 'armor' | 'wheelchair' | 'custom'
   >(lockedType ?? initialData?.equipmentType ?? 'weapon');
 
-  // Type-specific data states
-  const [weaponData, setWeaponData] = useState(
-    initialData?.equipmentType === 'weapon'
-      ? initialData
-      : createDefaultWeaponContent()
-  );
-  const [armorData, setArmorData] = useState(
-    initialData?.equipmentType === 'armor'
-      ? initialData
-      : createDefaultArmorContent()
-  );
-  const [wheelchairData, setWheelchairData] = useState(
-    initialData?.equipmentType === 'wheelchair'
-      ? initialData
-      : createDefaultWheelchairContent()
-  );
-  const [customData, setCustomData] = useState(
-    initialData?.equipmentType === 'custom'
-      ? initialData
-      : createDefaultCustomEquipmentContent()
-  );
+  // Type-specific data states (resolved via helper)
+  const initial = resolveInitialData(initialData);
+  const [weaponData, setWeaponData] = useState(initial.weapon);
+  const [armorData, setArmorData] = useState(initial.armor);
+  const [wheelchairData, setWheelchairData] = useState(initial.wheelchair);
+  const [customData, setCustomData] = useState(initial.custom);
 
   // Features state (extracted hook)
   const { features, addFeature, removeFeature, updateFeature } =
@@ -76,24 +105,8 @@ export function useEquipmentFormState({
       features,
     });
 
-  // Track previous data to avoid notifying on unchanged values
-  const prevDataRef = useRef<string | undefined>(undefined);
-  // Store onChange in ref to avoid dependency on unstable callback reference
-  const onChangeRef = useRef(onChange);
-
-  // Update ref in effect to satisfy react-hooks/refs rule
-  useEffect(() => {
-    onChangeRef.current = onChange;
-  });
-
-  // Auto-notify on changes (for inline mode)
-  useEffect(() => {
-    const serialized = JSON.stringify(currentData);
-    if (onChangeRef.current && serialized !== prevDataRef.current) {
-      prevDataRef.current = serialized;
-      onChangeRef.current(currentData);
-    }
-  }, [currentData]);
+  // Auto-notify parent on data changes (for inline/controlled mode)
+  useOnChangeNotification(currentData, onChange);
 
   // Description handler - uses switch for proper type narrowing
   const handleDescriptionChange = useCallback(

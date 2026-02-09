@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
-export const AdversaryTierEnum = z.enum(['1', '2', '3', '4']);
+import { TierEnum } from './shared';
+
+export const AdversaryTierEnum = TierEnum;
 export const AdversaryTierSchema = AdversaryTierEnum;
 
 export const AdversaryRoleEnum = z.enum([

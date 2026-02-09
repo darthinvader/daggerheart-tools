@@ -105,6 +105,18 @@ export async function updatePassword(newPassword: string): Promise<AuthResult> {
 }
 
 /**
+ * Gets the currently authenticated user or throws an error.
+ * Use in storage/API functions that require authentication.
+ */
+export async function getAuthenticatedUser(): Promise<User> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+  return user;
+}
+
+/**
  * Route guard helper — throws a redirect to /login if user is not authenticated.
  * Use in TanStack Router `beforeLoad` hooks.
  */

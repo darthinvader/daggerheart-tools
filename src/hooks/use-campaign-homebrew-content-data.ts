@@ -16,6 +16,52 @@ import type {
   HomebrewContentType,
 } from '@/lib/schemas/homebrew';
 
+function filterByContentType(
+  items: HomebrewContent[],
+  contentType: HomebrewContentType
+): HomebrewContent[] {
+  return items.filter(item => item.contentType === contentType);
+}
+
+interface SourceData {
+  campaignItems: HomebrewContent[];
+  publicItems: HomebrewContent[];
+  myItems: HomebrewContent[];
+  quicklistItems: HomebrewContent[];
+  loadingCampaign: boolean;
+  loadingPublic: boolean;
+  loadingMine: boolean;
+  loadingQuicklist: boolean;
+}
+
+function resolveSourceItems(
+  source: HomebrewSource,
+  data: SourceData
+): { items: HomebrewContent[]; isLoading: boolean } {
+  switch (source) {
+    case 'linked':
+      return { items: data.campaignItems, isLoading: data.loadingCampaign };
+    case 'public':
+      return { items: data.publicItems, isLoading: data.loadingPublic };
+    case 'private':
+      return { items: data.myItems, isLoading: data.loadingMine };
+    case 'quicklist':
+      return { items: data.quicklistItems, isLoading: data.loadingQuicklist };
+    default:
+      return { items: [], isLoading: false };
+  }
+}
+
+function filterBySearchQuery(
+  items: HomebrewContent[],
+  searchQuery: string
+): HomebrewContent[] {
+  const trimmed = searchQuery.trim();
+  if (!trimmed) return items;
+  const query = trimmed.toLowerCase();
+  return items.filter(item => item.name.toLowerCase().includes(query));
+}
+
 interface UseCampaignHomebrewContentDataOptions {
   contentType: HomebrewContentType;
   campaignId?: string;
@@ -63,45 +109,42 @@ export function useCampaignHomebrewContentData({
     );
 
   // Filter quicklist content by contentType
-  const filteredQuicklistContent = useMemo(() => {
-    return quicklistContent.filter(item => item.contentType === contentType);
-  }, [quicklistContent, contentType]);
+  const filteredQuicklistContent = useMemo(
+    () => filterByContentType(quicklistContent, contentType),
+    [quicklistContent, contentType]
+  );
 
   // Combine items based on source
-  const { items, isLoading } = useMemo(() => {
-    switch (source) {
-      case 'linked':
-        return {
-          items: campaignContent?.items ?? [],
-          isLoading: loadingCampaign,
-        };
-      case 'public':
-        return { items: publicContent?.items ?? [], isLoading: loadingPublic };
-      case 'private':
-        return { items: myContent?.items ?? [], isLoading: loadingMine };
-      case 'quicklist':
-        return { items: filteredQuicklistContent, isLoading: loadingQuicklist };
-      default:
-        return { items: [] as HomebrewContent[], isLoading: false };
-    }
-  }, [
-    source,
-    campaignContent,
-    publicContent,
-    myContent,
-    filteredQuicklistContent,
-    loadingCampaign,
-    loadingPublic,
-    loadingMine,
-    loadingQuicklist,
-  ]);
+  const { items, isLoading } = useMemo(
+    () =>
+      resolveSourceItems(source, {
+        campaignItems: campaignContent?.items ?? [],
+        publicItems: publicContent?.items ?? [],
+        myItems: myContent?.items ?? [],
+        quicklistItems: filteredQuicklistContent,
+        loadingCampaign,
+        loadingPublic,
+        loadingMine,
+        loadingQuicklist,
+      }),
+    [
+      source,
+      campaignContent,
+      publicContent,
+      myContent,
+      filteredQuicklistContent,
+      loadingCampaign,
+      loadingPublic,
+      loadingMine,
+      loadingQuicklist,
+    ]
+  );
 
   // Filter by search query (using name field)
-  const filteredItems = useMemo(() => {
-    if (!searchQuery.trim()) return items;
-    const query = searchQuery.toLowerCase();
-    return items.filter(item => item.name.toLowerCase().includes(query));
-  }, [items, searchQuery]);
+  const filteredItems = useMemo(
+    () => filterBySearchQuery(items, searchQuery),
+    [items, searchQuery]
+  );
 
   return {
     source,

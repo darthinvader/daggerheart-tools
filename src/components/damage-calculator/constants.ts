@@ -1,6 +1,9 @@
-import type { LucideIcon } from 'lucide-react';
+import { type LucideIcon, Sparkles, Sword } from 'lucide-react';
 
-import { DamageTypeIcons } from '@/lib/icons';
+const DamageTypeIcons: Record<string, LucideIcon> = {
+  physical: Sword,
+  magic: Sparkles,
+} as const;
 
 import type { DamageType } from './types';
 

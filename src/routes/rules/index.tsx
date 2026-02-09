@@ -2,6 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { Search } from 'lucide-react';
 import * as React from 'react';
 
+import { RulesSectionIcons } from '@/components/rules/rules-section-icons';
 import { Badge } from '@/components/ui/badge';
 import {
   Card,
@@ -11,7 +12,7 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { RULES_INDEX_CARDS, RULES_PAGES } from '@/lib/data/rules/rules-content';
-import { RulesSectionIcons, Scroll } from '@/lib/icons';
+import { Scroll } from '@/lib/icons';
 
 export const Route = createFileRoute('/rules/')({
   component: RulesIndexPage,

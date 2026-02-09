@@ -13,6 +13,8 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { HomebrewEquipment } from '@/lib/schemas/homebrew';
 
+type EquipmentCategory = 'weapon' | 'armor' | 'wheelchair' | 'custom';
+
 import {
   ArmorSection,
   CustomEquipmentSection,
@@ -39,7 +41,7 @@ interface EquipmentFormProps {
   /** Show submit/cancel buttons (default: true, set false for inline mode) */
   showActions?: boolean;
   /** Lock to a specific equipment type (hides tabs) */
-  lockedType?: 'weapon' | 'armor' | 'wheelchair' | 'custom';
+  lockedType?: EquipmentCategory;
   /** Compact mode - removes ScrollArea wrapper for inline usage */
   compact?: boolean;
 }
@@ -76,6 +78,11 @@ export function EquipmentForm({
     currentData,
   } = useEquipmentFormState({ initialData, onChange, lockedType });
 
+  const handleTabChange = useCallback(
+    (value: string) => handleTypeChange(value as EquipmentCategory),
+    [handleTypeChange]
+  );
+
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
@@ -90,12 +97,7 @@ export function EquipmentForm({
   const formContent = (
     <div className="space-y-6">
       {/* Equipment Type Tabs - hidden when lockedType is set */}
-      <Tabs
-        value={equipmentType}
-        onValueChange={v =>
-          handleTypeChange(v as 'weapon' | 'armor' | 'wheelchair' | 'custom')
-        }
-      >
+      <Tabs value={equipmentType} onValueChange={handleTabChange}>
         {!lockedType && (
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="weapon" className="gap-2">

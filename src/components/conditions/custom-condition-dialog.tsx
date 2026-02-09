@@ -63,6 +63,121 @@ export const CONDITION_ICON_MAP: Record<
   Star,
 };
 
+/* ── Sub-components ──────────────────────────────────────────────── */
+
+interface ColorPickerFieldProps {
+  color: string | undefined;
+  onColorChange: (c: string | undefined) => void;
+}
+
+function ColorPickerField({ color, onColorChange }: ColorPickerFieldProps) {
+  return (
+    <div className="space-y-1.5">
+      <Label>Color</Label>
+      <div className="flex flex-wrap gap-2">
+        {CONDITION_PRESET_COLORS.map(c => (
+          <button
+            key={c}
+            type="button"
+            className={cn(
+              'size-7 rounded-full border-2 transition-transform hover:scale-110',
+              color === c ? 'border-foreground scale-110' : 'border-transparent'
+            )}
+            style={{ backgroundColor: c }}
+            onClick={() => onColorChange(color === c ? undefined : c)}
+            aria-label={`Select color ${c}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+interface IconPickerFieldProps {
+  icon: string | undefined;
+  onIconChange: (i: string | undefined) => void;
+}
+
+function IconPickerField({ icon, onIconChange }: IconPickerFieldProps) {
+  return (
+    <div className="space-y-1.5">
+      <Label>Icon</Label>
+      <div className="grid grid-cols-8 gap-1.5">
+        {CONDITION_PRESET_ICONS.map(iconName => {
+          const IconComp = CONDITION_ICON_MAP[iconName];
+          return (
+            <button
+              key={iconName}
+              type="button"
+              className={cn(
+                'hover:bg-muted flex size-8 items-center justify-center rounded-md border transition-colors',
+                icon === iconName
+                  ? 'border-foreground bg-muted'
+                  : 'border-transparent'
+              )}
+              onClick={() =>
+                onIconChange(icon === iconName ? undefined : iconName)
+              }
+              aria-label={`Select icon ${iconName}`}
+            >
+              <IconComp className="size-4" />
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+interface ConditionPreviewProps {
+  color: string | undefined;
+  icon: string | undefined;
+  name: string;
+  description: string;
+}
+
+function ConditionPreview({
+  color,
+  icon,
+  name,
+  description,
+}: ConditionPreviewProps) {
+  const SelectedIcon = icon
+    ? CONDITION_ICON_MAP[icon as (typeof CONDITION_PRESET_ICONS)[number]]
+    : undefined;
+  const trimmedDesc = description.trim();
+
+  return (
+    <div className="space-y-1.5">
+      <Label>Preview</Label>
+      <div className="bg-muted/50 flex items-center gap-2 rounded-md p-3">
+        <Badge
+          variant="secondary"
+          className="gap-1 px-3 py-1 text-sm"
+          style={
+            color
+              ? {
+                  backgroundColor: `${color}20`,
+                  color,
+                  borderColor: `${color}40`,
+                  borderWidth: '1px',
+                }
+              : undefined
+          }
+        >
+          {SelectedIcon && <SelectedIcon className="size-3" />}
+          {name || 'Condition'}
+        </Badge>
+        {trimmedDesc && (
+          <span className="text-muted-foreground text-xs">— {trimmedDesc}</span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ── Main component ─────────────────────────────────────────────── */
+
 interface CustomConditionDialogProps {
   existingNames: string[];
   onSave: (name: string, definition: CustomConditionDefinition) => void;
@@ -87,6 +202,12 @@ export function CustomConditionDialog({
   const isValid =
     trimmedName.length > 0 && trimmedName.length <= 40 && !isDuplicate;
 
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setName(e.target.value);
+
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
+    setDescription(e.target.value);
+
   const handleSave = () => {
     if (!isValid) return;
     onSave(trimmedName, {
@@ -104,10 +225,6 @@ export function CustomConditionDialog({
     setIcon(undefined);
     setOpen(false);
   };
-
-  const SelectedIcon = icon
-    ? CONDITION_ICON_MAP[icon as (typeof CONDITION_PRESET_ICONS)[number]]
-    : undefined;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -132,7 +249,7 @@ export function CustomConditionDialog({
               id="condition-name"
               placeholder="e.g. Burning, Inspired..."
               value={name}
-              onChange={e => setName(e.target.value)}
+              onChange={handleNameChange}
               maxLength={40}
               className="h-8 text-sm"
             />
@@ -150,7 +267,7 @@ export function CustomConditionDialog({
               id="condition-desc"
               placeholder="What does this condition do?"
               value={description}
-              onChange={e => setDescription(e.target.value)}
+              onChange={handleDescriptionChange}
               maxLength={200}
               className="min-h-12 text-sm"
               rows={2}
@@ -158,83 +275,18 @@ export function CustomConditionDialog({
           </div>
 
           {/* Color Picker */}
-          <div className="space-y-1.5">
-            <Label>Color</Label>
-            <div className="flex flex-wrap gap-2">
-              {CONDITION_PRESET_COLORS.map(c => (
-                <button
-                  key={c}
-                  type="button"
-                  className={cn(
-                    'size-7 rounded-full border-2 transition-transform hover:scale-110',
-                    color === c
-                      ? 'border-foreground scale-110'
-                      : 'border-transparent'
-                  )}
-                  style={{ backgroundColor: c }}
-                  onClick={() => setColor(color === c ? undefined : c)}
-                  aria-label={`Select color ${c}`}
-                />
-              ))}
-            </div>
-          </div>
+          <ColorPickerField color={color} onColorChange={setColor} />
 
           {/* Icon Picker */}
-          <div className="space-y-1.5">
-            <Label>Icon</Label>
-            <div className="grid grid-cols-8 gap-1.5">
-              {CONDITION_PRESET_ICONS.map(iconName => {
-                const IconComp = CONDITION_ICON_MAP[iconName];
-                return (
-                  <button
-                    key={iconName}
-                    type="button"
-                    className={cn(
-                      'hover:bg-muted flex size-8 items-center justify-center rounded-md border transition-colors',
-                      icon === iconName
-                        ? 'border-foreground bg-muted'
-                        : 'border-transparent'
-                    )}
-                    onClick={() =>
-                      setIcon(icon === iconName ? undefined : iconName)
-                    }
-                    aria-label={`Select icon ${iconName}`}
-                  >
-                    <IconComp className="size-4" />
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          <IconPickerField icon={icon} onIconChange={setIcon} />
 
           {/* Preview */}
-          <div className="space-y-1.5">
-            <Label>Preview</Label>
-            <div className="bg-muted/50 flex items-center gap-2 rounded-md p-3">
-              <Badge
-                variant="secondary"
-                className="gap-1 px-3 py-1 text-sm"
-                style={
-                  color
-                    ? {
-                        backgroundColor: `${color}20`,
-                        color,
-                        borderColor: `${color}40`,
-                        borderWidth: '1px',
-                      }
-                    : undefined
-                }
-              >
-                {SelectedIcon && <SelectedIcon className="size-3" />}
-                {trimmedName || 'Condition'}
-              </Badge>
-              {description.trim() && (
-                <span className="text-muted-foreground text-xs">
-                  — {description.trim()}
-                </span>
-              )}
-            </div>
-          </div>
+          <ConditionPreview
+            color={color}
+            icon={icon}
+            name={trimmedName}
+            description={description}
+          />
         </div>
 
         <DialogFooter>

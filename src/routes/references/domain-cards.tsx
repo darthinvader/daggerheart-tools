@@ -645,6 +645,226 @@ function DomainCardsHeader({
   );
 }
 
+function DomainCardsToolbar({
+  filterState,
+  onSearchChange,
+  sortBy,
+  sortDir,
+  onSortByChange,
+  onSortDirChange,
+  viewMode,
+  onViewModeChange,
+  isMobile,
+  expandAll,
+  collapseAll,
+  allExpanded,
+  allCollapsed,
+}: {
+  filterState: ReturnType<typeof useFilterState>['filterState'];
+  onSearchChange: (search: string) => void;
+  sortBy: DomainCardSortKey;
+  sortDir: 'asc' | 'desc';
+  onSortByChange: (value: DomainCardSortKey) => void;
+  onSortDirChange: (value: 'asc' | 'desc') => void;
+  viewMode: 'grid' | 'table';
+  onViewModeChange: (value: 'grid' | 'table') => void;
+  isMobile: boolean;
+  expandAll: () => void;
+  collapseAll: () => void;
+  allExpanded: boolean;
+  allCollapsed: boolean;
+}) {
+  const SortDirIcon = sortDir === 'asc' ? ArrowUp : ArrowDown;
+
+  return (
+    <div className="bg-muted/30 sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3">
+      {/* Left side: Search */}
+      {!isMobile && (
+        <div className="relative max-w-xs min-w-[200px] flex-1">
+          <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+          <input
+            type="text"
+            placeholder="Search domain cards..."
+            value={filterState.search}
+            onChange={e => onSearchChange(e.target.value)}
+            className="bg-background h-9 w-full rounded-md border pr-8 pl-9 text-sm transition-colors outline-none focus:ring-2 focus:ring-violet-500/30"
+          />
+          {filterState.search && (
+            <button
+              onClick={() => onSearchChange('')}
+              className="text-muted-foreground hover:text-foreground absolute top-1/2 right-2 -translate-y-1/2 transition-colors"
+              aria-label="Clear search"
+            >
+              <X className="size-4" />
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Right side: Sort, View, Expand/Collapse */}
+      <div className="flex flex-wrap items-center gap-2">
+        {/* Sort controls */}
+        <div className="flex items-center gap-1">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <select
+                value={sortBy}
+                onChange={e =>
+                  onSortByChange(e.target.value as DomainCardSortKey)
+                }
+                className="bg-background h-8 cursor-pointer rounded-md border px-2 text-sm"
+              >
+                <option value="name">Name</option>
+                <option value="domain">Domain</option>
+                <option value="type">Type</option>
+                <option value="level">Level</option>
+              </select>
+            </TooltipTrigger>
+            <TooltipContent>Sort by</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-8"
+                onClick={() =>
+                  onSortDirChange(sortDir === 'asc' ? 'desc' : 'asc')
+                }
+              >
+                <SortDirIcon className="size-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {sortDir === 'asc' ? 'Ascending' : 'Descending'}
+            </TooltipContent>
+          </Tooltip>
+        </div>
+
+        {/* Divider */}
+        <div className="bg-border h-6 w-px" />
+
+        {/* View mode toggle */}
+        {!isMobile && (
+          <>
+            <ToggleGroup
+              type="single"
+              value={viewMode}
+              onValueChange={v => v && onViewModeChange(v as 'grid' | 'table')}
+              className="gap-0"
+            >
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <ToggleGroupItem
+                    value="grid"
+                    aria-label="Grid view"
+                    className="size-8 rounded-r-none"
+                  >
+                    <Grid3X3 className="size-4" />
+                  </ToggleGroupItem>
+                </TooltipTrigger>
+                <TooltipContent>Grid view</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <ToggleGroupItem
+                    value="table"
+                    aria-label="Table view"
+                    className="size-8 rounded-l-none"
+                  >
+                    <List className="size-4" />
+                  </ToggleGroupItem>
+                </TooltipTrigger>
+                <TooltipContent>Table view</TooltipContent>
+              </Tooltip>
+            </ToggleGroup>
+
+            {/* Divider */}
+            <div className="bg-border h-6 w-px" />
+          </>
+        )}
+
+        {/* Expand/Collapse controls */}
+        <div className="flex items-center gap-1">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={expandAll}
+                disabled={allExpanded}
+                className="h-8 px-2 text-xs"
+              >
+                Expand
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Expand all domains</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={collapseAll}
+                disabled={allCollapsed}
+                className="h-8 px-2 text-xs"
+              >
+                Collapse
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Collapse all domains</TooltipContent>
+          </Tooltip>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DomainGridSection({
+  domain,
+  cards,
+  isExpanded,
+  onToggle,
+  onSelectCard,
+}: {
+  domain: string;
+  cards: DomainCard[];
+  isExpanded: boolean;
+  onToggle: () => void;
+  onSelectCard: (card: DomainCard) => void;
+}) {
+  const domainColor = domainColors[domain] ?? defaultDomainColor;
+  const ChevronIcon = isExpanded ? ChevronDown : ChevronRight;
+
+  return (
+    <Collapsible open={isExpanded} onOpenChange={onToggle}>
+      <CollapsibleTrigger asChild>
+        <button className="hover:bg-muted/50 bg-card flex w-full items-center justify-between rounded-lg border p-3 transition-colors">
+          <div className="flex items-center gap-3">
+            <span
+              className={`inline-block h-3 w-3 rounded-full bg-gradient-to-r ${domainColor.gradient}`}
+            />
+            <h2 className="text-lg font-semibold">{domain}</h2>
+            <Badge variant="secondary">{cards.length}</Badge>
+          </div>
+          <ChevronIcon className="text-muted-foreground size-5" />
+        </button>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="pt-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {cards.map(card => (
+            <DomainCardCard
+              key={`${card.domain}-${card.name}`}
+              card={card}
+              onClick={() => onSelectCard(card)}
+            />
+          ))}
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
 const DomainCardsGridSections = React.memo(function DomainCardsGridSections({
   domainEntries,
   onSelectCard,
@@ -682,194 +902,32 @@ const DomainCardsGridSections = React.memo(function DomainCardsGridSections({
 
   return (
     <div className="space-y-4">
-      {/* Toolbar with search, sort, view, and expand/collapse controls */}
-      <div className="bg-muted/30 sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3">
-        {/* Left side: Search */}
-        {!isMobile && (
-          <div className="relative max-w-xs min-w-[200px] flex-1">
-            <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Search domain cards..."
-              value={filterState.search}
-              onChange={e => onSearchChange(e.target.value)}
-              className="bg-background h-9 w-full rounded-md border pr-8 pl-9 text-sm transition-colors outline-none focus:ring-2 focus:ring-violet-500/30"
-            />
-            {filterState.search && (
-              <button
-                onClick={() => onSearchChange('')}
-                className="text-muted-foreground hover:text-foreground absolute top-1/2 right-2 -translate-y-1/2 transition-colors"
-                aria-label="Clear search"
-              >
-                <X className="size-4" />
-              </button>
-            )}
-          </div>
-        )}
+      <DomainCardsToolbar
+        filterState={filterState}
+        onSearchChange={onSearchChange}
+        sortBy={sortBy}
+        sortDir={sortDir}
+        onSortByChange={onSortByChange}
+        onSortDirChange={onSortDirChange}
+        viewMode={viewMode}
+        onViewModeChange={onViewModeChange}
+        isMobile={isMobile}
+        expandAll={expandAll}
+        collapseAll={collapseAll}
+        allExpanded={allExpanded}
+        allCollapsed={allCollapsed}
+      />
 
-        {/* Right side: Sort, View, Expand/Collapse */}
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Sort controls */}
-          <div className="flex items-center gap-1">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <select
-                  value={sortBy}
-                  onChange={e =>
-                    onSortByChange(e.target.value as DomainCardSortKey)
-                  }
-                  className="bg-background h-8 cursor-pointer rounded-md border px-2 text-sm"
-                >
-                  <option value="name">Name</option>
-                  <option value="domain">Domain</option>
-                  <option value="type">Type</option>
-                  <option value="level">Level</option>
-                </select>
-              </TooltipTrigger>
-              <TooltipContent>Sort by</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-8"
-                  onClick={() =>
-                    onSortDirChange(sortDir === 'asc' ? 'desc' : 'asc')
-                  }
-                >
-                  {sortDir === 'asc' ? (
-                    <ArrowUp className="size-4" />
-                  ) : (
-                    <ArrowDown className="size-4" />
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                {sortDir === 'asc' ? 'Ascending' : 'Descending'}
-              </TooltipContent>
-            </Tooltip>
-          </div>
-
-          {/* Divider */}
-          <div className="bg-border h-6 w-px" />
-
-          {/* View mode toggle */}
-          {!isMobile && (
-            <>
-              <ToggleGroup
-                type="single"
-                value={viewMode}
-                onValueChange={v =>
-                  v && onViewModeChange(v as 'grid' | 'table')
-                }
-                className="gap-0"
-              >
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <ToggleGroupItem
-                      value="grid"
-                      aria-label="Grid view"
-                      className="size-8 rounded-r-none"
-                    >
-                      <Grid3X3 className="size-4" />
-                    </ToggleGroupItem>
-                  </TooltipTrigger>
-                  <TooltipContent>Grid view</TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <ToggleGroupItem
-                      value="table"
-                      aria-label="Table view"
-                      className="size-8 rounded-l-none"
-                    >
-                      <List className="size-4" />
-                    </ToggleGroupItem>
-                  </TooltipTrigger>
-                  <TooltipContent>Table view</TooltipContent>
-                </Tooltip>
-              </ToggleGroup>
-
-              {/* Divider */}
-              <div className="bg-border h-6 w-px" />
-            </>
-          )}
-
-          {/* Expand/Collapse controls */}
-          <div className="flex items-center gap-1">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={expandAll}
-                  disabled={allExpanded}
-                  className="h-8 px-2 text-xs"
-                >
-                  Expand
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Expand all domains</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={collapseAll}
-                  disabled={allCollapsed}
-                  className="h-8 px-2 text-xs"
-                >
-                  Collapse
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Collapse all domains</TooltipContent>
-            </Tooltip>
-          </div>
-        </div>
-      </div>
-
-      {domainEntries.map(([domain, cards]) => {
-        const domainColor = domainColors[domain] ?? defaultDomainColor;
-        const isExpanded = isCategoryExpanded(domain);
-
-        return (
-          <Collapsible
-            key={domain}
-            open={isExpanded}
-            onOpenChange={() => toggleDomain(domain)}
-          >
-            <CollapsibleTrigger asChild>
-              <button className="hover:bg-muted/50 bg-card flex w-full items-center justify-between rounded-lg border p-3 transition-colors">
-                <div className="flex items-center gap-3">
-                  <span
-                    className={`inline-block h-3 w-3 rounded-full bg-gradient-to-r ${domainColor.gradient}`}
-                  />
-                  <h2 className="text-lg font-semibold">{domain}</h2>
-                  <Badge variant="secondary">{cards.length}</Badge>
-                </div>
-                {isExpanded ? (
-                  <ChevronDown className="text-muted-foreground size-5" />
-                ) : (
-                  <ChevronRight className="text-muted-foreground size-5" />
-                )}
-              </button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="pt-4">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {cards.map(card => (
-                  <DomainCardCard
-                    key={`${card.domain}-${card.name}`}
-                    card={card}
-                    onClick={() => onSelectCard(card)}
-                  />
-                ))}
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-        );
-      })}
+      {domainEntries.map(([domain, cards]) => (
+        <DomainGridSection
+          key={domain}
+          domain={domain}
+          cards={cards}
+          isExpanded={isCategoryExpanded(domain)}
+          onToggle={() => toggleDomain(domain)}
+          onSelectCard={onSelectCard}
+        />
+      ))}
     </div>
   );
 });

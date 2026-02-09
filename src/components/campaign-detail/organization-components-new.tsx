@@ -34,6 +34,7 @@ import type {
 } from '@/lib/schemas/campaign';
 import {
   DeleteConfirmDialog,
+  type NPCPickerResult,
   useEntityCardState,
   useModalState,
 } from './entity-card-utils';
@@ -361,6 +362,180 @@ const ORG_MODAL_KEYS = [
 ] as const;
 type OrgModalKey = (typeof ORG_MODAL_KEYS)[number];
 
+// =====================================================================================
+// Organization Card Modals Sub-component
+// =====================================================================================
+
+interface OrganizationCardModalsProps {
+  modals: Record<OrgModalKey, boolean>;
+  setModalOpen: (key: OrgModalKey, open: boolean) => void;
+  localOrg: CampaignOrganization;
+  npcs: CampaignNPC[];
+  locations: CampaignLocation[];
+  quests: CampaignQuest[];
+  otherOrganizations: CampaignOrganization[];
+  onDelete: () => void;
+  onCreateNPC: (name: string) => Promise<string>;
+  onCreateLocation: (
+    name: string,
+    type: CampaignLocation['type']
+  ) => Promise<string>;
+  onCreateQuest: (
+    title: string,
+    type: CampaignQuest['type']
+  ) => Promise<string>;
+  onCreateOrganization: (
+    name: string,
+    type: CampaignOrganization['type']
+  ) => Promise<string>;
+  handleAddKeyMember: (result: NPCPickerResult) => void;
+  handleAddAllyNpc: (result: NPCPickerResult) => void;
+  handleAddEnemyNpc: (result: NPCPickerResult) => void;
+  handleAddAllyOrg: (id: string) => void;
+  handleAddEnemyOrg: (id: string) => void;
+  handleSetHQ: (id: string) => void;
+  handleAddLocation: (id: string) => void;
+  handleAddQuest: (id: string) => void;
+}
+
+function OrganizationCardModals({
+  modals,
+  setModalOpen,
+  localOrg,
+  npcs,
+  locations,
+  quests,
+  otherOrganizations,
+  onDelete,
+  onCreateNPC,
+  onCreateLocation,
+  onCreateQuest,
+  onCreateOrganization,
+  handleAddKeyMember,
+  handleAddAllyNpc,
+  handleAddEnemyNpc,
+  handleAddAllyOrg,
+  handleAddEnemyOrg,
+  handleSetHQ,
+  handleAddLocation,
+  handleAddQuest,
+}: OrganizationCardModalsProps) {
+  return (
+    <>
+      <DeleteConfirmDialog
+        open={modals.deleteConfirm}
+        onOpenChange={open => setModalOpen('deleteConfirm', open)}
+        entityType="Organization"
+        entityName={localOrg.name}
+        onDelete={onDelete}
+      />
+
+      <NPCPickerModal
+        open={modals.keyMembersPicker}
+        onOpenChange={open => setModalOpen('keyMembersPicker', open)}
+        npcs={npcs}
+        locations={[]}
+        quests={[]}
+        selectedNpcIds={localOrg.keyMemberIds}
+        onSelectNPC={handleAddKeyMember}
+        onCreateNPC={onCreateNPC}
+        title="Add Key Member"
+        description="Select an NPC who is a key member of this organization"
+        showInvolvementFields={false}
+      />
+
+      <NPCPickerModal
+        open={modals.allyNpcsPicker}
+        onOpenChange={open => setModalOpen('allyNpcsPicker', open)}
+        npcs={npcs}
+        locations={[]}
+        quests={[]}
+        selectedNpcIds={localOrg.allyNpcIds}
+        onSelectNPC={handleAddAllyNpc}
+        onCreateNPC={onCreateNPC}
+        title="Add Allied NPC"
+        description="Select an NPC who is an ally of this organization"
+        showInvolvementFields={false}
+      />
+
+      <NPCPickerModal
+        open={modals.enemyNpcsPicker}
+        onOpenChange={open => setModalOpen('enemyNpcsPicker', open)}
+        npcs={npcs}
+        locations={[]}
+        quests={[]}
+        selectedNpcIds={localOrg.enemyNpcIds}
+        onSelectNPC={handleAddEnemyNpc}
+        onCreateNPC={onCreateNPC}
+        title="Add Enemy NPC"
+        description="Select an NPC who is an enemy of this organization"
+        showInvolvementFields={false}
+      />
+
+      <OrganizationPickerModal
+        open={modals.allyOrgsPicker}
+        onOpenChange={open => setModalOpen('allyOrgsPicker', open)}
+        organizations={otherOrganizations}
+        selectedOrganizationIds={localOrg.allyOrganizationIds}
+        onSelectOrganization={handleAddAllyOrg}
+        onCreateOrganization={onCreateOrganization}
+        title="Add Allied Organization"
+        description="Select an organization that is allied with this one"
+      />
+
+      <OrganizationPickerModal
+        open={modals.enemyOrgsPicker}
+        onOpenChange={open => setModalOpen('enemyOrgsPicker', open)}
+        organizations={otherOrganizations}
+        selectedOrganizationIds={localOrg.enemyOrganizationIds}
+        onSelectOrganization={handleAddEnemyOrg}
+        onCreateOrganization={onCreateOrganization}
+        title="Add Enemy Organization"
+        description="Select an organization that is an enemy of this one"
+      />
+
+      <LocationPickerModal
+        open={modals.locationsPicker}
+        onOpenChange={open => setModalOpen('locationsPicker', open)}
+        locations={locations}
+        selectedLocationIds={localOrg.locationIds}
+        onSelectLocation={handleAddLocation}
+        onCreateLocation={onCreateLocation}
+        title="Link Location"
+        description="Select a location associated with this organization"
+      />
+
+      <LocationPickerModal
+        open={modals.hqPicker}
+        onOpenChange={open => setModalOpen('hqPicker', open)}
+        locations={locations}
+        selectedLocationIds={
+          localOrg.headquartersId ? [localOrg.headquartersId] : []
+        }
+        onSelectLocation={handleSetHQ}
+        onCreateLocation={onCreateLocation}
+        title="Set Headquarters"
+        description="Select the headquarters location for this organization"
+      />
+
+      <QuestPickerModal
+        open={modals.questsPicker}
+        onOpenChange={open => setModalOpen('questsPicker', open)}
+        quests={quests}
+        selectedQuestIds={localOrg.questIds}
+        onSelectQuest={handleAddQuest}
+        onCreateQuest={onCreateQuest}
+        title="Link Quest"
+        description="Select a quest related to this organization"
+      />
+    </>
+  );
+}
+
+// =====================================================================================
+// Organization Card Component
+// =====================================================================================
+
 function OrganizationCard({
   organization,
   npcs,
@@ -436,6 +611,17 @@ function OrganizationCard({
     otherOrganizations,
   });
 
+  // Named callbacks for opening modals
+  const handleOpenDeleteModal = () => openModal('deleteConfirm');
+  const handleOpenKeyMembersPicker = () => openModal('keyMembersPicker');
+  const handleOpenHQPicker = () => openModal('hqPicker');
+  const handleOpenLocationsPicker = () => openModal('locationsPicker');
+  const handleOpenQuestsPicker = () => openModal('questsPicker');
+  const handleOpenAllyNpcsPicker = () => openModal('allyNpcsPicker');
+  const handleOpenEnemyNpcsPicker = () => openModal('enemyNpcsPicker');
+  const handleOpenAllyOrgsPicker = () => openModal('allyOrgsPicker');
+  const handleOpenEnemyOrgsPicker = () => openModal('enemyOrgsPicker');
+
   const typeInfo = ORGANIZATION_TYPE_OPTIONS.find(
     t => t.value === localOrg.type
   );
@@ -448,7 +634,7 @@ function OrganizationCard({
             localOrg={localOrg}
             isExpanded={isExpanded}
             typeInfo={typeInfo}
-            onOpenDeleteModal={() => openModal('deleteConfirm')}
+            onOpenDeleteModal={handleOpenDeleteModal}
           />
 
           <CollapsibleContent>
@@ -466,14 +652,14 @@ function OrganizationCard({
               <OrganizationMembersSection
                 keyMemberIds={localOrg.keyMemberIds}
                 getNpcName={getNpcName}
-                onOpenKeyMembersPicker={() => openModal('keyMembersPicker')}
+                onOpenKeyMembersPicker={handleOpenKeyMembersPicker}
                 onRemoveKeyMember={keyMemberHandlers.handleRemove}
               />
 
               <OrganizationHeadquartersSection
                 headquartersId={localOrg.headquartersId}
                 getLocationName={getLocationName}
-                onOpenHQPicker={() => openModal('hqPicker')}
+                onOpenHQPicker={handleOpenHQPicker}
                 onClearHQ={handleClearHQ}
               />
 
@@ -482,8 +668,8 @@ function OrganizationCard({
                 questIds={localOrg.questIds}
                 getLocationName={getLocationName}
                 getQuestTitle={getQuestTitle}
-                onOpenLocationsPicker={() => openModal('locationsPicker')}
-                onOpenQuestsPicker={() => openModal('questsPicker')}
+                onOpenLocationsPicker={handleOpenLocationsPicker}
+                onOpenQuestsPicker={handleOpenQuestsPicker}
                 onRemoveLocation={locationHandlers.handleRemove}
                 onRemoveQuest={questHandlers.handleRemove}
               />
@@ -497,10 +683,10 @@ function OrganizationCard({
                 enemyOrganizationIds={localOrg.enemyOrganizationIds}
                 getNpcName={getNpcName}
                 getOrgName={getOrgName}
-                onOpenAllyNpcsPicker={() => openModal('allyNpcsPicker')}
-                onOpenEnemyNpcsPicker={() => openModal('enemyNpcsPicker')}
-                onOpenAllyOrgsPicker={() => openModal('allyOrgsPicker')}
-                onOpenEnemyOrgsPicker={() => openModal('enemyOrgsPicker')}
+                onOpenAllyNpcsPicker={handleOpenAllyNpcsPicker}
+                onOpenEnemyNpcsPicker={handleOpenEnemyNpcsPicker}
+                onOpenAllyOrgsPicker={handleOpenAllyOrgsPicker}
+                onOpenEnemyOrgsPicker={handleOpenEnemyOrgsPicker}
                 onRemoveAllyNpc={allyNpcHandlers.handleRemove}
                 onRemoveEnemyNpc={enemyNpcHandlers.handleRemove}
                 onRemoveAllyOrg={allyOrgHandlers.handleRemove}
@@ -528,113 +714,27 @@ function OrganizationCard({
         </Collapsible>
       </Card>
 
-      {/* Delete Confirmation Dialog */}
-      <DeleteConfirmDialog
-        open={modals.deleteConfirm}
-        onOpenChange={open => setModalOpen('deleteConfirm', open)}
-        entityType="Organization"
-        entityName={localOrg.name}
-        onDelete={onDelete}
-      />
-
-      {/* Modals */}
-      <NPCPickerModal
-        open={modals.keyMembersPicker}
-        onOpenChange={open => setModalOpen('keyMembersPicker', open)}
+      <OrganizationCardModals
+        modals={modals}
+        setModalOpen={setModalOpen}
+        localOrg={localOrg}
         npcs={npcs}
-        locations={[]}
-        quests={[]}
-        selectedNpcIds={localOrg.keyMemberIds}
-        onSelectNPC={handleAddKeyMember}
-        onCreateNPC={onCreateNPC}
-        title="Add Key Member"
-        description="Select an NPC who is a key member of this organization"
-        showInvolvementFields={false}
-      />
-
-      <NPCPickerModal
-        open={modals.allyNpcsPicker}
-        onOpenChange={open => setModalOpen('allyNpcsPicker', open)}
-        npcs={npcs}
-        locations={[]}
-        quests={[]}
-        selectedNpcIds={localOrg.allyNpcIds}
-        onSelectNPC={handleAddAllyNpc}
-        onCreateNPC={onCreateNPC}
-        title="Add Allied NPC"
-        description="Select an NPC who is an ally of this organization"
-        showInvolvementFields={false}
-      />
-
-      <NPCPickerModal
-        open={modals.enemyNpcsPicker}
-        onOpenChange={open => setModalOpen('enemyNpcsPicker', open)}
-        npcs={npcs}
-        locations={[]}
-        quests={[]}
-        selectedNpcIds={localOrg.enemyNpcIds}
-        onSelectNPC={handleAddEnemyNpc}
-        onCreateNPC={onCreateNPC}
-        title="Add Enemy NPC"
-        description="Select an NPC who is an enemy of this organization"
-        showInvolvementFields={false}
-      />
-
-      <OrganizationPickerModal
-        open={modals.allyOrgsPicker}
-        onOpenChange={open => setModalOpen('allyOrgsPicker', open)}
-        organizations={otherOrganizations}
-        selectedOrganizationIds={localOrg.allyOrganizationIds}
-        onSelectOrganization={handleAddAllyOrg}
-        onCreateOrganization={onCreateOrganization}
-        title="Add Allied Organization"
-        description="Select an organization that is allied with this one"
-      />
-
-      <OrganizationPickerModal
-        open={modals.enemyOrgsPicker}
-        onOpenChange={open => setModalOpen('enemyOrgsPicker', open)}
-        organizations={otherOrganizations}
-        selectedOrganizationIds={localOrg.enemyOrganizationIds}
-        onSelectOrganization={handleAddEnemyOrg}
-        onCreateOrganization={onCreateOrganization}
-        title="Add Enemy Organization"
-        description="Select an organization that is an enemy of this one"
-      />
-
-      <LocationPickerModal
-        open={modals.locationsPicker}
-        onOpenChange={open => setModalOpen('locationsPicker', open)}
         locations={locations}
-        selectedLocationIds={localOrg.locationIds}
-        onSelectLocation={locationHandlers.handleAdd}
-        onCreateLocation={onCreateLocation}
-        title="Link Location"
-        description="Select a location associated with this organization"
-      />
-
-      <LocationPickerModal
-        open={modals.hqPicker}
-        onOpenChange={open => setModalOpen('hqPicker', open)}
-        locations={locations}
-        selectedLocationIds={
-          localOrg.headquartersId ? [localOrg.headquartersId] : []
-        }
-        onSelectLocation={handleSetHQ}
-        onCreateLocation={onCreateLocation}
-        title="Set Headquarters"
-        description="Select the headquarters location for this organization"
-      />
-
-      <QuestPickerModal
-        open={modals.questsPicker}
-        onOpenChange={open => setModalOpen('questsPicker', open)}
         quests={quests}
-        selectedQuestIds={localOrg.questIds}
-        onSelectQuest={questHandlers.handleAdd}
+        otherOrganizations={otherOrganizations}
+        onDelete={onDelete}
+        onCreateNPC={onCreateNPC}
+        onCreateLocation={onCreateLocation}
         onCreateQuest={onCreateQuest}
-        title="Link Quest"
-        description="Select a quest related to this organization"
+        onCreateOrganization={onCreateOrganization}
+        handleAddKeyMember={handleAddKeyMember}
+        handleAddAllyNpc={handleAddAllyNpc}
+        handleAddEnemyNpc={handleAddEnemyNpc}
+        handleAddAllyOrg={handleAddAllyOrg}
+        handleAddEnemyOrg={handleAddEnemyOrg}
+        handleSetHQ={handleSetHQ}
+        handleAddLocation={locationHandlers.handleAdd}
+        handleAddQuest={questHandlers.handleAdd}
       />
     </>
   );

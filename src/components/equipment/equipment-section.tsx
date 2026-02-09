@@ -13,9 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { TIERS } from '@/lib/constants';
 import { Check, type LucideProps } from '@/lib/icons';
-
-const TIER_OPTIONS = ['1', '2', '3', '4'] as const;
 
 type IconComponent = ComponentType<LucideProps>;
 
@@ -119,7 +118,7 @@ export function EquipmentSection<T extends { name: string; tier: string }>({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Tiers</SelectItem>
-              {TIER_OPTIONS.map(t => (
+              {TIERS.map(t => (
                 <SelectItem key={t} value={t}>
                   Tier {t}
                 </SelectItem>

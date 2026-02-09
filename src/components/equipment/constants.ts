@@ -62,9 +62,7 @@ export function getSlotIcon(
 export type SlotPreset = (typeof SLOT_PRESETS)[number];
 export type SlotPresetName = SlotPreset['name'];
 
-/** Available equipment tiers (1-4) */
-export const TIERS = ['1', '2', '3', '4'] as const;
-export type Tier = (typeof TIERS)[number];
+export { type Tier, TIERS } from '@/lib/constants';
 
 /** Weapon traits that determine which stat is used for attacks */
 export const TRAITS = [

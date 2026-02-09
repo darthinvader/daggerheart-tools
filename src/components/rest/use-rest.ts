@@ -95,12 +95,73 @@ const initialSelection: RestMoveSelection = {
   target2: 'Self',
 };
 
+interface CharacterResources {
+  currentHp: number;
+  maxHp: number;
+  currentStress: number;
+  maxStress: number;
+  currentArmorMarked: number;
+  totalArmorSlots: number;
+}
+
+function getResourceForMove(
+  move: RestMove,
+  resources: CharacterResources
+): { current: number; max: number } {
+  switch (move.category) {
+    case 'healing':
+      return { current: resources.currentHp, max: resources.maxHp };
+    case 'stress':
+      return { current: resources.currentStress, max: resources.maxStress };
+    case 'armor':
+      return {
+        current: resources.currentArmorMarked,
+        max: resources.totalArmorSlots,
+      };
+    default:
+      return { current: 0, max: 0 };
+  }
+}
+
+function executeMoves(
+  selection: RestMoveSelection,
+  resources: CharacterResources,
+  tier: number,
+  preparingWithParty: boolean
+): RestMoveResult[] {
+  const move1 = selection.move1!;
+  const move2 = selection.move2!;
+
+  const res1 = getResourceForMove(move1, resources);
+  const res2 = getResourceForMove(move2, resources);
+
+  return [
+    executeRestMove(
+      move1,
+      tier,
+      res1.current,
+      selection.target1,
+      preparingWithParty
+    ),
+    executeRestMove(
+      move2,
+      tier,
+      res2.current,
+      selection.target2,
+      preparingWithParty
+    ),
+  ];
+}
+
 export function useRest(options: UseRestOptions): UseRestReturn {
   const {
     tier,
     currentHp,
+    maxHp,
     currentStress,
+    maxStress,
     currentArmorMarked,
+    totalArmorSlots,
     onComplete,
     partySize = 0,
     showFearGain = false,
@@ -141,81 +202,52 @@ export function useRest(options: UseRestOptions): UseRestReturn {
     setPreparingWithParty(prev => !prev);
   }, []);
 
-  const getResourceValue = useCallback(
-    (move: RestMove): { current: number; max: number } => {
-      switch (move.category) {
-        case 'healing':
-          return { current: currentHp, max: options.maxHp };
-        case 'stress':
-          return { current: currentStress, max: options.maxStress };
-        case 'armor':
-          return { current: currentArmorMarked, max: options.totalArmorSlots };
-        default:
-          return { current: 0, max: 0 };
-      }
-    },
-    [
-      currentHp,
-      currentStress,
-      currentArmorMarked,
-      options.maxHp,
-      options.maxStress,
-      options.totalArmorSlots,
-    ]
-  );
-
   const executeRest = useCallback(() => {
     if (!restType || !selection.move1 || !selection.move2) return;
 
-    const moveResults: RestMoveResult[] = [];
+    const resources: CharacterResources = {
+      currentHp,
+      maxHp,
+      currentStress,
+      maxStress,
+      currentArmorMarked,
+      totalArmorSlots,
+    };
 
-    // Execute move 1
-    const res1 = getResourceValue(selection.move1);
-    const result1 = executeRestMove(
-      selection.move1,
+    const moveResults = executeMoves(
+      selection,
+      resources,
       tier,
-      res1.current,
-      selection.target1,
       preparingWithParty
     );
-    moveResults.push(result1);
-
-    // Execute move 2
-    const res2 = getResourceValue(selection.move2);
-    const result2 = executeRestMove(
-      selection.move2,
-      tier,
-      res2.current,
-      selection.target2,
-      preparingWithParty
-    );
-    moveResults.push(result2);
 
     // Calculate Fear gain for GM if enabled
     // Per Chapter 3: Short Rest = 1d4, Long Rest = PCs + 1d4
-    let fearGainResult: FearGainResult | undefined;
-    if (showFearGain) {
-      fearGainResult = calculateFearGain(restType, partySize);
-      setFearGain(fearGainResult);
-    }
+    const fearGainResult = showFearGain
+      ? calculateFearGain(restType, partySize)
+      : undefined;
+    if (fearGainResult) setFearGain(fearGainResult);
 
     setResults(moveResults);
     setPhase('results');
 
     // Clear active effects based on rest type
     if (activeEffects && onActiveEffectsChange) {
-      const clearedEffects = clearEffectsOnRest(activeEffects, restType);
-      onActiveEffectsChange(clearedEffects);
+      onActiveEffectsChange(clearEffectsOnRest(activeEffects, restType));
     }
 
-    const fullResult = createRestResult(restType, moveResults, fearGainResult);
-    onComplete(fullResult);
+    onComplete(createRestResult(restType, moveResults, fearGainResult));
   }, [
     restType,
     selection,
     tier,
     preparingWithParty,
-    getResourceValue,
+    currentHp,
+    maxHp,
+    currentStress,
+    maxStress,
+    currentArmorMarked,
+    totalArmorSlots,
     onComplete,
     showFearGain,
     partySize,

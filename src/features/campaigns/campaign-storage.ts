@@ -2,6 +2,11 @@
 
 import { z } from 'zod';
 
+/**
+ * Campaign storage using Supabase.
+ * Provides CRUD operations for campaigns and their nested entities.
+ */
+import { getAuthenticatedUser } from '@/lib/auth';
 import { safeParseAndMigrateCalendar } from '@/lib/calendar/calendar-migration';
 import { createCampaignFrameFromTemplate } from '@/lib/data/campaign-frames';
 import { BattleStateSchema } from '@/lib/schemas/battle';
@@ -17,10 +22,6 @@ import type {
   SessionNote,
   StoryThread,
 } from '@/lib/schemas/campaign';
-/**
- * Campaign storage using Supabase.
- * Provides CRUD operations for campaigns and their nested entities.
- */
 import { supabase } from '@/lib/supabase';
 import { generateId } from '@/lib/utils';
 
@@ -357,13 +358,7 @@ export async function createCampaign(
   name?: string
 ): Promise<Campaign> {
   // Get current user
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-  if (authError || !user) {
-    throw new Error('Must be logged in to create a campaign');
-  }
+  const user = await getAuthenticatedUser();
 
   const frame = createCampaignFrameFromTemplate(templateId, generateId());
 
@@ -587,8 +582,8 @@ export async function emptyTrash(): Promise<void> {
 // Session Notes CRUD
 // =====================================================================================
 
-function generateSessionId(): string {
-  return `session-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+function generatePrefixedId(prefix: string): string {
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
 async function updateCampaignSessions(
@@ -752,7 +747,7 @@ export async function addSession(
   const now = new Date().toISOString();
   const newSession: SessionNote = {
     ...session,
-    id: generateSessionId(),
+    id: generatePrefixedId('session'),
     createdAt: now,
     updatedAt: now,
   };
@@ -810,10 +805,6 @@ export async function deleteSession(
 // Campaign NPCs CRUD
 // =====================================================================================
 
-function generateNpcId(): string {
-  return `npc-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
 /**
  * Add a new NPC to a campaign
  */
@@ -827,7 +818,7 @@ export async function addNPC(
   const now = new Date().toISOString();
   const newNpc: CampaignNPC = {
     ...npc,
-    id: generateNpcId(),
+    id: generatePrefixedId('npc'),
     createdAt: now,
     updatedAt: now,
   };
@@ -912,10 +903,6 @@ export async function deleteNPC(
 // Location CRUD
 // =====================================================================================
 
-function generateLocationId(): string {
-  return `location-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
 /**
  * Add a new location to a campaign
  */
@@ -929,7 +916,7 @@ export async function addLocation(
   const now = new Date().toISOString();
   const newLocation: CampaignLocation = {
     ...location,
-    id: generateLocationId(),
+    id: generatePrefixedId('location'),
     createdAt: now,
     updatedAt: now,
   };
@@ -1014,10 +1001,6 @@ export async function deleteLocation(
 // Quest CRUD
 // =====================================================================================
 
-function generateQuestId(): string {
-  return `quest-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
 /**
  * Add a new quest to a campaign
  */
@@ -1031,7 +1014,7 @@ export async function addQuest(
   const now = new Date().toISOString();
   const newQuest: CampaignQuest = {
     ...quest,
-    id: generateQuestId(),
+    id: generatePrefixedId('quest'),
     createdAt: now,
     updatedAt: now,
   };
@@ -1141,10 +1124,6 @@ export async function saveCampaign(
 // Story Thread CRUD
 // =====================================================================================
 
-function generateStoryThreadId(): string {
-  return `thread-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
 /**
  * Add a new story thread to a campaign
  */
@@ -1158,7 +1137,7 @@ export async function addStoryThread(
   const now = new Date().toISOString();
   const newThread: StoryThread = {
     ...storyThread,
-    id: generateStoryThreadId(),
+    id: generatePrefixedId('thread'),
     createdAt: now,
     updatedAt: now,
   };
@@ -1228,10 +1207,6 @@ export async function deleteStoryThread(
 // Organization CRUD
 // =====================================================================================
 
-function generateOrganizationId(): string {
-  return `org-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
 /**
  * Add a new organization to a campaign
  */
@@ -1245,7 +1220,7 @@ export async function addOrganization(
   const now = new Date().toISOString();
   const newOrganization: CampaignOrganization = {
     ...organization,
-    id: generateOrganizationId(),
+    id: generatePrefixedId('org'),
     createdAt: now,
     updatedAt: now,
   };
@@ -1498,10 +1473,7 @@ export async function createStandaloneBattle(
   battle: Omit<BattleState, 'id' | 'createdAt' | 'updatedAt'>
 ): Promise<BattleState> {
   const now = new Date().toISOString();
-  const { data: authData, error: authError } = await supabase.auth.getUser();
-  if (authError || !authData.user) {
-    throw new Error('Must be logged in to create a battle');
-  }
+  const user = await getAuthenticatedUser();
 
   const newBattle: BattleState = {
     ...battle,
@@ -1513,7 +1485,7 @@ export async function createStandaloneBattle(
   const { data, error } = await supabase
     .from('standalone_battles')
     .insert({
-      owner_id: authData.user.id,
+      owner_id: user.id,
       name: newBattle.name,
       state: newBattle,
     })

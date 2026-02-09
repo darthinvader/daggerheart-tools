@@ -269,6 +269,251 @@ const RollResultDisplay = memo(function RollResultDisplay({
   );
 });
 
+/** Modifier/difficulty inputs and advantage/disadvantage toggles */
+const RollConfigInputs = memo(function RollConfigInputs({
+  modifier,
+  onModifierChange,
+  difficulty,
+  onDifficultyChange,
+  hasAdvantage,
+  hasDisadvantage,
+  onToggleAdvantage,
+  onToggleDisadvantage,
+}: {
+  modifier: number;
+  onModifierChange: (value: number) => void;
+  difficulty: number;
+  onDifficultyChange: (value: number) => void;
+  hasAdvantage: boolean;
+  hasDisadvantage: boolean;
+  onToggleAdvantage: () => void;
+  onToggleDisadvantage: () => void;
+}) {
+  return (
+    <>
+      {/* Modifier & Difficulty */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="roll-modifier">Modifier</Label>
+          <Input
+            id="roll-modifier"
+            type="number"
+            value={modifier}
+            onChange={e => onModifierChange(Number(e.target.value) || 0)}
+            className="tabular-nums"
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="roll-difficulty">Difficulty</Label>
+          <Input
+            id="roll-difficulty"
+            type="number"
+            value={difficulty}
+            onChange={e =>
+              onDifficultyChange(Number(e.target.value) || DEFAULT_DIFFICULTY)
+            }
+            className="tabular-nums"
+          />
+        </div>
+      </div>
+
+      {/* Advantage / Disadvantage toggles */}
+      <div className="flex items-center gap-2">
+        <Button
+          variant={hasAdvantage ? 'default' : 'outline'}
+          size="sm"
+          onClick={onToggleAdvantage}
+          className={cn(
+            'flex-1 transition-colors',
+            hasAdvantage && 'bg-emerald-600 text-white hover:bg-emerald-700'
+          )}
+        >
+          <ChevronUp className="size-4" />
+          Advantage
+        </Button>
+        <Button
+          variant={hasDisadvantage ? 'default' : 'outline'}
+          size="sm"
+          onClick={onToggleDisadvantage}
+          className={cn(
+            'flex-1 transition-colors',
+            hasDisadvantage && 'bg-red-600 text-white hover:bg-red-700'
+          )}
+        >
+          <ChevronDown className="size-4" />
+          Disadvantage
+        </Button>
+      </div>
+    </>
+  );
+});
+
+/** Pre-roll resource spending panel for Hope and Experience */
+const ResourceSpendingPanel = memo(function ResourceSpendingPanel({
+  currentHope,
+  availableHope,
+  hopeSpent,
+  onHopeSpentChange,
+  experiences,
+  burnedExperienceId,
+  onBurnedExperienceChange,
+  resourceBonus,
+  resetResult,
+}: {
+  currentHope: number | undefined;
+  availableHope: number;
+  hopeSpent: number;
+  onHopeSpentChange: (value: number) => void;
+  experiences: RollExperience[] | undefined;
+  burnedExperienceId: string | null;
+  onBurnedExperienceChange: (id: string | null) => void;
+  resourceBonus: number;
+  resetResult: () => void;
+}) {
+  const burnedExperience = useMemo(
+    () => experiences?.find(e => e.id === burnedExperienceId) ?? null,
+    [experiences, burnedExperienceId]
+  );
+
+  return (
+    <div className="flex flex-col gap-2 rounded-lg border border-sky-500/20 bg-sky-500/5 p-3">
+      <span className="text-xs font-semibold tracking-wider text-sky-700 uppercase dark:text-sky-300">
+        Spend Resources
+      </span>
+
+      {/* Spend Hope for +1 each */}
+      {currentHope !== undefined && (
+        <div className="flex items-center justify-between">
+          <div className="flex flex-col">
+            <span className="text-sm font-medium">Spend Hope</span>
+            <span className="text-muted-foreground text-xs">
+              +1 per Hope ({availableHope} available)
+            </span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="outline"
+              size="icon"
+              className="size-7"
+              disabled={hopeSpent <= 0}
+              onClick={() => {
+                onHopeSpentChange(Math.max(0, hopeSpent - 1));
+                resetResult();
+              }}
+            >
+              <Minus className="size-3" />
+            </Button>
+            <span className="w-6 text-center text-sm font-bold tabular-nums">
+              {hopeSpent}
+            </span>
+            <Button
+              variant="outline"
+              size="icon"
+              className="size-7"
+              disabled={availableHope <= 0}
+              onClick={() => {
+                onHopeSpentChange(hopeSpent + 1);
+                resetResult();
+              }}
+            >
+              <Plus className="size-3" />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Burn Experience for bonus */}
+      {experiences && experiences.length > 0 && (
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col">
+              <span className="text-sm font-medium">Use Experience</span>
+              <span className="text-muted-foreground text-xs">
+                Costs 1 Hope, adds experience bonus
+              </span>
+            </div>
+            {burnedExperience && (
+              <Badge className="border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300">
+                +{burnedExperience.value}
+              </Badge>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-1">
+            {experiences.map(exp => (
+              <Button
+                key={exp.id}
+                variant={burnedExperienceId === exp.id ? 'default' : 'outline'}
+                size="sm"
+                className={cn(
+                  'h-7 text-xs',
+                  burnedExperienceId === exp.id &&
+                    'bg-amber-600 text-white hover:bg-amber-700'
+                )}
+                disabled={burnedExperienceId !== exp.id && availableHope <= 0}
+                onClick={() => {
+                  onBurnedExperienceChange(
+                    burnedExperienceId === exp.id ? null : exp.id
+                  );
+                  resetResult();
+                }}
+              >
+                <BookOpen className="size-3" />
+                {exp.name} (+{exp.value})
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Total bonus summary */}
+      {resourceBonus > 0 && (
+        <div className="flex items-center justify-between border-t border-sky-500/20 pt-2">
+          <span className="text-xs font-medium text-sky-700 dark:text-sky-300">
+            Resource Bonus
+          </span>
+          <span className="text-sm font-bold text-sky-700 dark:text-sky-300">
+            +{resourceBonus}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+});
+
+/** Effect die switch and notation input */
+const EffectDieToggle = memo(function EffectDieToggle({
+  effectDieEnabled,
+  onEffectDieEnabledChange,
+  effectDieNotation,
+  onEffectDieNotationChange,
+}: {
+  effectDieEnabled: boolean;
+  onEffectDieEnabledChange: (checked: boolean) => void;
+  effectDieNotation: string;
+  onEffectDieNotationChange: (value: string) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-lg border p-3">
+      <div className="flex items-center gap-2">
+        <Switch
+          id="effect-die-toggle"
+          checked={effectDieEnabled}
+          onCheckedChange={onEffectDieEnabledChange}
+        />
+        <Label htmlFor="effect-die-toggle">Effect Die</Label>
+      </div>
+      {effectDieEnabled && (
+        <Input
+          value={effectDieNotation}
+          onChange={e => onEffectDieNotationChange(e.target.value)}
+          placeholder="1d8"
+          className="w-20 tabular-nums"
+        />
+      )}
+    </div>
+  );
+});
+
 // =====================================================================================
 // Main Component
 // =====================================================================================
@@ -427,200 +672,50 @@ export const DualityRollDialog = memo(function DualityRollDialog({
         </DialogHeader>
 
         <div className="flex flex-col gap-4">
-          {/* Modifier & Difficulty */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="roll-modifier">Modifier</Label>
-              <Input
-                id="roll-modifier"
-                type="number"
-                value={modifier}
-                onChange={e => {
-                  setModifier(Number(e.target.value) || 0);
-                  resetResult();
-                }}
-                className="tabular-nums"
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="roll-difficulty">Difficulty</Label>
-              <Input
-                id="roll-difficulty"
-                type="number"
-                value={difficulty}
-                onChange={e => {
-                  setDifficulty(Number(e.target.value) || DEFAULT_DIFFICULTY);
-                  resetResult();
-                }}
-                className="tabular-nums"
-              />
-            </div>
-          </div>
-
-          {/* Advantage / Disadvantage toggles */}
-          <div className="flex items-center gap-2">
-            <Button
-              variant={hasAdvantage ? 'default' : 'outline'}
-              size="sm"
-              onClick={toggleAdvantage}
-              className={cn(
-                'flex-1 transition-colors',
-                hasAdvantage && 'bg-emerald-600 text-white hover:bg-emerald-700'
-              )}
-            >
-              <ChevronUp className="size-4" />
-              Advantage
-            </Button>
-            <Button
-              variant={hasDisadvantage ? 'default' : 'outline'}
-              size="sm"
-              onClick={toggleDisadvantage}
-              className={cn(
-                'flex-1 transition-colors',
-                hasDisadvantage && 'bg-red-600 text-white hover:bg-red-700'
-              )}
-            >
-              <ChevronDown className="size-4" />
-              Disadvantage
-            </Button>
-          </div>
+          <RollConfigInputs
+            modifier={modifier}
+            onModifierChange={value => {
+              setModifier(value);
+              resetResult();
+            }}
+            difficulty={difficulty}
+            onDifficultyChange={value => {
+              setDifficulty(value);
+              resetResult();
+            }}
+            hasAdvantage={hasAdvantage}
+            hasDisadvantage={hasDisadvantage}
+            onToggleAdvantage={toggleAdvantage}
+            onToggleDisadvantage={toggleDisadvantage}
+          />
 
           {/* Resource Spending (Hope & Experience) */}
           {hasResources && !result && (
-            <div className="flex flex-col gap-2 rounded-lg border border-sky-500/20 bg-sky-500/5 p-3">
-              <span className="text-xs font-semibold tracking-wider text-sky-700 uppercase dark:text-sky-300">
-                Spend Resources
-              </span>
-
-              {/* Spend Hope for +1 each */}
-              {currentHope !== undefined && (
-                <div className="flex items-center justify-between">
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium">Spend Hope</span>
-                    <span className="text-muted-foreground text-xs">
-                      +1 per Hope ({availableHope} available)
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="size-7"
-                      disabled={hopeSpent <= 0}
-                      onClick={() => {
-                        setHopeSpent(prev => Math.max(0, prev - 1));
-                        resetResult();
-                      }}
-                    >
-                      <Minus className="size-3" />
-                    </Button>
-                    <span className="w-6 text-center text-sm font-bold tabular-nums">
-                      {hopeSpent}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="size-7"
-                      disabled={availableHope <= 0}
-                      onClick={() => {
-                        setHopeSpent(prev => prev + 1);
-                        resetResult();
-                      }}
-                    >
-                      <Plus className="size-3" />
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {/* Burn Experience for bonus */}
-              {experiences && experiences.length > 0 && (
-                <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium">
-                        Use Experience
-                      </span>
-                      <span className="text-muted-foreground text-xs">
-                        Costs 1 Hope, adds experience bonus
-                      </span>
-                    </div>
-                    {burnedExperience && (
-                      <Badge className="border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300">
-                        +{burnedExperience.value}
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex flex-wrap gap-1">
-                    {experiences.map(exp => (
-                      <Button
-                        key={exp.id}
-                        variant={
-                          burnedExperienceId === exp.id ? 'default' : 'outline'
-                        }
-                        size="sm"
-                        className={cn(
-                          'h-7 text-xs',
-                          burnedExperienceId === exp.id &&
-                            'bg-amber-600 text-white hover:bg-amber-700'
-                        )}
-                        disabled={
-                          burnedExperienceId !== exp.id && availableHope <= 0
-                        }
-                        onClick={() => {
-                          setBurnedExperienceId(prev =>
-                            prev === exp.id ? null : exp.id
-                          );
-                          resetResult();
-                        }}
-                      >
-                        <BookOpen className="size-3" />
-                        {exp.name} (+{exp.value})
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Total bonus summary */}
-              {resourceBonus > 0 && (
-                <div className="flex items-center justify-between border-t border-sky-500/20 pt-2">
-                  <span className="text-xs font-medium text-sky-700 dark:text-sky-300">
-                    Resource Bonus
-                  </span>
-                  <span className="text-sm font-bold text-sky-700 dark:text-sky-300">
-                    +{resourceBonus}
-                  </span>
-                </div>
-              )}
-            </div>
+            <ResourceSpendingPanel
+              currentHope={currentHope}
+              availableHope={availableHope}
+              hopeSpent={hopeSpent}
+              onHopeSpentChange={setHopeSpent}
+              experiences={experiences}
+              burnedExperienceId={burnedExperienceId}
+              onBurnedExperienceChange={setBurnedExperienceId}
+              resourceBonus={resourceBonus}
+              resetResult={resetResult}
+            />
           )}
 
-          {/* Effect Die toggle */}
-          <div className="flex items-center justify-between gap-3 rounded-lg border p-3">
-            <div className="flex items-center gap-2">
-              <Switch
-                id="effect-die-toggle"
-                checked={effectDieEnabled}
-                onCheckedChange={checked => {
-                  setEffectDieEnabled(checked);
-                  resetResult();
-                }}
-              />
-              <Label htmlFor="effect-die-toggle">Effect Die</Label>
-            </div>
-            {effectDieEnabled && (
-              <Input
-                value={effectDieNotation}
-                onChange={e => {
-                  setEffectDieNotation(e.target.value);
-                  resetResult();
-                }}
-                placeholder="1d8"
-                className="w-20 tabular-nums"
-              />
-            )}
-          </div>
+          <EffectDieToggle
+            effectDieEnabled={effectDieEnabled}
+            onEffectDieEnabledChange={checked => {
+              setEffectDieEnabled(checked);
+              resetResult();
+            }}
+            effectDieNotation={effectDieNotation}
+            onEffectDieNotationChange={value => {
+              setEffectDieNotation(value);
+              resetResult();
+            }}
+          />
 
           {/* Roll Button or Result */}
           {result ? (

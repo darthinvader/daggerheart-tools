@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
-
+import { useLatestRef } from '@/hooks/use-latest-ref';
 import { MAX_UNDO_DEPTH } from '@/lib/undo';
 import type { UndoActions, UndoEntryMeta } from '@/lib/undo';
 import { generateId } from '@/lib/utils';
@@ -178,53 +178,48 @@ function useCharacterUndoStacks(
   const [future, setFuture] = useState<CharacterUndoEntry[]>([]);
 
   // Refs avoid closure staleness in stable callbacks (empty deps).
-  // Assigned in useEffect to satisfy react-hooks/refs — event handlers
-  // always fire after effects, so refs are up-to-date when read.
-  const stateRef = useRef(state);
-  const handlersRef = useRef(handlers);
-  const pastRef = useRef(past);
-  const futureRef = useRef(future);
+  // useLatestRef keeps refs always in sync so event handlers read current values.
+  const stateRef = useLatestRef(state);
+  const handlersRef = useLatestRef(handlers);
+  const pastRef = useLatestRef(past);
+  const futureRef = useLatestRef(future);
 
   // Debounce refs: coalesce rapid changes (e.g. typing) into one undo entry
   const undoDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastUndoLabelRef = useRef<string | null>(null);
 
-  useEffect(() => {
-    stateRef.current = state;
-    handlersRef.current = handlers;
-    pastRef.current = past;
-    futureRef.current = future;
-  });
+  const pushUndo = useCallback(
+    (label: string) => {
+      // Coalesce: if same label fires within 500ms, skip the snapshot
+      if (
+        undoDebounceRef.current !== null &&
+        lastUndoLabelRef.current === label
+      ) {
+        clearTimeout(undoDebounceRef.current);
+        undoDebounceRef.current = setTimeout(() => {
+          lastUndoLabelRef.current = null;
+          undoDebounceRef.current = null;
+        }, 500);
+        return;
+      }
 
-  const pushUndo = useCallback((label: string) => {
-    // Coalesce: if same label fires within 500ms, skip the snapshot
-    if (
-      undoDebounceRef.current !== null &&
-      lastUndoLabelRef.current === label
-    ) {
-      clearTimeout(undoDebounceRef.current);
+      const snapshot = captureCharacterSnapshot(stateRef.current);
+      const meta: UndoEntryMeta = {
+        id: generateId(),
+        label,
+        timestamp: Date.now(),
+      };
+      setPast(prev => [{ meta, snapshot }, ...prev].slice(0, MAX_UNDO_DEPTH));
+      setFuture([]);
+
+      lastUndoLabelRef.current = label;
       undoDebounceRef.current = setTimeout(() => {
         lastUndoLabelRef.current = null;
         undoDebounceRef.current = null;
       }, 500);
-      return;
-    }
-
-    const snapshot = captureCharacterSnapshot(stateRef.current);
-    const meta: UndoEntryMeta = {
-      id: generateId(),
-      label,
-      timestamp: Date.now(),
-    };
-    setPast(prev => [{ meta, snapshot }, ...prev].slice(0, MAX_UNDO_DEPTH));
-    setFuture([]);
-
-    lastUndoLabelRef.current = label;
-    undoDebounceRef.current = setTimeout(() => {
-      lastUndoLabelRef.current = null;
-      undoDebounceRef.current = null;
-    }, 500);
-  }, []);
+    },
+    [stateRef]
+  );
 
   const undo = useCallback(() => {
     const prevPast = pastRef.current;
@@ -251,7 +246,7 @@ function useCharacterUndoStacks(
     // Side-effects outside updaters — safe for StrictMode
     restoreCharacterSnapshot(entry.snapshot, handlersRef.current);
     toast(`Undone: ${entry.meta.label}`);
-  }, []);
+  }, [pastRef, stateRef, handlersRef]);
 
   const redo = useCallback(() => {
     const prevFuture = futureRef.current;
@@ -278,7 +273,7 @@ function useCharacterUndoStacks(
     // Side-effects outside updaters — safe for StrictMode
     restoreCharacterSnapshot(entry.snapshot, handlersRef.current);
     toast(`Redone: ${entry.meta.label}`);
-  }, []);
+  }, [futureRef, stateRef, handlersRef]);
 
   const clearHistory = useCallback(() => {
     setPast([]);
@@ -303,7 +298,7 @@ function useCharacterUndoStacks(
       };
     }
     return result;
-  }, [pushUndo]);
+  }, [pushUndo, handlersRef]);
 
   return {
     past,

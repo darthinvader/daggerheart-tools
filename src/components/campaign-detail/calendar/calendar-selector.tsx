@@ -58,6 +58,102 @@ interface CalendarSelectorProps {
   onRename: (calendarId: string, newName: string) => void;
 }
 
+// ---------------------------------------------------------------------------
+// Sub-components
+// ---------------------------------------------------------------------------
+
+interface CalendarRenameFormProps {
+  renameValue: string;
+  onRenameValueChange: (value: string) => void;
+  onCommitRename: () => void;
+}
+
+function CalendarRenameForm({
+  renameValue,
+  onRenameValueChange,
+  onCommitRename,
+}: CalendarRenameFormProps) {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onCommitRename();
+  };
+
+  return (
+    <form
+      className="flex flex-1 items-center gap-1 px-2 py-1"
+      onSubmit={handleSubmit}
+    >
+      <Input
+        value={renameValue}
+        onChange={e => onRenameValueChange(e.target.value)}
+        maxLength={60}
+        className="h-7 text-sm"
+        autoFocus
+        onBlur={onCommitRename}
+        aria-label="Calendar name"
+      />
+    </form>
+  );
+}
+
+interface CalendarItemActionsProps {
+  cal: Calendar;
+  canDelete: boolean;
+  onStartRename: (cal: Calendar, e: React.MouseEvent) => void;
+  onExport: (cal: Calendar, e: React.MouseEvent) => void;
+  onDelete: (calId: string) => void;
+  onCloseParent: () => void;
+}
+
+function CalendarItemActions({
+  cal,
+  canDelete,
+  onStartRename,
+  onExport,
+  onDelete,
+  onCloseParent,
+}: CalendarItemActionsProps) {
+  const stopPropagation = (e: React.MouseEvent) => e.stopPropagation();
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onCloseParent();
+    onDelete(cal.id);
+  };
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7 shrink-0"
+          onClick={stopPropagation}
+          aria-label={`${cal.name} options`}
+        >
+          <MoreHorizontal className="h-3.5 w-3.5" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent side="right" align="start">
+        <DropdownMenuItem onClick={e => onStartRename(cal, e)}>
+          <Pencil className="mr-2 h-3.5 w-3.5" />
+          Rename
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={e => onExport(cal, e)}>
+          <Download className="mr-2 h-3.5 w-3.5" />
+          Export
+        </DropdownMenuItem>
+        {canDelete && (
+          <DropdownMenuItem variant="destructive" onClick={handleDelete}>
+            <Trash2 className="mr-2 h-3.5 w-3.5" />
+            Delete
+          </DropdownMenuItem>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 export function CalendarSelector({
   calendars,
   activeCalendarId,
@@ -74,6 +170,7 @@ export function CalendarSelector({
   const activeName =
     calendars.find(c => c.id === activeCalendarId)?.name ?? 'Calendar';
   const atCapacity = calendars.length >= MAX_CALENDARS_PER_CAMPAIGN;
+  const closeMenu = () => setOpen(false);
 
   const startRename = (cal: Calendar, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -167,23 +264,11 @@ export function CalendarSelector({
             {calendars.map(cal => (
               <div key={cal.id} className="flex items-center">
                 {renamingId === cal.id ? (
-                  <form
-                    className="flex flex-1 items-center gap-1 px-2 py-1"
-                    onSubmit={e => {
-                      e.preventDefault();
-                      commitRename();
-                    }}
-                  >
-                    <Input
-                      value={renameValue}
-                      onChange={e => setRenameValue(e.target.value)}
-                      maxLength={60}
-                      className="h-7 text-sm"
-                      autoFocus
-                      onBlur={commitRename}
-                      aria-label="Calendar name"
-                    />
-                  </form>
+                  <CalendarRenameForm
+                    renameValue={renameValue}
+                    onRenameValueChange={setRenameValue}
+                    onCommitRename={commitRename}
+                  />
                 ) : (
                   <DropdownMenuRadioItem value={cal.id} className="flex-1">
                     <span
@@ -198,43 +283,14 @@ export function CalendarSelector({
                   </DropdownMenuRadioItem>
                 )}
 
-                {/* Per-calendar actions */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 shrink-0"
-                      onClick={e => e.stopPropagation()}
-                      aria-label={`${cal.name} options`}
-                    >
-                      <MoreHorizontal className="h-3.5 w-3.5" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent side="right" align="start">
-                    <DropdownMenuItem onClick={e => startRename(cal, e)}>
-                      <Pencil className="mr-2 h-3.5 w-3.5" />
-                      Rename
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={e => handleExport(cal, e)}>
-                      <Download className="mr-2 h-3.5 w-3.5" />
-                      Export
-                    </DropdownMenuItem>
-                    {calendars.length > 1 && (
-                      <DropdownMenuItem
-                        variant="destructive"
-                        onClick={e => {
-                          e.stopPropagation();
-                          setOpen(false);
-                          onDelete(cal.id);
-                        }}
-                      >
-                        <Trash2 className="mr-2 h-3.5 w-3.5" />
-                        Delete
-                      </DropdownMenuItem>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <CalendarItemActions
+                  cal={cal}
+                  canDelete={calendars.length > 1}
+                  onStartRename={startRename}
+                  onExport={handleExport}
+                  onDelete={onDelete}
+                  onCloseParent={closeMenu}
+                />
               </div>
             ))}
           </DropdownMenuRadioGroup>

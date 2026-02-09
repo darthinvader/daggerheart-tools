@@ -186,35 +186,56 @@ function convertToBattleCards(
 }
 
 // Helper: Convert weapon to equipment detail
-function convertWeapon(weapon?: CharacterRecord['equipment']['primaryWeapon']) {
+interface WeaponShape {
+  name: string;
+  damage?: {
+    count?: number;
+    diceType?: number;
+    modifier?: number;
+    type?: string;
+  };
+  range?: string;
+  trait?: string;
+  features?: Array<{ description?: string }>;
+}
+
+function convertWeapon(weapon?: unknown) {
   if (!weapon) return undefined;
+  const w = weapon as WeaponShape;
   return {
-    name: weapon.name,
-    damage: formatWeaponDamage(weapon.damage),
-    range: weapon.range ?? '',
-    traits: weapon.trait ? [weapon.trait] : [],
+    name: w.name,
+    damage: formatWeaponDamage(w.damage),
+    range: w.range ?? '',
+    traits: w.trait ? [w.trait] : [],
     features:
-      weapon.features
-        ?.map((f: { description?: string }) => f.description)
-        .filter(Boolean) ?? [],
+      w.features
+        ?.map(f => f.description)
+        .filter((d): d is string => Boolean(d)) ?? [],
   };
 }
 
 // Helper: Convert armor to equipment detail
-function convertArmor(armor?: CharacterRecord['equipment']['armor']) {
+interface ArmorShape {
+  name: string;
+  features?: Array<{ description?: string }>;
+  baseThresholds?: { major?: number; severe?: number };
+}
+
+function convertArmor(armor?: unknown) {
   if (!armor) return undefined;
+  const a = armor as ArmorShape;
   const allFeatures =
-    armor.features
-      ?.map((f: { description?: string }) => f.description)
-      .filter(Boolean) ?? [];
+    a.features
+      ?.map(f => f.description)
+      .filter((d): d is string => Boolean(d)) ?? [];
   return {
-    name: armor.name,
+    name: a.name,
     feature: allFeatures[0],
     features: allFeatures,
-    thresholds: armor.baseThresholds
+    thresholds: a.baseThresholds
       ? {
-          major: armor.baseThresholds.major ?? 0,
-          severe: armor.baseThresholds.severe ?? 0,
+          major: a.baseThresholds.major ?? 0,
+          severe: a.baseThresholds.severe ?? 0,
         }
       : undefined,
   };
@@ -255,10 +276,13 @@ function buildThresholds(totals: ReturnType<typeof getStatTotals>) {
 }
 
 function buildEquipmentSummary(character: CharacterRecord) {
+  const pw = character.equipment?.primaryWeapon as WeaponShape | undefined;
+  const sw = character.equipment?.secondaryWeapon as WeaponShape | undefined;
+  const ar = character.equipment?.armor as ArmorShape | undefined;
   return {
-    primaryWeapon: character.equipment?.primaryWeapon?.name ?? undefined,
-    secondaryWeapon: character.equipment?.secondaryWeapon?.name ?? undefined,
-    armor: character.equipment?.armor?.name ?? undefined,
+    primaryWeapon: pw?.name ?? undefined,
+    secondaryWeapon: sw?.name ?? undefined,
+    armor: ar?.name ?? undefined,
     equipment: {
       primary: convertWeapon(character.equipment?.primaryWeapon),
       secondary: convertWeapon(character.equipment?.secondaryWeapon),

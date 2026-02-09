@@ -97,30 +97,8 @@ export function getGrimoireCards(): DomainCard[] {
   return getCardsByType('Grimoire');
 }
 
-export function getCardRecallCost(card: DomainCard): number {
-  return card.recallCost ?? card.hopeCost ?? 0;
-}
-
 export function sortCardsByLevel(cards: DomainCard[]): DomainCard[] {
   return [...cards].sort((a, b) => a.level - b.level);
-}
-
-export function sortCardsByName(cards: DomainCard[]): DomainCard[] {
-  return [...cards].sort((a, b) => a.name.localeCompare(b.name));
-}
-
-export function groupCardsByDomain(
-  cards: DomainCard[]
-): Record<string, DomainCard[]> {
-  return cards.reduce(
-    (acc, card) => {
-      const domain = card.domain;
-      if (!acc[domain]) acc[domain] = [];
-      acc[domain].push(card);
-      return acc;
-    },
-    {} as Record<string, DomainCard[]>
-  );
 }
 
 export function groupCardsByLevel(

@@ -892,6 +892,35 @@ export function QuestOrganizationsSection({
 }
 
 // =====================================================================================
+// Quest Notes Section
+// =====================================================================================
+
+interface QuestNotesSectionProps {
+  notes: string;
+  onTextChange: (field: string, value: string) => void;
+  onBlur: () => void;
+}
+
+export function QuestNotesSection({
+  notes,
+  onTextChange,
+  onBlur,
+}: QuestNotesSectionProps) {
+  return (
+    <div className="space-y-2">
+      <Label className="text-xs">Additional Notes</Label>
+      <Textarea
+        value={notes}
+        onChange={e => onTextChange('notes', e.target.value)}
+        onBlur={onBlur}
+        placeholder="Additional notes..."
+        rows={2}
+      />
+    </div>
+  );
+}
+
+// =====================================================================================
 // Quest Modals Section
 // =====================================================================================
 

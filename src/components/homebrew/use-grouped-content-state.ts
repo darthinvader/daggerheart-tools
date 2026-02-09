@@ -8,6 +8,41 @@ import type { GroupConfig } from './grouped-content-grid';
 
 export const INITIAL_LIMIT = 50;
 
+/** Groups items by key and sorts each group alphabetically by name */
+function buildGroupedItems<T>(
+  items: T[],
+  getGroupKey: (item: T) => string,
+  getName: (item: T) => string
+): Map<string, T[]> {
+  const groups = new Map<string, T[]>();
+  for (const item of items) {
+    const groupKey = getGroupKey(item);
+    const existing = groups.get(groupKey) ?? [];
+    existing.push(item);
+    groups.set(groupKey, existing);
+  }
+  for (const [key, groupItems] of groups) {
+    groups.set(
+      key,
+      groupItems.sort((a, b) => getName(a).localeCompare(getName(b)))
+    );
+  }
+  return groups;
+}
+
+/** Flattens grouped items into a single array following the given group order */
+function flattenByGroupOrder<T>(
+  orderedGroups: GroupConfig[],
+  groupedItems: Map<string, T[]>
+): T[] {
+  const result: T[] = [];
+  for (const group of orderedGroups) {
+    const groupItems = groupedItems.get(group.key) ?? [];
+    result.push(...groupItems);
+  }
+  return result;
+}
+
 interface UseGroupedContentStateOptions<T> {
   items: T[];
   getGroupKey: (item: T) => string;
@@ -27,23 +62,10 @@ export function useGroupedContentState<T>({
   const groupRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   // Group items by their group key
-  const groupedItems = useMemo(() => {
-    const groups = new Map<string, T[]>();
-    for (const item of items) {
-      const groupKey = getGroupKey(item);
-      const existing = groups.get(groupKey) ?? [];
-      existing.push(item);
-      groups.set(groupKey, existing);
-    }
-    // Sort items within each group alphabetically
-    for (const [key, groupItems] of groups) {
-      groups.set(
-        key,
-        groupItems.sort((a, b) => getName(a).localeCompare(getName(b)))
-      );
-    }
-    return groups;
-  }, [items, getGroupKey, getName]);
+  const groupedItems = useMemo(
+    () => buildGroupedItems(items, getGroupKey, getName),
+    [items, getGroupKey, getName]
+  );
 
   // Get available groups (those that have items)
   const availableGroups = useMemo(
@@ -59,14 +81,10 @@ export function useGroupedContentState<T>({
   }, [groupConfigs, availableGroups]);
 
   // Flatten items in group order for initial display
-  const flattenedItems = useMemo(() => {
-    const result: T[] = [];
-    for (const group of orderedGroups) {
-      const groupItems = groupedItems.get(group.key) ?? [];
-      result.push(...groupItems);
-    }
-    return result;
-  }, [orderedGroups, groupedItems]);
+  const flattenedItems = useMemo(
+    () => flattenByGroupOrder(orderedGroups, groupedItems),
+    [orderedGroups, groupedItems]
+  );
 
   // Determine what to show based on showAll toggle
   const totalCount = items.length;

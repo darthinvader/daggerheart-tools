@@ -71,6 +71,284 @@ import {
 
 type SaveStatus = 'saved' | 'unsaved' | 'saving';
 
+// --- Lookup maps ---
+
+const SAVE_STATUS_TOOLTIP: Record<SaveStatus, string> = {
+  saving: 'Saving campaign...',
+  unsaved: 'You have unsaved changes',
+  saved: 'All changes saved',
+};
+
+const KEYBOARD_SHORTCUTS = [
+  { label: 'Save campaign', shortcut: 'Ctrl+S' },
+  { label: 'Toggle sidebar', shortcut: 'Ctrl+B' },
+  { label: 'Navigate items', shortcut: '← →' },
+  { label: 'Close panel', shortcut: 'Esc' },
+] as const;
+
+// --- Helper functions ---
+
+function computeRelativeTimeLabel(diffDays: number): string {
+  if (diffDays === 0) return 'Today';
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 7) return `${diffDays} days ago`;
+  if (diffDays < 30) {
+    const weeks = Math.floor(diffDays / 7);
+    return `${weeks} week${weeks > 1 ? 's' : ''} ago`;
+  }
+  if (diffDays < 365) {
+    const months = Math.floor(diffDays / 30);
+    return `${months} month${months > 1 ? 's' : ''} ago`;
+  }
+  const years = Math.floor(diffDays / 365);
+  return `${years} year${years > 1 ? 's' : ''} ago`;
+}
+
+// --- Sub-components ---
+
+function SaveStatusBadge({ status }: { status: SaveStatus }) {
+  if (status === 'saving') {
+    return (
+      <Badge variant="outline" className="gap-1 text-xs">
+        <Loader2 className="size-3 animate-spin" />
+        Saving...
+      </Badge>
+    );
+  }
+  if (status === 'unsaved') {
+    return (
+      <Badge
+        variant="outline"
+        className="border-amber-300 text-xs text-amber-600"
+      >
+        Unsaved
+      </Badge>
+    );
+  }
+  return (
+    <Badge
+      variant="outline"
+      className="gap-1 border-green-300 text-xs text-green-600"
+    >
+      <Check className="size-3" />
+      Saved
+    </Badge>
+  );
+}
+
+function SaveStatusIndicator({ saveStatus }: { saveStatus: SaveStatus }) {
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div>
+            <SaveStatusBadge status={saveStatus} />
+          </div>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>{SAVE_STATUS_TOOLTIP[saveStatus]}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
+
+function CampaignSettingsPopover({
+  campaign,
+  onBeastFeastToggle,
+  onCalendarToggle,
+  onShopToggle,
+}: {
+  campaign: Campaign;
+  onBeastFeastToggle?: (enabled: boolean) => void;
+  onCalendarToggle?: (enabled: boolean) => void;
+  onShopToggle?: (enabled: boolean) => void;
+}) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-muted-foreground h-8 w-8"
+          aria-label="Campaign settings"
+        >
+          <Settings className="h-4 w-4" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-56 text-sm" align="end">
+        <p className="mb-3 font-semibold">Campaign Settings</p>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="beast-feast-toggle" className="text-xs">
+            Enable Beast Feast
+          </Label>
+          <Switch
+            id="beast-feast-toggle"
+            checked={campaign.beastFeastEnabled ?? false}
+            onCheckedChange={v => onBeastFeastToggle?.(v)}
+          />
+        </div>
+        <div className="mt-2 flex items-center justify-between">
+          <Label htmlFor="calendar-toggle" className="text-xs">
+            Enable Calendar
+          </Label>
+          <Switch
+            id="calendar-toggle"
+            checked={campaign.calendarEnabled ?? false}
+            onCheckedChange={v => onCalendarToggle?.(v)}
+          />
+        </div>
+        <div className="mt-2 flex items-center justify-between">
+          <Label htmlFor="shop-toggle" className="text-xs">
+            Enable Shop
+          </Label>
+          <Switch
+            id="shop-toggle"
+            checked={campaign.shopEnabled ?? false}
+            onCheckedChange={v => onShopToggle?.(v)}
+          />
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function KeyboardShortcutsPopover() {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-muted-foreground h-8 w-8"
+          aria-label="Keyboard shortcuts"
+        >
+          <Keyboard className="h-4 w-4" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-56 text-sm" align="end">
+        <p className="mb-2 font-semibold">Keyboard Shortcuts</p>
+        <ul className="space-y-1 text-xs">
+          {KEYBOARD_SHORTCUTS.map(({ label, shortcut }) => (
+            <li key={shortcut} className="flex justify-between">
+              <span>{label}</span>
+              <kbd className="bg-muted rounded border px-1.5 py-0.5 font-mono text-[10px]">
+                {shortcut}
+              </kbd>
+            </li>
+          ))}
+        </ul>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function ExportDropdown({ campaign }: { campaign: Campaign }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline">
+          <Download className="mr-2 h-4 w-4" />
+          Export
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => exportCampaignAsJson(campaign)}>
+          Export as JSON
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => exportCampaignAsMarkdown(campaign)}>
+          Export as Markdown
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+function SaveButton({
+  saving,
+  hasChanges,
+  onSave,
+}: {
+  saving: boolean;
+  hasChanges: boolean;
+  onSave: () => void;
+}) {
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button onClick={onSave} disabled={!hasChanges || saving}>
+            <Save className="mr-2 h-4 w-4" />
+            {saving ? 'Saving...' : 'Save Changes'}
+            <kbd className="bg-muted text-muted-foreground ml-2 hidden rounded px-1.5 py-0.5 text-[10px] font-medium sm:inline">
+              Ctrl+S
+            </kbd>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Save campaign (Ctrl+S)</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
+
+function InviteCodeSection({
+  inviteCode,
+  onCopyInviteCode,
+}: {
+  inviteCode: string;
+  onCopyInviteCode: () => void;
+}) {
+  return (
+    <div className="mt-2 flex items-center gap-2">
+      <Badge variant="outline" className="font-mono">
+        {inviteCode}
+      </Badge>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-6 w-6"
+        onClick={onCopyInviteCode}
+        aria-label="Copy invite code"
+      >
+        <Copy className="h-3 w-3" />
+      </Button>
+      <span className="text-muted-foreground text-xs">Invite Code</span>
+    </div>
+  );
+}
+
+function CampaignStats({
+  campaign,
+  lastPlayedLabel,
+}: {
+  campaign: Campaign;
+  lastPlayedLabel: string | null;
+}) {
+  return (
+    <div className="text-muted-foreground flex flex-wrap gap-3 pl-1 text-xs">
+      <span>{campaign.sessions?.length ?? 0} sessions</span>
+      <span>·</span>
+      <span>{campaign.npcs?.length ?? 0} NPCs</span>
+      <span>·</span>
+      <span>{campaign.locations?.length ?? 0} locations</span>
+      <span>·</span>
+      <span>{campaign.quests?.length ?? 0} quests</span>
+      <span>·</span>
+      <span>{campaign.players?.length ?? 0} players</span>
+      {lastPlayedLabel && (
+        <>
+          <span>·</span>
+          <span>Last session: {lastPlayedLabel}</span>
+        </>
+      )}
+    </div>
+  );
+}
+
+// --- Main component ---
+
 interface CampaignHeaderProps {
   campaign: Campaign;
   saving: boolean;
@@ -119,20 +397,10 @@ export function CampaignHeader({
       (nowRef.current - Math.max(...timestamps)) / (1000 * 60 * 60 * 24)
     );
 
-    if (diffDays === 0) return 'Today';
-    if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 7) return `${diffDays} days ago`;
-    if (diffDays < 30) {
-      const weeks = Math.floor(diffDays / 7);
-      return `${weeks} week${weeks > 1 ? 's' : ''} ago`;
-    }
-    if (diffDays < 365) {
-      const months = Math.floor(diffDays / 30);
-      return `${months} month${months > 1 ? 's' : ''} ago`;
-    }
-    const years = Math.floor(diffDays / 365);
-    return `${years} year${years > 1 ? 's' : ''} ago`;
+    return computeRelativeTimeLabel(diffDays);
   }, [campaign.sessions]);
+
+  const currentPhase = campaign.phase ?? 'act-1';
 
   return (
     <div className="mb-6 flex items-start justify-between">
@@ -155,47 +423,14 @@ export function CampaignHeader({
             className="focus-visible:border-input focus-visible:bg-background h-auto border-transparent bg-transparent p-0 text-2xl font-bold focus-visible:px-2"
           />
           {/* Save status indicator */}
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div>
-                  {saveStatus === 'saving' ? (
-                    <Badge variant="outline" className="gap-1 text-xs">
-                      <Loader2 className="size-3 animate-spin" />
-                      Saving...
-                    </Badge>
-                  ) : saveStatus === 'unsaved' ? (
-                    <Badge
-                      variant="outline"
-                      className="border-amber-300 text-xs text-amber-600"
-                    >
-                      Unsaved
-                    </Badge>
-                  ) : (
-                    <Badge
-                      variant="outline"
-                      className="gap-1 border-green-300 text-xs text-green-600"
-                    >
-                      <Check className="size-3" />
-                      Saved
-                    </Badge>
-                  )}
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                {saveStatus === 'saving' && <p>Saving campaign...</p>}
-                {saveStatus === 'unsaved' && <p>You have unsaved changes</p>}
-                {saveStatus === 'saved' && <p>All changes saved</p>}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <SaveStatusIndicator saveStatus={saveStatus} />
           {/* Campaign phase indicator */}
           <Select
-            value={campaign.phase ?? 'act-1'}
+            value={currentPhase}
             onValueChange={v => onPhaseChange?.(v as CampaignPhase)}
           >
             <SelectTrigger
-              className={`h-6 w-auto gap-1 rounded-full border px-2 text-xs font-medium ${PHASE_CONFIG[campaign.phase ?? 'act-1'].color}`}
+              className={`h-6 w-auto gap-1 rounded-full border px-2 text-xs font-medium ${PHASE_CONFIG[currentPhase].color}`}
               aria-label="Campaign phase"
             >
               <SelectValue />
@@ -210,167 +445,27 @@ export function CampaignHeader({
           </Select>
           {/* Screen reader announcement for save status */}
           <span className="sr-only" aria-live="polite" role="status">
-            {saveStatus === 'saving' && 'Saving campaign...'}
-            {saveStatus === 'unsaved' && 'You have unsaved changes'}
-            {saveStatus === 'saved' && 'All changes saved'}
+            {SAVE_STATUS_TOOLTIP[saveStatus]}
           </span>
         </div>
-        <div className="text-muted-foreground flex flex-wrap gap-3 pl-1 text-xs">
-          <span>{campaign.sessions?.length ?? 0} sessions</span>
-          <span>·</span>
-          <span>{campaign.npcs?.length ?? 0} NPCs</span>
-          <span>·</span>
-          <span>{campaign.locations?.length ?? 0} locations</span>
-          <span>·</span>
-          <span>{campaign.quests?.length ?? 0} quests</span>
-          <span>·</span>
-          <span>{campaign.players?.length ?? 0} players</span>
-          {lastPlayedLabel && (
-            <>
-              <span>·</span>
-              <span>Last session: {lastPlayedLabel}</span>
-            </>
-          )}
-        </div>
+        <CampaignStats campaign={campaign} lastPlayedLabel={lastPlayedLabel} />
         {campaign.inviteCode && (
-          <div className="mt-2 flex items-center gap-2">
-            <Badge variant="outline" className="font-mono">
-              {campaign.inviteCode}
-            </Badge>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6"
-              onClick={onCopyInviteCode}
-              aria-label="Copy invite code"
-            >
-              <Copy className="h-3 w-3" />
-            </Button>
-            <span className="text-muted-foreground text-xs">Invite Code</span>
-          </div>
+          <InviteCodeSection
+            inviteCode={campaign.inviteCode}
+            onCopyInviteCode={onCopyInviteCode}
+          />
         )}
       </div>
       <div className="flex items-center gap-2">
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-muted-foreground h-8 w-8"
-              aria-label="Campaign settings"
-            >
-              <Settings className="h-4 w-4" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-56 text-sm" align="end">
-            <p className="mb-3 font-semibold">Campaign Settings</p>
-            <div className="flex items-center justify-between">
-              <Label htmlFor="beast-feast-toggle" className="text-xs">
-                Enable Beast Feast
-              </Label>
-              <Switch
-                id="beast-feast-toggle"
-                checked={campaign.beastFeastEnabled ?? false}
-                onCheckedChange={v => onBeastFeastToggle?.(v)}
-              />
-            </div>
-            <div className="mt-2 flex items-center justify-between">
-              <Label htmlFor="calendar-toggle" className="text-xs">
-                Enable Calendar
-              </Label>
-              <Switch
-                id="calendar-toggle"
-                checked={campaign.calendarEnabled ?? false}
-                onCheckedChange={v => onCalendarToggle?.(v)}
-              />
-            </div>
-            <div className="mt-2 flex items-center justify-between">
-              <Label htmlFor="shop-toggle" className="text-xs">
-                Enable Shop
-              </Label>
-              <Switch
-                id="shop-toggle"
-                checked={campaign.shopEnabled ?? false}
-                onCheckedChange={v => onShopToggle?.(v)}
-              />
-            </div>
-          </PopoverContent>
-        </Popover>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-muted-foreground h-8 w-8"
-              aria-label="Keyboard shortcuts"
-            >
-              <Keyboard className="h-4 w-4" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-56 text-sm" align="end">
-            <p className="mb-2 font-semibold">Keyboard Shortcuts</p>
-            <ul className="space-y-1 text-xs">
-              <li className="flex justify-between">
-                <span>Save campaign</span>
-                <kbd className="bg-muted rounded border px-1.5 py-0.5 font-mono text-[10px]">
-                  Ctrl+S
-                </kbd>
-              </li>
-              <li className="flex justify-between">
-                <span>Toggle sidebar</span>
-                <kbd className="bg-muted rounded border px-1.5 py-0.5 font-mono text-[10px]">
-                  Ctrl+B
-                </kbd>
-              </li>
-              <li className="flex justify-between">
-                <span>Navigate items</span>
-                <kbd className="bg-muted rounded border px-1.5 py-0.5 font-mono text-[10px]">
-                  ← →
-                </kbd>
-              </li>
-              <li className="flex justify-between">
-                <span>Close panel</span>
-                <kbd className="bg-muted rounded border px-1.5 py-0.5 font-mono text-[10px]">
-                  Esc
-                </kbd>
-              </li>
-            </ul>
-          </PopoverContent>
-        </Popover>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline">
-              <Download className="mr-2 h-4 w-4" />
-              Export
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => exportCampaignAsJson(campaign)}>
-              Export as JSON
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => exportCampaignAsMarkdown(campaign)}
-            >
-              Export as Markdown
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button onClick={onSave} disabled={!hasChanges || saving}>
-                <Save className="mr-2 h-4 w-4" />
-                {saving ? 'Saving...' : 'Save Changes'}
-                <kbd className="bg-muted text-muted-foreground ml-2 hidden rounded px-1.5 py-0.5 text-[10px] font-medium sm:inline">
-                  Ctrl+S
-                </kbd>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Save campaign (Ctrl+S)</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <CampaignSettingsPopover
+          campaign={campaign}
+          onBeastFeastToggle={onBeastFeastToggle}
+          onCalendarToggle={onCalendarToggle}
+          onShopToggle={onShopToggle}
+        />
+        <KeyboardShortcutsPopover />
+        <ExportDropdown campaign={campaign} />
+        <SaveButton saving={saving} hasChanges={hasChanges} onSave={onSave} />
       </div>
     </div>
   );

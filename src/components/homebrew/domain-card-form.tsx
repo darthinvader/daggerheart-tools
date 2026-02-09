@@ -56,23 +56,26 @@ export function DomainCardForm({
     cleanModifiers,
   } = useModifierManagement(initialData?.modifiers);
 
+  const buildContent = useCallback(
+    (): HomebrewDomainCard['content'] => ({
+      ...formData,
+      tags: tags.filter(t => t.trim()),
+      modifiers: cleanModifiers(),
+    }),
+    [formData, tags, cleanModifiers]
+  );
+
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
-
-      const content: HomebrewDomainCard['content'] = {
-        ...formData,
-        tags: tags.filter(t => t.trim()),
-        modifiers: cleanModifiers(),
-      };
-
-      onSubmit(content);
+      onSubmit(buildContent());
     },
-    [formData, tags, cleanModifiers, onSubmit]
+    [buildContent, onSubmit]
   );
 
-  // Get style based on current domain
   const domainStyle = DOMAIN_COLORS[formData.domain] ?? DOMAIN_COLORS.Arcana;
+  const isSubmitDisabled = isSubmitting || !formData.name.trim();
+  const submitLabel = isSubmitting ? 'Saving...' : 'Save Domain Card';
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -129,8 +132,8 @@ export function DomainCardForm({
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit" disabled={isSubmitting || !formData.name.trim()}>
-          {isSubmitting ? 'Saving...' : 'Save Domain Card'}
+        <Button type="submit" disabled={isSubmitDisabled}>
+          {submitLabel}
         </Button>
       </div>
     </form>

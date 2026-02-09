@@ -4,7 +4,22 @@ import {
   createFileRoute,
   type ErrorComponentProps,
 } from '@tanstack/react-router';
-import { ArrowDown, ArrowUp, Search, X } from 'lucide-react';
+import {
+  ArrowDown,
+  ArrowUp,
+  Clapperboard,
+  Compass,
+  Flame,
+  Footprints,
+  Leaf,
+  type LucideIcon,
+  Puzzle,
+  Search,
+  Speech,
+  Sprout,
+  X,
+  Zap,
+} from 'lucide-react';
 import * as React from 'react';
 
 import {
@@ -19,6 +34,7 @@ import {
   useDeferredSheetContent,
   useKeyboardNavigation,
 } from '@/components/references';
+import { TooltipLabel } from '@/components/shared/tooltip-label';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -43,19 +59,32 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { TIERS } from '@/lib/constants';
 import { ENVIRONMENTS } from '@/lib/data/environments';
 import {
   Brain,
-  Compass,
   DynamicIcon,
-  EnvironmentTierIcons,
-  EnvironmentTypeIcons,
   getIcon,
   Sparkles,
   Swords,
   Target,
   TreePine,
 } from '@/lib/icons';
+
+const EnvironmentTierIcons: Record<string, LucideIcon> = {
+  '1': Sprout,
+  '2': Leaf,
+  '3': Flame,
+  '4': Zap,
+} as const;
+
+const EnvironmentTypeIcons: Record<string, LucideIcon> = {
+  Exploration: Compass,
+  Event: Clapperboard,
+  Social: Speech,
+  Traversal: Footprints,
+  default: Puzzle,
+} as const;
 import type { Environment } from '@/lib/schemas/environments';
 import { tierColors } from '@/lib/utils/tier-colors';
 
@@ -69,7 +98,6 @@ export const Route = createFileRoute('/references/environments')({
 
 type EnvironmentItem = (typeof ENVIRONMENTS)[number];
 
-const tierOrder: Environment['tier'][] = ['1', '2', '3', '4'];
 const typeOrder: Environment['type'][] = [
   'Exploration',
   'Event',
@@ -137,34 +165,6 @@ function getTypeDescription(type: Environment['type']) {
   return typeDescriptions[type] ?? 'Environment type.';
 }
 
-interface TooltipLabelProps {
-  label: string;
-  tooltip: string;
-  className?: string;
-  labelIcon?: React.ComponentType<{ className?: string }>;
-}
-
-function TooltipLabel({
-  label,
-  tooltip,
-  className,
-  labelIcon: LabelIcon,
-}: TooltipLabelProps) {
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <span
-          className={`cursor-help underline decoration-dotted underline-offset-2 ${className ?? ''}`}
-        >
-          {LabelIcon && <LabelIcon className="mr-1 inline-block size-3" />}
-          {label}:
-        </span>
-      </TooltipTrigger>
-      <TooltipContent sideOffset={6}>{tooltip}</TooltipContent>
-    </Tooltip>
-  );
-}
-
 const loadAllEnvironments = () => [...ENVIRONMENTS];
 
 type EnvironmentSortKey = 'name' | 'tier' | 'type';
@@ -174,7 +174,7 @@ const ENVIRONMENT_SORTERS: Record<
   (a: EnvironmentItem, b: EnvironmentItem) => number
 > = {
   name: (a, b) => a.name.localeCompare(b.name),
-  tier: (a, b) => tierOrder.indexOf(a.tier) - tierOrder.indexOf(b.tier),
+  tier: (a, b) => TIERS.indexOf(a.tier) - TIERS.indexOf(b.tier),
   type: (a, b) => a.type.localeCompare(b.type),
 };
 
@@ -302,7 +302,7 @@ function EnvironmentsHeader({
                 aria-label="Filter by tier"
               >
                 <option value="all">All tiers</option>
-                {tierOrder.map(tier => (
+                {TIERS.map(tier => (
                   <option key={tier} value={tier}>
                     {tierLabels[tier]} Tier {tier}
                   </option>

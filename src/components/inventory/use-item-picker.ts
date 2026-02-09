@@ -29,6 +29,67 @@ const ALL_ITEMS: AnyItem[] = [
   ...ALL_RECIPES,
 ];
 
+// --- Pure helpers ---
+
+function filterItems(
+  items: AnyItem[],
+  selectedCategories: ItemCategory[],
+  selectedRarities: Rarity[],
+  selectedTiers: EquipmentTier[],
+  search: string,
+  allowedTiers?: string[]
+): AnyItem[] {
+  let result = items;
+
+  if (allowedTiers && allowedTiers.length > 0) {
+    result = result.filter(item =>
+      allowedTiers.includes(item.tier as EquipmentTier)
+    );
+  }
+
+  if (selectedCategories.length > 0) {
+    result = result.filter(item =>
+      selectedCategories.includes(
+        (item as { category?: string }).category as ItemCategory
+      )
+    );
+  }
+
+  if (selectedRarities.length > 0) {
+    result = result.filter(item =>
+      selectedRarities.includes(item.rarity as Rarity)
+    );
+  }
+
+  if (selectedTiers.length > 0) {
+    result = result.filter(item =>
+      selectedTiers.includes(item.tier as EquipmentTier)
+    );
+  }
+
+  if (search.trim()) {
+    result = rankBy(result, search, [
+      'name',
+      item => item.features?.map(f => f.name).join(' ') ?? '',
+      item => item.features?.map(f => f.description).join(' ') ?? '',
+    ]);
+  }
+
+  return result;
+}
+
+function computeTotalQuantity(
+  selected: Map<string, { item: AnyItem; quantity: number }>
+): number {
+  let total = 0;
+  for (const { quantity } of selected.values()) {
+    total += quantity;
+  }
+  return total;
+}
+
+// --- Hooks ---
+
 export function useItemFilters(
   selectedCategories: ItemCategory[],
   selectedRarities: Rarity[],
@@ -36,51 +97,18 @@ export function useItemFilters(
   search: string,
   allowedTiers?: string[]
 ) {
-  return useMemo(() => {
-    let result = ALL_ITEMS;
-
-    if (allowedTiers && allowedTiers.length > 0) {
-      result = result.filter(item =>
-        allowedTiers.includes(item.tier as EquipmentTier)
-      );
-    }
-
-    if (selectedCategories.length > 0) {
-      result = result.filter(item =>
-        selectedCategories.includes(
-          (item as { category?: string }).category as ItemCategory
-        )
-      );
-    }
-
-    if (selectedRarities.length > 0) {
-      result = result.filter(item =>
-        selectedRarities.includes(item.rarity as Rarity)
-      );
-    }
-
-    if (selectedTiers.length > 0) {
-      result = result.filter(item =>
-        selectedTiers.includes(item.tier as EquipmentTier)
-      );
-    }
-
-    if (search.trim()) {
-      result = rankBy(result, search, [
-        'name',
-        item => item.features?.map(f => f.name).join(' ') ?? '',
-        item => item.features?.map(f => f.description).join(' ') ?? '',
-      ]);
-    }
-
-    return result;
-  }, [
-    search,
-    selectedCategories,
-    selectedRarities,
-    selectedTiers,
-    allowedTiers,
-  ]);
+  return useMemo(
+    () =>
+      filterItems(
+        ALL_ITEMS,
+        selectedCategories,
+        selectedRarities,
+        selectedTiers,
+        search,
+        allowedTiers
+      ),
+    [search, selectedCategories, selectedRarities, selectedTiers, allowedTiers]
+  );
 }
 
 export function useItemSelection(maxTotalSlots: number = Infinity) {
@@ -88,24 +116,15 @@ export function useItemSelection(maxTotalSlots: number = Infinity) {
     Map<string, { item: AnyItem; quantity: number }>
   >(new Map());
 
-  const totalQuantity = Array.from(tempSelected.values()).reduce(
-    (sum, s) => sum + s.quantity,
-    0
-  );
+  const totalQuantity = computeTotalQuantity(tempSelected);
 
   const toggleItem = (item: AnyItem) => {
     setTempSelected(prev => {
       const next = new Map(prev);
       if (next.has(item.name)) {
         next.delete(item.name);
-      } else {
-        const currentTotal = Array.from(prev.values()).reduce(
-          (sum, s) => sum + s.quantity,
-          0
-        );
-        if (currentTotal < maxTotalSlots) {
-          next.set(item.name, { item, quantity: 1 });
-        }
+      } else if (computeTotalQuantity(prev) < maxTotalSlots) {
+        next.set(item.name, { item, quantity: 1 });
       }
       return next;
     });
@@ -120,10 +139,7 @@ export function useItemSelection(maxTotalSlots: number = Infinity) {
       const next = new Map(prev);
       const existing = next.get(item.name);
       if (existing) {
-        const currentTotal = Array.from(prev.values()).reduce(
-          (sum, s) => sum + s.quantity,
-          0
-        );
+        const currentTotal = computeTotalQuantity(prev);
         const itemLimit = maxAllowed ?? item.maxQuantity;
         let newQty = existing.quantity + delta;
         newQty = Math.max(1, newQty);
@@ -155,6 +171,22 @@ export function useItemSelection(maxTotalSlots: number = Infinity) {
   };
 }
 
+interface FilterSelections {
+  categories: ItemCategory[];
+  rarities: Rarity[];
+  tiers: EquipmentTier[];
+}
+
+const emptySelections = (tiers: EquipmentTier[] = []): FilterSelections => ({
+  categories: [],
+  rarities: [],
+  tiers,
+});
+
+function toggleArray<T>(arr: T[], item: T): T[] {
+  return arr.includes(item) ? arr.filter(i => i !== item) : [...arr, item];
+}
+
 export function usePickerFiltersState({
   initialTiers,
   lockTiers = false,
@@ -164,46 +196,47 @@ export function usePickerFiltersState({
 } = {}) {
   const [search, setSearch] = useState('');
   const deferredSearch = useDeferredValue(search);
-  const [selectedCategories, setSelectedCategories] = useState<ItemCategory[]>(
-    []
-  );
-  const [selectedRarities, setSelectedRarities] = useState<Rarity[]>([]);
-  const [selectedTiers, setSelectedTiers] = useState<EquipmentTier[]>(
-    (initialTiers ?? []) as EquipmentTier[]
+  const [selections, setSelections] = useState<FilterSelections>(() =>
+    emptySelections((initialTiers ?? []) as EquipmentTier[])
   );
   const [showFilters, setShowFilters] = useState(false);
 
-  const toggleArray = <T>(arr: T[], item: T): T[] =>
-    arr.includes(item) ? arr.filter(i => i !== item) : [...arr, item];
-
   const toggleCategory = (c: ItemCategory) =>
-    setSelectedCategories(prev => toggleArray(prev, c));
+    setSelections(prev => ({
+      ...prev,
+      categories: toggleArray(prev.categories, c),
+    }));
   const toggleRarity = (r: Rarity) =>
-    setSelectedRarities(prev => toggleArray(prev, r));
+    setSelections(prev => ({
+      ...prev,
+      rarities: toggleArray(prev.rarities, r),
+    }));
   const toggleTier = (t: EquipmentTier) => {
     if (lockTiers) return;
-    setSelectedTiers(prev => toggleArray(prev, t));
+    setSelections(prev => ({ ...prev, tiers: toggleArray(prev.tiers, t) }));
   };
 
   const clearFilters = () => {
-    setSelectedCategories([]);
-    setSelectedRarities([]);
-    setSelectedTiers(
-      lockTiers ? ((initialTiers ?? []) as EquipmentTier[]) : []
+    setSelections(
+      emptySelections(
+        lockTiers ? ((initialTiers ?? []) as EquipmentTier[]) : []
+      )
     );
     setSearch('');
   };
 
   const activeFilterCount =
-    selectedCategories.length + selectedRarities.length + selectedTiers.length;
+    selections.categories.length +
+    selections.rarities.length +
+    selections.tiers.length;
 
   return {
     search,
     deferredSearch,
     setSearch,
-    selectedCategories,
-    selectedRarities,
-    selectedTiers,
+    selectedCategories: selections.categories,
+    selectedRarities: selections.rarities,
+    selectedTiers: selections.tiers,
     showFilters,
     setShowFilters,
     toggleCategory,

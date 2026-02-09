@@ -20,6 +20,57 @@ interface UseHomebrewEquipmentDataOptions {
   campaignId?: string;
 }
 
+/** Check whether a homebrew content item matches the given equipment type. */
+function matchesEquipmentType(
+  item: HomebrewContent,
+  equipmentType: EquipmentTypeFilter
+): boolean {
+  const content = item.content as { equipmentType?: string };
+  return content.equipmentType === equipmentType;
+}
+
+/** Filter a list of homebrew content items to only those matching the equipment type. */
+function filterByEquipmentType(
+  items: HomebrewContent[],
+  equipmentType: EquipmentTypeFilter
+): HomebrewContent[] {
+  return items.filter(item => matchesEquipmentType(item, equipmentType));
+}
+
+/** Filter items by a search query against the item name. */
+function filterBySearchQuery(
+  items: HomebrewContent[],
+  searchQuery: string
+): HomebrewContent[] {
+  const trimmed = searchQuery.trim();
+  if (!trimmed) return items;
+  const query = trimmed.toLowerCase();
+  return items.filter(item => item.name.toLowerCase().includes(query));
+}
+
+/** Build the equipment query params, fetching nothing when the source is not active. */
+function equipmentQueryParams(isActive: boolean) {
+  return isActive
+    ? { contentType: 'equipment' as const }
+    : { contentType: 'equipment' as const, limit: 0 };
+}
+
+interface SourceData {
+  items: HomebrewContent[];
+  isLoading: boolean;
+}
+
+/**
+ * Resolve which source items and loading state to use based on the active source tab.
+ * Returns null for 'quicklist' since it is handled separately.
+ */
+function resolveSourceData(
+  source: HomebrewSource,
+  dataMap: Record<string, SourceData>
+): SourceData | null {
+  return dataMap[source] ?? null;
+}
+
 export function useHomebrewEquipmentData({
   equipmentType,
   campaignId,
@@ -37,16 +88,10 @@ export function useHomebrewEquipmentData({
     });
 
   const { data: publicContent, isLoading: loadingPublic } =
-    usePublicHomebrewContent(
-      source === 'public'
-        ? { contentType: 'equipment' }
-        : { contentType: 'equipment', limit: 0 }
-    );
+    usePublicHomebrewContent(equipmentQueryParams(source === 'public'));
 
   const { data: myContent, isLoading: loadingMine } = useMyHomebrewContent(
-    source === 'private'
-      ? { contentType: 'equipment' }
-      : { contentType: 'equipment', limit: 0 }
+    equipmentQueryParams(source === 'private')
   );
 
   const { data: quicklist } = useQuicklist();
@@ -69,40 +114,35 @@ export function useHomebrewEquipmentData({
   const filteredQuicklistContent = useMemo(() => {
     return quicklistContent.filter(item => {
       if (item.contentType !== 'equipment') return false;
-      const content = item.content as { equipmentType?: string };
-      return content.equipmentType === equipmentType;
+      return matchesEquipmentType(item, equipmentType);
     });
   }, [quicklistContent, equipmentType]);
 
   // Combine data based on source and filter by equipmentType
   const { items, isLoading } = useMemo(() => {
-    let sourceItems: HomebrewContent[] = [];
-    let loading = false;
-
-    switch (source) {
-      case 'linked':
-        sourceItems = campaignContent?.items ?? [];
-        loading = loadingCampaign;
-        break;
-      case 'public':
-        sourceItems = publicContent?.items ?? [];
-        loading = loadingPublic;
-        break;
-      case 'private':
-        sourceItems = myContent?.items ?? [];
-        loading = loadingMine;
-        break;
-      case 'quicklist':
-        return { items: filteredQuicklistContent, isLoading: loadingQuicklist };
+    // Quicklist is pre-filtered and handled separately
+    if (source === 'quicklist') {
+      return { items: filteredQuicklistContent, isLoading: loadingQuicklist };
     }
 
-    // Filter by equipmentType
-    const filtered = sourceItems.filter(item => {
-      const content = item.content as { equipmentType?: string };
-      return content.equipmentType === equipmentType;
-    });
+    const sourceDataMap: Record<string, SourceData> = {
+      linked: {
+        items: campaignContent?.items ?? [],
+        isLoading: loadingCampaign,
+      },
+      public: { items: publicContent?.items ?? [], isLoading: loadingPublic },
+      private: { items: myContent?.items ?? [], isLoading: loadingMine },
+    };
 
-    return { items: filtered, isLoading: loading };
+    const resolved = resolveSourceData(source, sourceDataMap);
+    if (!resolved) {
+      return { items: [], isLoading: false };
+    }
+
+    return {
+      items: filterByEquipmentType(resolved.items, equipmentType),
+      isLoading: resolved.isLoading,
+    };
   }, [
     source,
     campaignContent,
@@ -117,11 +157,10 @@ export function useHomebrewEquipmentData({
   ]);
 
   // Filter by search query
-  const filteredItems = useMemo(() => {
-    if (!searchQuery.trim()) return items;
-    const query = searchQuery.toLowerCase();
-    return items.filter(item => item.name.toLowerCase().includes(query));
-  }, [items, searchQuery]);
+  const filteredItems = useMemo(
+    () => filterBySearchQuery(items, searchQuery),
+    [items, searchQuery]
+  );
 
   return {
     source,

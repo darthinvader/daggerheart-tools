@@ -37,6 +37,7 @@ import type {
 } from '@/lib/schemas/soundboard';
 import AddTrackDialog from './add-track-dialog';
 import EmbedPlayer from './embed-player';
+import { formatTime } from './format-time';
 import PresetManager from './preset-manager';
 import TrackCard from './track-card';
 import { useSoundboardPlayer } from './use-soundboard-player';
@@ -52,12 +53,7 @@ const CATEGORY_FILTERS: Array<{
   { value: 'sfx', label: 'SFX', icon: <Zap className="size-3.5" /> },
 ];
 
-function formatMiniTime(seconds: number): string {
-  if (!Number.isFinite(seconds) || seconds < 0) return '0:00';
-  const m = Math.floor(seconds / 60);
-  const s = Math.floor(seconds % 60);
-  return `${m}:${s.toString().padStart(2, '0')}`;
-}
+type EmbedTrackInfo = { url: string; name: string; loop: boolean };
 
 // eslint-disable-next-line max-lines-per-function
 export default function SoundboardPanel() {
@@ -66,11 +62,25 @@ export default function SoundboardPanel() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<TrackCategory | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [embedTracks, setEmbedTracks] = useState<
-    Map<string, { url: string; name: string; loop: boolean }>
-  >(new Map());
+  const [embedTracks, setEmbedTracks] = useState<Map<string, EmbedTrackInfo>>(
+    new Map()
+  );
 
   const player = useSoundboardPlayer();
+
+  const addEmbed = (id: string, info: EmbedTrackInfo) =>
+    setEmbedTracks(prev => {
+      const next = new Map(prev);
+      next.set(id, info);
+      return next;
+    });
+
+  const removeEmbed = (id: string) =>
+    setEmbedTracks(prev => {
+      const next = new Map(prev);
+      next.delete(id);
+      return next;
+    });
 
   // ---------------------------------------------------------------------------
   // Data loading
@@ -136,11 +146,7 @@ export default function SoundboardPanel() {
     async (trackId: string) => {
       try {
         player.stop(trackId);
-        setEmbedTracks(prev => {
-          const next = new Map(prev);
-          next.delete(trackId);
-          return next;
-        });
+        removeEmbed(trackId);
         await deleteSoundboardTrack(trackId);
         setTracks(prev => prev.filter(t => t.id !== trackId));
         toast.success('Track removed');
@@ -161,14 +167,10 @@ export default function SoundboardPanel() {
         player.play(track.id, track.url, track.volume, track.loop);
       } else {
         // YouTube / SoundCloud — open embed player
-        setEmbedTracks(prev => {
-          const next = new Map(prev);
-          next.set(track.id, {
-            url: track.url,
-            name: track.name,
-            loop: track.loop,
-          });
-          return next;
+        addEmbed(track.id, {
+          url: track.url,
+          name: track.name,
+          loop: track.loop,
         });
       }
     },
@@ -192,11 +194,7 @@ export default function SoundboardPanel() {
   const handleStop = useCallback(
     (trackId: string) => {
       player.stop(trackId);
-      setEmbedTracks(prev => {
-        const next = new Map(prev);
-        next.delete(trackId);
-        return next;
-      });
+      removeEmbed(trackId);
     },
     [player]
   );
@@ -301,14 +299,10 @@ export default function SoundboardPanel() {
         if (track.source === 'direct') {
           player.play(track.id, track.url, entry.volume, entry.loop);
         } else {
-          setEmbedTracks(prev => {
-            const next = new Map(prev);
-            next.set(track.id, {
-              url: track.url,
-              name: track.name,
-              loop: entry.loop,
-            });
-            return next;
+          addEmbed(track.id, {
+            url: track.url,
+            name: track.name,
+            loop: entry.loop,
           });
         }
       }
@@ -331,6 +325,58 @@ export default function SoundboardPanel() {
   // ---------------------------------------------------------------------------
   // Render
   // ---------------------------------------------------------------------------
+
+  const renderTrackContent = () => {
+    if (filteredTracks.length > 0) {
+      return (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {filteredTracks.map(track => (
+            <TrackCard
+              key={track.id}
+              track={track}
+              isPlaying={
+                player.isPlaying(track.id) || embedTracks.has(track.id)
+              }
+              isPaused={player.isPaused(track.id)}
+              isEmbed={track.source !== 'direct'}
+              progress={player.getProgress(track.id)}
+              onPlay={handlePlay}
+              onPause={handlePause}
+              onResume={handleResume}
+              onStop={handleStop}
+              onVolumePreview={handleVolumePreview}
+              onVolumeChange={handleVolumeChange}
+              onLoopChange={handleLoopChange}
+              onSeek={handleSeek}
+              onDelete={handleDeleteTrack}
+            />
+          ))}
+        </div>
+      );
+    }
+
+    if (tracks.length === 0) {
+      return (
+        <div className="flex flex-col items-center gap-3 py-12 text-center">
+          <Music className="text-muted-foreground size-12" />
+          <div>
+            <p className="font-medium">No tracks yet</p>
+            <p className="text-muted-foreground text-sm">
+              Add YouTube links, SoundCloud tracks, or direct audio URLs to
+              build your soundboard.
+            </p>
+          </div>
+          <AddTrackDialog onAdd={handleAddTrack} />
+        </div>
+      );
+    }
+
+    return (
+      <p className="text-muted-foreground py-6 text-center text-sm">
+        No tracks match your search.
+      </p>
+    );
+  };
 
   if (loading) {
     return (
@@ -464,8 +510,7 @@ export default function SoundboardPanel() {
                   {t.name}
                   {prog.duration > 0 && (
                     <span className="opacity-70">
-                      {formatMiniTime(prog.currentTime)}/
-                      {formatMiniTime(prog.duration)}
+                      {formatTime(prog.currentTime)}/{formatTime(prog.duration)}
                     </span>
                   )}
                 </Badge>
@@ -490,47 +535,7 @@ export default function SoundboardPanel() {
       )}
 
       {/* Track grid */}
-      {filteredTracks.length > 0 ? (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredTracks.map(track => (
-            <TrackCard
-              key={track.id}
-              track={track}
-              isPlaying={
-                player.isPlaying(track.id) || embedTracks.has(track.id)
-              }
-              isPaused={player.isPaused(track.id)}
-              isEmbed={track.source !== 'direct'}
-              progress={player.getProgress(track.id)}
-              onPlay={handlePlay}
-              onPause={handlePause}
-              onResume={handleResume}
-              onStop={handleStop}
-              onVolumePreview={handleVolumePreview}
-              onVolumeChange={handleVolumeChange}
-              onLoopChange={handleLoopChange}
-              onSeek={handleSeek}
-              onDelete={handleDeleteTrack}
-            />
-          ))}
-        </div>
-      ) : tracks.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 py-12 text-center">
-          <Music className="text-muted-foreground size-12" />
-          <div>
-            <p className="font-medium">No tracks yet</p>
-            <p className="text-muted-foreground text-sm">
-              Add YouTube links, SoundCloud tracks, or direct audio URLs to
-              build your soundboard.
-            </p>
-          </div>
-          <AddTrackDialog onAdd={handleAddTrack} />
-        </div>
-      ) : (
-        <p className="text-muted-foreground py-6 text-center text-sm">
-          No tracks match your search.
-        </p>
-      )}
+      {renderTrackContent()}
     </div>
   );
 }

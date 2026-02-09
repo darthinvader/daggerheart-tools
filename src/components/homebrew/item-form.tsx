@@ -55,7 +55,6 @@ export function ItemForm({
     addFeature,
     removeFeature,
     updateFeature,
-    setFormData,
   } = useItemFormState(initialData, onChange);
 
   const handleSubmit = useCallback(
@@ -66,6 +65,13 @@ export function ItemForm({
       }
     },
     [onSubmit, buildCurrentData]
+  );
+
+  const handleModifiersChange = useCallback(
+    (modifiers: ItemFormData['modifiers']) => {
+      updateField('modifiers', modifiers);
+    },
+    [updateField]
   );
 
   // Get color based on current category
@@ -117,12 +123,7 @@ export function ItemForm({
 
           <ItemModifiersSection
             modifiers={formData.modifiers}
-            onChange={modifiers =>
-              setFormData(prev => ({
-                ...prev,
-                modifiers,
-              }))
-            }
+            onChange={handleModifiersChange}
           />
         </div>
       </ScrollArea>

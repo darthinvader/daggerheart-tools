@@ -10,6 +10,14 @@ import { HomebrewEquipmentBrowser } from '../homebrew-equipment-browser';
 import { HomebrewWeaponForm } from '../homebrew-weapon-form';
 import { WheelchairCardCompact } from '../wheelchair-card-compact';
 
+function DisabledMessage() {
+  return (
+    <p className="text-muted-foreground py-4 text-center text-sm">
+      Enable combat wheelchair to select one
+    </p>
+  );
+}
+
 interface WheelchairSectionProps {
   enabled: boolean;
   onEnabledChange: (enabled: boolean) => void;
@@ -37,6 +45,31 @@ export function WheelchairSection({
   allowedTiers,
   campaignId,
 }: WheelchairSectionProps) {
+  const handleHomebrewChange = (v: Partial<CombatWheelchair>) => {
+    onHomebrewChange({
+      ...v,
+      frameType: homebrewWheelchair.frameType ?? 'Light',
+      wheelchairFeatures: homebrewWheelchair.wheelchairFeatures ?? [],
+    });
+  };
+
+  const handleHomebrewSelect = (item: CombatWheelchair, _contentId: string) => {
+    onWheelchairChange(item);
+  };
+
+  const renderWheelchairCard = (
+    chair: CombatWheelchair,
+    isSelected: boolean,
+    onSelect: () => void
+  ) => (
+    <WheelchairCardCompact
+      key={chair.name}
+      wheelchair={chair}
+      isSelected={isSelected}
+      onClick={onSelect}
+    />
+  );
+
   const enableSwitch = (
     <div className="flex items-center gap-2">
       <Label className="text-muted-foreground text-xs">Enable</Label>
@@ -49,20 +82,14 @@ export function WheelchairSection({
       <HomebrewWeaponForm
         weaponType="Primary"
         value={homebrewWheelchair}
-        onChange={v =>
-          onHomebrewChange({
-            ...v,
-            frameType: homebrewWheelchair.frameType ?? 'Light',
-            wheelchairFeatures: homebrewWheelchair.wheelchairFeatures ?? [],
-          })
-        }
+        onChange={handleHomebrewChange}
       />
     ) : mode === 'homebrew' ? (
       <HomebrewEquipmentBrowser<CombatWheelchair>
         equipmentType="wheelchair"
         campaignId={campaignId}
         selectedItem={wheelchair}
-        onSelect={(item, _contentId) => onWheelchairChange(item)}
+        onSelect={handleHomebrewSelect}
         emptyMessage="No homebrew combat wheelchairs found."
       />
     ) : (
@@ -73,14 +100,7 @@ export function WheelchairSection({
         selectedItem={wheelchair}
         onSelect={onWheelchairChange}
         allowedTiers={allowedTiers}
-        renderCard={(chair, isSelected, onSelect) => (
-          <WheelchairCardCompact
-            key={chair.name}
-            wheelchair={chair}
-            isSelected={isSelected}
-            onClick={onSelect}
-          />
-        )}
+        renderCard={renderWheelchairCard}
       />
     );
 
@@ -89,13 +109,7 @@ export function WheelchairSection({
       <div className="flex min-h-0 flex-1 flex-col space-y-4">
         <EquipmentModeTabs activeMode={mode} onModeChange={onModeChange} />
         <div className="flex items-center justify-end">{enableSwitch}</div>
-        {!enabled ? (
-          <p className="text-muted-foreground py-4 text-center text-sm">
-            Enable combat wheelchair to select one
-          </p>
-        ) : (
-          wheelchairContent
-        )}
+        {!enabled ? <DisabledMessage /> : wheelchairContent}
       </div>
     );
   }
@@ -107,9 +121,7 @@ export function WheelchairSection({
         {enableSwitch}
       </div>
       {!enabled ? (
-        <p className="text-muted-foreground py-4 text-center text-sm">
-          Enable combat wheelchair to select one
-        </p>
+        <DisabledMessage />
       ) : (
         <>
           <EquipmentModeTabs activeMode={mode} onModeChange={onModeChange} />

@@ -9,6 +9,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { useLatestRef } from '@/hooks/use-latest-ref';
 import type { FeatureStatModifiers } from '@/lib/schemas/core';
 
 import {
@@ -74,12 +75,7 @@ export function CommunityForm({
   // Track previous data to avoid notifying on unchanged values
   const prevDataRef = useRef<string | undefined>(undefined);
   // Store onChange in ref to avoid dependency on unstable callback reference
-  const onChangeRef = useRef(onChange);
-
-  // Update ref in effect to satisfy react-hooks/refs rule
-  useEffect(() => {
-    onChangeRef.current = onChange;
-  });
+  const onChangeRef = useLatestRef(onChange);
 
   // Build current data for callbacks
   const buildCurrentData = useCallback((): CommunityFormData => {
@@ -127,6 +123,40 @@ export function CommunityForm({
     setCommonTraits(prev => prev.filter(t => t !== trait));
   };
 
+  const handleNameChange = useCallback((name: string) => {
+    setFormData(prev => ({ ...prev, name }));
+  }, []);
+
+  const handleDescriptionChange = useCallback((description: string) => {
+    setFormData(prev => ({ ...prev, description }));
+  }, []);
+
+  const updateFeatureField = useCallback(
+    (updates: Partial<CommunityFormData['feature']>) => {
+      setFormData(prev => ({
+        ...prev,
+        feature: { ...prev.feature, ...updates },
+      }));
+    },
+    []
+  );
+
+  const handleFeatureNameChange = useCallback(
+    (name: string) => updateFeatureField({ name }),
+    [updateFeatureField]
+  );
+
+  const handleFeatureDescriptionChange = useCallback(
+    (description: string) => updateFeatureField({ description }),
+    [updateFeatureField]
+  );
+
+  const handleModifiersChange = useCallback(
+    (modifiers: FeatureStatModifiers | undefined) =>
+      updateFeatureField({ modifiers }),
+    [updateFeatureField]
+  );
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <ScrollArea className="h-[60vh] pr-4">
@@ -134,10 +164,8 @@ export function CommunityForm({
           <CommunityInfoSection
             name={formData.name}
             description={formData.description ?? ''}
-            onNameChange={name => setFormData(prev => ({ ...prev, name }))}
-            onDescriptionChange={description =>
-              setFormData(prev => ({ ...prev, description }))
-            }
+            onNameChange={handleNameChange}
+            onDescriptionChange={handleDescriptionChange}
           />
 
           <Separator />
@@ -157,24 +185,9 @@ export function CommunityForm({
             featureName={formData.feature.name}
             featureDescription={formData.feature.description}
             featureModifiers={formData.feature.modifiers}
-            onFeatureNameChange={name =>
-              setFormData(prev => ({
-                ...prev,
-                feature: { ...prev.feature, name },
-              }))
-            }
-            onFeatureDescriptionChange={description =>
-              setFormData(prev => ({
-                ...prev,
-                feature: { ...prev.feature, description },
-              }))
-            }
-            onModifiersChange={modifiers =>
-              setFormData(prev => ({
-                ...prev,
-                feature: { ...prev.feature, modifiers },
-              }))
-            }
+            onFeatureNameChange={handleFeatureNameChange}
+            onFeatureDescriptionChange={handleFeatureDescriptionChange}
+            onModifiersChange={handleModifiersChange}
           />
         </div>
       </ScrollArea>

@@ -3,6 +3,7 @@ import { ArrowLeft, ChevronRight } from 'lucide-react';
 import * as React from 'react';
 
 import { RulesPageDetailPanel } from '@/components/rules/rules-page-detail-panel';
+import { RulesSectionIcons } from '@/components/rules/rules-section-icons';
 import { tagToneClasses } from '@/components/rules/rules-utils';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -15,7 +16,6 @@ import {
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import type { RulesPage } from '@/lib/data/rules/rules-content';
 import { RULES_INDEX_CARDS } from '@/lib/data/rules/rules-content';
-import { RulesSectionIcons } from '@/lib/icons';
 import { cn } from '@/lib/utils';
 
 interface RulesSectionCardProps {

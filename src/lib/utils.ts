@@ -1,4 +1,5 @@
 import { type ClassValue, clsx } from 'clsx';
+import { toast } from 'sonner';
 import { twMerge } from 'tailwind-merge';
 
 export function cn(...inputs: ClassValue[]) {
@@ -43,6 +44,14 @@ export function generateId(): string {
 }
 
 /**
+ * Normalize unicode minus signs and various dash characters to standard hyphen-minus.
+ * Handles unicode minus (\u2212), en-dash (\u2013), and em-dash (\u2014).
+ */
+export function normalizeMinusSigns(text: string): string {
+  return text.replace(/[\u2212\u2013\u2014]/g, '-');
+}
+
+/**
  * Toggle an item in an array - adds if not present, removes if present.
  * Useful for managing selection state.
  */
@@ -50,4 +59,19 @@ export function toggleArrayItem<T>(array: T[], item: T): T[] {
   return array.includes(item)
     ? array.filter(i => i !== item)
     : [...array, item];
+}
+
+/**
+ * Copy text to the clipboard with standardised toast feedback.
+ */
+export async function copyToClipboard(
+  text: string,
+  successMessage = 'Copied to clipboard!'
+): Promise<void> {
+  try {
+    await navigator.clipboard.writeText(text);
+    toast.success(successMessage);
+  } catch {
+    toast.error('Failed to copy — try selecting the text manually');
+  }
 }

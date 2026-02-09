@@ -3,7 +3,7 @@
  *
  * Extracted state management for HomebrewTabContent.
  */
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useReducer, useState } from 'react';
 
 import { useAuth } from '@/components/providers';
 import {
@@ -30,6 +30,60 @@ type InnerTab =
   | 'private'
   | 'quicklist'
   | 'collections';
+
+// Dialog state reducer — groups related form/view dialog state
+interface DialogState {
+  isFormOpen: boolean;
+  isViewOpen: boolean;
+  viewingItem: HomebrewContent | null;
+  selectedType: HomebrewContentType;
+  editingItem: HomebrewContent | null;
+}
+
+type DialogAction =
+  | { type: 'OPEN_CREATE'; contentType: HomebrewContentType }
+  | { type: 'OPEN_VIEW'; item: HomebrewContent }
+  | { type: 'OPEN_EDIT'; item: HomebrewContent }
+  | { type: 'SET_FORM_OPEN'; open: boolean }
+  | { type: 'SET_VIEW_OPEN'; open: boolean };
+
+const initialDialogState: DialogState = {
+  isFormOpen: false,
+  isViewOpen: false,
+  viewingItem: null,
+  selectedType: 'adversary',
+  editingItem: null,
+};
+
+function dialogReducer(state: DialogState, action: DialogAction): DialogState {
+  switch (action.type) {
+    case 'OPEN_CREATE':
+      return {
+        ...state,
+        selectedType: action.contentType,
+        editingItem: null,
+        isFormOpen: true,
+      };
+    case 'OPEN_VIEW':
+      return { ...state, viewingItem: action.item, isViewOpen: true };
+    case 'OPEN_EDIT':
+      return {
+        ...state,
+        selectedType: action.item.contentType,
+        editingItem: action.item,
+        isFormOpen: true,
+        isViewOpen: false,
+      };
+    case 'SET_FORM_OPEN':
+      return action.open
+        ? { ...state, isFormOpen: true }
+        : { ...state, isFormOpen: false, editingItem: null };
+    case 'SET_VIEW_OPEN':
+      return action.open
+        ? { ...state, isViewOpen: true }
+        : { ...state, isViewOpen: false, viewingItem: null };
+  }
+}
 
 export function useHomebrewTabContentState(campaignId: string) {
   const { user } = useAuth();
@@ -67,13 +121,8 @@ export function useHomebrewTabContentState(campaignId: string) {
   const linkMutation = useLinkHomebrewToCampaign();
   const unlinkMutation = useUnlinkHomebrewFromCampaign();
 
-  // Dialog state
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isViewOpen, setIsViewOpen] = useState(false);
-  const [viewingItem, setViewingItem] = useState<HomebrewContent | null>(null);
-  const [selectedType, setSelectedType] =
-    useState<HomebrewContentType>('adversary');
-  const [editingItem, setEditingItem] = useState<HomebrewContent | null>(null);
+  // Dialog state (grouped via reducer)
+  const [dialog, dispatch] = useReducer(dialogReducer, initialDialogState);
   const [innerTab, setInnerTab] = useState<InnerTab>('linked');
   const [showCampaignInfo, setShowCampaignInfo] = useState(() => {
     return localStorage.getItem('hideCampaignHomebrewInfo') !== 'true';
@@ -81,21 +130,15 @@ export function useHomebrewTabContentState(campaignId: string) {
 
   // Handlers
   const handleCreate = useCallback((type: HomebrewContentType) => {
-    setSelectedType(type);
-    setEditingItem(null);
-    setIsFormOpen(true);
+    dispatch({ type: 'OPEN_CREATE', contentType: type });
   }, []);
 
   const handleView = useCallback((item: HomebrewContent) => {
-    setViewingItem(item);
-    setIsViewOpen(true);
+    dispatch({ type: 'OPEN_VIEW', item });
   }, []);
 
   const handleEdit = useCallback((item: HomebrewContent) => {
-    setSelectedType(item.contentType);
-    setEditingItem(item);
-    setIsFormOpen(true);
-    setIsViewOpen(false);
+    dispatch({ type: 'OPEN_EDIT', item });
   }, []);
 
   const handleFormSubmit = useCallback(
@@ -107,9 +150,9 @@ export function useHomebrewTabContentState(campaignId: string) {
         name: string;
       } & HomebrewContent['content'];
 
-      if (editingItem) {
+      if (dialog.editingItem) {
         await updateMutation.mutateAsync({
-          id: editingItem.id,
+          id: dialog.editingItem.id,
           updates: {
             content: typedFormData,
             name: typedFormData.name,
@@ -118,7 +161,7 @@ export function useHomebrewTabContentState(campaignId: string) {
         });
       } else {
         await createMutation.mutateAsync({
-          contentType: selectedType,
+          contentType: dialog.selectedType,
           content: typedFormData,
           name: typedFormData.name,
           description: '',
@@ -127,10 +170,15 @@ export function useHomebrewTabContentState(campaignId: string) {
           campaignLinks: [campaignId],
         });
       }
-      setIsFormOpen(false);
-      setEditingItem(null);
+      dispatch({ type: 'SET_FORM_OPEN', open: false });
     },
-    [editingItem, updateMutation, createMutation, selectedType, campaignId]
+    [
+      dialog.editingItem,
+      dialog.selectedType,
+      updateMutation,
+      createMutation,
+      campaignId,
+    ]
   );
 
   const handleLink = useCallback(
@@ -161,13 +209,11 @@ export function useHomebrewTabContentState(campaignId: string) {
   }, []);
 
   const handleFormOpenChange = useCallback((open: boolean) => {
-    setIsFormOpen(open);
-    if (!open) setEditingItem(null);
+    dispatch({ type: 'SET_FORM_OPEN', open });
   }, []);
 
   const handleViewOpenChange = useCallback((open: boolean) => {
-    setIsViewOpen(open);
-    if (!open) setViewingItem(null);
+    dispatch({ type: 'SET_VIEW_OPEN', open });
   }, []);
 
   return {
@@ -192,11 +238,11 @@ export function useHomebrewTabContentState(campaignId: string) {
     isSubmitting: createMutation.isPending || updateMutation.isPending,
 
     // Dialog state
-    isFormOpen,
-    isViewOpen,
-    viewingItem,
-    selectedType,
-    editingItem,
+    isFormOpen: dialog.isFormOpen,
+    isViewOpen: dialog.isViewOpen,
+    viewingItem: dialog.viewingItem,
+    selectedType: dialog.selectedType,
+    editingItem: dialog.editingItem,
     innerTab,
     setInnerTab,
     showCampaignInfo,

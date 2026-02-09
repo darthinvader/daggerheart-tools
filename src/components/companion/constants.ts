@@ -1,7 +1,20 @@
-import type { LucideProps } from 'lucide-react';
+import type { LucideIcon, LucideProps } from 'lucide-react';
+import {
+  Bird,
+  Brain,
+  Bug,
+  Cat,
+  Dog,
+  Feather,
+  Flame,
+  Focus,
+  Handshake,
+  Heart,
+  PawPrint,
+  Shield,
+  Sparkles,
+} from 'lucide-react';
 import type { ComponentType } from 'react';
-
-import { CompanionTrainingIcons, CompanionTypeIcons } from '@/lib/icons';
 
 export const COMPANION_TYPE_SUGGESTIONS = [
   'Wolf',
@@ -33,8 +46,34 @@ export const COMPANION_ATTACK_SUGGESTIONS = [
   'Web',
 ] as const;
 
-// Re-export icon mappings from centralized location
-export { CompanionTrainingIcons, CompanionTypeIcons };
+export const CompanionTypeIcons: Record<string, LucideIcon> = {
+  Wolf: Dog,
+  Bear: PawPrint,
+  Hawk: Bird,
+  Eagle: Bird,
+  Fox: Dog,
+  Panther: Cat,
+  Owl: Bird,
+  Serpent: Bug,
+  Boar: PawPrint,
+  Stag: PawPrint,
+  Raven: Feather,
+  Spider: Bug,
+  Horse: PawPrint,
+  Lynx: Cat,
+  default: PawPrint,
+} as const;
+
+export const CompanionTrainingIcons: Record<string, LucideIcon> = {
+  intelligent: Brain,
+  vicious: Flame,
+  resilient: Shield,
+  armored: Shield,
+  aware: Focus,
+  lightInTheDark: Sparkles,
+  creatureComfort: Heart,
+  bonded: Handshake,
+} as const;
 
 // Type alias for icon components
 type IconComponent = ComponentType<LucideProps>;

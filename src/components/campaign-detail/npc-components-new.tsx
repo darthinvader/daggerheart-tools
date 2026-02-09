@@ -252,6 +252,175 @@ export function EditableNPCs({
 }
 
 // =====================================================================================
+// Shared Sub-components
+// =====================================================================================
+
+interface LinkedBadgeListProps {
+  ids: string[];
+  emptyMessage: string;
+  icon: React.ReactNode;
+  getName: (id: string) => string;
+  onRemove: (id: string) => void;
+}
+
+function LinkedBadgeList({
+  ids,
+  emptyMessage,
+  icon,
+  getName,
+  onRemove,
+}: LinkedBadgeListProps) {
+  if (ids.length === 0) {
+    return (
+      <span className="text-muted-foreground text-sm">{emptyMessage}</span>
+    );
+  }
+  return ids.map(id => (
+    <RemovableBadge key={id} icon={icon} onRemove={() => onRemove(id)}>
+      {getName(id)}
+    </RemovableBadge>
+  ));
+}
+
+// =====================================================================================
+// Linked Entities Sub-component (orgs + locations)
+// =====================================================================================
+
+interface NPCLinkedEntitiesSectionProps {
+  orgIds: string[];
+  locationIds: string[];
+  getOrgName: (id: string) => string;
+  getLocationName: (id: string) => string;
+  onRemoveOrg: (id: string) => void;
+  onRemoveLocation: (id: string) => void;
+  onOpenOrgPicker: () => void;
+  onOpenLocationPicker: () => void;
+}
+
+function NPCLinkedEntitiesSection({
+  orgIds,
+  locationIds,
+  getOrgName,
+  getLocationName,
+  onRemoveOrg,
+  onRemoveLocation,
+  onOpenOrgPicker,
+  onOpenLocationPicker,
+}: NPCLinkedEntitiesSectionProps) {
+  return (
+    <>
+      <NPCOrganizationsSection onOpenPicker={onOpenOrgPicker}>
+        <LinkedBadgeList
+          ids={orgIds}
+          emptyMessage="No organizations linked"
+          icon={<Building2 className="h-3 w-3" />}
+          getName={getOrgName}
+          onRemove={onRemoveOrg}
+        />
+      </NPCOrganizationsSection>
+
+      <NPCKnownLocationsSection onOpenPicker={onOpenLocationPicker}>
+        <LinkedBadgeList
+          ids={locationIds}
+          emptyMessage="No locations linked"
+          icon={<Map className="h-3 w-3" />}
+          getName={getLocationName}
+          onRemove={onRemoveLocation}
+        />
+      </NPCKnownLocationsSection>
+    </>
+  );
+}
+
+// =====================================================================================
+// Relationships Sub-component (allies + enemies)
+// =====================================================================================
+
+interface NPCRelationshipsSectionProps {
+  otherNPCs: CampaignNPC[];
+  organizations: CampaignOrganization[];
+  allyNpcIds: string[];
+  enemyNpcIds: string[];
+  allyOrgIds: string[];
+  enemyOrgIds: string[];
+  onToggleAllyNpc: (id: string) => void;
+  onToggleEnemyNpc: (id: string) => void;
+  onToggleAllyOrg: (id: string) => void;
+  onToggleEnemyOrg: (id: string) => void;
+  onOpenAllyNPCPicker: () => void;
+  onOpenEnemyNPCPicker: () => void;
+  onOpenAllyOrgPicker: () => void;
+  onOpenEnemyOrgPicker: () => void;
+}
+
+function NPCRelationshipsSection({
+  otherNPCs,
+  organizations,
+  allyNpcIds,
+  enemyNpcIds,
+  allyOrgIds,
+  enemyOrgIds,
+  onToggleAllyNpc,
+  onToggleEnemyNpc,
+  onToggleAllyOrg,
+  onToggleEnemyOrg,
+  onOpenAllyNPCPicker,
+  onOpenEnemyNPCPicker,
+  onOpenAllyOrgPicker,
+  onOpenEnemyOrgPicker,
+}: NPCRelationshipsSectionProps) {
+  return (
+    <>
+      {/* Allies Section */}
+      <NPCAlliesSection
+        alliesNPCContent={
+          <NPCRelationshipBadgeList
+            label="Allied NPCs"
+            npcs={otherNPCs}
+            selectedIds={allyNpcIds}
+            onToggle={onToggleAllyNpc}
+            onAddClick={onOpenAllyNPCPicker}
+          />
+        }
+        alliesOrgContent={
+          <OrgRelationshipBadgeList
+            label="Allied Organizations"
+            organizations={organizations}
+            selectedIds={allyOrgIds}
+            onToggle={onToggleAllyOrg}
+            onAddClick={onOpenAllyOrgPicker}
+          />
+        }
+      />
+
+      {/* Enemies Section */}
+      <NPCEnemiesSection
+        enemiesNPCContent={
+          <NPCRelationshipBadgeList
+            label="Enemy NPCs"
+            npcs={otherNPCs}
+            selectedIds={enemyNpcIds}
+            onToggle={onToggleEnemyNpc}
+            onAddClick={onOpenEnemyNPCPicker}
+            isEnemy
+          />
+        }
+        enemiesOrgContent={
+          <OrgRelationshipBadgeList
+            label="Enemy Organizations"
+            organizations={organizations}
+            selectedIds={enemyOrgIds}
+            onToggle={onToggleEnemyOrg}
+            onAddClick={onOpenEnemyOrgPicker}
+            isEnemy
+          />
+        }
+      />
+    </>
+  );
+}
+
+// =====================================================================================
 // NPC Card Component
 // =====================================================================================
 
@@ -393,6 +562,28 @@ function NPCCard({
     d => d.value === (localNPC.disposition ?? 'neutral')
   );
 
+  // Pre-compute nullable arrays to eliminate branching in JSX
+  const orgIds = localNPC.organizationIds ?? [];
+  const locationIds = localNPC.locationIds ?? [];
+  const allyNpcIds = localNPC.allyNpcIds ?? [];
+  const enemyNpcIds = localNPC.enemyNpcIds ?? [];
+  const allyOrgIds = localNPC.allyOrganizationIds ?? [];
+  const enemyOrgIds = localNPC.enemyOrganizationIds ?? [];
+  const features = localNPC.features ?? [];
+  const sessionAppearances = localNPC.sessionAppearances ?? [];
+  const questAppearances = localNPC.questAppearances ?? [];
+  const hasAppearances =
+    sessionAppearances.length > 0 || questAppearances.length > 0;
+
+  // Named modal-open callbacks to avoid inline arrow functions in JSX
+  const handleOpenDeleteModal = () => openModal('deleteConfirm');
+  const handleOpenOrgPicker = () => openModal('orgPicker');
+  const handleOpenLocationPicker = () => openModal('locationPicker');
+  const handleOpenAllyNPCPicker = () => openModal('allyNPCPicker');
+  const handleOpenEnemyNPCPicker = () => openModal('enemyNPCPicker');
+  const handleOpenAllyOrgPicker = () => openModal('allyOrgPicker');
+  const handleOpenEnemyOrgPicker = () => openModal('enemyOrgPicker');
+
   return (
     <>
       <Card className="overflow-hidden">
@@ -402,7 +593,7 @@ function NPCCard({
             isExpanded={isExpanded}
             statusInfo={statusInfo}
             dispositionInfo={dispositionInfo}
-            onOpenDeleteModal={() => openModal('deleteConfirm')}
+            onOpenDeleteModal={handleOpenDeleteModal}
           />
 
           <CollapsibleContent>
@@ -430,101 +621,41 @@ function NPCCard({
 
               <Separator />
 
-              {/* Organizations */}
-              <NPCOrganizationsSection
-                onOpenPicker={() => openModal('orgPicker')}
-              >
-                {(localNPC.organizationIds ?? []).length === 0 ? (
-                  <span className="text-muted-foreground text-sm">
-                    No organizations linked
-                  </span>
-                ) : (
-                  (localNPC.organizationIds ?? []).map(id => (
-                    <RemovableBadge
-                      key={id}
-                      icon={<Building2 className="h-3 w-3" />}
-                      onRemove={() => orgHandlers.handleRemove(id)}
-                    >
-                      {getOrgName(id)}
-                    </RemovableBadge>
-                  ))
-                )}
-              </NPCOrganizationsSection>
-
-              {/* Known Locations */}
-              <NPCKnownLocationsSection
-                onOpenPicker={() => openModal('locationPicker')}
-              >
-                {(localNPC.locationIds ?? []).length === 0 ? (
-                  <span className="text-muted-foreground text-sm">
-                    No locations linked
-                  </span>
-                ) : (
-                  (localNPC.locationIds ?? []).map(id => (
-                    <RemovableBadge
-                      key={id}
-                      icon={<Map className="h-3 w-3" />}
-                      onRemove={() => locationHandlers.handleRemove(id)}
-                    >
-                      {getLocationName(id)}
-                    </RemovableBadge>
-                  ))
-                )}
-              </NPCKnownLocationsSection>
+              <NPCLinkedEntitiesSection
+                orgIds={orgIds}
+                locationIds={locationIds}
+                getOrgName={getOrgName}
+                getLocationName={getLocationName}
+                onRemoveOrg={orgHandlers.handleRemove}
+                onRemoveLocation={locationHandlers.handleRemove}
+                onOpenOrgPicker={handleOpenOrgPicker}
+                onOpenLocationPicker={handleOpenLocationPicker}
+              />
 
               <Separator />
 
-              {/* Allies Section */}
-              <NPCAlliesSection
-                alliesNPCContent={
-                  <NPCRelationshipBadgeList
-                    label="Allied NPCs"
-                    npcs={otherNPCs}
-                    selectedIds={localNPC.allyNpcIds ?? []}
-                    onToggle={allyNpcHandlers.handleToggle}
-                    onAddClick={() => openModal('allyNPCPicker')}
-                  />
-                }
-                alliesOrgContent={
-                  <OrgRelationshipBadgeList
-                    label="Allied Organizations"
-                    organizations={organizations}
-                    selectedIds={localNPC.allyOrganizationIds ?? []}
-                    onToggle={allyOrgHandlers.handleToggle}
-                    onAddClick={() => openModal('allyOrgPicker')}
-                  />
-                }
-              />
-
-              {/* Enemies Section */}
-              <NPCEnemiesSection
-                enemiesNPCContent={
-                  <NPCRelationshipBadgeList
-                    label="Enemy NPCs"
-                    npcs={otherNPCs}
-                    selectedIds={localNPC.enemyNpcIds ?? []}
-                    onToggle={enemyNpcHandlers.handleToggle}
-                    onAddClick={() => openModal('enemyNPCPicker')}
-                    isEnemy
-                  />
-                }
-                enemiesOrgContent={
-                  <OrgRelationshipBadgeList
-                    label="Enemy Organizations"
-                    organizations={organizations}
-                    selectedIds={localNPC.enemyOrganizationIds ?? []}
-                    onToggle={enemyOrgHandlers.handleToggle}
-                    onAddClick={() => openModal('enemyOrgPicker')}
-                    isEnemy
-                  />
-                }
+              <NPCRelationshipsSection
+                otherNPCs={otherNPCs}
+                organizations={organizations}
+                allyNpcIds={allyNpcIds}
+                enemyNpcIds={enemyNpcIds}
+                allyOrgIds={allyOrgIds}
+                enemyOrgIds={enemyOrgIds}
+                onToggleAllyNpc={allyNpcHandlers.handleToggle}
+                onToggleEnemyNpc={enemyNpcHandlers.handleToggle}
+                onToggleAllyOrg={allyOrgHandlers.handleToggle}
+                onToggleEnemyOrg={enemyOrgHandlers.handleToggle}
+                onOpenAllyNPCPicker={handleOpenAllyNPCPicker}
+                onOpenEnemyNPCPicker={handleOpenEnemyNPCPicker}
+                onOpenAllyOrgPicker={handleOpenAllyOrgPicker}
+                onOpenEnemyOrgPicker={handleOpenEnemyOrgPicker}
               />
 
               <Separator />
 
               {/* NPC Features - Trigger/Effect mechanics per Chapter 3 */}
               <NPCFeaturesSection
-                features={localNPC.features ?? []}
+                features={features}
                 onAddFeature={handleAddFeature}
                 onUpdateFeature={handleUpdateFeature}
                 onDeleteFeature={handleDeleteFeature}
@@ -536,20 +667,19 @@ function NPCCard({
 
               {/* Session Appearances (Read-only) */}
               <SessionAppearancesSection
-                appearances={localNPC.sessionAppearances ?? []}
+                appearances={sessionAppearances}
                 getLocationName={getLocationName}
                 quests={quests}
               />
 
               {/* Quest Appearances (Read-only) */}
               <QuestAppearancesSection
-                appearances={localNPC.questAppearances ?? []}
+                appearances={questAppearances}
                 getLocationName={getLocationName}
                 sessions={sessions}
               />
 
-              {((localNPC.sessionAppearances ?? []).length > 0 ||
-                (localNPC.questAppearances ?? []).length > 0) && <Separator />}
+              {hasAppearances && <Separator />}
 
               {/* Tags */}
               <TagInputSection

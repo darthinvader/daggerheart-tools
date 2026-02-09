@@ -1,8 +1,32 @@
-import type { LucideProps } from 'lucide-react';
+import type { LucideIcon, LucideProps } from 'lucide-react';
+import {
+  Axe,
+  Compass,
+  Crown,
+  Home,
+  Layers,
+  Library,
+  Mountain,
+  Scale,
+  TreePine,
+  Waves,
+} from 'lucide-react';
 import type { ComponentType } from 'react';
-import { CommunityIcons, Home } from '@/lib/icons';
 
 type IconComponent = ComponentType<LucideProps>;
+
+export const CommunityIcons: Record<string, LucideIcon> = {
+  Highborne: Crown,
+  Loreborne: Library,
+  Orderborne: Scale,
+  Ridgeborne: Mountain,
+  Seaborne: Waves,
+  Slyborne: Axe,
+  Underborne: Layers,
+  Wanderborne: Compass,
+  Wildborne: TreePine,
+  default: Home,
+} as const;
 
 export const COMMUNITY_COLORS: Record<
   string,

@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { TIERS } from '@/lib/constants';
 import type { Adversary } from '@/lib/schemas/adversaries';
 import { cn } from '@/lib/utils';
 
@@ -25,7 +26,7 @@ import { cn } from '@/lib/utils';
 // Constants
 // ─────────────────────────────────────────────────────────────────────────────
 
-const TIER_OPTIONS = ['All', '1', '2', '3', '4'] as const;
+export const TIER_OPTIONS = ['All', ...TIERS] as const;
 const ROLE_OPTIONS = [
   'All',
   'Bruiser',
@@ -68,7 +69,7 @@ const GM_COMBAT_TIPS = [
   },
 ];
 
-export { GM_COMBAT_TIPS, ROLE_OPTIONS, TIER_OPTIONS };
+export { GM_COMBAT_TIPS, ROLE_OPTIONS };
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Search and Filters Section

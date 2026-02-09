@@ -23,7 +23,12 @@ import {
 } from '@/components/ui/tooltip';
 import type { SlotSummary } from '@/features/scheduling/scheduling-helpers';
 import type { SchedulingVoteInput } from '@/features/scheduling/scheduling-storage';
-import type { PollVoteValue, SchedulingPoll } from '@/lib/schemas';
+import type {
+  PollSlot,
+  PollVote,
+  PollVoteValue,
+  SchedulingPoll,
+} from '@/lib/schemas';
 
 interface PollVotingCardProps {
   poll: SchedulingPoll;
@@ -71,7 +76,330 @@ const VOTE_OPTIONS: Array<{
   },
 ];
 
-// eslint-disable-next-line max-lines-per-function
+// -------------------------------------------------------------------------------------
+// Lookup map: vote value → badge CSS class (replaces ternary chain)
+// -------------------------------------------------------------------------------------
+
+const VOTE_BADGE_CLASSES: Record<PollVoteValue, string> = {
+  available:
+    'border-green-200 text-green-700 dark:border-green-800 dark:text-green-300',
+  maybe:
+    'border-yellow-200 text-yellow-700 dark:border-yellow-800 dark:text-yellow-300',
+  unavailable:
+    'border-red-200 text-red-700 dark:border-red-800 dark:text-red-300',
+};
+
+// -------------------------------------------------------------------------------------
+// Formatting helpers
+// -------------------------------------------------------------------------------------
+
+function formatSlotDate(startTime: string): string {
+  return new Date(startTime).toLocaleDateString(undefined, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+function formatSlotTime(time: string): string {
+  return new Date(time).toLocaleTimeString(undefined, {
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
+function formatSlotDateShort(startTime: string): string {
+  return new Date(startTime).toLocaleDateString();
+}
+
+// -------------------------------------------------------------------------------------
+// Sub-components
+// -------------------------------------------------------------------------------------
+
+function VoteCountTooltip({
+  count,
+  symbol,
+  label,
+  colorClass,
+}: {
+  count: number;
+  symbol: string;
+  label: string;
+  colorClass: string;
+}) {
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className={colorClass}>
+            {count}
+            {symbol}
+          </span>
+        </TooltipTrigger>
+        <TooltipContent>{label}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
+
+function VoteCounts({ summary }: { summary: SlotSummary }) {
+  return (
+    <div className="flex items-center gap-1.5 text-xs">
+      <VoteCountTooltip
+        count={summary.available}
+        symbol="✓"
+        label="Available"
+        colorClass="text-green-600 dark:text-green-400"
+      />
+      <VoteCountTooltip
+        count={summary.maybe}
+        symbol="?"
+        label="Maybe"
+        colorClass="text-yellow-600 dark:text-yellow-400"
+      />
+      <VoteCountTooltip
+        count={summary.unavailable}
+        symbol="✗"
+        label="Unavailable"
+        colorClass="text-red-600 dark:text-red-400"
+      />
+    </div>
+  );
+}
+
+function VoteBadge({ vote }: { vote: PollVote }) {
+  return (
+    <Badge
+      variant="outline"
+      className={`text-xs ${VOTE_BADGE_CLASSES[vote.value]}`}
+    >
+      {vote.playerName}
+    </Badge>
+  );
+}
+
+function VotesBreakdown({ votes }: { votes: PollVote[] }) {
+  if (votes.length === 0) return null;
+
+  return (
+    <div className="mt-2 flex flex-wrap gap-1">
+      {votes.map(vote => (
+        <VoteBadge key={vote.playerId} vote={vote} />
+      ))}
+    </div>
+  );
+}
+
+function GMConfirmButton({
+  slotId,
+  onConfirmSlot,
+}: {
+  slotId: string;
+  onConfirmSlot: (slotId: string) => Promise<void>;
+}) {
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="ml-auto gap-1 text-xs text-green-600 dark:text-green-400"
+            onClick={() => onConfirmSlot(slotId)}
+          >
+            <CalendarCheck className="h-3 w-3" />
+            Confirm
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Confirm this time slot for the session</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
+
+function SlotHeader({ slot, isBest }: { slot: PollSlot; isBest: boolean }) {
+  return (
+    <div className="flex items-center gap-2">
+      {isBest && (
+        <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+      )}
+      <span className="text-sm font-medium">
+        {formatSlotDate(slot.startTime)}
+      </span>
+      <span className="text-muted-foreground text-xs">
+        {formatSlotTime(slot.startTime)} – {formatSlotTime(slot.endTime)}
+      </span>
+      {slot.label && (
+        <Badge variant="secondary" className="text-xs">
+          {slot.label}
+        </Badge>
+      )}
+    </div>
+  );
+}
+
+function VoteButtons({
+  slot,
+  stagedVotes,
+  isGM,
+  meetsQuorum,
+  onVote,
+  onConfirmSlot,
+}: {
+  slot: PollSlot;
+  stagedVotes: Map<string, PollVoteValue>;
+  isGM: boolean;
+  meetsQuorum: boolean;
+  onVote: (slotId: string, value: PollVoteValue) => void;
+  onConfirmSlot: (slotId: string) => Promise<void>;
+}) {
+  return (
+    <div className="flex gap-1.5">
+      {VOTE_OPTIONS.map(opt => {
+        const Icon = opt.icon;
+        const isActive = stagedVotes.get(slot.id) === opt.value;
+        return (
+          <Button
+            key={opt.value}
+            type="button"
+            variant="outline"
+            size="sm"
+            className={`gap-1 text-xs ${isActive ? opt.activeClassName : ''}`}
+            onClick={() => onVote(slot.id, opt.value)}
+            aria-pressed={isActive}
+            aria-label={`${opt.label} for ${formatSlotDateShort(slot.startTime)}`}
+          >
+            <Icon className="h-3 w-3" />
+            {opt.label}
+          </Button>
+        );
+      })}
+
+      {isGM && meetsQuorum && (
+        <GMConfirmButton slotId={slot.id} onConfirmSlot={onConfirmSlot} />
+      )}
+    </div>
+  );
+}
+
+function SlotCard({
+  summary,
+  isBest,
+  totalPlayers,
+  stagedVotes,
+  isGM,
+  onVote,
+  onConfirmSlot,
+}: {
+  summary: SlotSummary;
+  isBest: boolean;
+  totalPlayers: number;
+  stagedVotes: Map<string, PollVoteValue>;
+  isGM: boolean;
+  onVote: (slotId: string, value: PollVoteValue) => void;
+  onConfirmSlot: (slotId: string) => Promise<void>;
+}) {
+  const { slot } = summary;
+  const progressPct =
+    totalPlayers > 0 ? Math.round((summary.available / totalPlayers) * 100) : 0;
+
+  const borderClass = isBest
+    ? 'border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-950/30'
+    : '';
+
+  return (
+    <div className={`rounded-lg border p-3 ${borderClass}`}>
+      {/* Slot header */}
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <SlotHeader slot={slot} isBest={isBest} />
+        <VoteCounts summary={summary} />
+      </div>
+
+      {/* Progress bar */}
+      <Progress
+        value={progressPct}
+        className="mb-2 h-1.5"
+        aria-label={`${progressPct}% available`}
+      />
+
+      {/* Vote buttons for current user */}
+      <VoteButtons
+        slot={slot}
+        stagedVotes={stagedVotes}
+        isGM={isGM}
+        meetsQuorum={summary.meetsQuorum}
+        onVote={onVote}
+        onConfirmSlot={onConfirmSlot}
+      />
+
+      {/* Individual votes breakdown */}
+      <VotesBreakdown votes={slot.votes} />
+    </div>
+  );
+}
+
+function MissingPlayers({
+  players,
+}: {
+  players: Array<{ id: string; name: string }>;
+}) {
+  if (players.length === 0) return null;
+
+  return (
+    <div className="text-muted-foreground text-xs">
+      Haven&apos;t voted: {players.map(p => p.name).join(', ')}
+    </div>
+  );
+}
+
+function ActionButtons({
+  dirty,
+  submitting,
+  isGM,
+  onSave,
+  onArchivePoll,
+}: {
+  dirty: boolean;
+  submitting: boolean;
+  isGM: boolean;
+  onSave: () => void;
+  onArchivePoll: () => Promise<void>;
+}) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {dirty && (
+        <Button
+          type="button"
+          size="sm"
+          onClick={onSave}
+          disabled={submitting}
+          className="gap-1"
+        >
+          <Save className="h-3.5 w-3.5" />
+          {submitting ? 'Saving...' : 'Save Votes'}
+        </Button>
+      )}
+      {isGM && (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={onArchivePoll}
+          className="gap-1"
+        >
+          <Archive className="h-3.5 w-3.5" />
+          Archive Poll
+        </Button>
+      )}
+    </div>
+  );
+}
+
+// -------------------------------------------------------------------------------------
+// Main component
+// -------------------------------------------------------------------------------------
+
 export function PollVotingCard({
   poll,
   slotSummaries,
@@ -84,7 +412,7 @@ export function PollVotingCard({
   onConfirmSlot,
   onArchivePoll,
 }: PollVotingCardProps) {
-  // Local staged votes (slotId → value)
+  // Local staged votes (slotId -> value)
   const [stagedVotes, setStagedVotes] = useState<Map<string, PollVoteValue>>(
     () => new Map(myVotes)
   );
@@ -123,201 +451,29 @@ export function PollVotingCard({
     <div className="space-y-4">
       {/* Slot list */}
       <div className="space-y-3">
-        {slotSummaries.map(summary => {
-          const { slot } = summary;
-          const isBest = bestSlotIds.has(slot.id);
-          const progressPct =
-            totalPlayers > 0
-              ? Math.round((summary.available / totalPlayers) * 100)
-              : 0;
-
-          return (
-            <div
-              key={slot.id}
-              className={`rounded-lg border p-3 ${
-                isBest
-                  ? 'border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-950/30'
-                  : ''
-              }`}
-            >
-              {/* Slot header */}
-              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  {isBest && (
-                    <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-                  )}
-                  <span className="text-sm font-medium">
-                    {new Date(slot.startTime).toLocaleDateString(undefined, {
-                      weekday: 'short',
-                      month: 'short',
-                      day: 'numeric',
-                    })}
-                  </span>
-                  <span className="text-muted-foreground text-xs">
-                    {new Date(slot.startTime).toLocaleTimeString(undefined, {
-                      hour: 'numeric',
-                      minute: '2-digit',
-                    })}{' '}
-                    –{' '}
-                    {new Date(slot.endTime).toLocaleTimeString(undefined, {
-                      hour: 'numeric',
-                      minute: '2-digit',
-                    })}
-                  </span>
-                  {slot.label && (
-                    <Badge variant="secondary" className="text-xs">
-                      {slot.label}
-                    </Badge>
-                  )}
-                </div>
-
-                {/* Vote counts */}
-                <div className="flex items-center gap-1.5 text-xs">
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span className="text-green-600 dark:text-green-400">
-                          {summary.available}✓
-                        </span>
-                      </TooltipTrigger>
-                      <TooltipContent>Available</TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span className="text-yellow-600 dark:text-yellow-400">
-                          {summary.maybe}?
-                        </span>
-                      </TooltipTrigger>
-                      <TooltipContent>Maybe</TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span className="text-red-600 dark:text-red-400">
-                          {summary.unavailable}✗
-                        </span>
-                      </TooltipTrigger>
-                      <TooltipContent>Unavailable</TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-              </div>
-
-              {/* Progress bar */}
-              <Progress
-                value={progressPct}
-                className="mb-2 h-1.5"
-                aria-label={`${progressPct}% available`}
-              />
-
-              {/* Vote buttons for current user */}
-              <div className="flex gap-1.5">
-                {VOTE_OPTIONS.map(opt => {
-                  const Icon = opt.icon;
-                  const isActive = stagedVotes.get(slot.id) === opt.value;
-                  return (
-                    <Button
-                      key={opt.value}
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className={`gap-1 text-xs ${isActive ? opt.activeClassName : ''}`}
-                      onClick={() => handleVote(slot.id, opt.value)}
-                      aria-pressed={isActive}
-                      aria-label={`${opt.label} for ${new Date(slot.startTime).toLocaleDateString()}`}
-                    >
-                      <Icon className="h-3 w-3" />
-                      {opt.label}
-                    </Button>
-                  );
-                })}
-
-                {/* GM confirm button for this slot */}
-                {isGM && summary.meetsQuorum && (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="ml-auto gap-1 text-xs text-green-600 dark:text-green-400"
-                          onClick={() => onConfirmSlot(slot.id)}
-                        >
-                          <CalendarCheck className="h-3 w-3" />
-                          Confirm
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        Confirm this time slot for the session
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                )}
-              </div>
-
-              {/* Individual votes breakdown */}
-              {slot.votes.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {slot.votes.map(vote => (
-                    <Badge
-                      key={vote.playerId}
-                      variant="outline"
-                      className={`text-xs ${
-                        vote.value === 'available'
-                          ? 'border-green-200 text-green-700 dark:border-green-800 dark:text-green-300'
-                          : vote.value === 'maybe'
-                            ? 'border-yellow-200 text-yellow-700 dark:border-yellow-800 dark:text-yellow-300'
-                            : 'border-red-200 text-red-700 dark:border-red-800 dark:text-red-300'
-                      }`}
-                    >
-                      {vote.playerName}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })}
+        {slotSummaries.map(summary => (
+          <SlotCard
+            key={summary.slot.id}
+            summary={summary}
+            isBest={bestSlotIds.has(summary.slot.id)}
+            totalPlayers={totalPlayers}
+            stagedVotes={stagedVotes}
+            isGM={isGM}
+            onVote={handleVote}
+            onConfirmSlot={onConfirmSlot}
+          />
+        ))}
       </div>
 
-      {/* Missing players */}
-      {missingPlayers.length > 0 && (
-        <div className="text-muted-foreground text-xs">
-          Haven&apos;t voted: {missingPlayers.map(p => p.name).join(', ')}
-        </div>
-      )}
+      <MissingPlayers players={missingPlayers} />
 
-      {/* Action buttons */}
-      <div className="flex flex-wrap gap-2">
-        {dirty && (
-          <Button
-            type="button"
-            size="sm"
-            onClick={handleSave}
-            disabled={submitting}
-            className="gap-1"
-          >
-            <Save className="h-3.5 w-3.5" />
-            {submitting ? 'Saving...' : 'Save Votes'}
-          </Button>
-        )}
-        {isGM && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={onArchivePoll}
-            className="gap-1"
-          >
-            <Archive className="h-3.5 w-3.5" />
-            Archive Poll
-          </Button>
-        )}
-      </div>
+      <ActionButtons
+        dirty={dirty}
+        submitting={submitting}
+        isGM={isGM}
+        onSave={handleSave}
+        onArchivePoll={onArchivePoll}
+      />
     </div>
   );
 }

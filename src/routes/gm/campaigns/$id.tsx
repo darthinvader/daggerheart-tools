@@ -63,11 +63,13 @@ import {
   updateCampaign,
   updateCampaignFrame,
 } from '@/features/campaigns/campaign-storage';
+import { useLatestRef } from '@/hooks/use-latest-ref';
 import type {
   Campaign,
   CampaignFrame,
   CampaignPhase,
 } from '@/lib/schemas/campaign';
+import { copyToClipboard } from '@/lib/utils';
 
 const validTabs = [
   'overview',
@@ -323,12 +325,7 @@ function useCampaignAutoSave(
 ) {
   const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isMountedRef = useRef(true);
-  const performSaveRef = useRef(performSave);
-
-  // Keep a stable reference for cleanup
-  useEffect(() => {
-    performSaveRef.current = performSave;
-  });
+  const performSaveRef = useLatestRef(performSave);
 
   useEffect(() => {
     if (changeVersion === 0 || saving) return;
@@ -773,6 +770,15 @@ function CampaignTabs({
   setCampaign,
   markChanged,
 }: CampaignTabsProps) {
+  const sessionsTooltip = useMemo(
+    () => buildSessionsTooltip(campaign.sessions ?? []),
+    [campaign.sessions]
+  );
+  const questsTooltip = useMemo(
+    () => buildQuestsTooltip(campaign.quests ?? []),
+    [campaign.quests]
+  );
+
   return (
     <Tabs value={tab} onValueChange={setActiveTab}>
       <TabsList className="scrollbar-thin mb-4 h-auto w-full justify-start gap-0.5 overflow-x-auto overflow-y-hidden scroll-smooth p-1 pr-6">
@@ -793,7 +799,7 @@ function CampaignTabs({
           <span className="ml-2 hidden lg:inline">Sessions</span>
           <TabCountBadge
             count={(campaign.sessions ?? []).length}
-            tooltip={buildSessionsTooltip(campaign.sessions ?? [])}
+            tooltip={sessionsTooltip}
           />
         </TabsTrigger>
         <TabsTrigger value="characters">
@@ -817,7 +823,7 @@ function CampaignTabs({
           <span className="ml-2 hidden lg:inline">Quests</span>
           <TabCountBadge
             count={(campaign.quests ?? []).length}
-            tooltip={buildQuestsTooltip(campaign.quests ?? [])}
+            tooltip={questsTooltip}
           />
         </TabsTrigger>
         <TabsTrigger value="organizations">
@@ -868,28 +874,25 @@ function CampaignTabs({
         </TabsTrigger>
       </TabsList>
 
-      {tab === 'overview' && (
+      {tab === 'overview' ? (
         <OverviewTabContent
           frame={frame}
           updateFrame={updateFrame}
           onBlur={onFrameBlur}
         />
-      )}
-      {tab === 'world' && (
+      ) : tab === 'world' ? (
         <WorldTabContent
           frame={frame}
           updateFrame={updateFrame}
           onBlur={onFrameBlur}
         />
-      )}
-      {tab === 'mechanics' && (
+      ) : tab === 'mechanics' ? (
         <MechanicsTabContent
           frame={frame}
           updateFrame={updateFrame}
           onBlur={onFrameBlur}
         />
-      )}
-      {tab === 'sessions' && (
+      ) : tab === 'sessions' ? (
         <SessionsTabContent
           sessions={campaign.sessions ?? []}
           npcs={campaign.npcs ?? []}
@@ -901,8 +904,7 @@ function CampaignTabs({
           onPendingChange={onPendingChange}
           onSessionsChange={onSessionsChange}
         />
-      )}
-      {tab === 'characters' && (
+      ) : tab === 'characters' ? (
         <CharactersTabContent
           npcs={campaign.npcs ?? []}
           locations={campaign.locations}
@@ -914,8 +916,7 @@ function CampaignTabs({
           onPendingChange={onPendingChange}
           onNPCsChange={onNPCsChange}
         />
-      )}
-      {tab === 'locations' && (
+      ) : tab === 'locations' ? (
         <LocationsTabContent
           locations={campaign.locations}
           npcs={campaign.npcs ?? []}
@@ -927,8 +928,7 @@ function CampaignTabs({
           onPendingChange={onPendingChange}
           onLocationsChange={onLocationsChange}
         />
-      )}
-      {tab === 'quests' && (
+      ) : tab === 'quests' ? (
         <QuestsTabContent
           quests={campaign.quests}
           storyThreads={campaign.storyThreads ?? []}
@@ -942,8 +942,7 @@ function CampaignTabs({
           onQuestsChange={onQuestsChange}
           onStoryThreadsChange={onStoryThreadsChange}
         />
-      )}
-      {tab === 'organizations' && (
+      ) : tab === 'organizations' ? (
         <OrganizationsTabContent
           organizations={campaign.organizations ?? []}
           npcs={campaign.npcs ?? []}
@@ -957,8 +956,7 @@ function CampaignTabs({
           onLocationsChange={onLocationsChange}
           onQuestsChange={onQuestsChange}
         />
-      )}
-      {tab === 'gm-tools' && (
+      ) : tab === 'gm-tools' ? (
         <GMToolsTabContent
           campaignId={campaign.id}
           battles={campaign.battles ?? []}
@@ -971,8 +969,7 @@ function CampaignTabs({
           onChecklistChange={onChecklistChange}
           onDeleteBattle={onDeleteBattle}
         />
-      )}
-      {tab === 'session-zero' && (
+      ) : tab === 'session-zero' ? (
         <SessionZeroTabContent
           frame={frame}
           updateFrame={updateFrame}
@@ -980,19 +977,17 @@ function CampaignTabs({
           onSessionZeroChange={onSessionZeroChange}
           onBlur={onFrameBlur}
         />
-      )}
-      {tab === 'homebrew' && <HomebrewTabContent campaignId={campaign.id} />}
-      {tab === 'beast-feast' && campaign.beastFeastEnabled && (
+      ) : tab === 'homebrew' ? (
+        <HomebrewTabContent campaignId={campaign.id} />
+      ) : tab === 'beast-feast' && campaign.beastFeastEnabled ? (
         <BeastFeastTabContent campaignId={campaign.id} />
-      )}
-      {tab === 'calendar' && campaign.calendarEnabled && (
+      ) : tab === 'calendar' && campaign.calendarEnabled ? (
         <CalendarTabContent
           campaign={campaign}
           setCampaign={setCampaign}
           markChanged={markChanged}
         />
-      )}
-      {tab === 'shop' && campaign.shopEnabled && (
+      ) : tab === 'shop' && campaign.shopEnabled ? (
         <ShopSettingsPanel
           shopEnabled={campaign.shopEnabled ?? false}
           shopSettings={campaign.shopSettings}
@@ -1001,8 +996,7 @@ function CampaignTabs({
             markChanged();
           }}
         />
-      )}
-      {tab === 'players' && (
+      ) : tab === 'players' ? (
         <PlayersTabContent
           campaign={campaign}
           inviteLink={inviteLink}
@@ -1011,7 +1005,7 @@ function CampaignTabs({
           onUpdatePartyInventory={onPartyInventoryChange}
           onUpdatePlayers={onPlayersChange}
         />
-      )}
+      ) : null}
     </Tabs>
   );
 }
@@ -1089,12 +1083,7 @@ function CampaignDetailPage() {
 
   const copyInviteCode = useCallback(async () => {
     if (campaign?.inviteCode) {
-      try {
-        await navigator.clipboard.writeText(campaign.inviteCode);
-        toast.success('Invite code copied');
-      } catch {
-        toast.error('Failed to copy — try selecting the text manually');
-      }
+      await copyToClipboard(campaign.inviteCode, 'Invite code copied');
     }
   }, [campaign]);
 
@@ -1108,12 +1097,7 @@ function CampaignDetailPage() {
 
   const copyInviteLink = useCallback(async () => {
     if (inviteLink) {
-      try {
-        await navigator.clipboard.writeText(inviteLink);
-        toast.success('Invite link copied');
-      } catch {
-        toast.error('Failed to copy — try selecting the text manually');
-      }
+      await copyToClipboard(inviteLink, 'Invite link copied');
     }
   }, [inviteLink]);
 

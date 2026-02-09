@@ -181,21 +181,43 @@ export function useCharacterState(
   );
 }
 
-export function useSessionState() {
+/** Death & scar-related session state. */
+function useDeathAndScarState() {
   const [scars, setScars] = useState<Scar[]>([]);
-  const [extraHopeSlots, setExtraHopeSlots] = useState(0);
-  const [companionHopeFilled, setCompanionHopeFilled] = useState(false);
   const [deathState, setDeathState] = useState<DeathMoveState>({
     isUnconscious: false,
     deathMovePending: false,
     isDead: false,
     lastDeathMoveResult: undefined,
   });
+  return useMemo(
+    () => ({ scars, setScars, deathState, setDeathState }),
+    [scars, deathState]
+  );
+}
+
+/** Companion-related session state. */
+function useCompanionSessionState() {
   const [companion, setCompanion] = useState<CompanionState | undefined>(
     undefined
   );
   const [companionEnabled, setCompanionEnabled] = useState(false);
-  const [beastformEnabled, setBeastformEnabled] = useState(false);
+  const [companionHopeFilled, setCompanionHopeFilled] = useState(false);
+  return useMemo(
+    () => ({
+      companion,
+      setCompanion,
+      companionEnabled,
+      setCompanionEnabled,
+      companionHopeFilled,
+      setCompanionHopeFilled,
+    }),
+    [companion, companionEnabled, companionHopeFilled]
+  );
+}
+
+/** Session tracking: notes, rest, countdowns, downtime, entries. */
+function useSessionTrackingState() {
   const [notes, setNotes] = useState<CharacterNote[]>([]);
   const [restState, setRestState] = useState<RestState>({
     lastShortRest: null,
@@ -208,30 +230,8 @@ export function useSessionState() {
   >([]);
   const [sessions, setSessions] = useState<SessionEntry[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
-  const [quickView, setQuickView] = useState<QuickViewPreferences>(
-    DEFAULT_QUICK_VIEW_PREFERENCES
-  );
-  const [activeEffects, setActiveEffects] = useState<ActiveEffect[]>([]);
-  const [beastform, setBeastform] = useState<BeastformState>(
-    DEFAULT_BEASTFORM_STATE
-  );
-
   return useMemo(
     () => ({
-      scars,
-      setScars,
-      extraHopeSlots,
-      setExtraHopeSlots,
-      companionHopeFilled,
-      setCompanionHopeFilled,
-      deathState,
-      setDeathState,
-      companion,
-      setCompanion,
-      companionEnabled,
-      setCompanionEnabled,
-      beastformEnabled,
-      setBeastformEnabled,
       notes,
       setNotes,
       restState,
@@ -244,6 +244,42 @@ export function useSessionState() {
       setSessions,
       currentSessionId,
       setCurrentSessionId,
+    }),
+    [
+      notes,
+      restState,
+      countdowns,
+      downtimeActivities,
+      sessions,
+      currentSessionId,
+    ]
+  );
+}
+
+export function useSessionState() {
+  const deathAndScars = useDeathAndScarState();
+  const companionState = useCompanionSessionState();
+  const tracking = useSessionTrackingState();
+
+  const [extraHopeSlots, setExtraHopeSlots] = useState(0);
+  const [beastformEnabled, setBeastformEnabled] = useState(false);
+  const [quickView, setQuickView] = useState<QuickViewPreferences>(
+    DEFAULT_QUICK_VIEW_PREFERENCES
+  );
+  const [activeEffects, setActiveEffects] = useState<ActiveEffect[]>([]);
+  const [beastform, setBeastform] = useState<BeastformState>(
+    DEFAULT_BEASTFORM_STATE
+  );
+
+  return useMemo(
+    () => ({
+      ...deathAndScars,
+      ...companionState,
+      ...tracking,
+      extraHopeSlots,
+      setExtraHopeSlots,
+      beastformEnabled,
+      setBeastformEnabled,
       quickView,
       setQuickView,
       activeEffects,
@@ -252,19 +288,11 @@ export function useSessionState() {
       setBeastform,
     }),
     [
-      scars,
+      deathAndScars,
+      companionState,
+      tracking,
       extraHopeSlots,
-      companionHopeFilled,
-      deathState,
-      companion,
-      companionEnabled,
       beastformEnabled,
-      notes,
-      restState,
-      countdowns,
-      downtimeActivities,
-      sessions,
-      currentSessionId,
       quickView,
       activeEffects,
       beastform,

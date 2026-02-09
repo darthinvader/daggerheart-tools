@@ -132,6 +132,46 @@ export function HomebrewList({
     onCreate?.(activeCategory);
   }, [onCreate, activeCategory]);
 
+  // Dialog action handlers
+  const handleCreateCollection = useCallback(
+    async (name: string, description = '') =>
+      createCollection.mutateAsync({ name, description }),
+    [createCollection]
+  );
+
+  const handleAddToCollection = useCallback(
+    async (collectionId: string) => {
+      await addToCollection.mutateAsync({
+        collectionId,
+        homebrewId: collectionDialog.target!.id,
+      });
+    },
+    [addToCollection, collectionDialog.target]
+  );
+
+  const handleLinkToCampaign = useCallback(
+    async (campaignId: string) => {
+      await linkToCampaign.mutateAsync({
+        homebrewId: campaignDialog.target!.id,
+        campaignId,
+      });
+    },
+    [linkToCampaign, campaignDialog.target]
+  );
+
+  const handleLinkToCharacter = useCallback(
+    async (characterId: string) => {
+      await linkToCharacter.mutateAsync({
+        homebrewId: characterDialog.target!.id,
+        characterId,
+      });
+    },
+    [linkToCharacter, characterDialog.target]
+  );
+
+  const isCollectionSubmitting =
+    createCollection.isPending || addToCollection.isPending;
+
   // Card renderer (extracted to hook)
   const renderCard = useHomebrewCardRenderer({
     currentUserId,
@@ -192,9 +232,7 @@ export function HomebrewList({
       {/* Content Display */}
       {filteredCategoryItems.length === 0 ? (
         <HomebrewEmptyStateSection
-          categoryItemsCount={
-            items.filter(i => i.contentType === activeCategory).length
-          }
+          categoryItemsCount={itemCounts[activeCategory]}
           categoryLabel={currentConfig.label}
           activeCategory={activeCategory}
           showCreateButton={showCreateButton}
@@ -215,39 +253,20 @@ export function HomebrewList({
         collectionDialogTarget={collectionDialog.target}
         setCollectionDialogOpen={setCollectionDialogOpen}
         collections={collections}
-        onCreateCollection={async (name, description) =>
-          createCollection.mutateAsync({ name, description })
-        }
-        onAddToCollection={async collectionId => {
-          await addToCollection.mutateAsync({
-            collectionId,
-            homebrewId: collectionDialog.target!.id,
-          });
-        }}
-        isCollectionSubmitting={
-          createCollection.isPending || addToCollection.isPending
-        }
+        onCreateCollection={handleCreateCollection}
+        onAddToCollection={handleAddToCollection}
+        isCollectionSubmitting={isCollectionSubmitting}
         campaignDialogOpen={campaignDialog.open}
         campaignDialogTarget={campaignDialog.target}
         setCampaignDialogOpen={setCampaignDialogOpen}
         campaigns={gmCampaigns}
-        onLinkToCampaign={async campaignId => {
-          await linkToCampaign.mutateAsync({
-            homebrewId: campaignDialog.target!.id,
-            campaignId,
-          });
-        }}
+        onLinkToCampaign={handleLinkToCampaign}
         isCampaignSubmitting={linkToCampaign.isPending}
         characterDialogOpen={characterDialog.open}
         characterDialogTarget={characterDialog.target}
         setCharacterDialogOpen={setCharacterDialogOpen}
         characters={characters}
-        onLinkToCharacter={async characterId => {
-          await linkToCharacter.mutateAsync({
-            homebrewId: characterDialog.target!.id,
-            characterId,
-          });
-        }}
+        onLinkToCharacter={handleLinkToCharacter}
         isCharacterSubmitting={linkToCharacter.isPending}
       />
     </div>

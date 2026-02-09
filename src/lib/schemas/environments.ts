@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
-export const EnvironmentTierEnum = z.enum(['1', '2', '3', '4']);
+import { TierEnum } from './shared';
+
+export const EnvironmentTierEnum = TierEnum;
 export const EnvironmentTierSchema = EnvironmentTierEnum;
 
 export const EnvironmentTypeEnum = z.enum([

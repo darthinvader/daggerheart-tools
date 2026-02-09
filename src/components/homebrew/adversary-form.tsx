@@ -23,6 +23,34 @@ import {
 import { useAdversaryFormState } from './use-adversary-form-state';
 import { useThresholdHandlers } from './use-threshold-handlers';
 
+function getInitialAttackNameMode(attackName?: string): 'preset' | 'custom' {
+  if (
+    attackName &&
+    !ATTACK_NAMES.includes(attackName as (typeof ATTACK_NAMES)[number])
+  ) {
+    return 'custom';
+  }
+  return 'preset';
+}
+
+interface FormActionsProps {
+  onCancel: () => void;
+  isSubmitting: boolean;
+}
+
+function FormActions({ onCancel, isSubmitting }: FormActionsProps) {
+  return (
+    <div className="flex justify-end gap-2 pt-4">
+      <Button type="button" variant="outline" onClick={onCancel}>
+        Cancel
+      </Button>
+      <Button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? 'Saving...' : 'Save Adversary'}
+      </Button>
+    </div>
+  );
+}
+
 interface AdversaryFormProps {
   initialData?: HomebrewAdversary['content'];
   onSubmit: (data: HomebrewAdversary['content']) => void;
@@ -40,24 +68,12 @@ export function AdversaryForm({
     initialData ?? createDefaultAdversaryContent()
   );
 
-  // Use extracted hook for features, experiences, and tags
   const {
-    features,
-    addFeature,
-    removeFeature,
-    updateFeature,
+    featureState,
+    experienceState,
+    tagState,
     buildFeaturesContent,
-    experiences,
-    customExperience,
-    setCustomExperience,
-    addExperience,
-    removeExperience,
     getExperiencesContent,
-    tags,
-    newTag,
-    setNewTag,
-    addTag,
-    removeTag,
   } = useAdversaryFormState({
     initialFeatures: initialData?.features,
     initialExperiences: initialData?.experiences,
@@ -65,12 +81,7 @@ export function AdversaryForm({
   });
 
   const [attackNameMode, setAttackNameMode] = useState<'preset' | 'custom'>(
-    initialData?.attack.name &&
-      !ATTACK_NAMES.includes(
-        initialData.attack.name as (typeof ATTACK_NAMES)[number]
-      )
-      ? 'custom'
-      : 'preset'
+    () => getInitialAttackNameMode(initialData?.attack.name)
   );
 
   const handleSubmit = useCallback(
@@ -81,12 +92,18 @@ export function AdversaryForm({
         ...formData,
         features: buildFeaturesContent(),
         experiences: getExperiencesContent(),
-        tags,
+        tags: tagState.tags,
       };
 
       onSubmit(content);
     },
-    [formData, buildFeaturesContent, getExperiencesContent, tags, onSubmit]
+    [
+      formData,
+      buildFeaturesContent,
+      getExperiencesContent,
+      tagState.tags,
+      onSubmit,
+    ]
   );
 
   // Threshold handlers using extracted hook
@@ -124,39 +141,15 @@ export function AdversaryForm({
             setAttackNameMode={setAttackNameMode}
           />
 
-          <AdversaryFeaturesSection
-            features={features}
-            addFeature={addFeature}
-            removeFeature={removeFeature}
-            updateFeature={updateFeature}
-          />
+          <AdversaryFeaturesSection {...featureState} />
 
-          <AdversaryExperiencesSection
-            experiences={experiences}
-            customExperience={customExperience}
-            setCustomExperience={setCustomExperience}
-            addExperience={addExperience}
-            removeExperience={removeExperience}
-          />
+          <AdversaryExperiencesSection {...experienceState} />
 
-          <AdversaryTagsSection
-            tags={tags}
-            newTag={newTag}
-            setNewTag={setNewTag}
-            addTag={addTag}
-            removeTag={removeTag}
-          />
+          <AdversaryTagsSection {...tagState} />
         </div>
       </ScrollArea>
 
-      <div className="flex justify-end gap-2 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Saving...' : 'Save Adversary'}
-        </Button>
-      </div>
+      <FormActions onCancel={onCancel} isSubmitting={isSubmitting} />
     </form>
   );
 }

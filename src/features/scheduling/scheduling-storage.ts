@@ -1,5 +1,6 @@
 // CRUD operations for standalone scheduling polls (Supabase table: scheduling_polls)
 
+import { getAuthenticatedUser } from '@/lib/auth';
 import {
   type PollVoteValue,
   type SchedulingPoll,
@@ -125,10 +126,7 @@ export async function createSchedulingPoll(
     votes: [],
   }));
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error('Not authenticated');
+  const user = await getAuthenticatedUser();
 
   const { data, error } = await supabase
     .from('scheduling_polls')

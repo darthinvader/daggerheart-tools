@@ -47,6 +47,131 @@ function homebrewContentToAnyItem(content: HomebrewContent): AnyItem {
   } as unknown as AnyItem;
 }
 
+/**
+ * Wrap a HomebrewContent item with its converted AnyItem representation and metadata.
+ */
+function toHomebrewItemWithMeta(
+  content: HomebrewContent
+): HomebrewItemWithMeta {
+  return {
+    item: homebrewContentToAnyItem(content),
+    contentId: content.id,
+    content,
+  };
+}
+
+/**
+ * Check whether a single item matches a lowercase search query.
+ */
+function matchesSearchQuery(
+  { item, content }: HomebrewItemWithMeta,
+  query: string
+): boolean {
+  return (
+    item.name.toLowerCase().includes(query) ||
+    content.name.toLowerCase().includes(query) ||
+    (item.description?.toLowerCase().includes(query) ?? false)
+  );
+}
+
+/**
+ * Check whether an item's category is included in allowedCategories.
+ */
+function matchesCategory(
+  content: HomebrewContent,
+  allowedCategories: ItemCategory[]
+): boolean {
+  const itemContent = content.content as HomebrewItemContent;
+  return allowedCategories.includes(itemContent.category as ItemCategory);
+}
+
+/**
+ * Check whether an item's rarity is included in allowedRarities.
+ */
+function matchesRarity(
+  content: HomebrewContent,
+  allowedRarities: Rarity[]
+): boolean {
+  const itemContent = content.content as HomebrewItemContent;
+  return allowedRarities.includes((itemContent.rarity ?? 'Common') as Rarity);
+}
+
+/**
+ * Check whether an item's tier is included in allowedTiers.
+ */
+function matchesTier(
+  content: HomebrewContent,
+  allowedTiers: EquipmentTier[]
+): boolean {
+  const itemContent = content.content as HomebrewItemContent;
+  return allowedTiers.includes((itemContent.tier ?? '1') as EquipmentTier);
+}
+
+/**
+ * Apply all active filters (search, category, rarity, tier) to a list of items.
+ */
+function applyFilters(
+  items: HomebrewItemWithMeta[],
+  searchQuery: string,
+  selectedCategories: ItemCategory[],
+  selectedRarities: Rarity[],
+  selectedTiers: EquipmentTier[]
+): HomebrewItemWithMeta[] {
+  const query = searchQuery.trim().toLowerCase();
+
+  return items.filter(entry => {
+    if (query && !matchesSearchQuery(entry, query)) return false;
+    if (
+      selectedCategories.length > 0 &&
+      !matchesCategory(entry.content, selectedCategories)
+    )
+      return false;
+    if (
+      selectedRarities.length > 0 &&
+      !matchesRarity(entry.content, selectedRarities)
+    )
+      return false;
+    if (selectedTiers.length > 0 && !matchesTier(entry.content, selectedTiers))
+      return false;
+    return true;
+  });
+}
+
+/**
+ * Generic toggle helper: adds the value if absent, removes it if present.
+ */
+function toggleArrayValue<T>(prev: T[], value: T): T[] {
+  return prev.includes(value)
+    ? prev.filter(v => v !== value)
+    : [...prev, value];
+}
+
+interface SourceData {
+  items: HomebrewContent[];
+  isLoading: boolean;
+}
+
+/**
+ * Resolve the items and loading state for a given source using a lookup map.
+ */
+function resolveSourceData(
+  source: HomebrewSource,
+  sourceMap: Record<string, SourceData>
+): SourceData {
+  const entry = sourceMap[source];
+  if (!entry) {
+    return { items: [], isLoading: false };
+  }
+  return entry;
+}
+
+/**
+ * Filter an array of HomebrewContent to only those with contentType 'item'.
+ */
+function filterItemContent(items: HomebrewContent[]): HomebrewContent[] {
+  return items.filter(item => item.contentType === 'item');
+}
+
 export function useHomebrewItemData({
   campaignId,
 }: UseHomebrewItemDataOptions) {
@@ -98,35 +223,31 @@ export function useHomebrewItemData({
 
   // Filter quicklist content by contentType 'item'
   const filteredQuicklistContent = useMemo(() => {
-    return quicklistContent.filter(item => item.contentType === 'item');
+    return filterItemContent(quicklistContent);
   }, [quicklistContent]);
 
-  // Combine data based on source
+  // Combine data based on source using a lookup map
   const { items, isLoading } = useMemo(() => {
-    let sourceItems: HomebrewContent[] = [];
-    let loading = false;
+    const sourceMap: Record<string, SourceData> = {
+      linked: {
+        items: filterItemContent(campaignContent?.items ?? []),
+        isLoading: loadingCampaign,
+      },
+      public: {
+        items: filterItemContent(publicContent?.items ?? []),
+        isLoading: loadingPublic,
+      },
+      private: {
+        items: filterItemContent(myContent?.items ?? []),
+        isLoading: loadingMine,
+      },
+      quicklist: {
+        items: filteredQuicklistContent,
+        isLoading: loadingQuicklist,
+      },
+    };
 
-    switch (source) {
-      case 'linked':
-        sourceItems = campaignContent?.items ?? [];
-        loading = loadingCampaign;
-        break;
-      case 'public':
-        sourceItems = publicContent?.items ?? [];
-        loading = loadingPublic;
-        break;
-      case 'private':
-        sourceItems = myContent?.items ?? [];
-        loading = loadingMine;
-        break;
-      case 'quicklist':
-        return { items: filteredQuicklistContent, isLoading: loadingQuicklist };
-    }
-
-    // Filter by contentType 'item'
-    const filtered = sourceItems.filter(item => item.contentType === 'item');
-
-    return { items: filtered, isLoading: loading };
+    return resolveSourceData(source, sourceMap);
   }, [
     source,
     campaignContent,
@@ -141,74 +262,26 @@ export function useHomebrewItemData({
 
   // Convert to AnyItem format and apply filters
   const filteredItems = useMemo(() => {
-    let result = items.map(content => ({
-      item: homebrewContentToAnyItem(content),
-      contentId: content.id,
-      content,
-    }));
-
-    // Apply search filter
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(
-        ({ item, content }) =>
-          item.name.toLowerCase().includes(query) ||
-          content.name.toLowerCase().includes(query) ||
-          (item.description?.toLowerCase().includes(query) ?? false)
-      );
-    }
-
-    // Apply category filter
-    if (selectedCategories.length > 0) {
-      result = result.filter(({ content }) => {
-        const itemContent = content.content as HomebrewItemContent;
-        return selectedCategories.includes(
-          itemContent.category as ItemCategory
-        );
-      });
-    }
-
-    // Apply rarity filter
-    if (selectedRarities.length > 0) {
-      result = result.filter(({ content }) => {
-        const itemContent = content.content as HomebrewItemContent;
-        return selectedRarities.includes(
-          (itemContent.rarity ?? 'Common') as Rarity
-        );
-      });
-    }
-
-    // Apply tier filter
-    if (selectedTiers.length > 0) {
-      result = result.filter(({ content }) => {
-        const itemContent = content.content as HomebrewItemContent;
-        return selectedTiers.includes(
-          (itemContent.tier ?? '1') as EquipmentTier
-        );
-      });
-    }
-
-    return result;
+    const mapped = items.map(toHomebrewItemWithMeta);
+    return applyFilters(
+      mapped,
+      searchQuery,
+      selectedCategories,
+      selectedRarities,
+      selectedTiers
+    );
   }, [items, searchQuery, selectedCategories, selectedRarities, selectedTiers]);
 
   const toggleCategory = (category: ItemCategory) => {
-    setSelectedCategories(prev =>
-      prev.includes(category)
-        ? prev.filter(c => c !== category)
-        : [...prev, category]
-    );
+    setSelectedCategories(prev => toggleArrayValue(prev, category));
   };
 
   const toggleRarity = (rarity: Rarity) => {
-    setSelectedRarities(prev =>
-      prev.includes(rarity) ? prev.filter(r => r !== rarity) : [...prev, rarity]
-    );
+    setSelectedRarities(prev => toggleArrayValue(prev, rarity));
   };
 
   const toggleTier = (tier: EquipmentTier) => {
-    setSelectedTiers(prev =>
-      prev.includes(tier) ? prev.filter(t => t !== tier) : [...prev, tier]
-    );
+    setSelectedTiers(prev => toggleArrayValue(prev, tier));
   };
 
   const clearFilters = () => {

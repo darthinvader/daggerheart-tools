@@ -146,4 +146,4 @@ export const ALL_RARITIES: Rarity[] = [
   'Legendary',
 ];
 
-export const ALL_TIERS: EquipmentTier[] = ['1', '2', '3', '4'];
+export { TIERS as ALL_TIERS } from '@/lib/constants';

@@ -13,8 +13,15 @@ import {
   X,
   Zap,
 } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
-
+import {
+  memo,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,6 +29,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { normalizeMinusSigns } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 
 import {
@@ -76,6 +84,89 @@ function rollDice(count: number, sides: number): number[] {
     { length: count },
     () => Math.floor(Math.random() * sides) + 1
   );
+}
+
+/** Resolve a flat numeric attack modifier from a potentially complex expression */
+function resolveAttackMod(
+  modifier: string | number,
+  modDice: DiceExpression | null
+): number {
+  if (modDice) return 0;
+  if (typeof modifier === 'number') return modifier;
+  return (
+    parseInt(
+      normalizeMinusSigns(String(modifier).replace(/[^\u2212\-\d]/g, ''))
+    ) || 0
+  );
+}
+
+/** Roll modifier dice (or format flat modifier) and return value + display string */
+function computeModDiceRoll(
+  modDice: DiceExpression | null,
+  attackMod: number,
+  attackModStr: string
+): { value: number; str: string } {
+  if (!modDice) {
+    return {
+      value: attackMod,
+      str: `${attackMod >= 0 ? '+' : ''}${attackMod}`,
+    };
+  }
+  const absCount = Math.abs(modDice.count);
+  const sign = modDice.count < 0 ? -1 : 1;
+  const rolls = rollDice(absCount, modDice.sides);
+  const rollTotal = sign * rolls.reduce((a, b) => a + b, 0) + modDice.bonus;
+  return {
+    value: rollTotal,
+    str: `${attackModStr} → ${rollTotal >= 0 ? '+' : ''}${rollTotal}`,
+  };
+}
+
+/** Build a single damage roll result */
+function buildDamageRollResult(
+  diceCount: number,
+  diceSides: number,
+  damageBonus: number,
+  diceFormula: string
+): DamageRollResult {
+  const rolls = rollDice(diceCount, diceSides);
+  const total = rolls.reduce((a, b) => a + b, 0) + damageBonus;
+  return { dice: diceFormula, rolls, bonus: damageBonus, total };
+}
+
+/** Build a single attack roll result (d20 + modifier) */
+function buildAttackRollResult(
+  modDice: DiceExpression | null,
+  attackMod: number,
+  attackModStr: string
+): AttackRollResult {
+  const roll = Math.floor(Math.random() * 20) + 1;
+  const mod = computeModDiceRoll(modDice, attackMod, attackModStr);
+  return { roll, total: roll + mod.value, modStr: mod.str };
+}
+
+/** Restore a persisted attack roll as initial state */
+function initAttackRoll(
+  adversary: AdversaryTracker,
+  sourceAttackModifier: AdversaryTracker['source']['attack']['modifier']
+): AttackRollResult | null {
+  if (!adversary.lastAttackRoll) return null;
+  return {
+    roll: adversary.lastAttackRoll.roll,
+    total: adversary.lastAttackRoll.total,
+    modStr: String(adversary.attackOverride?.modifier ?? sourceAttackModifier),
+  };
+}
+
+/** Restore a persisted damage roll as initial state */
+function initDamageRoll(adversary: AdversaryTracker): DamageRollResult | null {
+  if (!adversary.lastDamageRoll) return null;
+  return {
+    dice: adversary.lastDamageRoll.dice,
+    rolls: adversary.lastDamageRoll.rolls,
+    bonus: 0,
+    total: adversary.lastDamageRoll.total,
+  };
 }
 
 // ============== Style Constants ==============
@@ -246,23 +337,51 @@ function FeatureItem({
   );
 }
 
+// ============== Helper Sub-Components ==============
+
+function StatBadge({
+  icon,
+  value,
+  tooltip,
+  className,
+}: {
+  icon: ReactNode;
+  value: ReactNode;
+  tooltip: ReactNode;
+  className?: string;
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Badge variant="outline" className={cn('h-5 text-xs', className)}>
+          {icon}
+          {value}
+        </Badge>
+      </TooltipTrigger>
+      <TooltipContent>{tooltip}</TooltipContent>
+    </Tooltip>
+  );
+}
+
 // ============== Effective Adversary Values ==============
 
 function useEffectiveAdversaryValues(adversary: AdversaryTracker) {
-  const source = adversary.source;
-  const attack = getEffectiveAdversaryAttack(adversary);
-  const thresholds = getEffectiveAdversaryThresholds(adversary);
-  const features = getEffectiveAdversaryFeatures(adversary);
-  return {
-    difficulty: adversary.difficultyOverride ?? source.difficulty,
-    hasDifficultyOverride: !!adversary.difficultyOverride,
-    attack,
-    hasAttackOverride: !!adversary.attackOverride,
-    thresholds,
-    hasThresholdsOverride: !!adversary.thresholdsOverride,
-    features,
-    hasFeaturesOverride: !!adversary.featuresOverride,
-  };
+  return useMemo(() => {
+    const source = adversary.source;
+    const attack = getEffectiveAdversaryAttack(adversary);
+    const thresholds = getEffectiveAdversaryThresholds(adversary);
+    const features = getEffectiveAdversaryFeatures(adversary);
+    return {
+      difficulty: adversary.difficultyOverride ?? source.difficulty,
+      hasDifficultyOverride: !!adversary.difficultyOverride,
+      attack,
+      hasAttackOverride: !!adversary.attackOverride,
+      thresholds,
+      hasThresholdsOverride: !!adversary.thresholdsOverride,
+      features,
+      hasFeaturesOverride: !!adversary.featuresOverride,
+    };
+  }, [adversary]);
 }
 
 function ThresholdsDisplay({
@@ -321,7 +440,7 @@ function ThresholdsDisplay({
   );
 }
 
-export function CharacterCard({
+export const CharacterCard = memo(function CharacterCard({
   character,
   isSelected,
   isSpotlight,
@@ -335,13 +454,41 @@ export function CharacterCard({
   isSelected: boolean;
   isSpotlight: boolean;
   useMassiveThreshold?: boolean;
-  onSelect: () => void;
-  onRemove: () => void;
-  onSpotlight: () => void;
+  onSelect: (character: CharacterTracker) => void;
+  onRemove: (character: CharacterTracker) => void;
+  onSpotlight: (character: CharacterTracker) => void;
   onChange: (id: string, fn: (c: CharacterTracker) => CharacterTracker) => void;
 }) {
   // Linked characters are read-only (stats sync from player)
   const isReadOnly = character.isLinkedCharacter === true;
+
+  const handleSelectClick = useCallback(
+    () => onSelect(character),
+    [onSelect, character]
+  );
+  const handleRemoveClick = useCallback(
+    () => onRemove(character),
+    [onRemove, character]
+  );
+  const handleSpotlightClick = useCallback(
+    () => onSpotlight(character),
+    [onSpotlight, character]
+  );
+
+  const handleHpChange = useCallback(
+    (v: number) =>
+      onChange(character.id, c => ({ ...c, hp: { ...c.hp, current: v } })),
+    [character.id, onChange]
+  );
+
+  const handleStressChange = useCallback(
+    (v: number) =>
+      onChange(character.id, c => ({
+        ...c,
+        stress: { ...c.stress, current: v },
+      })),
+    [character.id, onChange]
+  );
 
   return (
     <div
@@ -352,7 +499,10 @@ export function CharacterCard({
       )}
     >
       <div className="mb-2 flex items-start justify-between gap-2">
-        <button onClick={onSelect} className="min-w-0 flex-1 text-left">
+        <button
+          onClick={handleSelectClick}
+          className="min-w-0 flex-1 text-left"
+        >
           <div className="flex items-center gap-1.5">
             <span className="text-sm">{isReadOnly ? '👤' : '🧙'}</span>
             <p className="truncate font-semibold">{character.name}</p>
@@ -363,71 +513,52 @@ export function CharacterCard({
             )}
           </div>
           <div className="mt-0.5 flex items-center gap-1">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Badge variant="outline" className="h-5 text-xs">
-                  <Shield className="mr-0.5 size-3" />
-                  {character.evasion ?? '—'}
-                </Badge>
-              </TooltipTrigger>
-              <TooltipContent>Evasion (Difficulty to hit)</TooltipContent>
-            </Tooltip>
+            <StatBadge
+              icon={<Shield className="mr-0.5 size-3" />}
+              value={character.evasion ?? '—'}
+              tooltip="Evasion (Difficulty to hit)"
+            />
             {character.armorScore !== undefined && character.armorScore > 0 && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Badge
-                    variant="outline"
-                    className="h-5 border-yellow-500/50 text-xs text-yellow-600 dark:text-yellow-400"
-                  >
-                    <Shield className="mr-0.5 size-3" />
-                    {character.armorSlots
-                      ? `${character.armorSlots.current}/${character.armorSlots.max}`
-                      : character.armorScore}
-                  </Badge>
-                </TooltipTrigger>
-                <TooltipContent>Armor Slots (Current / Max)</TooltipContent>
-              </Tooltip>
+              <StatBadge
+                icon={<Shield className="mr-0.5 size-3" />}
+                value={
+                  character.armorSlots
+                    ? `${character.armorSlots.current}/${character.armorSlots.max}`
+                    : character.armorScore
+                }
+                tooltip="Armor Slots (Current / Max)"
+                className="border-yellow-500/50 text-yellow-600 dark:text-yellow-400"
+              />
             )}
             {character.thresholds && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Badge
-                    variant="outline"
-                    className="h-5 border-orange-500/50 text-xs text-orange-600 dark:text-orange-400"
-                  >
-                    <Crosshair className="mr-0.5 size-3" />
+              <StatBadge
+                icon={<Crosshair className="mr-0.5 size-3" />}
+                value={
+                  <>
                     {character.thresholds.major}/{character.thresholds.severe}
                     {useMassiveThreshold &&
                       character.thresholds.massive &&
                       `/${character.thresholds.massive}`}
-                  </Badge>
-                </TooltipTrigger>
-                <TooltipContent>
-                  Thresholds (Major / Severe
-                  {useMassiveThreshold ? ' / Massive' : ''})
-                </TooltipContent>
-              </Tooltip>
+                  </>
+                }
+                tooltip={`Thresholds (Major / Severe${useMassiveThreshold ? ' / Massive' : ''})`}
+                className="border-orange-500/50 text-orange-600 dark:text-orange-400"
+              />
             )}
             {character.hope && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Badge
-                    variant="outline"
-                    className="h-5 border-amber-500/50 text-xs text-amber-600 dark:text-amber-400"
-                  >
-                    <Star className="mr-0.5 size-3" />
-                    {character.hope.current}/{character.hope.max}
-                  </Badge>
-                </TooltipTrigger>
-                <TooltipContent>Hope (Current / Max)</TooltipContent>
-              </Tooltip>
+              <StatBadge
+                icon={<Star className="mr-0.5 size-3" />}
+                value={`${character.hope.current}/${character.hope.max}`}
+                tooltip="Hope (Current / Max)"
+                className="border-amber-500/50 text-amber-600 dark:text-amber-400"
+              />
             )}
           </div>
         </button>
         <CardActions
           isSpotlight={isSpotlight}
-          onSpotlight={onSpotlight}
-          onRemove={onRemove}
+          onSpotlight={handleSpotlightClick}
+          onRemove={handleRemoveClick}
         />
       </div>
       <div className="grid grid-cols-2 gap-2">
@@ -438,12 +569,7 @@ export function CharacterCard({
           colorClass="text-red-600 dark:text-red-400"
           icon={<Heart className="size-3" />}
           readOnly={isReadOnly}
-          onChange={v =>
-            onChange(character.id, c => ({
-              ...c,
-              hp: { ...c.hp, current: v },
-            }))
-          }
+          onChange={handleHpChange}
         />
         <StatMini
           label="Stress"
@@ -452,17 +578,12 @@ export function CharacterCard({
           colorClass="text-purple-600 dark:text-purple-400"
           icon={<Zap className="size-3" />}
           readOnly={isReadOnly}
-          onChange={v =>
-            onChange(character.id, c => ({
-              ...c,
-              stress: { ...c.stress, current: v },
-            }))
-          }
+          onChange={handleStressChange}
         />
       </div>
     </div>
   );
-}
+});
 
 interface AdversaryRollState {
   attackMod: number;
@@ -487,11 +608,7 @@ function useAdversaryRollState({
 }): AdversaryRollState {
   const attackModStr = String(effectiveAttack.modifier);
   const attackModDice = parseDiceExpression(effectiveAttack.modifier);
-  const attackMod = attackModDice
-    ? 0
-    : typeof effectiveAttack.modifier === 'number'
-      ? effectiveAttack.modifier
-      : parseInt(attackModStr.replace(/[^−\-\d]/g, '').replace(/−/g, '-')) || 0;
+  const attackMod = resolveAttackMod(effectiveAttack.modifier, attackModDice);
 
   const {
     count: diceCount,
@@ -502,27 +619,12 @@ function useAdversaryRollState({
 
   const [isRolling, setIsRolling] = useState(false);
   const [attackRoll, setAttackRoll] = useState<AttackRollResult | null>(
-    adversary.lastAttackRoll
-      ? {
-          roll: adversary.lastAttackRoll.roll,
-          total: adversary.lastAttackRoll.total,
-          modStr: String(
-            adversary.attackOverride?.modifier ?? sourceAttackModifier
-          ),
-        }
-      : null
+    initAttackRoll(adversary, sourceAttackModifier)
   );
 
   const [isDamageRolling, setIsDamageRolling] = useState(false);
   const [damageRoll, setDamageRoll] = useState<DamageRollResult | null>(
-    adversary.lastDamageRoll
-      ? {
-          dice: adversary.lastDamageRoll.dice,
-          rolls: adversary.lastDamageRoll.rolls,
-          bonus: 0,
-          total: adversary.lastDamageRoll.total,
-        }
-      : null
+    initDamageRoll(adversary)
   );
 
   // Refs to store interval IDs for cleanup
@@ -537,24 +639,6 @@ function useAdversaryRollState({
     };
   }, []);
 
-  const rollModDice = useCallback((): { value: number; str: string } => {
-    if (!attackModDice) {
-      return {
-        value: attackMod,
-        str: `${attackMod >= 0 ? '+' : ''}${attackMod}`,
-      };
-    }
-    const absCount = Math.abs(attackModDice.count);
-    const sign = attackModDice.count < 0 ? -1 : 1;
-    const rolls = rollDice(absCount, attackModDice.sides);
-    const rollTotal =
-      sign * rolls.reduce((a, b) => a + b, 0) + attackModDice.bonus;
-    return {
-      value: rollTotal,
-      str: `${attackModStr} → ${rollTotal >= 0 ? '+' : ''}${rollTotal}`,
-    };
-  }, [attackModDice, attackMod, attackModStr]);
-
   const rollDamageAction = useCallback(() => {
     // Clear any existing interval
     if (damageIntervalRef.current) clearInterval(damageIntervalRef.current);
@@ -564,33 +648,27 @@ function useAdversaryRollState({
 
     let count = 0;
     damageIntervalRef.current = setInterval(() => {
-      const tempRolls = rollDice(diceCount, diceSides);
-      const tempTotal = tempRolls.reduce((a, b) => a + b, 0) + damageBonus;
-      setDamageRoll({
-        dice: diceFormula,
-        rolls: tempRolls,
-        bonus: damageBonus,
-        total: tempTotal,
-      });
+      setDamageRoll(
+        buildDamageRollResult(diceCount, diceSides, damageBonus, diceFormula)
+      );
       count++;
       if (count >= 6) {
         clearInterval(damageIntervalRef.current!);
         damageIntervalRef.current = null;
-        const finalRolls = rollDice(diceCount, diceSides);
-        const finalTotal = finalRolls.reduce((a, b) => a + b, 0) + damageBonus;
-        setDamageRoll({
-          dice: diceFormula,
-          rolls: finalRolls,
-          bonus: damageBonus,
-          total: finalTotal,
-        });
+        const finalResult = buildDamageRollResult(
+          diceCount,
+          diceSides,
+          damageBonus,
+          diceFormula
+        );
+        setDamageRoll(finalResult);
         setIsDamageRolling(false);
         onChange(adversary.id, a => ({
           ...a,
           lastDamageRoll: {
-            dice: diceFormula,
-            rolls: finalRolls,
-            total: finalTotal,
+            dice: finalResult.dice,
+            rolls: finalResult.rolls,
+            total: finalResult.total,
             timestamp: Date.now(),
           },
         }));
@@ -607,24 +685,18 @@ function useAdversaryRollState({
 
     let count = 0;
     attackIntervalRef.current = setInterval(() => {
-      const tempRoll = Math.floor(Math.random() * 20) + 1;
-      const tempMod = rollModDice();
-      setAttackRoll({
-        roll: tempRoll,
-        total: tempRoll + tempMod.value,
-        modStr: tempMod.str,
-      });
+      setAttackRoll(
+        buildAttackRollResult(attackModDice, attackMod, attackModStr)
+      );
       count++;
       if (count >= 6) {
         clearInterval(attackIntervalRef.current!);
         attackIntervalRef.current = null;
-        const finalRoll = Math.floor(Math.random() * 20) + 1;
-        const finalMod = rollModDice();
-        const result = {
-          roll: finalRoll,
-          total: finalRoll + finalMod.value,
-          modStr: finalMod.str,
-        };
+        const result = buildAttackRollResult(
+          attackModDice,
+          attackMod,
+          attackModStr
+        );
         setAttackRoll(result);
         setIsRolling(false);
         onChange(adversary.id, a => ({
@@ -633,7 +705,7 @@ function useAdversaryRollState({
         }));
       }
     }, 60);
-  }, [rollModDice, adversary.id, onChange]);
+  }, [attackModDice, attackMod, attackModStr, adversary.id, onChange]);
 
   return {
     attackMod,
@@ -950,7 +1022,49 @@ function AdversaryFeaturesTooltip({
   );
 }
 
-export function AdversaryCard({
+function AdversaryActionFooter({
+  countdown,
+  countdownEnabled,
+  hasActedThisRound,
+  onCountdownChange,
+  onCountdownEnabledChange,
+  onToggleActed,
+}: {
+  countdown: number;
+  countdownEnabled: boolean;
+  hasActedThisRound: boolean;
+  onCountdownChange: (v: number) => void;
+  onCountdownEnabledChange: (enabled: boolean) => void;
+  onToggleActed: () => void;
+}) {
+  return (
+    <>
+      <CountdownControl
+        value={countdown}
+        enabled={countdownEnabled}
+        onChange={onCountdownChange}
+        onEnabledChange={onCountdownEnabledChange}
+      />
+      <div className="mt-2 flex items-center">
+        <Button
+          size="sm"
+          variant={hasActedThisRound ? 'secondary' : 'outline'}
+          className={cn(
+            'h-7 gap-1.5 text-xs',
+            hasActedThisRound &&
+              'border-green-500/50 bg-green-500/20 text-green-700 dark:text-green-400'
+          )}
+          onClick={onToggleActed}
+        >
+          <Check className="size-3" />
+          {hasActedThisRound ? 'Acted' : 'Mark acted'}
+        </Button>
+      </div>
+    </>
+  );
+}
+
+export const AdversaryCard = memo(function AdversaryCard({
   adversary,
   isSelected,
   isSpotlight,
@@ -965,11 +1079,11 @@ export function AdversaryCard({
   isSelected: boolean;
   isSpotlight: boolean;
   useMassiveThreshold?: boolean;
-  onSelect: () => void;
-  onRemove: () => void;
-  onSpotlight: () => void;
+  onSelect: (adversary: AdversaryTracker) => void;
+  onRemove: (adversary: AdversaryTracker) => void;
+  onSpotlight: (adversary: AdversaryTracker) => void;
   onChange: (id: string, fn: (a: AdversaryTracker) => AdversaryTracker) => void;
-  onEdit?: () => void;
+  onEdit?: (adversary: AdversaryTracker) => void;
 }) {
   const source = adversary.source;
   const countdown = adversary.countdown ?? 0;
@@ -990,6 +1104,43 @@ export function AdversaryCard({
     onChange,
   });
 
+  const handleSelectClick = useCallback(
+    () => onSelect(adversary),
+    [onSelect, adversary]
+  );
+  const handleRemoveClick = useCallback(
+    () => onRemove(adversary),
+    [onRemove, adversary]
+  );
+  const handleSpotlightClick = useCallback(
+    () => onSpotlight(adversary),
+    [onSpotlight, adversary]
+  );
+  const handleEditClick = useCallback(
+    () => onEdit?.(adversary),
+    [onEdit, adversary]
+  );
+
+  const handleCountdownChange = useCallback(
+    (v: number) => onChange(adversary.id, a => ({ ...a, countdown: v })),
+    [adversary.id, onChange]
+  );
+
+  const handleCountdownEnabledChange = useCallback(
+    (enabled: boolean) =>
+      onChange(adversary.id, a => ({ ...a, countdownEnabled: enabled })),
+    [adversary.id, onChange]
+  );
+
+  const handleToggleActed = useCallback(
+    () =>
+      onChange(adversary.id, a => ({
+        ...a,
+        hasActedThisRound: !a.hasActedThisRound,
+      })),
+    [adversary.id, onChange]
+  );
+
   return (
     <div
       className={cn(
@@ -1008,10 +1159,10 @@ export function AdversaryCard({
         effectiveThresholds={effectiveThresholds}
         hasThresholdsOverride={hasThresholdsOverride}
         useMassiveThreshold={useMassiveThreshold}
-        onSelect={onSelect}
-        onSpotlight={onSpotlight}
-        onRemove={onRemove}
-        onEdit={onEdit}
+        onSelect={handleSelectClick}
+        onSpotlight={handleSpotlightClick}
+        onRemove={handleRemoveClick}
+        onEdit={onEdit ? handleEditClick : undefined}
       />
       <AdversaryStatsRow adversary={adversary} onChange={onChange} />
       <AdversaryAttackBar
@@ -1032,39 +1183,19 @@ export function AdversaryCard({
         features={effectiveFeatures}
         hasOverride={hasFeaturesOverride}
       />
-      <CountdownControl
-        value={countdown}
-        enabled={adversary.countdownEnabled ?? false}
-        onChange={v => onChange(adversary.id, a => ({ ...a, countdown: v }))}
-        onEnabledChange={enabled =>
-          onChange(adversary.id, a => ({ ...a, countdownEnabled: enabled }))
-        }
+      <AdversaryActionFooter
+        countdown={countdown}
+        countdownEnabled={adversary.countdownEnabled ?? false}
+        hasActedThisRound={adversary.hasActedThisRound ?? false}
+        onCountdownChange={handleCountdownChange}
+        onCountdownEnabledChange={handleCountdownEnabledChange}
+        onToggleActed={handleToggleActed}
       />
-      <div className="mt-2 flex items-center">
-        <Button
-          size="sm"
-          variant={adversary.hasActedThisRound ? 'secondary' : 'outline'}
-          className={cn(
-            'h-7 gap-1.5 text-xs',
-            adversary.hasActedThisRound &&
-              'border-green-500/50 bg-green-500/20 text-green-700 dark:text-green-400'
-          )}
-          onClick={() =>
-            onChange(adversary.id, a => ({
-              ...a,
-              hasActedThisRound: !a.hasActedThisRound,
-            }))
-          }
-        >
-          <Check className="size-3" />
-          {adversary.hasActedThisRound ? 'Acted' : 'Mark acted'}
-        </Button>
-      </div>
     </div>
   );
-}
+});
 
-export function EnvironmentCard({
+export const EnvironmentCard = memo(function EnvironmentCard({
   environment,
   isSelected,
   isSpotlight,
@@ -1089,6 +1220,17 @@ export function EnvironmentCard({
   const source = environment.source;
   const activeFeatures = environment.features.filter(f => f.active).length;
   const countdown = environment.countdown ?? 0;
+
+  const handleCountdownChange = useCallback(
+    (v: number) => onChange(environment.id, e => ({ ...e, countdown: v })),
+    [environment.id, onChange]
+  );
+
+  const handleCountdownEnabledChange = useCallback(
+    (enabled: boolean) =>
+      onChange(environment.id, e => ({ ...e, countdownEnabled: enabled })),
+    [environment.id, onChange]
+  );
 
   return (
     <div
@@ -1158,14 +1300,12 @@ export function EnvironmentCard({
       <CountdownControl
         value={countdown}
         enabled={environment.countdownEnabled ?? false}
-        onChange={v => onChange(environment.id, e => ({ ...e, countdown: v }))}
-        onEnabledChange={enabled =>
-          onChange(environment.id, e => ({ ...e, countdownEnabled: enabled }))
-        }
+        onChange={handleCountdownChange}
+        onEnabledChange={handleCountdownEnabledChange}
       />
     </div>
   );
-}
+});
 
 function CardActions({
   isSpotlight,

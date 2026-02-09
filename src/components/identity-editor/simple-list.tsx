@@ -188,9 +188,9 @@ export function SimpleList({
       )}
 
       <div className="space-y-2">
-        {items.map((_, index) => (
+        {items.map((item, index) => (
           <SimpleListItem
-            key={index}
+            key={`${item}-${index}`}
             index={index}
             fieldName={fieldName}
             placeholder={placeholder}
@@ -244,9 +244,9 @@ export function NumberedList({
       )}
 
       <div className="space-y-2">
-        {items.map((_, index) => (
+        {items.map((item, index) => (
           <NumberedListItem
-            key={index}
+            key={`${item.name}-${item.value}-${index}`}
             index={index}
             fieldName={fieldName}
             placeholder={placeholder}

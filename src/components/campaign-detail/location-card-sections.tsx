@@ -43,6 +43,7 @@ import {
 import type { CampaignLocation } from '@/lib/schemas/campaign';
 
 import { EntityBadgeList, RemovableBadge } from './entity-modals';
+import { TagInputSection } from './entity-tag-input';
 import { LOCATION_TYPE_OPTIONS } from './location-components-new';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -518,6 +519,55 @@ interface LocationSessionAppearancesSectionProps {
   sessions: SessionData[];
   npcs: NPCData[];
   quests: QuestData[];
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Notes Section
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface LocationNotesSectionProps {
+  location: CampaignLocation;
+  tags: string[];
+  tagInput: string;
+  onTagInputChange: (value: string) => void;
+  onAddTag: () => void;
+  onRemoveTag: (tag: string) => void;
+  onTextChange: (field: keyof CampaignLocation, value: string) => void;
+  onBlur: () => void;
+}
+
+export function LocationNotesSection({
+  location,
+  tags,
+  tagInput,
+  onTagInputChange,
+  onAddTag,
+  onRemoveTag,
+  onTextChange,
+  onBlur,
+}: LocationNotesSectionProps) {
+  return (
+    <>
+      <TagInputSection
+        tags={tags}
+        tagInput={tagInput}
+        onInputChange={onTagInputChange}
+        onAdd={onAddTag}
+        onRemove={onRemoveTag}
+      />
+
+      <div className="space-y-2">
+        <Label className="text-xs">Additional Notes</Label>
+        <Textarea
+          value={location.notes}
+          onChange={e => onTextChange('notes', e.target.value)}
+          onBlur={onBlur}
+          placeholder="Additional notes..."
+          rows={2}
+        />
+      </div>
+    </>
+  );
 }
 
 export function LocationSessionAppearancesSection({

@@ -210,6 +210,75 @@ function EmptyCardSection({
   );
 }
 
+function CardListSection({
+  title,
+  icon,
+  cards,
+  location,
+  badgeVariant = 'outline',
+  badgeClassName,
+  titleClassName,
+  emptyIcon,
+  onMoveCard,
+  moveDirection,
+  onRemoveCard,
+}: {
+  title: string;
+  icon: React.ReactNode;
+  cards: BattleCard[];
+  location: 'loadout' | 'vault';
+  badgeVariant?: 'outline' | 'secondary';
+  badgeClassName?: string;
+  titleClassName?: string;
+  emptyIcon: React.ReactNode;
+  onMoveCard: (card: BattleCard, index: number) => void;
+  moveDirection: 'up' | 'down';
+  onRemoveCard?: (index: number) => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        {icon}
+        <span className={cn('text-xs font-medium', titleClassName)}>
+          {title}
+        </span>
+        <Badge
+          variant={badgeVariant}
+          className={cn('text-[10px]', badgeClassName)}
+        >
+          {cards.length}
+        </Badge>
+      </div>
+      <ScrollArea className="max-h-48">
+        <div className="space-y-1.5 pr-2">
+          {cards.length === 0 ? (
+            <EmptyCardSection type={location} icon={emptyIcon} />
+          ) : (
+            cards.map((card, index) => (
+              <CardItem
+                key={`${location}-${card.name}-${index}`}
+                card={card}
+                location={location}
+                onMoveUp={
+                  moveDirection === 'up'
+                    ? () => onMoveCard(card, index)
+                    : undefined
+                }
+                onMoveDown={
+                  moveDirection === 'down'
+                    ? () => onMoveCard(card, index)
+                    : undefined
+                }
+                onRemove={onRemoveCard ? () => onRemoveCard(index) : undefined}
+              />
+            ))
+          )}
+        </div>
+      </ScrollArea>
+    </div>
+  );
+}
+
 export function VaultCardManagementPanel({
   character,
   onMoveToLoadout,
@@ -252,82 +321,30 @@ export function VaultCardManagementPanel({
         </div>
       </div>
 
-      {/* Active Loadout Section */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <Sparkles className="size-3.5 text-amber-500" />
-          <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
-            Active Loadout
-          </span>
-          <Badge
-            variant="outline"
-            className="border-amber-500/30 bg-amber-500/10 text-[10px] text-amber-600"
-          >
-            {loadout.length}
-          </Badge>
-        </div>
-        <ScrollArea className="max-h-48">
-          <div className="space-y-1.5 pr-2">
-            {loadout.length === 0 ? (
-              <EmptyCardSection
-                type="loadout"
-                icon={<Sparkles className="size-4" />}
-              />
-            ) : (
-              loadout.map((card, index) => (
-                <CardItem
-                  key={`loadout-${card.name}-${index}`}
-                  card={card}
-                  location="loadout"
-                  onMoveDown={() => onMoveToVault(card, index)}
-                  onRemove={
-                    onRemoveFromLoadout
-                      ? () => onRemoveFromLoadout(index)
-                      : undefined
-                  }
-                />
-              ))
-            )}
-          </div>
-        </ScrollArea>
-      </div>
+      <CardListSection
+        title="Active Loadout"
+        icon={<Sparkles className="size-3.5 text-amber-500" />}
+        cards={loadout}
+        location="loadout"
+        badgeClassName="border-amber-500/30 bg-amber-500/10 text-amber-600"
+        titleClassName="text-amber-600 dark:text-amber-400"
+        emptyIcon={<Sparkles className="size-4" />}
+        onMoveCard={onMoveToVault}
+        moveDirection="down"
+        onRemoveCard={onRemoveFromLoadout}
+      />
 
-      {/* Vault Section */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <BookOpen className="text-muted-foreground size-3.5" />
-          <span className="text-muted-foreground text-xs font-medium">
-            Vault (Stored)
-          </span>
-          <Badge variant="outline" className="text-[10px]">
-            {vaultCards.length}
-          </Badge>
-        </div>
-        <ScrollArea className="max-h-48">
-          <div className="space-y-1.5 pr-2">
-            {vaultCards.length === 0 ? (
-              <EmptyCardSection
-                type="vault"
-                icon={<BookOpen className="size-4" />}
-              />
-            ) : (
-              vaultCards.map((card, index) => (
-                <CardItem
-                  key={`vault-${card.name}-${index}`}
-                  card={card}
-                  location="vault"
-                  onMoveUp={() => onMoveToLoadout(card, index)}
-                  onRemove={
-                    onRemoveFromVault
-                      ? () => onRemoveFromVault(index)
-                      : undefined
-                  }
-                />
-              ))
-            )}
-          </div>
-        </ScrollArea>
-      </div>
+      <CardListSection
+        title="Vault (Stored)"
+        icon={<BookOpen className="text-muted-foreground size-3.5" />}
+        cards={vaultCards}
+        location="vault"
+        titleClassName="text-muted-foreground"
+        emptyIcon={<BookOpen className="size-4" />}
+        onMoveCard={onMoveToLoadout}
+        moveDirection="up"
+        onRemoveCard={onRemoveFromVault}
+      />
     </div>
   );
 }

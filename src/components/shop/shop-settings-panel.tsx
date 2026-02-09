@@ -47,6 +47,108 @@ const ALL_ITEMS: AnyItem[] = [
 
 const ALL_RARITIES: Rarity[] = ['Common', 'Uncommon', 'Rare', 'Legendary'];
 
+const ITEM_BY_NAME = new Map<string, AnyItem>(ALL_ITEMS.map(i => [i.name, i]));
+
+function getMultiplierLabel(value: number): string {
+  if (value === 1) return 'Normal prices';
+  return value > 1 ? 'More expensive' : 'Cheaper';
+}
+
+interface ShopEnableCardProps {
+  shopEnabled: boolean;
+  onToggle: (enabled: boolean) => void;
+}
+
+function ShopEnableCard({ shopEnabled, onToggle }: ShopEnableCardProps) {
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Store className="h-5 w-5 text-amber-500" />
+            <CardTitle className="text-lg">Shop</CardTitle>
+          </div>
+          <Switch
+            id="shop-toggle"
+            checked={shopEnabled}
+            onCheckedChange={onToggle}
+          />
+        </div>
+        <CardDescription>
+          Enable a shop for players in this campaign. Players can browse and
+          purchase items using their gold.
+        </CardDescription>
+      </CardHeader>
+    </Card>
+  );
+}
+
+interface PricingConfigCardProps {
+  multiplier: string;
+  onMultiplierChange: (raw: string) => void;
+  onMultiplierBlur: () => void;
+  showCoins: boolean;
+  onShowCoinsChange: (showCoins: boolean) => void;
+}
+
+function PricingConfigCard({
+  multiplier,
+  onMultiplierChange,
+  onMultiplierBlur,
+  showCoins,
+  onShowCoinsChange,
+}: PricingConfigCardProps) {
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base">Pricing Configuration</CardTitle>
+        <CardDescription>
+          Set global pricing rules that apply to all items in the shop.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-1.5">
+          <Label htmlFor="price-multiplier" className="text-sm font-medium">
+            Global Price Multiplier
+          </Label>
+          <div className="flex items-center gap-3">
+            <Input
+              id="price-multiplier"
+              type="number"
+              min="0"
+              step="0.1"
+              value={multiplier}
+              onChange={e => onMultiplierChange(e.target.value)}
+              onBlur={onMultiplierBlur}
+              className="w-28"
+            />
+            <span className="text-muted-foreground text-sm">
+              × {getMultiplierLabel(Number.parseFloat(multiplier))}
+            </span>
+          </div>
+          <p className="text-muted-foreground text-xs">
+            Applied to all items. Individual overrides below take precedence.
+          </p>
+        </div>
+
+        <Separator />
+
+        {/* Show coins toggle */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <Label className="text-sm font-medium">Show Coins</Label>
+            <p className="text-muted-foreground text-xs">
+              Display the coins denomination (1/10 of a handful) for characters
+              in this campaign.
+            </p>
+          </div>
+          <Switch checked={showCoins} onCheckedChange={onShowCoinsChange} />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 interface ShopSettingsPanelProps {
   shopEnabled: boolean;
   shopSettings: ShopSettings | undefined;
@@ -187,89 +289,17 @@ export function ShopSettingsPanel({
 
   return (
     <div className="space-y-6">
-      {/* Enable toggle card */}
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Store className="h-5 w-5 text-amber-500" />
-              <CardTitle className="text-lg">Shop</CardTitle>
-            </div>
-            <Switch
-              id="shop-toggle"
-              checked={shopEnabled}
-              onCheckedChange={handleToggle}
-            />
-          </div>
-          <CardDescription>
-            Enable a shop for players in this campaign. Players can browse and
-            purchase items using their gold.
-          </CardDescription>
-        </CardHeader>
-      </Card>
+      <ShopEnableCard shopEnabled={shopEnabled} onToggle={handleToggle} />
 
       {shopEnabled && (
         <>
-          {/* Pricing configuration */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Pricing Configuration</CardTitle>
-              <CardDescription>
-                Set global pricing rules that apply to all items in the shop.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-1.5">
-                <Label
-                  htmlFor="price-multiplier"
-                  className="text-sm font-medium"
-                >
-                  Global Price Multiplier
-                </Label>
-                <div className="flex items-center gap-3">
-                  <Input
-                    id="price-multiplier"
-                    type="number"
-                    min="0"
-                    step="0.1"
-                    value={multiplier}
-                    onChange={e => handleMultiplierChange(e.target.value)}
-                    onBlur={handleMultiplierBlur}
-                    className="w-28"
-                  />
-                  <span className="text-muted-foreground text-sm">
-                    ×{' '}
-                    {Number.parseFloat(multiplier) === 1
-                      ? 'Normal prices'
-                      : Number.parseFloat(multiplier) > 1
-                        ? 'More expensive'
-                        : 'Cheaper'}
-                  </span>
-                </div>
-                <p className="text-muted-foreground text-xs">
-                  Applied to all items. Individual overrides below take
-                  precedence.
-                </p>
-              </div>
-
-              <Separator />
-
-              {/* Show coins toggle */}
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <Label className="text-sm font-medium">Show Coins</Label>
-                  <p className="text-muted-foreground text-xs">
-                    Display the coins denomination (1/10 of a handful) for
-                    characters in this campaign.
-                  </p>
-                </div>
-                <Switch
-                  checked={settings.showCoins ?? false}
-                  onCheckedChange={handleShowCoinsChange}
-                />
-              </div>
-            </CardContent>
-          </Card>
+          <PricingConfigCard
+            multiplier={multiplier}
+            onMultiplierChange={handleMultiplierChange}
+            onMultiplierBlur={handleMultiplierBlur}
+            showCoins={settings.showCoins ?? false}
+            onShowCoinsChange={handleShowCoinsChange}
+          />
 
           {/* Per-item price overrides */}
           <Card>
@@ -311,7 +341,7 @@ export function ShopSettingsPanel({
                   <ScrollArea className="max-h-64">
                     <div className="space-y-1.5">
                       {overrideEntries.map(([name, price]) => {
-                        const item = ALL_ITEMS.find(i => i.name === name);
+                        const item = ITEM_BY_NAME.get(name);
                         const category = (
                           item as { category?: string } | undefined
                         )?.category as ItemCategory | undefined;

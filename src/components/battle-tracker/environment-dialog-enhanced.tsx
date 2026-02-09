@@ -47,7 +47,7 @@ import {
 } from '@/components/ui/tooltip';
 import type { Environment } from '@/lib/schemas/environments';
 
-const TIER_OPTIONS = ['All', '1', '2', '3', '4'] as const;
+import { TIER_OPTIONS } from './adversary-dialog-sections';
 const TYPE_OPTIONS = [
   'All',
   'Exploration',
@@ -189,6 +189,128 @@ const GM_ENVIRONMENT_TIPS = [
   },
 ];
 
+// ============== Filter Bar Sub-Component ==============
+
+interface EnvironmentFilterBarProps {
+  search: string;
+  tierFilter: string;
+  typeFilter: string;
+  showFilters: boolean;
+  activeFilters: number;
+  onSearchChange: (value: string) => void;
+  onTierFilterChange: (value: string) => void;
+  onTypeFilterChange: (value: string) => void;
+  onToggleFilters: () => void;
+  onClearFilters: () => void;
+}
+
+function EnvironmentFilterBar({
+  search,
+  tierFilter,
+  typeFilter,
+  showFilters,
+  activeFilters,
+  onSearchChange,
+  onTierFilterChange,
+  onTypeFilterChange,
+  onToggleFilters,
+  onClearFilters,
+}: EnvironmentFilterBarProps) {
+  return (
+    <div className="space-y-3 border-b p-4">
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+          <Input
+            value={search}
+            onChange={e => onSearchChange(e.target.value)}
+            placeholder="Search by name or description..."
+            className="pl-9"
+          />
+        </div>
+        <Button
+          variant={showFilters ? 'secondary' : 'outline'}
+          size="icon"
+          onClick={onToggleFilters}
+          className="relative"
+        >
+          <Filter className="size-4" />
+          {activeFilters > 0 && (
+            <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full text-xs">
+              {activeFilters}
+            </span>
+          )}
+        </Button>
+        {activeFilters > 0 && (
+          <Button variant="ghost" size="sm" onClick={onClearFilters}>
+            <X className="mr-1 size-3" /> Clear
+          </Button>
+        )}
+      </div>
+
+      {showFilters && (
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <Label className="text-xs">Tier</Label>
+            <Select value={tierFilter} onValueChange={onTierFilterChange}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {TIER_OPTIONS.map(t => (
+                  <SelectItem key={t} value={t}>
+                    {t === 'All' ? 'All Tiers' : `Tier ${t}`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Type</Label>
+            <Select value={typeFilter} onValueChange={onTypeFilterChange}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {TYPE_OPTIONS.map(t => (
+                  <SelectItem key={t} value={t}>
+                    {t === 'All' ? 'All Types' : t}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============== Help Sidebar Sub-Component ==============
+
+function EnvironmentHelpSidebar() {
+  return (
+    <div className="hidden w-80 flex-col border-l md:flex">
+      <div className="bg-muted/30 border-b px-4 py-3">
+        <h3 className="font-semibold">Environment Guide</h3>
+        <p className="text-muted-foreground text-xs">Daggerheart GM tips</p>
+      </div>
+      <ScrollArea className="flex-1">
+        <div className="space-y-3 p-4">
+          {GM_ENVIRONMENT_TIPS.map(tip => (
+            <div key={tip.title} className="space-y-1">
+              <p className="text-sm font-medium">{tip.title}</p>
+              <p className="text-muted-foreground text-xs">{tip.content}</p>
+            </div>
+          ))}
+        </div>
+      </ScrollArea>
+    </div>
+  );
+}
+
+// ============== Main Component ==============
+
 interface AddEnvironmentDialogEnhancedProps {
   isOpen: boolean;
   environments: Environment[];
@@ -230,6 +352,11 @@ export function AddEnvironmentDialogEnhanced({
     setSearch('');
   };
 
+  const handleToggleHelp = () => setShowHelp(prev => !prev);
+  const handleToggleFilters = () => setShowFilters(prev => !prev);
+  const handleToggleExpanded = (name: string) =>
+    setExpandedId(prev => (prev === name ? null : name));
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="flex h-full w-full flex-col gap-0 p-0 sm:h-auto sm:max-h-[90vh] sm:max-w-7xl">
@@ -239,7 +366,7 @@ export function AddEnvironmentDialogEnhanced({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setShowHelp(!showHelp)}
+              onClick={handleToggleHelp}
               className="gap-1.5"
             >
               <BookOpen className="size-4" />
@@ -251,73 +378,18 @@ export function AddEnvironmentDialogEnhanced({
         <div className="flex flex-1 overflow-hidden">
           {/* Main Content */}
           <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-            {/* Search and Filters */}
-            <div className="space-y-3 border-b p-4">
-              <div className="flex items-center gap-2">
-                <div className="relative flex-1">
-                  <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-                  <Input
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    placeholder="Search by name or description..."
-                    className="pl-9"
-                  />
-                </div>
-                <Button
-                  variant={showFilters ? 'secondary' : 'outline'}
-                  size="icon"
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="relative"
-                >
-                  <Filter className="size-4" />
-                  {activeFilters > 0 && (
-                    <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full text-xs">
-                      {activeFilters}
-                    </span>
-                  )}
-                </Button>
-                {activeFilters > 0 && (
-                  <Button variant="ghost" size="sm" onClick={clearFilters}>
-                    <X className="mr-1 size-3" /> Clear
-                  </Button>
-                )}
-              </div>
-
-              {showFilters && (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Tier</Label>
-                    <Select value={tierFilter} onValueChange={setTierFilter}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {TIER_OPTIONS.map(t => (
-                          <SelectItem key={t} value={t}>
-                            {t === 'All' ? 'All Tiers' : `Tier ${t}`}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Type</Label>
-                    <Select value={typeFilter} onValueChange={setTypeFilter}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {TYPE_OPTIONS.map(t => (
-                          <SelectItem key={t} value={t}>
-                            {t === 'All' ? 'All Types' : t}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              )}
-            </div>
+            <EnvironmentFilterBar
+              search={search}
+              tierFilter={tierFilter}
+              typeFilter={typeFilter}
+              showFilters={showFilters}
+              activeFilters={activeFilters}
+              onSearchChange={setSearch}
+              onTierFilterChange={setTierFilter}
+              onTypeFilterChange={setTypeFilter}
+              onToggleFilters={handleToggleFilters}
+              onClearFilters={clearFilters}
+            />
 
             {/* Results */}
             <ScrollArea className="min-h-0 flex-1">
@@ -332,9 +404,7 @@ export function AddEnvironmentDialogEnhanced({
                       key={env.name}
                       environment={env}
                       isExpanded={expandedId === env.name}
-                      onToggle={() =>
-                        setExpandedId(expandedId === env.name ? null : env.name)
-                      }
+                      onToggle={() => handleToggleExpanded(env.name)}
                       onAdd={() => onAdd(env)}
                     />
                   ))}
@@ -348,29 +418,7 @@ export function AddEnvironmentDialogEnhanced({
             </ScrollArea>
           </div>
 
-          {/* Help Sidebar */}
-          {showHelp && (
-            <div className="hidden w-80 flex-col border-l md:flex">
-              <div className="bg-muted/30 border-b px-4 py-3">
-                <h3 className="font-semibold">Environment Guide</h3>
-                <p className="text-muted-foreground text-xs">
-                  Daggerheart GM tips
-                </p>
-              </div>
-              <ScrollArea className="flex-1">
-                <div className="space-y-3 p-4">
-                  {GM_ENVIRONMENT_TIPS.map(tip => (
-                    <div key={tip.title} className="space-y-1">
-                      <p className="text-sm font-medium">{tip.title}</p>
-                      <p className="text-muted-foreground text-xs">
-                        {tip.content}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            </div>
-          )}
+          {showHelp && <EnvironmentHelpSidebar />}
         </div>
       </DialogContent>
     </Dialog>

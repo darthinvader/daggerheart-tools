@@ -735,6 +735,46 @@ function resolveNextStep({
   return { shouldAdvance: true };
 }
 
+function deriveClassDraft(
+  classSelection: DemoState['classSelection']
+): ClassDraft {
+  if (!classSelection) {
+    return DEFAULT_CLASS_DRAFT;
+  }
+  return {
+    mode: classSelection.isHomebrew ? 'homebrew' : 'standard',
+    className: classSelection.className ?? undefined,
+    subclassName: classSelection.subclassName ?? undefined,
+    homebrewClass: classSelection.homebrewClass ?? undefined,
+  };
+}
+
+function checkBeastbound(classSelection: DemoState['classSelection']): boolean {
+  const className = classSelection?.className?.toLowerCase() ?? '';
+  const subclassName = classSelection?.subclassName?.toLowerCase() ?? '';
+  return className.includes('ranger') && subclassName.includes('beastbound');
+}
+
+function resolveStepIndex(
+  manualStepIndex: number | null,
+  steps: WizardStep[],
+  firstIncomplete: OnboardingStepId | null
+): number {
+  if (manualStepIndex !== null) {
+    return manualStepIndex;
+  }
+  const firstIndex = steps.findIndex(step => step.id === firstIncomplete);
+  return firstIndex >= 0 ? firstIndex : 0;
+}
+
+function resolveCanProceed(
+  stepId: OnboardingStepId,
+  classCanProceed: boolean,
+  completion: Record<OnboardingStepId, boolean>
+): boolean {
+  return stepId === 'class' ? classCanProceed : completion[stepId];
+}
+
 export function useWizardState({
   state,
   handlers,
@@ -754,24 +794,15 @@ export function useWizardState({
   const [manualStepIndex, setManualStepIndex] = useState<number | null>(null);
   const [stepError, setStepError] = useState<string | null>(null);
 
-  const classDraft = useMemo<ClassDraft>(() => {
-    if (!state.classSelection) {
-      return DEFAULT_CLASS_DRAFT;
-    }
-    return {
-      mode: state.classSelection.isHomebrew ? 'homebrew' : 'standard',
-      className: state.classSelection.className ?? undefined,
-      subclassName: state.classSelection.subclassName ?? undefined,
-      homebrewClass: state.classSelection.homebrewClass ?? undefined,
-    };
-  }, [state.classSelection]);
+  const classDraft = useMemo<ClassDraft>(
+    () => deriveClassDraft(state.classSelection),
+    [state.classSelection]
+  );
 
-  const isBeastbound = useMemo(() => {
-    const className = state.classSelection?.className?.toLowerCase() ?? '';
-    const subclassName =
-      state.classSelection?.subclassName?.toLowerCase() ?? '';
-    return className.includes('ranger') && subclassName.includes('beastbound');
-  }, [state.classSelection]);
+  const isBeastbound = useMemo(
+    () => checkBeastbound(state.classSelection),
+    [state.classSelection]
+  );
 
   const completion = useMemo(() => getOnboardingCompletion(state), [state]);
   const firstIncomplete = useMemo(
@@ -803,18 +834,18 @@ export function useWizardState({
     ]
   );
 
-  const stepIndex = useMemo(() => {
-    if (manualStepIndex !== null) {
-      return manualStepIndex;
-    }
-    const firstIndex = steps.findIndex(step => step.id === firstIncomplete);
-    return firstIndex >= 0 ? firstIndex : 0;
-  }, [manualStepIndex, steps, firstIncomplete]);
+  const stepIndex = useMemo(
+    () => resolveStepIndex(manualStepIndex, steps, firstIncomplete),
+    [manualStepIndex, steps, firstIncomplete]
+  );
 
   const currentStep = steps[stepIndex];
   const isLastStep = stepIndex === steps.length - 1;
-  const canProceed =
-    currentStep.id === 'class' ? classCanProceed : completion[currentStep.id];
+  const canProceed = resolveCanProceed(
+    currentStep.id,
+    classCanProceed,
+    completion
+  );
 
   const handleBack = useCallback(() => {
     setManualStepIndex(Math.max(0, stepIndex - 1));

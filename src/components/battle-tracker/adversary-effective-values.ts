@@ -1,3 +1,5 @@
+import { normalizeMinusSigns } from '@/lib/utils';
+
 import type { AdversaryTracker } from './types';
 
 /**
@@ -17,8 +19,7 @@ export type AdversaryThresholdsValue = string | EffectiveThresholds;
  */
 export function normalizeAttackModifier(value: string | number): number {
   if (typeof value === 'number') return value;
-  // Handle unicode minus sign (U+2212) and regular hyphen-minus
-  const normalized = value.replace(/−/g, '-');
+  const normalized = normalizeMinusSigns(value);
   const parsed = Number.parseInt(normalized, 10);
   return Number.isNaN(parsed) ? 0 : parsed;
 }

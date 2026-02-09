@@ -4,7 +4,7 @@
  * Displays and manages homebrew content linked to a campaign.
  * Uses a tabbed interface similar to My Homebrew for browsing all user content.
  */
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import {
   HomebrewFormDialog,
@@ -13,6 +13,11 @@ import {
 } from '@/components/homebrew';
 import { TabsContent as InnerTabsContent, Tabs } from '@/components/ui/tabs';
 import { TabsContent } from '@/components/ui/tabs';
+import type {
+  HomebrewContent,
+  HomebrewContentType,
+  HomebrewVisibility,
+} from '@/lib/schemas/homebrew';
 
 import { CollectionsTabContent } from './collections-tab-content';
 import {
@@ -136,9 +141,42 @@ export function HomebrewTabContent({ campaignId }: HomebrewTabContentProps) {
     ]
   );
 
+  // Named callbacks for inline handlers
+  const handleCreateAdversary = useCallback(() => {
+    handleCreate('adversary');
+  }, [handleCreate]);
+
+  const handleInnerTabChange = useCallback(
+    (v: string) => setInnerTab(v as InnerTab),
+    [setInnerTab]
+  );
+
+  const handleEditViewingItem = useCallback(() => {
+    if (viewingItem) handleEdit(viewingItem);
+  }, [viewingItem, handleEdit]);
+
+  // Memoized filtered lists
+  const publicHomebrew = useMemo(
+    () =>
+      addLinkedTags(
+        myHomebrew.filter(c => c.visibility === 'public'),
+        linkedIds
+      ),
+    [myHomebrew, linkedIds]
+  );
+
+  const privateHomebrew = useMemo(
+    () =>
+      addLinkedTags(
+        myHomebrew.filter(c => c.visibility === 'private'),
+        linkedIds
+      ),
+    [myHomebrew, linkedIds]
+  );
+
   return (
     <TabsContent value="homebrew" className="space-y-6">
-      <HomebrewTabHeader onCreateClick={() => handleCreate('adversary')} />
+      <HomebrewTabHeader onCreateClick={handleCreateAdversary} />
 
       {showCampaignInfo && (
         <CampaignHomebrewInfoCard onDismiss={handleHideCampaignInfo} />
@@ -147,7 +185,7 @@ export function HomebrewTabContent({ campaignId }: HomebrewTabContentProps) {
       {/* Inner Tabs */}
       <Tabs
         value={innerTab}
-        onValueChange={v => setInnerTab(v as InnerTab)}
+        onValueChange={handleInnerTabChange}
         className="space-y-4"
       >
         <HomebrewInnerTabsList
@@ -188,10 +226,7 @@ export function HomebrewTabContent({ campaignId }: HomebrewTabContentProps) {
         {/* Public Tab */}
         <InnerTabsContent value="public">
           <HomebrewList
-            items={addLinkedTags(
-              myHomebrew.filter(c => c.visibility === 'public'),
-              linkedIds
-            )}
+            items={publicHomebrew}
             isLoading={loadingMy}
             currentUserId={user?.id}
             linkedItemIds={linkedIds}
@@ -204,10 +239,7 @@ export function HomebrewTabContent({ campaignId }: HomebrewTabContentProps) {
         {/* Private Tab */}
         <InnerTabsContent value="private">
           <HomebrewList
-            items={addLinkedTags(
-              myHomebrew.filter(c => c.visibility === 'private'),
-              linkedIds
-            )}
+            items={privateHomebrew}
             isLoading={loadingMy}
             currentUserId={user?.id}
             linkedItemIds={linkedIds}
@@ -252,28 +284,73 @@ export function HomebrewTabContent({ campaignId }: HomebrewTabContentProps) {
         </InnerTabsContent>
       </Tabs>
 
-      {/* View Dialog (Read-only) */}
+      <HomebrewDialogs
+        isViewOpen={isViewOpen}
+        onViewOpenChange={handleViewOpenChange}
+        viewingItem={viewingItem}
+        isOwner={viewingItem?.ownerId === user?.id}
+        onEditViewingItem={handleEditViewingItem}
+        isFormOpen={isFormOpen}
+        onFormOpenChange={handleFormOpenChange}
+        selectedType={selectedType}
+        editingItem={editingItem ?? undefined}
+        onFormSubmit={handleFormSubmit}
+        isSubmitting={isSubmitting}
+      />
+    </TabsContent>
+  );
+}
+
+/** View + Create/Edit dialogs extracted to reduce parent complexity. */
+interface HomebrewDialogsProps {
+  isViewOpen: boolean;
+  onViewOpenChange: (open: boolean) => void;
+  viewingItem: HomebrewContent | null;
+  isOwner: boolean;
+  onEditViewingItem: () => void;
+  isFormOpen: boolean;
+  onFormOpenChange: (open: boolean) => void;
+  selectedType: HomebrewContentType;
+  editingItem: HomebrewContent | undefined;
+  onFormSubmit: (data: {
+    content: HomebrewContent['content'];
+    visibility: HomebrewVisibility;
+  }) => void;
+  isSubmitting: boolean;
+}
+
+function HomebrewDialogs({
+  isViewOpen,
+  onViewOpenChange,
+  viewingItem,
+  isOwner,
+  onEditViewingItem,
+  isFormOpen,
+  onFormOpenChange,
+  selectedType,
+  editingItem,
+  onFormSubmit,
+  isSubmitting,
+}: HomebrewDialogsProps) {
+  return (
+    <>
       <HomebrewViewDialog
         open={isViewOpen}
-        onOpenChange={handleViewOpenChange}
+        onOpenChange={onViewOpenChange}
         content={viewingItem}
-        isOwner={viewingItem?.ownerId === user?.id}
-        onEdit={() => {
-          if (viewingItem) handleEdit(viewingItem);
-        }}
+        isOwner={isOwner}
+        onEdit={onEditViewingItem}
         onFork={undefined}
       />
-
-      {/* Create/Edit Dialog */}
       <HomebrewFormDialog
         open={isFormOpen}
-        onOpenChange={handleFormOpenChange}
+        onOpenChange={onFormOpenChange}
         contentType={selectedType}
-        initialData={editingItem ?? undefined}
-        onSubmit={handleFormSubmit}
+        initialData={editingItem}
+        onSubmit={onFormSubmit}
         isSubmitting={isSubmitting}
         defaultVisibility="campaign_only"
       />
-    </TabsContent>
+    </>
   );
 }

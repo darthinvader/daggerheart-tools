@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { FolderOpen, Play, Plus, Swords, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { type KeyboardEvent, useState } from 'react';
 import { toast } from 'sonner';
 
 import {
@@ -29,12 +29,115 @@ import {
   createStandaloneBattle,
   deleteStandaloneBattle,
   listStandaloneBattles,
+  type StandaloneBattleSummary,
 } from '@/features/campaigns/campaign-storage';
 import { listCampaigns } from '@/features/campaigns/campaign-storage';
 
 export const Route = createFileRoute('/gm/saved-encounters')({
   component: SavedEncountersPage,
 });
+
+function EncounterLoadingSkeleton({ count = 3 }: { count?: number }) {
+  return (
+    <div className="space-y-2">
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className="bg-muted h-16 animate-pulse rounded-lg" />
+      ))}
+    </div>
+  );
+}
+
+interface StandaloneEncounterItemProps {
+  battle: StandaloneBattleSummary;
+  onDelete: (id: string) => void;
+}
+
+function StandaloneEncounterItem({
+  battle,
+  onDelete,
+}: StandaloneEncounterItemProps) {
+  return (
+    <div className="group hover:bg-muted/50 flex items-center justify-between rounded-lg border p-3 transition-colors">
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-medium">{battle.name}</p>
+        <p className="text-muted-foreground text-xs">
+          Updated {new Date(battle.updatedAt).toLocaleString()}
+        </p>
+      </div>
+      <div className="flex items-center gap-2">
+        <Button variant="outline" size="sm" asChild>
+          <Link to="/gm/battle-tracker" search={{ battleId: battle.id }}>
+            <Play className="mr-1 h-4 w-4" />
+            Open
+          </Link>
+        </Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-destructive opacity-0 group-hover:opacity-100"
+              aria-label="Delete"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Encounter</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete this encounter. This action cannot
+                be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={() => onDelete(battle.id)}>
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+    </div>
+  );
+}
+
+interface CampaignEncounterItemProps {
+  battle: {
+    id: string;
+    name: string;
+    status: string;
+    campaignId: string;
+    campaignName: string;
+  };
+}
+
+function CampaignEncounterItem({ battle }: CampaignEncounterItemProps) {
+  return (
+    <div className="group hover:bg-muted/50 flex items-center justify-between rounded-lg border p-3 transition-colors">
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <p className="truncate font-medium">{battle.name}</p>
+          <Badge variant="outline" className="text-xs">
+            {battle.status}
+          </Badge>
+        </div>
+        <p className="text-muted-foreground text-xs">{battle.campaignName}</p>
+      </div>
+      <Button variant="outline" size="sm" asChild>
+        <Link
+          to="/gm/campaigns/$id/battle"
+          params={{ id: battle.campaignId }}
+          search={{ tab: 'gm-tools', battleId: battle.id }}
+        >
+          <Play className="mr-1 h-4 w-4" />
+          Open
+        </Link>
+      </Button>
+    </div>
+  );
+}
 
 function SavedEncountersPage() {
   const queryClient = useQueryClient();
@@ -100,6 +203,10 @@ function SavedEncountersPage() {
     createBattleMutation.mutate(newBattleName);
   };
 
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') handleCreateBattle();
+  };
+
   // Collect all campaign battles for the campaign section
   const campaignBattles = campaigns.flatMap(campaign =>
     (campaign.battles ?? []).map(battle => ({
@@ -141,9 +248,7 @@ function SavedEncountersPage() {
                 placeholder="New encounter name..."
                 value={newBattleName}
                 onChange={e => setNewBattleName(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter') handleCreateBattle();
-                }}
+                onKeyDown={handleKeyDown}
               />
               <Button
                 onClick={handleCreateBattle}
@@ -156,14 +261,7 @@ function SavedEncountersPage() {
 
             {/* List of standalone battles */}
             {isLoadingStandalone ? (
-              <div className="space-y-2">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="bg-muted h-16 animate-pulse rounded-lg"
-                  />
-                ))}
-              </div>
+              <EncounterLoadingSkeleton />
             ) : standaloneBattles.length === 0 ? (
               <div className="text-muted-foreground py-4 text-center text-sm">
                 No standalone encounters yet. Create one above!
@@ -171,61 +269,11 @@ function SavedEncountersPage() {
             ) : (
               <div className="space-y-2">
                 {standaloneBattles.map(battle => (
-                  <div
+                  <StandaloneEncounterItem
                     key={battle.id}
-                    className="group hover:bg-muted/50 flex items-center justify-between rounded-lg border p-3 transition-colors"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium">{battle.name}</p>
-                      <p className="text-muted-foreground text-xs">
-                        Updated {new Date(battle.updatedAt).toLocaleString()}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm" asChild>
-                        <Link
-                          to="/gm/battle-tracker"
-                          search={{ battleId: battle.id }}
-                        >
-                          <Play className="mr-1 h-4 w-4" />
-                          Open
-                        </Link>
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-destructive opacity-0 group-hover:opacity-100"
-                            aria-label="Delete"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>
-                              Delete Encounter
-                            </AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This will permanently delete this encounter. This
-                              action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() =>
-                                deleteBattleMutation.mutate(battle.id)
-                              }
-                            >
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  </div>
+                    battle={battle}
+                    onDelete={id => deleteBattleMutation.mutate(id)}
+                  />
                 ))}
               </div>
             )}
@@ -245,14 +293,7 @@ function SavedEncountersPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             {isLoadingCampaigns ? (
-              <div className="space-y-2">
-                {Array.from({ length: 2 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="bg-muted h-16 animate-pulse rounded-lg"
-                  />
-                ))}
-              </div>
+              <EncounterLoadingSkeleton count={2} />
             ) : campaignBattles.length === 0 ? (
               <div className="space-y-4">
                 <p className="text-muted-foreground text-center text-sm">
@@ -268,32 +309,10 @@ function SavedEncountersPage() {
             ) : (
               <div className="space-y-2">
                 {campaignBattles.map(battle => (
-                  <div
+                  <CampaignEncounterItem
                     key={`${battle.campaignId}-${battle.id}`}
-                    className="group hover:bg-muted/50 flex items-center justify-between rounded-lg border p-3 transition-colors"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <p className="truncate font-medium">{battle.name}</p>
-                        <Badge variant="outline" className="text-xs">
-                          {battle.status}
-                        </Badge>
-                      </div>
-                      <p className="text-muted-foreground text-xs">
-                        {battle.campaignName}
-                      </p>
-                    </div>
-                    <Button variant="outline" size="sm" asChild>
-                      <Link
-                        to="/gm/campaigns/$id/battle"
-                        params={{ id: battle.campaignId }}
-                        search={{ tab: 'gm-tools', battleId: battle.id }}
-                      >
-                        <Play className="mr-1 h-4 w-4" />
-                        Open
-                      </Link>
-                    </Button>
-                  </div>
+                    battle={battle}
+                  />
                 ))}
               </div>
             )}

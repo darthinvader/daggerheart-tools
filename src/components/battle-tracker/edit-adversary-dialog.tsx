@@ -37,18 +37,26 @@ export function EditAdversaryDialog({
   if (!adversary) return null;
 
   const baseThresholds = getSourceThresholds(adversary);
-  const attackModified = isAttackModified(adversary.source.attack, {
+
+  const currentAttackState = {
     name: state.attackName,
     modifier: state.attackModifier,
     range: state.attackRange,
     damage: state.attackDamage,
-  });
+  };
+
+  const currentThresholdState = {
+    major: state.thresholdMajor,
+    severe: state.thresholdSevere,
+    massive: state.thresholdMassive,
+  };
+
+  const attackModified = isAttackModified(
+    adversary.source.attack,
+    currentAttackState
+  );
   const thresholdsModified = baseThresholds
-    ? isThresholdsModified(baseThresholds, {
-        major: state.thresholdMajor,
-        severe: state.thresholdSevere,
-        massive: state.thresholdMassive,
-      })
+    ? isThresholdsModified(baseThresholds, currentThresholdState)
     : false;
 
   const handleAttackReset = () => {
@@ -66,18 +74,11 @@ export function EditAdversaryDialog({
     actions.setThresholdMassive(thresholdState.massive);
   };
 
+  const handleCancel = () => {
+    onOpenChange(false);
+  };
+
   const handleSave = () => {
-    const attackOverride = buildAttackOverride(adversary.source.attack, {
-      name: state.attackName,
-      modifier: state.attackModifier,
-      range: state.attackRange,
-      damage: state.attackDamage,
-    });
-    const thresholdsOverride = buildThresholdsOverride(baseThresholds, {
-      major: state.thresholdMajor,
-      severe: state.thresholdSevere,
-      massive: state.thresholdMassive,
-    });
     onSave({
       hp: { current: state.hp, max: state.hpMax },
       stress: { current: state.stress, max: state.stressMax },
@@ -85,8 +86,14 @@ export function EditAdversaryDialog({
         state.difficulty !== adversary.source.difficulty
           ? state.difficulty
           : undefined,
-      attackOverride,
-      thresholdsOverride,
+      attackOverride: buildAttackOverride(
+        adversary.source.attack,
+        currentAttackState
+      ),
+      thresholdsOverride: buildThresholdsOverride(
+        baseThresholds,
+        currentThresholdState
+      ),
       featuresOverride: state.features,
       notes: state.notes,
       countdown: state.countdown,
@@ -113,7 +120,7 @@ export function EditAdversaryDialog({
         />
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={handleCancel}>
             Cancel
           </Button>
           <Button onClick={handleSave}>Save Changes</Button>

@@ -1,8 +1,15 @@
 import type { LucideIcon } from 'lucide-react';
-
-import { DowntimeMoveIcons } from '@/lib/icons';
+import { Activity, Hammer, Handshake, HeartPulse, Search } from 'lucide-react';
 
 import type { DowntimeCategory, DowntimeMove } from './types';
+
+export const DowntimeMoveIcons: Record<string, LucideIcon> = {
+  recovery: HeartPulse,
+  crafting: Hammer,
+  social: Handshake,
+  exploration: Search,
+  training: Activity,
+} as const;
 
 export const DOWNTIME_CATEGORIES: {
   value: DowntimeCategory;

@@ -21,6 +21,55 @@ interface UseCreateHomebrewStateOptions {
   onNavigateAfterForkClose: () => void;
 }
 
+interface FormInteractionState {
+  userSelectedType: HomebrewContentType | null;
+  hasInteracted: boolean;
+}
+
+const INITIAL_FORM_STATE: FormInteractionState = {
+  userSelectedType: null,
+  hasInteracted: false,
+};
+
+function deriveSelectedType(
+  userSelectedType: HomebrewContentType | null,
+  forkSource: HomebrewContent | undefined | null
+): HomebrewContentType | null {
+  return userSelectedType ?? forkSource?.contentType ?? null;
+}
+
+function deriveIsFormOpen(
+  hasInteracted: boolean,
+  forkSource: HomebrewContent | undefined | null,
+  selectedType: HomebrewContentType | null
+): boolean {
+  return hasInteracted || (Boolean(forkSource) && selectedType !== null);
+}
+
+function buildCreatePayload(
+  selectedType: HomebrewContentType,
+  payload: {
+    content: HomebrewContent['content'];
+    visibility: HomebrewVisibility;
+  },
+  forkSource: HomebrewContent | undefined | null
+) {
+  const typedContent = payload.content as {
+    name: string;
+    description?: string;
+  };
+  return {
+    contentType: selectedType,
+    content: payload.content,
+    name: typedContent.name,
+    description: typedContent.description ?? '',
+    visibility: payload.visibility,
+    tags: [] as string[],
+    campaignLinks: [] as string[],
+    forkedFrom: forkSource?.forkedFrom ?? forkSource?.id,
+  };
+}
+
 export function useCreateHomebrewState({
   forkFrom,
   user,
@@ -33,26 +82,25 @@ export function useCreateHomebrewState({
   const { data: forkSource, isLoading: isForkSourceLoading } =
     useHomebrewContent(forkFrom);
 
-  // User-selected type (null means use forkSource if available)
-  const [userSelectedType, setUserSelectedType] =
-    useState<HomebrewContentType | null>(null);
-  // Track if user has explicitly interacted with the form
-  const [hasUserInteracted, setHasUserInteracted] = useState(false);
+  const [formState, setFormState] =
+    useState<FormInteractionState>(INITIAL_FORM_STATE);
 
-  // Derive effective selected type: user selection takes precedence, then forkSource
-  const selectedType = userSelectedType ?? forkSource?.contentType ?? null;
-  // Derive if form should be open: open if user interacted, or if forkSource loaded
-  const isFormOpen =
-    hasUserInteracted || (Boolean(forkSource) && selectedType !== null);
+  const selectedType = deriveSelectedType(
+    formState.userSelectedType,
+    forkSource
+  );
+  const isFormOpen = deriveIsFormOpen(
+    formState.hasInteracted,
+    forkSource,
+    selectedType
+  );
 
   const handleTypeSelect = useCallback((type: HomebrewContentType) => {
-    setUserSelectedType(type);
-    setHasUserInteracted(true);
+    setFormState({ userSelectedType: type, hasInteracted: true });
   }, []);
 
   const handleFormClose = useCallback(() => {
-    setHasUserInteracted(false);
-    setUserSelectedType(null);
+    setFormState(INITIAL_FORM_STATE);
   }, []);
 
   // Build initial data for form when forking
@@ -73,21 +121,9 @@ export function useCreateHomebrewState({
     }) => {
       if (!selectedType || !user) return;
 
-      const typedContent = payload.content as {
-        name: string;
-        description?: string;
-      };
-
-      await createMutation.mutateAsync({
-        contentType: selectedType,
-        content: payload.content,
-        name: typedContent.name,
-        description: typedContent.description ?? '',
-        visibility: payload.visibility,
-        tags: [],
-        campaignLinks: [],
-        forkedFrom: forkSource?.forkedFrom ?? forkSource?.id,
-      });
+      await createMutation.mutateAsync(
+        buildCreatePayload(selectedType, payload, forkSource)
+      );
       onNavigateAfterCreate();
     },
     [selectedType, user, createMutation, forkSource, onNavigateAfterCreate]
@@ -96,13 +132,10 @@ export function useCreateHomebrewState({
   const handleFormDialogChange = useCallback(
     (open: boolean) => {
       if (open) {
-        setHasUserInteracted(true);
+        setFormState(prev => ({ ...prev, hasInteracted: true }));
       } else {
         handleFormClose();
-        // If closing and was forking, navigate back
-        if (forkSource) {
-          onNavigateAfterForkClose();
-        }
+        if (forkSource) onNavigateAfterForkClose();
       }
     },
     [handleFormClose, forkSource, onNavigateAfterForkClose]

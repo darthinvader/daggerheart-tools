@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { DomainsDraftSchema } from '@/features/characters/domains-storage';
+import { getAuthenticatedUser } from '@/lib/auth';
 import { BeastformStateSchema } from '@/lib/schemas/beastform';
 import {
   ConditionsSchema,
@@ -339,13 +340,7 @@ export async function permanentlyDeleteCharacter(id: string): Promise<void> {
 }
 
 export async function emptyRecyclingBin(): Promise<void> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    throw new Error('Must be logged in to empty recycling bin');
-  }
+  const user = await getAuthenticatedUser();
 
   const { error } = await supabase
     .from('characters')

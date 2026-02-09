@@ -13,7 +13,7 @@ import {
  *
  * Extracted section components for the equipment form to reduce complexity.
  */
-import type { Dispatch, SetStateAction } from 'react';
+import type { ChangeEvent, Dispatch, SetStateAction } from 'react';
 
 import { StatModifiersEditor } from '@/components/equipment/stat-modifiers-editor';
 import { Badge } from '@/components/ui/badge';
@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
+import { TIERS } from '@/lib/constants';
 import { CharacterTraitEnum } from '@/lib/schemas/core';
 import type {
   HomebrewArmorContent,
@@ -55,12 +56,70 @@ export const DAMAGE_TYPES = [
   { value: 'mag', label: 'Magic' },
 ] as const;
 export const DICE_TYPES = [4, 6, 8, 10, 12, 20] as const;
-export const TIERS = ['1', '2', '3', '4'] as const;
+export { TIERS };
 export const FRAME_TYPES = ['Light', 'Heavy', 'Arcane'] as const;
+
+// =====================================================================================
+// FormSelectField (shared helper)
+// =====================================================================================
+
+interface SelectOption {
+  value: string;
+  label: string;
+}
+
+interface FormSelectFieldProps {
+  label: string;
+  value: string;
+  onValueChange: (value: string) => void;
+  options: readonly SelectOption[];
+}
+
+function FormSelectField({
+  label,
+  value,
+  onValueChange,
+  options,
+}: FormSelectFieldProps) {
+  return (
+    <div className="space-y-2">
+      <Label>{label}</Label>
+      <Select value={value} onValueChange={onValueChange}>
+        <SelectTrigger>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map(o => (
+            <SelectItem key={o.value} value={o.value}>
+              {o.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
 
 // =====================================================================================
 // WeaponSection
 // =====================================================================================
+
+const WEAPON_TYPE_OPTIONS = WEAPON_TYPES.map(t => ({ value: t, label: t }));
+const TRAIT_OPTIONS = CharacterTraitEnum.options.map(t => ({
+  value: t,
+  label: t,
+}));
+const RANGE_OPTIONS = RANGES.map(r => ({ value: r, label: r }));
+const BURDEN_OPTIONS = BURDENS.map(b => ({ value: b, label: b }));
+const TIER_OPTIONS = TIERS.map(t => ({ value: t, label: `Tier ${t}` }));
+const DICE_TYPE_OPTIONS = DICE_TYPES.map(d => ({
+  value: String(d),
+  label: `d${d}`,
+}));
+const DAMAGE_TYPE_OPTIONS = DAMAGE_TYPES.map(dt => ({
+  value: dt.value,
+  label: dt.label,
+}));
 
 interface WeaponSectionProps {
   data: HomebrewWeaponContent;
@@ -82,6 +141,22 @@ export function WeaponSection({ data, onChange }: WeaponSectionProps) {
     onChange({ ...data, damage: { ...data.damage, [key]: value } });
   };
 
+  const handleNameChange = (e: ChangeEvent<HTMLInputElement>) =>
+    update('name', e.target.value);
+  const handleDescriptionChange = (e: ChangeEvent<HTMLTextAreaElement>) =>
+    update('description', e.target.value);
+  const handleDomainAffinityChange = (e: ChangeEvent<HTMLInputElement>) =>
+    update('domainAffinity', e.target.value);
+  const handleDiceCountChange = (e: ChangeEvent<HTMLInputElement>) =>
+    updateDamage('count', parseInt(e.target.value, 10) || 1);
+  const handleDiceTypeChange = (v: string) =>
+    updateDamage('diceType', parseInt(v, 10));
+  const handleModifierChange = (e: ChangeEvent<HTMLInputElement>) =>
+    updateDamage('modifier', parseInt(e.target.value, 10) || 0);
+  const handleTagsChange = (tags: string[]) => update('tags', tags);
+  const handleStatModsChange = (mods: HomebrewWeaponContent['statModifiers']) =>
+    update('statModifiers', mods);
+
   return (
     <section className="space-y-4 rounded-lg border border-orange-500/30 bg-orange-500/10 p-4">
       <h3 className="flex items-center gap-2 font-semibold">
@@ -93,92 +168,43 @@ export function WeaponSection({ data, onChange }: WeaponSectionProps) {
         <Input
           id="weaponName"
           value={data.name}
-          onChange={e => update('name', e.target.value)}
+          onChange={handleNameChange}
           placeholder="e.g., Flamebrand"
           required
         />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label>Weapon Type *</Label>
-          <Select value={data.type} onValueChange={v => update('type', v)}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {WEAPON_TYPES.map(t => (
-                <SelectItem key={t} value={t}>
-                  {t}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label>Trait *</Label>
-          <Select value={data.trait} onValueChange={v => update('trait', v)}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {CharacterTraitEnum.options.map(trait => (
-                <SelectItem key={trait} value={trait}>
-                  {trait}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label>Range *</Label>
-          <Select value={data.range} onValueChange={v => update('range', v)}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {RANGES.map(r => (
-                <SelectItem key={r} value={r}>
-                  {r}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label>Burden *</Label>
-          <Select value={data.burden} onValueChange={v => update('burden', v)}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {BURDENS.map(b => (
-                <SelectItem key={b} value={b}>
-                  {b}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label>Tier *</Label>
-          <Select value={data.tier} onValueChange={v => update('tier', v)}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {TIERS.map(t => (
-                <SelectItem key={t} value={t}>
-                  Tier {t}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <FormSelectField
+          label="Weapon Type *"
+          value={data.type}
+          onValueChange={v => update('type', v)}
+          options={WEAPON_TYPE_OPTIONS}
+        />
+        <FormSelectField
+          label="Trait *"
+          value={data.trait}
+          onValueChange={v => update('trait', v)}
+          options={TRAIT_OPTIONS}
+        />
+        <FormSelectField
+          label="Range *"
+          value={data.range}
+          onValueChange={v => update('range', v)}
+          options={RANGE_OPTIONS}
+        />
+        <FormSelectField
+          label="Burden *"
+          value={data.burden}
+          onValueChange={v => update('burden', v)}
+          options={BURDEN_OPTIONS}
+        />
+        <FormSelectField
+          label="Tier *"
+          value={data.tier}
+          onValueChange={v => update('tier', v)}
+          options={TIER_OPTIONS}
+        />
       </div>
 
       <Separator />
@@ -191,60 +217,32 @@ export function WeaponSection({ data, onChange }: WeaponSectionProps) {
             type="number"
             min={1}
             value={data.damage.count}
-            onChange={e =>
-              updateDamage('count', parseInt(e.target.value, 10) || 1)
-            }
+            onChange={handleDiceCountChange}
           />
         </div>
 
-        <div className="space-y-2">
-          <Label>Dice Type</Label>
-          <Select
-            value={String(data.damage.diceType)}
-            onValueChange={v => updateDamage('diceType', parseInt(v, 10))}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {DICE_TYPES.map(d => (
-                <SelectItem key={d} value={String(d)}>
-                  d{d}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <FormSelectField
+          label="Dice Type"
+          value={String(data.damage.diceType)}
+          onValueChange={handleDiceTypeChange}
+          options={DICE_TYPE_OPTIONS}
+        />
 
         <div className="space-y-2">
           <Label>Modifier</Label>
           <Input
             type="number"
             value={data.damage.modifier}
-            onChange={e =>
-              updateDamage('modifier', parseInt(e.target.value, 10) || 0)
-            }
+            onChange={handleModifierChange}
           />
         </div>
 
-        <div className="space-y-2">
-          <Label>Type</Label>
-          <Select
-            value={data.damage.type}
-            onValueChange={v => updateDamage('type', v)}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {DAMAGE_TYPES.map(dt => (
-                <SelectItem key={dt.value} value={dt.value}>
-                  {dt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <FormSelectField
+          label="Type"
+          value={data.damage.type}
+          onValueChange={v => updateDamage('type', v)}
+          options={DAMAGE_TYPE_OPTIONS}
+        />
       </div>
 
       <Separator />
@@ -254,7 +252,7 @@ export function WeaponSection({ data, onChange }: WeaponSectionProps) {
         <Textarea
           id="weaponDescription"
           value={data.description ?? ''}
-          onChange={e => update('description', e.target.value)}
+          onChange={handleDescriptionChange}
           placeholder="Optional description of the weapon..."
           className="min-h-20"
         />
@@ -265,7 +263,7 @@ export function WeaponSection({ data, onChange }: WeaponSectionProps) {
         <Input
           id="weaponDomainAffinity"
           value={data.domainAffinity ?? ''}
-          onChange={e => update('domainAffinity', e.target.value)}
+          onChange={handleDomainAffinityChange}
           placeholder="e.g., Arcana, Blade, etc."
         />
         <p className="text-muted-foreground text-xs">
@@ -277,7 +275,7 @@ export function WeaponSection({ data, onChange }: WeaponSectionProps) {
 
       <TagsEditor
         tags={data.tags ?? []}
-        onChange={tags => update('tags', tags)}
+        onChange={handleTagsChange}
         colorClass="orange-500"
       />
 
@@ -289,7 +287,7 @@ export function WeaponSection({ data, onChange }: WeaponSectionProps) {
       </p>
       <StatModifiersEditor
         value={data.statModifiers}
-        onChange={mods => update('statModifiers', mods)}
+        onChange={handleStatModsChange}
         showRolls={true}
         showThresholds={false}
       />

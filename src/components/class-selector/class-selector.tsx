@@ -1,10 +1,11 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 
 import { HomebrewContentBrowser } from '@/components/shared';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { useLatestRef } from '@/hooks/use-latest-ref';
 import type { GameClass, GameSubclass } from '@/lib/data/classes';
 import {
   ClassIcons,
@@ -158,12 +159,7 @@ export function ClassSelector({
   campaignId,
 }: ClassSelectorProps) {
   // Store callback in ref to avoid dependency on unstable reference
-  const onValidityChangeRef = useRef(onValidityChange);
-
-  // Update ref in effect to satisfy react-hooks/refs rule
-  useEffect(() => {
-    onValidityChangeRef.current = onValidityChange;
-  });
+  const onValidityChangeRef = useLatestRef(onValidityChange);
 
   const {
     mode,

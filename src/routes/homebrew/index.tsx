@@ -116,6 +116,118 @@ export const CONTENT_TYPE_CONFIG: Record<
   },
 };
 
+/** Header section with title and create button. */
+function DashboardHeader({ onCreateNew }: { onCreateNew: () => void }) {
+  return (
+    <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <span className="text-2xl font-bold">
+          <Beaker className="text-primary mr-2 inline-block size-6" />
+          My Homebrew
+        </span>
+        <p className="text-muted-foreground mt-2">
+          Create and manage your custom Daggerheart content
+        </p>
+      </div>
+      <Button size="lg" onClick={onCreateNew}>
+        <Plus className="mr-2 size-5" /> Create New
+      </Button>
+    </div>
+  );
+}
+
+/** All modal dialogs rendered by the dashboard. */
+function DashboardDialogs({
+  user,
+  isViewOpen,
+  handleViewOpenChange,
+  viewingItem,
+  onEditFromView,
+  onForkFromView,
+  isFormOpen,
+  handleFormOpenChange,
+  selectedType,
+  editingItem,
+  handleFormSubmit,
+  isSubmitting,
+  isCreateCollectionOpen,
+  setIsCreateCollectionOpen,
+  newCollectionName,
+  setNewCollectionName,
+  newCollectionDescription,
+  setNewCollectionDescription,
+  handleCreateCollection,
+  isCreatingCollection,
+  pendingAction,
+  confirmPendingAction,
+  cancelPendingAction,
+}: {
+  user: { id: string };
+  isViewOpen: boolean;
+  handleViewOpenChange: (open: boolean) => void;
+  viewingItem: ReturnType<typeof useHomebrewDashboardState>['viewingItem'];
+  onEditFromView: () => void;
+  onForkFromView: (() => void) | undefined;
+  isFormOpen: boolean;
+  handleFormOpenChange: (open: boolean) => void;
+  selectedType: ReturnType<typeof useHomebrewDashboardState>['selectedType'];
+  editingItem: ReturnType<typeof useHomebrewDashboardState>['editingItem'];
+  handleFormSubmit: ReturnType<
+    typeof useHomebrewDashboardState
+  >['handleFormSubmit'];
+  isSubmitting: boolean;
+  isCreateCollectionOpen: boolean;
+  setIsCreateCollectionOpen: (open: boolean) => void;
+  newCollectionName: string;
+  setNewCollectionName: (name: string) => void;
+  newCollectionDescription: string;
+  setNewCollectionDescription: (desc: string) => void;
+  handleCreateCollection: () => void;
+  isCreatingCollection: boolean;
+  pendingAction: PendingAction | null;
+  confirmPendingAction: () => Promise<void>;
+  cancelPendingAction: () => void;
+}) {
+  return (
+    <>
+      <HomebrewViewDialog
+        open={isViewOpen}
+        onOpenChange={handleViewOpenChange}
+        content={viewingItem}
+        isOwner={viewingItem?.ownerId === user.id}
+        onEdit={onEditFromView}
+        onFork={onForkFromView}
+      />
+
+      <HomebrewFormDialog
+        open={isFormOpen}
+        onOpenChange={handleFormOpenChange}
+        contentType={selectedType}
+        initialData={editingItem ?? undefined}
+        onSubmit={handleFormSubmit}
+        isSubmitting={isSubmitting}
+      />
+
+      <CreateCollectionDialog
+        open={isCreateCollectionOpen}
+        onOpenChange={setIsCreateCollectionOpen}
+        name={newCollectionName}
+        onNameChange={setNewCollectionName}
+        description={newCollectionDescription}
+        onDescriptionChange={setNewCollectionDescription}
+        onSubmit={handleCreateCollection}
+        isSubmitting={isCreatingCollection}
+      />
+
+      <DestructiveConfirmDialog
+        pendingAction={pendingAction}
+        onConfirm={confirmPendingAction}
+        onCancel={cancelPendingAction}
+      />
+    </>
+  );
+}
+
 function HomebrewDashboard() {
   // Use consolidated meta-hook for all state
   const {
@@ -176,28 +288,39 @@ function HomebrewDashboard() {
     return <SignInRequiredCard onSignIn={() => navigate({ to: '/login' })} />;
   }
 
+  // Pre-compute filtered lists to keep JSX clean
+  const publicContent = myContent.filter(c => c.visibility === 'public');
+  const privateContent = myContent.filter(c => c.visibility === 'private');
+  const linkedContent = myContent.filter(
+    c => c.campaignLinks && c.campaignLinks.length > 0
+  );
+
+  // Named callbacks for inline handlers
+  const handleNavigateToNew = () =>
+    navigate({ to: '/homebrew/new', search: { forkFrom: undefined } });
+
+  const handleEditFromView = () => {
+    if (viewingItem) handleEdit(viewingItem);
+  };
+
+  const handleForkFromView = viewingItem
+    ? () => handleFork(viewingItem)
+    : undefined;
+
+  const handleOpenCreateCollection = () => setIsCreateCollectionOpen(true);
+
+  const contentTabProps = {
+    currentUserId: user.id,
+    onView: handleView,
+    onEdit: handleEdit,
+    onDelete: handleDelete,
+    onFork: handleFork,
+    onCreate: handleCreate,
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <span className="text-2xl font-bold">
-            <Beaker className="text-primary mr-2 inline-block size-6" />
-            My Homebrew
-          </span>
-          <p className="text-muted-foreground mt-2">
-            Create and manage your custom Daggerheart content
-          </p>
-        </div>
-        <Button
-          size="lg"
-          onClick={() =>
-            navigate({ to: '/homebrew/new', search: { forkFrom: undefined } })
-          }
-        >
-          <Plus className="mr-2 size-5" /> Create New
-        </Button>
-      </div>
+      <DashboardHeader onCreateNew={handleNavigateToNew} />
 
       {/* Content Tabs */}
       <Tabs defaultValue="private" className="space-y-4">
@@ -226,7 +349,7 @@ function HomebrewDashboard() {
         />
 
         <PublicContentTab
-          items={myContent.filter(c => c.visibility === 'public')}
+          items={publicContent}
           isLoading={isLoading}
           currentUserId={user.id}
           onView={handleView}
@@ -238,7 +361,7 @@ function HomebrewDashboard() {
         />
 
         <PrivateContentTab
-          items={myContent.filter(c => c.visibility === 'private')}
+          items={privateContent}
           isLoading={isLoading}
           currentUserId={user.id}
           onView={handleView}
@@ -262,9 +385,7 @@ function HomebrewDashboard() {
         />
 
         <CampaignLinkedTab
-          items={myContent.filter(
-            c => c.campaignLinks && c.campaignLinks.length > 0
-          )}
+          items={linkedContent}
           isLoading={isLoading}
           currentUserId={user.id}
           onView={handleView}
@@ -281,18 +402,11 @@ function HomebrewDashboard() {
           selectedCollectionId={effectiveCollectionId}
           selectedCollection={selectedCollection}
           onSelectCollection={setSelectedCollectionId}
-          onCreateClick={() => setIsCreateCollectionOpen(true)}
+          onCreateClick={handleOpenCreateCollection}
           isContentLoading={isCollectionContentLoading}
           orderedContent={orderedCollectionContent}
           currentUserId={user.id}
-          contentTabProps={{
-            currentUserId: user.id,
-            onView: handleView,
-            onEdit: handleEdit,
-            onDelete: handleDelete,
-            onFork: handleFork,
-            onCreate: handleCreate,
-          }}
+          contentTabProps={contentTabProps}
         />
 
         <RecycleBinTab
@@ -316,44 +430,30 @@ function HomebrewDashboard() {
         hasContent={myContent.length > 0}
       />
 
-      {/* View Dialog (Read-only) */}
-      <HomebrewViewDialog
-        open={isViewOpen}
-        onOpenChange={handleViewOpenChange}
-        content={viewingItem}
-        isOwner={viewingItem?.ownerId === user.id}
-        onEdit={() => {
-          if (viewingItem) handleEdit(viewingItem);
-        }}
-        onFork={viewingItem ? () => handleFork(viewingItem) : undefined}
-      />
-
-      {/* Form Dialog */}
-      <HomebrewFormDialog
-        open={isFormOpen}
-        onOpenChange={handleFormOpenChange}
-        contentType={selectedType}
-        initialData={editingItem ?? undefined}
-        onSubmit={handleFormSubmit}
+      <DashboardDialogs
+        user={user}
+        isViewOpen={isViewOpen}
+        handleViewOpenChange={handleViewOpenChange}
+        viewingItem={viewingItem}
+        onEditFromView={handleEditFromView}
+        onForkFromView={handleForkFromView}
+        isFormOpen={isFormOpen}
+        handleFormOpenChange={handleFormOpenChange}
+        selectedType={selectedType}
+        editingItem={editingItem}
+        handleFormSubmit={handleFormSubmit}
         isSubmitting={createMutation.isPending || updateMutation.isPending}
-      />
-
-      <CreateCollectionDialog
-        open={isCreateCollectionOpen}
-        onOpenChange={setIsCreateCollectionOpen}
-        name={newCollectionName}
-        onNameChange={setNewCollectionName}
-        description={newCollectionDescription}
-        onDescriptionChange={setNewCollectionDescription}
-        onSubmit={handleCreateCollection}
-        isSubmitting={isCreatingCollection}
-      />
-
-      {/* Confirmation AlertDialog for destructive actions */}
-      <DestructiveConfirmDialog
+        isCreateCollectionOpen={isCreateCollectionOpen}
+        setIsCreateCollectionOpen={setIsCreateCollectionOpen}
+        newCollectionName={newCollectionName}
+        setNewCollectionName={setNewCollectionName}
+        newCollectionDescription={newCollectionDescription}
+        setNewCollectionDescription={setNewCollectionDescription}
+        handleCreateCollection={handleCreateCollection}
+        isCreatingCollection={isCreatingCollection}
         pendingAction={pendingAction}
-        onConfirm={confirmPendingAction}
-        onCancel={cancelPendingAction}
+        confirmPendingAction={confirmPendingAction}
+        cancelPendingAction={cancelPendingAction}
       />
     </div>
   );

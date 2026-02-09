@@ -60,7 +60,10 @@ import {
 import type { Adversary } from '@/lib/schemas/adversaries';
 import type { DomainCard } from '@/lib/schemas/domains';
 import type { Environment } from '@/lib/schemas/environments';
-import type { HomebrewContentType } from '@/lib/schemas/homebrew';
+import type {
+  HomebrewContent,
+  HomebrewContentType,
+} from '@/lib/schemas/homebrew';
 import { getCardCosts } from '@/lib/utils/card-costs';
 
 import {
@@ -77,6 +80,7 @@ import {
   SubclassDetail,
 } from './content-detail-views';
 import { HomebrewFormDialog } from './homebrew-form-dialog';
+import { roleColors, tierColors } from './homebrew-list-config';
 import {
   CategoryTabsSection,
   ContentEmptyState,
@@ -168,35 +172,6 @@ const TYPE_CONFIG: Record<
     bgColor: 'bg-cyan-500/10',
     label: 'Items',
   },
-};
-
-// Tier colors matching references
-const tierColors: Record<string, string> = {
-  '1': 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/30',
-  '2': 'bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-500/30',
-  '3': 'bg-purple-500/20 text-purple-700 dark:text-purple-300 border-purple-500/30',
-  '4': 'bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-500/30',
-};
-
-// Role colors for adversaries
-const roleColors: Record<string, string> = {
-  Solo: 'bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-500/30',
-  Bruiser:
-    'bg-orange-500/20 text-orange-700 dark:text-orange-300 border-orange-500/30',
-  Horde:
-    'bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/30',
-  Minion:
-    'bg-slate-500/20 text-slate-700 dark:text-slate-300 border-slate-500/30',
-  Leader:
-    'bg-purple-500/20 text-purple-700 dark:text-purple-300 border-purple-500/30',
-  Support: 'bg-sky-500/20 text-sky-700 dark:text-sky-300 border-sky-500/30',
-  Ranged:
-    'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/30',
-  Skulk:
-    'bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border-indigo-500/30',
-  Social: 'bg-pink-500/20 text-pink-700 dark:text-pink-300 border-pink-500/30',
-  Standard:
-    'bg-gray-500/20 text-gray-700 dark:text-gray-300 border-gray-500/30',
 };
 
 // Order for category tabs
@@ -350,6 +325,25 @@ function buildOfficialContent(): OfficialItem[] {
 
 // Detail components are now imported from './content-detail-views'
 
+// ========== SHARED CARD PARTS ==========
+
+function ForkButton({ onFork }: { onFork: () => void }) {
+  return (
+    <Button
+      size="icon"
+      variant="ghost"
+      className="size-6"
+      onClick={e => {
+        e.stopPropagation();
+        onFork();
+      }}
+      title="Fork"
+    >
+      <GitFork className="size-3" />
+    </Button>
+  );
+}
+
 // ========== CARDS (minified, matching reference styling) ==========
 
 function AdversaryCard({
@@ -377,18 +371,7 @@ function AdversaryCard({
             <Skull className="text-muted-foreground size-4" />
             {item.name}
           </CardTitle>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="size-6"
-            onClick={e => {
-              e.stopPropagation();
-              onFork();
-            }}
-            title="Fork"
-          >
-            <GitFork className="size-3" />
-          </Button>
+          <ForkButton onFork={onFork} />
         </div>
         <div className="mt-1 flex flex-wrap gap-1">
           <Badge variant="outline" className={`py-0 text-xs ${tierBadge}`}>
@@ -447,18 +430,7 @@ function EnvironmentCard({
             <TreePine className="text-muted-foreground size-4" />
             {item.name}
           </CardTitle>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="size-6"
-            onClick={e => {
-              e.stopPropagation();
-              onFork();
-            }}
-            title="Fork"
-          >
-            <GitFork className="size-3" />
-          </Button>
+          <ForkButton onFork={onFork} />
         </div>
         <div className="mt-1 flex flex-wrap gap-1">
           <Badge variant="outline" className={`py-0 text-xs ${tierBadge}`}>
@@ -515,18 +487,7 @@ function DomainCardCard({
             <Sparkles className="text-muted-foreground size-4" />
             <span className="line-clamp-1">{item.name}</span>
           </CardTitle>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="size-6"
-            onClick={e => {
-              e.stopPropagation();
-              onFork();
-            }}
-            title="Fork"
-          >
-            <GitFork className="size-3" />
-          </Button>
+          <ForkButton onFork={onFork} />
         </div>
         <div className="mt-1 flex flex-wrap gap-1">
           <Badge className={`py-0 text-xs ${lvlColor}`}>Lvl {card.level}</Badge>
@@ -626,18 +587,7 @@ function ClassCard({
             <Shield className="text-muted-foreground size-4" />
             {item.name}
           </CardTitle>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="size-6"
-            onClick={e => {
-              e.stopPropagation();
-              onFork();
-            }}
-            title="Fork"
-          >
-            <GitFork className="size-3" />
-          </Button>
+          <ForkButton onFork={onFork} />
         </div>
         {cls.domains && (
           <div className="mt-1 flex flex-wrap gap-1">
@@ -699,18 +649,7 @@ function GenericCard({
             <Icon className="text-muted-foreground size-4" />
             <span className="line-clamp-1">{item.name}</span>
           </CardTitle>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="size-6"
-            onClick={e => {
-              e.stopPropagation();
-              onFork();
-            }}
-            title="Fork"
-          >
-            <GitFork className="size-3" />
-          </Button>
+          <ForkButton onFork={onFork} />
         </div>
         <div className="mt-1 flex flex-wrap gap-1">
           {item.tier && (
@@ -931,6 +870,10 @@ export function OfficialContentBrowser() {
     setIsViewOpen(false);
   }, []);
 
+  const handleViewDialogFork = useCallback(() => {
+    if (viewingItem) handleFork(viewingItem);
+  }, [viewingItem, handleFork]);
+
   const handleForkSubmit = useCallback(
     async (data: {
       content: unknown;
@@ -944,8 +887,7 @@ export function OfficialContentBrowser() {
       const content = data.content as { name: string };
       await createMutation.mutateAsync({
         contentType: homebrewType,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        content: data.content as any,
+        content: data.content as HomebrewContent['content'],
         name: content.name,
         description: '',
         tags: ['forked-from-official'],
@@ -967,13 +909,73 @@ export function OfficialContentBrowser() {
   const currentConfig = TYPE_CONFIG[activeCategory];
   const CurrentIcon = currentConfig.icon;
 
-  const hasActiveFilters =
-    !!searchQuery ||
-    tierFilter !== 'all' ||
-    roleFilter !== 'all' ||
-    domainFilter !== 'all' ||
-    levelFilter !== 'all' ||
-    equipmentCategoryFilter !== 'all';
+  const hasActiveFilters = useMemo(
+    () =>
+      !!searchQuery ||
+      tierFilter !== 'all' ||
+      roleFilter !== 'all' ||
+      domainFilter !== 'all' ||
+      levelFilter !== 'all' ||
+      equipmentCategoryFilter !== 'all',
+    [
+      searchQuery,
+      tierFilter,
+      roleFilter,
+      domainFilter,
+      levelFilter,
+      equipmentCategoryFilter,
+    ]
+  );
+
+  const resolvedCategoryFilters = useMemo(
+    () => ({
+      tierOptions:
+        'tierOptions' in categoryFilters
+          ? categoryFilters.tierOptions
+          : undefined,
+      roleOptions:
+        'roleOptions' in categoryFilters
+          ? categoryFilters.roleOptions
+          : undefined,
+      domainOptions:
+        'domainOptions' in categoryFilters
+          ? categoryFilters.domainOptions
+          : undefined,
+      levelOptions:
+        'levelOptions' in categoryFilters
+          ? categoryFilters.levelOptions
+          : undefined,
+      categoryOptions:
+        'categoryOptions' in categoryFilters
+          ? categoryFilters.categoryOptions
+          : undefined,
+    }),
+    [categoryFilters]
+  );
+
+  const forkDialogInitialData = useMemo(
+    () =>
+      forkContentType && forkingItem
+        ? ({
+            id: '',
+            ownerId: '',
+            contentType: forkContentType,
+            name: forkingItem.name,
+            description: forkingItem.description ?? '',
+            content: forkingItem.rawData as HomebrewContent['content'],
+            visibility: 'private' as const,
+            tags: [] as string[],
+            campaignLinks: [] as string[],
+            forkCount: 0,
+            viewCount: 0,
+            starCount: 0,
+            commentCount: 0,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          } as HomebrewContent)
+        : null,
+    [forkContentType, forkingItem]
+  );
 
   return (
     <div className="space-y-4">
@@ -989,28 +991,7 @@ export function OfficialContentBrowser() {
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         searchPlaceholder={`Search ${currentConfig.label.toLowerCase()}...`}
-        categoryFilters={{
-          tierOptions:
-            'tierOptions' in categoryFilters
-              ? categoryFilters.tierOptions
-              : undefined,
-          roleOptions:
-            'roleOptions' in categoryFilters
-              ? categoryFilters.roleOptions
-              : undefined,
-          domainOptions:
-            'domainOptions' in categoryFilters
-              ? categoryFilters.domainOptions
-              : undefined,
-          levelOptions:
-            'levelOptions' in categoryFilters
-              ? categoryFilters.levelOptions
-              : undefined,
-          categoryOptions:
-            'categoryOptions' in categoryFilters
-              ? categoryFilters.categoryOptions
-              : undefined,
-        }}
+        categoryFilters={resolvedCategoryFilters}
         tierFilter={tierFilter}
         onTierChange={setTierFilter}
         roleFilter={roleFilter}
@@ -1056,32 +1037,15 @@ export function OfficialContentBrowser() {
         item={viewingItem}
         open={isViewOpen}
         onOpenChange={setIsViewOpen}
-        onFork={() => viewingItem && handleFork(viewingItem)}
+        onFork={handleViewDialogFork}
       />
 
-      {forkContentType && (
+      {forkContentType && forkDialogInitialData && (
         <HomebrewFormDialog
           open={isForkOpen}
           onOpenChange={setIsForkOpen}
           contentType={forkContentType}
-          initialData={{
-            id: '',
-            ownerId: '',
-            contentType: forkContentType,
-            name: forkingItem?.name ?? '',
-            description: forkingItem?.description ?? '',
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            content: forkingItem?.rawData as any,
-            visibility: 'private',
-            tags: [],
-            campaignLinks: [],
-            forkCount: 0,
-            viewCount: 0,
-            starCount: 0,
-            commentCount: 0,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          }}
+          initialData={forkDialogInitialData}
           onSubmit={handleForkSubmit}
           isSubmitting={createMutation.isPending}
         />

@@ -25,6 +25,41 @@ import { Switch } from '@/components/ui/switch';
 import { parseTrackUrl } from '@/features/soundboard/track-url-utils';
 import type { TrackCategory } from '@/lib/schemas/soundboard';
 
+function UrlHelpText() {
+  return (
+    <p className="text-muted-foreground text-xs">
+      Supports YouTube, SoundCloud, or direct links to audio files. Try{' '}
+      <a
+        href="https://freesound.org"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline"
+      >
+        Freesound.org
+      </a>
+      ,{' '}
+      <a
+        href="https://incompetech.com"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline"
+      >
+        Incompetech
+      </a>
+      , or{' '}
+      <a
+        href="https://tabletopaudio.com"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline"
+      >
+        Tabletop Audio
+      </a>{' '}
+      for free TTRPG audio.
+    </p>
+  );
+}
+
 interface AddTrackDialogProps {
   onAdd: (track: {
     name: string;
@@ -82,6 +117,24 @@ export default function AddTrackDialog({ onAdd }: AddTrackDialogProps) {
     setOpen(false);
   }, [name, url, category, tags, loop, onAdd, reset]);
 
+  const handleUrlChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setUrl(e.target.value);
+      setUrlError('');
+    },
+    []
+  );
+
+  const handleCategoryChange = useCallback(
+    (v: string) => setCategory(v as TrackCategory),
+    []
+  );
+
+  const handleCancel = useCallback(() => {
+    reset();
+    setOpen(false);
+  }, [reset]);
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -117,50 +170,15 @@ export default function AddTrackDialog({ onAdd }: AddTrackDialogProps) {
               id="track-url"
               placeholder="https://youtube.com/watch?v=... or direct .mp3 link"
               value={url}
-              onChange={e => {
-                setUrl(e.target.value);
-                setUrlError('');
-              }}
+              onChange={handleUrlChange}
             />
             {urlError && <p className="text-destructive text-xs">{urlError}</p>}
-            <p className="text-muted-foreground text-xs">
-              Supports YouTube, SoundCloud, or direct links to audio files. Try{' '}
-              <a
-                href="https://freesound.org"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline"
-              >
-                Freesound.org
-              </a>
-              ,{' '}
-              <a
-                href="https://incompetech.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline"
-              >
-                Incompetech
-              </a>
-              , or{' '}
-              <a
-                href="https://tabletopaudio.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline"
-              >
-                Tabletop Audio
-              </a>{' '}
-              for free TTRPG audio.
-            </p>
+            <UrlHelpText />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="track-category">Category</Label>
-            <Select
-              value={category}
-              onValueChange={v => setCategory(v as TrackCategory)}
-            >
+            <Select value={category} onValueChange={handleCategoryChange}>
               <SelectTrigger id="track-category">
                 <SelectValue />
               </SelectTrigger>
@@ -189,13 +207,7 @@ export default function AddTrackDialog({ onAdd }: AddTrackDialogProps) {
         </div>
 
         <DialogFooter>
-          <Button
-            variant="ghost"
-            onClick={() => {
-              reset();
-              setOpen(false);
-            }}
-          >
+          <Button variant="ghost" onClick={handleCancel}>
             Cancel
           </Button>
           <Button onClick={handleSubmit} disabled={!name.trim() || !url.trim()}>

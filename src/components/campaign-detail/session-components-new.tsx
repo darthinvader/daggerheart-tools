@@ -429,7 +429,6 @@ function SessionCard({
         questIds: string[];
       }
     ) => {
-      // Find existing and merge
       const existing = (localSession.npcsInvolved ?? []).find(
         n => n.id === involvementId
       );
@@ -440,6 +439,31 @@ function SessionCard({
     [localSession.npcsInvolved, handleUpdateNPCInvolvementRaw]
   );
 
+  const handleGenerateRecap = useCallback(() => {
+    const template = `## Session ${localSession.sessionNumber} Recap\n**Date**: ${localSession.date ?? 'TBD'}\n\n### What Happened\n- \n\n### Key NPCs Encountered\n- \n\n### Important Decisions\n- \n\n### Cliffhanger / Next Session Hook\n- \n\n### Player Highlights\n- `;
+    handleTextChange('summary', template);
+  }, [localSession.sessionNumber, localSession.date, handleTextChange]);
+
+  const handleRemoveNPCByNpcId = useCallback(
+    (npcId: string) => {
+      const inv = (localSession.npcsInvolved ?? []).find(
+        n => n.npcId === npcId
+      );
+      if (inv) handleRemoveNPC(inv.id);
+    },
+    [localSession.npcsInvolved, handleRemoveNPC]
+  );
+
+  const handleCloseNpcEditor = useCallback(
+    () => setEditingNpcInvolvement(null),
+    []
+  );
+
+  const handleStatusChange = useCallback(
+    (value: SessionNote['status']) => handleTextChange('status', value),
+    [handleTextChange]
+  );
+
   return (
     <>
       <Card className="overflow-hidden">
@@ -448,86 +472,31 @@ function SessionCard({
             session={localSession}
             isExpanded={isExpanded}
             onDelete={onDelete}
-            onStatusChange={value => handleTextChange('status', value)}
-            onGenerateRecap={() => {
-              const template = `## Session ${localSession.sessionNumber} Recap\n**Date**: ${localSession.date ?? 'TBD'}\n\n### What Happened\n- \n\n### Key NPCs Encountered\n- \n\n### Important Decisions\n- \n\n### Cliffhanger / Next Session Hook\n- \n\n### Player Highlights\n- `;
-              handleTextChange('summary', template);
-            }}
+            onStatusChange={handleStatusChange}
+            onGenerateRecap={handleGenerateRecap}
           />
 
           <CollapsibleContent>
-            <CardContent className="space-y-6 pt-6">
-              <SessionBasicInfoSection
-                session={localSession}
-                onTextChange={handleTextChange}
-                onBlur={handleBlur}
-                onDateChange={handleDateChange}
-              />
-
-              <SessionHighlightsSection
-                highlights={localSession.keyHighlights ?? []}
-                highlightInput={highlightInput}
-                onInputChange={setHighlightInput}
-                onAddHighlight={addHighlight}
-                onRemoveHighlight={removeHighlight}
-              />
-
-              <Separator />
-
-              <SessionNPCsSection
-                npcsInvolved={localSession.npcsInvolved ?? []}
-                npcs={npcs}
-                onOpenNpcPicker={() => openModal('npcPicker')}
-                onEditNPC={setEditingNpcInvolvement}
-                onRemoveNPC={npcId => {
-                  const inv = (localSession.npcsInvolved ?? []).find(
-                    n => n.npcId === npcId
-                  );
-                  if (inv) handleRemoveNPC(inv.id);
-                }}
-              />
-
-              <Separator />
-
-              <SessionLocationsSection
-                locationIds={localSession.locationIds ?? []}
-                locations={locations}
-                onOpenLocationPicker={() => openModal('locationPicker')}
-                onRemoveLocation={locationHandlers.handleRemove}
-              />
-
-              <SessionQuestsSection
-                questIds={localSession.questIds ?? []}
-                quests={quests}
-                onOpenQuestPicker={() => openModal('questPicker')}
-                onRemoveQuest={questHandlers.handleRemove}
-              />
-
-              <SessionOrganizationsSection
-                organizationIds={localSession.organizationIds ?? []}
-                organizations={organizations}
-                onOpenOrgPicker={() => openModal('orgPicker')}
-                onRemoveOrganization={orgHandlers.handleRemove}
-              />
-
-              <Separator />
-
-              <SessionQuestProgressSection
-                questProgress={localSession.questProgress ?? ''}
-                onTextChange={handleTextChange}
-                onBlur={handleBlur}
-              />
-
-              <SessionRewardsSection
-                rewards={localSession.rewards ?? ''}
-                onTextChange={handleTextChange}
-                onBlur={handleBlur}
-              />
-
-              <SessionPlayerNotesSection
-                playerNotes={localSession.playerNotes}
-              />
-            </CardContent>
+            <SessionCardBody
+              localSession={localSession}
+              npcs={npcs}
+              locations={locations}
+              quests={quests}
+              organizations={organizations}
+              handleTextChange={handleTextChange}
+              handleBlur={handleBlur}
+              handleDateChange={handleDateChange}
+              highlightInput={highlightInput}
+              setHighlightInput={setHighlightInput}
+              addHighlight={addHighlight}
+              removeHighlight={removeHighlight}
+              openModal={openModal}
+              setEditingNpcInvolvement={setEditingNpcInvolvement}
+              handleRemoveNPCByNpcId={handleRemoveNPCByNpcId}
+              locationHandlers={locationHandlers}
+              questHandlers={questHandlers}
+              orgHandlers={orgHandlers}
+            />
           </CollapsibleContent>
         </Collapsible>
       </Card>
@@ -549,9 +518,135 @@ function SessionCard({
         onAddOrganization={orgHandlers.handleAdd}
         onCreateOrganization={onCreateOrganization}
         editingNpcInvolvement={editingNpcInvolvement}
-        onCloseNpcEditor={() => setEditingNpcInvolvement(null)}
+        onCloseNpcEditor={handleCloseNpcEditor}
         onUpdateNPCInvolvement={handleUpdateNPCInvolvement}
       />
     </>
+  );
+}
+
+// =====================================================================================
+// Session Card Body Sub-Component
+// =====================================================================================
+
+interface SessionCardBodyProps {
+  localSession: SessionNote;
+  npcs: CampaignNPC[];
+  locations: CampaignLocation[];
+  quests: CampaignQuest[];
+  organizations: CampaignOrganization[];
+  handleTextChange: <K extends keyof SessionNote>(
+    field: K,
+    value: SessionNote[K]
+  ) => void;
+  handleBlur: () => void;
+  handleDateChange: (value: string) => void;
+  highlightInput: string;
+  setHighlightInput: (value: string) => void;
+  addHighlight: () => void;
+  removeHighlight: (index: number) => void;
+  openModal: (key: SessionModalKey) => void;
+  setEditingNpcInvolvement: (inv: SessionNPCInvolvement | null) => void;
+  handleRemoveNPCByNpcId: (npcId: string) => void;
+  locationHandlers: {
+    handleAdd: (id: string) => void;
+    handleRemove: (id: string) => void;
+  };
+  questHandlers: {
+    handleAdd: (id: string) => void;
+    handleRemove: (id: string) => void;
+  };
+  orgHandlers: {
+    handleAdd: (id: string) => void;
+    handleRemove: (id: string) => void;
+  };
+}
+
+function SessionCardBody({
+  localSession,
+  npcs,
+  locations,
+  quests,
+  organizations,
+  handleTextChange,
+  handleBlur,
+  handleDateChange,
+  highlightInput,
+  setHighlightInput,
+  addHighlight,
+  removeHighlight,
+  openModal,
+  setEditingNpcInvolvement,
+  handleRemoveNPCByNpcId,
+  locationHandlers,
+  questHandlers,
+  orgHandlers,
+}: SessionCardBodyProps) {
+  return (
+    <CardContent className="space-y-6 pt-6">
+      <SessionBasicInfoSection
+        session={localSession}
+        onTextChange={handleTextChange}
+        onBlur={handleBlur}
+        onDateChange={handleDateChange}
+      />
+
+      <SessionHighlightsSection
+        highlights={localSession.keyHighlights ?? []}
+        highlightInput={highlightInput}
+        onInputChange={setHighlightInput}
+        onAddHighlight={addHighlight}
+        onRemoveHighlight={removeHighlight}
+      />
+
+      <Separator />
+
+      <SessionNPCsSection
+        npcsInvolved={localSession.npcsInvolved ?? []}
+        npcs={npcs}
+        onOpenNpcPicker={() => openModal('npcPicker')}
+        onEditNPC={setEditingNpcInvolvement}
+        onRemoveNPC={handleRemoveNPCByNpcId}
+      />
+
+      <Separator />
+
+      <SessionLocationsSection
+        locationIds={localSession.locationIds ?? []}
+        locations={locations}
+        onOpenLocationPicker={() => openModal('locationPicker')}
+        onRemoveLocation={locationHandlers.handleRemove}
+      />
+
+      <SessionQuestsSection
+        questIds={localSession.questIds ?? []}
+        quests={quests}
+        onOpenQuestPicker={() => openModal('questPicker')}
+        onRemoveQuest={questHandlers.handleRemove}
+      />
+
+      <SessionOrganizationsSection
+        organizationIds={localSession.organizationIds ?? []}
+        organizations={organizations}
+        onOpenOrgPicker={() => openModal('orgPicker')}
+        onRemoveOrganization={orgHandlers.handleRemove}
+      />
+
+      <Separator />
+
+      <SessionQuestProgressSection
+        questProgress={localSession.questProgress ?? ''}
+        onTextChange={handleTextChange}
+        onBlur={handleBlur}
+      />
+
+      <SessionRewardsSection
+        rewards={localSession.rewards ?? ''}
+        onTextChange={handleTextChange}
+        onBlur={handleBlur}
+      />
+
+      <SessionPlayerNotesSection playerNotes={localSession.playerNotes} />
+    </CardContent>
   );
 }

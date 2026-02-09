@@ -14,7 +14,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -23,7 +22,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { Textarea } from '@/components/ui/textarea';
 import { useTagManager } from '@/hooks/use-tag-manager';
 import type {
   CampaignLocation,
@@ -40,14 +38,15 @@ import {
 } from './entity-card-utils';
 import {
   NPCPickerModal,
+  type NPCPickerResult,
   OrganizationPickerModal,
   QuestPickerModal,
 } from './entity-modals';
-import { TagInputSection } from './entity-tag-input';
 import {
   LocationBasicInfoSection,
   LocationCardHeader,
   LocationEntitiesSection,
+  LocationNotesSection,
   LocationPOISection,
   LocationSessionAppearancesSection,
   LocationStateHistorySection,
@@ -353,6 +352,100 @@ const LOCATION_MODAL_KEYS = [
 ] as const;
 type LocationModalKey = (typeof LOCATION_MODAL_KEYS)[number];
 
+// =====================================================================================
+// Location Card Modals Sub-component
+// =====================================================================================
+
+interface LocationCardModalsProps {
+  modals: Record<LocationModalKey, boolean>;
+  setModalOpen: (key: LocationModalKey, open: boolean) => void;
+  localLocation: CampaignLocation;
+  npcs: CampaignNPC[];
+  quests: CampaignQuest[];
+  organizations: CampaignOrganization[];
+  onDelete: () => void;
+  onCreateNPC: (name: string) => Promise<string>;
+  onCreateQuest: (
+    title: string,
+    type: CampaignQuest['type']
+  ) => Promise<string>;
+  onCreateOrganization: (
+    name: string,
+    type: CampaignOrganization['type']
+  ) => Promise<string>;
+  handleAddNPC: (result: NPCPickerResult) => void;
+  handleAddQuest: (id: string) => void;
+  handleAddOrg: (id: string) => void;
+}
+
+function LocationCardModals({
+  modals,
+  setModalOpen,
+  localLocation,
+  npcs,
+  quests,
+  organizations,
+  onDelete,
+  onCreateNPC,
+  onCreateQuest,
+  onCreateOrganization,
+  handleAddNPC,
+  handleAddQuest,
+  handleAddOrg,
+}: LocationCardModalsProps) {
+  return (
+    <>
+      <DeleteConfirmDialog
+        open={modals.deleteConfirm}
+        onOpenChange={open => setModalOpen('deleteConfirm', open)}
+        entityType="Location"
+        entityName={localLocation.name}
+        onDelete={onDelete}
+      />
+
+      <NPCPickerModal
+        open={modals.npcPicker}
+        onOpenChange={open => setModalOpen('npcPicker', open)}
+        npcs={npcs}
+        locations={[]}
+        quests={[]}
+        selectedNpcIds={localLocation.npcIds ?? []}
+        onSelectNPC={handleAddNPC}
+        onCreateNPC={onCreateNPC}
+        title="Add NPC to Location"
+        description="Select an NPC that can be found at this location"
+        showInvolvementFields={false}
+      />
+
+      <QuestPickerModal
+        open={modals.questPicker}
+        onOpenChange={open => setModalOpen('questPicker', open)}
+        quests={quests}
+        selectedQuestIds={localLocation.questIds ?? []}
+        onSelectQuest={handleAddQuest}
+        onCreateQuest={onCreateQuest}
+        title="Link Quest to Location"
+        description="Select a quest related to this location"
+      />
+
+      <OrganizationPickerModal
+        open={modals.orgPicker}
+        onOpenChange={open => setModalOpen('orgPicker', open)}
+        organizations={organizations}
+        selectedOrganizationIds={localLocation.organizationIds ?? []}
+        onSelectOrganization={handleAddOrg}
+        onCreateOrganization={onCreateOrganization}
+        title="Link Organization to Location"
+        description="Select an organization present at this location"
+      />
+    </>
+  );
+}
+
+// =====================================================================================
+// Location Card Component
+// =====================================================================================
+
 function LocationCard({
   location,
   npcs,
@@ -393,6 +486,12 @@ function LocationCard({
   // Use shared modal state hook
   const { modals, openModal, setModalOpen } =
     useModalState<LocationModalKey>(LOCATION_MODAL_KEYS);
+
+  // Named callbacks for opening modals
+  const handleOpenDeleteModal = () => openModal('deleteConfirm');
+  const handleOpenNpcPicker = () => openModal('npcPicker');
+  const handleOpenOrgPicker = () => openModal('orgPicker');
+  const handleOpenQuestPicker = () => openModal('questPicker');
 
   // Consolidated handlers hook (entity IDs, type change, name getters)
   const {
@@ -449,7 +548,7 @@ function LocationCard({
             location={localLocation}
             isExpanded={isExpanded}
             onToggle={onToggle}
-            onDeleteClick={() => openModal('deleteConfirm')}
+            onDeleteClick={handleOpenDeleteModal}
             TypeIcon={TypeIcon}
             typeColor={typeInfo?.color ?? 'bg-gray-500/20'}
           />
@@ -496,9 +595,9 @@ function LocationCard({
                 getNpcName={getNpcName}
                 getOrgName={getOrgName}
                 getQuestTitle={getQuestTitle}
-                onOpenNpcPicker={() => openModal('npcPicker')}
-                onOpenOrgPicker={() => openModal('orgPicker')}
-                onOpenQuestPicker={() => openModal('questPicker')}
+                onOpenNpcPicker={handleOpenNpcPicker}
+                onOpenOrgPicker={handleOpenOrgPicker}
+                onOpenQuestPicker={handleOpenQuestPicker}
                 onRemoveNpc={npcHandlers.handleRemove}
                 onRemoveOrg={orgHandlers.handleRemove}
                 onRemoveQuest={questHandlers.handleRemove}
@@ -514,75 +613,36 @@ function LocationCard({
 
               <Separator />
 
-              {/* Tags */}
-              <TagInputSection
+              {/* Tags & Notes */}
+              <LocationNotesSection
+                location={localLocation}
                 tags={localLocation.tags}
                 tagInput={tagInput}
-                onInputChange={setTagInput}
-                onAdd={addTag}
-                onRemove={removeTag}
+                onTagInputChange={setTagInput}
+                onAddTag={addTag}
+                onRemoveTag={removeTag}
+                onTextChange={handleTextChange}
+                onBlur={handleBlur}
               />
-
-              {/* Notes */}
-              <div className="space-y-2">
-                <Label className="text-xs">Additional Notes</Label>
-                <Textarea
-                  value={localLocation.notes}
-                  onChange={e => handleTextChange('notes', e.target.value)}
-                  onBlur={handleBlur}
-                  placeholder="Additional notes..."
-                  rows={2}
-                />
-              </div>
             </CardContent>
           </CollapsibleContent>
         </Collapsible>
       </Card>
 
-      {/* Delete Confirmation Dialog */}
-      <DeleteConfirmDialog
-        open={modals.deleteConfirm}
-        onOpenChange={open => setModalOpen('deleteConfirm', open)}
-        entityType="Location"
-        entityName={localLocation.name}
-        onDelete={onDelete}
-      />
-
-      {/* Modals */}
-      <NPCPickerModal
-        open={modals.npcPicker}
-        onOpenChange={open => setModalOpen('npcPicker', open)}
+      <LocationCardModals
+        modals={modals}
+        setModalOpen={setModalOpen}
+        localLocation={localLocation}
         npcs={npcs}
-        locations={[]}
-        quests={[]}
-        selectedNpcIds={localLocation.npcIds ?? []}
-        onSelectNPC={handleAddNPC}
-        onCreateNPC={onCreateNPC}
-        title="Add NPC to Location"
-        description="Select an NPC that can be found at this location"
-        showInvolvementFields={false}
-      />
-
-      <QuestPickerModal
-        open={modals.questPicker}
-        onOpenChange={open => setModalOpen('questPicker', open)}
         quests={quests}
-        selectedQuestIds={localLocation.questIds ?? []}
-        onSelectQuest={questHandlers.handleAdd}
-        onCreateQuest={onCreateQuest}
-        title="Link Quest to Location"
-        description="Select a quest related to this location"
-      />
-
-      <OrganizationPickerModal
-        open={modals.orgPicker}
-        onOpenChange={open => setModalOpen('orgPicker', open)}
         organizations={organizations}
-        selectedOrganizationIds={localLocation.organizationIds ?? []}
-        onSelectOrganization={orgHandlers.handleAdd}
+        onDelete={onDelete}
+        onCreateNPC={onCreateNPC}
+        onCreateQuest={onCreateQuest}
         onCreateOrganization={onCreateOrganization}
-        title="Link Organization to Location"
-        description="Select an organization present at this location"
+        handleAddNPC={handleAddNPC}
+        handleAddQuest={questHandlers.handleAdd}
+        handleAddOrg={orgHandlers.handleAdd}
       />
     </>
   );

@@ -1,5 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { toast } from 'sonner';
 
 import { fetchCharacter } from '@/lib/api/characters';
 import { characterQueryKeys } from '@/lib/api/query-client';
@@ -167,6 +168,7 @@ export function useCharacterRealtimeSync(
         log('Successfully subscribed to character updates');
       } else if (status === 'CHANNEL_ERROR') {
         console.error('[BattleRealtime] Failed to subscribe to channel');
+        toast.error('Lost real-time connection');
       }
     });
 

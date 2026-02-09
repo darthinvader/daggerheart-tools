@@ -163,25 +163,15 @@ export function DetailSidebar({
                   onSelect={onSetSpotlight}
                 />
                 <Separator />
-                {item ? (
-                  <SelectedItemDetails
-                    item={item}
-                    useMassiveThreshold={useMassiveThreshold}
-                    onCharacterChange={onCharacterChange}
-                    onAdversaryChange={onAdversaryChange}
-                    onEnvironmentChange={onEnvironmentChange}
-                    fearPool={fearPool}
-                    onSpendFear={onSpendFear}
-                  />
-                ) : (
-                  <div className="text-muted-foreground py-8 text-center">
-                    <Info className="mx-auto mb-2 size-8 opacity-50" />
-                    <p className="text-sm">Select an item from the roster</p>
-                    <p className="mt-1 text-xs">
-                      Click on a character, adversary, or environment
-                    </p>
-                  </div>
-                )}
+                <ItemDetailSection
+                  item={item}
+                  useMassiveThreshold={useMassiveThreshold}
+                  onCharacterChange={onCharacterChange}
+                  onAdversaryChange={onAdversaryChange}
+                  onEnvironmentChange={onEnvironmentChange}
+                  fearPool={fearPool}
+                  onSpendFear={onSpendFear}
+                />
               </div>
             </ScrollArea>
           </TabsContent>
@@ -209,21 +199,11 @@ export function DetailSidebar({
           <TabsContent value="cards" className="mt-0 flex-1 overflow-hidden">
             <ScrollArea className="h-full">
               <div className="p-4">
-                {item && item.kind === 'character' ? (
-                  <VaultCardManagementPanel
-                    character={item}
-                    onMoveToLoadout={handleMoveToLoadout}
-                    onMoveToVault={handleMoveToVault}
-                  />
-                ) : (
-                  <div className="text-muted-foreground py-8 text-center">
-                    <Info className="mx-auto mb-2 size-8 opacity-50" />
-                    <p className="text-sm">Select a character</p>
-                    <p className="mt-1 text-xs">
-                      Vault card management is available for player characters
-                    </p>
-                  </div>
-                )}
+                <CardsTabPanel
+                  item={item}
+                  onMoveToLoadout={handleMoveToLoadout}
+                  onMoveToVault={handleMoveToVault}
+                />
               </div>
             </ScrollArea>
           </TabsContent>
@@ -322,5 +302,87 @@ function SpotlightSection({
         </div>
       )}
     </div>
+  );
+}
+
+function EmptyState({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="text-muted-foreground py-8 text-center">
+      <Info className="mx-auto mb-2 size-8 opacity-50" />
+      <p className="text-sm">{title}</p>
+      <p className="mt-1 text-xs">{description}</p>
+    </div>
+  );
+}
+
+function ItemDetailSection({
+  item,
+  useMassiveThreshold,
+  onCharacterChange,
+  onAdversaryChange,
+  onEnvironmentChange,
+  fearPool,
+  onSpendFear,
+}: Pick<
+  DetailSidebarProps,
+  | 'useMassiveThreshold'
+  | 'onCharacterChange'
+  | 'onAdversaryChange'
+  | 'onEnvironmentChange'
+  | 'fearPool'
+  | 'onSpendFear'
+> & { item: TrackerItem | null }) {
+  if (!item) {
+    return (
+      <EmptyState
+        title="Select an item from the roster"
+        description="Click on a character, adversary, or environment"
+      />
+    );
+  }
+
+  return (
+    <SelectedItemDetails
+      item={item}
+      useMassiveThreshold={useMassiveThreshold}
+      onCharacterChange={onCharacterChange}
+      onAdversaryChange={onAdversaryChange}
+      onEnvironmentChange={onEnvironmentChange}
+      fearPool={fearPool}
+      onSpendFear={onSpendFear}
+    />
+  );
+}
+
+function CardsTabPanel({
+  item,
+  onMoveToLoadout,
+  onMoveToVault,
+}: {
+  item: TrackerItem | null;
+  onMoveToLoadout: (card: BattleCard, index: number) => void;
+  onMoveToVault: (card: BattleCard, index: number) => void;
+}) {
+  if (!item || item.kind !== 'character') {
+    return (
+      <EmptyState
+        title="Select a character"
+        description="Vault card management is available for player characters"
+      />
+    );
+  }
+
+  return (
+    <VaultCardManagementPanel
+      character={item}
+      onMoveToLoadout={onMoveToLoadout}
+      onMoveToVault={onMoveToVault}
+    />
   );
 }

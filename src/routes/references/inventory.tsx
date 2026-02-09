@@ -754,6 +754,56 @@ function InventoryHeader({
   );
 }
 
+function CategorySection({
+  category,
+  items,
+  isExpanded,
+  onToggle,
+  onSelectItem,
+}: {
+  category: string;
+  items: InventoryItem[];
+  isExpanded: boolean;
+  onToggle: () => void;
+  onSelectItem: (item: InventoryItem) => void;
+}) {
+  const gradient = categoryGradients[category] ?? 'from-gray-500 to-slate-600';
+
+  return (
+    <Collapsible open={isExpanded} onOpenChange={onToggle}>
+      <CollapsibleTrigger asChild>
+        <button className="hover:bg-muted/50 bg-card flex w-full items-center justify-between rounded-lg border p-3 transition-colors">
+          <div className="flex items-center gap-3">
+            <span
+              className={`inline-block h-3 w-3 rounded-full bg-gradient-to-r ${gradient}`}
+            />
+            <h2 className="text-lg font-semibold">
+              {categoryLabels[category]}s
+            </h2>
+            <Badge variant="secondary">{items.length}</Badge>
+          </div>
+          {isExpanded ? (
+            <ChevronDown className="text-muted-foreground size-5" />
+          ) : (
+            <ChevronRight className="text-muted-foreground size-5" />
+          )}
+        </button>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="pt-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {items.map((item, idx) => (
+            <ItemCard
+              key={`${item.data.name}-${idx}`}
+              item={item}
+              onClick={() => onSelectItem(item)}
+            />
+          ))}
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
 const InventoryGridSections = React.memo(function InventoryGridSections({
   groupedItems,
   onSelectItem,
@@ -792,6 +842,13 @@ const InventoryGridSections = React.memo(function InventoryGridSections({
     allCollapsed,
     isCategoryExpanded,
   } = useCategoryExpandState(visibleCategories);
+
+  const SortIcon = sortDir === 'asc' ? ArrowUp : ArrowDown;
+  const sortDirLabel = sortDir === 'asc' ? 'Ascending' : 'Descending';
+  const handleToggleSortDir = React.useCallback(
+    () => onSortDirChange(sortDir === 'asc' ? 'desc' : 'asc'),
+    [sortDir, onSortDirChange]
+  );
 
   return (
     <div className="space-y-4">
@@ -846,20 +903,12 @@ const InventoryGridSections = React.memo(function InventoryGridSections({
                   variant="ghost"
                   size="icon"
                   className="size-8"
-                  onClick={() =>
-                    onSortDirChange(sortDir === 'asc' ? 'desc' : 'asc')
-                  }
+                  onClick={handleToggleSortDir}
                 >
-                  {sortDir === 'asc' ? (
-                    <ArrowUp className="size-4" />
-                  ) : (
-                    <ArrowDown className="size-4" />
-                  )}
+                  <SortIcon className="size-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>
-                {sortDir === 'asc' ? 'Ascending' : 'Descending'}
-              </TooltipContent>
+              <TooltipContent>{sortDirLabel}</TooltipContent>
             </Tooltip>
           </div>
 
@@ -942,50 +991,16 @@ const InventoryGridSections = React.memo(function InventoryGridSections({
         </div>
       </div>
 
-      {visibleCategories.map(category => {
-        const items = groupedItems[category];
-        const gradient =
-          categoryGradients[category] ?? 'from-gray-500 to-slate-600';
-        const isExpanded = isCategoryExpanded(category);
-
-        return (
-          <Collapsible
-            key={category}
-            open={isExpanded}
-            onOpenChange={() => toggleCategory(category)}
-          >
-            <CollapsibleTrigger asChild>
-              <button className="hover:bg-muted/50 bg-card flex w-full items-center justify-between rounded-lg border p-3 transition-colors">
-                <div className="flex items-center gap-3">
-                  <span
-                    className={`inline-block h-3 w-3 rounded-full bg-gradient-to-r ${gradient}`}
-                  />
-                  <h2 className="text-lg font-semibold">
-                    {categoryLabels[category]}s
-                  </h2>
-                  <Badge variant="secondary">{items.length}</Badge>
-                </div>
-                {isExpanded ? (
-                  <ChevronDown className="text-muted-foreground size-5" />
-                ) : (
-                  <ChevronRight className="text-muted-foreground size-5" />
-                )}
-              </button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="pt-4">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {items.map((item, idx) => (
-                  <ItemCard
-                    key={`${item.data.name}-${idx}`}
-                    item={item}
-                    onClick={() => onSelectItem(item)}
-                  />
-                ))}
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-        );
-      })}
+      {visibleCategories.map(category => (
+        <CategorySection
+          key={category}
+          category={category}
+          items={groupedItems[category]}
+          isExpanded={isCategoryExpanded(category)}
+          onToggle={() => toggleCategory(category)}
+          onSelectItem={onSelectItem}
+        />
+      ))}
     </div>
   );
 });

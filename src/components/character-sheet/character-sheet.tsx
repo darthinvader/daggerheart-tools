@@ -1,24 +1,12 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { useCallback, useMemo, useState } from 'react';
-import { toast } from 'sonner';
+import { useCallback, useState } from 'react';
 
-import { useAuth } from '@/components/providers';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  joinCampaignByInviteCode,
-  unlinkCharacterFromCampaign,
-} from '@/features/campaigns/campaign-storage';
-import {
-  campaignKeys,
-  useCampaigns,
-  useCharacterCampaign,
-} from '@/features/campaigns/use-campaign-query';
-import type { Campaign } from '@/lib/schemas/campaign';
 import { useUndoShortcuts } from '@/lib/undo';
 
 import { CharacterSheetLayout } from './character-sheet-layout';
+import { useCampaignManagement } from './use-campaign-management';
 import { useCharacterSheetWithApi } from './use-character-sheet-api';
 import { useUndoableCharacterState } from './use-undoable-character-state';
 
@@ -80,10 +68,7 @@ export function CharacterSheet({
   onTabChange,
   readOnly = false,
 }: CharacterSheetProps) {
-  const { user } = useAuth();
   const [hasDismissedOnboarding, setHasDismissedOnboarding] = useState(false);
-  const [inviteCode, setInviteCode] = useState('');
-  const queryClient = useQueryClient();
   const {
     state,
     handlers,
@@ -125,90 +110,20 @@ export function CharacterSheet({
     enabled: !readOnly,
   });
 
-  // Fetch the campaign this character belongs to (if any)
-  const { data: campaign } = useCharacterCampaign(characterId);
-  const { data: campaigns } = useCampaigns();
-
-  const characterCampaigns = useMemo(() => {
-    const allCampaigns = campaigns ?? [];
-    return allCampaigns
-      .filter(current =>
-        current.players?.some(player => player.characterId === characterId)
-      )
-      .map(current => {
-        const playerEntry = current.players?.find(
-          player => player.characterId === characterId
-        );
-        return {
-          id: current.id,
-          name: current.name,
-          status: current.status,
-          role: playerEntry?.role,
-        } satisfies {
-          id: string;
-          name: string;
-          status: Campaign['status'];
-          role?: Campaign['players'][number]['role'];
-        };
-      });
-  }, [campaigns, characterId]);
-
-  // Active campaign selection — defaults to the auto-detected campaign
-  const [selectedCampaignId, setSelectedCampaignId] = useState<string>();
-  const activeCampaign = useMemo(() => {
-    if (!campaigns) return campaign;
-    // If user selected a specific campaign, use that
-    if (selectedCampaignId) {
-      return campaigns.find(c => c.id === selectedCampaignId) ?? campaign;
-    }
-    // Default to auto-detected campaign
-    return campaign;
-  }, [campaigns, campaign, selectedCampaignId]);
-  const campaignId = activeCampaign?.id;
-
-  const playerName = useMemo(() => {
-    const metadata = user?.user_metadata as {
-      full_name?: string;
-      name?: string;
-    };
-    return (
-      metadata?.full_name ??
-      metadata?.name ??
-      user?.email?.split('@')[0] ??
-      'Player'
-    );
-  }, [user]);
-
-  const joinMutation = useMutation<string, Error, void>({
-    mutationFn: async () =>
-      joinCampaignByInviteCode({
-        inviteCode: inviteCode.trim(),
-        playerName,
-        characterId,
-        characterName: state.identity.name?.trim() || null,
-      }),
-    onSuccess: async () => {
-      setInviteCode('');
-      await queryClient.invalidateQueries({ queryKey: campaignKeys.all });
-    },
+  // Campaign management (queries, mutations, derived state)
+  const campaignMgmt = useCampaignManagement({
+    characterId,
+    characterName: state.identity.name,
   });
 
-  const unlinkMutation = useMutation<void, Error, string>({
-    mutationFn: async (campaignId: string) =>
-      unlinkCharacterFromCampaign({
-        campaignId,
-        characterId,
-      }),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: campaignKeys.all });
-    },
-    onError: err => {
-      console.error('[UnlinkCampaign]', err);
-      toast.error('Failed to unlink from campaign');
-    },
-  });
+  // Named callbacks for stable references
+  const handleDismissOnboarding = useCallback(() => {
+    setHasDismissedOnboarding(true);
+  }, []);
 
-  const canJoin = inviteCode.trim().length >= 6 && !joinMutation.isPending;
+  const handleLevelUpClose = useCallback(() => {
+    setIsLevelUpOpen(false);
+  }, [setIsLevelUpOpen]);
 
   // Auto-open wizard if new character, but don't auto-close
   // once opened - let the user explicitly finish or dismiss
@@ -241,8 +156,8 @@ export function CharacterSheet({
       isOnboardingOpen={isOnboardingOpen}
       isSaving={isSaving}
       lastSaved={lastSaved}
-      onDismissOnboarding={() => setHasDismissedOnboarding(true)}
-      onLevelUpClose={() => setIsLevelUpOpen(false)}
+      onDismissOnboarding={handleDismissOnboarding}
+      onLevelUpClose={handleLevelUpClose}
       onTabChange={onTabChange}
       readOnly={readOnly}
       setIsNewCharacter={setIsNewCharacter}
@@ -252,21 +167,21 @@ export function CharacterSheet({
       currentExperiencesForModal={currentExperiencesForModal}
       currentTraitsForModal={currentTraitsForModal}
       ownedCardNames={ownedCardNames}
-      campaignId={campaignId}
-      campaignSummary={characterCampaigns}
-      inviteCode={inviteCode}
-      onInviteCodeChange={value => setInviteCode(value.toUpperCase())}
-      onJoinCampaign={() => joinMutation.mutate()}
-      canJoinCampaign={canJoin}
-      isJoiningCampaign={joinMutation.isPending}
-      joinCampaignError={joinMutation.isError ? joinMutation.error : null}
-      joinCampaignSuccess={joinMutation.isSuccess}
-      onUnlinkCampaign={campaignId => unlinkMutation.mutate(campaignId)}
-      isUnlinkingCampaign={unlinkMutation.isPending}
-      campaign={activeCampaign}
+      campaignId={campaignMgmt.campaignId}
+      campaignSummary={campaignMgmt.characterCampaigns}
+      inviteCode={campaignMgmt.inviteCode}
+      onInviteCodeChange={campaignMgmt.handleInviteCodeChange}
+      onJoinCampaign={campaignMgmt.handleJoinCampaign}
+      canJoinCampaign={campaignMgmt.canJoin}
+      isJoiningCampaign={campaignMgmt.isJoiningCampaign}
+      joinCampaignError={campaignMgmt.joinCampaignError}
+      joinCampaignSuccess={campaignMgmt.joinCampaignSuccess}
+      onUnlinkCampaign={campaignMgmt.handleUnlinkCampaign}
+      isUnlinkingCampaign={campaignMgmt.isUnlinkingCampaign}
+      campaign={campaignMgmt.activeCampaign}
       pushUndo={pushUndo}
-      selectedCampaignId={selectedCampaignId ?? activeCampaign?.id}
-      onSelectCampaign={setSelectedCampaignId}
+      selectedCampaignId={campaignMgmt.selectedCampaignId}
+      onSelectCampaign={campaignMgmt.onSelectCampaign}
     />
   );
 }

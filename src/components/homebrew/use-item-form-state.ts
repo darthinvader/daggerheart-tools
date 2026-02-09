@@ -5,6 +5,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { useLatestRef } from '@/hooks/use-latest-ref';
 import type { FeatureStatModifiers } from '@/lib/schemas/core';
 import type { Rarity } from '@/lib/schemas/equipment';
 import type { ItemCategory } from '@/lib/schemas/homebrew';
@@ -62,12 +63,7 @@ export function useItemFormState(
   // Track previous data to avoid notifying on unchanged values
   const prevDataRef = useRef<string | undefined>(undefined);
   // Store onChange in ref to avoid dependency on unstable callback reference
-  const onChangeRef = useRef(onChange);
-
-  // Update ref in effect to satisfy react-hooks/refs rule
-  useEffect(() => {
-    onChangeRef.current = onChange;
-  });
+  const onChangeRef = useLatestRef(onChange);
 
   const buildCurrentData = useCallback((): ItemFormData => {
     return {

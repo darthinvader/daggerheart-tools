@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { TIERS } from '@/lib/constants';
 import type { FeatureStatModifiers } from '@/lib/schemas/core';
 import type { Rarity } from '@/lib/schemas/equipment';
 import type { ItemCategory } from '@/lib/schemas/homebrew';
@@ -85,7 +86,7 @@ export const RARITIES: Array<{ value: Rarity; label: string; color: string }> =
     { value: 'Legendary', label: 'Legendary', color: 'text-purple-500' },
   ];
 
-export const TIERS = ['1', '2', '3', '4'] as const;
+export { TIERS };
 
 // =====================================================================================
 // ItemBasicInfoSection

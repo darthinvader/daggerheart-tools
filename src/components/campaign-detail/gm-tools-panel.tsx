@@ -74,7 +74,7 @@ import {
   rollDuality,
 } from '@/lib/mechanics/dice-engine';
 import type { BattleState } from '@/lib/schemas/battle';
-import { generateId } from '@/lib/utils';
+import { copyToClipboard, generateId } from '@/lib/utils';
 
 const RANDOM_NPC_NAMES = [
   'Aldric the Bold',
@@ -423,6 +423,206 @@ interface RandomResult {
   type: RandomResultType;
 }
 
+const GENERATOR_BUTTONS: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  list: string[];
+  type: RandomResultType;
+  tooltip: string;
+}[] = [
+  {
+    icon: User,
+    label: 'NPC Name',
+    list: RANDOM_NPC_NAMES,
+    type: 'npc',
+    tooltip: 'Generate a random NPC name',
+  },
+  {
+    icon: MapPin,
+    label: 'Location',
+    list: RANDOM_LOCATIONS,
+    type: 'location',
+    tooltip: 'Generate a random location name',
+  },
+  {
+    icon: Target,
+    label: 'Plot Hook',
+    list: RANDOM_HOOKS,
+    type: 'quest',
+    tooltip: 'Generate a random plot hook',
+  },
+  {
+    icon: Scroll,
+    label: 'Quest Hook',
+    list: RANDOM_QUEST_HOOKS,
+    type: 'questHook',
+    tooltip: 'Generate a random quest hook',
+  },
+  {
+    icon: HelpCircle,
+    label: 'NPC Trait',
+    list: RANDOM_NPC_TRAITS,
+    type: 'trait',
+    tooltip: 'Generate a random NPC personality trait',
+  },
+  {
+    icon: Zap,
+    label: 'Complication',
+    list: RANDOM_COMPLICATIONS,
+    type: 'complication',
+    tooltip: 'Roll a mid-session complication',
+  },
+  {
+    icon: Swords,
+    label: 'Encounter',
+    list: RANDOM_ENCOUNTERS,
+    type: 'encounter',
+    tooltip: 'Generate a random encounter',
+  },
+  {
+    icon: Gem,
+    label: 'Loot',
+    list: RANDOM_LOOT,
+    type: 'loot',
+    tooltip: 'Generate random loot or treasure',
+  },
+  {
+    icon: Cloud,
+    label: 'Weather',
+    list: RANDOM_WEATHER,
+    type: 'weather',
+    tooltip: 'Generate random weather conditions',
+  },
+  {
+    icon: Heart,
+    label: 'Motivation',
+    list: RANDOM_MOTIVATIONS,
+    type: 'motivation',
+    tooltip: 'Generate a random NPC motivation',
+  },
+  {
+    icon: MessageCircle,
+    label: 'Rumor',
+    list: RANDOM_RUMORS,
+    type: 'rumor',
+    tooltip: 'Generate a random tavern rumor',
+  },
+  {
+    icon: Eye,
+    label: 'Setting',
+    list: RANDOM_SETTINGS,
+    type: 'setting',
+    tooltip: 'Generate a random scene description',
+  },
+  {
+    icon: AlertTriangle,
+    label: 'Trap',
+    list: RANDOM_TRAPS,
+    type: 'trap',
+    tooltip: 'Generate a random trap or hazard',
+  },
+  {
+    icon: UtensilsCrossed,
+    label: 'Tavern Menu',
+    list: RANDOM_TAVERN,
+    type: 'tavern',
+    tooltip: 'Generate a random tavern for your players to visit',
+  },
+];
+
+const NON_ADDABLE_TYPES = new Set<RandomResultType>([
+  'complication',
+  'encounter',
+  'loot',
+  'weather',
+  'rumor',
+  'trap',
+]);
+
+const NPC_DERIVED_TYPES = new Set<RandomResultType>(['trait', 'motivation']);
+
+const TYPE_LABELS: Record<string, string> = {
+  npc: 'Character',
+  location: 'Location',
+  quest: 'Quest',
+  questHook: 'Quest',
+  trait: 'Trait',
+  complication: 'Complication',
+  encounter: 'Encounter',
+  loot: 'Loot',
+  weather: 'Weather',
+  motivation: 'Motivation',
+  rumor: 'Rumor',
+  setting: 'Location',
+  trap: 'Trap',
+  tavern: 'Location',
+};
+
+function GeneratorButton({
+  config,
+  onRoll,
+}: {
+  config: (typeof GENERATOR_BUTTONS)[number];
+  onRoll: (list: string[], type: RandomResultType) => void;
+}) {
+  const Icon = config.icon;
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onRoll(config.list, config.type)}
+        >
+          <Icon className="mr-1 h-3 w-3" />
+          {config.label}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>{config.tooltip}</TooltipContent>
+    </Tooltip>
+  );
+}
+
+function RandomResultDisplay({
+  randomResult,
+  adding,
+  onAddAndGo,
+  getTypeLabel,
+}: {
+  randomResult: RandomResult;
+  adding: boolean;
+  onAddAndGo: () => Promise<void>;
+  getTypeLabel: (type: RandomResultType) => string;
+}) {
+  const canAdd = !NON_ADDABLE_TYPES.has(randomResult.type);
+  const addLabel = NPC_DERIVED_TYPES.has(randomResult.type)
+    ? 'Add as NPC'
+    : `Add as ${getTypeLabel(randomResult.type)}`;
+
+  return (
+    <div className="bg-muted space-y-2 rounded-lg p-3">
+      <p className="text-sm font-medium">{randomResult.value}</p>
+      {canAdd && (
+        <Button
+          size="sm"
+          onClick={onAddAndGo}
+          disabled={adding}
+          className="w-full"
+        >
+          {adding ? (
+            'Adding...'
+          ) : (
+            <>
+              {addLabel}
+              <ArrowRight className="ml-1 h-3 w-3" />
+            </>
+          )}
+        </Button>
+      )}
+    </div>
+  );
+}
+
 interface RandomGeneratorsCardProps {
   randomResult: RandomResult | null;
   adding: boolean;
@@ -449,234 +649,36 @@ function RandomGeneratorsCard({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-wrap gap-2">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onRoll(RANDOM_NPC_NAMES, 'npc')}
-              >
-                <User className="mr-1 h-3 w-3" />
-                NPC Name
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Generate a random NPC name</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onRoll(RANDOM_LOCATIONS, 'location')}
-              >
-                <MapPin className="mr-1 h-3 w-3" />
-                Location
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Generate a random location name</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onRoll(RANDOM_HOOKS, 'quest')}
-              >
-                <Target className="mr-1 h-3 w-3" />
-                Plot Hook
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Generate a random plot hook</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onRoll(RANDOM_QUEST_HOOKS, 'questHook')}
-              >
-                <Scroll className="mr-1 h-3 w-3" />
-                Quest Hook
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Generate a random quest hook</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onRoll(RANDOM_NPC_TRAITS, 'trait')}
-              >
-                <HelpCircle className="mr-1 h-3 w-3" />
-                NPC Trait
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              Generate a random NPC personality trait
-            </TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onRoll(RANDOM_COMPLICATIONS, 'complication')}
-              >
-                <Zap className="mr-1 h-3 w-3" />
-                Complication
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Roll a mid-session complication</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onRoll(RANDOM_ENCOUNTERS, 'encounter')}
-              >
-                <Swords className="mr-1 h-3 w-3" />
-                Encounter
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Generate a random encounter</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onRoll(RANDOM_LOOT, 'loot')}
-              >
-                <Gem className="mr-1 h-3 w-3" />
-                Loot
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Generate random loot or treasure</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onRoll(RANDOM_WEATHER, 'weather')}
-              >
-                <Cloud className="mr-1 h-3 w-3" />
-                Weather
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Generate random weather conditions</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onRoll(RANDOM_MOTIVATIONS, 'motivation')}
-              >
-                <Heart className="mr-1 h-3 w-3" />
-                Motivation
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Generate a random NPC motivation</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onRoll(RANDOM_RUMORS, 'rumor')}
-              >
-                <MessageCircle className="mr-1 h-3 w-3" />
-                Rumor
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Generate a random tavern rumor</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onRoll(RANDOM_SETTINGS, 'setting')}
-              >
-                <Eye className="mr-1 h-3 w-3" />
-                Setting
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Generate a random scene description</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onRoll(RANDOM_TRAPS, 'trap')}
-              >
-                <AlertTriangle className="mr-1 h-3 w-3" />
-                Trap
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Generate a random trap or hazard</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onRoll(RANDOM_TAVERN, 'tavern')}
-              >
-                <UtensilsCrossed className="mr-1 h-3 w-3" />
-                Tavern Menu
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              Generate a random tavern for your players to visit
-            </TooltipContent>
-          </Tooltip>
+          {GENERATOR_BUTTONS.map(config => (
+            <GeneratorButton
+              key={config.type}
+              config={config}
+              onRoll={onRoll}
+            />
+          ))}
         </div>
         {randomResult && (
-          <div className="bg-muted space-y-2 rounded-lg p-3">
-            <p className="text-sm font-medium">{randomResult.value}</p>
-            {randomResult.type !== 'complication' &&
-              randomResult.type !== 'encounter' &&
-              randomResult.type !== 'loot' &&
-              randomResult.type !== 'weather' &&
-              randomResult.type !== 'rumor' &&
-              randomResult.type !== 'trap' && (
-                <Button
-                  size="sm"
-                  onClick={onAddAndGo}
-                  disabled={adding}
-                  className="w-full"
-                >
-                  {adding ? (
-                    'Adding...'
-                  ) : (
-                    <>
-                      {randomResult.type === 'trait' ||
-                      randomResult.type === 'motivation'
-                        ? 'Add as NPC'
-                        : `Add as ${getTypeLabel(randomResult.type)}`}
-                      <ArrowRight className="ml-1 h-3 w-3" />
-                    </>
-                  )}
-                </Button>
-              )}
-          </div>
+          <RandomResultDisplay
+            randomResult={randomResult}
+            adding={adding}
+            onAddAndGo={onAddAndGo}
+            getTypeLabel={getTypeLabel}
+          />
         )}
       </CardContent>
     </Card>
   );
 }
 
-interface ImprovHelperCardProps {
-  improv: string;
-  onGetPrompt: () => void;
-}
+function ImprovHelperCard() {
+  const [improv, setImprov] = useState<string>('');
 
-function ImprovHelperCard({ improv, onGetPrompt }: ImprovHelperCardProps) {
+  const getImprovPrompt = () => {
+    const prompt =
+      IMPROV_PROMPTS[Math.floor(Math.random() * IMPROV_PROMPTS.length)];
+    setImprov(prompt);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -687,7 +689,7 @@ function ImprovHelperCard({ improv, onGetPrompt }: ImprovHelperCardProps) {
         <CardDescription>Prompts to spark your imagination</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Button variant="outline" onClick={onGetPrompt} className="w-full">
+        <Button variant="outline" onClick={getImprovPrompt} className="w-full">
           Get a Prompt
         </Button>
         {improv && (
@@ -1053,7 +1055,7 @@ function QuickNotesCard() {
               variant="ghost"
               className="text-muted-foreground h-6 text-xs"
               onClick={() => {
-                navigator.clipboard.writeText(notes);
+                copyToClipboard(notes, 'Notes copied!');
               }}
             >
               Copy
@@ -2037,7 +2039,6 @@ export function GMToolsPanel({
   onDeleteBattle,
 }: GMToolsPanelProps) {
   const [randomResult, setRandomResult] = useState<RandomResult | null>(null);
-  const [improv, setImprov] = useState<string>('');
   const [adding, setAdding] = useState(false);
   const [newChecklistItem, setNewChecklistItem] = useState('');
   const [toolFilter, setToolFilter] = useState('');
@@ -2052,79 +2053,34 @@ export function GMToolsPanel({
     if (!randomResult || adding) return;
     setAdding(true);
     try {
-      if (randomResult.type === 'npc') {
-        await onAddNPC(randomResult.value);
+      const { type, value } = randomResult;
+
+      if (type === 'location' || type === 'setting' || type === 'tavern') {
+        await onAddLocation(value);
+        onNavigateToTab('locations');
+      } else if (type === 'quest' || type === 'questHook') {
+        await onAddQuest(value);
+        onNavigateToTab('quests');
+      } else if (type === 'npc') {
+        await onAddNPC(value);
         onNavigateToTab('characters');
-      } else if (randomResult.type === 'location') {
-        await onAddLocation(randomResult.value);
-        onNavigateToTab('locations');
-      } else if (randomResult.type === 'quest') {
-        await onAddQuest(randomResult.value);
-        onNavigateToTab('quests');
-      } else if (randomResult.type === 'questHook') {
-        await onAddQuest(randomResult.value);
-        onNavigateToTab('quests');
-      } else if (randomResult.type === 'setting') {
-        await onAddLocation(randomResult.value);
-        onNavigateToTab('locations');
-      } else if (randomResult.type === 'tavern') {
-        await onAddLocation(randomResult.value);
-        onNavigateToTab('locations');
-      } else if (randomResult.type === 'trait') {
+      } else if (type === 'trait' || type === 'motivation') {
         const randomName =
           RANDOM_NPC_NAMES[Math.floor(Math.random() * RANDOM_NPC_NAMES.length)];
-        await onAddNPC(randomName, { personality: randomResult.value });
-        onNavigateToTab('characters');
-      } else if (randomResult.type === 'motivation') {
-        const randomName =
-          RANDOM_NPC_NAMES[Math.floor(Math.random() * RANDOM_NPC_NAMES.length)];
-        await onAddNPC(randomName, { motivation: randomResult.value });
+        const extra =
+          type === 'trait' ? { personality: value } : { motivation: value };
+        await onAddNPC(randomName, extra);
         onNavigateToTab('characters');
       }
+
       setRandomResult(null);
     } finally {
       setAdding(false);
     }
   };
 
-  const getImprovPrompt = () => {
-    const prompt =
-      IMPROV_PROMPTS[Math.floor(Math.random() * IMPROV_PROMPTS.length)];
-    setImprov(prompt);
-  };
-
-  const getTypeLabel = (type: RandomResultType) => {
-    switch (type) {
-      case 'npc':
-        return 'Character';
-      case 'location':
-        return 'Location';
-      case 'quest':
-        return 'Quest';
-      case 'questHook':
-        return 'Quest';
-      case 'trait':
-        return 'Trait';
-      case 'complication':
-        return 'Complication';
-      case 'encounter':
-        return 'Encounter';
-      case 'loot':
-        return 'Loot';
-      case 'weather':
-        return 'Weather';
-      case 'motivation':
-        return 'Motivation';
-      case 'rumor':
-        return 'Rumor';
-      case 'setting':
-        return 'Location';
-      case 'trap':
-        return 'Trap';
-      case 'tavern':
-        return 'Location';
-    }
-  };
+  const getTypeLabel = (type: RandomResultType): string =>
+    TYPE_LABELS[type] ?? type;
 
   return (
     <div className="space-y-6">
@@ -2178,13 +2134,7 @@ export function GMToolsPanel({
             },
             {
               name: 'Improv Helper',
-              el: (
-                <ImprovHelperCard
-                  key="improv"
-                  improv={improv}
-                  onGetPrompt={getImprovPrompt}
-                />
-              ),
+              el: <ImprovHelperCard key="improv" />,
             },
             {
               name: 'Player Spotlight',

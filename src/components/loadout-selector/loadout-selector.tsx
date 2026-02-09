@@ -31,6 +31,68 @@ interface LoadoutSelectorProps {
   campaignId?: string;
 }
 
+function LoadoutHeader({
+  maxActiveCards,
+  maxVaultCards,
+}: {
+  maxActiveCards: number;
+  maxVaultCards: number;
+}) {
+  return (
+    <div className="space-y-4">
+      <h2 className="flex items-center gap-2 text-xl font-semibold">
+        <Scroll size={20} />
+        <span>Build Your Domain Loadout</span>
+      </h2>
+      <p className="text-muted-foreground">
+        Select cards for your active loadout (
+        <Zap size={14} className="inline-block" />) and vault (
+        <Package size={14} className="inline-block" />
+        ). You can equip up to <strong>{maxActiveCards}</strong> active cards
+        and store <strong>{maxVaultCards}</strong> in your vault.
+      </p>
+    </div>
+  );
+}
+
+interface StandardDomainCardsProps {
+  state: ReturnType<typeof useLoadoutState>;
+  onHomebrewEdit: (card: DomainCard) => void;
+}
+
+function StandardDomainCards({
+  state,
+  onHomebrewEdit,
+}: StandardDomainCardsProps) {
+  return (
+    <>
+      <DomainFilter
+        domains={state.domainsToShow}
+        selectedDomains={state.selectedDomains}
+        onToggle={state.handleToggleDomain}
+        onSelectAll={state.handleSelectAllDomains}
+        onClearAll={state.handleClearDomains}
+      />
+
+      <CardGrid
+        cards={state.availableCards}
+        activeCards={state.activeCards}
+        vaultCards={state.vaultCards}
+        onToggleActive={state.handleToggleActive}
+        onToggleVault={state.handleToggleVault}
+        maxActiveCards={state.rules.maxActiveCards}
+        maxVaultCards={state.rules.maxVaultCards}
+        activeCardNames={state.activeCardNames}
+        vaultCardNames={state.vaultCardNames}
+        maxLevel={state.rules.maxCardLevel}
+        filters={state.cardFilters}
+        onFiltersChange={state.setCardFilters}
+        onHomebrewEdit={onHomebrewEdit}
+      />
+    </>
+  );
+}
+
 export function LoadoutSelector({
   value,
   onChange,
@@ -71,6 +133,10 @@ export function LoadoutSelector({
     null
   );
 
+  const handleCloseHomebrewEdit = useCallback(() => {
+    setHomebrewEditCard(null);
+  }, []);
+
   const handleHomebrewSave = useCallback(
     (card: HomebrewDomainCard, destination: 'loadout' | 'vault') => {
       state.handleAddHomebrew(card);
@@ -87,22 +153,10 @@ export function LoadoutSelector({
   return (
     <div className="space-y-6">
       {!hideHeader && (
-        <div className="space-y-4">
-          <h2 className="flex items-center gap-2 text-xl font-semibold">
-            <Scroll size={20} />
-            <span>Build Your Domain Loadout</span>
-          </h2>
-          <p className="text-muted-foreground">
-            Select cards for your active loadout (
-            <Zap size={14} className="inline-block" />) and vault (
-            <Package size={14} className="inline-block" />
-            ). You can equip up to <strong>
-              {state.rules.maxActiveCards}
-            </strong>{' '}
-            active cards and store <strong>{state.rules.maxVaultCards}</strong>{' '}
-            in your vault.
-          </p>
-        </div>
+        <LoadoutHeader
+          maxActiveCards={state.rules.maxActiveCards}
+          maxVaultCards={state.rules.maxVaultCards ?? 0}
+        />
       )}
 
       <LoadoutModeTabs
@@ -111,7 +165,6 @@ export function LoadoutSelector({
         classDomains={classDomains}
       />
 
-      {/* Custom mode: Player-created cards on the fly */}
       {state.mode === 'custom' && (
         <HomebrewCardForm
           onAdd={state.handleAddHomebrew}
@@ -122,7 +175,6 @@ export function LoadoutSelector({
         />
       )}
 
-      {/* Homebrew mode: Browse homebrew cards from all sources */}
       {state.mode === 'homebrew' && (
         <CampaignHomebrewCardGrid
           campaignId={campaignId}
@@ -137,38 +189,16 @@ export function LoadoutSelector({
         />
       )}
 
-      {/* Standard modes: Class domains or all domains */}
       {(state.mode === 'class-domains' || state.mode === 'all-domains') && (
-        <>
-          <DomainFilter
-            domains={state.domainsToShow}
-            selectedDomains={state.selectedDomains}
-            onToggle={state.handleToggleDomain}
-            onSelectAll={state.handleSelectAllDomains}
-            onClearAll={state.handleClearDomains}
-          />
-
-          <CardGrid
-            cards={state.availableCards}
-            activeCards={state.activeCards}
-            vaultCards={state.vaultCards}
-            onToggleActive={state.handleToggleActive}
-            onToggleVault={state.handleToggleVault}
-            maxActiveCards={state.rules.maxActiveCards}
-            maxVaultCards={state.rules.maxVaultCards}
-            activeCardNames={state.activeCardNames}
-            vaultCardNames={state.vaultCardNames}
-            maxLevel={state.rules.maxCardLevel}
-            filters={state.cardFilters}
-            onFiltersChange={state.setCardFilters}
-            onHomebrewEdit={setHomebrewEditCard}
-          />
-        </>
+        <StandardDomainCards
+          state={state}
+          onHomebrewEdit={setHomebrewEditCard}
+        />
       )}
 
       <HomebrewFromCardModal
         card={homebrewEditCard}
-        onClose={() => setHomebrewEditCard(null)}
+        onClose={handleCloseHomebrewEdit}
         onSave={handleHomebrewSave}
         isLoadoutFull={state.isActiveFull}
         isVaultFull={state.isVaultFull}

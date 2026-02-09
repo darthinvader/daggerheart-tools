@@ -325,9 +325,9 @@ export function RosterGrid({
               rosterState.spotlight.kind === 'character'
             }
             useMassiveThreshold={rosterState.useMassiveThreshold}
-            onSelect={() => rosterActions.handleSelect(character)}
-            onRemove={() => rosterActions.handleRemove(character)}
-            onSpotlight={() => rosterActions.handleSpotlight(character)}
+            onSelect={rosterActions.handleSelect}
+            onRemove={rosterActions.handleRemove}
+            onSpotlight={rosterActions.handleSpotlight}
             onChange={rosterActions.updateCharacter}
           />
         ))}
@@ -352,11 +352,11 @@ export function RosterGrid({
               rosterState.spotlight.kind === 'adversary'
             }
             useMassiveThreshold={rosterState.useMassiveThreshold}
-            onSelect={() => rosterActions.handleSelect(adversary)}
-            onRemove={() => rosterActions.handleRemove(adversary)}
-            onSpotlight={() => rosterActions.handleSpotlight(adversary)}
+            onSelect={rosterActions.handleSelect}
+            onRemove={rosterActions.handleRemove}
+            onSpotlight={rosterActions.handleSpotlight}
             onChange={rosterActions.updateAdversary}
-            onEdit={() => onEditAdversary(adversary)}
+            onEdit={onEditAdversary}
           />
         ))}
       </RosterColumn>

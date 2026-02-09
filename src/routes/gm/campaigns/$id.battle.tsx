@@ -14,7 +14,6 @@ import {
   Wand2,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { toast } from 'sonner';
 
 import { AddAdversaryDialogEnhanced } from '@/components/battle-tracker/adversary-dialog-enhanced';
 import { CampaignCharacterDialog } from '@/components/battle-tracker/campaign-character-dialog';
@@ -40,6 +39,7 @@ import { useBattleDialogState } from '@/components/battle-tracker/use-battle-tra
 import { useBattleRosterState } from '@/components/battle-tracker/use-battle-tracker-state';
 import { useCampaignBattle } from '@/components/battle-tracker/use-campaign-battle';
 import { useCharacterRealtimeSync } from '@/components/battle-tracker/use-character-realtime';
+import { useSpendFear } from '@/components/battle-tracker/use-spend-fear';
 import { useUndoableRosterState } from '@/components/battle-tracker/use-undoable-roster-state';
 import { DEFAULT_CHARACTER_DRAFT } from '@/components/battle-tracker/utils';
 import { Badge } from '@/components/ui/badge';
@@ -165,27 +165,7 @@ function BattleRosterLayout({
   rosterActions: ReturnType<typeof useBattleRosterState>['rosterActions'];
   setEditingAdversary: (value: AdversaryTracker | null) => void;
 }) {
-  const handleSpendFear = useCallback(
-    (amount: number, featureName: string) => {
-      const previousFear = rosterState.fearPool;
-      if (rosterActions.spendFear(amount)) {
-        toast.success(`Spent ${amount} Fear — ${featureName}`, {
-          description: `${previousFear - amount} Fear remaining`,
-          action: {
-            label: 'Undo',
-            onClick: () => rosterActions.setFearPool(previousFear),
-          },
-          duration: 5000,
-        });
-      } else {
-        toast.warning(
-          `Not enough Fear (need ${amount}, have ${rosterState.fearPool})`,
-          { description: featureName }
-        );
-      }
-    },
-    [rosterState.fearPool, rosterActions]
-  );
+  const handleSpendFear = useSpendFear(rosterState, rosterActions);
 
   return (
     <div className="grid gap-6 xl:grid-cols-[1fr_1fr_minmax(320px,400px)]">
@@ -208,9 +188,9 @@ function BattleRosterLayout({
               rosterState.spotlight.kind === 'character'
             }
             useMassiveThreshold={rosterState.useMassiveThreshold}
-            onSelect={() => rosterActions.handleSelect(char)}
-            onRemove={() => rosterActions.handleRemove(char)}
-            onSpotlight={() => rosterActions.handleSpotlight(char)}
+            onSelect={rosterActions.handleSelect}
+            onRemove={rosterActions.handleRemove}
+            onSpotlight={rosterActions.handleSpotlight}
             onChange={rosterActions.updateCharacter}
           />
         ))}
@@ -235,11 +215,11 @@ function BattleRosterLayout({
               rosterState.spotlight.kind === 'adversary'
             }
             useMassiveThreshold={rosterState.useMassiveThreshold}
-            onSelect={() => rosterActions.handleSelect(adv)}
-            onRemove={() => rosterActions.handleRemove(adv)}
-            onSpotlight={() => rosterActions.handleSpotlight(adv)}
+            onSelect={rosterActions.handleSelect}
+            onRemove={rosterActions.handleRemove}
+            onSpotlight={rosterActions.handleSpotlight}
             onChange={rosterActions.updateAdversary}
-            onEdit={() => setEditingAdversary(adv)}
+            onEdit={setEditingAdversary}
           />
         ))}
       </RosterColumn>

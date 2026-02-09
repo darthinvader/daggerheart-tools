@@ -1,6 +1,13 @@
+import { AlertTriangle, Sparkle, Zap } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
-import { CostIcons, ICON_SIZE_MD } from '@/lib/icons';
+import { ICON_SIZE_MD } from '@/lib/icons';
+
+const CostIcons = {
+  recall: Zap,
+  hope: Sparkle,
+  stress: AlertTriangle,
+} as const;
 import { cn } from '@/lib/utils';
 import type { ActivationCost, CardCosts } from '@/lib/utils/card-costs';
 import { formatActivationCost, getTotalHopeCost } from '@/lib/utils/card-costs';

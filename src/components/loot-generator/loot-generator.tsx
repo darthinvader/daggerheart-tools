@@ -31,7 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
+import { cn, copyToClipboard } from '@/lib/utils';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -615,7 +615,7 @@ export default function LootGenerator() {
 
   const handleCopy = useCallback(async () => {
     if (results.length === 0) return;
-    await navigator.clipboard.writeText(formatLootText(results));
+    await copyToClipboard(formatLootText(results), 'Loot copied to clipboard!');
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }, [results]);

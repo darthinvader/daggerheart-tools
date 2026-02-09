@@ -1,13 +1,7 @@
-import {
-  type SetStateAction,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { type SetStateAction, useCallback, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
+import { useLatestRef } from '@/hooks/use-latest-ref';
 import type { Adversary } from '@/lib/schemas/adversaries';
 import type { Environment } from '@/lib/schemas/environments';
 import { MAX_UNDO_DEPTH } from '@/lib/undo';
@@ -102,29 +96,23 @@ function useUndoStacks(state: RosterState, actions: RosterActions) {
   const [future, setFuture] = useState<UndoEntry[]>([]);
 
   // Keep refs to always-current values so callbacks are stable
-  const stateRef = useRef(state);
-  const actionsRef = useRef(actions);
-  const pastRef = useRef(past);
-  useEffect(() => {
-    stateRef.current = state;
-  });
-  useEffect(() => {
-    actionsRef.current = actions;
-  });
-  useEffect(() => {
-    pastRef.current = past;
-  });
+  const stateRef = useLatestRef(state);
+  const actionsRef = useLatestRef(actions);
+  const pastRef = useLatestRef(past);
 
-  const pushUndo = useCallback((label: string) => {
-    const snapshot = captureSnapshot(stateRef.current);
-    const meta: UndoEntryMeta = {
-      id: generateId(),
-      label,
-      timestamp: Date.now(),
-    };
-    setPast(prev => [{ meta, snapshot }, ...prev].slice(0, MAX_UNDO_DEPTH));
-    setFuture([]);
-  }, []);
+  const pushUndo = useCallback(
+    (label: string) => {
+      const snapshot = captureSnapshot(stateRef.current);
+      const meta: UndoEntryMeta = {
+        id: generateId(),
+        label,
+        timestamp: Date.now(),
+      };
+      setPast(prev => [{ meta, snapshot }, ...prev].slice(0, MAX_UNDO_DEPTH));
+      setFuture([]);
+    },
+    [stateRef]
+  );
 
   /** Pop undo entry and discard — used to roll back no-op actions. */
   const popUndo = useCallback(() => {
@@ -154,7 +142,7 @@ function useUndoStacks(state: RosterState, actions: RosterActions) {
     // Side effects outside updaters
     restoreSnapshot(entry.snapshot, actionsRef.current);
     toast(`Undone: ${entry.meta.label}`);
-  }, []);
+  }, [pastRef, stateRef, actionsRef]);
 
   const redo = useCallback(() => {
     setFuture(prevFuture => {
@@ -181,7 +169,7 @@ function useUndoStacks(state: RosterState, actions: RosterActions) {
 
       return remaining;
     });
-  }, []);
+  }, [stateRef, actionsRef]);
 
   const clearHistory = useCallback(() => {
     setPast([]);

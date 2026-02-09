@@ -18,6 +18,7 @@
  */
 
 import { CHARACTER_TRAITS } from '@/lib/character-stats-engine/types';
+import { normalizeMinusSigns } from '@/lib/utils';
 
 import type {
   EquipmentFeature,
@@ -25,14 +26,6 @@ import type {
   ParsedFeatureEffect,
   StatModifier,
 } from './types';
-
-/**
- * Normalize unicode minus signs and various dash characters to standard hyphen-minus
- */
-function normalizeMinusSigns(text: string): string {
-  // Unicode minus (−), en-dash (–), em-dash (—) → hyphen-minus (-)
-  return text.replace(/[−–—]/g, '-');
-}
 
 /**
  * Parse a numeric modifier from a matched string like "+1", "−2", "-1"

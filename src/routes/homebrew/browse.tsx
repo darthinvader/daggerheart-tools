@@ -47,7 +47,7 @@ function BrowseHomebrew() {
     fetchNextPage,
     // View dialog
     isViewOpen,
-    setIsViewOpen,
+    handleViewOpenChange,
     viewingItem,
     // Create dialog
     isCreateOpen,
@@ -123,7 +123,7 @@ function BrowseHomebrew() {
       {/* View Dialog (Read-only) */}
       <HomebrewViewDialog
         open={isViewOpen}
-        onOpenChange={setIsViewOpen}
+        onOpenChange={handleViewOpenChange}
         content={viewingItem}
         isOwner={viewingItem?.ownerId === user?.id}
         onEdit={undefined}

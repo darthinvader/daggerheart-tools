@@ -16,7 +16,7 @@ import {
   Users,
   Zap,
 } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { type ReactNode, useCallback } from 'react';
 
 import { DEFAULT_CONDITION_STYLE } from '@/components/conditions/condition-defaults';
 import { Badge } from '@/components/ui/badge';
@@ -574,6 +574,98 @@ type AdversaryFeature =
   | string
   | { name: string; type?: string; description?: string; isCustom?: boolean };
 
+function AdversaryFeatureItem({
+  feature,
+  fearPool,
+  onSpendFear,
+}: {
+  feature: AdversaryFeature;
+  fearPool?: number;
+  onSpendFear?: (cost: number, featureName: string) => void;
+}) {
+  const isString = typeof feature === 'string';
+  const name = isString ? feature.split(':')[0].trim() : feature.name;
+  const type = isString ? null : feature.type;
+  const description = isString
+    ? feature.includes(':')
+      ? feature.split(':').slice(1).join(':').trim()
+      : ''
+    : feature.description;
+  const isCustom =
+    !isString && 'isCustom' in feature && Boolean(feature.isCustom);
+  const fearCost = description ? parseFearCost(description) : 0;
+  const canAfford =
+    fearCost > 0 && fearPool !== undefined && fearPool >= fearCost;
+  const isClickable = fearCost > 0 && onSpendFear;
+
+  const handleClick = useCallback(() => {
+    if (isClickable && canAfford) {
+      onSpendFear(fearCost, name);
+    }
+  }, [isClickable, canAfford, onSpendFear, fearCost, name]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (isClickable && canAfford && (e.key === 'Enter' || e.key === ' ')) {
+        e.preventDefault();
+        onSpendFear(fearCost, name);
+      }
+    },
+    [isClickable, canAfford, onSpendFear, fearCost, name]
+  );
+
+  return (
+    <li
+      className={cn(
+        'bg-background/50 rounded p-2 text-sm',
+        isClickable &&
+          (canAfford
+            ? 'cursor-pointer transition-colors hover:bg-purple-500/10'
+            : 'cursor-not-allowed opacity-50')
+      )}
+      role={isClickable ? 'button' : undefined}
+      tabIndex={isClickable ? 0 : undefined}
+      aria-disabled={isClickable && !canAfford ? true : undefined}
+      aria-label={
+        isClickable ? `Spend ${fearCost} fear to activate ${name}` : undefined
+      }
+      onClick={isClickable && canAfford ? handleClick : undefined}
+      onKeyDown={isClickable && canAfford ? handleKeyDown : undefined}
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="font-medium">{name}</span>
+        {type && (
+          <Badge
+            variant="outline"
+            className={cn('text-[10px]', FEATURE_TYPE_STYLES[type])}
+          >
+            {type}
+          </Badge>
+        )}
+        {fearCost > 0 && (
+          <Badge
+            variant="outline"
+            className="border-purple-500/40 bg-purple-500/20 text-[10px] text-purple-600 dark:text-purple-400"
+          >
+            💀 {fearCost}
+          </Badge>
+        )}
+        {isCustom && (
+          <Badge
+            variant="outline"
+            className="bg-blue-500/20 text-[10px] text-blue-600"
+          >
+            Custom
+          </Badge>
+        )}
+      </div>
+      {description && (
+        <p className="text-muted-foreground mt-1 text-xs">{description}</p>
+      )}
+    </li>
+  );
+}
+
 function AdversaryFeatureList({
   features,
   isModified,
@@ -606,90 +698,14 @@ function AdversaryFeatureList({
         )}
       </div>
       <ul className="space-y-2">
-        {features.map((f, i) => {
-          const isString = typeof f === 'string';
-          const name = isString ? f.split(':')[0].trim() : f.name;
-          const type = isString ? null : f.type;
-          const description = isString
-            ? f.includes(':')
-              ? f.split(':').slice(1).join(':').trim()
-              : ''
-            : f.description;
-          const isCustom = !isString && 'isCustom' in f && Boolean(f.isCustom);
-          const fearCost = description ? parseFearCost(description) : 0;
-          const canAfford =
-            fearCost > 0 && fearPool !== undefined && fearPool >= fearCost;
-          const isClickable = fearCost > 0 && onSpendFear;
-
-          return (
-            <li
-              key={i}
-              className={cn(
-                'bg-background/50 rounded p-2 text-sm',
-                isClickable &&
-                  (canAfford
-                    ? 'cursor-pointer transition-colors hover:bg-purple-500/10'
-                    : 'cursor-not-allowed opacity-50')
-              )}
-              role={isClickable ? 'button' : undefined}
-              tabIndex={isClickable ? 0 : undefined}
-              aria-disabled={isClickable && !canAfford ? true : undefined}
-              aria-label={
-                isClickable
-                  ? `Spend ${fearCost} fear to activate ${name}`
-                  : undefined
-              }
-              onClick={
-                isClickable && canAfford
-                  ? () => onSpendFear(fearCost, name)
-                  : undefined
-              }
-              onKeyDown={
-                isClickable && canAfford
-                  ? (e: React.KeyboardEvent) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        onSpendFear(fearCost, name);
-                      }
-                    }
-                  : undefined
-              }
-            >
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="font-medium">{name}</span>
-                {type && (
-                  <Badge
-                    variant="outline"
-                    className={cn('text-[10px]', FEATURE_TYPE_STYLES[type])}
-                  >
-                    {type}
-                  </Badge>
-                )}
-                {fearCost > 0 && (
-                  <Badge
-                    variant="outline"
-                    className="border-purple-500/40 bg-purple-500/20 text-[10px] text-purple-600 dark:text-purple-400"
-                  >
-                    💀 {fearCost}
-                  </Badge>
-                )}
-                {isCustom && (
-                  <Badge
-                    variant="outline"
-                    className="bg-blue-500/20 text-[10px] text-blue-600"
-                  >
-                    Custom
-                  </Badge>
-                )}
-              </div>
-              {description && (
-                <p className="text-muted-foreground mt-1 text-xs">
-                  {description}
-                </p>
-              )}
-            </li>
-          );
-        })}
+        {features.map((f, i) => (
+          <AdversaryFeatureItem
+            key={i}
+            feature={f}
+            fearPool={fearPool}
+            onSpendFear={onSpendFear}
+          />
+        ))}
       </ul>
     </div>
   );

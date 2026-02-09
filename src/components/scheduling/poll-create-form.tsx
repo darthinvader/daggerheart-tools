@@ -27,6 +27,95 @@ function createEmptySlot(): SlotInput {
   };
 }
 
+interface TimeSlotRowProps {
+  slot: SlotInput;
+  idx: number;
+  onUpdate: (id: string, field: keyof SlotInput, value: string) => void;
+  onRemove: (id: string) => void;
+  canRemove: boolean;
+}
+
+function TimeSlotRow({
+  slot,
+  idx,
+  onUpdate,
+  onRemove,
+  canRemove,
+}: TimeSlotRowProps) {
+  const handleFieldChange =
+    (field: keyof SlotInput) => (e: React.ChangeEvent<HTMLInputElement>) => {
+      onUpdate(slot.id, field, e.target.value);
+    };
+
+  const handleRemove = useCallback(() => {
+    onRemove(slot.id);
+  }, [slot.id, onRemove]);
+
+  return (
+    <div className="bg-muted/50 flex flex-wrap items-end gap-2 rounded-md border p-3">
+      <div className="min-w-35 flex-1 space-y-1">
+        <Label className="text-xs" htmlFor={`slot-date-${idx}`}>
+          Date
+        </Label>
+        <Input
+          id={`slot-date-${idx}`}
+          type="date"
+          value={slot.date}
+          onChange={handleFieldChange('date')}
+          required
+        />
+      </div>
+      <div className="min-w-28 space-y-1">
+        <Label className="text-xs" htmlFor={`slot-start-${idx}`}>
+          Start
+        </Label>
+        <Input
+          id={`slot-start-${idx}`}
+          type="time"
+          value={slot.startTime}
+          onChange={handleFieldChange('startTime')}
+          required
+        />
+      </div>
+      <div className="min-w-28 space-y-1">
+        <Label className="text-xs" htmlFor={`slot-end-${idx}`}>
+          End
+        </Label>
+        <Input
+          id={`slot-end-${idx}`}
+          type="time"
+          value={slot.endTime}
+          onChange={handleFieldChange('endTime')}
+          required
+        />
+      </div>
+      <div className="min-w-30 flex-1 space-y-1">
+        <Label className="text-xs" htmlFor={`slot-label-${idx}`}>
+          Label
+        </Label>
+        <Input
+          id={`slot-label-${idx}`}
+          value={slot.label}
+          onChange={handleFieldChange('label')}
+          placeholder="optional"
+        />
+      </div>
+      {canRemove && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 shrink-0"
+          onClick={handleRemove}
+          aria-label={`Remove slot ${idx + 1}`}
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </Button>
+      )}
+    </div>
+  );
+}
+
 interface PollCreateFormProps {
   onSubmit: (
     title: string,
@@ -46,6 +135,23 @@ export function PollCreateForm({ onSubmit, onCancel }: PollCreateFormProps) {
     createEmptySlot(),
   ]);
   const [creating, setCreating] = useState(false);
+
+  const handleTitleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => setTitle(e.target.value),
+    []
+  );
+
+  const handleDescriptionChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) =>
+      setDescription(e.target.value),
+    []
+  );
+
+  const handleQuorumChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) =>
+      setQuorum(Number(e.target.value)),
+    []
+  );
 
   const addSlot = useCallback(() => {
     setSlots(prev => [...prev, createEmptySlot()]);
@@ -97,7 +203,7 @@ export function PollCreateForm({ onSubmit, onCancel }: PollCreateFormProps) {
         <Input
           id="poll-title"
           value={title}
-          onChange={e => setTitle(e.target.value)}
+          onChange={handleTitleChange}
           placeholder="e.g. Next Session"
           required
         />
@@ -108,7 +214,7 @@ export function PollCreateForm({ onSubmit, onCancel }: PollCreateFormProps) {
         <Textarea
           id="poll-description"
           value={description}
-          onChange={e => setDescription(e.target.value)}
+          onChange={handleDescriptionChange}
           placeholder="Any notes about timing preferences..."
           rows={2}
         />
@@ -122,7 +228,7 @@ export function PollCreateForm({ onSubmit, onCancel }: PollCreateFormProps) {
           min={1}
           max={20}
           value={quorum}
-          onChange={e => setQuorum(Number(e.target.value))}
+          onChange={handleQuorumChange}
           className="w-20"
         />
       </div>
@@ -131,72 +237,14 @@ export function PollCreateForm({ onSubmit, onCancel }: PollCreateFormProps) {
         <Label>Time Slots</Label>
         <div className="space-y-3">
           {slots.map((slot, idx) => (
-            <div
+            <TimeSlotRow
               key={slot.id}
-              className="bg-muted/50 flex flex-wrap items-end gap-2 rounded-md border p-3"
-            >
-              <div className="min-w-35 flex-1 space-y-1">
-                <Label className="text-xs" htmlFor={`slot-date-${idx}`}>
-                  Date
-                </Label>
-                <Input
-                  id={`slot-date-${idx}`}
-                  type="date"
-                  value={slot.date}
-                  onChange={e => updateSlot(slot.id, 'date', e.target.value)}
-                  required
-                />
-              </div>
-              <div className="min-w-28 space-y-1">
-                <Label className="text-xs" htmlFor={`slot-start-${idx}`}>
-                  Start
-                </Label>
-                <Input
-                  id={`slot-start-${idx}`}
-                  type="time"
-                  value={slot.startTime}
-                  onChange={e =>
-                    updateSlot(slot.id, 'startTime', e.target.value)
-                  }
-                  required
-                />
-              </div>
-              <div className="min-w-28 space-y-1">
-                <Label className="text-xs" htmlFor={`slot-end-${idx}`}>
-                  End
-                </Label>
-                <Input
-                  id={`slot-end-${idx}`}
-                  type="time"
-                  value={slot.endTime}
-                  onChange={e => updateSlot(slot.id, 'endTime', e.target.value)}
-                  required
-                />
-              </div>
-              <div className="min-w-30 flex-1 space-y-1">
-                <Label className="text-xs" htmlFor={`slot-label-${idx}`}>
-                  Label
-                </Label>
-                <Input
-                  id={`slot-label-${idx}`}
-                  value={slot.label}
-                  onChange={e => updateSlot(slot.id, 'label', e.target.value)}
-                  placeholder="optional"
-                />
-              </div>
-              {slots.length > 1 && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 shrink-0"
-                  onClick={() => removeSlot(slot.id)}
-                  aria-label={`Remove slot ${idx + 1}`}
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
-              )}
-            </div>
+              slot={slot}
+              idx={idx}
+              onUpdate={updateSlot}
+              onRemove={removeSlot}
+              canRemove={slots.length > 1}
+            />
           ))}
         </div>
         {slots.length < 50 && (

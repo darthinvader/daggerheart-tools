@@ -58,31 +58,29 @@ import {
 
 type ComplexityLabel = { label: string; color: string };
 
+const COMPLEXITY_LABELS: Record<'1' | '2' | '3' | '4', ComplexityLabel> = {
+  '1': {
+    label: 'Simple',
+    color: 'bg-green-500/20 text-green-600 dark:text-green-400',
+  },
+  '2': {
+    label: 'Standard',
+    color: 'bg-blue-500/20 text-blue-600 dark:text-blue-400',
+  },
+  '3': {
+    label: 'Complex',
+    color: 'bg-purple-500/20 text-purple-600 dark:text-purple-400',
+  },
+  '4': {
+    label: 'Epic',
+    color: 'bg-red-500/20 text-red-600 dark:text-red-400',
+  },
+};
+
 function getComplexityLabel(
   complexity: '1' | '2' | '3' | '4'
 ): ComplexityLabel {
-  switch (complexity) {
-    case '1':
-      return {
-        label: 'Simple',
-        color: 'bg-green-500/20 text-green-600 dark:text-green-400',
-      };
-    case '2':
-      return {
-        label: 'Standard',
-        color: 'bg-blue-500/20 text-blue-600 dark:text-blue-400',
-      };
-    case '3':
-      return {
-        label: 'Complex',
-        color: 'bg-purple-500/20 text-purple-600 dark:text-purple-400',
-      };
-    case '4':
-      return {
-        label: 'Epic',
-        color: 'bg-red-500/20 text-red-600 dark:text-red-400',
-      };
-  }
+  return COMPLEXITY_LABELS[complexity];
 }
 
 function formatDeletedDate(dateStr: string) {
@@ -330,6 +328,105 @@ function RecycleBinSection({
   );
 }
 
+interface CampaignSearchBarProps {
+  searchQuery: string;
+  onSearchChange: (value: string) => void;
+  complexityFilter: string | null;
+  onComplexityFilterChange: (value: string | null) => void;
+  sortOrder: 'asc' | 'desc';
+  onSortOrderToggle: () => void;
+}
+
+function CampaignSearchBar({
+  searchQuery,
+  onSearchChange,
+  complexityFilter,
+  onComplexityFilterChange,
+  sortOrder,
+  onSortOrderToggle,
+}: CampaignSearchBarProps) {
+  return (
+    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="relative flex-1">
+        <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+        <Input
+          placeholder="Search campaigns..."
+          value={searchQuery}
+          onChange={e => onSearchChange(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+      <div className="flex items-center gap-2">
+        {(['1', '2', '3', '4'] as const).map(level => {
+          const { label, color } = getComplexityLabel(level);
+          const isActive = complexityFilter === level;
+          return (
+            <Button
+              key={level}
+              variant={isActive ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => onComplexityFilterChange(isActive ? null : level)}
+              className={isActive ? '' : `${color} border-transparent`}
+            >
+              {label}
+            </Button>
+          );
+        })}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onSortOrderToggle}
+          title={sortOrder === 'asc' ? 'Sort A→Z' : 'Sort Z→A'}
+        >
+          {sortOrder === 'asc' ? (
+            <ArrowDownAZ className="h-4 w-4" />
+          ) : (
+            <ArrowUpAZ className="h-4 w-4" />
+          )}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+interface ConfirmDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title: string;
+  description: string;
+  actionLabel: string;
+  onAction: () => void;
+}
+
+function ConfirmDialog({
+  open,
+  onOpenChange,
+  title,
+  description,
+  actionLabel,
+  onAction,
+}: ConfirmDialogProps) {
+  return (
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
+          <AlertDialogDescription>{description}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={onAction}
+            className="bg-destructive hover:bg-destructive/90 text-white"
+          >
+            {actionLabel}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
 export const Route = createFileRoute('/gm/campaigns/')({
   component: CampaignsList,
   errorComponent: ({ error }: ErrorComponentProps) => (
@@ -387,6 +484,11 @@ function CampaignsList() {
 
     return result;
   }, [campaigns, searchQuery, complexityFilter, sortOrder]);
+
+  const toggleSortOrder = () =>
+    setSortOrder(prev => (prev === 'asc' ? 'desc' : 'asc'));
+  const clearDeleteTarget = () => setDeleteTarget(null);
+  const clearPermanentDeleteTarget = () => setPermanentDeleteTarget(null);
 
   if (loading) {
     return (
@@ -449,48 +551,14 @@ function CampaignsList() {
 
       {/* Search, Filter & Sort Controls */}
       {campaigns.length > 0 && (
-        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="relative flex-1">
-            <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-            <Input
-              placeholder="Search campaigns..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            {(['1', '2', '3', '4'] as const).map(level => {
-              const { label, color } = getComplexityLabel(level);
-              const isActive = complexityFilter === level;
-              return (
-                <Button
-                  key={level}
-                  variant={isActive ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setComplexityFilter(isActive ? null : level)}
-                  className={isActive ? '' : `${color} border-transparent`}
-                >
-                  {label}
-                </Button>
-              );
-            })}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() =>
-                setSortOrder(prev => (prev === 'asc' ? 'desc' : 'asc'))
-              }
-              title={sortOrder === 'asc' ? 'Sort A→Z' : 'Sort Z→A'}
-            >
-              {sortOrder === 'asc' ? (
-                <ArrowDownAZ className="h-4 w-4" />
-              ) : (
-                <ArrowUpAZ className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
-        </div>
+        <CampaignSearchBar
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          complexityFilter={complexityFilter}
+          onComplexityFilterChange={setComplexityFilter}
+          sortOrder={sortOrder}
+          onSortOrderToggle={toggleSortOrder}
+        />
       )}
 
       <CampaignGrid
@@ -507,81 +575,32 @@ function CampaignsList() {
         onPermanentDelete={setPermanentDeleteTarget}
       />
 
-      {/* Move to Trash Confirmation */}
-      <AlertDialog
+      <ConfirmDialog
         open={!!deleteTarget}
-        onOpenChange={() => setDeleteTarget(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Move to Trash</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to move "{deleteTarget?.name}" to the
-              recycle bin? You can restore it later.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-destructive hover:bg-destructive/90 text-white"
-            >
-              Move to Trash
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        onOpenChange={clearDeleteTarget}
+        title="Move to Trash"
+        description={`Are you sure you want to move "${deleteTarget?.name}" to the recycle bin? You can restore it later.`}
+        actionLabel="Move to Trash"
+        onAction={handleDelete}
+      />
 
-      {/* Permanent Delete Confirmation */}
-      <AlertDialog
+      <ConfirmDialog
         open={!!permanentDeleteTarget}
-        onOpenChange={() => setPermanentDeleteTarget(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Permanently</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to permanently delete "
-              {permanentDeleteTarget?.name}"? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handlePermanentDelete}
-              className="bg-destructive hover:bg-destructive/90 text-white"
-            >
-              Delete Forever
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        onOpenChange={clearPermanentDeleteTarget}
+        title="Delete Permanently"
+        description={`Are you sure you want to permanently delete "${permanentDeleteTarget?.name}"? This action cannot be undone.`}
+        actionLabel="Delete Forever"
+        onAction={handlePermanentDelete}
+      />
 
-      {/* Empty Trash Confirmation */}
-      <AlertDialog
+      <ConfirmDialog
         open={showEmptyTrashConfirm}
         onOpenChange={setShowEmptyTrashConfirm}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Empty Recycle Bin</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to permanently delete all{' '}
-              {trashedCampaigns.length} campaign(s) in the recycle bin? This
-              action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleEmptyTrash}
-              className="bg-destructive hover:bg-destructive/90 text-white"
-            >
-              Empty Trash
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        title="Empty Recycle Bin"
+        description={`Are you sure you want to permanently delete all ${trashedCampaigns.length} campaign(s) in the recycle bin? This action cannot be undone.`}
+        actionLabel="Empty Trash"
+        onAction={handleEmptyTrash}
+      />
     </div>
   );
 }

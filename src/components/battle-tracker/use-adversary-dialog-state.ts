@@ -13,6 +13,97 @@ interface UseAdversaryDialogStateProps {
   onOpenChange: (open: boolean) => void;
 }
 
+// --- Pure helper functions extracted to reduce cyclomatic complexity ---
+
+function matchesSearch(adv: Adversary, search: string): boolean {
+  if (search === '') return true;
+  const lowerSearch = search.toLowerCase();
+  return (
+    adv.name.toLowerCase().includes(lowerSearch) ||
+    adv.description.toLowerCase().includes(lowerSearch)
+  );
+}
+
+function matchesFilter(value: string, filter: string): boolean {
+  return filter === 'All' || value === filter;
+}
+
+function filterAdversaries(
+  adversaries: Adversary[],
+  search: string,
+  tierFilter: string,
+  roleFilter: string
+): Adversary[] {
+  return adversaries.filter(
+    adv =>
+      matchesSearch(adv, search) &&
+      matchesFilter(adv.tier, tierFilter) &&
+      matchesFilter(adv.role, roleFilter)
+  );
+}
+
+function countActiveFilters(tierFilter: string, roleFilter: string): number {
+  return (tierFilter !== 'All' ? 1 : 0) + (roleFilter !== 'All' ? 1 : 0);
+}
+
+function sumSelections(selections: Map<string, number>): number {
+  let total = 0;
+  selections.forEach(count => {
+    total += count;
+  });
+  return total;
+}
+
+function applySelectionDelta(
+  prev: Map<string, number>,
+  name: string,
+  delta: number
+): Map<string, number> {
+  const next = new Map(prev);
+  const newCount = (next.get(name) ?? 0) + delta;
+  if (newCount <= 0) {
+    next.delete(name);
+  } else {
+    next.set(name, newCount);
+  }
+  return next;
+}
+
+function removeFromMap(
+  prev: Map<string, number>,
+  name: string
+): Map<string, number> {
+  const next = new Map(prev);
+  next.delete(name);
+  return next;
+}
+
+function addSelectionsToEncounter(
+  selections: Map<string, number>,
+  allAdversaries: Adversary[],
+  onAdd: (adversary: Adversary) => void
+): void {
+  selections.forEach((count, name) => {
+    const adv = allAdversaries.find(a => a.name === name);
+    if (!adv) return;
+    for (let i = 0; i < count; i++) {
+      onAdd(adv);
+    }
+  });
+}
+
+function setSelectionCount(
+  prev: Map<string, number>,
+  name: string,
+  count: number
+): Map<string, number> {
+  const next = new Map(prev);
+  next.set(name, count);
+  return next;
+}
+
+// --- Main hook ---
+
 export function useAdversaryDialogState({
   adversaries,
   onAdd,
@@ -42,28 +133,14 @@ export function useAdversaryDialogState({
     [adversaries, customAdversaries]
   );
 
-  const filtered = useMemo(() => {
-    return allAdversaries.filter(adv => {
-      const matchesSearch =
-        search === '' ||
-        adv.name.toLowerCase().includes(search.toLowerCase()) ||
-        adv.description.toLowerCase().includes(search.toLowerCase());
-      const matchesTier = tierFilter === 'All' || adv.tier === tierFilter;
-      const matchesRole = roleFilter === 'All' || adv.role === roleFilter;
-      return matchesSearch && matchesTier && matchesRole;
-    });
-  }, [allAdversaries, search, tierFilter, roleFilter]);
+  const filtered = useMemo(
+    () => filterAdversaries(allAdversaries, search, tierFilter, roleFilter),
+    [allAdversaries, search, tierFilter, roleFilter]
+  );
 
-  const activeFilters =
-    (tierFilter !== 'All' ? 1 : 0) + (roleFilter !== 'All' ? 1 : 0);
+  const activeFilters = countActiveFilters(tierFilter, roleFilter);
 
-  const totalSelected = useMemo(() => {
-    let total = 0;
-    selections.forEach(count => {
-      total += count;
-    });
-    return total;
-  }, [selections]);
+  const totalSelected = useMemo(() => sumSelections(selections), [selections]);
 
   // Actions
   const clearFilters = useCallback(() => {
@@ -73,25 +150,11 @@ export function useAdversaryDialogState({
   }, []);
 
   const updateSelection = useCallback((name: string, delta: number) => {
-    setSelections(prev => {
-      const next = new Map(prev);
-      const current = next.get(name) ?? 0;
-      const newCount = current + delta;
-      if (newCount <= 0) {
-        next.delete(name);
-      } else {
-        next.set(name, newCount);
-      }
-      return next;
-    });
+    setSelections(prev => applySelectionDelta(prev, name, delta));
   }, []);
 
   const removeSelection = useCallback((name: string) => {
-    setSelections(prev => {
-      const next = new Map(prev);
-      next.delete(name);
-      return next;
-    });
+    setSelections(prev => removeFromMap(prev, name));
   }, []);
 
   const clearAllSelections = useCallback(() => {
@@ -99,14 +162,7 @@ export function useAdversaryDialogState({
   }, []);
 
   const handleAddSelected = useCallback(() => {
-    selections.forEach((count, name) => {
-      const adv = allAdversaries.find(a => a.name === name);
-      if (adv) {
-        for (let i = 0; i < count; i++) {
-          onAdd(adv);
-        }
-      }
-    });
+    addSelectionsToEncounter(selections, allAdversaries, onAdd);
     setSelections(new Map());
     onOpenChange(false);
   }, [selections, allAdversaries, onAdd, onOpenChange]);
@@ -124,11 +180,7 @@ export function useAdversaryDialogState({
 
   const handleAddCustomAdversary = useCallback((adversary: Adversary) => {
     setCustomAdversaries(prev => [adversary, ...prev]);
-    setSelections(prev => {
-      const next = new Map(prev);
-      next.set(adversary.name, 1);
-      return next;
-    });
+    setSelections(prev => setSelectionCount(prev, adversary.name, 1));
     setShowCustomBuilder(false);
   }, []);
 

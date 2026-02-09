@@ -1,7 +1,8 @@
 // Quest components - Enhanced with NPC/PC involvement and organization links
 
 import { Clock, MapPin as Map, Plus, Target, User } from 'lucide-react';
-import { useDeferredValue, useMemo, useState } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
+import { useCallback, useDeferredValue, useMemo, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -50,6 +51,7 @@ import {
   QuestCardHeader,
   QuestLocationsSection,
   QuestModalsSection,
+  QuestNotesSection,
   QuestNPCsSection,
   QuestObjectivesSection,
   QuestOrganizationsSection,
@@ -327,6 +329,46 @@ const QUEST_MODAL_KEYS = [
 ] as const;
 type QuestModalKey = (typeof QUEST_MODAL_KEYS)[number];
 
+/** Consolidates entity ID list handlers and select change handlers for QuestCard. */
+function useQuestCardFieldHandlers(
+  setLocalQuest: Dispatch<SetStateAction<CampaignQuest>>,
+  scheduleAutoSave: (data: CampaignQuest) => void
+) {
+  const handlerContext = {
+    setLocalEntity: setLocalQuest,
+    scheduleAutoSave,
+  };
+  const locationHandlers = useEntityIdListHandlers(
+    'locationIds',
+    handlerContext
+  );
+  const orgHandlers = useEntityIdListHandlers(
+    'organizationIds',
+    handlerContext
+  );
+
+  const handleTypeChange = useSelectChangeHandler<CampaignQuest, 'type'>(
+    'type',
+    handlerContext
+  );
+  const handleStatusChange = useSelectChangeHandler<CampaignQuest, 'status'>(
+    'status',
+    handlerContext
+  );
+  const handlePriorityChange = useSelectChangeHandler<
+    CampaignQuest,
+    'priority'
+  >('priority', handlerContext);
+
+  return {
+    locationHandlers,
+    orgHandlers,
+    handleTypeChange,
+    handleStatusChange,
+    handlePriorityChange,
+  };
+}
+
 function QuestCard({
   quest,
   npcs,
@@ -369,35 +411,14 @@ function QuestCard({
     scheduleAutoSave,
   });
 
-  // ID list handlers
-  const handlerContext = {
-    localEntity: localQuest,
-    setLocalEntity: setLocalQuest,
-    scheduleAutoSave,
-  };
-  const locationHandlers = useEntityIdListHandlers(
-    'locationIds',
-    handlerContext
-  );
-  const orgHandlers = useEntityIdListHandlers(
-    'organizationIds',
-    handlerContext
-  );
-
-  // Select change handlers using generic hook
-  const selectContext = { setLocalEntity: setLocalQuest, scheduleAutoSave };
-  const handleTypeChange = useSelectChangeHandler<CampaignQuest, 'type'>(
-    'type',
-    selectContext
-  );
-  const handleStatusChange = useSelectChangeHandler<CampaignQuest, 'status'>(
-    'status',
-    selectContext
-  );
-  const handlePriorityChange = useSelectChangeHandler<
-    CampaignQuest,
-    'priority'
-  >('priority', selectContext);
+  // Field handlers (ID lists + select fields)
+  const {
+    locationHandlers,
+    orgHandlers,
+    handleTypeChange,
+    handleStatusChange,
+    handlePriorityChange,
+  } = useQuestCardFieldHandlers(setLocalQuest, scheduleAutoSave);
 
   // Input state and handlers (extracted hook)
   const {
@@ -422,9 +443,16 @@ function QuestCard({
     scheduleAutoSave,
   });
 
-  // Helper functions
+  // Named callbacks
   const getNpcName = (id: string) =>
     npcs.find(n => n.id === id)?.name ?? 'Unknown';
+
+  const handleCloseNPCEditor = useCallback(
+    (open: boolean) => {
+      if (!open) setEditingNPCInvolvement(null);
+    },
+    [setEditingNPCInvolvement]
+  );
 
   const completedCount = localQuest.objectives.filter(
     obj => obj.completed
@@ -517,7 +545,6 @@ function QuestCard({
 
               <Separator />
 
-              {/* Tags */}
               <TagInputSection
                 tags={localQuest.tags}
                 tagInput={tagInput}
@@ -526,23 +553,18 @@ function QuestCard({
                 onRemove={removeTag}
               />
 
-              {/* Notes */}
-              <div className="space-y-2">
-                <Label className="text-xs">Additional Notes</Label>
-                <Textarea
-                  value={localQuest.notes}
-                  onChange={e => handleTextChange('notes', e.target.value)}
-                  onBlur={handleBlur}
-                  placeholder="Additional notes..."
-                  rows={2}
-                />
-              </div>
+              <QuestNotesSection
+                notes={localQuest.notes}
+                onTextChange={
+                  handleTextChange as (field: string, value: string) => void
+                }
+                onBlur={handleBlur}
+              />
             </CardContent>
           </CollapsibleContent>
         </Collapsible>
       </Card>
 
-      {/* Modals */}
       <QuestModalsSection
         modals={modals}
         setModalOpen={setModalOpen}
@@ -559,11 +581,10 @@ function QuestCard({
         onCreateOrganization={onCreateOrganization}
       />
 
-      {/* NPC Involvement Editor Modal */}
       {editingNPCInvolvement && (
         <QuestNPCInvolvementEditorModal
           open={!!editingNPCInvolvement}
-          onOpenChange={open => !open && setEditingNPCInvolvement(null)}
+          onOpenChange={handleCloseNPCEditor}
           involvement={editingNPCInvolvement}
           npcName={getNpcName(editingNPCInvolvement.npcId)}
           locations={locations}

@@ -324,6 +324,217 @@ function GuidanceSection({
   );
 }
 
+function buildIncidentUpdate(
+  current: CampaignFrame['incitingIncident'],
+  updates: Partial<{ title: string; description: string; hooks: string[] }>
+): NonNullable<CampaignFrame['incitingIncident']> {
+  return {
+    title: current?.title ?? '',
+    description: current?.description ?? '',
+    hooks: current?.hooks ?? [],
+    ...updates,
+  };
+}
+
+function IncitingIncidentCard({ frame, updateFrame, onBlur }: WorldTabProps) {
+  const incident = frame.incitingIncident;
+  const hooks = incident?.hooks ?? [];
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Zap className="h-4 w-4 text-yellow-500" />
+          Inciting Incident
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="text-muted-foreground h-4 w-4 cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent side="right" className="max-w-xs">
+                <p>
+                  The catalyst that brings the party together and kicks off the
+                  adventure. What disrupts the status quo?
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </CardTitle>
+        <CardDescription>The event that kicks off the campaign</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div>
+          <Label className="text-xs">Title (optional)</Label>
+          <Input
+            value={incident?.title ?? ''}
+            onChange={e =>
+              updateFrame({
+                incitingIncident: buildIncidentUpdate(incident, {
+                  title: e.target.value,
+                }),
+              })
+            }
+            onBlur={onBlur}
+            placeholder="The Call to Adventure"
+            className="mt-1"
+          />
+        </div>
+        <div>
+          <Label className="text-xs">Description</Label>
+          <Textarea
+            value={incident?.description ?? ''}
+            onChange={e =>
+              updateFrame({
+                incitingIncident: buildIncidentUpdate(incident, {
+                  description: e.target.value,
+                }),
+              })
+            }
+            onBlur={onBlur}
+            rows={4}
+            placeholder="Describe the event that brings the party together..."
+            className="mt-1"
+          />
+        </div>
+        {hooks.length > 0 && (
+          <div>
+            <Label className="text-xs">Adventure Hooks</Label>
+            <ul className="mt-1 space-y-1">
+              {hooks.map((hook, i) => (
+                <li
+                  key={i}
+                  className="text-muted-foreground flex items-start gap-2 text-sm"
+                >
+                  <span className="text-primary mt-0.5">•</span>
+                  <span>{hook}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function CharacterCreationGuidanceCard({ frame }: { frame: CampaignFrame }) {
+  const hasGuidance =
+    frame.communityGuidance.length > 0 ||
+    frame.ancestryGuidance.length > 0 ||
+    frame.classGuidance.length > 0;
+
+  if (!hasGuidance) return null;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Users className="h-4 w-4 text-teal-500" />
+          Character Creation Guidance
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="text-muted-foreground h-4 w-4 cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent side="right" className="max-w-xs">
+                <p>
+                  Frame-specific guidance for communities, ancestries, and
+                  classes to help players create characters that fit this
+                  campaign.
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </CardTitle>
+        <CardDescription>
+          Suggestions for players building characters in this setting
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <GuidanceSection
+          title="Community Guidance"
+          items={frame.communityGuidance}
+        />
+        <GuidanceSection
+          title="Ancestry Guidance"
+          items={frame.ancestryGuidance}
+        />
+        <GuidanceSection title="Class Guidance" items={frame.classGuidance} />
+      </CardContent>
+    </Card>
+  );
+}
+
+function PrinciplesCards({ frame, updateFrame, onBlur }: WorldTabProps) {
+  return (
+    <div className="grid gap-6 md:grid-cols-2">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Users className="h-4 w-4 text-blue-500" />
+            Player Principles
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="text-muted-foreground h-4 w-4 cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent side="right" className="max-w-xs">
+                  <p>
+                    Guidelines for players: how to engage with the world,
+                    collaborate, and embody the campaign's spirit.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </CardTitle>
+          <CardDescription>
+            Guidance for players during the campaign
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <EditablePrinciples
+            principles={frame.playerPrinciples}
+            onChange={playerPrinciples => updateFrame({ playerPrinciples })}
+            onBlur={onBlur}
+            target="player"
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <BookOpen className="h-4 w-4 text-orange-500" />
+            GM Principles
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="text-muted-foreground h-4 w-4 cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent side="right" className="max-w-xs">
+                  <p>
+                    Reminders for yourself: pacing, tone, when to be generous or
+                    challenging, storytelling goals.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </CardTitle>
+          <CardDescription>Guidance for running the campaign</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <EditablePrinciples
+            principles={frame.gmPrinciples}
+            onChange={gmPrinciples => updateFrame({ gmPrinciples })}
+            onBlur={onBlur}
+            target="gm"
+          />
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export function WorldTabContent({ frame, updateFrame, onBlur }: WorldTabProps) {
   return (
     <TabsContent value="world" className="space-y-6">
@@ -380,198 +591,17 @@ export function WorldTabContent({ frame, updateFrame, onBlur }: WorldTabProps) {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Zap className="h-4 w-4 text-yellow-500" />
-            Inciting Incident
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <HelpCircle className="text-muted-foreground h-4 w-4 cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent side="right" className="max-w-xs">
-                  <p>
-                    The catalyst that brings the party together and kicks off
-                    the adventure. What disrupts the status quo?
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </CardTitle>
-          <CardDescription>
-            The event that kicks off the campaign
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label className="text-xs">Title (optional)</Label>
-            <Input
-              value={frame.incitingIncident?.title ?? ''}
-              onChange={e =>
-                updateFrame({
-                  incitingIncident: {
-                    ...frame.incitingIncident,
-                    title: e.target.value,
-                    description: frame.incitingIncident?.description ?? '',
-                    hooks: frame.incitingIncident?.hooks ?? [],
-                  },
-                })
-              }
-              onBlur={onBlur}
-              placeholder="The Call to Adventure"
-              className="mt-1"
-            />
-          </div>
-          <div>
-            <Label className="text-xs">Description</Label>
-            <Textarea
-              value={frame.incitingIncident?.description ?? ''}
-              onChange={e =>
-                updateFrame({
-                  incitingIncident: {
-                    ...frame.incitingIncident,
-                    title: frame.incitingIncident?.title,
-                    description: e.target.value,
-                    hooks: frame.incitingIncident?.hooks ?? [],
-                  },
-                })
-              }
-              onBlur={onBlur}
-              rows={4}
-              placeholder="Describe the event that brings the party together..."
-              className="mt-1"
-            />
-          </div>
-          {(frame.incitingIncident?.hooks ?? []).length > 0 && (
-            <div>
-              <Label className="text-xs">Adventure Hooks</Label>
-              <ul className="mt-1 space-y-1">
-                {frame.incitingIncident!.hooks.map((hook, i) => (
-                  <li
-                    key={i}
-                    className="text-muted-foreground flex items-start gap-2 text-sm"
-                  >
-                    <span className="text-primary mt-0.5">•</span>
-                    <span>{hook}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Character Creation Guidance */}
-      {(frame.communityGuidance.length > 0 ||
-        frame.ancestryGuidance.length > 0 ||
-        frame.classGuidance.length > 0) && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Users className="h-4 w-4 text-teal-500" />
-              Character Creation Guidance
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <HelpCircle className="text-muted-foreground h-4 w-4 cursor-help" />
-                  </TooltipTrigger>
-                  <TooltipContent side="right" className="max-w-xs">
-                    <p>
-                      Frame-specific guidance for communities, ancestries, and
-                      classes to help players create characters that fit this
-                      campaign.
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </CardTitle>
-            <CardDescription>
-              Suggestions for players building characters in this setting
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <GuidanceSection
-              title="Community Guidance"
-              items={frame.communityGuidance}
-            />
-            <GuidanceSection
-              title="Ancestry Guidance"
-              items={frame.ancestryGuidance}
-            />
-            <GuidanceSection
-              title="Class Guidance"
-              items={frame.classGuidance}
-            />
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Users className="h-4 w-4 text-blue-500" />
-              Player Principles
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <HelpCircle className="text-muted-foreground h-4 w-4 cursor-help" />
-                  </TooltipTrigger>
-                  <TooltipContent side="right" className="max-w-xs">
-                    <p>
-                      Guidelines for players: how to engage with the world,
-                      collaborate, and embody the campaign's spirit.
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </CardTitle>
-            <CardDescription>
-              Guidance for players during the campaign
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <EditablePrinciples
-              principles={frame.playerPrinciples}
-              onChange={playerPrinciples => updateFrame({ playerPrinciples })}
-              onBlur={onBlur}
-              target="player"
-            />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <BookOpen className="h-4 w-4 text-orange-500" />
-              GM Principles
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <HelpCircle className="text-muted-foreground h-4 w-4 cursor-help" />
-                  </TooltipTrigger>
-                  <TooltipContent side="right" className="max-w-xs">
-                    <p>
-                      Reminders for yourself: pacing, tone, when to be generous
-                      or challenging, storytelling goals.
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </CardTitle>
-            <CardDescription>Guidance for running the campaign</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <EditablePrinciples
-              principles={frame.gmPrinciples}
-              onChange={gmPrinciples => updateFrame({ gmPrinciples })}
-              onBlur={onBlur}
-              target="gm"
-            />
-          </CardContent>
-        </Card>
-      </div>
+      <IncitingIncidentCard
+        frame={frame}
+        updateFrame={updateFrame}
+        onBlur={onBlur}
+      />
+      <CharacterCreationGuidanceCard frame={frame} />
+      <PrinciplesCards
+        frame={frame}
+        updateFrame={updateFrame}
+        onBlur={onBlur}
+      />
     </TabsContent>
   );
 }

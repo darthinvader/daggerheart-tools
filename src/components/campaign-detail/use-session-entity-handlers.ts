@@ -32,6 +32,12 @@ interface UseSessionEntityHandlersProps {
   onOrganizationsChange?: () => void;
 }
 
+/** Log the error and return a user-facing message. */
+function formatError(label: string, err: unknown): string {
+  console.error(`Failed to ${label}:`, err);
+  return err instanceof Error ? err.message : `Failed to ${label}`;
+}
+
 export function useSessionEntityHandlers({
   campaignId,
   nextSessionNumber,
@@ -44,37 +50,48 @@ export function useSessionEntityHandlers({
 }: UseSessionEntityHandlersProps) {
   const [error, setError] = useState<string | null>(null);
 
+  /** Wraps a session CRUD operation with shared start/success/error handling. */
+  const sessionOp = useCallback(
+    async (label: string, op: () => Promise<unknown>) => {
+      try {
+        setError(null);
+        onSaveStart();
+        await op();
+        onSessionsChange();
+      } catch (err) {
+        setError(formatError(label, err));
+      }
+    },
+    [onSaveStart, onSessionsChange]
+  );
+
   // Session CRUD
-  const handleAddSession = useCallback(async () => {
-    try {
-      setError(null);
-      onSaveStart();
-      await addSession(campaignId, {
-        sessionNumber: nextSessionNumber,
-        title: `Session ${nextSessionNumber}`,
-        date: new Date().toISOString().split('T')[0],
-        summary: '',
-        keyHighlights: [],
-        playerNotes: [],
-        npcsInvolved: [],
-        npcsInvolvedIds: [],
-        npcsInvolvedCustom: [],
-        locationIds: [],
-        locationsCustom: [],
-        questIds: [],
-        questsInvolvedCustom: [],
-        organizationIds: [],
-        questProgress: '',
-        status: 'planned',
-        agenda: '',
-        rewards: '',
-      });
-      onSessionsChange();
-    } catch (err) {
-      console.error('Failed to add session:', err);
-      setError(err instanceof Error ? err.message : 'Failed to add session');
-    }
-  }, [campaignId, nextSessionNumber, onSaveStart, onSessionsChange]);
+  const handleAddSession = useCallback(
+    () =>
+      sessionOp('add session', () =>
+        addSession(campaignId, {
+          sessionNumber: nextSessionNumber,
+          title: `Session ${nextSessionNumber}`,
+          date: new Date().toISOString().split('T')[0],
+          summary: '',
+          keyHighlights: [],
+          playerNotes: [],
+          npcsInvolved: [],
+          npcsInvolvedIds: [],
+          npcsInvolvedCustom: [],
+          locationIds: [],
+          locationsCustom: [],
+          questIds: [],
+          questsInvolvedCustom: [],
+          organizationIds: [],
+          questProgress: '',
+          status: 'planned',
+          agenda: '',
+          rewards: '',
+        })
+      ),
+    [campaignId, nextSessionNumber, sessionOp]
+  );
 
   const handleUpdateSession = useCallback(
     async (
@@ -82,36 +99,17 @@ export function useSessionEntityHandlers({
       updates: Partial<Omit<SessionNote, 'id' | 'createdAt' | 'updatedAt'>>
     ) => {
       if (Object.keys(updates).length === 0) return;
-      try {
-        setError(null);
-        onSaveStart();
-        await updateSession(campaignId, sessionId, updates);
-        onSessionsChange();
-      } catch (err) {
-        console.error('Failed to update session:', err);
-        setError(
-          err instanceof Error ? err.message : 'Failed to update session'
-        );
-      }
+      await sessionOp('update session', () =>
+        updateSession(campaignId, sessionId, updates)
+      );
     },
-    [campaignId, onSaveStart, onSessionsChange]
+    [campaignId, sessionOp]
   );
 
   const handleDeleteSession = useCallback(
-    async (sessionId: string) => {
-      try {
-        setError(null);
-        onSaveStart();
-        await deleteSession(campaignId, sessionId);
-        onSessionsChange();
-      } catch (err) {
-        console.error('Failed to delete session:', err);
-        setError(
-          err instanceof Error ? err.message : 'Failed to delete session'
-        );
-      }
-    },
-    [campaignId, onSaveStart, onSessionsChange]
+    (sessionId: string) =>
+      sessionOp('delete session', () => deleteSession(campaignId, sessionId)),
+    [campaignId, sessionOp]
   );
 
   // Entity creation callbacks

@@ -9,6 +9,7 @@ import {
   WeaponTraitEnum,
   WeaponTraitSchema,
 } from './core';
+import { TierEnum } from './shared';
 
 // =============================
 // Stat Modifiers (shared across all equipment)
@@ -100,7 +101,7 @@ export const BurdenSchema = unionWithString(BurdenEnum);
 export const WeaponTypeEnum = z.enum(['Primary', 'Secondary']);
 export const WeaponTypeSchema = unionWithString(WeaponTypeEnum);
 
-export const EquipmentTierEnum = z.enum(['1', '2', '3', '4']);
+export const EquipmentTierEnum = TierEnum;
 export const EquipmentTierSchema = unionWithString(EquipmentTierEnum);
 
 export const RarityEnum = z.enum(['Common', 'Uncommon', 'Rare', 'Legendary']);

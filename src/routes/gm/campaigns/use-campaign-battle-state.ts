@@ -3,6 +3,7 @@
 import type { useNavigate } from '@tanstack/react-router';
 import type { MutableRefObject } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 import type { useCampaignBattle } from '@/components/battle-tracker/use-campaign-battle';
 import {
@@ -125,6 +126,7 @@ export function useCampaignBattleState({
         await refreshCampaignState(campaignId, setCampaign);
       } catch (error) {
         console.error('Failed to save battle:', error);
+        toast.error('Failed to save battle state');
       } finally {
         setIsSaving(false);
       }

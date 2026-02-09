@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 
 import { AncestryDisplay } from '@/components/ancestry-selector';
 import { BonusSummaryDisplay } from '@/components/bonus-summary';
@@ -25,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useLatestRef } from '@/hooks/use-latest-ref';
 import { buildBeastformModifiers } from '@/lib/character-stats-engine/adapters';
 import { getClassByName } from '@/lib/data/classes';
 import { getEquipmentFeatureModifiers } from '@/lib/equipment-feature-parser';
@@ -233,13 +234,8 @@ function useAutoUpdateResources({
   state,
   handlers,
 }: AutoUpdateConfig) {
-  const stateRef = useRef(state);
-  const handlersRef = useRef(handlers);
-
-  useEffect(() => {
-    stateRef.current = state;
-    handlersRef.current = handlers;
-  });
+  const stateRef = useLatestRef(state);
+  const handlersRef = useLatestRef(handlers);
 
   // Extract primitives for stable deps
   const autoMaxHp = autoValues.maxHp;
@@ -296,13 +292,8 @@ function useAutoUpdateScores({
   state,
   handlers,
 }: AutoUpdateScoresConfig) {
-  const stateRef = useRef(state);
-  const handlersRef = useRef(handlers);
-
-  useEffect(() => {
-    stateRef.current = state;
-    handlersRef.current = handlers;
-  });
+  const stateRef = useLatestRef(state);
+  const handlersRef = useLatestRef(handlers);
 
   // Extract primitives for stable deps
   const evasion = state.coreScores.evasion;

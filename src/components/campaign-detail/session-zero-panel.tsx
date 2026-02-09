@@ -21,7 +21,7 @@ import {
   Users,
   X,
 } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
+import { type ReactNode, useCallback, useMemo, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -824,6 +824,58 @@ function SessionZeroChecklist({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Collapsible Section Wrapper
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface CollapsibleSectionProps {
+  id: string;
+  icon: React.ElementType;
+  iconColor: string;
+  title: string;
+  description?: string;
+  badge?: ReactNode;
+  afterTitle?: ReactNode;
+  isOpen: boolean;
+  onToggle: (id: string) => void;
+  children: ReactNode;
+}
+
+function CollapsibleSection({
+  id,
+  icon: Icon,
+  iconColor,
+  title,
+  description,
+  badge,
+  afterTitle,
+  isOpen,
+  onToggle,
+  children,
+}: CollapsibleSectionProps) {
+  return (
+    <Collapsible open={isOpen} onOpenChange={() => onToggle(id)}>
+      <Card>
+        <CardHeader className="pb-3">
+          <CollapsibleTrigger className="flex w-full items-center justify-between">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Icon className={`h-4 w-4 ${iconColor}`} />
+              {title}
+              {afterTitle}
+              {badge}
+            </CardTitle>
+            <ChevronDown
+              className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+            />
+          </CollapsibleTrigger>
+          {description && <CardDescription>{description}</CardDescription>}
+        </CardHeader>
+        <CollapsibleContent>{children}</CollapsibleContent>
+      </Card>
+    </Collapsible>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Main Session Zero Panel
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -861,7 +913,26 @@ export function SessionZeroPanel({
     [data, onChange]
   );
 
+  const updateAndBlur = useCallback(
+    <K extends keyof SessionZero>(key: K) =>
+      (value: SessionZero[K]) => {
+        update({ [key]: value } as Partial<SessionZero>);
+        onBlur();
+      },
+    [update, onBlur]
+  );
+
   const progress = useMemo(() => calculateSessionZeroProgress(data), [data]);
+
+  const hasOptionalRules = useMemo(
+    () =>
+      data.optionalRules?.massiveDamage ||
+      data.optionalRules?.spotlightTrackers ||
+      data.optionalRules?.definedRanges ||
+      data.optionalRules?.goldCoins ||
+      (data.optionalRules?.customHouseRules?.length ?? 0) > 0,
+    [data.optionalRules]
+  );
 
   const desiredTones = data.tonePreferences.filter(
     t => t.preference === 'desired'
@@ -924,444 +995,330 @@ export function SessionZeroPanel({
       </Card>
 
       {/* CATS Section */}
-      <Collapsible
-        open={openSections.has('cats')}
-        onOpenChange={() => toggleSection('cats')}
-      >
-        <Card>
-          <CardHeader className="pb-3">
-            <CollapsibleTrigger className="flex w-full items-center justify-between">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <MessageSquare className="h-4 w-4 text-blue-500" />
-                CATS Method
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <HelpCircle className="text-muted-foreground h-4 w-4" />
-                    </TooltipTrigger>
-                    <TooltipContent side="right" className="max-w-xs">
-                      <p>
-                        <strong>C</strong>oncept, <strong>A</strong>im,{' '}
-                        <strong>T</strong>one, <strong>S</strong>ubject - the
-                        framework from Chapter 3 for Session Zero discussions.
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </CardTitle>
-              <ChevronDown
-                className={`h-4 w-4 transition-transform ${openSections.has('cats') ? 'rotate-180' : ''}`}
-              />
-            </CollapsibleTrigger>
-            <CardDescription>
-              Define your campaign concept, goals, tone, and content
-            </CardDescription>
-          </CardHeader>
-          <CollapsibleContent>
-            <CardContent className="space-y-6">
-              {/* Concept */}
-              <div className="space-y-2">
-                <Label className="flex items-center gap-1">
-                  <span className="bg-blue-500 px-1.5 py-0.5 text-xs font-bold text-white">
-                    C
-                  </span>
-                  Concept
-                </Label>
-                <Textarea
-                  value={data.concept}
-                  onChange={e => update({ concept: e.target.value })}
-                  onBlur={onBlur}
-                  placeholder="What's the big-picture pitch? If this campaign was a book series, how would you describe it?"
-                  rows={3}
-                />
-              </div>
-
-              {/* Aim */}
-              <div className="space-y-2">
-                <Label className="flex items-center gap-1">
-                  <span className="bg-blue-500 px-1.5 py-0.5 text-xs font-bold text-white">
-                    A
-                  </span>
-                  Aim
-                </Label>
-                <Textarea
-                  value={data.aim}
-                  onChange={e => update({ aim: e.target.value })}
-                  onBlur={onBlur}
-                  placeholder="What are the creative and social goals? Weekly epic adventure? Casual fun with friends? Deep character exploration?"
-                  rows={3}
-                />
-              </div>
-
-              {/* Tone */}
-              <div className="space-y-2">
-                <Label className="flex items-center gap-1">
-                  <span className="bg-blue-500 px-1.5 py-0.5 text-xs font-bold text-white">
-                    T
-                  </span>
-                  Tone
-                </Label>
-                <p className="text-muted-foreground text-xs">
-                  Circle tones you want to focus on. Cross out tones to avoid.
+      <CollapsibleSection
+        id="cats"
+        icon={MessageSquare}
+        iconColor="text-blue-500"
+        title="CATS Method"
+        afterTitle={
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="text-muted-foreground h-4 w-4" />
+              </TooltipTrigger>
+              <TooltipContent side="right" className="max-w-xs">
+                <p>
+                  <strong>C</strong>oncept, <strong>A</strong>im,{' '}
+                  <strong>T</strong>one, <strong>S</strong>ubject - the
+                  framework from Chapter 3 for Session Zero discussions.
                 </p>
-                <ToneSelector
-                  preferences={data.tonePreferences}
-                  onChange={prefs => {
-                    update({ tonePreferences: prefs });
-                    onBlur();
-                  }}
-                />
-              </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        }
+        description="Define your campaign concept, goals, tone, and content"
+        isOpen={openSections.has('cats')}
+        onToggle={toggleSection}
+      >
+        <CardContent className="space-y-6">
+          {/* Concept */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-1">
+              <span className="bg-blue-500 px-1.5 py-0.5 text-xs font-bold text-white">
+                C
+              </span>
+              Concept
+            </Label>
+            <Textarea
+              value={data.concept}
+              onChange={e => update({ concept: e.target.value })}
+              onBlur={onBlur}
+              placeholder="What's the big-picture pitch? If this campaign was a book series, how would you describe it?"
+              rows={3}
+            />
+          </div>
 
-              {/* Subject */}
-              <div className="space-y-2">
-                <Label className="flex items-center gap-1">
-                  <span className="bg-blue-500 px-1.5 py-0.5 text-xs font-bold text-white">
-                    S
-                  </span>
-                  Subject Matter to Explore
-                </Label>
-                <Textarea
-                  value={data.subjectsToExplore.join('\n')}
-                  onChange={e =>
-                    update({
-                      subjectsToExplore: e.target.value
-                        .split('\n')
-                        .filter(s => s.trim()),
-                    })
-                  }
-                  onBlur={onBlur}
-                  placeholder="Themes and subjects you want to actively explore (one per line)"
-                  rows={3}
-                />
-              </div>
-            </CardContent>
-          </CollapsibleContent>
-        </Card>
-      </Collapsible>
+          {/* Aim */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-1">
+              <span className="bg-blue-500 px-1.5 py-0.5 text-xs font-bold text-white">
+                A
+              </span>
+              Aim
+            </Label>
+            <Textarea
+              value={data.aim}
+              onChange={e => update({ aim: e.target.value })}
+              onBlur={onBlur}
+              placeholder="What are the creative and social goals? Weekly epic adventure? Casual fun with friends? Deep character exploration?"
+              rows={3}
+            />
+          </div>
+
+          {/* Tone */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-1">
+              <span className="bg-blue-500 px-1.5 py-0.5 text-xs font-bold text-white">
+                T
+              </span>
+              Tone
+            </Label>
+            <p className="text-muted-foreground text-xs">
+              Circle tones you want to focus on. Cross out tones to avoid.
+            </p>
+            <ToneSelector
+              preferences={data.tonePreferences}
+              onChange={updateAndBlur('tonePreferences')}
+            />
+          </div>
+
+          {/* Subject */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-1">
+              <span className="bg-blue-500 px-1.5 py-0.5 text-xs font-bold text-white">
+                S
+              </span>
+              Subject Matter to Explore
+            </Label>
+            <Textarea
+              value={data.subjectsToExplore.join('\n')}
+              onChange={e =>
+                update({
+                  subjectsToExplore: e.target.value
+                    .split('\n')
+                    .filter(s => s.trim()),
+                })
+              }
+              onBlur={onBlur}
+              placeholder="Themes and subjects you want to actively explore (one per line)"
+              rows={3}
+            />
+          </div>
+        </CardContent>
+      </CollapsibleSection>
 
       {/* Safety Tools */}
-      <Collapsible
-        open={openSections.has('safety')}
-        onOpenChange={() => toggleSection('safety')}
+      <CollapsibleSection
+        id="safety"
+        icon={Shield}
+        iconColor="text-amber-500"
+        title="Safety Tools"
+        badge={
+          data.safetyToolsReviewed ? (
+            <Badge variant="outline" className="text-green-500">
+              Reviewed
+            </Badge>
+          ) : undefined
+        }
+        description="Lines, Veils, and the X-Card for content safety"
+        isOpen={openSections.has('safety')}
+        onToggle={toggleSection}
       >
-        <Card>
-          <CardHeader className="pb-3">
-            <CollapsibleTrigger className="flex w-full items-center justify-between">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Shield className="h-4 w-4 text-amber-500" />
-                Safety Tools
-                {data.safetyToolsReviewed && (
-                  <Badge variant="outline" className="text-green-500">
-                    Reviewed
-                  </Badge>
-                )}
-              </CardTitle>
-              <ChevronDown
-                className={`h-4 w-4 transition-transform ${openSections.has('safety') ? 'rotate-180' : ''}`}
+        <CardContent className="space-y-6">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                checked={data.safetyToolsReviewed}
+                onCheckedChange={checked => {
+                  update({ safetyToolsReviewed: checked === true });
+                  onBlur();
+                }}
               />
-            </CollapsibleTrigger>
-            <CardDescription>
-              Lines, Veils, and the X-Card for content safety
-            </CardDescription>
-          </CardHeader>
-          <CollapsibleContent>
-            <CardContent className="space-y-6">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    checked={data.safetyToolsReviewed}
-                    onCheckedChange={checked => {
-                      update({ safetyToolsReviewed: checked === true });
-                      onBlur();
-                    }}
-                  />
-                  <Label>Safety tools reviewed with group</Label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    checked={data.xCardEnabled}
-                    onCheckedChange={checked => {
-                      update({ xCardEnabled: checked === true });
-                      onBlur();
-                    }}
-                  />
-                  <Label>X-Card enabled</Label>
-                </div>
-              </div>
+              <Label>Safety tools reviewed with group</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                checked={data.xCardEnabled}
+                onCheckedChange={checked => {
+                  update({ xCardEnabled: checked === true });
+                  onBlur();
+                }}
+              />
+              <Label>X-Card enabled</Label>
+            </div>
+          </div>
 
-              {/* Lines */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <EyeOff className="h-4 w-4 text-red-500" />
-                  <Label>Lines (Never Appears)</Label>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <HelpCircle className="text-muted-foreground h-3 w-3" />
-                      </TooltipTrigger>
-                      <TooltipContent className="max-w-xs">
-                        Topics that should never appear in any form during the
-                        game.
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-                <SafetyLinesEditor
-                  lines={data.lines}
-                  onChange={lines => {
-                    update({ lines });
-                    onBlur();
-                  }}
-                />
-              </div>
+          {/* Lines */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <EyeOff className="h-4 w-4 text-red-500" />
+              <Label>Lines (Never Appears)</Label>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="text-muted-foreground h-3 w-3" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    Topics that should never appear in any form during the game.
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <SafetyLinesEditor
+              lines={data.lines}
+              onChange={updateAndBlur('lines')}
+            />
+          </div>
 
-              {/* Veils */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Eye className="h-4 w-4 text-amber-500" />
-                  <Label>Veils (Off-Screen)</Label>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <HelpCircle className="text-muted-foreground h-3 w-3" />
-                      </TooltipTrigger>
-                      <TooltipContent className="max-w-xs">
-                        Topics that can exist in the world but happen
-                        &quot;off-screen&quot; or fade to black.
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-                <SafetyVeilsEditor
-                  veils={data.veils}
-                  onChange={veils => {
-                    update({ veils });
-                    onBlur();
-                  }}
-                />
-              </div>
+          {/* Veils */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Eye className="h-4 w-4 text-amber-500" />
+              <Label>Veils (Off-Screen)</Label>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="text-muted-foreground h-3 w-3" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    Topics that can exist in the world but happen
+                    &quot;off-screen&quot; or fade to black.
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <SafetyVeilsEditor
+              veils={data.veils}
+              onChange={updateAndBlur('veils')}
+            />
+          </div>
 
-              {/* Safety Notes */}
-              <div className="space-y-2">
-                <Label>Additional Safety Notes</Label>
-                <Textarea
-                  value={data.safetyNotes}
-                  onChange={e => update({ safetyNotes: e.target.value })}
-                  onBlur={onBlur}
-                  placeholder="Any other safety considerations for this group..."
-                  rows={2}
-                />
-              </div>
-            </CardContent>
-          </CollapsibleContent>
-        </Card>
-      </Collapsible>
+          {/* Safety Notes */}
+          <div className="space-y-2">
+            <Label>Additional Safety Notes</Label>
+            <Textarea
+              value={data.safetyNotes}
+              onChange={e => update({ safetyNotes: e.target.value })}
+              onBlur={onBlur}
+              placeholder="Any other safety considerations for this group..."
+              rows={2}
+            />
+          </div>
+        </CardContent>
+      </CollapsibleSection>
 
       {/* Table Agreements */}
-      <Collapsible
-        open={openSections.has('agreements')}
-        onOpenChange={() => toggleSection('agreements')}
+      <CollapsibleSection
+        id="agreements"
+        icon={Users}
+        iconColor="text-green-500"
+        title="Table Agreements"
+        badge={
+          data.tableAgreements.length > 0 ? (
+            <Badge variant="outline">{data.tableAgreements.length}</Badge>
+          ) : undefined
+        }
+        description="Social contract for scheduling, communication, and gameplay"
+        isOpen={openSections.has('agreements')}
+        onToggle={toggleSection}
       >
-        <Card>
-          <CardHeader className="pb-3">
-            <CollapsibleTrigger className="flex w-full items-center justify-between">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Users className="h-4 w-4 text-green-500" />
-                Table Agreements
-                {data.tableAgreements.length > 0 && (
-                  <Badge variant="outline">{data.tableAgreements.length}</Badge>
-                )}
-              </CardTitle>
-              <ChevronDown
-                className={`h-4 w-4 transition-transform ${openSections.has('agreements') ? 'rotate-180' : ''}`}
-              />
-            </CollapsibleTrigger>
-            <CardDescription>
-              Social contract for scheduling, communication, and gameplay
-            </CardDescription>
-          </CardHeader>
-          <CollapsibleContent>
-            <CardContent>
-              <TableAgreementsEditor
-                agreements={data.tableAgreements}
-                onChange={agreements => {
-                  update({ tableAgreements: agreements });
-                  onBlur();
-                }}
-              />
-            </CardContent>
-          </CollapsibleContent>
-        </Card>
-      </Collapsible>
+        <CardContent>
+          <TableAgreementsEditor
+            agreements={data.tableAgreements}
+            onChange={updateAndBlur('tableAgreements')}
+          />
+        </CardContent>
+      </CollapsibleSection>
 
       {/* Character Connections */}
-      <Collapsible
-        open={openSections.has('connections')}
-        onOpenChange={() => toggleSection('connections')}
+      <CollapsibleSection
+        id="connections"
+        icon={Link2}
+        iconColor="text-purple-500"
+        title="Character Connections"
+        badge={
+          data.characterConnections.length > 0 ? (
+            <Badge variant="outline">{data.characterConnections.length}</Badge>
+          ) : undefined
+        }
+        description="How the party members know each other"
+        isOpen={openSections.has('connections')}
+        onToggle={toggleSection}
       >
-        <Card>
-          <CardHeader className="pb-3">
-            <CollapsibleTrigger className="flex w-full items-center justify-between">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Link2 className="h-4 w-4 text-purple-500" />
-                Character Connections
-                {data.characterConnections.length > 0 && (
-                  <Badge variant="outline">
-                    {data.characterConnections.length}
-                  </Badge>
-                )}
-              </CardTitle>
-              <ChevronDown
-                className={`h-4 w-4 transition-transform ${openSections.has('connections') ? 'rotate-180' : ''}`}
-              />
-            </CollapsibleTrigger>
-            <CardDescription>
-              How the party members know each other
-            </CardDescription>
-          </CardHeader>
-          <CollapsibleContent>
-            <CardContent>
-              <CharacterConnectionsEditor
-                connections={data.characterConnections}
-                onChange={connections => {
-                  update({ characterConnections: connections });
-                  onBlur();
-                }}
-              />
-            </CardContent>
-          </CollapsibleContent>
-        </Card>
-      </Collapsible>
+        <CardContent>
+          <CharacterConnectionsEditor
+            connections={data.characterConnections}
+            onChange={updateAndBlur('characterConnections')}
+          />
+        </CardContent>
+      </CollapsibleSection>
 
       {/* Worldbuilding */}
-      <Collapsible
-        open={openSections.has('worldbuilding')}
-        onOpenChange={() => toggleSection('worldbuilding')}
+      <CollapsibleSection
+        id="worldbuilding"
+        icon={Globe}
+        iconColor="text-emerald-500"
+        title="Worldbuilding Notes"
+        badge={
+          data.worldbuildingNotes.length > 0 ? (
+            <Badge variant="outline">{data.worldbuildingNotes.length}</Badge>
+          ) : undefined
+        }
+        description="Collaborative worldbuilding from session zero"
+        isOpen={openSections.has('worldbuilding')}
+        onToggle={toggleSection}
       >
-        <Card>
-          <CardHeader className="pb-3">
-            <CollapsibleTrigger className="flex w-full items-center justify-between">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Globe className="h-4 w-4 text-emerald-500" />
-                Worldbuilding Notes
-                {data.worldbuildingNotes.length > 0 && (
-                  <Badge variant="outline">
-                    {data.worldbuildingNotes.length}
-                  </Badge>
-                )}
-              </CardTitle>
-              <ChevronDown
-                className={`h-4 w-4 transition-transform ${openSections.has('worldbuilding') ? 'rotate-180' : ''}`}
-              />
-            </CollapsibleTrigger>
-            <CardDescription>
-              Collaborative worldbuilding from session zero
-            </CardDescription>
-          </CardHeader>
-          <CollapsibleContent>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Worldbuilding Summary</Label>
-                <Textarea
-                  value={data.worldbuildingSummary}
-                  onChange={e =>
-                    update({ worldbuildingSummary: e.target.value })
-                  }
-                  onBlur={onBlur}
-                  placeholder="Summary of collaborative worldbuilding..."
-                  rows={3}
-                />
-              </div>
-              <WorldbuildingNotesEditor
-                notes={data.worldbuildingNotes}
-                onChange={notes => {
-                  update({ worldbuildingNotes: notes });
-                  onBlur();
-                }}
-              />
-            </CardContent>
-          </CollapsibleContent>
-        </Card>
-      </Collapsible>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label>Worldbuilding Summary</Label>
+            <Textarea
+              value={data.worldbuildingSummary}
+              onChange={e => update({ worldbuildingSummary: e.target.value })}
+              onBlur={onBlur}
+              placeholder="Summary of collaborative worldbuilding..."
+              rows={3}
+            />
+          </div>
+          <WorldbuildingNotesEditor
+            notes={data.worldbuildingNotes}
+            onChange={updateAndBlur('worldbuildingNotes')}
+          />
+        </CardContent>
+      </CollapsibleSection>
 
       {/* Optional Rules */}
-      <Collapsible
-        open={openSections.has('optional-rules')}
-        onOpenChange={() => toggleSection('optional-rules')}
+      <CollapsibleSection
+        id="optional-rules"
+        icon={Settings}
+        iconColor="text-orange-500"
+        title="Optional Rules"
+        badge={
+          hasOptionalRules ? (
+            <Badge variant="outline" className="text-green-500">
+              Configured
+            </Badge>
+          ) : undefined
+        }
+        description="Tune risk and pacing with optional rules from Chapter 3"
+        isOpen={openSections.has('optional-rules')}
+        onToggle={toggleSection}
       >
-        <Card>
-          <CardHeader className="pb-3">
-            <CollapsibleTrigger className="flex w-full items-center justify-between">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Settings className="h-4 w-4 text-orange-500" />
-                Optional Rules
-                {(data.optionalRules?.massiveDamage ||
-                  data.optionalRules?.spotlightTrackers ||
-                  data.optionalRules?.definedRanges ||
-                  data.optionalRules?.goldCoins ||
-                  (data.optionalRules?.customHouseRules?.length ?? 0) > 0) && (
-                  <Badge variant="outline" className="text-green-500">
-                    Configured
-                  </Badge>
-                )}
-              </CardTitle>
-              <ChevronDown
-                className={`h-4 w-4 transition-transform ${openSections.has('optional-rules') ? 'rotate-180' : ''}`}
-              />
-            </CollapsibleTrigger>
-            <CardDescription>
-              Tune risk and pacing with optional rules from Chapter 3
-            </CardDescription>
-          </CardHeader>
-          <CollapsibleContent>
-            <CardContent>
-              <OptionalRulesSection
-                optionalRules={data.optionalRules}
-                onChange={optionalRules => {
-                  update({ optionalRules });
-                  onBlur();
-                }}
-                onBlur={onBlur}
-              />
-            </CardContent>
-          </CollapsibleContent>
-        </Card>
-      </Collapsible>
+        <CardContent>
+          <OptionalRulesSection
+            optionalRules={data.optionalRules}
+            onChange={updateAndBlur('optionalRules')}
+            onBlur={onBlur}
+          />
+        </CardContent>
+      </CollapsibleSection>
 
       {/* Session Zero Checklist */}
-      <Collapsible
-        open={openSections.has('checklist')}
-        onOpenChange={() => toggleSection('checklist')}
+      <CollapsibleSection
+        id="checklist"
+        icon={CheckCircle2}
+        iconColor="text-cyan-500"
+        title="Session Zero Checklist"
+        description="Track progress through the session zero agenda"
+        isOpen={openSections.has('checklist')}
+        onToggle={toggleSection}
       >
-        <Card>
-          <CardHeader className="pb-3">
-            <CollapsibleTrigger className="flex w-full items-center justify-between">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <CheckCircle2 className="h-4 w-4 text-cyan-500" />
-                Session Zero Checklist
-              </CardTitle>
-              <ChevronDown
-                className={`h-4 w-4 transition-transform ${openSections.has('checklist') ? 'rotate-180' : ''}`}
-              />
-            </CollapsibleTrigger>
-            <CardDescription>
-              Track progress through the session zero agenda
-            </CardDescription>
-          </CardHeader>
-          <CollapsibleContent>
-            <CardContent>
-              <SessionZeroChecklist
-                completedSteps={data.completedSteps}
-                onChange={steps => {
-                  update({ completedSteps: steps });
-                  onBlur();
-                }}
-              />
-            </CardContent>
-          </CollapsibleContent>
-        </Card>
-      </Collapsible>
+        <CardContent>
+          <SessionZeroChecklist
+            completedSteps={data.completedSteps}
+            onChange={updateAndBlur('completedSteps')}
+          />
+        </CardContent>
+      </CollapsibleSection>
 
       {/* Session Details */}
       <Card>

@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { TIERS } from '@/lib/constants';
 import type { Adversary } from '@/lib/schemas/adversaries';
 import { cn } from '@/lib/utils';
 
@@ -65,8 +66,6 @@ export const ROLES: Adversary['role'][] = [
   'Horde',
   'Minion',
 ];
-
-export const TIERS: Adversary['tier'][] = ['1', '2', '3', '4'];
 
 export const FEATURE_TYPES = ['Passive', 'Action', 'Reaction'] as const;
 

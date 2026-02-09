@@ -12,12 +12,13 @@ import {
 } from 'lucide-react';
 
 import { DetailPanel } from '@/components/references';
+import { RulesSectionIcons } from '@/components/rules/rules-section-icons';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import type { RulesPage } from '@/lib/data/rules/rules-content';
-import { AlertTriangle, Leaf, RulesSectionIcons } from '@/lib/icons';
+import { AlertTriangle, Leaf } from '@/lib/icons';
 import { cn } from '@/lib/utils';
 
 import { tagToneClasses } from './rules-utils';

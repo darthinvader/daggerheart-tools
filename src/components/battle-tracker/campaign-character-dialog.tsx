@@ -1,5 +1,6 @@
 import { Plus, User } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -60,6 +61,7 @@ export function CampaignCharacterDialog({
       onOpenChange(false);
     } catch (error) {
       console.error('Failed to load character:', error);
+      toast.error('Failed to add character');
     } finally {
       setLoadingCharacterId(null);
     }

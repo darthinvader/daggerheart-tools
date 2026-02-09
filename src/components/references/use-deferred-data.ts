@@ -1,5 +1,7 @@
 import * as React from 'react';
 
+import { useLatestRef } from '@/hooks/use-latest-ref';
+
 /**
  * Hook to defer heavy data loading until after the initial paint.
  * Shows skeleton immediately, then loads data after the browser has painted.
@@ -12,12 +14,7 @@ export function useDeferredLoad<T>(loader: () => T): {
   const [isLoading, setIsLoading] = React.useState(true);
 
   // Store loader in a ref to avoid dependency on unstable callback references
-  const loaderRef = React.useRef(loader);
-
-  // Update ref in effect to satisfy react-hooks/refs rule
-  React.useEffect(() => {
-    loaderRef.current = loader;
-  });
+  const loaderRef = useLatestRef(loader);
 
   React.useEffect(() => {
     // Use requestAnimationFrame + setTimeout to ensure we paint first

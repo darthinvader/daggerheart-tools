@@ -1321,6 +1321,81 @@ function EquipmentHeader({
   );
 }
 
+function TierGroup({
+  tier,
+  items,
+  onSelectItem,
+}: {
+  tier: string;
+  items: EquipmentItem[];
+  onSelectItem: (item: EquipmentItem) => void;
+}) {
+  return (
+    <div>
+      <h3 className="text-muted-foreground mb-3 flex items-center gap-2 text-sm font-medium">
+        <span
+          className={`inline-block h-2 w-2 rounded-full ${tierDotColors[tier]}`}
+        />
+        Tier {tier}
+        <span className="text-muted-foreground/60">({items.length})</span>
+      </h3>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {items.map((item, idx) => (
+          <EquipmentCard
+            key={`${item.data.name}-${idx}`}
+            item={item}
+            onClick={() => onSelectItem(item)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CategorySection({
+  category,
+  items,
+  isExpanded,
+  onToggle,
+  onSelectItem,
+}: {
+  category: string;
+  items: EquipmentItem[];
+  isExpanded: boolean;
+  onToggle: () => void;
+  onSelectItem: (item: EquipmentItem) => void;
+}) {
+  const categoryLabel = getCategoryLabel(category);
+  const byTier = groupItemsByTier(items);
+  const ExpandIcon = isExpanded ? ChevronDown : ChevronRight;
+
+  return (
+    <Collapsible open={isExpanded} onOpenChange={onToggle}>
+      <CollapsibleTrigger asChild>
+        <button className="hover:bg-muted/50 bg-card flex w-full items-center justify-between rounded-lg border p-3 transition-colors">
+          <div className="flex items-center gap-3">
+            <h2 className="text-lg font-semibold">{categoryLabel}</h2>
+            <Badge variant="secondary">{items.length}</Badge>
+          </div>
+          <ExpandIcon className="text-muted-foreground size-5" />
+        </button>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="pt-4">
+        <div className="space-y-6">
+          {getSortedTierEntries(byTier).map(([tier, tierItems]) => (
+            <TierGroup
+              key={tier}
+              tier={tier}
+              items={tierItems}
+              onSelectItem={onSelectItem}
+            />
+          ))}
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
 // Memoized to prevent re-renders when sheet opens/closes
 const EquipmentGridSections = React.memo(function EquipmentGridSections({
   groupedItems,
@@ -1356,6 +1431,8 @@ const EquipmentGridSections = React.memo(function EquipmentGridSections({
     allCollapsed,
     isCategoryExpanded,
   } = useCategoryExpandState(Object.keys(groupedItems));
+
+  const SortDirIcon = sortDir === 'asc' ? ArrowUp : ArrowDown;
 
   return (
     <div className="space-y-4">
@@ -1415,11 +1492,7 @@ const EquipmentGridSections = React.memo(function EquipmentGridSections({
                     onSortDirChange(sortDir === 'asc' ? 'desc' : 'asc')
                   }
                 >
-                  {sortDir === 'asc' ? (
-                    <ArrowUp className="size-4" />
-                  ) : (
-                    <ArrowDown className="size-4" />
-                  )}
+                  <SortDirIcon className="size-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
@@ -1509,56 +1582,15 @@ const EquipmentGridSections = React.memo(function EquipmentGridSections({
 
       {Object.entries(groupedItems).map(([category, items]) => {
         if (items.length === 0) return null;
-        const categoryLabel = getCategoryLabel(category);
-        const byTier = groupItemsByTier(items);
-        const isExpanded = isCategoryExpanded(category);
-
         return (
-          <Collapsible
+          <CategorySection
             key={category}
-            open={isExpanded}
-            onOpenChange={() => toggleCategory(category)}
-          >
-            <CollapsibleTrigger asChild>
-              <button className="hover:bg-muted/50 bg-card flex w-full items-center justify-between rounded-lg border p-3 transition-colors">
-                <div className="flex items-center gap-3">
-                  <h2 className="text-lg font-semibold">{categoryLabel}</h2>
-                  <Badge variant="secondary">{items.length}</Badge>
-                </div>
-                {isExpanded ? (
-                  <ChevronDown className="text-muted-foreground size-5" />
-                ) : (
-                  <ChevronRight className="text-muted-foreground size-5" />
-                )}
-              </button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="pt-4">
-              <div className="space-y-6">
-                {getSortedTierEntries(byTier).map(([tier, tierItems]) => (
-                  <div key={tier}>
-                    <h3 className="text-muted-foreground mb-3 flex items-center gap-2 text-sm font-medium">
-                      <span
-                        className={`inline-block h-2 w-2 rounded-full ${tierDotColors[tier]}`}
-                      />
-                      Tier {tier}
-                      <span className="text-muted-foreground/60">
-                        ({tierItems.length})
-                      </span>
-                    </h3>
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                      {tierItems.map((item, idx) => (
-                        <EquipmentCard
-                          key={`${item.data.name}-${idx}`}
-                          item={item}
-                          onClick={() => onSelectItem(item)}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
+            category={category}
+            items={items}
+            isExpanded={isCategoryExpanded(category)}
+            onToggle={() => toggleCategory(category)}
+            onSelectItem={onSelectItem}
+          />
         );
       })}
     </div>
@@ -1820,43 +1852,39 @@ function EquipmentLayout({
   );
 }
 
-function EquipmentReferencePage() {
-  const searchParams = Route.useSearch();
+function useEquipmentUrlSync({
+  viewMode,
+  sortBy,
+  sortDir,
+  searchText,
+  initialQuery,
+  isMobile,
+  onSearchChange,
+  setViewMode,
+}: {
+  viewMode: 'grid' | 'table';
+  sortBy: EquipmentSortKey;
+  sortDir: 'asc' | 'desc';
+  searchText: string;
+  initialQuery: string | undefined;
+  isMobile: boolean;
+  onSearchChange: (search: string) => void;
+  setViewMode: (mode: 'grid' | 'table') => void;
+}) {
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
-  const scrollRef = React.useRef<HTMLDivElement>(null);
-  const [viewMode, setViewMode] = React.useState<'grid' | 'table'>(
-    searchParams.view ?? 'grid'
-  );
-  const [sortBy, setSortBy] = React.useState<EquipmentSortKey>(
-    searchParams.sort ?? 'name'
-  );
-  const [sortDir, setSortDir] = React.useState<'asc' | 'desc'>(
-    searchParams.dir ?? 'asc'
-  );
-  const [selectedItem, setSelectedItem] = React.useState<EquipmentItem | null>(
-    null
-  );
 
   // Force grid view on mobile - tables are too wide for small screens
   React.useEffect(() => {
     if (isMobile && viewMode === 'table') {
       setViewMode('grid');
     }
-  }, [isMobile, viewMode]);
-
-  // Defer data loading until after initial paint
-  const { data: allItems, isLoading: isInitialLoading } =
-    useDeferredLoad(loadAllItems);
-
-  const { filterState, onSearchChange, onFilterChange, onClearFilters } =
-    useFilterState(filterGroups);
+  }, [isMobile, viewMode, setViewMode]);
 
   // Initialize search text from URL on mount
   const hasMounted = React.useRef(false);
   React.useEffect(() => {
-    if (searchParams.q) {
-      onSearchChange(searchParams.q);
+    if (initialQuery) {
+      onSearchChange(initialQuery);
     }
     const raf = requestAnimationFrame(() => {
       hasMounted.current = true;
@@ -1889,13 +1917,49 @@ function EquipmentReferencePage() {
         to: '/references/equipment',
         search: prev => ({
           ...prev,
-          q: filterState.search || undefined,
+          q: searchText || undefined,
         }),
         replace: true,
       });
     }, 300);
     return () => clearTimeout(searchTimerRef.current);
-  }, [filterState.search, navigate]);
+  }, [searchText, navigate]);
+}
+
+function EquipmentReferencePage() {
+  const searchParams = Route.useSearch();
+  const isMobile = useIsMobile();
+  const scrollRef = React.useRef<HTMLDivElement>(null);
+  const [viewMode, setViewMode] = React.useState<'grid' | 'table'>(
+    searchParams.view ?? 'grid'
+  );
+  const [sortBy, setSortBy] = React.useState<EquipmentSortKey>(
+    searchParams.sort ?? 'name'
+  );
+  const [sortDir, setSortDir] = React.useState<'asc' | 'desc'>(
+    searchParams.dir ?? 'asc'
+  );
+  const [selectedItem, setSelectedItem] = React.useState<EquipmentItem | null>(
+    null
+  );
+
+  // Defer data loading until after initial paint
+  const { data: allItems, isLoading: isInitialLoading } =
+    useDeferredLoad(loadAllItems);
+
+  const { filterState, onSearchChange, onFilterChange, onClearFilters } =
+    useFilterState(filterGroups);
+
+  useEquipmentUrlSync({
+    viewMode,
+    sortBy,
+    sortDir,
+    searchText: filterState.search,
+    initialQuery: searchParams.q,
+    isMobile,
+    onSearchChange,
+    setViewMode,
+  });
 
   const filteredItems = React.useMemo(() => {
     if (!allItems) return [];

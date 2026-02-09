@@ -7,6 +7,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
  * - Deep merges pending updates to avoid losing concurrent changes
  * - Flushes pending updates on unmount to prevent data loss
  */
+import type { MutableRefObject } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { CharacterRecord } from '@/lib/api/characters';
@@ -19,7 +20,6 @@ const SAVE_DELAY = 1000;
 export interface AutoSaveState {
   isSaving: boolean;
   lastSaved: Date | null;
-  lastError: Error | null;
 }
 
 export interface UseAutoSaveReturn extends AutoSaveState {
@@ -60,6 +60,29 @@ function deepMerge<T extends Record<string, unknown>>(
   return result;
 }
 
+/** Accumulate new updates into the pending batch via deep merge. */
+function accumulateUpdates(
+  pendingRef: MutableRefObject<Partial<CharacterRecord>>,
+  updates: Partial<CharacterRecord>
+): void {
+  pendingRef.current = deepMerge(
+    pendingRef.current,
+    updates as Record<string, unknown>
+  ) as Partial<CharacterRecord>;
+}
+
+/** Flush any accumulated pending updates by calling mutate, then clear the buffer. */
+function flushPendingUpdates(
+  pendingRef: MutableRefObject<Partial<CharacterRecord>>,
+  mutateFn: ((updates: Partial<CharacterRecord>) => void) | undefined
+): void {
+  const pending = pendingRef.current;
+  if (Object.keys(pending).length > 0 && mutateFn) {
+    mutateFn(pending);
+    pendingRef.current = {};
+  }
+}
+
 /**
  * Hook that provides debounced auto-save functionality for character data
  */
@@ -70,7 +93,6 @@ export function useAutoSave(characterId: string): UseAutoSaveReturn {
   const isMountedRef = useRef(true);
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const [lastError, setLastError] = useState<Error | null>(null);
 
   // Stable reference to mutation function for cleanup
   const mutateRef =
@@ -84,12 +106,10 @@ export function useAutoSave(characterId: string): UseAutoSaveReturn {
       if (!isMountedRef.current) return;
       queryClient.setQueryData(characterQueryKeys.detail(characterId), data);
       setLastSaved(new Date());
-      setLastError(null);
       setIsSaving(false);
     },
     onError: (error: Error) => {
       if (!isMountedRef.current) return;
-      setLastError(error);
       setIsSaving(false);
       console.error('[AutoSave] Failed to save character:', error);
     },
@@ -103,20 +123,14 @@ export function useAutoSave(characterId: string): UseAutoSaveReturn {
   // Debounced save function that merges pending updates
   const scheduleSave = useCallback(
     (updates: Partial<CharacterRecord>) => {
-      // Deep merge new updates with pending updates
-      pendingUpdatesRef.current = deepMerge(
-        pendingUpdatesRef.current,
-        updates as Record<string, unknown>
-      ) as Partial<CharacterRecord>;
+      accumulateUpdates(pendingUpdatesRef, updates);
 
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
       setIsSaving(true);
       saveTimeoutRef.current = setTimeout(() => {
-        const toSave = pendingUpdatesRef.current;
-        pendingUpdatesRef.current = {}; // Clear pending updates
-        mutateRef.current?.(toSave);
+        flushPendingUpdates(pendingUpdatesRef, mutateRef.current);
       }, SAVE_DELAY);
     },
     [] // mutateRef is stable
@@ -142,18 +156,13 @@ export function useAutoSave(characterId: string): UseAutoSaveReturn {
         clearTimeout(saveTimeoutRef.current);
       }
       // Flush any pending updates before unmount
-      const pending = pendingUpdatesRef.current;
-      if (Object.keys(pending).length > 0 && mutateRef.current) {
-        mutateRef.current(pending);
-        pendingUpdatesRef.current = {};
-      }
+      flushPendingUpdates(pendingUpdatesRef, mutateRef.current);
     };
   }, []);
 
   return {
     isSaving,
     lastSaved,
-    lastError,
     scheduleSave,
   };
 }

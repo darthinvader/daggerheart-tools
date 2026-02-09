@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { TIERS } from '@/lib/constants';
 import type { HomebrewEnvironment } from '@/lib/schemas/homebrew';
 
 // Type color mapping for visual distinction
@@ -54,7 +55,7 @@ export const TYPE_COLORS: Record<
 };
 
 export const TYPES = ['Exploration', 'Event', 'Social', 'Traversal'] as const;
-export const TIERS = ['1', '2', '3', '4'] as const;
+export { TIERS };
 
 export interface FeatureState {
   id: string;

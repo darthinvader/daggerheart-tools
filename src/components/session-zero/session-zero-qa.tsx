@@ -1,5 +1,5 @@
 import { Check, MessageSquare, Plus, Trash2, X } from 'lucide-react';
-import { useId, useMemo, useState } from 'react';
+import { type ReactNode, useId, useMemo, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -284,6 +284,42 @@ function QuestionCard({
   );
 }
 
+interface PresetQuestionItemProps {
+  question: string;
+  selected: boolean;
+  onToggle: () => void;
+}
+
+function PresetQuestionItem({
+  question,
+  selected,
+  onToggle,
+}: PresetQuestionItemProps) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      className={cn(
+        'flex w-full items-center gap-3 rounded-md border p-3 text-left text-sm transition-colors',
+        selected ? 'border-primary bg-primary/5' : 'hover:bg-muted/50'
+      )}
+      aria-pressed={selected}
+    >
+      <div
+        className={cn(
+          'flex size-5 shrink-0 items-center justify-center rounded border',
+          selected
+            ? 'border-primary bg-primary text-primary-foreground'
+            : 'border-input'
+        )}
+      >
+        {selected && <Check className="size-3" />}
+      </div>
+      <span>{question}</span>
+    </button>
+  );
+}
+
 interface AddQuestionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -403,32 +439,12 @@ function AddQuestionDialog({
                         {config.label}
                       </h4>
                       {questionsInCategory.map(preset => (
-                        <button
+                        <PresetQuestionItem
                           key={preset.question}
-                          type="button"
-                          onClick={() => togglePreset(preset.question)}
-                          className={cn(
-                            'flex w-full items-center gap-3 rounded-md border p-3 text-left text-sm transition-colors',
-                            selectedPresets.has(preset.question)
-                              ? 'border-primary bg-primary/5'
-                              : 'hover:bg-muted/50'
-                          )}
-                          aria-pressed={selectedPresets.has(preset.question)}
-                        >
-                          <div
-                            className={cn(
-                              'flex size-5 shrink-0 items-center justify-center rounded border',
-                              selectedPresets.has(preset.question)
-                                ? 'border-primary bg-primary text-primary-foreground'
-                                : 'border-input'
-                            )}
-                          >
-                            {selectedPresets.has(preset.question) && (
-                              <Check className="size-3" />
-                            )}
-                          </div>
-                          <span>{preset.question}</span>
-                        </button>
+                          question={preset.question}
+                          selected={selectedPresets.has(preset.question)}
+                          onToggle={() => togglePreset(preset.question)}
+                        />
                       ))}
                     </div>
                   );
@@ -495,6 +511,30 @@ function AddQuestionDialog({
 }
 
 // =====================================================================================
+// Shared Sub-components
+// =====================================================================================
+
+interface EmptyStateProps {
+  icon: ReactNode;
+  title: string;
+  description: string;
+  children?: ReactNode;
+}
+
+function EmptyState({ icon, title, description, children }: EmptyStateProps) {
+  return (
+    <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
+      {icon}
+      <h4 className="mb-1 font-medium">{title}</h4>
+      <p className={cn('text-muted-foreground text-sm', children && 'mb-4')}>
+        {description}
+      </p>
+      {children}
+    </div>
+  );
+}
+
+// =====================================================================================
 // Main Component
 // =====================================================================================
 
@@ -554,6 +594,8 @@ export function SessionZeroQA({
     onChange([...safeQuestions, question]);
   };
 
+  const handleOpenDialog = () => setDialogOpen(true);
+
   // Filter questions based on selected category
   const filteredQuestions = useMemo(() => {
     if (categoryFilter === 'all') return safeQuestions;
@@ -594,7 +636,7 @@ export function SessionZeroQA({
           </div>
         </div>
         {!readOnly && (
-          <Button size="sm" onClick={() => setDialogOpen(true)}>
+          <Button size="sm" onClick={handleOpenDialog}>
             <Plus className="mr-1 size-4" aria-hidden="true" />
             Add Questions
           </Button>
@@ -641,33 +683,34 @@ export function SessionZeroQA({
       {/* Content */}
       <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
         {safeQuestions.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
-            <MessageSquare
-              className="text-muted-foreground/50 mb-3 size-10"
-              aria-hidden="true"
-            />
-            <h4 className="mb-1 font-medium">No questions yet</h4>
-            <p className="text-muted-foreground mb-4 text-sm">
-              Add questions to help prepare for your session zero
-            </p>
+          <EmptyState
+            icon={
+              <MessageSquare
+                className="text-muted-foreground/50 mb-3 size-10"
+                aria-hidden="true"
+              />
+            }
+            title="No questions yet"
+            description="Add questions to help prepare for your session zero"
+          >
             {!readOnly && (
-              <Button onClick={() => setDialogOpen(true)}>
+              <Button onClick={handleOpenDialog}>
                 <Plus className="mr-1 size-4" aria-hidden="true" />
                 Add Questions
               </Button>
             )}
-          </div>
+          </EmptyState>
         ) : filteredQuestions.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
-            <X
-              className="text-muted-foreground/50 mb-3 size-10"
-              aria-hidden="true"
-            />
-            <h4 className="mb-1 font-medium">No questions in this category</h4>
-            <p className="text-muted-foreground text-sm">
-              Try selecting a different category or add new questions
-            </p>
-          </div>
+          <EmptyState
+            icon={
+              <X
+                className="text-muted-foreground/50 mb-3 size-10"
+                aria-hidden="true"
+              />
+            }
+            title="No questions in this category"
+            description="Try selecting a different category or add new questions"
+          />
         ) : (
           <div className="space-y-4">
             {filteredQuestions.map(question => (

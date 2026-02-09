@@ -1,6 +1,5 @@
 import { Swords, User, Wand2 } from 'lucide-react';
 import { useCallback, useState } from 'react';
-import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,6 +18,7 @@ import {
   useBattleDialogState,
   useBattleRosterState,
 } from './use-battle-tracker-state';
+import { useSpendFear } from './use-spend-fear';
 import { DEFAULT_CHARACTER_DRAFT } from './utils';
 
 type RosterState = ReturnType<typeof useBattleRosterState>['rosterState'];
@@ -87,7 +87,7 @@ function BattleTrackerLayout({
   onEditEnvironment: (environment: EnvironmentTracker) => void;
   onEditAdversary: (adversary: AdversaryTracker) => void;
 }) {
-  const handleReduceAllCountdowns = () => {
+  const handleReduceAllCountdowns = useCallback(() => {
     // Reduce all enabled environment countdowns
     rosterState.environments.forEach(env => {
       if (env.countdownEnabled && (env.countdown ?? 0) > 0) {
@@ -106,29 +106,9 @@ function BattleTrackerLayout({
         }));
       }
     });
-  };
+  }, [rosterState.environments, rosterState.adversaries, rosterActions]);
 
-  const handleSpendFear = useCallback(
-    (amount: number, featureName: string) => {
-      const previousFear = rosterState.fearPool;
-      if (rosterActions.spendFear(amount)) {
-        toast.success(`Spent ${amount} Fear — ${featureName}`, {
-          description: `${previousFear - amount} Fear remaining`,
-          action: {
-            label: 'Undo',
-            onClick: () => rosterActions.setFearPool(previousFear),
-          },
-          duration: 5000,
-        });
-      } else {
-        toast.warning(
-          `Not enough Fear (need ${amount}, have ${rosterState.fearPool})`,
-          { description: featureName }
-        );
-      }
-    },
-    [rosterState.fearPool, rosterActions]
-  );
+  const handleSpendFear = useSpendFear(rosterState, rosterActions);
 
   return (
     <>
@@ -173,9 +153,9 @@ function BattleTrackerLayout({
                 rosterState.spotlight.kind === 'character'
               }
               useMassiveThreshold={rosterState.useMassiveThreshold}
-              onSelect={() => rosterActions.handleSelect(char)}
-              onRemove={() => rosterActions.handleRemove(char)}
-              onSpotlight={() => rosterActions.handleSpotlight(char)}
+              onSelect={rosterActions.handleSelect}
+              onRemove={rosterActions.handleRemove}
+              onSpotlight={rosterActions.handleSpotlight}
               onChange={rosterActions.updateCharacter}
             />
           ))}
@@ -200,11 +180,11 @@ function BattleTrackerLayout({
                 rosterState.spotlight.kind === 'adversary'
               }
               useMassiveThreshold={rosterState.useMassiveThreshold}
-              onSelect={() => rosterActions.handleSelect(adv)}
-              onRemove={() => rosterActions.handleRemove(adv)}
-              onSpotlight={() => rosterActions.handleSpotlight(adv)}
+              onSelect={rosterActions.handleSelect}
+              onRemove={rosterActions.handleRemove}
+              onSpotlight={rosterActions.handleSpotlight}
               onChange={rosterActions.updateAdversary}
-              onEdit={() => onEditAdversary(adv)}
+              onEdit={onEditAdversary}
             />
           ))}
         </RosterColumn>

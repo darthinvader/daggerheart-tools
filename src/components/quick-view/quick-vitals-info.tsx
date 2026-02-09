@@ -99,6 +99,44 @@ function ScarItem({ scar }: { scar: Scar }) {
   );
 }
 
+function getHpColors(current: number, max: number) {
+  const percent = max > 0 ? current / max : 1;
+  if (percent <= 0.25) return { bar: 'bg-red-500', text: 'text-red-500' };
+  if (percent <= 0.5) return { bar: 'bg-yellow-500', text: 'text-yellow-500' };
+  return { bar: 'bg-emerald-500', text: 'text-emerald-500' };
+}
+
+interface CompanionHopeToggleProps {
+  filled: boolean;
+  onToggle: () => void;
+  disabled: boolean;
+}
+
+function CompanionHopeToggle({
+  filled,
+  onToggle,
+  disabled,
+}: CompanionHopeToggleProps) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      className={cn(
+        'mt-1.5 flex items-center gap-1 self-end text-[11px] transition-colors',
+        filled
+          ? 'text-emerald-500'
+          : 'text-muted-foreground hover:text-emerald-500'
+      )}
+      disabled={disabled}
+    >
+      <PawPrint className="size-3" />
+      <span className="flex items-center gap-0.5">
+        Companion Hope: {filled ? <Check className="size-3" /> : <span>○</span>}
+      </span>
+    </button>
+  );
+}
+
 export function QuickVitalsInfo({
   resources,
   hopeState,
@@ -182,93 +220,61 @@ export function QuickVitalsInfo({
     onHopeChange({ ...hopeState, companionHopeFilled: !companionHopeFilled });
   }, [hopeState, onHopeChange, bonusHopeSlots, companionHopeFilled]);
 
-  // Determine HP bar color based on percentage
-  const hpPercent =
-    resources.hp.max > 0 ? resources.hp.current / resources.hp.max : 1;
-  const hpBarColor =
-    hpPercent <= 0.25
-      ? 'bg-red-500'
-      : hpPercent <= 0.5
-        ? 'bg-yellow-500'
-        : 'bg-emerald-500';
-  const hpTextColor =
-    hpPercent <= 0.25
-      ? 'text-red-500'
-      : hpPercent <= 0.5
-        ? 'text-yellow-500'
-        : 'text-emerald-500';
+  const hpColors = getHpColors(resources.hp.current, resources.hp.max);
+
+  const vitalBars: VitalBarProps[] = [
+    {
+      label: 'HP',
+      icon: Heart,
+      current: resources.hp.current,
+      max: resources.hp.max,
+      onChange: onResourcesChange ? handleHpChange : undefined,
+      barColorClass: hpColors.bar,
+      textColorClass: hpColors.text,
+    },
+    {
+      label: 'Armor',
+      icon: Shield,
+      current: resources.armorScore.current,
+      max: resources.armorScore.max,
+      onChange: onResourcesChange ? handleArmorChange : undefined,
+      barColorClass: 'bg-blue-500',
+      textColorClass: 'text-blue-400',
+    },
+    {
+      label: 'Stress',
+      icon: HeartCrack,
+      current: resources.stress.current,
+      max: resources.stress.max,
+      onChange: onResourcesChange ? handleStressChange : undefined,
+      barColorClass: 'bg-purple-500',
+      textColorClass: 'text-purple-400',
+    },
+    {
+      label: 'Hope',
+      icon: Sparkles,
+      current: hopeState.current,
+      max: effectiveMax,
+      onChange: onHopeChange ? handleHopeChange : undefined,
+      barColorClass: 'bg-amber-500',
+      textColorClass: 'text-amber-400',
+    },
+  ];
 
   return (
     <div className={cn('quick-vitals-card', className)}>
       <div className="quick-vitals-grid">
-        {/* HP */}
-        <VitalBar
-          label="HP"
-          icon={Heart}
-          current={resources.hp.current}
-          max={resources.hp.max}
-          onChange={onResourcesChange ? handleHpChange : undefined}
-          barColorClass={hpBarColor}
-          textColorClass={hpTextColor}
-        />
-
-        {/* Armor */}
-        <VitalBar
-          label="Armor"
-          icon={Shield}
-          current={resources.armorScore.current}
-          max={resources.armorScore.max}
-          onChange={onResourcesChange ? handleArmorChange : undefined}
-          barColorClass="bg-blue-500"
-          textColorClass="text-blue-400"
-        />
-
-        {/* Stress */}
-        <VitalBar
-          label="Stress"
-          icon={HeartCrack}
-          current={resources.stress.current}
-          max={resources.stress.max}
-          onChange={onResourcesChange ? handleStressChange : undefined}
-          barColorClass="bg-purple-500"
-          textColorClass="text-purple-400"
-        />
-
-        {/* Hope */}
-        <VitalBar
-          label="Hope"
-          icon={Sparkles}
-          current={hopeState.current}
-          max={effectiveMax}
-          onChange={onHopeChange ? handleHopeChange : undefined}
-          barColorClass="bg-amber-500"
-          textColorClass="text-amber-400"
-        />
+        {vitalBars.map(bar => (
+          <VitalBar key={bar.label} {...bar} />
+        ))}
       </div>
 
-      {/* Companion bonus hope */}
       {bonusHopeSlots > 0 && (
-        <button
-          type="button"
-          onClick={handleCompanionHopeToggle}
-          className={cn(
-            'mt-1.5 flex items-center gap-1 self-end text-[11px] transition-colors',
-            companionHopeFilled
-              ? 'text-emerald-500'
-              : 'text-muted-foreground hover:text-emerald-500'
-          )}
+        <CompanionHopeToggle
+          filled={companionHopeFilled}
+          onToggle={handleCompanionHopeToggle}
           disabled={!onHopeChange}
-        >
-          <PawPrint className="size-3" />
-          <span className="flex items-center gap-0.5">
-            Companion Hope:{' '}
-            {companionHopeFilled ? (
-              <Check className="size-3" />
-            ) : (
-              <span>○</span>
-            )}
-          </span>
-        </button>
+        />
       )}
 
       {/* Scars */}

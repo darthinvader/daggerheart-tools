@@ -77,6 +77,215 @@ function getStrokeColor(progress: number): string {
   return 'stroke-red-500';
 }
 
+// ── Sub-components ───────────────────────────────────────────────────
+
+interface CompactTimerDisplayProps {
+  className?: string;
+  progress: number;
+  timeRemaining: number;
+  isRunning: boolean;
+  isExpired: boolean;
+  onToggle: () => void;
+  onReset: () => void;
+}
+
+function CompactTimerDisplay({
+  className,
+  progress,
+  timeRemaining,
+  isRunning,
+  isExpired,
+  onToggle,
+  onReset,
+}: CompactTimerDisplayProps) {
+  return (
+    <div
+      className={cn('flex items-center gap-2', className)}
+      role="timer"
+      aria-label={`Turn timer: ${formatTime(timeRemaining)} remaining`}
+    >
+      <Timer className={cn('size-4', getTimerColor(progress))} />
+
+      {/* Mini progress bar */}
+      <div className="bg-muted relative h-1.5 w-20 overflow-hidden rounded-full">
+        <div
+          className={cn(
+            'h-full transition-[width] duration-100',
+            getBarColor(progress)
+          )}
+          style={{ width: `${progress * 100}%` }}
+        />
+      </div>
+
+      <span
+        className={cn(
+          'min-w-[3ch] font-mono text-xs tabular-nums',
+          getTimerColor(progress),
+          isExpired && 'animate-pulse'
+        )}
+      >
+        {formatTime(timeRemaining)}
+      </span>
+
+      <Button
+        variant="ghost"
+        size="icon"
+        className="size-6"
+        onClick={onToggle}
+        disabled={isExpired && !isRunning}
+        aria-label={isRunning ? 'Pause timer' : 'Start timer'}
+      >
+        {isRunning ? <Pause className="size-3" /> : <Play className="size-3" />}
+      </Button>
+
+      <Button
+        variant="ghost"
+        size="icon"
+        className="size-6"
+        onClick={onReset}
+        aria-label="Reset timer"
+      >
+        <RotateCcw className="size-3" />
+      </Button>
+    </div>
+  );
+}
+
+interface CircularProgressProps {
+  progress: number;
+  timeRemaining: number;
+  isExpired: boolean;
+}
+
+function CircularProgress({
+  progress,
+  timeRemaining,
+  isExpired,
+}: CircularProgressProps) {
+  const circleRadius = 40;
+  const circumference = 2 * Math.PI * circleRadius;
+  const strokeDashoffset = circumference * (1 - progress);
+
+  return (
+    <div className="relative size-28">
+      <svg className="-rotate-90" viewBox="0 0 100 100" aria-hidden="true">
+        <circle
+          cx="50"
+          cy="50"
+          r={circleRadius}
+          fill="none"
+          className="stroke-muted"
+          strokeWidth="6"
+        />
+        <circle
+          cx="50"
+          cy="50"
+          r={circleRadius}
+          fill="none"
+          className={cn(
+            'transition-[stroke-dashoffset] duration-100',
+            getStrokeColor(progress)
+          )}
+          strokeWidth="6"
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset}
+        />
+      </svg>
+
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span
+          className={cn(
+            'font-mono text-xl font-semibold tabular-nums',
+            getTimerColor(progress),
+            isExpired && 'animate-pulse'
+          )}
+        >
+          {formatTime(timeRemaining)}
+        </span>
+        {isExpired && (
+          <span className="text-destructive text-[10px] font-medium uppercase">
+            Time&apos;s up
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+interface TimerSettingsPopoverProps {
+  durationMinutes: number;
+  setDuration: (seconds: number) => void;
+  autoStart: boolean;
+  setAutoStart: (value: boolean) => void;
+  audioEnabled: boolean;
+  setAudioEnabled: (value: boolean) => void;
+}
+
+function TimerSettingsPopover({
+  durationMinutes,
+  setDuration,
+  autoStart,
+  setAutoStart,
+  audioEnabled,
+  setAudioEnabled,
+}: TimerSettingsPopoverProps) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="ghost" size="icon" aria-label="Timer settings">
+          <Settings className="size-4" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-64 space-y-4" align="end">
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">
+            Duration: {durationMinutes} min
+          </Label>
+          <Slider
+            min={1}
+            max={10}
+            step={1}
+            value={[durationMinutes]}
+            onValueChange={([val]) => {
+              if (val !== undefined) setDuration(val * 60);
+            }}
+            aria-label="Timer duration in minutes"
+          />
+        </div>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="auto-start" className="text-sm">
+            Auto-start on spotlight
+          </Label>
+          <Switch
+            id="auto-start"
+            checked={autoStart}
+            onCheckedChange={setAutoStart}
+          />
+        </div>
+        <div className="flex items-center justify-between">
+          <Label
+            htmlFor="audio-alert"
+            className="flex items-center gap-1.5 text-sm"
+          >
+            {audioEnabled ? (
+              <Volume2 className="size-3.5" />
+            ) : (
+              <VolumeX className="size-3.5" />
+            )}
+            Audio alert
+          </Label>
+          <Switch
+            id="audio-alert"
+            checked={audioEnabled}
+            onCheckedChange={setAudioEnabled}
+          />
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 // ── Props ────────────────────────────────────────────────────────────
 
 interface TurnTimerProps {
@@ -116,6 +325,11 @@ export function TurnTimer({
 
   const durationMinutes = Math.round(totalDuration / 60);
 
+  const handleTogglePlayPause = useCallback(() => {
+    if (isRunning) pause();
+    else start();
+  }, [isRunning, pause, start]);
+
   // Auto-start on spotlight change
   useEffect(() => {
     if (!autoStart) {
@@ -130,70 +344,19 @@ export function TurnTimer({
     prevSpotlightRef.current = spotlightActive;
   }, [spotlightActive, autoStart, reset, start]);
 
-  // ── Compact display (for battle tracker bar) ───────────────────────
   if (compact) {
     return (
-      <div
-        className={cn('flex items-center gap-2', className)}
-        role="timer"
-        aria-label={`Turn timer: ${formatTime(timeRemaining)} remaining`}
-      >
-        <Timer className={cn('size-4', getTimerColor(progress))} />
-
-        {/* Mini progress bar */}
-        <div className="bg-muted relative h-1.5 w-20 overflow-hidden rounded-full">
-          <div
-            className={cn(
-              'h-full transition-[width] duration-100',
-              getBarColor(progress)
-            )}
-            style={{ width: `${progress * 100}%` }}
-          />
-        </div>
-
-        <span
-          className={cn(
-            'min-w-[3ch] font-mono text-xs tabular-nums',
-            getTimerColor(progress),
-            isExpired && 'animate-pulse'
-          )}
-        >
-          {formatTime(timeRemaining)}
-        </span>
-
-        <Button
-          variant="ghost"
-          size="icon"
-          className="size-6"
-          onClick={isRunning ? pause : start}
-          disabled={isExpired && !isRunning}
-          aria-label={isRunning ? 'Pause timer' : 'Start timer'}
-        >
-          {isRunning ? (
-            <Pause className="size-3" />
-          ) : (
-            <Play className="size-3" />
-          )}
-        </Button>
-
-        <Button
-          variant="ghost"
-          size="icon"
-          className="size-6"
-          onClick={reset}
-          aria-label="Reset timer"
-        >
-          <RotateCcw className="size-3" />
-        </Button>
-      </div>
+      <CompactTimerDisplay
+        className={className}
+        progress={progress}
+        timeRemaining={timeRemaining}
+        isRunning={isRunning}
+        isExpired={isExpired}
+        onToggle={handleTogglePlayPause}
+        onReset={reset}
+      />
     );
   }
-
-  // ── Full display ───────────────────────────────────────────────────
-
-  const circleRadius = 40;
-  const circumference = 2 * Math.PI * circleRadius;
-  const strokeDashoffset = circumference * (1 - progress);
 
   return (
     <div
@@ -201,60 +364,18 @@ export function TurnTimer({
       role="timer"
       aria-label={`Turn timer: ${formatTime(timeRemaining)} remaining`}
     >
-      {/* Circular progress indicator */}
-      <div className="relative size-28">
-        <svg className="-rotate-90" viewBox="0 0 100 100" aria-hidden="true">
-          {/* Background track */}
-          <circle
-            cx="50"
-            cy="50"
-            r={circleRadius}
-            fill="none"
-            className="stroke-muted"
-            strokeWidth="6"
-          />
-          {/* Progress arc */}
-          <circle
-            cx="50"
-            cy="50"
-            r={circleRadius}
-            fill="none"
-            className={cn(
-              'transition-[stroke-dashoffset] duration-100',
-              getStrokeColor(progress)
-            )}
-            strokeWidth="6"
-            strokeLinecap="round"
-            strokeDasharray={circumference}
-            strokeDashoffset={strokeDashoffset}
-          />
-        </svg>
-
-        {/* Center time display */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span
-            className={cn(
-              'font-mono text-xl font-semibold tabular-nums',
-              getTimerColor(progress),
-              isExpired && 'animate-pulse'
-            )}
-          >
-            {formatTime(timeRemaining)}
-          </span>
-          {isExpired && (
-            <span className="text-destructive text-[10px] font-medium uppercase">
-              Time&apos;s up
-            </span>
-          )}
-        </div>
-      </div>
+      <CircularProgress
+        progress={progress}
+        timeRemaining={timeRemaining}
+        isExpired={isExpired}
+      />
 
       {/* Controls row */}
       <div className="flex items-center gap-2">
         <Button
           variant="outline"
           size="icon"
-          onClick={isRunning ? pause : start}
+          onClick={handleTogglePlayPause}
           disabled={isExpired && !isRunning}
           aria-label={isRunning ? 'Pause timer' : 'Start timer'}
         >
@@ -274,59 +395,14 @@ export function TurnTimer({
           <RotateCcw className="size-4" />
         </Button>
 
-        {/* Settings popover */}
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="ghost" size="icon" aria-label="Timer settings">
-              <Settings className="size-4" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-64 space-y-4" align="end">
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">
-                Duration: {durationMinutes} min
-              </Label>
-              <Slider
-                min={1}
-                max={10}
-                step={1}
-                value={[durationMinutes]}
-                onValueChange={([val]) => {
-                  if (val !== undefined) setDuration(val * 60);
-                }}
-                aria-label="Timer duration in minutes"
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <Label htmlFor="auto-start" className="text-sm">
-                Auto-start on spotlight
-              </Label>
-              <Switch
-                id="auto-start"
-                checked={autoStart}
-                onCheckedChange={setAutoStart}
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <Label
-                htmlFor="audio-alert"
-                className="flex items-center gap-1.5 text-sm"
-              >
-                {audioEnabled ? (
-                  <Volume2 className="size-3.5" />
-                ) : (
-                  <VolumeX className="size-3.5" />
-                )}
-                Audio alert
-              </Label>
-              <Switch
-                id="audio-alert"
-                checked={audioEnabled}
-                onCheckedChange={setAudioEnabled}
-              />
-            </div>
-          </PopoverContent>
-        </Popover>
+        <TimerSettingsPopover
+          durationMinutes={durationMinutes}
+          setDuration={setDuration}
+          autoStart={autoStart}
+          setAutoStart={setAutoStart}
+          audioEnabled={audioEnabled}
+          setAudioEnabled={setAudioEnabled}
+        />
       </div>
     </div>
   );

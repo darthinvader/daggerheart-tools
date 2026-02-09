@@ -7,11 +7,51 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Adversary } from '@/lib/schemas/adversaries';
 
 import { ROLE_CARD_COLORS, ROLE_POINT_COSTS } from './adversary-card-shared';
+import type { CustomAdversaryState } from './custom-adversary-builder-sections';
 import {
-  type CustomAdversaryState,
   getInitialState,
   TIER_DEFAULTS,
 } from './custom-adversary-builder-sections';
+
+// --- Pure helpers ---
+
+function buildAdversaryFromState(state: CustomAdversaryState): Adversary {
+  return {
+    name: state.name || 'Custom Adversary',
+    description: state.description || 'A custom adversary.',
+    tier: state.tier,
+    role: state.role,
+    hp: state.hp,
+    stress: state.stress,
+    difficulty: state.difficulty,
+    thresholds: {
+      major: state.thresholdMajor,
+      severe: state.thresholdSevere,
+      massive: state.thresholdMassive ?? undefined,
+    },
+    attack: {
+      name: state.attackName || 'Attack',
+      modifier: state.attackModifier || '+0',
+      range: state.attackRange || 'Melee',
+      damage: state.attackDamage || 'd6 phy',
+    },
+    motivesAndTactics: state.motivesAndTactics || undefined,
+    experiences: state.experiences,
+    features: state.features.map(f => ({
+      name: f.name,
+      type: f.type,
+      description: f.description,
+    })),
+  };
+}
+
+function addToList<T>(list: T[], item: T): T[] {
+  return [...list, item];
+}
+
+function removeAtIndex<T>(list: T[], index: number): T[] {
+  return list.filter((_, i) => i !== index);
+}
 
 interface UseCustomAdversaryBuilderStateProps {
   onSave: (adversary: Adversary) => void;
@@ -68,11 +108,13 @@ export function useCustomAdversaryBuilderState({
     }));
   }, []);
 
+  // --- Experience list callbacks ---
   const addExperience = useCallback(() => {
-    if (newExperience.trim()) {
+    const trimmed = newExperience.trim();
+    if (trimmed) {
       setState(prev => ({
         ...prev,
-        experiences: [...prev.experiences, newExperience.trim()],
+        experiences: addToList(prev.experiences, trimmed),
       }));
       setNewExperience('');
     }
@@ -81,15 +123,16 @@ export function useCustomAdversaryBuilderState({
   const removeExperience = useCallback((index: number) => {
     setState(prev => ({
       ...prev,
-      experiences: prev.experiences.filter((_, i) => i !== index),
+      experiences: removeAtIndex(prev.experiences, index),
     }));
   }, []);
 
+  // --- Feature list callbacks ---
   const addFeature = useCallback(() => {
     if (newFeature.name.trim()) {
       setState(prev => ({
         ...prev,
-        features: [...prev.features, { ...newFeature }],
+        features: addToList(prev.features, { ...newFeature }),
       }));
       setNewFeature({ name: '', type: 'Action', description: '' });
     }
@@ -98,7 +141,7 @@ export function useCustomAdversaryBuilderState({
   const removeFeature = useCallback((index: number) => {
     setState(prev => ({
       ...prev,
-      features: prev.features.filter((_, i) => i !== index),
+      features: removeAtIndex(prev.features, index),
     }));
   }, []);
 
@@ -109,35 +152,9 @@ export function useCustomAdversaryBuilderState({
     []
   );
 
+  // --- Save handler ---
   const handleSave = useCallback(() => {
-    const adversary: Adversary = {
-      name: state.name || 'Custom Adversary',
-      description: state.description || 'A custom adversary.',
-      tier: state.tier,
-      role: state.role,
-      hp: state.hp,
-      stress: state.stress,
-      difficulty: state.difficulty,
-      thresholds: {
-        major: state.thresholdMajor,
-        severe: state.thresholdSevere,
-        massive: state.thresholdMassive ?? undefined,
-      },
-      attack: {
-        name: state.attackName || 'Attack',
-        modifier: state.attackModifier || '+0',
-        range: state.attackRange || 'Melee',
-        damage: state.attackDamage || 'd6 phy',
-      },
-      motivesAndTactics: state.motivesAndTactics || undefined,
-      experiences: state.experiences,
-      features: state.features.map(f => ({
-        name: f.name,
-        type: f.type,
-        description: f.description,
-      })),
-    };
-    onSave(adversary);
+    onSave(buildAdversaryFromState(state));
     setState(getInitialState());
     onOpenChange(false);
   }, [state, onSave, onOpenChange]);

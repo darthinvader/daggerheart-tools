@@ -1,3 +1,6 @@
+// Shared schemas (cross-domain enums)
+export * from './shared';
+
 // Core schemas (consolidated)
 export * from './core';
 

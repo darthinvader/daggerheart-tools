@@ -59,6 +59,11 @@ import {
   updateHomebrewVisibility,
 } from './homebrew-storage';
 
+const STALE_5_MIN = 1000 * 60 * 5;
+const STALE_2_MIN = 1000 * 60 * 2;
+const STALE_1_MIN = 1000 * 60;
+const STALE_30_SEC = 1000 * 30;
+
 // =====================================================================================
 // Query Keys
 // =====================================================================================
@@ -105,7 +110,7 @@ export function useHomebrewContent(id: string | undefined) {
     queryKey: homebrewKeys.detail(id ?? ''),
     queryFn: () => (id ? getHomebrewContent(id) : undefined),
     enabled: !!id,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: STALE_5_MIN,
   });
 }
 
@@ -117,7 +122,7 @@ export function useHomebrewContentBatch(ids: string[], enabled = true) {
     queryKey: homebrewKeys.batch(ids),
     queryFn: () => getHomebrewContentBatch(ids),
     enabled: enabled && ids.length > 0,
-    staleTime: 1000 * 60,
+    staleTime: STALE_1_MIN,
   });
 }
 
@@ -128,7 +133,7 @@ export function useMyHomebrewContent(options: ListHomebrewOptions = {}) {
   return useQuery({
     queryKey: homebrewKeys.myContent(options),
     queryFn: () => listMyHomebrewContent(options),
-    staleTime: 1000 * 60 * 2, // 2 minutes
+    staleTime: STALE_2_MIN,
   });
 }
 
@@ -139,7 +144,7 @@ export function useStarredHomebrewContent() {
   return useQuery({
     queryKey: [...homebrewKeys.lists(), 'starred'] as const,
     queryFn: listStarredHomebrewContent,
-    staleTime: 1000 * 60,
+    staleTime: STALE_1_MIN,
   });
 }
 
@@ -150,7 +155,7 @@ export function usePublicHomebrewContent(options: ListHomebrewOptions = {}) {
   return useQuery({
     queryKey: homebrewKeys.publicContent(options),
     queryFn: () => listPublicHomebrewContent(options),
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: STALE_5_MIN,
   });
 }
 
@@ -168,7 +173,7 @@ export function useCampaignHomebrewContent(
         ? listCampaignHomebrewContent(campaignId, options)
         : Promise.resolve({ items: [], total: 0, hasMore: false }),
     enabled: !!campaignId,
-    staleTime: 1000 * 60 * 2, // 2 minutes
+    staleTime: STALE_2_MIN,
   });
 }
 
@@ -182,7 +187,7 @@ export function useHomebrewForCharacter(
   return useQuery({
     queryKey: homebrewKeys.forCharacter(contentType, campaignId),
     queryFn: () => getHomebrewForCharacter(contentType, campaignId),
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: STALE_5_MIN,
   });
 }
 
@@ -193,7 +198,7 @@ export function useMyHomebrewStats() {
   return useQuery({
     queryKey: homebrewKeys.stats(),
     queryFn: getMyHomebrewStats,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: STALE_5_MIN,
   });
 }
 
@@ -230,7 +235,7 @@ export function useMyHomebrewContentInfinite(
       if (!lastPage.hasMore) return undefined;
       return allPages.reduce((acc, page) => acc + page.items.length, 0);
     },
-    staleTime: 1000 * 60 * 2,
+    staleTime: STALE_2_MIN,
   });
 }
 
@@ -261,7 +266,7 @@ export function usePublicHomebrewContentInfinite(
       if (!lastPage.hasMore) return undefined;
       return allPages.reduce((acc, page) => acc + page.items.length, 0);
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: STALE_5_MIN,
   });
 }
 
@@ -299,7 +304,7 @@ export function useCampaignHomebrewContentInfinite(
       return allPages.reduce((acc, page) => acc + page.items.length, 0);
     },
     enabled: !!campaignId,
-    staleTime: 1000 * 60 * 2,
+    staleTime: STALE_2_MIN,
   });
 }
 
@@ -401,7 +406,7 @@ export function useDeletedHomebrewContent() {
   return useQuery({
     queryKey: homebrewKeys.deletedContent(),
     queryFn: () => listDeletedHomebrewContent(),
-    staleTime: 1000 * 60 * 2, // 2 minutes
+    staleTime: STALE_2_MIN,
   });
 }
 
@@ -465,7 +470,7 @@ export function useMyHomebrewStars(homebrewIds: string[] = []) {
     queryKey: homebrewKeys.myStars(homebrewIds),
     queryFn: () => listMyHomebrewStars(homebrewIds),
     enabled: homebrewIds.length > 0,
-    staleTime: 1000 * 30,
+    staleTime: STALE_30_SEC,
   });
 }
 
@@ -499,7 +504,7 @@ export function useHomebrewCollections(enabled = true) {
   return useQuery({
     queryKey: homebrewKeys.collections(),
     queryFn: listMyHomebrewCollections,
-    staleTime: 1000 * 60,
+    staleTime: STALE_1_MIN,
     enabled,
   });
 }
@@ -525,7 +530,7 @@ export function useQuicklist() {
   return useQuery({
     queryKey: [...homebrewKeys.collections(), 'quicklist'] as const,
     queryFn: getOrCreateQuicklist,
-    staleTime: 1000 * 60,
+    staleTime: STALE_1_MIN,
   });
 }
 
@@ -574,7 +579,7 @@ export function useCollectionItems(collectionId: string | undefined) {
     queryKey: homebrewKeys.collectionItems(collectionId ?? ''),
     queryFn: () => (collectionId ? listCollectionItems(collectionId) : []),
     enabled: !!collectionId,
-    staleTime: 1000 * 60,
+    staleTime: STALE_1_MIN,
   });
 }
 
@@ -583,7 +588,7 @@ export function useHomebrewComments(homebrewId: string | undefined) {
     queryKey: homebrewKeys.homebrewComments(homebrewId ?? ''),
     queryFn: () => (homebrewId ? listHomebrewComments(homebrewId) : []),
     enabled: !!homebrewId,
-    staleTime: 1000 * 30,
+    staleTime: STALE_30_SEC,
   });
 }
 
@@ -770,7 +775,7 @@ export function usePrefetchHomebrewContent() {
     queryClient.prefetchQuery({
       queryKey: homebrewKeys.detail(id),
       queryFn: () => getHomebrewContent(id),
-      staleTime: 1000 * 60 * 5,
+      staleTime: STALE_5_MIN,
     });
   };
 }

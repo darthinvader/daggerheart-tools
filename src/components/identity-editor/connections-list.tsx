@@ -102,9 +102,9 @@ export function ConnectionsList({
       )}
 
       <div className="space-y-4">
-        {connections.map((_, index) => (
+        {connections.map((connection, index) => (
           <ConnectionItem
-            key={index}
+            key={`${connection.prompt}-${index}`}
             index={index}
             form={form}
             onRemove={() => onRemove(index)}

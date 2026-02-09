@@ -1,5 +1,5 @@
 import { Check, Loader2, PawPrint, Unlink, Users } from 'lucide-react';
-import { lazy, Suspense, useMemo, useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 
 import { UndoRedoControls } from '@/components/battle-tracker/undo-redo-controls';
 import type { LevelUpResult } from '@/components/level-up';
@@ -61,12 +61,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { useBeastformState } from '@/hooks/use-beastform';
-import { getSubclassByName } from '@/lib/data/classes';
 import { Backpack, BarChart3, Dice5, Swords, User, Zap } from '@/lib/icons';
 import type { Campaign, ShopSettings } from '@/lib/schemas/campaign';
 import type { UndoActions } from '@/lib/undo';
 import { cn } from '@/lib/utils';
-
 import { CharacterSettingsDialog } from './character-settings-dialog';
 import { CharacterStatusBar } from './character-status-bar';
 import { EnhancedCharacterHeader } from './enhanced-header';
@@ -74,6 +72,32 @@ import { MobileBottomNav } from './mobile-bottom-nav';
 import { ResponsiveTabsList } from './responsive-tabs';
 import type { CharacterSheetHandlers, CharacterSheetState } from './types.ts';
 import { UndoRedoFab } from './undo-redo-fab';
+import { useHasCompanionFeature } from './use-character-sheet-api';
+
+const PRIMARY_TABS = [
+  { value: 'quick', label: 'Quick', icon: <Zap className="size-4" /> },
+  {
+    value: 'overview',
+    label: 'Overview',
+    icon: <BarChart3 className="size-4" />,
+  },
+];
+
+const SECONDARY_TABS = [
+  { value: 'identity', label: 'Identity', icon: <User className="size-4" /> },
+  { value: 'combat', label: 'Combat', icon: <Swords className="size-4" /> },
+  { value: 'items', label: 'Items', icon: <Backpack className="size-4" /> },
+  { value: 'session', label: 'Session', icon: <Dice5 className="size-4" /> },
+];
+
+const ALL_TABS = [...PRIMARY_TABS, ...SECONDARY_TABS];
+
+interface CampaignSummary {
+  id: string;
+  name: string;
+  status: Campaign['status'];
+  role?: Campaign['players'][number]['role'];
+}
 
 interface CharacterSheetLayoutProps {
   activeTab: string;
@@ -94,12 +118,7 @@ interface CharacterSheetLayoutProps {
   currentExperiencesForModal: { id: string; name: string; value: number }[];
   ownedCardNames: string[];
   campaignId?: string;
-  campaignSummary: Array<{
-    id: string;
-    name: string;
-    status: Campaign['status'];
-    role?: Campaign['players'][number]['role'];
-  }>;
+  campaignSummary: CampaignSummary[];
   inviteCode: string;
   onInviteCodeChange: (value: string) => void;
   onJoinCampaign: () => void;
@@ -167,51 +186,42 @@ export function CharacterSheetLayout({
   const isNativeDruid =
     (state.classSelection?.className ?? '').toLowerCase() === 'druid';
 
-  const hasCompanionFeature = useMemo(() => {
-    const hasCompanionFlag = (
-      value: unknown
-    ): value is { companion?: boolean } =>
-      Boolean(value && typeof value === 'object' && 'companion' in value);
-    const selection = state.classSelection;
-    if (!selection?.className || !selection?.subclassName) return false;
-    if (selection.isHomebrew && selection.homebrewClass) {
-      const homebrewSubclass = selection.homebrewClass.subclasses.find(
-        s => s.name === selection.subclassName
-      );
-      return Boolean(homebrewSubclass?.companion);
-    }
-    const subclass = getSubclassByName(
-      selection.className,
-      selection.subclassName
-    );
-    return hasCompanionFlag(subclass) && Boolean(subclass.companion);
-  }, [state.classSelection]);
+  const hasCompanionFeature = useHasCompanionFeature(state);
 
-  const allTabs = [
-    { value: 'quick', label: 'Quick', icon: <Zap className="size-4" /> },
-    {
-      value: 'overview',
-      label: 'Overview',
-      icon: <BarChart3 className="size-4" />,
-    },
-    { value: 'identity', label: 'Identity', icon: <User className="size-4" /> },
-    { value: 'combat', label: 'Combat', icon: <Swords className="size-4" /> },
-    { value: 'items', label: 'Items', icon: <Backpack className="size-4" /> },
-    { value: 'session', label: 'Session', icon: <Dice5 className="size-4" /> },
-  ];
-
-  // Beastform slot for status bar — just a status indicator icon
   const beastformSlot =
     beastformState.isActive && beastformState.activeForm ? (
-      <SmartTooltip content={`Beastform: ${beastformState.activeForm.name}`}>
-        <div className="flex items-center">
-          <PawPrint
-            className="size-4 animate-pulse text-emerald-400"
-            aria-hidden
-          />
-        </div>
-      </SmartTooltip>
+      <BeastformStatusIndicator name={beastformState.activeForm.name} />
     ) : undefined;
+
+  const settingsSection = !readOnly ? (
+    <CharacterSettingsDialog
+      beastformEnabled={state.beastformEnabled}
+      companionEnabled={state.companionEnabled}
+      onBeastformEnabledChange={handlers.setBeastformEnabled}
+      onCompanionEnabledChange={handlers.setCompanionEnabled}
+      isNativeDruid={isNativeDruid}
+      hasNativeCompanion={hasCompanionFeature}
+      readOnly={readOnly}
+    />
+  ) : undefined;
+
+  const undoControls =
+    !readOnly && undoActions ? (
+      <UndoRedoControls
+        canUndo={undoActions.canUndo}
+        canRedo={undoActions.canRedo}
+        undoStack={undoActions.undoStack}
+        redoStack={undoActions.redoStack}
+        onUndo={undoActions.undo}
+        onRedo={undoActions.redo}
+        onClearHistory={undoActions.clearHistory}
+        compact
+      />
+    ) : undefined;
+
+  const shopSettings = campaign?.shopEnabled
+    ? campaign.shopSettings
+    : undefined;
 
   return (
     <div
@@ -255,36 +265,11 @@ export function CharacterSheetLayout({
               onSelectCampaign={onSelectCampaign}
             />
           }
-          settingsSection={
-            !readOnly ? (
-              <CharacterSettingsDialog
-                beastformEnabled={state.beastformEnabled}
-                companionEnabled={state.companionEnabled}
-                onBeastformEnabledChange={handlers.setBeastformEnabled}
-                onCompanionEnabledChange={handlers.setCompanionEnabled}
-                isNativeDruid={isNativeDruid}
-                hasNativeCompanion={hasCompanionFeature}
-                readOnly={readOnly}
-              />
-            ) : undefined
-          }
+          settingsSection={settingsSection}
           statusBar={
             <CharacterStatusBar state={state} beastformSlot={beastformSlot} />
           }
-          undoControls={
-            !readOnly && undoActions ? (
-              <UndoRedoControls
-                canUndo={undoActions.canUndo}
-                canRedo={undoActions.canRedo}
-                undoStack={undoActions.undoStack}
-                redoStack={undoActions.redoStack}
-                onUndo={undoActions.undo}
-                onRedo={undoActions.redo}
-                onClearHistory={undoActions.clearHistory}
-                compact
-              />
-            ) : undefined
-          }
+          undoControls={undoControls}
         />
         <CharacterSheetTabs
           activeTab={activeTab}
@@ -294,9 +279,7 @@ export function CharacterSheetLayout({
           readOnly={readOnly}
           state={state}
           pushUndo={pushUndo}
-          shopSettings={
-            campaign?.shopEnabled ? campaign.shopSettings : undefined
-          }
+          shopSettings={shopSettings}
           campaignName={campaign?.name}
         />
         <LevelUpSection
@@ -323,11 +306,24 @@ export function CharacterSheetLayout({
 
       {/* Mobile bottom navigation */}
       <MobileBottomNav
-        tabs={allTabs}
+        tabs={ALL_TABS}
         activeTab={activeTab}
         onTabChange={onTabChange}
       />
     </div>
+  );
+}
+
+function BeastformStatusIndicator({ name }: { name: string }) {
+  return (
+    <SmartTooltip content={`Beastform: ${name}`}>
+      <div className="flex items-center">
+        <PawPrint
+          className="size-4 animate-pulse text-emerald-400"
+          aria-hidden
+        />
+      </div>
+    </SmartTooltip>
   );
 }
 
@@ -379,6 +375,142 @@ function CharacterOnboardingSection({
   );
 }
 
+function CampaignListItem({
+  campaign,
+  isActive,
+  multipleCampaigns,
+  readOnly,
+  isUnlinkingCampaign,
+  onSelect,
+  onUnlink,
+}: {
+  campaign: CampaignSummary;
+  isActive: boolean;
+  multipleCampaigns: boolean;
+  readOnly: boolean;
+  isUnlinkingCampaign: boolean;
+  onSelect: () => void;
+  onUnlink: (campaignId: string) => void;
+}) {
+  const handleUnlink = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onUnlink(campaign.id);
+  };
+
+  return (
+    <button
+      type="button"
+      className={`flex w-full items-center justify-between rounded-lg border p-3 text-left transition-colors ${
+        isActive
+          ? 'border-primary bg-primary/5 ring-primary/20 ring-1'
+          : 'bg-muted/50 hover:bg-muted'
+      } ${multipleCampaigns ? 'cursor-pointer' : 'cursor-default'}`}
+      onClick={onSelect}
+    >
+      <div className="flex items-center gap-2">
+        {multipleCampaigns && (
+          <div
+            className={`flex size-4 items-center justify-center rounded-full border ${
+              isActive
+                ? 'border-primary bg-primary text-primary-foreground'
+                : 'border-muted-foreground/40'
+            }`}
+          >
+            {isActive && <Check className="size-3" />}
+          </div>
+        )}
+        <span className="font-medium">{campaign.name}</span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        {isActive && multipleCampaigns && (
+          <Badge variant="default" className="text-[10px]">
+            Active
+          </Badge>
+        )}
+        <Badge variant="outline" className="text-xs capitalize">
+          {campaign.status}
+        </Badge>
+        {campaign.role && (
+          <Badge variant="secondary" className="text-xs capitalize">
+            {campaign.role}
+          </Badge>
+        )}
+        {!readOnly && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="ml-1 h-7 w-7 p-0 text-red-500 hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-950"
+            onClick={handleUnlink}
+            disabled={isUnlinkingCampaign}
+          >
+            {isUnlinkingCampaign ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              <Unlink className="size-3.5" />
+            )}
+            <span className="sr-only">Leave {campaign.name}</span>
+          </Button>
+        )}
+      </div>
+    </button>
+  );
+}
+
+function JoinCampaignForm({
+  inviteCode,
+  onInviteCodeChange,
+  onJoinCampaign,
+  canJoinCampaign,
+  isJoiningCampaign,
+  joinCampaignError,
+  joinCampaignSuccess,
+}: {
+  inviteCode: string;
+  onInviteCodeChange: (value: string) => void;
+  onJoinCampaign: () => void;
+  canJoinCampaign: boolean;
+  isJoiningCampaign: boolean;
+  joinCampaignError: Error | null;
+  joinCampaignSuccess: boolean;
+}) {
+  const handleCodeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    onInviteCodeChange(event.target.value);
+  };
+
+  return (
+    <div className="space-y-2">
+      <h4 className="text-sm font-medium">Join a Campaign</h4>
+      <div className="flex items-center gap-2">
+        <Input
+          id="campaign-invite-code"
+          value={inviteCode}
+          onChange={handleCodeChange}
+          placeholder="Enter invite code"
+          maxLength={12}
+          className="font-mono uppercase"
+        />
+        <Button
+          type="button"
+          onClick={onJoinCampaign}
+          disabled={!canJoinCampaign}
+        >
+          {isJoiningCampaign ? 'Joining...' : 'Join'}
+        </Button>
+      </div>
+      {joinCampaignError && (
+        <p className="text-destructive text-sm">
+          Invalid invite code. Please try again.
+        </p>
+      )}
+      {joinCampaignSuccess && (
+        <p className="text-sm text-green-600">
+          Successfully joined the campaign!
+        </p>
+      )}
+    </div>
+  );
+}
+
 function CharacterCampaignSection({
   campaigns,
   inviteCode,
@@ -394,12 +526,7 @@ function CharacterCampaignSection({
   selectedCampaignId,
   onSelectCampaign,
 }: {
-  campaigns: Array<{
-    id: string;
-    name: string;
-    status: Campaign['status'];
-    role?: Campaign['players'][number]['role'];
-  }>;
+  campaigns: CampaignSummary[];
   inviteCode: string;
   onInviteCodeChange: (value: string) => void;
   onJoinCampaign: () => void;
@@ -419,6 +546,9 @@ function CharacterCampaignSection({
     : campaigns[0];
   const campaignLabel = activeCampaign?.name ?? 'No campaign';
   const multipleCampaigns = campaigns.length > 1;
+  const defaultCampaignId = selectedCampaignId ?? campaigns[0]?.id;
+
+  const handleOpenModal = () => setIsModalOpen(true);
 
   return (
     <>
@@ -427,7 +557,7 @@ function CharacterCampaignSection({
           variant="outline"
           size="sm"
           className="h-7 gap-1.5 px-2 text-xs"
-          onClick={() => setIsModalOpen(true)}
+          onClick={handleOpenModal}
         >
           <Users className="size-3.5" />
           <span className="hidden sm:inline">{campaignLabel}</span>
@@ -458,117 +588,35 @@ function CharacterCampaignSection({
                 </p>
               ) : (
                 <div className="space-y-2">
-                  {campaigns.map(campaign => {
-                    const isActive =
-                      campaign.id === (selectedCampaignId ?? campaigns[0]?.id);
-                    return (
-                      <button
-                        key={campaign.id}
-                        type="button"
-                        className={`flex w-full items-center justify-between rounded-lg border p-3 text-left transition-colors ${
-                          isActive
-                            ? 'border-primary bg-primary/5 ring-primary/20 ring-1'
-                            : 'bg-muted/50 hover:bg-muted'
-                        } ${multipleCampaigns && onSelectCampaign ? 'cursor-pointer' : 'cursor-default'}`}
-                        onClick={() =>
-                          multipleCampaigns && onSelectCampaign?.(campaign.id)
-                        }
-                      >
-                        <div className="flex items-center gap-2">
-                          {multipleCampaigns && (
-                            <div
-                              className={`flex size-4 items-center justify-center rounded-full border ${
-                                isActive
-                                  ? 'border-primary bg-primary text-primary-foreground'
-                                  : 'border-muted-foreground/40'
-                              }`}
-                            >
-                              {isActive && <Check className="size-3" />}
-                            </div>
-                          )}
-                          <span className="font-medium">{campaign.name}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          {isActive && multipleCampaigns && (
-                            <Badge variant="default" className="text-[10px]">
-                              Active
-                            </Badge>
-                          )}
-                          <Badge
-                            variant="outline"
-                            className="text-xs capitalize"
-                          >
-                            {campaign.status}
-                          </Badge>
-                          {campaign.role && (
-                            <Badge
-                              variant="secondary"
-                              className="text-xs capitalize"
-                            >
-                              {campaign.role}
-                            </Badge>
-                          )}
-                          {!readOnly && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="ml-1 h-7 w-7 p-0 text-red-500 hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-950"
-                              onClick={e => {
-                                e.stopPropagation();
-                                onUnlinkCampaign(campaign.id);
-                              }}
-                              disabled={isUnlinkingCampaign}
-                            >
-                              {isUnlinkingCampaign ? (
-                                <Loader2 className="size-3.5 animate-spin" />
-                              ) : (
-                                <Unlink className="size-3.5" />
-                              )}
-                              <span className="sr-only">
-                                Leave {campaign.name}
-                              </span>
-                            </Button>
-                          )}
-                        </div>
-                      </button>
-                    );
-                  })}
+                  {campaigns.map(campaign => (
+                    <CampaignListItem
+                      key={campaign.id}
+                      campaign={campaign}
+                      isActive={campaign.id === defaultCampaignId}
+                      multipleCampaigns={multipleCampaigns}
+                      readOnly={readOnly}
+                      isUnlinkingCampaign={isUnlinkingCampaign}
+                      onSelect={() =>
+                        multipleCampaigns && onSelectCampaign?.(campaign.id)
+                      }
+                      onUnlink={onUnlinkCampaign}
+                    />
+                  ))}
                 </div>
               )}
             </div>
 
             {/* Join campaign */}
             {!readOnly && (
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium">Join a Campaign</h4>
-                <div className="flex items-center gap-2">
-                  <Input
-                    id="campaign-invite-code"
-                    value={inviteCode}
-                    onChange={event => onInviteCodeChange(event.target.value)}
-                    placeholder="Enter invite code"
-                    maxLength={12}
-                    className="font-mono uppercase"
-                  />
-                  <Button
-                    type="button"
-                    onClick={onJoinCampaign}
-                    disabled={!canJoinCampaign}
-                  >
-                    {isJoiningCampaign ? 'Joining...' : 'Join'}
-                  </Button>
-                </div>
-                {joinCampaignError && (
-                  <p className="text-destructive text-sm">
-                    Invalid invite code. Please try again.
-                  </p>
-                )}
-                {joinCampaignSuccess && (
-                  <p className="text-sm text-green-600">
-                    Successfully joined the campaign!
-                  </p>
-                )}
-              </div>
+              <JoinCampaignForm
+                inviteCode={inviteCode}
+                onInviteCodeChange={onInviteCodeChange}
+                onJoinCampaign={onJoinCampaign}
+                canJoinCampaign={canJoinCampaign}
+                isJoiningCampaign={isJoiningCampaign}
+                joinCampaignError={joinCampaignError}
+                joinCampaignSuccess={joinCampaignSuccess}
+              />
             )}
           </div>
         </DialogContent>
@@ -598,27 +646,11 @@ function CharacterSheetTabs({
   shopSettings?: ShopSettings;
   campaignName?: string;
 }) {
-  const primaryTabs = [
-    { value: 'quick', label: 'Quick', icon: <Zap className="size-4" /> },
-    {
-      value: 'overview',
-      label: 'Overview',
-      icon: <BarChart3 className="size-4" />,
-    },
-  ];
-
-  const secondaryTabs = [
-    { value: 'identity', label: 'Identity', icon: <User className="size-4" /> },
-    { value: 'combat', label: 'Combat', icon: <Swords className="size-4" /> },
-    { value: 'items', label: 'Items', icon: <Backpack className="size-4" /> },
-    { value: 'session', label: 'Session', icon: <Dice5 className="size-4" /> },
-  ];
-
   return (
     <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
       <ResponsiveTabsList
-        primaryTabs={primaryTabs}
-        secondaryTabs={secondaryTabs}
+        primaryTabs={PRIMARY_TABS}
+        secondaryTabs={SECONDARY_TABS}
         value={activeTab}
         onValueChange={onTabChange}
       />

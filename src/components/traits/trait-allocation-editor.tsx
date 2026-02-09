@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+import { useLatestRef } from '@/hooks/use-latest-ref';
+
 import {
   TraitAllocationActions,
   TraitAllocationGrid,
@@ -116,12 +118,7 @@ export function TraitAllocationEditor({
   const [error, setError] = useState<string | null>(null);
   const autoPresetAppliedRef = useRef(false);
   // Store onChange in ref to avoid dependency on unstable callback reference
-  const onChangeRef = useRef(onChange);
-
-  // Update ref in effect to satisfy react-hooks/refs rule
-  useEffect(() => {
-    onChangeRef.current = onChange;
-  });
+  const onChangeRef = useLatestRef(onChange);
 
   const preset = useMemo(() => getTraitPreset(className), [className]);
   const assigned = useMemo(() => buildAssignedCounts(traits), [traits]);

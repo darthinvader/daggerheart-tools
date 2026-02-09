@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/tooltip';
 import type { SoundboardTrack } from '@/lib/schemas/soundboard';
 import { cn } from '@/lib/utils';
+import { formatTime } from './format-time';
 
 const CATEGORY_CONFIG = {
   ambient: { icon: Waves, label: 'Ambient', color: 'text-teal-500' },
@@ -39,14 +40,6 @@ const SOURCE_LABELS: Record<string, string> = {
 };
 
 type TrackProgress = { currentTime: number; duration: number };
-
-/** Format seconds to m:ss */
-function formatTime(seconds: number): string {
-  if (!Number.isFinite(seconds) || seconds < 0) return '0:00';
-  const m = Math.floor(seconds / 60);
-  const s = Math.floor(seconds % 60);
-  return `${m}:${s.toString().padStart(2, '0')}`;
-}
 
 function TrackHeader({
   track,

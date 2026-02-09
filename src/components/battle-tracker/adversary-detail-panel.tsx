@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useRef, useState } from 'react';
 
+import { TooltipLabel } from '@/components/shared/tooltip-label';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -100,38 +101,6 @@ function formatFeature(feature: Adversary['features'][number]): {
   };
 }
 
-// ============== Tooltip Label Component ==============
-
-function TooltipLabel({
-  label,
-  labelIcon: Icon,
-  tooltip,
-  className = '',
-}: {
-  label: string;
-  labelIcon: React.ComponentType<{ className?: string }>;
-  tooltip: string;
-  className?: string;
-}) {
-  return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <span
-            className={`inline-flex cursor-help items-center gap-1 ${className}`}
-          >
-            <Icon className="size-3.5" />
-            {label}
-          </span>
-        </TooltipTrigger>
-        <TooltipContent side="top" className="max-w-xs">
-          <p className="text-xs">{tooltip}</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
-}
-
 // ============== Stat Card ==============
 
 function StatCard({
@@ -177,6 +146,266 @@ const FEATURE_TYPE_COLORS: Record<string, string> = {
     'bg-purple-500/20 text-purple-700 dark:text-purple-400 border-purple-500/30',
 };
 
+// ============== Empty State Component ==============
+
+function EmptyDetailPanel() {
+  return (
+    <div className="bg-muted/30 flex min-h-0 w-96 shrink-0 flex-col overflow-hidden border-l">
+      <div className="flex items-center justify-between border-b px-4 py-3">
+        <h3 className="font-semibold">Adversary Details</h3>
+      </div>
+      <div className="flex flex-1 items-center justify-center p-4">
+        <div className="text-muted-foreground text-center">
+          <Target className="mx-auto mb-2 size-8 opacity-50" />
+          <p className="text-sm">Click an adversary to view details</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============== Header Component ==============
+
+const DEFAULT_ROLE_COLORS = {
+  border: 'border-gray-500',
+  bg: 'bg-gray-500/5',
+  badge: 'bg-gray-500/20 text-gray-700',
+};
+
+function getRoleColors(role: string) {
+  return ROLE_CARD_COLORS[role] ?? DEFAULT_ROLE_COLORS;
+}
+
+function getBattlePointsLabel(pointCost: number) {
+  return pointCost === 1 ? '1 Battle Pt' : `${pointCost} Battle Pts`;
+}
+
+function DetailPanelHeader({
+  adversary,
+  onClose,
+}: {
+  adversary: Adversary;
+  onClose: () => void;
+}) {
+  const roleColors = getRoleColors(adversary.role);
+  const pointCost = ROLE_POINT_COSTS[adversary.role] ?? 2;
+  const roleIcon = ROLE_ICONS[adversary.role] ?? '⚔️';
+  const tierColor = TIER_COLORS[adversary.tier] ?? '';
+
+  return (
+    <div className={`shrink-0 border-b ${roleColors.bg}`}>
+      <div className="flex items-center justify-between px-4 py-3">
+        <h3 className="truncate font-semibold">{adversary.name}</h3>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-7 shrink-0"
+          onClick={onClose}
+        >
+          <X className="size-4" />
+        </Button>
+      </div>
+      <div className="flex flex-wrap gap-1.5 px-4 pb-3">
+        <Badge className={`text-xs ${roleColors.badge}`}>
+          {roleIcon} {adversary.role}
+        </Badge>
+        <Badge className={`text-xs ${tierColor}`}>Tier {adversary.tier}</Badge>
+        <Badge variant="secondary" className="text-xs">
+          {getBattlePointsLabel(pointCost)}
+        </Badge>
+      </div>
+    </div>
+  );
+}
+
+// ============== Role Description Component ==============
+
+function RoleDescriptionCard({ adversary }: { adversary: Adversary }) {
+  const roleDescription = ROLE_DESCRIPTIONS[adversary.role] ?? '';
+  const roleIcon = ROLE_ICONS[adversary.role];
+
+  return (
+    <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3">
+      <p className="text-xs font-medium text-amber-700 dark:text-amber-400">
+        {roleIcon} {adversary.role} Role
+      </p>
+      <p className="text-muted-foreground mt-1 text-xs">{roleDescription}</p>
+    </div>
+  );
+}
+
+// ============== Stats Grid Component ==============
+
+function StatsGrid({ adversary }: { adversary: Adversary }) {
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      <StatCard
+        icon={Heart}
+        label="HP"
+        value={adversary.hp}
+        tooltip="Hit Points - damage needed to defeat"
+        colorClass="text-red-500"
+      />
+      <StatCard
+        icon={AlertTriangle}
+        label="Stress"
+        value={adversary.stress}
+        tooltip="Stress track for special actions"
+        colorClass="text-amber-500"
+      />
+      <StatCard
+        icon={Target}
+        label="Difficulty"
+        value={adversary.difficulty}
+        tooltip="Target number to hit this adversary"
+        colorClass="text-blue-500"
+      />
+      <StatCard
+        icon={Layers}
+        label="Thresholds"
+        value={formatThresholds(adversary.thresholds)}
+        tooltip="Major/Severe/Massive damage thresholds"
+        colorClass="text-purple-500"
+      />
+    </div>
+  );
+}
+
+// ============== Attack Section Component ==============
+
+function AttackSection({ attack }: { attack: Adversary['attack'] }) {
+  return (
+    <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3">
+      <div className="mb-2 flex items-center gap-2">
+        <Swords className="size-4 text-red-500" />
+        <span className="text-sm font-medium">Attack</span>
+      </div>
+      <p className="text-sm font-medium">{attack.name}</p>
+      <p className="text-muted-foreground mt-1 text-xs">
+        {attack.modifier} · {attack.range} · {attack.damage}
+      </p>
+    </div>
+  );
+}
+
+// ============== Motives & Tactics Component ==============
+
+function MotivesTacticsSection({
+  motivesAndTactics,
+}: {
+  motivesAndTactics: string | undefined;
+}) {
+  if (!motivesAndTactics) return null;
+
+  return (
+    <div className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 p-3">
+      <div className="mb-2 flex items-center gap-2">
+        <Compass className="size-4 text-cyan-500" />
+        <span className="text-sm font-medium">Motives & Tactics</span>
+      </div>
+      <p className="text-muted-foreground text-xs">{motivesAndTactics}</p>
+    </div>
+  );
+}
+
+// ============== Experiences Section Component ==============
+
+function ExperiencesSection({
+  experiences,
+}: {
+  experiences: Adversary['experiences'];
+}) {
+  if (experiences.length === 0) return null;
+
+  return (
+    <div>
+      <TooltipLabel
+        label="Experiences"
+        labelIcon={Brain}
+        tooltip="Training or background bonuses"
+        className="mb-2 text-sm font-medium"
+      />
+      <div className="flex flex-wrap gap-1">
+        {experiences.map((exp, i) => (
+          <Badge key={i} variant="secondary" className="text-xs">
+            {formatExperience(exp)}
+          </Badge>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ============== Feature Item Component ==============
+
+function FeatureItem({ feature }: { feature: Adversary['features'][number] }) {
+  const { name, type, description } = formatFeature(feature);
+  const badgeColor = FEATURE_TYPE_COLORS[type] ?? FEATURE_TYPE_COLORS.Feature;
+
+  return (
+    <li className="bg-background/50 rounded-md border p-2">
+      <div className="mb-1 flex items-center gap-2">
+        <Badge className={`text-xs ${badgeColor}`}>{type}</Badge>
+        <span className="text-sm font-medium">{name}</span>
+      </div>
+      {description && (
+        <p className="text-muted-foreground text-xs leading-relaxed">
+          {description}
+        </p>
+      )}
+    </li>
+  );
+}
+
+// ============== Features Section Component ==============
+
+function FeaturesSection({ features }: { features: Adversary['features'] }) {
+  if (features.length === 0) return null;
+
+  return (
+    <div>
+      <TooltipLabel
+        label={`Features (${features.length})`}
+        labelIcon={Sparkles}
+        tooltip="Special abilities, actions, and reactions"
+        className="mb-2 text-sm font-medium"
+      />
+      <ul className="space-y-2">
+        {features.map((f, i) => (
+          <FeatureItem key={i} feature={f} />
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+// ============== Footer Component ==============
+
+function AddToEncounterFooter({
+  onAdd,
+  adversary,
+  canAdd,
+}: {
+  onAdd: ((adversary: Adversary) => void) | undefined;
+  adversary: Adversary;
+  canAdd: boolean;
+}) {
+  if (!onAdd) return null;
+
+  return (
+    <div className="shrink-0 border-t p-4">
+      <Button
+        className="w-full gap-2"
+        onClick={() => onAdd(adversary)}
+        disabled={!canAdd}
+      >
+        <Swords className="size-4" />
+        Add to Encounter
+      </Button>
+    </div>
+  );
+}
+
 // ============== Main Component ==============
 
 interface AdversaryDetailPanelProps {
@@ -202,217 +431,48 @@ export function AdversaryDetailPanel({
   }
 
   if (!adversary) {
-    return (
-      <div className="bg-muted/30 flex min-h-0 w-96 shrink-0 flex-col overflow-hidden border-l">
-        <div className="flex items-center justify-between border-b px-4 py-3">
-          <h3 className="font-semibold">Adversary Details</h3>
-        </div>
-        <div className="flex flex-1 items-center justify-center p-4">
-          <div className="text-muted-foreground text-center">
-            <Target className="mx-auto mb-2 size-8 opacity-50" />
-            <p className="text-sm">Click an adversary to view details</p>
-          </div>
-        </div>
-      </div>
-    );
+    return <EmptyDetailPanel />;
   }
 
-  const roleColors = ROLE_CARD_COLORS[adversary.role] ?? {
-    border: 'border-gray-500',
-    bg: 'bg-gray-500/5',
-    badge: 'bg-gray-500/20 text-gray-700',
+  const handleTierChange = (newTier: number) => {
+    setTierOverride(newTier === Number(adversary.tier) ? undefined : newTier);
   };
-  const pointCost = ROLE_POINT_COSTS[adversary.role] ?? 2;
-  const roleDescription = ROLE_DESCRIPTIONS[adversary.role] ?? '';
 
   return (
     <div className="flex min-h-0 w-96 shrink-0 flex-col overflow-hidden border-l">
-      {/* Header */}
-      <div className={`shrink-0 border-b ${roleColors.bg}`}>
-        <div className="flex items-center justify-between px-4 py-3">
-          <h3 className="truncate font-semibold">{adversary.name}</h3>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-7 shrink-0"
-            onClick={onClose}
-          >
-            <X className="size-4" />
-          </Button>
-        </div>
-        <div className="flex flex-wrap gap-1.5 px-4 pb-3">
-          <Badge className={`text-xs ${roleColors.badge}`}>
-            {ROLE_ICONS[adversary.role] ?? '⚔️'} {adversary.role}
-          </Badge>
-          <Badge className={`text-xs ${TIER_COLORS[adversary.tier] ?? ''}`}>
-            Tier {adversary.tier}
-          </Badge>
-          <Badge variant="secondary" className="text-xs">
-            {pointCost} Battle Pt{pointCost !== 1 ? 's' : ''}
-          </Badge>
-        </div>
-      </div>
+      <DetailPanelHeader adversary={adversary} onClose={onClose} />
 
-      {/* Content */}
       <ScrollArea className="min-h-0 flex-1">
         <div className="space-y-4 p-4">
-          {/* Description */}
           <p className="text-muted-foreground text-sm">
             {adversary.description}
           </p>
 
-          {/* Role Description */}
-          <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3">
-            <p className="text-xs font-medium text-amber-700 dark:text-amber-400">
-              {ROLE_ICONS[adversary.role]} {adversary.role} Role
-            </p>
-            <p className="text-muted-foreground mt-1 text-xs">
-              {roleDescription}
-            </p>
-          </div>
+          <RoleDescriptionCard adversary={adversary} />
+          <StatsGrid adversary={adversary} />
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 gap-2">
-            <StatCard
-              icon={Heart}
-              label="HP"
-              value={adversary.hp}
-              tooltip="Hit Points - damage needed to defeat"
-              colorClass="text-red-500"
-            />
-            <StatCard
-              icon={AlertTriangle}
-              label="Stress"
-              value={adversary.stress}
-              tooltip="Stress track for special actions"
-              colorClass="text-amber-500"
-            />
-            <StatCard
-              icon={Target}
-              label="Difficulty"
-              value={adversary.difficulty}
-              tooltip="Target number to hit this adversary"
-              colorClass="text-blue-500"
-            />
-            <StatCard
-              icon={Layers}
-              label="Thresholds"
-              value={formatThresholds(adversary.thresholds)}
-              tooltip="Major/Severe/Massive damage thresholds"
-              colorClass="text-purple-500"
-            />
-          </div>
-
-          {/* Tier Scaling */}
           <TierScalingControls
             adversary={adversary}
             currentTierOverride={tierOverride}
-            onTierChange={newTier =>
-              setTierOverride(
-                newTier === Number(adversary.tier) ? undefined : newTier
-              )
-            }
+            onTierChange={handleTierChange}
           />
 
           <Separator />
 
-          {/* Attack */}
-          <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3">
-            <div className="mb-2 flex items-center gap-2">
-              <Swords className="size-4 text-red-500" />
-              <span className="text-sm font-medium">Attack</span>
-            </div>
-            <p className="text-sm font-medium">{adversary.attack.name}</p>
-            <p className="text-muted-foreground mt-1 text-xs">
-              {adversary.attack.modifier} · {adversary.attack.range} ·{' '}
-              {adversary.attack.damage}
-            </p>
-          </div>
-
-          {/* Motives & Tactics */}
-          {adversary.motivesAndTactics && (
-            <div className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 p-3">
-              <div className="mb-2 flex items-center gap-2">
-                <Compass className="size-4 text-cyan-500" />
-                <span className="text-sm font-medium">Motives & Tactics</span>
-              </div>
-              <p className="text-muted-foreground text-xs">
-                {adversary.motivesAndTactics}
-              </p>
-            </div>
-          )}
-
-          {/* Experiences */}
-          {adversary.experiences.length > 0 && (
-            <div>
-              <TooltipLabel
-                label="Experiences"
-                labelIcon={Brain}
-                tooltip="Training or background bonuses"
-                className="mb-2 text-sm font-medium"
-              />
-              <div className="flex flex-wrap gap-1">
-                {adversary.experiences.map((exp, i) => (
-                  <Badge key={i} variant="secondary" className="text-xs">
-                    {formatExperience(exp)}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Features */}
-          {adversary.features.length > 0 && (
-            <div>
-              <TooltipLabel
-                label={`Features (${adversary.features.length})`}
-                labelIcon={Sparkles}
-                tooltip="Special abilities, actions, and reactions"
-                className="mb-2 text-sm font-medium"
-              />
-              <ul className="space-y-2">
-                {adversary.features.map((f, i) => {
-                  const { name, type, description } = formatFeature(f);
-                  return (
-                    <li
-                      key={i}
-                      className="bg-background/50 rounded-md border p-2"
-                    >
-                      <div className="mb-1 flex items-center gap-2">
-                        <Badge
-                          className={`text-xs ${FEATURE_TYPE_COLORS[type] ?? FEATURE_TYPE_COLORS.Feature}`}
-                        >
-                          {type}
-                        </Badge>
-                        <span className="text-sm font-medium">{name}</span>
-                      </div>
-                      {description && (
-                        <p className="text-muted-foreground text-xs leading-relaxed">
-                          {description}
-                        </p>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          )}
+          <AttackSection attack={adversary.attack} />
+          <MotivesTacticsSection
+            motivesAndTactics={adversary.motivesAndTactics}
+          />
+          <ExperiencesSection experiences={adversary.experiences} />
+          <FeaturesSection features={adversary.features} />
         </div>
       </ScrollArea>
 
-      {/* Footer with Add button */}
-      {onAdd && (
-        <div className="shrink-0 border-t p-4">
-          <Button
-            className="w-full gap-2"
-            onClick={() => onAdd(adversary)}
-            disabled={!canAdd}
-          >
-            <Swords className="size-4" />
-            Add to Encounter
-          </Button>
-        </div>
-      )}
+      <AddToEncounterFooter
+        onAdd={onAdd}
+        adversary={adversary}
+        canAdd={canAdd}
+      />
     </div>
   );
 }

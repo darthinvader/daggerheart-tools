@@ -82,20 +82,10 @@ function hasEquippedArmor(equipment: TabProps['state']['equipment']) {
   return false;
 }
 
-export function CombatTab({
-  state,
-  handlers,
-  isHydrated: _isHydrated,
-}: TabProps) {
-  const classStats = useMemo(
-    () => getClassStats(state.classSelection),
-    [state.classSelection]
-  );
-  const armorStats = useMemo(
-    () => getArmorStats(state.equipment),
-    [state.equipment]
-  );
-
+/**
+ * Computes all feature modifiers from equipment, class, ancestry, etc.
+ */
+function useCombatModifiers(state: TabProps['state']) {
   const equipmentFeatureModifiers = useMemo(
     () => getEquipmentFeatureModifiers(state.equipment),
     [state.equipment]
@@ -164,16 +154,47 @@ export function CombatTab({
     };
   }, [combinedFeatureModifiers.traits, beastformModifiers.traits]);
 
+  return {
+    equipmentFeatureModifiers,
+    bonusFeatureModifiers,
+    combinedFeatureModifiers,
+    beastformModifiers,
+    traitModifiersWithBeastform,
+  };
+}
+
+/**
+ * Builds auto-context objects for resources, core scores, and thresholds.
+ */
+function useCombatAutoContexts(input: {
+  classStats: ReturnType<typeof getClassStats>;
+  armorStats: ReturnType<typeof getArmorStats>;
+  currentLevel: number;
+  combinedFeatureModifiers: ReturnType<typeof combineModifiers>;
+  equipmentFeatureModifiers: ReturnType<typeof getEquipmentFeatureModifiers>;
+  bonusFeatureModifiers: ReturnType<typeof aggregateBonusModifiers>;
+  beastformModifiers: ReturnType<typeof buildBeastformModifiers>;
+}) {
+  const {
+    classStats,
+    armorStats,
+    currentLevel,
+    combinedFeatureModifiers,
+    equipmentFeatureModifiers,
+    bonusFeatureModifiers,
+    beastformModifiers,
+  } = input;
+
   const resourcesAutoContext = useMemo(
     () => ({
       classHp: classStats.hp,
       classEvasion: classStats.evasion,
-      classTier: Math.ceil(state.progression.currentLevel / 3),
+      classTier: Math.ceil(currentLevel / 3),
       armorScore: armorStats.score,
       armorEvasionModifier: armorStats.evasionMod,
       armorThresholdsMajor: armorStats.major,
       armorThresholdsSevere: armorStats.severe,
-      level: state.progression.currentLevel,
+      level: currentLevel,
       equipmentFeatureModifiers: {
         evasion: combinedFeatureModifiers.evasion,
         proficiency: combinedFeatureModifiers.proficiency,
@@ -182,12 +203,7 @@ export function CombatTab({
         severeThreshold: combinedFeatureModifiers.severeThreshold,
       },
     }),
-    [
-      classStats,
-      armorStats,
-      state.progression.currentLevel,
-      combinedFeatureModifiers,
-    ]
+    [classStats, armorStats, currentLevel, combinedFeatureModifiers]
   );
 
   const coreScoresAutoContext = useMemo(
@@ -211,7 +227,7 @@ export function CombatTab({
     () => ({
       armorThresholdsMajor: armorStats.major,
       armorThresholdsSevere: armorStats.severe,
-      level: state.progression.currentLevel,
+      level: currentLevel,
       equipmentMajorModifier: equipmentFeatureModifiers.majorThreshold,
       equipmentSevereModifier: equipmentFeatureModifiers.severeThreshold,
       bonusMajorModifier: bonusFeatureModifiers.majorThreshold,
@@ -220,7 +236,7 @@ export function CombatTab({
     [
       armorStats.major,
       armorStats.severe,
-      state.progression.currentLevel,
+      currentLevel,
       equipmentFeatureModifiers.majorThreshold,
       equipmentFeatureModifiers.severeThreshold,
       bonusFeatureModifiers.majorThreshold,
@@ -228,25 +244,68 @@ export function CombatTab({
     ]
   );
 
-  const hasCompanionFeature = useMemo(() => {
-    const hasCompanionFlag = (
-      value: unknown
-    ): value is { companion?: boolean } =>
-      Boolean(value && typeof value === 'object' && 'companion' in value);
-    const selection = state.classSelection;
-    if (!selection?.className || !selection?.subclassName) return false;
-    if (selection.isHomebrew && selection.homebrewClass) {
-      const homebrewSubclass = selection.homebrewClass.subclasses.find(
-        s => s.name === selection.subclassName
-      );
-      return Boolean(homebrewSubclass?.companion);
-    }
-    const subclass = getSubclassByName(
-      selection.className,
-      selection.subclassName
+  return { resourcesAutoContext, coreScoresAutoContext, thresholdsAutoContext };
+}
+
+/**
+ * Check whether the selected subclass has a companion feature.
+ */
+function checkHasCompanionFeature(
+  classSelection: TabProps['state']['classSelection']
+): boolean {
+  const hasCompanionFlag = (value: unknown): value is { companion?: boolean } =>
+    Boolean(value && typeof value === 'object' && 'companion' in value);
+  if (!classSelection?.className || !classSelection?.subclassName) return false;
+  if (classSelection.isHomebrew && classSelection.homebrewClass) {
+    const homebrewSubclass = classSelection.homebrewClass.subclasses.find(
+      s => s.name === classSelection.subclassName
     );
-    return hasCompanionFlag(subclass) && Boolean(subclass.companion);
-  }, [state.classSelection]);
+    return Boolean(homebrewSubclass?.companion);
+  }
+  const subclass = getSubclassByName(
+    classSelection.className,
+    classSelection.subclassName
+  );
+  return hasCompanionFlag(subclass) && Boolean(subclass.companion);
+}
+
+export function CombatTab({
+  state,
+  handlers,
+  isHydrated: _isHydrated,
+}: TabProps) {
+  const classStats = useMemo(
+    () => getClassStats(state.classSelection),
+    [state.classSelection]
+  );
+  const armorStats = useMemo(
+    () => getArmorStats(state.equipment),
+    [state.equipment]
+  );
+
+  const {
+    equipmentFeatureModifiers,
+    bonusFeatureModifiers,
+    combinedFeatureModifiers,
+    beastformModifiers,
+    traitModifiersWithBeastform,
+  } = useCombatModifiers(state);
+
+  const { resourcesAutoContext, coreScoresAutoContext, thresholdsAutoContext } =
+    useCombatAutoContexts({
+      classStats,
+      armorStats,
+      currentLevel: state.progression.currentLevel,
+      combinedFeatureModifiers,
+      equipmentFeatureModifiers,
+      bonusFeatureModifiers,
+      beastformModifiers,
+    });
+
+  const hasCompanionFeature = useMemo(
+    () => checkHasCompanionFeature(state.classSelection),
+    [state.classSelection]
+  );
 
   const handleTriggerDeathMove = () => {
     handlers.setDeathState({

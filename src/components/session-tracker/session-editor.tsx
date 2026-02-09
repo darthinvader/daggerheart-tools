@@ -31,7 +31,7 @@ function NotableEventsEditor({
       </div>
       <div className="space-y-2">
         {events.map((event, i) => (
-          <div key={i} className="flex gap-2">
+          <div key={`${event}-${i}`} className="flex gap-2">
             <Input
               value={event}
               onChange={e => onUpdate(i, e.target.value)}

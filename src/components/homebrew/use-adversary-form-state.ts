@@ -54,30 +54,56 @@ interface UseAdversaryFormStateParams {
   initialTags?: string[];
 }
 
+function initializeFeatures(
+  raw: (string | AdversaryFeatureInput)[] | undefined
+): AdversaryFeatureState[] {
+  return (raw ?? []).map((f, i) => {
+    if (typeof f === 'string') {
+      const parsed = parseStringFeature(f);
+      return { id: `feature-${i}`, ...parsed };
+    }
+    return {
+      id: `feature-${i}`,
+      name: f.name,
+      type: f.type ?? 'Feature',
+      description: f.description ?? '',
+    };
+  });
+}
+
+function initializeExperiences(
+  raw: (string | { name: string })[] | undefined
+): string[] {
+  return (raw ?? []).map(e => (typeof e === 'string' ? e : e.name));
+}
+
+function buildFeaturesFromState(
+  features: AdversaryFeatureState[]
+): Omit<AdversaryFeatureState, 'id'>[] {
+  return features.map(f => ({
+    name: f.name,
+    type: f.type,
+    description: f.description,
+  }));
+}
+
+function filterNonEmptyExperiences(experiences: string[]): string[] {
+  return experiences.filter(e => e.trim());
+}
+
 export function useAdversaryFormState({
   initialFeatures,
   initialExperiences,
   initialTags,
 }: UseAdversaryFormStateParams = {}) {
   // Features state
-  const [features, setFeatures] = useState<AdversaryFeatureState[]>(
-    (initialFeatures ?? []).map((f, i) => {
-      if (typeof f === 'string') {
-        const parsed = parseStringFeature(f);
-        return { id: `feature-${i}`, ...parsed };
-      }
-      return {
-        id: `feature-${i}`,
-        name: f.name,
-        type: f.type ?? 'Feature',
-        description: f.description ?? '',
-      };
-    })
+  const [features, setFeatures] = useState<AdversaryFeatureState[]>(() =>
+    initializeFeatures(initialFeatures)
   );
 
   // Experiences state
-  const [experiences, setExperiences] = useState<string[]>(
-    (initialExperiences ?? []).map(e => (typeof e === 'string' ? e : e.name))
+  const [experiences, setExperiences] = useState<string[]>(() =>
+    initializeExperiences(initialExperiences)
   );
 
   // Tags state
@@ -147,40 +173,28 @@ export function useAdversaryFormState({
   }, []);
 
   // Build content for submission
-  const buildFeaturesContent = useCallback(() => {
-    return features.map(f => ({
-      name: f.name,
-      type: f.type,
-      description: f.description,
-    }));
-  }, [features]);
+  const buildFeaturesContent = useCallback(
+    () => buildFeaturesFromState(features),
+    [features]
+  );
 
-  const getExperiencesContent = useCallback(() => {
-    return experiences.filter(e => e.trim());
-  }, [experiences]);
+  const getExperiencesContent = useCallback(
+    () => filterNonEmptyExperiences(experiences),
+    [experiences]
+  );
 
   return {
-    // Features state
-    features,
-    addFeature,
-    removeFeature,
-    updateFeature,
-    buildFeaturesContent,
-
-    // Experiences state
-    experiences,
-    customExperience,
-    setCustomExperience,
-    addExperience,
-    removeExperience,
+    featureState: { features, addFeature, removeFeature, updateFeature },
+    experienceState: {
+      experiences,
+      customExperience,
+      setCustomExperience,
+      addExperience,
+      removeExperience,
+    },
+    tagState: { tags, newTag, setNewTag, addTag, removeTag },
     handleAddCustomExperience,
+    buildFeaturesContent,
     getExperiencesContent,
-
-    // Tags state
-    tags,
-    newTag,
-    setNewTag,
-    addTag,
-    removeTag,
   };
 }

@@ -318,201 +318,230 @@ function SubclassCard({ subclass }: { subclass: GameSubclass }) {
   );
 }
 
-function ClassDetail({ gameClass }: { gameClass: GameClass }) {
+interface ClassSectionProps {
+  gameClass: GameClass;
+}
+
+function ClassDetailHeader({ gameClass }: ClassSectionProps) {
   const gradient =
     classGradients[gameClass.name] ?? 'from-gray-500 to-slate-600';
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className={`-mx-4 -mt-4 bg-gradient-to-r p-6 ${gradient}`}>
-        <div className="rounded-xl bg-black/30 p-4">
-          <h2 className="text-2xl font-semibold text-white drop-shadow">
-            <Shield className="mr-2 inline-block size-6" />
-            {gameClass.name}
-          </h2>
-          <p className="mt-2 text-white/85">{gameClass.description}</p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {gameClass.domains.map(domain => (
-              <Badge
-                key={domain}
-                className="border-slate-900/40 bg-slate-900/80 text-white"
-              >
-                {domain}
-              </Badge>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Base Stats */}
-      <div className="bg-card rounded-lg border p-4">
-        <div className="mb-3">
-          <SectionLabel
-            label="Base Stats"
-            tooltip="Starting hit points and evasion for a new character."
-            icon={Target}
-            className="border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
-          />
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="text-muted-foreground text-sm">Hit Points</div>
-              </TooltipTrigger>
-              <TooltipContent sideOffset={6}>
-                Starting HP before level-ups and gear.
-              </TooltipContent>
-            </Tooltip>
-            <div className="text-2xl font-bold text-red-600 dark:text-red-400">
-              {gameClass.startingHitPoints}
-            </div>
-          </div>
-          <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-4">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="text-muted-foreground text-sm">Evasion</div>
-              </TooltipTrigger>
-              <TooltipContent sideOffset={6}>
-                Base target number to avoid hits.
-              </TooltipContent>
-            </Tooltip>
-            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-              {gameClass.startingEvasion}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Hope Feature */}
-      <div className="bg-card rounded-lg border p-4">
-        <div className="mb-3">
-          <SectionLabel
-            label="Hope Feature"
-            tooltip="Signature feature powered by spending Hope."
-            icon={Sparkles}
-            className="border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300"
-          />
-        </div>
-        <div className="bg-muted/50 rounded-lg p-3">
-          <div className="mb-1 flex items-center justify-between gap-3">
-            <span className="font-semibold text-yellow-700 dark:text-yellow-300">
-              {gameClass.hopeFeature.name}
-            </span>
-            <Badge className="border-yellow-500/30 bg-yellow-500/15 text-yellow-700 dark:text-yellow-300">
-              {gameClass.hopeFeature.hopeCost} Hope
+    <div className={`-mx-4 -mt-4 bg-gradient-to-r p-6 ${gradient}`}>
+      <div className="rounded-xl bg-black/30 p-4">
+        <h2 className="text-2xl font-semibold text-white drop-shadow">
+          <Shield className="mr-2 inline-block size-6" />
+          {gameClass.name}
+        </h2>
+        <p className="mt-2 text-white/85">{gameClass.description}</p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {gameClass.domains.map(domain => (
+            <Badge
+              key={domain}
+              className="border-slate-900/40 bg-slate-900/80 text-white"
+            >
+              {domain}
             </Badge>
-          </div>
-          <p className="text-muted-foreground text-sm">
-            {gameClass.hopeFeature.description}
-          </p>
-        </div>
-      </div>
-
-      {/* Class Features */}
-      {gameClass.classFeatures.length > 0 && (
-        <div className="bg-card rounded-lg border p-4">
-          <div className="mb-3">
-            <SectionLabel
-              label="Class Features"
-              tooltip="Foundation, specialization, and mastery features unique to this class."
-              icon={Star}
-              className="border-violet-500/30 bg-violet-500/10 text-violet-700 dark:text-violet-300"
-            />
-          </div>
-          <div className="space-y-2">
-            {gameClass.classFeatures.map((feature, idx) => (
-              <div key={idx} className="bg-muted/50 rounded-lg p-3">
-                <div className="mb-1 flex items-center gap-2">
-                  <span className="font-medium">{feature.name}</span>
-                  <Badge variant="outline" className="text-xs">
-                    {feature.type}
-                  </Badge>
-                </div>
-                <p className="text-muted-foreground text-sm">
-                  {feature.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Class Items */}
-      {gameClass.classItems.length > 0 && (
-        <div className="bg-card rounded-lg border p-4">
-          <div className="mb-3">
-            <SectionLabel
-              label="Class Items"
-              tooltip="Starting equipment or signature items for this class."
-              icon={Backpack}
-              className="border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300"
-            />
-          </div>
-          <ul className="text-muted-foreground list-inside list-disc text-sm">
-            {gameClass.classItems.map((item, idx) => (
-              <li key={idx}>{item}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Subclasses */}
-      <div className="bg-card rounded-lg border p-4">
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <SectionLabel
-            label="Subclasses"
-            tooltip="Specializations that add features and flavor."
-            icon={Layers}
-            className="border-indigo-500/30 bg-indigo-500/10 text-indigo-700 dark:text-indigo-300"
-          />
-          <Badge variant="outline">{gameClass.subclasses.length}</Badge>
-        </div>
-        <div className="space-y-4">
-          {gameClass.subclasses.map(subclass => (
-            <SubclassCard key={subclass.name} subclass={subclass} />
           ))}
         </div>
       </div>
+    </div>
+  );
+}
 
-      {/* Background Questions */}
-      {gameClass.backgroundQuestions.length > 0 && (
-        <div className="bg-card rounded-lg border p-4">
-          <div className="mb-3">
-            <SectionLabel
-              label="Background Questions"
-              tooltip="Prompts to ground your character's backstory."
-              icon={HelpCircle}
-              className="border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300"
-            />
+function ClassDetailBaseStats({ gameClass }: ClassSectionProps) {
+  return (
+    <div className="bg-card rounded-lg border p-4">
+      <div className="mb-3">
+        <SectionLabel
+          label="Base Stats"
+          tooltip="Starting hit points and evasion for a new character."
+          icon={Target}
+          className="border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="text-muted-foreground text-sm">Hit Points</div>
+            </TooltipTrigger>
+            <TooltipContent sideOffset={6}>
+              Starting HP before level-ups and gear.
+            </TooltipContent>
+          </Tooltip>
+          <div className="text-2xl font-bold text-red-600 dark:text-red-400">
+            {gameClass.startingHitPoints}
           </div>
-          <ul className="text-muted-foreground list-inside list-decimal space-y-1 text-sm">
-            {gameClass.backgroundQuestions.map((q, idx) => (
-              <li key={idx}>{q}</li>
-            ))}
-          </ul>
         </div>
-      )}
+        <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-4">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="text-muted-foreground text-sm">Evasion</div>
+            </TooltipTrigger>
+            <TooltipContent sideOffset={6}>
+              Base target number to avoid hits.
+            </TooltipContent>
+          </Tooltip>
+          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+            {gameClass.startingEvasion}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-      {/* Connections */}
-      {gameClass.connections.length > 0 && (
-        <div className="bg-card rounded-lg border p-4">
-          <div className="mb-3">
-            <SectionLabel
-              label="Connections"
-              tooltip="Relationship prompts and bonds tied to this class."
-              icon={Link2}
-              className="border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300"
-            />
-          </div>
-          <ul className="text-muted-foreground list-inside list-disc space-y-1 text-sm">
-            {gameClass.connections.map((c, idx) => (
-              <li key={idx}>{c}</li>
-            ))}
-          </ul>
+function ClassDetailHopeFeature({ gameClass }: ClassSectionProps) {
+  return (
+    <div className="bg-card rounded-lg border p-4">
+      <div className="mb-3">
+        <SectionLabel
+          label="Hope Feature"
+          tooltip="Signature feature powered by spending Hope."
+          icon={Sparkles}
+          className="border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300"
+        />
+      </div>
+      <div className="bg-muted/50 rounded-lg p-3">
+        <div className="mb-1 flex items-center justify-between gap-3">
+          <span className="font-semibold text-yellow-700 dark:text-yellow-300">
+            {gameClass.hopeFeature.name}
+          </span>
+          <Badge className="border-yellow-500/30 bg-yellow-500/15 text-yellow-700 dark:text-yellow-300">
+            {gameClass.hopeFeature.hopeCost} Hope
+          </Badge>
         </div>
-      )}
+        <p className="text-muted-foreground text-sm">
+          {gameClass.hopeFeature.description}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function ClassDetailFeatures({ gameClass }: ClassSectionProps) {
+  return (
+    <div className="bg-card rounded-lg border p-4">
+      <div className="mb-3">
+        <SectionLabel
+          label="Class Features"
+          tooltip="Foundation, specialization, and mastery features unique to this class."
+          icon={Star}
+          className="border-violet-500/30 bg-violet-500/10 text-violet-700 dark:text-violet-300"
+        />
+      </div>
+      <div className="space-y-2">
+        {gameClass.classFeatures.map((feature, idx) => (
+          <div key={idx} className="bg-muted/50 rounded-lg p-3">
+            <div className="mb-1 flex items-center gap-2">
+              <span className="font-medium">{feature.name}</span>
+              <Badge variant="outline" className="text-xs">
+                {feature.type}
+              </Badge>
+            </div>
+            <p className="text-muted-foreground text-sm">
+              {feature.description}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ClassDetailItems({ gameClass }: ClassSectionProps) {
+  return (
+    <div className="bg-card rounded-lg border p-4">
+      <div className="mb-3">
+        <SectionLabel
+          label="Class Items"
+          tooltip="Starting equipment or signature items for this class."
+          icon={Backpack}
+          className="border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300"
+        />
+      </div>
+      <ul className="text-muted-foreground list-inside list-disc text-sm">
+        {gameClass.classItems.map((item, idx) => (
+          <li key={idx}>{item}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function ClassDetailSubclasses({ gameClass }: ClassSectionProps) {
+  return (
+    <div className="bg-card rounded-lg border p-4">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <SectionLabel
+          label="Subclasses"
+          tooltip="Specializations that add features and flavor."
+          icon={Layers}
+          className="border-indigo-500/30 bg-indigo-500/10 text-indigo-700 dark:text-indigo-300"
+        />
+        <Badge variant="outline">{gameClass.subclasses.length}</Badge>
+      </div>
+      <div className="space-y-4">
+        {gameClass.subclasses.map(subclass => (
+          <SubclassCard key={subclass.name} subclass={subclass} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ClassDetailBackgroundQuestions({ gameClass }: ClassSectionProps) {
+  return (
+    <div className="bg-card rounded-lg border p-4">
+      <div className="mb-3">
+        <SectionLabel
+          label="Background Questions"
+          tooltip="Prompts to ground your character's backstory."
+          icon={HelpCircle}
+          className="border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300"
+        />
+      </div>
+      <ul className="text-muted-foreground list-inside list-decimal space-y-1 text-sm">
+        {gameClass.backgroundQuestions.map((q, idx) => (
+          <li key={idx}>{q}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function ClassDetailConnections({ gameClass }: ClassSectionProps) {
+  return (
+    <div className="bg-card rounded-lg border p-4">
+      <div className="mb-3">
+        <SectionLabel
+          label="Connections"
+          tooltip="Relationship prompts and bonds tied to this class."
+          icon={Link2}
+          className="border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300"
+        />
+      </div>
+      <ul className="text-muted-foreground list-inside list-disc space-y-1 text-sm">
+        {gameClass.connections.map((c, idx) => (
+          <li key={idx}>{c}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function ClassDetail({ gameClass }: { gameClass: GameClass }) {
+  return (
+    <div className="space-y-6">
+      <ClassDetailHeader gameClass={gameClass} />
+      <ClassDetailBaseStats gameClass={gameClass} />
+      <ClassDetailHopeFeature gameClass={gameClass} />
+      <ClassDetailFeatures gameClass={gameClass} />
+      <ClassDetailItems gameClass={gameClass} />
+      <ClassDetailSubclasses gameClass={gameClass} />
+      <ClassDetailBackgroundQuestions gameClass={gameClass} />
+      <ClassDetailConnections gameClass={gameClass} />
     </div>
   );
 }

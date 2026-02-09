@@ -209,66 +209,6 @@ export const ClassIcons: Record<string, LucideIcon> = {
 } as const;
 
 // ============================================================================
-// TRAIT ICONS
-// ============================================================================
-export const TraitIcons: Record<string, LucideIcon> = {
-  Agility: Footprints,
-  Strength: Activity,
-  Finesse: Crosshair,
-  Instinct: Focus,
-  Presence: Sparkles,
-  Knowledge: Library,
-} as const;
-
-// ============================================================================
-// COMPANION ICONS
-// ============================================================================
-export const CompanionTypeIcons: Record<string, LucideIcon> = {
-  Wolf: Dog,
-  Bear: PawPrint,
-  Hawk: Bird,
-  Eagle: Bird,
-  Fox: Dog,
-  Panther: Cat,
-  Owl: Bird,
-  Serpent: Bug,
-  Boar: PawPrint,
-  Stag: PawPrint,
-  Raven: Feather,
-  Spider: Bug,
-  Horse: PawPrint,
-  Lynx: Cat,
-  default: PawPrint,
-} as const;
-
-export const CompanionTrainingIcons: Record<string, LucideIcon> = {
-  intelligent: Brain,
-  vicious: Flame,
-  resilient: Shield,
-  armored: Shield,
-  aware: Focus,
-  lightInTheDark: Sparkles,
-  creatureComfort: Heart,
-  bonded: Handshake,
-} as const;
-
-// ============================================================================
-// COMMUNITY ICONS
-// ============================================================================
-export const CommunityIcons: Record<string, LucideIcon> = {
-  Highborne: Crown,
-  Loreborne: Library,
-  Orderborne: Scale,
-  Ridgeborne: Mountain,
-  Seaborne: Waves,
-  Slyborne: Axe,
-  Underborne: Layers,
-  Wanderborne: Compass,
-  Wildborne: TreePine,
-  default: Home,
-} as const;
-
-// ============================================================================
 // ADVERSARY ICONS
 // ============================================================================
 export const AdversaryRoleIcons: Record<string, LucideIcon> = {
@@ -331,99 +271,6 @@ export const DamageTypeIcons: Record<string, LucideIcon> = {
   magic: Sparkles,
 } as const;
 
-export const RangeIcons: Record<string, LucideIcon> = {
-  melee: HandMetal,
-  veryClose: Axe,
-  close: Target,
-  far: Crosshair,
-  veryFar: Star,
-  default: MapPin,
-} as const;
-
-export const BurdenIcons: Record<string, LucideIcon> = {
-  oneHanded: Hand,
-  twoHanded: Grip,
-} as const;
-
-export const EquipmentSectionIcons: Record<string, LucideIcon> = {
-  primary: Sword,
-  secondary: Axe,
-  armor: Shield,
-  wheelchair: Compass, // Using Compass for wheelchair as Wheelchair icon doesn't exist in lucide-react
-  custom: Gem,
-} as const;
-
-// ============================================================================
-// INVENTORY ICONS
-// ============================================================================
-export const InventoryCategoryIcons: Record<string, LucideIcon> = {
-  common: Wrench,
-  consumable: FlaskConical,
-  magical: Sparkles,
-  weapon: Sword,
-  armor: Shield,
-  document: Scroll,
-  tool: Wrench,
-  food: Clover,
-  artifact: Landmark,
-  misc: Settings,
-  default: Backpack,
-} as const;
-
-export const InventoryRarityIcons: Record<string, LucideIcon> = {
-  common: Circle,
-  uncommon: CircleDot,
-  rare: Gem,
-  epic: Crown,
-} as const;
-
-export const InventoryTierIcons: Record<string, LucideIcon> = {
-  '1': Medal,
-  '2': Award,
-  '3': Trophy,
-  '4': Gem,
-} as const;
-
-export const InventoryLocationIcons: Record<string, LucideIcon> = {
-  backpack: Backpack,
-  belt: Link2,
-  equipped: Star,
-  stored: Package,
-} as const;
-
-// ============================================================================
-// ARMOR STATE ICONS
-// ============================================================================
-export const ArmorStateIcons: Record<string, LucideIcon> = {
-  available: Shield,
-  used: Zap,
-  damaged: ShieldAlert,
-  broken: ShieldX,
-} as const;
-
-// ============================================================================
-// NOTE CATEGORY ICONS
-// ============================================================================
-export const NoteCategoryIcons: Record<string, LucideIcon> = {
-  general: Pencil,
-  session: Calendar,
-  npc: User,
-  location: Map,
-  quest: Sword,
-  lore: Library,
-} as const;
-
-// ============================================================================
-// DOWNTIME MOVE ICONS
-// ============================================================================
-export const DowntimeMoveIcons: Record<string, LucideIcon> = {
-  recovery: HeartPulse,
-  crafting: Hammer,
-  social: Handshake,
-  exploration: Search,
-  training: Activity,
-} as const;
-
 // ============================================================================
 // FEATURE TYPE ICONS
 // ============================================================================
@@ -435,88 +282,12 @@ export const FeatureTypeIcons: Record<string, LucideIcon> = {
 } as const;
 
 // ============================================================================
-// RULES SECTION ICONS
+// CARD TYPE ICONS (for domain cards)
 // ============================================================================
-export const RulesSectionIcons: Record<string, LucideIcon> = {
-  characterCreation: User,
-  rolling: Dice5,
-  combat: Swords,
-  camping: Tent,
-  navigation: Compass,
-  adversaries: Skull,
-  worldbuilding: Map,
-  socialContract: Handshake,
-  safetyTools: Shield,
-  worldInfo: Globe,
-  coreStats: TrendingUp,
-  hitPoints: Heart,
-  inventory: Backpack,
-  diceRolling: Dice5,
-  actionTokens: Repeat,
-  experiences: Target,
-  domainCards: Sparkles,
-  hopeAndFear: BatteryMedium,
-  hope: Star,
-  stress: AlertTriangle,
-  attack: Sword,
-  scenes: Clapperboard,
-  weapons: Axe,
-  thresholds: Layers,
-  conditions: Puzzle,
-  distances: Ruler,
-  death: Skull,
-  shortRest: Tent,
-  longRest: Moon,
-  levelUp: TrendingUp,
-  gold: Coins,
-  crafting: FlaskConical,
-  challenges: Compass,
-  downtimeMoves: Sparkles,
-  features: Wrench,
-  hazards: AlertTriangle,
-  environments: Wind,
-  adversaryDesign: Puzzle,
-  statBlocks: FileText,
-  roleplay: Theater,
-  sessionZero: Sparkles,
-  encounterDesign: Flame,
-  scaling: Ruler,
-  campaignBuilding: Map,
-  lore: Library,
-  settings: Settings,
-  modules: Puzzle,
-  communication: MessageSquare,
-} as const;
-
-// ============================================================================
-// UI / STATUS ICONS
-// ============================================================================
-export const StatusIcons = {
-  active: Zap,
-  vault: Package,
-  swap: ArrowLeftRight,
-  search: Search,
-  empty: Box,
-  warning: AlertTriangle,
-  unlock: Unlock,
-  add: Plus,
-  remove: X,
-  check: Check,
-  checkCircle: CheckCircle,
-  expand: ChevronDown,
-  collapse: ChevronRight,
-  infinity: InfinityIcon,
-  increase: Plus,
-  decrease: Minus,
-  equipped: Star,
-  pinned: Pin,
-  filter: LayoutGrid,
-  clear: X,
-  play: Play,
-  gift: Gift,
-  multiclass: Blend,
-  loading: Loader,
-  help: HelpCircle,
+export const CardTypeIcons: Record<string, LucideIcon> = {
+  Spell: Sparkles,
+  Ability: Activity,
+  Grimoire: BookOpen,
 } as const;
 
 // ============================================================================
@@ -526,45 +297,6 @@ export const CostIcons = {
   recall: Zap,
   hope: Sparkle,
   stress: AlertTriangle,
-} as const;
-
-// ============================================================================
-// CHARACTER CREATION STEP ICONS
-// ============================================================================
-export const CharacterCreationStepIcons: Record<string, LucideIcon> = {
-  foundation: Sword,
-  background: Scroll,
-  finishing: Sparkles,
-} as const;
-
-// ============================================================================
-// LEVEL UP ICONS
-// ============================================================================
-// LevelUpIcons uses TierIcons mapping
-// Use TierIcons directly for level tier display
-
-export const TierIcons: Record<string, LucideIcon> = {
-  '1': Sprout,
-  '2-4': Sword,
-  '5-7': Flame,
-  '8-10': Crown,
-} as const;
-
-// ============================================================================
-// REST ICONS
-// ============================================================================
-export const RestIcons = {
-  short: Timer,
-  long: Tent,
-} as const;
-
-// ============================================================================
-// CARD TYPE ICONS (for domain cards)
-// ============================================================================
-export const CardTypeIcons: Record<string, LucideIcon> = {
-  Spell: Sparkles,
-  Ability: Activity,
-  Grimoire: BookOpen,
 } as const;
 
 // ============================================================================

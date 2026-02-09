@@ -36,6 +36,7 @@ import { DEFAULT_RESOURCES_STATE } from '@/components/resources';
 import type { HopeWithScarsState } from '@/components/scars';
 import type { SessionEntry } from '@/components/session-tracker';
 import type { TraitsState } from '@/components/traits';
+import { useLatestRef } from '@/hooks/use-latest-ref';
 import type { CharacterRecord } from '@/lib/api/characters';
 import { fetchCharacter } from '@/lib/api/characters';
 import { characterQueryKeys } from '@/lib/api/query-client';
@@ -555,7 +556,7 @@ function buildAutoSaveHandlers({
   };
 }
 
-function useHasCompanionFeature(
+export function useHasCompanionFeature(
   state: ReturnType<typeof buildCharacterSheetState>
 ) {
   return useMemo(() => {
@@ -591,12 +592,7 @@ function useAutoEnableCompanion({
   handlers: ReturnType<typeof buildAutoSaveHandlers>;
 }) {
   // Store handler in ref to avoid dependency on unstable object reference
-  const setCompanionEnabledRef = useRef(handlers.setCompanionEnabled);
-
-  // Update ref in effect to satisfy react-hooks/refs rule
-  useEffect(() => {
-    setCompanionEnabledRef.current = handlers.setCompanionEnabled;
-  });
+  const setCompanionEnabledRef = useLatestRef(handlers.setCompanionEnabled);
 
   useEffect(() => {
     if (!isHydrated) return;
@@ -608,6 +604,7 @@ function useAutoEnableCompanion({
     isHydrated,
     state.companion,
     state.companionEnabled,
+    setCompanionEnabledRef,
   ]);
 }
 
@@ -703,59 +700,27 @@ const buildReadOnlyHandlers = (): ReturnType<
   setBeastform: () => {},
 });
 
-export function useCharacterSheetWithApi(
-  characterId: string,
-  options?: { readOnly?: boolean }
-) {
-  // Fetch character data from API
-  const {
-    data: serverData,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: characterQueryKeys.detail(characterId),
-    queryFn: () => fetchCharacter(characterId),
-    enabled: Boolean(characterId),
-  });
-
-  // Local state hooks (starting with empty defaults)
-  const charState = useCharacterState(DEFAULT_RESOURCES_STATE);
-  const sessionState = useSessionState();
-  const [isLevelUpOpen, setIsLevelUpOpen] = useState(false);
-  const isHydratedRef = useRef(false);
-  const [isHydrated, setIsHydrated] = useState(false);
-  const [isNewCharacter, setIsNewCharacterState] = useState(false);
-
-  // Auto-save hook
+function useAutoSaveConfig(characterId: string, readOnly?: boolean) {
   const autoSave = useAutoSave(characterId);
   const scheduleSave = useMemo(
-    () => (options?.readOnly ? () => {} : autoSave.scheduleSave),
-    [options?.readOnly, autoSave.scheduleSave]
+    () => (readOnly ? () => {} : autoSave.scheduleSave),
+    [readOnly, autoSave.scheduleSave]
   );
-  const isSaving = options?.readOnly ? false : autoSave.isSaving;
-  const lastSaved = options?.readOnly ? null : autoSave.lastSaved;
+  const isSaving = readOnly ? false : autoSave.isSaving;
+  const lastSaved = readOnly ? null : autoSave.lastSaved;
+  return { scheduleSave, isSaving, lastSaved };
+}
 
-  // Build state object to pass to components — memoized to stabilize references
-  const hopeWithScars = useMemo(
-    () => buildHopeWithScarsState(charState, sessionState),
-    [charState, sessionState]
-  );
-
-  const state = useMemo(
-    () => buildCharacterSheetState(charState, sessionState, hopeWithScars),
-    [charState, sessionState, hopeWithScars]
-  );
-
-  // Level up handler
+function useLevelUpHandlers(
+  charState: ReturnType<typeof useCharacterState>,
+  sessionState: ReturnType<typeof useSessionState>,
+  scheduleSave: (updates: Partial<CharacterRecord>) => void
+) {
+  const [isLevelUpOpen, setIsLevelUpOpen] = useState(false);
   const handleLevelUp = useCallback(() => setIsLevelUpOpen(true), []);
 
-  // Use refs for level-up handler so the callback is stable
-  const charStateRef = useRef(charState);
-  const sessionStateRef = useRef(sessionState);
-  useEffect(() => {
-    charStateRef.current = charState;
-    sessionStateRef.current = sessionState;
-  });
+  const charStateRef = useLatestRef(charState);
+  const sessionStateRef = useLatestRef(sessionState);
 
   const handleLevelUpConfirm = useCallback(
     (result: LevelUpResult) => {
@@ -766,10 +731,34 @@ export function useCharacterSheetWithApi(
         scheduleSave,
       })(result);
     },
-    [scheduleSave]
+    [charStateRef, sessionStateRef, scheduleSave]
   );
 
-  // Use full objects as deps to satisfy React Compiler's inferred dependencies
+  return {
+    isLevelUpOpen,
+    setIsLevelUpOpen,
+    handleLevelUp,
+    handleLevelUpConfirm,
+  };
+}
+
+function useCharacterSheetHandlers({
+  charState,
+  sessionState,
+  serverData,
+  scheduleSave,
+  isHydrated,
+  readOnly,
+  handleLevelUp,
+}: {
+  charState: ReturnType<typeof useCharacterState>;
+  sessionState: ReturnType<typeof useSessionState>;
+  serverData: CharacterRecord | undefined;
+  scheduleSave: (updates: Partial<CharacterRecord>) => void;
+  isHydrated: boolean;
+  readOnly?: boolean;
+  handleLevelUp: () => void;
+}) {
   const handleSetHopeWithScars = useCallback(
     (newState: HopeWithScarsState) => {
       charState.setResources(prev => ({
@@ -785,7 +774,6 @@ export function useCharacterSheetWithApi(
     [charState, sessionState]
   );
 
-  // Build handlers with auto-save capability — memoized to stabilize reference
   const baseHandlers = useMemo(
     () =>
       buildCharacterSheetHandlers(
@@ -799,12 +787,10 @@ export function useCharacterSheetWithApi(
 
   const readOnlyHandlers = useMemo(() => buildReadOnlyHandlers(), []);
 
-  // Wrap setters with auto-save functionality using useMemo
   const handlers = useMemo(() => {
-    if (options?.readOnly) {
+    if (readOnly) {
       return readOnlyHandlers;
     }
-
     return buildAutoSaveHandlers({
       baseHandlers,
       charState,
@@ -820,9 +806,80 @@ export function useCharacterSheetWithApi(
     serverData,
     scheduleSave,
     isHydrated,
-    options?.readOnly,
+    readOnly,
     readOnlyHandlers,
   ]);
+
+  return { handlers, readOnlyHandlers };
+}
+
+function useDerivedModalData(charState: ReturnType<typeof useCharacterState>) {
+  const currentTraitsForModal = useMemo(
+    () => buildTraitModalItems(charState.traits),
+    [charState.traits]
+  );
+  const currentExperiencesForModal = useMemo(
+    () => buildExperienceModalItems(charState.experiences),
+    [charState.experiences]
+  );
+  const ownedCardNames = useMemo(
+    () => buildOwnedCardNames(charState.loadout),
+    [charState.loadout]
+  );
+  return { currentTraitsForModal, currentExperiencesForModal, ownedCardNames };
+}
+
+export function useCharacterSheetWithApi(
+  characterId: string,
+  options?: { readOnly?: boolean }
+) {
+  const {
+    data: serverData,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: characterQueryKeys.detail(characterId),
+    queryFn: () => fetchCharacter(characterId),
+    enabled: Boolean(characterId),
+  });
+
+  const charState = useCharacterState(DEFAULT_RESOURCES_STATE);
+  const sessionState = useSessionState();
+  const isHydratedRef = useRef(false);
+  const [isHydrated, setIsHydrated] = useState(false);
+  const [isNewCharacter, setIsNewCharacterState] = useState(false);
+
+  const { scheduleSave, isSaving, lastSaved } = useAutoSaveConfig(
+    characterId,
+    options?.readOnly
+  );
+
+  const hopeWithScars = useMemo(
+    () => buildHopeWithScarsState(charState, sessionState),
+    [charState, sessionState]
+  );
+
+  const state = useMemo(
+    () => buildCharacterSheetState(charState, sessionState, hopeWithScars),
+    [charState, sessionState, hopeWithScars]
+  );
+
+  const {
+    isLevelUpOpen,
+    setIsLevelUpOpen,
+    handleLevelUp,
+    handleLevelUpConfirm,
+  } = useLevelUpHandlers(charState, sessionState, scheduleSave);
+
+  const { handlers, readOnlyHandlers } = useCharacterSheetHandlers({
+    charState,
+    sessionState,
+    serverData,
+    scheduleSave,
+    isHydrated,
+    readOnly: options?.readOnly,
+    handleLevelUp,
+  });
 
   const hasCompanionFeature = useHasCompanionFeature(state);
 
@@ -852,18 +909,8 @@ export function useCharacterSheetWithApi(
     [scheduleSave]
   );
 
-  const currentTraitsForModal = useMemo(
-    () => buildTraitModalItems(charState.traits),
-    [charState.traits]
-  );
-  const currentExperiencesForModal = useMemo(
-    () => buildExperienceModalItems(charState.experiences),
-    [charState.experiences]
-  );
-  const ownedCardNames = useMemo(
-    () => buildOwnedCardNames(charState.loadout),
-    [charState.loadout]
-  );
+  const { currentTraitsForModal, currentExperiencesForModal, ownedCardNames } =
+    useDerivedModalData(charState);
 
   return {
     state,

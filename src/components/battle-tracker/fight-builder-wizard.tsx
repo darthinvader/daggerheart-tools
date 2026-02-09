@@ -47,6 +47,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { TIERS } from '@/lib/constants';
 import { ADVERSARIES } from '@/lib/data/adversaries';
 import type { Adversary } from '@/lib/schemas/adversaries';
 import { cn } from '@/lib/utils';
@@ -214,7 +215,7 @@ function TierSelector({
 }) {
   return (
     <div className="flex gap-1">
-      {(['1', '2', '3', '4'] as const).map(t => (
+      {TIERS.map(t => (
         <Button
           key={t}
           size="sm"
@@ -667,6 +668,39 @@ function AdversaryListGrid({
   );
 }
 
+function WizardHeader({
+  onOpenCustomBuilder,
+}: {
+  onOpenCustomBuilder: () => void;
+}) {
+  return (
+    <DialogHeader className="border-b bg-gradient-to-r from-amber-500/10 to-orange-500/10 px-6 py-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex size-10 items-center justify-center rounded-full bg-amber-500/20">
+            <Wand2 className="size-5 text-amber-500" />
+          </div>
+          <div>
+            <DialogTitle className="text-xl">Fight Builder Setup</DialogTitle>
+            <p className="text-muted-foreground text-sm">
+              Build balanced encounters using Battle Points
+            </p>
+          </div>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          onClick={onOpenCustomBuilder}
+        >
+          <PlusCircle className="size-4" />
+          Custom Adversary
+        </Button>
+      </div>
+    </DialogHeader>
+  );
+}
+
 function WizardFooter({
   isBalanced,
   isOverBudget,
@@ -812,6 +846,10 @@ export function FightBuilderWizard({
     setShowCustomBuilder(false);
   };
 
+  const handleOpenCustomBuilder = () => setShowCustomBuilder(true);
+  const handleCloseDetail = () => setViewingAdversary(null);
+  const handleCancel = () => onOpenChange(false);
+
   // Calculate if we can afford the viewing adversary
   const canAffordViewing = viewingAdversary
     ? remainingPoints >= (ROLE_POINT_COSTS[viewingAdversary.role] ?? 2)
@@ -820,32 +858,7 @@ export function FightBuilderWizard({
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="flex h-full w-full flex-col gap-0 p-0 sm:h-auto sm:max-h-[90vh] sm:max-w-[95vw]">
-        <DialogHeader className="border-b bg-gradient-to-r from-amber-500/10 to-orange-500/10 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex size-10 items-center justify-center rounded-full bg-amber-500/20">
-                <Wand2 className="size-5 text-amber-500" />
-              </div>
-              <div>
-                <DialogTitle className="text-xl">
-                  Fight Builder Setup
-                </DialogTitle>
-                <p className="text-muted-foreground text-sm">
-                  Build balanced encounters using Battle Points
-                </p>
-              </div>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-2"
-              onClick={() => setShowCustomBuilder(true)}
-            >
-              <PlusCircle className="size-4" />
-              Custom Adversary
-            </Button>
-          </div>
-        </DialogHeader>
+        <WizardHeader onOpenCustomBuilder={handleOpenCustomBuilder} />
 
         <div className="flex min-h-0 flex-1 overflow-hidden">
           <WizardSidebar
@@ -895,7 +908,7 @@ export function FightBuilderWizard({
           {/* Detail Panel */}
           <AdversaryDetailPanel
             adversary={viewingAdversary}
-            onClose={() => setViewingAdversary(null)}
+            onClose={handleCloseDetail}
             onAdd={addAdversary}
             canAdd={canAffordViewing}
           />
@@ -907,7 +920,7 @@ export function FightBuilderWizard({
           spentPoints={spentPoints}
           modifiedPoints={modifiedPoints}
           selectedCount={getSelectedCount(selectedAdversaries)}
-          onCancel={() => onOpenChange(false)}
+          onCancel={handleCancel}
           onConfirm={handleConfirm}
           disableConfirm={selectedAdversaries.length === 0}
         />

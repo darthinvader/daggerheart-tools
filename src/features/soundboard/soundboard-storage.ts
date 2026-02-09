@@ -1,5 +1,6 @@
 // CRUD operations for soundboard tracks and presets (Supabase tables)
 
+import { getAuthenticatedUser } from '@/lib/auth';
 import {
   type SoundboardPreset,
   SoundboardPresetSchema,
@@ -116,10 +117,7 @@ export async function listSoundboardTracks(
 export async function createSoundboardTrack(
   input: CreateTrackInput
 ): Promise<SoundboardTrack> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error('Not authenticated');
+  const user = await getAuthenticatedUser();
 
   const { data, error } = await supabase
     .from('soundboard_tracks')
@@ -233,10 +231,7 @@ export async function listSoundboardPresets(
 export async function createSoundboardPreset(
   input: CreatePresetInput
 ): Promise<SoundboardPreset> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error('Not authenticated');
+  const user = await getAuthenticatedUser();
 
   const { data, error } = await supabase
     .from('soundboard_presets')

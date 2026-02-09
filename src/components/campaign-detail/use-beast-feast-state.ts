@@ -1,5 +1,6 @@
 // Hook for managing Beast Feast state in campaigns
 import { useCallback, useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 import {
   getCampaign,
@@ -54,6 +55,67 @@ const DEFAULT_BEAST_FEAST_STATE: BeastFeastState = {
   notes: '',
 };
 
+/** Ensures a value is an array; returns empty array for non-array values. */
+function ensureArray<T>(value: unknown): T[] {
+  return Array.isArray(value) ? (value as T[]) : [];
+}
+
+/** Normalizes raw stored data into a valid BeastFeastState with safe array defaults. */
+function sanitizeBeastFeastState(
+  raw: Partial<BeastFeastState>
+): BeastFeastState {
+  return {
+    ...DEFAULT_BEAST_FEAST_STATE,
+    ...raw,
+    ingredients: ensureArray<Ingredient>(raw.ingredients),
+    recipes: ensureArray<BeastFeastRecipe>(raw.recipes),
+    meals: ensureArray<Meal>(raw.meals),
+    cookingSessions: ensureArray(raw.cookingSessions),
+    characterCookingStats: ensureArray<CharacterCookingState>(
+      raw.characterCookingStats
+    ),
+  };
+}
+
+/** Creates a default CharacterCookingState for a character that has no existing stats. */
+function createDefaultCharacterCookingStats(
+  characterId: string,
+  overrides: Partial<CharacterCookingState> = {},
+  characterName?: string
+): CharacterCookingState {
+  return {
+    characterId,
+    maxIngredients: 6,
+    currentIngredients: [],
+    mealsContributed: 0,
+    recipesContributed: [],
+    notes: characterName ? `Stats for ${characterName}` : '',
+    ...overrides,
+  };
+}
+
+/** Finds a character's cooking stats from the list, or undefined if not present. */
+function findCharacterStats(
+  stats: CharacterCookingState[],
+  characterId: string
+): CharacterCookingState | undefined {
+  return stats.find(s => s.characterId === characterId);
+}
+
+/** Upserts a CharacterCookingState into the list, replacing if characterId matches. */
+function upsertCharacterStats(
+  existingStats: CharacterCookingState[],
+  newStats: CharacterCookingState
+): CharacterCookingState[] {
+  const existingIndex = existingStats.findIndex(
+    s => s.characterId === newStats.characterId
+  );
+  if (existingIndex >= 0) {
+    return existingStats.map((s, i) => (i === existingIndex ? newStats : s));
+  }
+  return [...existingStats, newStats];
+}
+
 export function useBeastFeastState({
   campaignId,
 }: UseBeastFeastStateOptions): UseBeastFeastStateReturn {
@@ -73,23 +135,11 @@ export function useBeastFeastState({
         const campaign = await getCampaign(campaignId);
         if (!cancelled && campaign) {
           const raw = campaign.beastFeast ?? DEFAULT_BEAST_FEAST_STATE;
-          setBeastFeast({
-            ...DEFAULT_BEAST_FEAST_STATE,
-            ...raw,
-            // Ensure arrays are always arrays even if stored data is malformed
-            ingredients: Array.isArray(raw.ingredients) ? raw.ingredients : [],
-            recipes: Array.isArray(raw.recipes) ? raw.recipes : [],
-            meals: Array.isArray(raw.meals) ? raw.meals : [],
-            cookingSessions: Array.isArray(raw.cookingSessions)
-              ? raw.cookingSessions
-              : [],
-            characterCookingStats: Array.isArray(raw.characterCookingStats)
-              ? raw.characterCookingStats
-              : [],
-          });
+          setBeastFeast(sanitizeBeastFeastState(raw));
         }
       } catch (error) {
         console.error('Error loading Beast Feast state:', error);
+        toast.error('Failed to load Beast Feast data');
       } finally {
         if (!cancelled) {
           setLoading(false);
@@ -106,11 +156,15 @@ export function useBeastFeastState({
 
   // Helper to save state
   const saveState = useCallback(
-    async (newState: BeastFeastState) => {
+    async (updater: (prev: BeastFeastState) => BeastFeastState) => {
       setSaving(true);
       try {
+        let newState!: BeastFeastState;
+        setBeastFeast(prev => {
+          newState = updater(prev);
+          return newState;
+        });
         await updateBeastFeastState(campaignId, newState);
-        setBeastFeast(newState);
       } catch (error) {
         console.error('Error saving Beast Feast state:', error);
         throw error;
@@ -123,80 +177,73 @@ export function useBeastFeastState({
 
   const addIngredient = useCallback(
     async (ingredient: Ingredient) => {
-      const newState: BeastFeastState = {
-        ...beastFeast,
-        ingredients: [...beastFeast.ingredients, ingredient],
-      };
-      await saveState(newState);
+      await saveState(prev => ({
+        ...prev,
+        ingredients: [...prev.ingredients, ingredient],
+      }));
     },
-    [beastFeast, saveState]
+    [saveState]
   );
 
   const removeIngredient = useCallback(
     async (ingredientId: string) => {
-      const newState: BeastFeastState = {
-        ...beastFeast,
-        ingredients: beastFeast.ingredients.filter(i => i.id !== ingredientId),
-      };
-      await saveState(newState);
+      await saveState(prev => ({
+        ...prev,
+        ingredients: prev.ingredients.filter(i => i.id !== ingredientId),
+      }));
     },
-    [beastFeast, saveState]
+    [saveState]
   );
 
   const addRecipe = useCallback(
     async (recipe: BeastFeastRecipe) => {
-      const newState: BeastFeastState = {
-        ...beastFeast,
-        recipes: [...beastFeast.recipes, recipe],
-      };
-      await saveState(newState);
+      await saveState(prev => ({
+        ...prev,
+        recipes: [...prev.recipes, recipe],
+      }));
     },
-    [beastFeast, saveState]
+    [saveState]
   );
 
   const updateRecipe = useCallback(
     async (recipe: BeastFeastRecipe) => {
-      const newState: BeastFeastState = {
-        ...beastFeast,
-        recipes: beastFeast.recipes.map(r => (r.id === recipe.id ? recipe : r)),
-      };
-      await saveState(newState);
+      await saveState(prev => ({
+        ...prev,
+        recipes: prev.recipes.map(r => (r.id === recipe.id ? recipe : r)),
+      }));
     },
-    [beastFeast, saveState]
+    [saveState]
   );
 
   const addMeal = useCallback(
     async (meal: Meal) => {
-      const newState: BeastFeastState = {
-        ...beastFeast,
-        meals: [...beastFeast.meals, meal],
-        totalMealsPrepared: beastFeast.totalMealsPrepared + 1,
-      };
-      await saveState(newState);
+      await saveState(prev => ({
+        ...prev,
+        meals: [...prev.meals, meal],
+        totalMealsPrepared: prev.totalMealsPrepared + 1,
+      }));
     },
-    [beastFeast, saveState]
+    [saveState]
   );
 
   const setIngredients = useCallback(
     async (ingredients: Ingredient[]) => {
-      const newState: BeastFeastState = {
-        ...beastFeast,
+      await saveState(prev => ({
+        ...prev,
         ingredients,
-      };
-      await saveState(newState);
+      }));
     },
-    [beastFeast, saveState]
+    [saveState]
   );
 
   const updateNotes = useCallback(
     async (notes: string) => {
-      const newState: BeastFeastState = {
-        ...beastFeast,
+      await saveState(prev => ({
+        ...prev,
         notes,
-      };
-      await saveState(newState);
+      }));
     },
-    [beastFeast, saveState]
+    [saveState]
   );
 
   // Character cooking stats functions
@@ -211,82 +258,66 @@ export function useBeastFeastState({
 
   const updateCharacterCookingStats = useCallback(
     async (stats: CharacterCookingState) => {
-      const existingStats = beastFeast.characterCookingStats ?? [];
-      const existingIndex = existingStats.findIndex(
-        s => s.characterId === stats.characterId
-      );
-
-      let newCharacterStats: CharacterCookingState[];
-      if (existingIndex >= 0) {
-        newCharacterStats = existingStats.map((s, i) =>
-          i === existingIndex ? stats : s
-        );
-      } else {
-        newCharacterStats = [...existingStats, stats];
-      }
-
-      const newState: BeastFeastState = {
-        ...beastFeast,
-        characterCookingStats: newCharacterStats,
-      };
-      await saveState(newState);
+      await saveState(prev => ({
+        ...prev,
+        characterCookingStats: upsertCharacterStats(
+          prev.characterCookingStats ?? [],
+          stats
+        ),
+      }));
     },
-    [beastFeast, saveState]
+    [saveState]
   );
 
   const incrementMealsContributed = useCallback(
     async (characterId: string, characterName?: string) => {
-      const existingStats = beastFeast.characterCookingStats ?? [];
-      const existing = existingStats.find(s => s.characterId === characterId);
-
-      if (existing) {
-        await updateCharacterCookingStats({
-          ...existing,
-          mealsContributed: existing.mealsContributed + 1,
-        });
-      } else {
-        // Create new stats for this character
-        const newStats: CharacterCookingState = {
-          characterId,
-          maxIngredients: 6, // Default based on typical trait value
-          currentIngredients: [],
-          mealsContributed: 1,
-          recipesContributed: [],
-          notes: characterName ? `Stats for ${characterName}` : '',
+      await saveState(prev => {
+        const existingStats = prev.characterCookingStats ?? [];
+        const existing = findCharacterStats(existingStats, characterId);
+        const updated = existing
+          ? { ...existing, mealsContributed: existing.mealsContributed + 1 }
+          : createDefaultCharacterCookingStats(
+              characterId,
+              { mealsContributed: 1 },
+              characterName
+            );
+        return {
+          ...prev,
+          characterCookingStats: upsertCharacterStats(existingStats, updated),
         };
-        await updateCharacterCookingStats(newStats);
-      }
+      });
     },
-    [beastFeast.characterCookingStats, updateCharacterCookingStats]
+    [saveState]
   );
 
   const addRecipeContribution = useCallback(
     async (characterId: string, recipeId: string, characterName?: string) => {
-      const existingStats = beastFeast.characterCookingStats ?? [];
-      const existing = existingStats.find(s => s.characterId === characterId);
+      await saveState(prev => {
+        const existingStats = prev.characterCookingStats ?? [];
+        const existing = findCharacterStats(existingStats, characterId);
 
-      if (existing) {
-        // Only add if not already contributed
-        if (!existing.recipesContributed.includes(recipeId)) {
-          await updateCharacterCookingStats({
-            ...existing,
-            recipesContributed: [...existing.recipesContributed, recipeId],
-          });
+        if (existing?.recipesContributed.includes(recipeId)) {
+          return prev; // Already contributed, no change
         }
-      } else {
-        // Create new stats for this character
-        const newStats: CharacterCookingState = {
-          characterId,
-          maxIngredients: 6,
-          currentIngredients: [],
-          mealsContributed: 0,
-          recipesContributed: [recipeId],
-          notes: characterName ? `Stats for ${characterName}` : '',
+
+        const updated = existing
+          ? {
+              ...existing,
+              recipesContributed: [...existing.recipesContributed, recipeId],
+            }
+          : createDefaultCharacterCookingStats(
+              characterId,
+              { recipesContributed: [recipeId] },
+              characterName
+            );
+
+        return {
+          ...prev,
+          characterCookingStats: upsertCharacterStats(existingStats, updated),
         };
-        await updateCharacterCookingStats(newStats);
-      }
+      });
     },
-    [beastFeast.characterCookingStats, updateCharacterCookingStats]
+    [saveState]
   );
 
   return {

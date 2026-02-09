@@ -126,6 +126,73 @@ function ClearingAllocationContent({
   );
 }
 
+/** Discriminated phase for modal state */
+type FooterPhase = 'selecting' | 'confirming' | 'allocating' | 'result';
+
+interface DeathMoveFooterProps {
+  phase: FooterPhase;
+  selectedMove: DeathMoveType | null;
+  survived?: boolean;
+  onClose: () => void;
+  onConfirmSelection: () => void;
+  onConfirmAllocation: () => void;
+  onGoBack: () => void;
+  onConfirmBlaze: () => void;
+}
+
+/** Footer actions for each modal phase */
+function DeathMoveFooter({
+  phase,
+  selectedMove,
+  survived,
+  onClose,
+  onConfirmSelection,
+  onConfirmAllocation,
+  onGoBack,
+  onConfirmBlaze,
+}: DeathMoveFooterProps) {
+  switch (phase) {
+    case 'selecting':
+      return (
+        <>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            onClick={onConfirmSelection}
+            disabled={!selectedMove}
+            variant="destructive"
+          >
+            Make Death Move
+          </Button>
+        </>
+      );
+    case 'confirming':
+      return (
+        <>
+          <Button variant="outline" onClick={onGoBack}>
+            Go Back
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={onConfirmBlaze}
+            className="gap-1.5"
+          >
+            <Flame className="size-4" /> Embrace Death
+          </Button>
+        </>
+      );
+    case 'allocating':
+      return <Button onClick={onConfirmAllocation}>Confirm Allocation</Button>;
+    case 'result':
+      return (
+        <Button onClick={onClose}>
+          {survived ? 'Continue' : 'Acknowledge'}
+        </Button>
+      );
+  }
+}
+
 export function DeathMoveModal({
   isOpen,
   onClose,
@@ -179,12 +246,30 @@ export function DeathMoveModal({
     else handleExecute();
   };
 
-  // Determine if we're in allocation phase
+  const handleGoBack = () => setIsConfirming(false);
+
+  const handleConfirmBlaze = () => {
+    setIsConfirming(false);
+    handleExecute();
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    if (!open) handleClose();
+  };
+
+  // Determine modal phase from state
   const needsAllocation =
     result?.needsAllocation && result.clearingValue && !allocationConfirmed;
+  const phase: FooterPhase = result
+    ? needsAllocation
+      ? 'allocating'
+      : 'result'
+    : isConfirming
+      ? 'confirming'
+      : 'selecting';
 
   return (
-    <Dialog open={isOpen} onOpenChange={open => !open && handleClose()}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="w-[98vw] max-w-2xl sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="text-destructive flex items-center gap-2">
@@ -221,47 +306,16 @@ export function DeathMoveModal({
         </div>
 
         <DialogFooter>
-          {!result && !isConfirming && (
-            <>
-              <Button variant="outline" onClick={handleClose}>
-                Cancel
-              </Button>
-              <Button
-                onClick={handleConfirmSelection}
-                disabled={!selectedMove}
-                variant="destructive"
-              >
-                Make Death Move
-              </Button>
-            </>
-          )}
-          {isConfirming && (
-            <>
-              <Button variant="outline" onClick={() => setIsConfirming(false)}>
-                Go Back
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  setIsConfirming(false);
-                  handleExecute();
-                }}
-                className="gap-1.5"
-              >
-                <Flame className="size-4" /> Embrace Death
-              </Button>
-            </>
-          )}
-          {result && needsAllocation && (
-            <Button onClick={handleConfirmAllocation}>
-              Confirm Allocation
-            </Button>
-          )}
-          {result && !needsAllocation && (
-            <Button onClick={handleClose}>
-              {result.survived ? 'Continue' : 'Acknowledge'}
-            </Button>
-          )}
+          <DeathMoveFooter
+            phase={phase}
+            selectedMove={selectedMove}
+            survived={result?.survived}
+            onClose={handleClose}
+            onConfirmSelection={handleConfirmSelection}
+            onConfirmAllocation={handleConfirmAllocation}
+            onGoBack={handleGoBack}
+            onConfirmBlaze={handleConfirmBlaze}
+          />
         </DialogFooter>
       </DialogContent>
     </Dialog>

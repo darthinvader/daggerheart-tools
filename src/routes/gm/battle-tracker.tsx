@@ -4,10 +4,10 @@ import {
   useSearch,
 } from '@tanstack/react-router';
 import { useCallback } from 'react';
-import { toast } from 'sonner';
 import { z } from 'zod';
 import { DetailSidebar } from '@/components/battle-tracker/detail-sidebar';
 import { GMResourcesBar } from '@/components/battle-tracker/gm-resources-bar';
+import { useSpendFear } from '@/components/battle-tracker/use-spend-fear';
 import { RouteErrorFallback } from '@/components/ui/route-error-fallback';
 import { useUndoShortcuts } from '@/lib/undo';
 
@@ -80,27 +80,32 @@ function BattleTrackerPage() {
   const handlePauseBattle = () => setBattleStatus('paused');
   const handleEndBattle = () => setBattleStatus('completed');
 
-  const handleSpendFear = useCallback(
-    (amount: number, featureName: string) => {
-      const previousFear = rosterState.fearPool;
-      if (rosterActions.spendFear(amount)) {
-        toast.success(`Spent ${amount} Fear — ${featureName}`, {
-          description: `${previousFear - amount} Fear remaining`,
-          action: {
-            label: 'Undo',
-            onClick: () => rosterActions.setFearPool(previousFear),
-          },
-          duration: 5000,
-        });
-      } else {
-        toast.warning(
-          `Not enough Fear (need ${amount}, have ${rosterState.fearPool})`,
-          { description: featureName }
-        );
-      }
-    },
-    [rosterState.fearPool, rosterActions]
+  const handleSave = useCallback(
+    () => saveBattleMutation.mutate(),
+    [saveBattleMutation]
   );
+  const handleOpenLinkDialog = useCallback(
+    () => setIsLinkDialogOpen(true),
+    [setIsLinkDialogOpen]
+  );
+  const handleOpenAddCharacter = useCallback(
+    () => dialogActions.setIsAddCharacterOpen(true),
+    [dialogActions]
+  );
+  const handleOpenAddAdversary = useCallback(
+    () => dialogActions.setIsAddAdversaryOpen(true),
+    [dialogActions]
+  );
+  const handleOpenFightBuilder = useCallback(
+    () => setIsFightBuilderOpen(true),
+    [setIsFightBuilderOpen]
+  );
+  const handleOpenAddEnvironment = useCallback(
+    () => dialogActions.setIsAddEnvironmentOpen(true),
+    [dialogActions]
+  );
+
+  const handleSpendFear = useSpendFear(rosterState, rosterActions);
 
   return (
     <div className="container mx-auto px-4 py-4 sm:py-8">
@@ -116,11 +121,11 @@ function BattleTrackerPage() {
         onPause={handlePauseBattle}
         onEnd={handleEndBattle}
         onNewBattle={handleNewBattle}
-        onSave={() => saveBattleMutation.mutate()}
-        onLinkClick={() => setIsLinkDialogOpen(true)}
-        onAddCharacterClick={() => dialogActions.setIsAddCharacterOpen(true)}
-        onAddAdversaryClick={() => dialogActions.setIsAddAdversaryOpen(true)}
-        onFightBuilderClick={() => setIsFightBuilderOpen(true)}
+        onSave={handleSave}
+        onLinkClick={handleOpenLinkDialog}
+        onAddCharacterClick={handleOpenAddCharacter}
+        onAddAdversaryClick={handleOpenAddAdversary}
+        onFightBuilderClick={handleOpenFightBuilder}
       />
 
       <GMResourcesBar
@@ -135,7 +140,7 @@ function BattleTrackerPage() {
         undoActions={undoActions}
         onFearChange={rosterActions.setFearPool}
         onUseMassiveThresholdChange={rosterActions.setUseMassiveThreshold}
-        onAddEnvironment={() => dialogActions.setIsAddEnvironmentOpen(true)}
+        onAddEnvironment={handleOpenAddEnvironment}
         onSelectEnvironment={rosterActions.handleSelect}
         onRemoveEnvironment={rosterActions.handleRemove}
         onSpotlightEnvironment={rosterActions.handleSpotlight}

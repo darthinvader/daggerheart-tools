@@ -1,3 +1,5 @@
+import { useCallback } from 'react';
+
 import { CustomEquipmentSection } from './custom-equipment-section';
 import type { EquipmentState } from './equipment-editor';
 import type { EquipmentFilter } from './equipment-filter-bar';
@@ -21,65 +23,69 @@ export function EquipmentEditorSections({
   updateState,
   campaignId,
 }: EquipmentEditorSectionsProps) {
-  const showPrimary = filter === 'all' || filter === 'primary';
-  const showSecondary = filter === 'all' || filter === 'secondary';
-  const showArmor = filter === 'all' || filter === 'armor';
-  const showWheelchair = filter === 'all' || filter === 'wheelchair';
-  const showCustom = filter === 'all' || filter === 'custom';
+  const shouldShow = (category: EquipmentFilter) =>
+    filter === 'all' || filter === category;
+
+  const handleUpdate = useCallback(
+    <K extends keyof EquipmentState>(key: K) =>
+      (value: EquipmentState[K]) =>
+        updateState({ [key]: value } as Partial<EquipmentState>),
+    [updateState]
+  );
 
   return (
     <>
-      {showPrimary && (
+      {shouldShow('primary') && (
         <PrimaryWeaponSection
           mode={state.primaryWeaponMode}
-          onModeChange={mode => updateState({ primaryWeaponMode: mode })}
+          onModeChange={handleUpdate('primaryWeaponMode')}
           weapon={state.primaryWeapon}
-          onWeaponChange={weapon => updateState({ primaryWeapon: weapon })}
+          onWeaponChange={handleUpdate('primaryWeapon')}
           homebrewWeapon={state.homebrewPrimaryWeapon}
-          onHomebrewChange={v => updateState({ homebrewPrimaryWeapon: v })}
+          onHomebrewChange={handleUpdate('homebrewPrimaryWeapon')}
           campaignId={campaignId}
         />
       )}
 
-      {showSecondary && (
+      {shouldShow('secondary') && (
         <SecondaryWeaponSection
           mode={state.secondaryWeaponMode}
-          onModeChange={mode => updateState({ secondaryWeaponMode: mode })}
+          onModeChange={handleUpdate('secondaryWeaponMode')}
           weapon={state.secondaryWeapon}
-          onWeaponChange={weapon => updateState({ secondaryWeapon: weapon })}
+          onWeaponChange={handleUpdate('secondaryWeapon')}
           homebrewWeapon={state.homebrewSecondaryWeapon}
-          onHomebrewChange={v => updateState({ homebrewSecondaryWeapon: v })}
+          onHomebrewChange={handleUpdate('homebrewSecondaryWeapon')}
           campaignId={campaignId}
         />
       )}
 
-      {showArmor && (
+      {shouldShow('armor') && (
         <ArmorSection
           mode={state.armorMode}
-          onModeChange={mode => updateState({ armorMode: mode })}
+          onModeChange={handleUpdate('armorMode')}
           armor={state.armor}
-          onArmorChange={armor => updateState({ armor })}
+          onArmorChange={handleUpdate('armor')}
           homebrewArmor={state.homebrewArmor}
-          onHomebrewChange={v => updateState({ homebrewArmor: v })}
+          onHomebrewChange={handleUpdate('homebrewArmor')}
           campaignId={campaignId}
         />
       )}
 
-      {showWheelchair && (
+      {shouldShow('wheelchair') && (
         <WheelchairSection
           enabled={state.useCombatWheelchair}
-          onEnabledChange={v => updateState({ useCombatWheelchair: v })}
+          onEnabledChange={handleUpdate('useCombatWheelchair')}
           mode={state.wheelchairMode}
-          onModeChange={mode => updateState({ wheelchairMode: mode })}
+          onModeChange={handleUpdate('wheelchairMode')}
           wheelchair={state.combatWheelchair}
-          onWheelchairChange={chair => updateState({ combatWheelchair: chair })}
+          onWheelchairChange={handleUpdate('combatWheelchair')}
           homebrewWheelchair={state.homebrewWheelchair}
-          onHomebrewChange={v => updateState({ homebrewWheelchair: v })}
+          onHomebrewChange={handleUpdate('homebrewWheelchair')}
           campaignId={campaignId}
         />
       )}
 
-      {showCustom && (
+      {shouldShow('custom') && (
         <CustomEquipmentSection customSlots={state.customSlots ?? []} />
       )}
     </>

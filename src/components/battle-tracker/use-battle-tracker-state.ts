@@ -223,79 +223,94 @@ export function useBattleRosterState() {
       environments
     );
   }, [selection, characters, adversaries, environments]);
-  const handleSelect = (item: TrackerItem) => {
+  const handleSelect = useCallback((item: TrackerItem) => {
     setSelection({ kind: item.kind, id: item.id });
-  };
-  const handleSpotlight = (item: TrackerItem) => {
-    const next = { kind: item.kind, id: item.id } as TrackerSelection;
-    const entityName = getEntityName(
-      next,
-      characters,
-      adversaries,
-      environments
-    );
-    setSpotlight(next);
-    setSpotlightHistory(prev => updateSpotlightHistory(prev, next));
-    setSpotlightHistoryTimeline(prev =>
-      updateSpotlightHistoryTimeline(prev, next, entityName, currentRound)
-    );
-    bumpRosterVersion();
-  };
-  const handleRemove = (item: TrackerItem) => {
-    removeRosterItem(
-      item,
-      selection,
-      spotlight,
-      setCharacters,
-      setAdversaries,
-      setEnvironments,
-      setSelection,
-      setSpotlight,
-      setSpotlightHistory
-    );
-    bumpRosterVersion();
-  };
-  const addCharacter = (draft: NewCharacterDraft) => {
-    const entry = createCharacterEntry(draft);
-    if (!entry) return null;
-    addEntry(entry, setCharacters, setSelection);
-    bumpRosterVersion();
-    return entry.id;
-  };
-  const addAdversary = (adversary: Adversary) => {
-    const entry = createAdversaryEntry(adversary);
-    addEntry(entry, setAdversaries, setSelection);
-    bumpRosterVersion();
-  };
-  const addEnvironment = (environment: Environment) => {
-    const entry = createEnvironmentEntry(environment);
-    addEntry(entry, setEnvironments, setSelection);
-    bumpRosterVersion();
-  };
-  const updateCharacter = (
-    id: string,
-    updater: (prev: CharacterTracker) => CharacterTracker
-  ) => {
-    updateEntryById(id, updater, setCharacters);
-    bumpRosterVersion();
-  };
-  const updateAdversary = (
-    id: string,
-    updater: (prev: AdversaryTracker) => AdversaryTracker
-  ) => {
-    updateEntryById(id, updater, setAdversaries);
-    bumpRosterVersion();
-  };
-  const updateEnvironment = (
-    id: string,
-    updater: (prev: EnvironmentTracker) => EnvironmentTracker
-  ) => {
-    updateEntryById(id, updater, setEnvironments);
-    bumpRosterVersion();
-  };
+  }, []);
+  const handleSpotlight = useCallback(
+    (item: TrackerItem) => {
+      const next = { kind: item.kind, id: item.id } as TrackerSelection;
+      const entityName = getEntityName(
+        next,
+        characters,
+        adversaries,
+        environments
+      );
+      setSpotlight(next);
+      setSpotlightHistory(prev => updateSpotlightHistory(prev, next));
+      setSpotlightHistoryTimeline(prev =>
+        updateSpotlightHistoryTimeline(prev, next, entityName, currentRound)
+      );
+      bumpRosterVersion();
+    },
+    [characters, adversaries, environments, currentRound, bumpRosterVersion]
+  );
+  const handleRemove = useCallback(
+    (item: TrackerItem) => {
+      removeRosterItem(
+        item,
+        selection,
+        spotlight,
+        setCharacters,
+        setAdversaries,
+        setEnvironments,
+        setSelection,
+        setSpotlight,
+        setSpotlightHistory
+      );
+      bumpRosterVersion();
+    },
+    [selection, spotlight, bumpRosterVersion]
+  );
+  const addCharacter = useCallback(
+    (draft: NewCharacterDraft) => {
+      const entry = createCharacterEntry(draft);
+      if (!entry) return null;
+      addEntry(entry, setCharacters, setSelection);
+      bumpRosterVersion();
+      return entry.id;
+    },
+    [bumpRosterVersion]
+  );
+  const addAdversary = useCallback(
+    (adversary: Adversary) => {
+      const entry = createAdversaryEntry(adversary);
+      addEntry(entry, setAdversaries, setSelection);
+      bumpRosterVersion();
+    },
+    [bumpRosterVersion]
+  );
+  const addEnvironment = useCallback(
+    (environment: Environment) => {
+      const entry = createEnvironmentEntry(environment);
+      addEntry(entry, setEnvironments, setSelection);
+      bumpRosterVersion();
+    },
+    [bumpRosterVersion]
+  );
+  const updateCharacter = useCallback(
+    (id: string, updater: (prev: CharacterTracker) => CharacterTracker) => {
+      updateEntryById(id, updater, setCharacters);
+      bumpRosterVersion();
+    },
+    [bumpRosterVersion]
+  );
+  const updateAdversary = useCallback(
+    (id: string, updater: (prev: AdversaryTracker) => AdversaryTracker) => {
+      updateEntryById(id, updater, setAdversaries);
+      bumpRosterVersion();
+    },
+    [bumpRosterVersion]
+  );
+  const updateEnvironment = useCallback(
+    (id: string, updater: (prev: EnvironmentTracker) => EnvironmentTracker) => {
+      updateEntryById(id, updater, setEnvironments);
+      bumpRosterVersion();
+    },
+    [bumpRosterVersion]
+  );
 
-  return {
-    rosterState: {
+  const rosterState = useMemo(
+    () => ({
       characters,
       adversaries,
       environments,
@@ -312,8 +327,29 @@ export function useBattleRosterState() {
       activeRosterTab,
       activeDetailTab,
       selectedItem,
-    },
-    rosterActions: {
+    }),
+    [
+      characters,
+      adversaries,
+      environments,
+      selection,
+      spotlight,
+      spotlightHistory,
+      spotlightHistoryTimeline,
+      rollHistory,
+      currentRound,
+      fearPool,
+      maxFear,
+      useMassiveThreshold,
+      rosterVersion,
+      activeRosterTab,
+      activeDetailTab,
+      selectedItem,
+    ]
+  );
+
+  const rosterActions = useMemo(
+    () => ({
       setActiveRosterTab,
       setActiveDetailTab,
       setSpotlight: (value: TrackerSelection | null) => {
@@ -408,7 +444,23 @@ export function useBattleRosterState() {
         setSelection(value);
         bumpRosterVersion();
       },
-    },
+    }),
+    [
+      handleSelect,
+      handleSpotlight,
+      handleRemove,
+      addCharacter,
+      addAdversary,
+      addEnvironment,
+      updateCharacter,
+      updateAdversary,
+      updateEnvironment,
+    ]
+  );
+
+  return {
+    rosterState,
+    rosterActions,
   };
 }
 

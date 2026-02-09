@@ -176,34 +176,30 @@ export function useCalendarState({
     [updateActive]
   );
 
-  const addEvent = useCallback(
-    (event: Omit<CalendarEvent, 'id'>) => {
-      updateActive(cal => {
-        if (cal.events.length >= MAX_EVENTS_PER_CALENDAR) return cal;
-        const newEvent: CalendarEvent = { ...event, id: generateId() };
-        return { ...cal, events: [...cal.events, newEvent] };
-      });
-    },
-    [updateActive]
-  );
-
-  const updateEvent = useCallback(
-    (event: CalendarEvent) => {
-      updateActive(cal => ({
-        ...cal,
-        events: cal.events.map(e => (e.id === event.id ? event : e)),
-      }));
-    },
-    [updateActive]
-  );
-
-  const deleteEvent = useCallback(
-    (eventId: string) => {
-      updateActive(cal => ({
-        ...cal,
-        events: cal.events.filter(e => e.id !== eventId),
-      }));
-    },
+  const eventActions = useMemo(
+    () => ({
+      addEvent: (event: Omit<CalendarEvent, 'id'>) => {
+        updateActive(cal => {
+          if (cal.events.length >= MAX_EVENTS_PER_CALENDAR) return cal;
+          return {
+            ...cal,
+            events: [...cal.events, { ...event, id: generateId() }],
+          };
+        });
+      },
+      updateEvent: (event: CalendarEvent) => {
+        updateActive(cal => ({
+          ...cal,
+          events: cal.events.map(e => (e.id === event.id ? event : e)),
+        }));
+      },
+      deleteEvent: (eventId: string) => {
+        updateActive(cal => ({
+          ...cal,
+          events: cal.events.filter(e => e.id !== eventId),
+        }));
+      },
+    }),
     [updateActive]
   );
 
@@ -222,77 +218,59 @@ export function useCalendarState({
   // New multi-calendar mutations
   // ---------------------------------------------------------------------------
 
-  const createCalendar = useCallback(
-    (calendar: Calendar) => {
-      updateEnvelope(env => addCalendarToEnvelope(env, calendar));
-    },
+  const multiCalendarActions = useMemo(
+    () => ({
+      createCalendar: (calendar: Calendar) => {
+        updateEnvelope(env => addCalendarToEnvelope(env, calendar));
+      },
+      removeCalendar: (calendarId: string) => {
+        updateEnvelope(env => deleteCalendarFromEnvelope(env, calendarId));
+      },
+      switchCalendar: (calendarId: string) => {
+        updateEnvelope(env => setActiveCalendarInEnvelope(env, calendarId));
+      },
+      renameCalendar: (calendarId: string, newName: string) => {
+        updateEnvelope(env =>
+          updateCalendarInEnvelope(env, calendarId, cal => ({
+            ...cal,
+            name: newName,
+          }))
+        );
+      },
+      setCalendarColor: (calendarId: string, color: string) => {
+        updateEnvelope(env =>
+          updateCalendarInEnvelope(env, calendarId, cal => ({ ...cal, color }))
+        );
+      },
+    }),
     [updateEnvelope]
   );
 
-  const removeCalendar = useCallback(
-    (calendarId: string) => {
-      updateEnvelope(env => deleteCalendarFromEnvelope(env, calendarId));
-    },
-    [updateEnvelope]
-  );
-
-  const switchCalendar = useCallback(
-    (calendarId: string) => {
-      updateEnvelope(env => setActiveCalendarInEnvelope(env, calendarId));
-    },
-    [updateEnvelope]
-  );
-
-  const renameCalendar = useCallback(
-    (calendarId: string, newName: string) => {
-      updateEnvelope(env =>
-        updateCalendarInEnvelope(env, calendarId, cal => ({
+  const categoryActions = useMemo(
+    () => ({
+      addCustomCategory: (category: CustomCategory) => {
+        updateActive(cal => ({
           ...cal,
-          name: newName,
-        }))
-      );
-    },
-    [updateEnvelope]
-  );
-
-  const setCalendarColor = useCallback(
-    (calendarId: string, color: string) => {
-      updateEnvelope(env =>
-        updateCalendarInEnvelope(env, calendarId, cal => ({ ...cal, color }))
-      );
-    },
-    [updateEnvelope]
-  );
-
-  const addCustomCategory = useCallback(
-    (category: CustomCategory) => {
-      updateActive(cal => ({
-        ...cal,
-        customCategories: [...cal.customCategories, category],
-      }));
-    },
-    [updateActive]
-  );
-
-  const updateCustomCategory = useCallback(
-    (category: CustomCategory) => {
-      updateActive(cal => ({
-        ...cal,
-        customCategories: cal.customCategories.map(c =>
-          c.id === category.id ? category : c
-        ),
-      }));
-    },
-    [updateActive]
-  );
-
-  const deleteCustomCategory = useCallback(
-    (categoryId: string) => {
-      updateActive(cal => ({
-        ...cal,
-        customCategories: cal.customCategories.filter(c => c.id !== categoryId),
-      }));
-    },
+          customCategories: [...cal.customCategories, category],
+        }));
+      },
+      updateCustomCategory: (category: CustomCategory) => {
+        updateActive(cal => ({
+          ...cal,
+          customCategories: cal.customCategories.map(c =>
+            c.id === category.id ? category : c
+          ),
+        }));
+      },
+      deleteCustomCategory: (categoryId: string) => {
+        updateActive(cal => ({
+          ...cal,
+          customCategories: cal.customCategories.filter(
+            c => c.id !== categoryId
+          ),
+        }));
+      },
+    }),
     [updateActive]
   );
 
@@ -308,18 +286,10 @@ export function useCalendarState({
     currentDayEvents,
     eventsByDay,
     advanceCampaignDay,
-    addEvent,
-    updateEvent,
-    deleteEvent,
+    ...eventActions,
     setCalendar,
-    createCalendar,
-    removeCalendar,
-    switchCalendar,
-    renameCalendar,
-    setCalendarColor,
-    addCustomCategory,
-    updateCustomCategory,
-    deleteCustomCategory,
+    ...multiCalendarActions,
+    ...categoryActions,
   };
 }
 

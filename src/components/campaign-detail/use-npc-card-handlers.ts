@@ -14,13 +14,14 @@ import type {
   CampaignLocation,
   CampaignNPC,
   CampaignOrganization,
-  NPCDisposition,
   NPCFeature,
-  NPCRole,
 } from '@/lib/schemas/campaign';
 
-import { useEntityIdListHandlers } from './entity-card-utils';
-import { usePickerHandlerWithModal } from './entity-card-utils';
+import {
+  useEntityIdListHandlers,
+  usePickerHandlerWithModal,
+  useSelectChangeHandler,
+} from './entity-card-utils';
 
 interface UseNPCCardHandlersProps {
   localNPC: CampaignNPC;
@@ -41,6 +42,147 @@ type NPCModalKey =
   | 'allyOrgPicker'
   | 'enemyOrgPicker';
 
+// ===================================================================================
+// Pure helper: Generate unique ID for new features (no deps, no hook needed)
+// ===================================================================================
+
+function generateFeatureId(): string {
+  return `feature-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
+// ===================================================================================
+// Pure helper: Create a default new feature
+// ===================================================================================
+
+function createDefaultFeature(): NPCFeature {
+  return {
+    id: generateFeatureId(),
+    name: 'New Feature',
+    trigger: '',
+    effect: '',
+    notes: '',
+    isActive: true,
+    currentUses: 0,
+  };
+}
+
+// ===================================================================================
+// Extracted Hook: NPC Feature Handlers
+// ===================================================================================
+
+interface UseNPCFeatureHandlersOptions {
+  setLocalNPC: React.Dispatch<React.SetStateAction<CampaignNPC>>;
+  scheduleAutoSave: (entity: CampaignNPC) => void;
+}
+
+function useNPCFeatureHandlers({
+  setLocalNPC,
+  scheduleAutoSave,
+}: UseNPCFeatureHandlersOptions) {
+  // Shared helper: transform the features array and auto-save
+  const updateFeatures = useCallback(
+    (transformFn: (features: NPCFeature[]) => NPCFeature[]) => {
+      setLocalNPC(current => {
+        const updated = {
+          ...current,
+          features: transformFn(current.features ?? []),
+        };
+        scheduleAutoSave(updated);
+        return updated;
+      });
+    },
+    [setLocalNPC, scheduleAutoSave]
+  );
+
+  const handleAddFeature = useCallback(() => {
+    const newFeature = createDefaultFeature();
+    updateFeatures(features => [...features, newFeature]);
+  }, [updateFeatures]);
+
+  const handleUpdateFeature = useCallback(
+    (featureId: string, updates: Partial<NPCFeature>) => {
+      updateFeatures(features =>
+        features.map(f => (f.id === featureId ? { ...f, ...updates } : f))
+      );
+    },
+    [updateFeatures]
+  );
+
+  const handleDeleteFeature = useCallback(
+    (featureId: string) => {
+      updateFeatures(features => features.filter(f => f.id !== featureId));
+    },
+    [updateFeatures]
+  );
+
+  const handleToggleFeatureActive = useCallback(
+    (featureId: string) => {
+      updateFeatures(features =>
+        features.map(f =>
+          f.id === featureId ? { ...f, isActive: !f.isActive } : f
+        )
+      );
+    },
+    [updateFeatures]
+  );
+
+  const handleResetFeatureUses = useCallback(
+    (featureId: string) => {
+      updateFeatures(features =>
+        features.map(f => (f.id === featureId ? { ...f, currentUses: 0 } : f))
+      );
+    },
+    [updateFeatures]
+  );
+
+  return {
+    handleAddFeature,
+    handleUpdateFeature,
+    handleDeleteFeature,
+    handleToggleFeatureActive,
+    handleResetFeatureUses,
+  };
+}
+
+// ===================================================================================
+// Extracted Hook: NPC Name Lookups and Helpers
+// ===================================================================================
+
+interface UseNPCLookupsOptions {
+  localNPC: CampaignNPC;
+  allNPCs: CampaignNPC[];
+  locations: CampaignLocation[];
+  organizations: CampaignOrganization[];
+}
+
+function useNPCLookups({
+  localNPC,
+  allNPCs,
+  locations,
+  organizations,
+}: UseNPCLookupsOptions) {
+  const getLocationName = useCallback(
+    (id: string) => locations.find(l => l.id === id)?.name ?? 'Unknown',
+    [locations]
+  );
+
+  const getOrgName = useCallback(
+    (id: string) => organizations.find(o => o.id === id)?.name ?? 'Unknown',
+    [organizations]
+  );
+
+  const otherNPCs = useMemo(
+    () => allNPCs.filter(n => n.id !== localNPC.id),
+    [allNPCs, localNPC.id]
+  );
+
+  return { getLocationName, getOrgName, otherNPCs };
+}
+
+// ===================================================================================
+// Main Hook: useNPCCardHandlers
+// ===================================================================================
+
 export function useNPCCardHandlers({
   localNPC,
   setLocalNPC,
@@ -58,6 +200,15 @@ export function useNPCCardHandlers({
       scheduleAutoSave,
     }),
     [localNPC, setLocalNPC, scheduleAutoSave]
+  );
+
+  // Context for select change handlers
+  const selectContext = useMemo(
+    () => ({
+      setLocalEntity: setLocalNPC,
+      scheduleAutoSave,
+    }),
+    [setLocalNPC, scheduleAutoSave]
   );
 
   // ID list handlers
@@ -105,150 +256,36 @@ export function useNPCCardHandlers({
     'enemyOrgPicker' as const
   );
 
-  // Status change handler
-  const handleStatusChange = useCallback(
-    (value: CampaignNPC['status']) => {
-      setLocalNPC(current => {
-        const updated = { ...current, status: value };
-        scheduleAutoSave(updated);
-        return updated;
-      });
-    },
-    [setLocalNPC, scheduleAutoSave]
+  // Field change handlers - delegated to generic useSelectChangeHandler
+  const handleStatusChange = useSelectChangeHandler<CampaignNPC, 'status'>(
+    'status',
+    selectContext
   );
-
-  // Role change handler (party relationship)
-  const handleRoleChange = useCallback(
-    (value: NPCRole) => {
-      setLocalNPC(current => {
-        const updated = { ...current, role: value };
-        scheduleAutoSave(updated);
-        return updated;
-      });
-    },
-    [setLocalNPC, scheduleAutoSave]
+  const handleRoleChange = useSelectChangeHandler<CampaignNPC, 'role'>(
+    'role',
+    selectContext
   );
+  const handleDispositionChange = useSelectChangeHandler<
+    CampaignNPC,
+    'disposition'
+  >('disposition', selectContext);
 
-  // Disposition change handler (how NPC feels about the party)
-  const handleDispositionChange = useCallback(
-    (value: NPCDisposition) => {
-      setLocalNPC(current => {
-        const updated = { ...current, disposition: value };
-        scheduleAutoSave(updated);
-        return updated;
-      });
-    },
-    [setLocalNPC, scheduleAutoSave]
-  );
+  // Feature handlers - delegated to extracted hook
+  const {
+    handleAddFeature,
+    handleUpdateFeature,
+    handleDeleteFeature,
+    handleToggleFeatureActive,
+    handleResetFeatureUses,
+  } = useNPCFeatureHandlers({ setLocalNPC, scheduleAutoSave });
 
-  // ===================================================================================
-  // Feature Handlers - Trigger/Effect mechanics per Chapter 3
-  // ===================================================================================
-
-  // Generate unique ID for new features
-  const generateFeatureId = useCallback(() => {
-    return `feature-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-  }, []);
-
-  // Add a new feature
-  const handleAddFeature = useCallback(() => {
-    const newFeature: NPCFeature = {
-      id: generateFeatureId(),
-      name: 'New Feature',
-      trigger: '',
-      effect: '',
-      notes: '',
-      isActive: true,
-      currentUses: 0,
-    };
-    setLocalNPC(current => {
-      const updated = {
-        ...current,
-        features: [...(current.features ?? []), newFeature],
-      };
-      scheduleAutoSave(updated);
-      return updated;
-    });
-  }, [generateFeatureId, setLocalNPC, scheduleAutoSave]);
-
-  // Update a feature
-  const handleUpdateFeature = useCallback(
-    (featureId: string, updates: Partial<NPCFeature>) => {
-      setLocalNPC(current => {
-        const updatedFeatures = (current.features ?? []).map(feature =>
-          feature.id === featureId ? { ...feature, ...updates } : feature
-        );
-        const updated = { ...current, features: updatedFeatures };
-        scheduleAutoSave(updated);
-        return updated;
-      });
-    },
-    [setLocalNPC, scheduleAutoSave]
-  );
-
-  // Delete a feature
-  const handleDeleteFeature = useCallback(
-    (featureId: string) => {
-      setLocalNPC(current => {
-        const updatedFeatures = (current.features ?? []).filter(
-          feature => feature.id !== featureId
-        );
-        const updated = { ...current, features: updatedFeatures };
-        scheduleAutoSave(updated);
-        return updated;
-      });
-    },
-    [setLocalNPC, scheduleAutoSave]
-  );
-
-  // Toggle feature active state
-  const handleToggleFeatureActive = useCallback(
-    (featureId: string) => {
-      setLocalNPC(current => {
-        const updatedFeatures = (current.features ?? []).map(feature =>
-          feature.id === featureId
-            ? { ...feature, isActive: !feature.isActive }
-            : feature
-        );
-        const updated = { ...current, features: updatedFeatures };
-        scheduleAutoSave(updated);
-        return updated;
-      });
-    },
-    [setLocalNPC, scheduleAutoSave]
-  );
-
-  // Reset feature uses (after a rest)
-  const handleResetFeatureUses = useCallback(
-    (featureId: string) => {
-      setLocalNPC(current => {
-        const updatedFeatures = (current.features ?? []).map(feature =>
-          feature.id === featureId ? { ...feature, currentUses: 0 } : feature
-        );
-        const updated = { ...current, features: updatedFeatures };
-        scheduleAutoSave(updated);
-        return updated;
-      });
-    },
-    [setLocalNPC, scheduleAutoSave]
-  );
-
-  // Name lookup helpers
-  const getLocationName = useCallback(
-    (id: string) => locations.find(l => l.id === id)?.name ?? 'Unknown',
-    [locations]
-  );
-
-  const getOrgName = useCallback(
-    (id: string) => organizations.find(o => o.id === id)?.name ?? 'Unknown',
-    [organizations]
-  );
-
-  // Filter other NPCs
-  const otherNPCs = useMemo(
-    () => allNPCs.filter(n => n.id !== localNPC.id),
-    [allNPCs, localNPC.id]
-  );
+  // Name lookup helpers - delegated to extracted hook
+  const { getLocationName, getOrgName, otherNPCs } = useNPCLookups({
+    localNPC,
+    allNPCs,
+    locations,
+    organizations,
+  });
 
   return {
     // ID list handlers

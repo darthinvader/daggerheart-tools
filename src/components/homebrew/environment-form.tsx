@@ -67,6 +67,21 @@ function parseStringFeature(str: string): {
   return { name: str.trim(), type: 'Feature', description: '' };
 }
 
+/**
+ * Creates add/remove/update handlers for a string[] state.
+ */
+function createStringListHandlers(
+  setState: React.Dispatch<React.SetStateAction<string[]>>
+) {
+  return {
+    add: () => setState(prev => [...prev, '']),
+    remove: (index: number) =>
+      setState(prev => prev.filter((_, i) => i !== index)),
+    update: (index: number, value: string) =>
+      setState(prev => prev.map((item, i) => (i === index ? value : item))),
+  };
+}
+
 export function EnvironmentForm({
   initialData,
   onSubmit,
@@ -117,7 +132,7 @@ export function EnvironmentForm({
     [formData, features, impulses, adversaries, onSubmit]
   );
 
-  const addFeature = () => {
+  const addFeature = useCallback(() => {
     setFeatures(prev => [
       ...prev,
       {
@@ -127,29 +142,32 @@ export function EnvironmentForm({
         description: '',
       },
     ]);
-  };
+  }, []);
 
-  const removeFeature = (id: string) => {
+  const removeFeature = useCallback((id: string) => {
     setFeatures(prev => prev.filter(f => f.id !== id));
-  };
+  }, []);
 
-  const updateFeature = (id: string, updates: Partial<FeatureState>) => {
-    setFeatures(prev =>
-      prev.map(f => (f.id === id ? { ...f, ...updates } : f))
-    );
-  };
+  const updateFeature = useCallback(
+    (id: string, updates: Partial<FeatureState>) => {
+      setFeatures(prev =>
+        prev.map(f => (f.id === id ? { ...f, ...updates } : f))
+      );
+    },
+    []
+  );
 
-  const addImpulse = () => setImpulses(prev => [...prev, '']);
-  const removeImpulse = (index: number) =>
-    setImpulses(prev => prev.filter((_, i) => i !== index));
-  const updateImpulse = (index: number, value: string) =>
-    setImpulses(prev => prev.map((imp, i) => (i === index ? value : imp)));
+  const {
+    add: addImpulse,
+    remove: removeImpulse,
+    update: updateImpulse,
+  } = createStringListHandlers(setImpulses);
 
-  const addAdversary = () => setAdversaries(prev => [...prev, '']);
-  const removeAdversary = (index: number) =>
-    setAdversaries(prev => prev.filter((_, i) => i !== index));
-  const updateAdversary = (index: number, value: string) =>
-    setAdversaries(prev => prev.map((adv, i) => (i === index ? value : adv)));
+  const {
+    add: addAdversary,
+    remove: removeAdversary,
+    update: updateAdversary,
+  } = createStringListHandlers(setAdversaries);
 
   // Get style based on current type
   const typeStyle = TYPE_COLORS[formData.type] ?? TYPE_COLORS.Exploration;

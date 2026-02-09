@@ -5,6 +5,7 @@
  * Handles visibility, campaign linking, and forking functionality.
  */
 
+import { getAuthenticatedUser } from '@/lib/auth';
 import type {
   HomebrewCollection,
   HomebrewCollectionItem,
@@ -75,13 +76,7 @@ export interface CreateHomebrewContentInput {
 export async function createHomebrewContent(
   content: CreateHomebrewContentInput
 ): Promise<HomebrewContent> {
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-  if (authError || !user) {
-    throw new Error('Must be logged in to create homebrew content');
-  }
+  const user = await getAuthenticatedUser();
 
   const row: Partial<HomebrewContentRow> = {
     content_type: content.contentType,
@@ -214,12 +209,7 @@ export async function permanentlyDeleteHomebrewContent(
  * Permanently delete all soft-deleted homebrew content for the current user
  */
 export async function emptyRecycleBin(): Promise<boolean> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    throw new Error('User not authenticated');
-  }
+  const user = await getAuthenticatedUser();
 
   const { error } = await supabase
     .from('homebrew_content')
@@ -871,10 +861,7 @@ export async function listMyHomebrewStars(
 }
 
 export async function addHomebrewStar(homebrewId: string): Promise<void> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error('Must be logged in to star homebrew');
+  const user = await getAuthenticatedUser();
 
   const { error } = await supabase
     .from('homebrew_stars')
@@ -887,10 +874,7 @@ export async function addHomebrewStar(homebrewId: string): Promise<void> {
 }
 
 export async function removeHomebrewStar(homebrewId: string): Promise<void> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error('Must be logged in to unstar homebrew');
+  const user = await getAuthenticatedUser();
 
   const { error } = await supabase
     .from('homebrew_stars')
@@ -925,10 +909,7 @@ export async function createHomebrewCollection(
   name: string,
   description = ''
 ): Promise<HomebrewCollection> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error('Must be logged in to create a collection');
+  const user = await getAuthenticatedUser();
 
   const { data, error } = await supabase
     .from('homebrew_collections')
@@ -945,10 +926,7 @@ export async function createHomebrewCollection(
 }
 
 export async function getOrCreateQuicklist(): Promise<HomebrewCollection> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error('Must be logged in to access quicklist');
+  const user = await getAuthenticatedUser();
 
   const { data: existing, error: fetchError } = await supabase
     .from('homebrew_collections')
@@ -988,10 +966,7 @@ export async function addHomebrewToCollection(
   collectionId: string,
   homebrewId: string
 ): Promise<HomebrewCollectionItem> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error('Must be logged in to add to collection');
+  const user = await getAuthenticatedUser();
 
   const { data, error } = await supabase
     .from('homebrew_collection_items')
@@ -1065,10 +1040,7 @@ export async function addHomebrewComment(
   homebrewId: string,
   body: string
 ): Promise<HomebrewComment> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error('Must be logged in to comment');
+  const user = await getAuthenticatedUser();
 
   const { data, error } = await supabase
     .from('homebrew_comments')

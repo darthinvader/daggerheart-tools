@@ -23,7 +23,7 @@ import type { CartEntry } from '@/features/shop/use-shop-cart';
 import { useShopPricing } from '@/features/shop/use-shop-pricing';
 import type { ShopSettings } from '@/lib/schemas/campaign';
 import type { Gold } from '@/lib/schemas/character-state';
-import type { InventoryState } from '@/lib/schemas/equipment';
+import type { AnyItem, InventoryState } from '@/lib/schemas/equipment';
 
 import { CheckoutPanel } from './checkout-panel';
 
@@ -37,6 +37,100 @@ export interface ShopModalProps {
   pushUndo?: (label: string) => void;
   shopSettings?: ShopSettings;
   campaignName?: string;
+}
+
+function ShopDialogHeader({ campaignName }: { campaignName?: string }) {
+  return (
+    <DialogHeader className="border-b px-6 py-4">
+      <DialogTitle className="flex items-center gap-2">
+        Shop
+        {campaignName && (
+          <span className="text-muted-foreground text-sm font-normal">
+            — {campaignName}
+          </span>
+        )}
+      </DialogTitle>
+      <DialogDescription>
+        Browse items and add them to your cart. Gold will be deducted on
+        purchase.
+      </DialogDescription>
+    </DialogHeader>
+  );
+}
+
+interface ShopBrowsePanelProps {
+  filterState: ReturnType<typeof usePickerFiltersState>;
+  filteredItems: AnyItem[];
+  tempSelected: Map<string, { item: AnyItem; quantity: number }>;
+  toggleItem: (item: AnyItem) => void;
+  handleQuantityChange: (
+    item: AnyItem,
+    delta: number,
+    maxAllowed?: number
+  ) => void;
+  inventoryItems: InventoryState['items'];
+  unlimitedQuantity?: boolean;
+  priceMap: Map<string, string>;
+}
+
+function ShopBrowsePanel({
+  filterState,
+  filteredItems,
+  tempSelected,
+  toggleItem,
+  handleQuantityChange,
+  inventoryItems,
+  unlimitedQuantity,
+  priceMap,
+}: ShopBrowsePanelProps) {
+  const activeFilterCount =
+    filterState.selectedCategories.length +
+    filterState.selectedRarities.length +
+    filterState.selectedTiers.length;
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col border-r">
+      <div className="shrink-0 border-b px-4 py-3">
+        <ItemSearchHeader
+          search={filterState.search}
+          onSearchChange={filterState.setSearch}
+          showFilters={filterState.showFilters}
+          onToggleFilters={() =>
+            filterState.setShowFilters(!filterState.showFilters)
+          }
+          activeFilterCount={activeFilterCount}
+          onClearFilters={filterState.clearFilters}
+        />
+        {filterState.showFilters && (
+          <div className="mt-3">
+            <ItemFilters
+              selectedCategories={filterState.selectedCategories}
+              selectedRarities={filterState.selectedRarities}
+              selectedTiers={filterState.selectedTiers}
+              onToggleCategory={filterState.toggleCategory}
+              onToggleRarity={filterState.toggleRarity}
+              onToggleTier={filterState.toggleTier}
+            />
+          </div>
+        )}
+      </div>
+
+      <ScrollArea className="min-h-0 flex-1 px-4 py-2">
+        <div className="text-muted-foreground mb-2 text-sm">
+          {filteredItems.length} items found
+        </div>
+        <ItemPickerGrid
+          items={filteredItems}
+          selectedItems={tempSelected}
+          onToggleItem={toggleItem}
+          onQuantityChange={handleQuantityChange}
+          inventoryItems={inventoryItems}
+          unlimitedQuantity={unlimitedQuantity}
+          priceMap={priceMap}
+        />
+      </ScrollArea>
+    </div>
+  );
 }
 
 export function ShopModal({
@@ -161,74 +255,23 @@ export function ShopModal({
     [tempSelected, toggleItem]
   );
 
-  const activeFilterCount =
-    filterState.selectedCategories.length +
-    filterState.selectedRarities.length +
-    filterState.selectedTiers.length;
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex h-full w-full flex-col gap-0 overflow-hidden p-0 sm:h-auto sm:max-h-[90vh] sm:w-[98vw] sm:max-w-5xl lg:max-w-6xl">
-        <DialogHeader className="border-b px-6 py-4">
-          <DialogTitle className="flex items-center gap-2">
-            Shop
-            {campaignName && (
-              <span className="text-muted-foreground text-sm font-normal">
-                — {campaignName}
-              </span>
-            )}
-          </DialogTitle>
-          <DialogDescription>
-            Browse items and add them to your cart. Gold will be deducted on
-            purchase.
-          </DialogDescription>
-        </DialogHeader>
+        <ShopDialogHeader campaignName={campaignName} />
 
         <div className="flex min-h-0 flex-1 overflow-hidden">
-          {/* Left: Browse items — same layout as ItemPickerModal */}
-          <div className="flex min-h-0 flex-1 flex-col border-r">
-            <div className="shrink-0 border-b px-4 py-3">
-              <ItemSearchHeader
-                search={filterState.search}
-                onSearchChange={filterState.setSearch}
-                showFilters={filterState.showFilters}
-                onToggleFilters={() =>
-                  filterState.setShowFilters(!filterState.showFilters)
-                }
-                activeFilterCount={activeFilterCount}
-                onClearFilters={filterState.clearFilters}
-              />
-              {filterState.showFilters && (
-                <div className="mt-3">
-                  <ItemFilters
-                    selectedCategories={filterState.selectedCategories}
-                    selectedRarities={filterState.selectedRarities}
-                    selectedTiers={filterState.selectedTiers}
-                    onToggleCategory={filterState.toggleCategory}
-                    onToggleRarity={filterState.toggleRarity}
-                    onToggleTier={filterState.toggleTier}
-                  />
-                </div>
-              )}
-            </div>
+          <ShopBrowsePanel
+            filterState={filterState}
+            filteredItems={filteredItems}
+            tempSelected={tempSelected}
+            toggleItem={toggleItem}
+            handleQuantityChange={handleQuantityChange}
+            inventoryItems={inventory.items}
+            unlimitedQuantity={inventory.unlimitedQuantity}
+            priceMap={priceMap}
+          />
 
-            <ScrollArea className="min-h-0 flex-1 px-4 py-2">
-              <div className="text-muted-foreground mb-2 text-sm">
-                {filteredItems.length} items found
-              </div>
-              <ItemPickerGrid
-                items={filteredItems}
-                selectedItems={tempSelected}
-                onToggleItem={toggleItem}
-                onQuantityChange={handleQuantityChange}
-                inventoryItems={inventory.items}
-                unlimitedQuantity={inventory.unlimitedQuantity}
-                priceMap={priceMap}
-              />
-            </ScrollArea>
-          </div>
-
-          {/* Right: Checkout panel */}
           <div className="flex w-72 shrink-0 flex-col p-4">
             <CheckoutPanel
               entries={cartEntries}

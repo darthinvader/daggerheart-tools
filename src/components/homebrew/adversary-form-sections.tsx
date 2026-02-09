@@ -28,6 +28,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { TIERS } from '@/lib/constants';
 import type { HomebrewAdversary } from '@/lib/schemas/homebrew';
 import { cn } from '@/lib/utils';
 
@@ -60,7 +61,7 @@ export const ROLE_COLORS: Record<string, string> = {
   Support: 'border-green-500/30 bg-green-500/5',
 };
 
-export const TIERS = ['1', '2', '3', '4'] as const;
+export { TIERS };
 
 export const FEATURE_TYPES = [
   'Passive',

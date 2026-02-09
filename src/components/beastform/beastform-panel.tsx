@@ -140,6 +140,265 @@ type PanelStep =
   | 'hybrid-features'
   | 'evolution-trait';
 
+/* ── Dialog header helpers ──────────────────────────────────────── */
+
+const STEP_TITLES: Record<Exclude<PanelStep, 'select-form'>, string> = {
+  'evolved-base': 'Choose Base Form to Evolve',
+  'hybrid-bases': 'Choose Base Forms',
+  'hybrid-advantages': 'Choose Advantages',
+  'hybrid-features': 'Choose Features',
+  'evolution-trait': 'Choose Evolution Trait',
+};
+
+function getDialogTitle(step: PanelStep, isActive: boolean): string {
+  if (step === 'select-form') {
+    return isActive ? 'Change Beastform' : 'Transform into Beastform';
+  }
+  return STEP_TITLES[step];
+}
+
+const STEP_DESCRIPTIONS: Record<string, string> = {
+  'select-form':
+    'Choose a creature form of your tier or lower. Mark a Stress to transform, or spend 3 Hope via Evolution.',
+  'evolved-base':
+    'Select a base form — you retain all its traits, features, and advantages with powerful bonuses on top.',
+};
+
+function getDialogDescription(
+  step: PanelStep,
+  selectedFormId: string | null,
+  selectedFormName: string | undefined
+): string {
+  if (step === 'select-form' || step === 'evolved-base') {
+    return STEP_DESCRIPTIONS[step];
+  }
+
+  const hybridCfg = selectedFormId ? HYBRID_CONFIG[selectedFormId] : undefined;
+
+  if (step === 'hybrid-bases' && hybridCfg) {
+    return `Pick ${hybridCfg.baseFormCount} forms to combine. You'll then choose advantages and features from them.`;
+  }
+  if (step === 'hybrid-advantages' && hybridCfg) {
+    return `Choose ${hybridCfg.advantageCount} advantages from your selected base forms.`;
+  }
+  if (step === 'hybrid-features' && hybridCfg) {
+    return `Choose ${hybridCfg.featureCount} features from your selected base forms.`;
+  }
+  if (step === 'evolution-trait' && selectedFormName) {
+    return `Choose a trait to gain +1 while in ${selectedFormName} form (Evolution bonus).`;
+  }
+  return '';
+}
+
+/* ── Configure step lookup ──────────────────────────────────────── */
+
+const CONFIGURE_STEP_MAP: Record<string, PanelStep> = {};
+for (const id of Object.keys(EVOLVED_CONFIG)) {
+  CONFIGURE_STEP_MAP[id] = 'evolved-base';
+}
+for (const id of Object.keys(HYBRID_CONFIG)) {
+  CONFIGURE_STEP_MAP[id] = 'hybrid-bases';
+}
+
+/* ── Evolution-trait back-step lookup ────────────────────────────── */
+
+function getEvolutionBackStep(formId: string | null): PanelStep {
+  if (formId && isEvolvedForm(formId)) return 'evolved-base';
+  if (formId && isHybridForm(formId)) return 'hybrid-features';
+  return 'select-form';
+}
+
+/* ── Toggle helper (add/remove with max) ────────────────────────── */
+
+function toggleInList<T>(
+  list: T[],
+  item: T,
+  max: number,
+  eq: (a: T, b: T) => boolean = (a, b) => a === b
+): T[] {
+  const idx = list.findIndex(x => eq(x, item));
+  if (idx >= 0) return list.filter((_, i) => i !== idx);
+  if (list.length < max) return [...list, item];
+  return list;
+}
+
+/* ── Trigger buttons ────────────────────────────────────────────── */
+
+function BeastformTriggerButtons({
+  isActive,
+  readOnly,
+  availableFormsCount,
+  onOpen,
+  onDeactivate,
+}: {
+  isActive: boolean;
+  readOnly?: boolean;
+  availableFormsCount: number;
+  onOpen: () => void;
+  onDeactivate: () => void;
+}) {
+  if (isActive) {
+    return (
+      <div className="flex items-center gap-1">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onOpen}
+          className="border-emerald-500/50 text-emerald-600 dark:text-emerald-300"
+        >
+          <Pencil className="mr-1 size-3" />
+          Change
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onDeactivate}
+          disabled={readOnly}
+          className="border-emerald-500/50 text-emerald-600 dark:text-emerald-300"
+        >
+          <X className="mr-1 size-3" />
+          Drop
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      disabled={readOnly || availableFormsCount === 0}
+      onClick={onOpen}
+      className="border-emerald-500/50 text-emerald-600 hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-emerald-950/50"
+    >
+      <PawPrint className="mr-1 size-4" />
+      Activate
+    </Button>
+  );
+}
+
+/* ── Step content renderer ──────────────────────────────────────── */
+
+function BeastformStepContent({
+  step,
+  selectedFormId,
+  selectedForm,
+  formsByTier,
+  evolvedBaseFormId,
+  hybridBaseFormIds,
+  selectedAdvantages,
+  selectedFeatures,
+  onSelectForm,
+  onConfigure,
+  onActivateStress,
+  onActivateEvolution,
+  onSelectEvolvedBase,
+  onToggleHybridBase,
+  onToggleAdvantage,
+  onToggleFeature,
+  onSetStep,
+}: {
+  step: PanelStep;
+  selectedFormId: string | null;
+  selectedForm: BeastformDefinition | undefined;
+  formsByTier: Record<number, BeastformDefinition[]>;
+  evolvedBaseFormId: string | null;
+  hybridBaseFormIds: string[];
+  selectedAdvantages: string[];
+  selectedFeatures: BeastformFeature[];
+  onSelectForm: (id: string) => void;
+  onConfigure: () => void;
+  onActivateStress: () => void;
+  onActivateEvolution: (trait: CharacterTrait) => void;
+  onSelectEvolvedBase: (id: string) => void;
+  onToggleHybridBase: (id: string) => void;
+  onToggleAdvantage: (item: string) => void;
+  onToggleFeature: (feature: BeastformFeature) => void;
+  onSetStep: (step: PanelStep) => void;
+}) {
+  const hybridCfg = selectedFormId ? HYBRID_CONFIG[selectedFormId] : undefined;
+
+  switch (step) {
+    case 'select-form':
+      return (
+        <SelectFormStep
+          formsByTier={formsByTier}
+          selectedFormId={selectedFormId}
+          onSelectForm={onSelectForm}
+          onConfigure={onConfigure}
+          onActivateStress={onActivateStress}
+          onActivateEvolution={() => onSetStep('evolution-trait')}
+        />
+      );
+
+    case 'evolved-base':
+      if (!selectedFormId) return null;
+      return (
+        <EvolvedBaseStep
+          formId={selectedFormId}
+          evolvedBaseFormId={evolvedBaseFormId}
+          onSelectBase={onSelectEvolvedBase}
+          onBack={() => onSetStep('select-form')}
+          onActivateStress={onActivateStress}
+          onActivateEvolution={() => onSetStep('evolution-trait')}
+        />
+      );
+
+    case 'hybrid-bases':
+      if (!hybridCfg) return null;
+      return (
+        <HybridBasesStep
+          config={hybridCfg}
+          hybridBaseFormIds={hybridBaseFormIds}
+          onToggleBase={onToggleHybridBase}
+          onBack={() => onSetStep('select-form')}
+          onNext={() => onSetStep('hybrid-advantages')}
+        />
+      );
+
+    case 'hybrid-advantages':
+      if (!hybridCfg) return null;
+      return (
+        <HybridPickerStep
+          label="Advantages"
+          config={hybridCfg}
+          hybridBaseFormIds={hybridBaseFormIds}
+          selectedItems={selectedAdvantages}
+          maxItems={hybridCfg.advantageCount}
+          getItems={forms => [...new Set(forms.flatMap(f => f.advantages))]}
+          onToggle={onToggleAdvantage}
+          onBack={() => onSetStep('hybrid-bases')}
+          onNext={() => onSetStep('hybrid-features')}
+        />
+      );
+
+    case 'hybrid-features':
+      if (!hybridCfg) return null;
+      return (
+        <HybridFeaturesStep
+          config={hybridCfg}
+          hybridBaseFormIds={hybridBaseFormIds}
+          selectedFeatures={selectedFeatures}
+          maxFeatures={hybridCfg.featureCount}
+          onToggle={onToggleFeature}
+          onBack={() => onSetStep('hybrid-advantages')}
+          onActivateStress={onActivateStress}
+          onActivateEvolution={() => onSetStep('evolution-trait')}
+        />
+      );
+
+    case 'evolution-trait':
+      if (!selectedForm) return null;
+      return (
+        <EvolutionTraitStep
+          formName={selectedForm.name}
+          onSelectTrait={onActivateEvolution}
+          onBack={() => onSetStep(getEvolutionBackStep(selectedFormId))}
+        />
+      );
+  }
+}
+
 /* ── Component ──────────────────────────────────────────────────── */
 
 interface BeastformPanelProps {
@@ -155,24 +414,19 @@ interface BeastformPanelProps {
   readOnly?: boolean;
 }
 
-export function BeastformPanel({
-  availableForms,
-  isActive,
-  onActivateWithStress,
-  onActivateWithEvolution,
-  onDeactivate,
-  readOnly,
-}: BeastformPanelProps) {
+/* ── Panel state hook ───────────────────────────────────────────── */
+
+function useBeastformPanelState(
+  availableForms: BeastformDefinition[],
+  onActivateWithStress: BeastformPanelProps['onActivateWithStress'],
+  onActivateWithEvolution: BeastformPanelProps['onActivateWithEvolution']
+) {
   const [selectedFormId, setSelectedFormId] = useState<string | null>(null);
   const [step, setStep] = useState<PanelStep>('select-form');
   const [isOpen, setIsOpen] = useState(false);
-
-  // Evolved state
   const [evolvedBaseFormId, setEvolvedBaseFormId] = useState<string | null>(
     null
   );
-
-  // Hybrid state
   const [hybridBaseFormIds, setHybridBaseFormIds] = useState<string[]>([]);
   const [selectedAdvantages, setSelectedAdvantages] = useState<string[]>([]);
   const [selectedFeatures, setSelectedFeatures] = useState<BeastformFeature[]>(
@@ -181,7 +435,6 @@ export function BeastformPanel({
 
   const selectedForm = availableForms.find(f => f.id === selectedFormId);
 
-  // Group forms by tier
   const formsByTier = availableForms.reduce<
     Record<number, BeastformDefinition[]>
   >((acc, form) => {
@@ -198,6 +451,10 @@ export function BeastformPanel({
     setSelectedFeatures([]);
   }
 
+  function handleOpen() {
+    setIsOpen(true);
+  }
+
   function handleOpenChange(open: boolean) {
     setIsOpen(open);
     if (!open) resetState();
@@ -208,11 +465,7 @@ export function BeastformPanel({
       return { evolvedBaseFormId };
     }
     if (selectedFormId && isHybridForm(selectedFormId)) {
-      return {
-        hybridBaseFormIds,
-        selectedAdvantages,
-        selectedFeatures,
-      };
+      return { hybridBaseFormIds, selectedAdvantages, selectedFeatures };
     }
     return undefined;
   }
@@ -233,7 +486,6 @@ export function BeastformPanel({
 
   function handleFormSelect(formId: string) {
     setSelectedFormId(formId);
-    // Reset special state when re-selecting
     setEvolvedBaseFormId(null);
     setHybridBaseFormIds([]);
     setSelectedAdvantages([]);
@@ -242,219 +494,148 @@ export function BeastformPanel({
 
   function handleConfigure() {
     if (!selectedFormId) return;
-    if (isEvolvedForm(selectedFormId)) {
-      setStep('evolved-base');
-    } else if (isHybridForm(selectedFormId)) {
-      setStep('hybrid-bases');
-    }
+    const nextStep = CONFIGURE_STEP_MAP[selectedFormId];
+    if (nextStep) setStep(nextStep);
   }
+
+  function handleSetStep(nextStep: PanelStep) {
+    // Clear downstream state when navigating backward
+    if (nextStep === 'select-form') {
+      setHybridBaseFormIds([]);
+    } else if (nextStep === 'hybrid-bases') {
+      setSelectedAdvantages([]);
+    } else if (nextStep === 'hybrid-advantages') {
+      setSelectedAdvantages([]);
+      setSelectedFeatures([]);
+    } else if (nextStep === 'hybrid-features') {
+      setSelectedFeatures([]);
+    }
+    setStep(nextStep);
+  }
+
+  function handleToggleHybridBase(id: string) {
+    const max = selectedFormId
+      ? (HYBRID_CONFIG[selectedFormId]?.baseFormCount ?? 0)
+      : 0;
+    setHybridBaseFormIds(prev => toggleInList(prev, id, max));
+  }
+
+  function handleToggleAdvantage(item: string) {
+    const max = selectedFormId
+      ? (HYBRID_CONFIG[selectedFormId]?.advantageCount ?? 0)
+      : 0;
+    setSelectedAdvantages(prev => toggleInList(prev, item, max));
+  }
+
+  function handleToggleFeature(feature: BeastformFeature) {
+    const max = selectedFormId
+      ? (HYBRID_CONFIG[selectedFormId]?.featureCount ?? 0)
+      : 0;
+    setSelectedFeatures(prev =>
+      toggleInList(prev, feature, max, (a, b) => a.name === b.name)
+    );
+  }
+
+  return {
+    selectedFormId,
+    step,
+    isOpen,
+    selectedForm,
+    formsByTier,
+    evolvedBaseFormId,
+    hybridBaseFormIds,
+    selectedAdvantages,
+    selectedFeatures,
+    handleOpen,
+    handleOpenChange,
+    handleFormSelect,
+    handleConfigure,
+    handleSetStep,
+    handleActivateStress,
+    handleActivateEvolution,
+    handleToggleHybridBase,
+    handleToggleAdvantage,
+    handleToggleFeature,
+    setEvolvedBaseFormId,
+  };
+}
+
+export function BeastformPanel({
+  availableForms,
+  isActive,
+  onActivateWithStress,
+  onActivateWithEvolution,
+  onDeactivate,
+  readOnly,
+}: BeastformPanelProps) {
+  const {
+    selectedFormId,
+    step,
+    isOpen,
+    selectedForm,
+    formsByTier,
+    evolvedBaseFormId,
+    hybridBaseFormIds,
+    selectedAdvantages,
+    selectedFeatures,
+    handleOpen,
+    handleOpenChange,
+    handleFormSelect,
+    handleConfigure,
+    handleSetStep,
+    handleActivateStress,
+    handleActivateEvolution,
+    handleToggleHybridBase,
+    handleToggleAdvantage,
+    handleToggleFeature,
+    setEvolvedBaseFormId,
+  } = useBeastformPanelState(
+    availableForms,
+    onActivateWithStress,
+    onActivateWithEvolution
+  );
 
   return (
     <>
-      {isActive ? (
-        <div className="flex items-center gap-1">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsOpen(true)}
-            className="border-emerald-500/50 text-emerald-600 dark:text-emerald-300"
-          >
-            <Pencil className="mr-1 size-3" />
-            Change
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onDeactivate}
-            disabled={readOnly}
-            className="border-emerald-500/50 text-emerald-600 dark:text-emerald-300"
-          >
-            <X className="mr-1 size-3" />
-            Drop
-          </Button>
-        </div>
-      ) : (
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={readOnly || availableForms.length === 0}
-          onClick={() => setIsOpen(true)}
-          className="border-emerald-500/50 text-emerald-600 hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-emerald-950/50"
-        >
-          <PawPrint className="mr-1 size-4" />
-          Activate
-        </Button>
-      )}
+      <BeastformTriggerButtons
+        isActive={isActive}
+        readOnly={readOnly}
+        availableFormsCount={availableForms.length}
+        onOpen={handleOpen}
+        onDeactivate={onDeactivate}
+      />
 
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
         <DialogContent className="flex max-h-[85vh] max-w-lg flex-col gap-0 overflow-hidden p-0">
           <DialogHeader className="shrink-0 px-6 pt-6 pb-2">
             <DialogTitle className="flex items-center gap-2">
               <PawPrint className="size-5 text-emerald-500 dark:text-emerald-400" />
-              {step === 'select-form' &&
-                (isActive ? 'Change Beastform' : 'Transform into Beastform')}
-              {step === 'evolved-base' && 'Choose Base Form to Evolve'}
-              {step === 'hybrid-bases' && 'Choose Base Forms'}
-              {step === 'hybrid-advantages' && 'Choose Advantages'}
-              {step === 'hybrid-features' && 'Choose Features'}
-              {step === 'evolution-trait' && 'Choose Evolution Trait'}
+              {getDialogTitle(step, isActive)}
             </DialogTitle>
             <DialogDescription>
-              {step === 'select-form' &&
-                'Choose a creature form of your tier or lower. Mark a Stress to transform, or spend 3 Hope via Evolution.'}
-              {step === 'evolved-base' &&
-                `Select a base form — you retain all its traits, features, and advantages with powerful bonuses on top.`}
-              {step === 'hybrid-bases' &&
-                selectedFormId &&
-                HYBRID_CONFIG[selectedFormId] &&
-                `Pick ${HYBRID_CONFIG[selectedFormId].baseFormCount} forms to combine. You'll then choose advantages and features from them.`}
-              {step === 'hybrid-advantages' &&
-                selectedFormId &&
-                HYBRID_CONFIG[selectedFormId] &&
-                `Choose ${HYBRID_CONFIG[selectedFormId].advantageCount} advantages from your selected base forms.`}
-              {step === 'hybrid-features' &&
-                selectedFormId &&
-                HYBRID_CONFIG[selectedFormId] &&
-                `Choose ${HYBRID_CONFIG[selectedFormId].featureCount} features from your selected base forms.`}
-              {step === 'evolution-trait' &&
-                selectedForm &&
-                `Choose a trait to gain +1 while in ${selectedForm.name} form (Evolution bonus).`}
+              {getDialogDescription(step, selectedFormId, selectedForm?.name)}
             </DialogDescription>
           </DialogHeader>
 
-          {/* ── Step: select-form ─────────────────────────────── */}
-          {step === 'select-form' && (
-            <SelectFormStep
-              formsByTier={formsByTier}
-              selectedFormId={selectedFormId}
-              onSelectForm={handleFormSelect}
-              onConfigure={handleConfigure}
-              onActivateStress={handleActivateStress}
-              onActivateEvolution={() => setStep('evolution-trait')}
-            />
-          )}
-
-          {/* ── Step: evolved-base ────────────────────────────── */}
-          {step === 'evolved-base' && selectedFormId && (
-            <EvolvedBaseStep
-              formId={selectedFormId}
-              evolvedBaseFormId={evolvedBaseFormId}
-              onSelectBase={setEvolvedBaseFormId}
-              onBack={() => setStep('select-form')}
-              onActivateStress={handleActivateStress}
-              onActivateEvolution={() => setStep('evolution-trait')}
-            />
-          )}
-
-          {/* ── Step: hybrid-bases ────────────────────────────── */}
-          {step === 'hybrid-bases' &&
-            selectedFormId &&
-            HYBRID_CONFIG[selectedFormId] && (
-              <HybridBasesStep
-                config={HYBRID_CONFIG[selectedFormId]}
-                hybridBaseFormIds={hybridBaseFormIds}
-                onToggleBase={id => {
-                  setHybridBaseFormIds(prev =>
-                    prev.includes(id)
-                      ? prev.filter(x => x !== id)
-                      : prev.length <
-                          HYBRID_CONFIG[selectedFormId].baseFormCount
-                        ? [...prev, id]
-                        : prev
-                  );
-                }}
-                onBack={() => {
-                  setStep('select-form');
-                  setHybridBaseFormIds([]);
-                }}
-                onNext={() => {
-                  setSelectedAdvantages([]);
-                  setStep('hybrid-advantages');
-                }}
-              />
-            )}
-
-          {/* ── Step: hybrid-advantages ───────────────────────── */}
-          {step === 'hybrid-advantages' &&
-            selectedFormId &&
-            HYBRID_CONFIG[selectedFormId] && (
-              <HybridPickerStep
-                label="Advantages"
-                config={HYBRID_CONFIG[selectedFormId]}
-                hybridBaseFormIds={hybridBaseFormIds}
-                selectedItems={selectedAdvantages}
-                maxItems={HYBRID_CONFIG[selectedFormId].advantageCount}
-                getItems={forms => [
-                  ...new Set(forms.flatMap(f => f.advantages)),
-                ]}
-                onToggle={item => {
-                  setSelectedAdvantages(prev =>
-                    prev.includes(item)
-                      ? prev.filter(x => x !== item)
-                      : prev.length <
-                          HYBRID_CONFIG[selectedFormId].advantageCount
-                        ? [...prev, item]
-                        : prev
-                  );
-                }}
-                onBack={() => {
-                  setStep('hybrid-bases');
-                  setSelectedAdvantages([]);
-                }}
-                onNext={() => {
-                  setSelectedFeatures([]);
-                  setStep('hybrid-features');
-                }}
-              />
-            )}
-
-          {/* ── Step: hybrid-features ─────────────────────────── */}
-          {step === 'hybrid-features' &&
-            selectedFormId &&
-            HYBRID_CONFIG[selectedFormId] && (
-              <HybridFeaturesStep
-                config={HYBRID_CONFIG[selectedFormId]}
-                hybridBaseFormIds={hybridBaseFormIds}
-                selectedFeatures={selectedFeatures}
-                maxFeatures={HYBRID_CONFIG[selectedFormId].featureCount}
-                onToggle={feature => {
-                  setSelectedFeatures(prev => {
-                    const exists = prev.some(f => f.name === feature.name);
-                    if (exists)
-                      return prev.filter(f => f.name !== feature.name);
-                    if (
-                      prev.length < HYBRID_CONFIG[selectedFormId].featureCount
-                    ) {
-                      return [...prev, feature];
-                    }
-                    return prev;
-                  });
-                }}
-                onBack={() => {
-                  setStep('hybrid-advantages');
-                  setSelectedFeatures([]);
-                }}
-                onActivateStress={handleActivateStress}
-                onActivateEvolution={() => setStep('evolution-trait')}
-              />
-            )}
-
-          {/* ── Step: evolution-trait ──────────────────────────── */}
-          {step === 'evolution-trait' && selectedForm && (
-            <EvolutionTraitStep
-              formName={selectedForm.name}
-              onSelectTrait={handleActivateEvolution}
-              onBack={() => {
-                if (selectedFormId && isEvolvedForm(selectedFormId)) {
-                  setStep('evolved-base');
-                } else if (selectedFormId && isHybridForm(selectedFormId)) {
-                  setStep('hybrid-features');
-                } else {
-                  setStep('select-form');
-                }
-              }}
-            />
-          )}
+          <BeastformStepContent
+            step={step}
+            selectedFormId={selectedFormId}
+            selectedForm={selectedForm}
+            formsByTier={formsByTier}
+            evolvedBaseFormId={evolvedBaseFormId}
+            hybridBaseFormIds={hybridBaseFormIds}
+            selectedAdvantages={selectedAdvantages}
+            selectedFeatures={selectedFeatures}
+            onSelectForm={handleFormSelect}
+            onConfigure={handleConfigure}
+            onActivateStress={handleActivateStress}
+            onActivateEvolution={handleActivateEvolution}
+            onSelectEvolvedBase={setEvolvedBaseFormId}
+            onToggleHybridBase={handleToggleHybridBase}
+            onToggleAdvantage={handleToggleAdvantage}
+            onToggleFeature={handleToggleFeature}
+            onSetStep={handleSetStep}
+          />
         </DialogContent>
       </Dialog>
     </>

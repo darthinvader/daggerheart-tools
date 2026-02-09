@@ -4,7 +4,27 @@ import {
   createFileRoute,
   type ErrorComponentProps,
 } from '@tanstack/react-router';
-import { ArrowDown, ArrowUp, Search, X } from 'lucide-react';
+import {
+  ArrowDown,
+  ArrowUp,
+  Bug,
+  Crown,
+  Feather,
+  Flame,
+  Glasses,
+  type LucideIcon,
+  Puzzle,
+  Search,
+  Shield,
+  Skull,
+  Sparkles,
+  Speech,
+  Star,
+  Sword,
+  Target,
+  X,
+  Zap,
+} from 'lucide-react';
 import * as React from 'react';
 
 import {
@@ -19,6 +39,7 @@ import {
   useDeferredSheetContent,
   useKeyboardNavigation,
 } from '@/components/references';
+import { TooltipLabel } from '@/components/shared/tooltip-label';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -43,10 +64,9 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { TIERS } from '@/lib/constants';
 import { ADVERSARIES } from '@/lib/data/adversaries';
 import {
-  AdversaryRoleIcons,
-  AdversaryTierIcons,
   AlertTriangle,
   Brain,
   Compass,
@@ -54,11 +74,30 @@ import {
   getIcon,
   Heart,
   Layers,
-  Skull,
-  Sparkles,
   Swords,
-  Target,
 } from '@/lib/icons';
+
+const AdversaryRoleIcons: Record<string, LucideIcon> = {
+  Bruiser: Flame,
+  Horde: Bug,
+  Leader: Crown,
+  Minion: Feather,
+  Ranged: Target,
+  Skulk: Glasses,
+  Social: Speech,
+  Solo: Sword,
+  Standard: Shield,
+  Support: Sparkles,
+  default: Puzzle,
+} as const;
+
+const AdversaryTierIcons: Record<string, LucideIcon> = {
+  '1': Star,
+  '2': Flame,
+  '3': Zap,
+  '4': Skull,
+} as const;
+import { roleColors } from '@/components/homebrew/homebrew-list-config';
 import type { Adversary } from '@/lib/schemas/adversaries';
 import { tierColors } from '@/lib/utils/tier-colors';
 
@@ -71,27 +110,6 @@ export const Route = createFileRoute('/references/adversaries')({
 });
 
 type AdversaryItem = (typeof ADVERSARIES)[number];
-
-const tierOrder: Adversary['tier'][] = ['1', '2', '3', '4'];
-
-const roleColors: Record<string, string> = {
-  Bruiser:
-    'bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/40',
-  Horde: 'bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-500/40',
-  Leader:
-    'bg-purple-500/20 text-purple-700 dark:text-purple-300 border-purple-500/40',
-  Minion:
-    'bg-slate-500/20 text-slate-700 dark:text-slate-300 border-slate-500/40',
-  Ranged: 'bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 border-cyan-500/40',
-  Skulk: 'bg-zinc-500/20 text-zinc-700 dark:text-zinc-300 border-zinc-500/40',
-  Social:
-    'bg-green-500/20 text-green-700 dark:text-green-300 border-green-500/40',
-  Solo: 'bg-red-500/20 text-red-700 dark:text-red-300 border-red-500/40',
-  Standard:
-    'bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-500/40',
-  Support:
-    'bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border-indigo-500/40',
-};
 
 const defaultBadgeColor = 'bg-muted/50 text-foreground border-border';
 
@@ -159,34 +177,6 @@ function getRoleDescription(role: Adversary['role']) {
   return roleDescriptions[role] ?? 'Adversary role.';
 }
 
-interface TooltipLabelProps {
-  label: string;
-  tooltip: string;
-  className?: string;
-  labelIcon?: React.ComponentType<{ className?: string }>;
-}
-
-function TooltipLabel({
-  label,
-  tooltip,
-  className,
-  labelIcon: LabelIcon,
-}: TooltipLabelProps) {
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <span
-          className={`cursor-help underline decoration-dotted underline-offset-2 ${className ?? ''}`}
-        >
-          {LabelIcon && <LabelIcon className="mr-1 inline-block size-3" />}
-          {label}:
-        </span>
-      </TooltipTrigger>
-      <TooltipContent sideOffset={6}>{tooltip}</TooltipContent>
-    </Tooltip>
-  );
-}
-
 const loadAllAdversaries = () => [...ADVERSARIES];
 
 type AdversarySortKey = 'name' | 'tier' | 'role';
@@ -196,7 +186,7 @@ const ADVERSARY_SORTERS: Record<
   (a: AdversaryItem, b: AdversaryItem) => number
 > = {
   name: (a, b) => a.name.localeCompare(b.name),
-  tier: (a, b) => tierOrder.indexOf(a.tier) - tierOrder.indexOf(b.tier),
+  tier: (a, b) => TIERS.indexOf(a.tier) - TIERS.indexOf(b.tier),
   role: (a, b) => a.role.localeCompare(b.role),
 };
 
@@ -274,6 +264,11 @@ function AdversariesHeader({
   onSearchChange,
   onClearSearch,
 }: AdversariesHeaderProps) {
+  const sortedRoleKeys = React.useMemo(
+    () => Object.keys(roleColors).sort((a, b) => a.localeCompare(b)),
+    []
+  );
+
   return (
     <div className="bg-background shrink-0 border-b px-4 py-3">
       <div className="flex flex-col gap-3">
@@ -326,7 +321,7 @@ function AdversariesHeader({
                 aria-label="Filter by tier"
               >
                 <option value="all">All tiers</option>
-                {tierOrder.map(tier => (
+                {TIERS.map(tier => (
                   <option key={tier} value={tier}>
                     {tierLabels[tier]} Tier {tier}
                   </option>
@@ -343,13 +338,11 @@ function AdversariesHeader({
                 aria-label="Filter by role"
               >
                 <option value="all">All roles</option>
-                {Object.keys(roleColors)
-                  .sort((a, b) => a.localeCompare(b))
-                  .map(role => (
-                    <option key={role} value={role}>
-                      {roleLabels[role] ?? '●'} {role}
-                    </option>
-                  ))}
+                {sortedRoleKeys.map(role => (
+                  <option key={role} value={role}>
+                    {roleLabels[role] ?? '●'} {role}
+                  </option>
+                ))}
               </select>
             </div>
 

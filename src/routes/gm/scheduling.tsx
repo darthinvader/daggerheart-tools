@@ -13,8 +13,7 @@ import {
   ExternalLink,
   Trash2,
 } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { toast } from 'sonner';
+import { useCallback, useMemo } from 'react';
 
 import { PollCreateForm } from '@/components/scheduling/poll-create-form';
 import { PollVotingCard } from '@/components/scheduling/poll-voting-card';
@@ -32,15 +31,10 @@ import {
   computeBestSlots,
   computeSlotSummaries,
 } from '@/features/scheduling/scheduling-helpers';
-import {
-  type CreatePollInput,
-  createSchedulingPoll,
-  deleteSchedulingPoll,
-  listSchedulingPolls,
-  updateSchedulingPoll,
-} from '@/features/scheduling/scheduling-storage';
 import type { SchedulingVoteInput } from '@/features/scheduling/scheduling-storage';
 import type { SchedulingPoll } from '@/lib/schemas/scheduling';
+
+import { useSchedulingState } from './use-scheduling-state';
 
 export const Route = createFileRoute('/gm/scheduling')({
   component: SchedulingDashboard,
@@ -50,148 +44,33 @@ export const Route = createFileRoute('/gm/scheduling')({
 });
 
 function SchedulingDashboard() {
-  const [polls, setPolls] = useState<SchedulingPoll[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showCreate, setShowCreate] = useState(false);
-  const [expandedPollId, setExpandedPollId] = useState<string | null>(null);
+  const {
+    loading,
+    ui,
+    openPolls,
+    closedPolls,
+    toggleShowCreate,
+    openShowCreate,
+    closeShowCreate,
+    toggleExpandPoll,
+    handleCreate,
+    handleConfirmSlot,
+    handleArchivePoll,
+    handleDeletePoll,
+    copyShareLink,
+  } = useSchedulingState();
 
-  const loadPolls = useCallback(async () => {
-    try {
-      const data = await listSchedulingPolls();
-      setPolls(data);
-    } catch {
-      toast.error('Failed to load scheduling polls');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadPolls();
-  }, [loadPolls]);
-
-  const handleCreate = useCallback(
-    async (
-      title: string,
-      slots: Array<{ startTime: string; endTime: string; label?: string }>,
-      options?: { description?: string; quorum?: number }
-    ) => {
-      const input: CreatePollInput = {
-        title,
-        slots: slots.map(s => ({
-          startTime: s.startTime,
-          endTime: s.endTime,
-          label: s.label,
-        })),
-        description: options?.description,
-        quorum: options?.quorum,
-      };
-      try {
-        const created = await createSchedulingPoll(input);
-        setPolls(prev => [created, ...prev]);
-        setShowCreate(false);
-        toast.success('Poll created! Share the link with your players.');
-      } catch {
-        toast.error('Failed to create poll');
-      }
-    },
-    []
-  );
-
-  const handleConfirmSlot = useCallback(
-    async (pollId: string, slotId: string) => {
-      try {
-        const updated = await updateSchedulingPoll(pollId, {
-          status: 'confirmed',
-          confirmedSlotId: slotId,
-        });
-        if (updated) {
-          setPolls(prev => prev.map(p => (p.id === pollId ? updated : p)));
-          toast.success('Session time confirmed!');
-        }
-      } catch {
-        toast.error('Failed to confirm slot');
-      }
-    },
-    []
-  );
-
-  const handleArchivePoll = useCallback(async (pollId: string) => {
-    try {
-      const updated = await updateSchedulingPoll(pollId, {
-        status: 'archived',
-      });
-      if (updated) {
-        setPolls(prev => prev.map(p => (p.id === pollId ? updated : p)));
-        toast.success('Poll archived');
-      }
-    } catch {
-      toast.error('Failed to archive poll');
-    }
-  }, []);
-
-  const handleDeletePoll = useCallback(async (pollId: string) => {
-    try {
-      await deleteSchedulingPoll(pollId);
-      setPolls(prev => prev.filter(p => p.id !== pollId));
-      toast.success('Poll deleted');
-    } catch {
-      toast.error('Failed to delete poll');
-    }
-  }, []);
-
-  const copyShareLink = useCallback(async (shareCode: string) => {
-    const link = `${window.location.origin}/schedule/${shareCode}`;
-    try {
-      await navigator.clipboard.writeText(link);
-      toast.success('Voting link copied to clipboard');
-    } catch {
-      toast.error('Failed to copy link');
-    }
-  }, []);
-
-  const openPolls = useMemo(
-    () => polls.filter(p => p.status === 'open'),
-    [polls]
-  );
-  const closedPolls = useMemo(
-    () => polls.filter(p => p.status !== 'open'),
-    [polls]
-  );
+  const { showCreate, expandedPollId } = ui;
+  const hasNoPolls = openPolls.length === 0 && closedPolls.length === 0;
 
   if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="bg-muted mb-6 h-8 w-48 animate-pulse rounded" />
-        <div className="space-y-4">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="bg-muted h-24 animate-pulse rounded-lg" />
-          ))}
-        </div>
-      </div>
-    );
+    return <SchedulingLoadingSkeleton />;
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="flex items-center gap-2 text-2xl font-bold">
-            <CalendarCheck className="h-6 w-6 text-blue-500" />
-            Session Scheduling
-          </h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Create polls and share voting links with your players
-          </p>
-        </div>
-        <Button onClick={() => setShowCreate(prev => !prev)} className="gap-2">
-          <CalendarPlus className="h-4 w-4" />
-          New Poll
-        </Button>
-      </div>
+      <SchedulingHeader onToggleCreate={toggleShowCreate} />
 
-      {/* Create form */}
       {showCreate && (
         <Card className="mb-6">
           <CardHeader>
@@ -204,75 +83,157 @@ function SchedulingDashboard() {
           <CardContent>
             <PollCreateForm
               onSubmit={handleCreate}
-              onCancel={() => setShowCreate(false)}
+              onCancel={closeShowCreate}
             />
           </CardContent>
         </Card>
       )}
 
-      {/* Empty state */}
-      {polls.length === 0 && !showCreate && (
-        <Card className="border-dashed">
-          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-            <CalendarCheck className="text-muted-foreground mb-4 h-12 w-12" />
-            <h3 className="mb-2 text-lg font-semibold">
-              No scheduling polls yet
-            </h3>
-            <p className="text-muted-foreground mb-4 max-w-md text-sm">
-              Create a poll with time slots, then share the voting link with
-              your players so they can mark their availability.
-            </p>
-            <Button onClick={() => setShowCreate(true)} className="gap-2">
-              <CalendarPlus className="h-4 w-4" />
-              Create Your First Poll
-            </Button>
-          </CardContent>
-        </Card>
+      {hasNoPolls && !showCreate && (
+        <SchedulingEmptyState onCreate={openShowCreate} />
       )}
 
-      {/* Open polls */}
-      {openPolls.length > 0 && (
-        <div className="mb-8 space-y-4">
-          <h2 className="text-lg font-semibold">Active Polls</h2>
-          {openPolls.map(poll => (
-            <PollCard
-              key={poll.id}
-              poll={poll}
-              isExpanded={expandedPollId === poll.id}
-              onToggleExpand={() =>
-                setExpandedPollId(prev => (prev === poll.id ? null : poll.id))
-              }
-              onCopyLink={() => copyShareLink(poll.shareCode)}
-              onConfirmSlot={slotId => handleConfirmSlot(poll.id, slotId)}
-              onArchive={() => handleArchivePoll(poll.id)}
-              onDelete={() => handleDeletePoll(poll.id)}
-            />
-          ))}
-        </div>
-      )}
+      <PollListSection
+        title="Active Polls"
+        polls={openPolls}
+        expandedPollId={expandedPollId}
+        onToggleExpand={toggleExpandPoll}
+        onCopyLink={copyShareLink}
+        onConfirmSlot={handleConfirmSlot}
+        onArchive={handleArchivePoll}
+        onDelete={handleDeletePoll}
+        className="mb-8"
+      />
 
-      {/* Closed polls */}
-      {closedPolls.length > 0 && (
-        <div className="space-y-4">
-          <h2 className="text-muted-foreground text-lg font-semibold">
-            Past Polls
-          </h2>
-          {closedPolls.map(poll => (
-            <PollCard
-              key={poll.id}
-              poll={poll}
-              isExpanded={expandedPollId === poll.id}
-              onToggleExpand={() =>
-                setExpandedPollId(prev => (prev === poll.id ? null : poll.id))
-              }
-              onCopyLink={() => copyShareLink(poll.shareCode)}
-              onConfirmSlot={slotId => handleConfirmSlot(poll.id, slotId)}
-              onArchive={() => handleArchivePoll(poll.id)}
-              onDelete={() => handleDeletePoll(poll.id)}
-            />
-          ))}
-        </div>
-      )}
+      <PollListSection
+        title="Past Polls"
+        titleClassName="text-muted-foreground"
+        polls={closedPolls}
+        expandedPollId={expandedPollId}
+        onToggleExpand={toggleExpandPoll}
+        onCopyLink={copyShareLink}
+        onConfirmSlot={handleConfirmSlot}
+        onArchive={handleArchivePoll}
+        onDelete={handleDeletePoll}
+      />
+    </div>
+  );
+}
+
+// =====================================================================================
+// Sub-components
+// =====================================================================================
+
+function SchedulingLoadingSkeleton() {
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="bg-muted mb-6 h-8 w-48 animate-pulse rounded" />
+      <div className="space-y-4">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="bg-muted h-24 animate-pulse rounded-lg" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+interface SchedulingHeaderProps {
+  onToggleCreate: () => void;
+}
+
+function SchedulingHeader({ onToggleCreate }: SchedulingHeaderProps) {
+  return (
+    <div className="mb-6 flex items-center justify-between">
+      <div>
+        <h1 className="flex items-center gap-2 text-2xl font-bold">
+          <CalendarCheck className="h-6 w-6 text-blue-500" />
+          Session Scheduling
+        </h1>
+        <p className="text-muted-foreground mt-1 text-sm">
+          Create polls and share voting links with your players
+        </p>
+      </div>
+      <Button onClick={onToggleCreate} className="gap-2">
+        <CalendarPlus className="h-4 w-4" />
+        New Poll
+      </Button>
+    </div>
+  );
+}
+
+interface SchedulingEmptyStateProps {
+  onCreate: () => void;
+}
+
+function SchedulingEmptyState({ onCreate }: SchedulingEmptyStateProps) {
+  return (
+    <Card className="border-dashed">
+      <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+        <CalendarCheck className="text-muted-foreground mb-4 h-12 w-12" />
+        <h3 className="mb-2 text-lg font-semibold">No scheduling polls yet</h3>
+        <p className="text-muted-foreground mb-4 max-w-md text-sm">
+          Create a poll with time slots, then share the voting link with your
+          players so they can mark their availability.
+        </p>
+        <Button onClick={onCreate} className="gap-2">
+          <CalendarPlus className="h-4 w-4" />
+          Create Your First Poll
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+interface PollListSectionProps {
+  title: string;
+  titleClassName?: string;
+  polls: SchedulingPoll[];
+  expandedPollId: string | null;
+  onToggleExpand: (pollId: string) => void;
+  onCopyLink: (shareCode: string) => Promise<void>;
+  onConfirmSlot: (pollId: string, slotId: string) => Promise<void>;
+  onArchive: (pollId: string) => Promise<void>;
+  onDelete: (pollId: string) => Promise<void>;
+  className?: string;
+}
+
+function PollListSection({
+  title,
+  titleClassName,
+  polls,
+  expandedPollId,
+  onToggleExpand,
+  onCopyLink,
+  onConfirmSlot,
+  onArchive,
+  onDelete,
+  className,
+}: PollListSectionProps) {
+  if (polls.length === 0) return null;
+
+  return (
+    <div className={className ? `space-y-4 ${className}` : 'space-y-4'}>
+      <h2
+        className={
+          titleClassName
+            ? `text-lg font-semibold ${titleClassName}`
+            : 'text-lg font-semibold'
+        }
+      >
+        {title}
+      </h2>
+      {polls.map(poll => (
+        <PollCard
+          key={poll.id}
+          poll={poll}
+          isExpanded={expandedPollId === poll.id}
+          onToggleExpand={() => onToggleExpand(poll.id)}
+          onCopyLink={() => onCopyLink(poll.shareCode)}
+          onConfirmSlot={slotId => onConfirmSlot(poll.id, slotId)}
+          onArchive={() => onArchive(poll.id)}
+          onDelete={() => onDelete(poll.id)}
+        />
+      ))}
     </div>
   );
 }

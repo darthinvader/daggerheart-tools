@@ -121,7 +121,7 @@ interface RosterStateForPayload {
   useMassiveThreshold: boolean;
 }
 
-export function buildBattlePayload(
+function buildBattlePayload(
   rosterState: RosterStateForPayload,
   battleName: string,
   battleStatus: BattleState['status']
@@ -143,13 +143,109 @@ export function buildBattlePayload(
   };
 }
 
+function buildRosterStatePayload(
+  rosterState: RosterStateForPayload
+): RosterStateForPayload {
+  return {
+    characters: rosterState.characters,
+    adversaries: rosterState.adversaries,
+    environments: rosterState.environments,
+    spotlight: rosterState.spotlight,
+    spotlightHistory: rosterState.spotlightHistory,
+    fearPool: rosterState.fearPool,
+    useMassiveThreshold: rosterState.useMassiveThreshold,
+  };
+}
+
+// =====================================
+// Sub-hooks
+// =====================================
+
+function useInitialBattleLoader(
+  initialBattleId: string | undefined,
+  onLoaded: (battle: BattleState) => void
+) {
+  const [hasLoadedInitial, setHasLoadedInitial] = useState(false);
+
+  const { data: initialBattle } = useQuery({
+    queryKey: ['standalone-battle', initialBattleId],
+    queryFn: () =>
+      initialBattleId ? getStandaloneBattle(initialBattleId) : null,
+    enabled: !!initialBattleId && !hasLoadedInitial,
+  });
+
+  React.useEffect(() => {
+    if (initialBattle && !hasLoadedInitial) {
+      onLoaded(initialBattle);
+      setHasLoadedInitial(true);
+    }
+  }, [initialBattle, hasLoadedInitial, onLoaded]);
+}
+
+interface LinkToCampaignParams {
+  rosterState: RosterStateForPayload;
+  battleName: string;
+  battleStatus: BattleState['status'];
+  activeBattleId: string | null;
+}
+
+function useLinkToCampaignDialog(params: LinkToCampaignParams) {
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
+  const [selectedCampaignId, setSelectedCampaignId] = useState('');
+
+  const linkToCampaignMutation = useMutation({
+    mutationFn: async (campaignId: string) => {
+      const payloadState = buildRosterStatePayload(params.rosterState);
+      const battlePayload = buildBattlePayload(
+        payloadState,
+        params.battleName,
+        params.battleStatus
+      );
+      const campaignBattle = await createBattle(campaignId, battlePayload);
+      if (params.activeBattleId) {
+        await deleteStandaloneBattle(params.activeBattleId);
+      }
+      return { campaignId, battleId: campaignBattle.id };
+    },
+    onSuccess: ({ campaignId, battleId }) => {
+      void queryClient.invalidateQueries({ queryKey: ['standalone-battles'] });
+      void queryClient.invalidateQueries({
+        queryKey: ['campaign', campaignId],
+      });
+      void navigate({
+        to: '/gm/campaigns/$id/battle',
+        params: { id: campaignId },
+        search: { battleId, tab: 'overview' as const },
+      });
+    },
+    onError: () => toast.error('Failed to link battle to campaign'),
+  });
+
+  const handleLinkToCampaign = useCallback(() => {
+    if (selectedCampaignId) {
+      linkToCampaignMutation.mutate(selectedCampaignId);
+      setIsLinkDialogOpen(false);
+    }
+  }, [selectedCampaignId, linkToCampaignMutation]);
+
+  return {
+    isLinkDialogOpen,
+    setIsLinkDialogOpen,
+    selectedCampaignId,
+    setSelectedCampaignId,
+    linkToCampaignMutation,
+    handleLinkToCampaign,
+  };
+}
+
 // =====================================
 // Battle State Hook
 // =====================================
 
 export function useBattleTrackerPageState(initialBattleId?: string) {
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
   const { rosterState, rosterActions, undoActions } = useUndoableRosterState();
   const { dialogState, dialogActions } = useBattleDialogState();
 
@@ -170,60 +266,50 @@ export function useBattleTrackerPageState(initialBattleId?: string) {
   const [battleStatus, setBattleStatus] =
     useState<BattleState['status']>('planning');
   const [activeBattleId, setActiveBattleId] = useState<string | null>(null);
-  const [hasLoadedInitial, setHasLoadedInitial] = useState(false);
-  const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
-  const [selectedCampaignId, setSelectedCampaignId] = useState('');
 
   const { data: campaigns = [] } = useCampaigns();
 
-  // Load initial battle if battleId is provided
-  const { data: initialBattle } = useQuery({
-    queryKey: ['standalone-battle', initialBattleId],
-    queryFn: () =>
-      initialBattleId ? getStandaloneBattle(initialBattleId) : null,
-    enabled: !!initialBattleId && !hasLoadedInitial,
-  });
+  // Load initial battle from standalone storage
+  const handleBattleLoaded = useCallback((battle: BattleState) => {
+    setActiveBattleId(battle.id);
+    setBattleName(battle.name);
+    setBattleStatus(battle.status ?? 'planning');
+    rosterActionsRef.current.setCharacters(battleCharactersToTrackers(battle));
+    rosterActionsRef.current.setAdversaries(
+      battleAdversariesToTrackers(battle)
+    );
+    rosterActionsRef.current.setEnvironments(
+      battleEnvironmentsToTrackers(battle)
+    );
+    rosterActionsRef.current.setSpotlight(battle.spotlight ?? null);
+    rosterActionsRef.current.setSpotlightHistory(battle.spotlightHistory ?? []);
+    rosterActionsRef.current.setFearPool(battle.fearPool ?? 0);
+    rosterActionsRef.current.setUseMassiveThreshold(
+      battle.useMassiveThreshold ?? false
+    );
+  }, []);
+  useInitialBattleLoader(initialBattleId, handleBattleLoaded);
 
-  // Load initial battle into state once fetched
-  React.useEffect(() => {
-    if (initialBattle && !hasLoadedInitial) {
-      setActiveBattleId(initialBattle.id);
-      setBattleName(initialBattle.name);
-      setBattleStatus(initialBattle.status ?? 'planning');
-      rosterActionsRef.current.setCharacters(
-        battleCharactersToTrackers(initialBattle)
-      );
-      rosterActionsRef.current.setAdversaries(
-        battleAdversariesToTrackers(initialBattle)
-      );
-      rosterActionsRef.current.setEnvironments(
-        battleEnvironmentsToTrackers(initialBattle)
-      );
-      rosterActionsRef.current.setSpotlight(initialBattle.spotlight ?? null);
-      rosterActionsRef.current.setSpotlightHistory(
-        initialBattle.spotlightHistory ?? []
-      );
-      rosterActionsRef.current.setFearPool(initialBattle.fearPool ?? 0);
-      rosterActionsRef.current.setUseMassiveThreshold(
-        initialBattle.useMassiveThreshold ?? false
-      );
-      setHasLoadedInitial(true);
-    }
-  }, [initialBattle, hasLoadedInitial]);
+  // Link to campaign dialog state
+  const {
+    isLinkDialogOpen,
+    setIsLinkDialogOpen,
+    selectedCampaignId,
+    setSelectedCampaignId,
+    linkToCampaignMutation,
+    handleLinkToCampaign,
+  } = useLinkToCampaignDialog({
+    rosterState,
+    battleName,
+    battleStatus,
+    activeBattleId,
+  });
 
   // Save mutation
   const saveBattleMutation = useMutation({
     mutationFn: async () => {
       const now = new Date().toISOString();
-      const payloadState: RosterStateForPayload = {
-        characters: rosterState.characters,
-        adversaries: rosterState.adversaries,
-        environments: rosterState.environments,
-        spotlight: rosterState.spotlight,
-        spotlightHistory: rosterState.spotlightHistory,
-        fearPool: rosterState.fearPool,
-        useMassiveThreshold: rosterState.useMassiveThreshold,
-      };
+      const payloadState = buildRosterStatePayload(rosterState);
       const basePayload = buildBattlePayload(
         payloadState,
         battleName,
@@ -249,43 +335,6 @@ export function useBattleTrackerPageState(initialBattleId?: string) {
       void queryClient.invalidateQueries({ queryKey: ['standalone-battles'] });
     },
     onError: () => toast.error('Failed to save battle'),
-  });
-
-  // Link to campaign mutation
-  const linkToCampaignMutation = useMutation({
-    mutationFn: async (campaignId: string) => {
-      const payloadState: RosterStateForPayload = {
-        characters: rosterState.characters,
-        adversaries: rosterState.adversaries,
-        environments: rosterState.environments,
-        spotlight: rosterState.spotlight,
-        spotlightHistory: rosterState.spotlightHistory,
-        fearPool: rosterState.fearPool,
-        useMassiveThreshold: rosterState.useMassiveThreshold,
-      };
-      const battlePayload = buildBattlePayload(
-        payloadState,
-        battleName,
-        battleStatus
-      );
-      const campaignBattle = await createBattle(campaignId, battlePayload);
-      if (activeBattleId) {
-        await deleteStandaloneBattle(activeBattleId);
-      }
-      return { campaignId, battleId: campaignBattle.id };
-    },
-    onSuccess: ({ campaignId, battleId }) => {
-      void queryClient.invalidateQueries({ queryKey: ['standalone-battles'] });
-      void queryClient.invalidateQueries({
-        queryKey: ['campaign', campaignId],
-      });
-      void navigate({
-        to: '/gm/campaigns/$id/battle',
-        params: { id: campaignId },
-        search: { battleId, tab: 'overview' as const },
-      });
-    },
-    onError: () => toast.error('Failed to link battle to campaign'),
   });
 
   // Entity handlers (extracted to separate hook)
@@ -318,13 +367,6 @@ export function useBattleTrackerPageState(initialBattleId?: string) {
     rosterActionsRef.current.setFearPool(0);
     rosterActionsRef.current.setUseMassiveThreshold(false);
   }, []);
-
-  const handleLinkToCampaign = useCallback(() => {
-    if (selectedCampaignId) {
-      linkToCampaignMutation.mutate(selectedCampaignId);
-      setIsLinkDialogOpen(false);
-    }
-  }, [selectedCampaignId, linkToCampaignMutation]);
 
   return {
     // State

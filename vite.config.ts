@@ -75,6 +75,8 @@ export default defineConfig(({ mode }) => ({
           router: ['@tanstack/react-router'],
           query: ['@tanstack/react-query'],
           supabase: ['@supabase/supabase-js'],
+          zod: ['zod'],
+          icons: ['lucide-react'],
           radix: [
             '@radix-ui/react-alert-dialog',
             '@radix-ui/react-checkbox',

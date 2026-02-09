@@ -21,6 +21,18 @@ interface UseBrowseHomebrewStateOptions {
   onNavigateToHomebrew: () => void;
 }
 
+const SORT_CONFIG = {
+  forks: { sortBy: 'fork_count', sortOrder: 'desc' },
+  name: { sortBy: 'name', sortOrder: 'asc' },
+  recent: { sortBy: 'created_at', sortOrder: 'desc' },
+} as const;
+
+function flattenPages(
+  pages?: { items: HomebrewContent[] }[]
+): HomebrewContent[] {
+  return pages?.flatMap(page => page.items) ?? [];
+}
+
 export function useBrowseHomebrewState({
   userId,
   onNavigateToLogin,
@@ -37,25 +49,12 @@ export function useBrowseHomebrewState({
     return localStorage.getItem('hideForkInfo') !== 'true';
   });
 
-  // Map UI sort to API sort
-  const sortOptions = useMemo(() => {
-    switch (sortBy) {
-      case 'forks':
-        return { sortBy: 'fork_count' as const, sortOrder: 'desc' as const };
-      case 'name':
-        return { sortBy: 'name' as const, sortOrder: 'asc' as const };
-      case 'recent':
-      default:
-        return { sortBy: 'created_at' as const, sortOrder: 'desc' as const };
-    }
-  }, [sortBy]);
-
   // Data fetching
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } =
     usePublicHomebrewContentInfinite({
       contentType: typeFilter !== 'all' ? typeFilter : undefined,
       search: searchQuery.trim() || undefined,
-      ...sortOptions,
+      ...SORT_CONFIG[sortBy],
     });
 
   const createMutation = useCreateHomebrewContent();
@@ -65,16 +64,11 @@ export function useBrowseHomebrewState({
   const [createType, setCreateType] =
     useState<HomebrewContentType>('adversary');
 
-  // View dialog state
-  const [isViewOpen, setIsViewOpen] = useState(false);
+  // View dialog state — viewingItem doubles as open flag
   const [viewingItem, setViewingItem] = useState<HomebrewContent | null>(null);
 
   // Flatten paginated results
-  const pages = data?.pages;
-  const publicContent = useMemo(() => {
-    if (!pages) return [];
-    return pages.flatMap(page => page.items);
-  }, [pages]);
+  const publicContent = useMemo(() => flattenPages(data?.pages), [data?.pages]);
 
   // Get total from first page
   const totalCount = data?.pages[0]?.total ?? 0;
@@ -98,34 +92,42 @@ export function useBrowseHomebrewState({
     return () => observer.disconnect();
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
+  // Auth guard — redirects to login when unauthenticated
+  const requireAuth = useCallback(
+    (action: () => void) => {
+      if (!userId) {
+        onNavigateToLogin();
+        return;
+      }
+      action();
+    },
+    [userId, onNavigateToLogin]
+  );
+
   // Handlers
   const handleView = useCallback((item: HomebrewContent) => {
     setViewingItem(item);
-    setIsViewOpen(true);
+  }, []);
+
+  const handleViewOpenChange = useCallback((open: boolean) => {
+    if (!open) setViewingItem(null);
   }, []);
 
   const handleFork = useCallback(
     (item: HomebrewContent) => {
-      if (!userId) {
-        onNavigateToLogin();
-        return;
-      }
-      const sourceId = item.forkedFrom ?? item.id;
-      onNavigateToFork(sourceId);
+      requireAuth(() => onNavigateToFork(item.forkedFrom ?? item.id));
     },
-    [userId, onNavigateToLogin, onNavigateToFork]
+    [requireAuth, onNavigateToFork]
   );
 
   const handleCreate = useCallback(
     (type: HomebrewContentType) => {
-      if (!userId) {
-        onNavigateToLogin();
-        return;
-      }
-      setCreateType(type);
-      setIsCreateOpen(true);
+      requireAuth(() => {
+        setCreateType(type);
+        setIsCreateOpen(true);
+      });
     },
-    [userId, onNavigateToLogin]
+    [requireAuth]
   );
 
   const handleFormSubmit = useCallback(
@@ -181,8 +183,8 @@ export function useBrowseHomebrewState({
     isFetchingNextPage,
     fetchNextPage,
     // View dialog
-    isViewOpen,
-    setIsViewOpen,
+    isViewOpen: viewingItem !== null,
+    handleViewOpenChange,
     viewingItem,
     // Create dialog
     isCreateOpen,

@@ -21,6 +21,50 @@ import { DeleteCalendarDialog } from './calendar/delete-calendar-dialog';
 import { buildDayViewModels, useCalendarState } from './use-calendar-state';
 
 // =====================================================================================
+// CalendarResponsiveGrid — desktop month grid / mobile day list
+// =====================================================================================
+
+interface CalendarResponsiveGridProps {
+  days: ReturnType<typeof buildDayViewModels>;
+  selectedDay: number | null;
+  currentDay: number;
+  weekdays: string[];
+  onSelectDay: (dayIndex: number) => void;
+}
+
+function CalendarResponsiveGrid({
+  days,
+  selectedDay,
+  currentDay,
+  weekdays,
+  onSelectDay,
+}: CalendarResponsiveGridProps) {
+  return (
+    <div className="flex-1">
+      {/* Desktop: month grid */}
+      <div className="hidden md:block">
+        <CalendarMonthGrid
+          days={days}
+          selectedDay={selectedDay}
+          currentDay={currentDay}
+          weekdays={weekdays}
+          onSelectDay={onSelectDay}
+        />
+      </div>
+      {/* Mobile: day list */}
+      <div className="block md:hidden">
+        <CalendarDayList
+          days={days}
+          selectedDay={selectedDay}
+          currentDay={currentDay}
+          onSelectDay={onSelectDay}
+        />
+      </div>
+    </div>
+  );
+}
+
+// =====================================================================================
 // CalendarTabContent — Top-level orchestrator for the Campaign Calendar tab
 // =====================================================================================
 
@@ -147,6 +191,25 @@ export function CalendarTabContent({
     setSelectedDay(prev => (prev === dayIndex ? null : dayIndex));
   }, []);
 
+  // Close day detail panel
+  const handleCloseDetail = useCallback(() => {
+    setSelectedDay(null);
+  }, []);
+
+  // Delete-dialog open/close
+  const handleDeleteDialogChange = useCallback((open: boolean) => {
+    if (!open) setDeleteTarget(null);
+  }, []);
+
+  // Confirm calendar deletion
+  const handleConfirmDelete = useCallback(
+    (id: string) => {
+      removeCalendar(id);
+      setDeleteTarget(null);
+    },
+    [removeCalendar]
+  );
+
   // --- Render ---
 
   // No calendar configured — show setup wizard
@@ -188,28 +251,13 @@ export function CalendarTabContent({
       />
 
       <div className="flex flex-col gap-4 md:flex-row">
-        {/* Calendar grid/list */}
-        <div className="flex-1">
-          {/* Desktop: month grid */}
-          <div className="hidden md:block">
-            <CalendarMonthGrid
-              days={days}
-              selectedDay={selectedDay}
-              currentDay={activeCalendar.currentDay}
-              weekdays={activeCalendar.definition.weekdays}
-              onSelectDay={handleSelectDay}
-            />
-          </div>
-          {/* Mobile: day list */}
-          <div className="block md:hidden">
-            <CalendarDayList
-              days={days}
-              selectedDay={selectedDay}
-              currentDay={activeCalendar.currentDay}
-              onSelectDay={handleSelectDay}
-            />
-          </div>
-        </div>
+        <CalendarResponsiveGrid
+          days={days}
+          selectedDay={selectedDay}
+          currentDay={activeCalendar.currentDay}
+          weekdays={activeCalendar.definition.weekdays}
+          onSelectDay={handleSelectDay}
+        />
 
         {/* Day detail panel */}
         {selectedDayDetails && selectedDay !== null && (
@@ -225,7 +273,7 @@ export function CalendarTabContent({
               onAddEvent={addEvent}
               onUpdateEvent={updateEvent}
               onDeleteEvent={deleteEvent}
-              onClose={() => setSelectedDay(null)}
+              onClose={handleCloseDetail}
             />
           </div>
         )}
@@ -235,13 +283,8 @@ export function CalendarTabContent({
       <DeleteCalendarDialog
         calendar={calendarToDelete}
         open={deleteTarget !== null}
-        onOpenChange={open => {
-          if (!open) setDeleteTarget(null);
-        }}
-        onConfirm={id => {
-          removeCalendar(id);
-          setDeleteTarget(null);
-        }}
+        onOpenChange={handleDeleteDialogChange}
+        onConfirm={handleConfirmDelete}
       />
     </div>
   );

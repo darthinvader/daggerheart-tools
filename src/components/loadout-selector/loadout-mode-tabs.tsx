@@ -1,5 +1,11 @@
+import { Library, type LucideIcon, Star, Wrench } from 'lucide-react';
 import { CustomIcon, type ModeOption, ModeTabs } from '@/components/shared';
-import { LoadoutModeIcons } from '@/lib/icons';
+
+const LoadoutModeIcons: Record<string, LucideIcon> = {
+  standard: Library,
+  allCards: Star,
+  homebrew: Wrench,
+} as const;
 import type { LoadoutMode } from '@/lib/schemas/loadout';
 
 interface LoadoutModeTabsProps {
