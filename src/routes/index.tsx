@@ -16,10 +16,8 @@ import {
   Crown,
   Dices,
   FolderOpen,
-  Globe,
   Heart,
   Leaf,
-  Plus,
   Scroll,
   Shield,
   ShieldAlert,
@@ -30,7 +28,6 @@ import {
   Target,
   Users,
   UsersRound,
-  Wand2,
   Zap,
 } from 'lucide-react';
 
@@ -52,16 +49,6 @@ export const Route = createFileRoute('/' as const)({
 // ─────────────────────────────────────────────────────────────────────────────
 // Data Types
 // ─────────────────────────────────────────────────────────────────────────────
-
-interface QuickAction {
-  to: string;
-  label: string;
-  description: string;
-  icon: LucideIcon;
-  iconColor: string;
-  bgColor: string;
-  borderColor: string;
-}
 
 interface FeatureSection {
   title: string;
@@ -103,63 +90,6 @@ const stats: StatItem[] = [
 // Data
 // ─────────────────────────────────────────────────────────────────────────────
 
-const quickActions: QuickAction[] = [
-  {
-    to: '/character/new',
-    label: 'New Character',
-    description: 'Create a new character with guided setup',
-    icon: Plus,
-    iconColor: 'text-blue-500',
-    bgColor: 'bg-blue-500/10',
-    borderColor: 'border-blue-500/20',
-  },
-  {
-    to: '/character',
-    label: 'My Characters',
-    description: 'View and manage your characters',
-    icon: Users,
-    iconColor: 'text-indigo-500',
-    bgColor: 'bg-indigo-500/10',
-    borderColor: 'border-indigo-500/20',
-  },
-  {
-    to: '/gm',
-    label: 'GM Tools',
-    description: 'Dashboard for Game Masters',
-    icon: Crown,
-    iconColor: 'text-amber-500',
-    bgColor: 'bg-amber-500/10',
-    borderColor: 'border-amber-500/20',
-  },
-  {
-    to: '/gm/campaigns',
-    label: 'My Campaigns',
-    description: 'Manage your campaign frames',
-    icon: FolderOpen,
-    iconColor: 'text-emerald-500',
-    bgColor: 'bg-emerald-500/10',
-    borderColor: 'border-emerald-500/20',
-  },
-  {
-    to: '/homebrew',
-    label: 'My Homebrew',
-    description: 'Create and manage custom content',
-    icon: Beaker,
-    iconColor: 'text-purple-500',
-    bgColor: 'bg-purple-500/10',
-    borderColor: 'border-purple-500/20',
-  },
-  {
-    to: '/homebrew/browse',
-    label: 'Browse Homebrew',
-    description: 'Discover community creations',
-    icon: Globe,
-    iconColor: 'text-green-500',
-    bgColor: 'bg-green-500/10',
-    borderColor: 'border-green-500/20',
-  },
-];
-
 const featureSections: FeatureSection[] = [
   {
     title: 'Character Builder',
@@ -194,9 +124,9 @@ const featureSections: FeatureSection[] = [
       { text: 'GM Dashboard', to: '/gm' },
       { text: 'Campaign management', to: '/gm/campaigns' },
       { text: 'Battle tracker', to: '/gm/saved-encounters' },
-      { text: 'Campaign frame templates', to: '/gm/campaigns/new' },
-      { text: 'Session notes & prep' },
-      { text: 'Fear pool tracking' },
+      { text: 'Ambient soundboard', to: '/gm/soundboard' },
+      { text: 'Session scheduling', to: '/gm/scheduling' },
+      { text: 'Quick battle mode', to: '/gm/battle-tracker' },
     ],
   },
   {
@@ -347,6 +277,15 @@ const referenceCategories: ReferenceCategory[] = [
     bgColor: 'bg-emerald-500/10',
     count: 'GM',
   },
+  {
+    to: '/references/gm-moves',
+    title: 'GM Moves',
+    description: 'Actions & reactions',
+    icon: Target,
+    iconColor: 'text-orange-500',
+    bgColor: 'bg-orange-500/10',
+    count: 'GM',
+  },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -483,11 +422,21 @@ function HeroSection() {
         </div>
 
         {/* Subheadline - story-driven with emphasis */}
-        <p className="text-muted-foreground mb-8 max-w-xl text-lg font-medium sm:text-xl">
+        <p className="text-muted-foreground mb-4 max-w-xl text-lg font-medium sm:text-xl">
           Build your hero. Run epic campaigns.{' '}
           <span className="from-primary bg-gradient-to-r to-violet-600 bg-clip-text font-bold text-transparent">
             Everything you need in one place.
           </span>
+        </p>
+        <p className="text-muted-foreground/70 mb-8 text-sm">
+          New to Daggerheart?{' '}
+          <Link
+            to="/rules"
+            className="text-primary hover:text-primary/80 underline underline-offset-4"
+          >
+            Learn the rules
+          </Link>{' '}
+          to get started.
         </p>
 
         {/* Dual-path CTAs - LARGER with more visual impact */}
@@ -562,130 +511,38 @@ function HeroSection() {
   );
 }
 
-function QuickActionsSection() {
-  return (
-    <section className="bg-muted/30 relative overflow-hidden py-16">
-      {/* Floating decorations */}
-      <FloatingDecorations variant="alt" />
-
-      <div className="relative z-10 container mx-auto px-4">
-        <div className="mb-10 flex items-center justify-between">
-          <div>
-            <Badge
-              variant="secondary"
-              className="mb-3 gap-1.5 px-3 py-1 text-xs"
-            >
-              <Zap className="size-3 text-amber-500" />
-              Shortcuts
-            </Badge>
-            <h2 className="from-foreground to-foreground/70 bg-gradient-to-r bg-clip-text text-2xl font-bold tracking-tight text-transparent sm:text-3xl">
-              Quick Actions
-            </h2>
-            <p className="text-muted-foreground mt-2">
-              Jump straight to what you need
-            </p>
-          </div>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {quickActions.map(action => {
-            const Icon = action.icon;
-            return (
-              <Link key={action.to} to={action.to} className="group block">
-                <Card
-                  className={cn(
-                    'relative h-full overflow-hidden border-2 transition-all duration-300',
-                    'hover:scale-[1.02] hover:shadow-xl',
-                    action.borderColor,
-                    'hover:border-primary/40'
-                  )}
-                >
-                  {/* Glow effect on hover */}
-                  <div
-                    className={cn(
-                      'pointer-events-none absolute -inset-px opacity-0 transition-opacity duration-300 group-hover:opacity-100',
-                      action.bgColor
-                    )}
-                  />
-                  <CardHeader className="relative pb-2">
-                    <CardTitle className="flex items-center gap-3">
-                      <div
-                        className={cn(
-                          'flex size-12 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110',
-                          action.bgColor
-                        )}
-                      >
-                        <Icon
-                          className={cn(
-                            'size-6 transition-colors',
-                            action.iconColor
-                          )}
-                        />
-                      </div>
-                      <div>
-                        <span className="text-lg">{action.label}</span>
-                        <CardDescription className="mt-0.5">
-                          {action.description}
-                        </CardDescription>
-                      </div>
-                    </CardTitle>
-                  </CardHeader>
-                  {/* Arrow indicator */}
-                  <div className="text-muted-foreground absolute top-1/2 right-4 -translate-y-1/2 opacity-0 transition-all group-hover:translate-x-1 group-hover:opacity-100">
-                    <ArrowRight className="size-5" />
-                  </div>
-                </Card>
-              </Link>
-            );
-          })}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function FeaturesSection() {
   return (
     <section className="relative overflow-hidden px-4 py-16">
-      {/* Animated gradient background */}
+      {/* Subtle background */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 via-transparent to-blue-500/5" />
-        <div className="from-primary/10 absolute top-0 right-1/4 h-[300px] w-[300px] animate-pulse rounded-full bg-radial to-transparent blur-3xl [animation-delay:1s]" />
       </div>
 
-      {/* Floating decorations */}
-      <FloatingDecorations variant="default" />
+      {/* Floating decorations for visual interest */}
+      <FloatingDecorations variant="alt" />
 
       <div className="relative z-10 container mx-auto">
-        <div className="mb-10 flex items-center justify-between">
-          <div>
-            <Badge
-              variant="secondary"
-              className="mb-3 gap-1.5 px-3 py-1 text-xs"
-            >
-              <Target className="size-3 text-violet-500" />
-              All-in-One
-            </Badge>
-            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-              Everything You{' '}
-              <span className="from-primary bg-gradient-to-r to-violet-600 bg-clip-text text-transparent">
-                Need
-              </span>
-            </h2>
-            <p className="text-muted-foreground mt-2">
-              Complete toolkit for players and Game Masters
-            </p>
-          </div>
+        <div className="mb-10">
+          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">
+            Everything You Need
+          </h2>
+          <p className="text-muted-foreground mt-2 text-sm sm:text-base">
+            Complete toolkit for players and Game Masters
+          </p>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {featureSections.map(section => {
+          {featureSections.map((section, idx) => {
             const Icon = section.icon;
             return (
               <Link
                 key={section.to}
                 to={section.to}
-                className="group block h-full"
+                className={cn(
+                  'group animate-fade-up block h-full',
+                  `stagger-${idx + 1}`
+                )}
               >
                 <Card
                   className={cn(
@@ -729,7 +586,7 @@ function FeaturesSection() {
                   </CardHeader>
                   <CardContent className="relative pt-0">
                     <ul className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs">
-                      {section.features.slice(0, 4).map((feature, idx) => (
+                      {section.features.map((feature, idx) => (
                         <li
                           key={idx}
                           className="text-muted-foreground group-hover:text-foreground/80 flex items-center gap-1 transition-colors"
@@ -753,36 +610,28 @@ function FeaturesSection() {
 function ReferencesSection() {
   return (
     <section className="bg-muted/30 relative overflow-hidden px-4 py-16">
-      {/* Floating decorations */}
-      <FloatingDecorations variant="warm" />
-
       <div className="relative z-10 container mx-auto">
-        <div className="mb-10 flex items-center justify-between">
-          <div>
-            <Badge
-              variant="secondary"
-              className="mb-3 gap-1.5 px-3 py-1 text-xs"
-            >
-              <BookOpen className="size-3 text-amber-500" />
-              SRD
-            </Badge>
-            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-              Reference{' '}
-              <span className="bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent">
-                Guide
-              </span>
-            </h2>
-            <p className="text-muted-foreground mt-2">
-              Browse the complete Daggerheart SRD
-            </p>
-          </div>
+        <div className="mb-10">
+          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">
+            Reference Guide
+          </h2>
+          <p className="text-muted-foreground mt-2 text-sm sm:text-base">
+            Browse the complete Daggerheart SRD
+          </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
-          {referenceCategories.map(category => {
+        <div className="flex gap-3 overflow-x-auto pb-2 sm:grid sm:grid-cols-3 sm:overflow-visible md:grid-cols-3 lg:grid-cols-9">
+          {referenceCategories.map((category, idx) => {
             const Icon = category.icon;
             return (
-              <Link key={category.to} to={category.to} className="group block">
+              <Link
+                key={category.to}
+                to={category.to}
+                className={cn(
+                  'group animate-fade-up block min-w-[120px] sm:min-w-0',
+                  `stagger-${(idx % 6) + 1}`
+                )}
+              >
                 <Card
                   className={cn(
                     'relative h-full overflow-hidden text-center transition-all duration-300',
@@ -846,31 +695,22 @@ function ReferencesSection() {
 function CTASection() {
   return (
     <section className="relative overflow-hidden px-4 py-20 text-center">
-      {/* Animated gradient background */}
+      {/* Subtle gradient background */}
       <div className="absolute inset-0 -z-10">
         <div className="from-primary/10 absolute inset-0 bg-gradient-to-t via-violet-500/5 to-transparent" />
-        <div className="from-primary/20 absolute bottom-0 left-1/2 h-[400px] w-[600px] -translate-x-1/2 translate-y-1/2 animate-pulse rounded-full bg-radial to-transparent blur-3xl" />
       </div>
 
       {/* Floating decorations */}
-      <FloatingDecorations variant="default" />
+      <FloatingDecorations variant="warm" />
 
       <div className="relative z-10 container mx-auto max-w-2xl">
-        {/* Glowing icon */}
-        <div className="bg-primary/15 border-primary/30 shadow-primary/20 mx-auto mb-8 w-fit animate-pulse rounded-full border-2 p-4 shadow-xl">
-          <Dices className="text-primary size-10" />
-        </div>
-
-        <h2 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">
-          Ready to begin your{' '}
-          <span className="from-primary bg-gradient-to-r via-violet-500 to-purple-600 bg-clip-text text-transparent">
-            adventure
-          </span>
-          ?
+        <h2 className="mb-4 text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">
+          Sign in to save your progress
         </h2>
 
         <p className="text-muted-foreground mx-auto mb-8 max-w-md text-base">
-          Create your first character, start a campaign, or explore the guides.
+          Sync characters across devices, manage campaigns, and access your
+          content from anywhere. Free and always will be.
         </p>
 
         <div className="flex flex-wrap items-center justify-center gap-4">
@@ -879,25 +719,35 @@ function CTASection() {
             size="lg"
             className="group shadow-primary/30 gap-2 shadow-lg"
           >
-            <Link to="/character/new">
+            <Link to="/login">
               <Sparkles className="size-5" />
-              Create Character
+              Sign In
               <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" />
             </Link>
           </Button>
           <Button asChild variant="outline" size="lg" className="gap-2">
-            <Link to="/gm">
-              <Wand2 className="size-5" />
-              GM Dashboard
+            <Link to="/character/new">
+              <Users className="size-5" />
+              Try Without Account
             </Link>
           </Button>
         </div>
 
         <p className="text-muted-foreground/60 mt-10 text-sm">
-          ✨ Free • Open Source • No Account Required
+          Free • Open Source • Fan-made with love
         </p>
       </div>
     </section>
+  );
+}
+
+function SectionDivider() {
+  return (
+    <div className="flex items-center justify-center gap-3 py-2">
+      <div className="from-primary/30 h-px max-w-24 flex-1 bg-gradient-to-r to-transparent" />
+      <Sparkles className="text-primary/30 size-4 animate-pulse" />
+      <div className="from-primary/30 h-px max-w-24 flex-1 bg-gradient-to-l to-transparent" />
+    </div>
   );
 }
 
@@ -909,9 +759,11 @@ function Index() {
   return (
     <div className="flex min-h-[calc(100vh-4rem)] flex-col">
       <HeroSection />
-      <QuickActionsSection />
+      <SectionDivider />
       <FeaturesSection />
+      <SectionDivider />
       <ReferencesSection />
+      <SectionDivider />
       <CTASection />
     </div>
   );

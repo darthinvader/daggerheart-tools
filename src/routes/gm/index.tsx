@@ -85,11 +85,11 @@ function StatCard({
 function DashboardHeader() {
   return (
     <div className="mb-8">
-      <span className="text-2xl font-bold">
+      <h1 className="text-xl font-bold sm:text-2xl lg:text-3xl">
         <Crown className="mr-2 inline-block size-6 text-amber-500" />
         GM Tools
-      </span>
-      <p className="text-muted-foreground mt-2">
+      </h1>
+      <p className="text-muted-foreground mt-2 text-sm sm:text-base">
         Manage your campaigns, track battles, and run your Daggerheart sessions
       </p>
     </div>
@@ -99,7 +99,7 @@ function DashboardHeader() {
 function QuickActionsSection() {
   return (
     <>
-      <h2 className="mb-4 text-xl font-semibold">Quick Actions</h2>
+      <h2 className="mb-4 text-lg font-semibold sm:text-xl">Quick Actions</h2>
       <div className="mb-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Link to="/gm/campaigns/new" className="block">
           <Card className="h-full cursor-pointer border-green-500/20 bg-gradient-to-br from-green-500/5 to-green-500/10 transition-all hover:scale-[1.02] hover:shadow-md">
@@ -183,6 +183,23 @@ function QuickActionsSection() {
             </CardHeader>
           </Card>
         </Link>
+
+        <Link to="/gm/battle-tracker" className="block">
+          <Card className="h-full cursor-pointer border-orange-500/20 bg-gradient-to-br from-orange-500/5 to-orange-500/10 transition-all hover:scale-[1.02] hover:shadow-md">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-orange-500/10">
+                  <Swords className="size-5 text-orange-500" />
+                </div>
+                Quick Battle
+              </CardTitle>
+              <CardDescription>
+                Start a standalone battle tracker for one-off encounters or
+                quick combat prep
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
       </div>
     </>
   );
@@ -239,7 +256,9 @@ function WorldAtAGlanceSection({ campaigns }: { campaigns: Campaign[] }) {
 
   return (
     <>
-      <h2 className="mb-4 text-xl font-semibold">Your World at a Glance</h2>
+      <h2 className="mb-4 text-lg font-semibold sm:text-xl">
+        Your World at a Glance
+      </h2>
       <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         <StatCard
           icon={<FolderOpen className="h-4 w-4 text-blue-500" />}
@@ -352,7 +371,12 @@ function RecentCampaignsSection({
 
   return (
     <>
-      <h2 className="mb-4 text-xl font-semibold">Recent Campaigns</h2>
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-lg font-semibold sm:text-xl">Recent Campaigns</h2>
+        <Button asChild variant="ghost" size="sm">
+          <Link to="/gm/campaigns">View All</Link>
+        </Button>
+      </div>
       <div className="mb-8 space-y-2">
         {recentCampaigns.map(campaign => (
           <CampaignRow key={campaign.id} campaign={campaign} />
@@ -365,40 +389,44 @@ function RecentCampaignsSection({
 function FeaturesSection() {
   return (
     <>
-      <h2 className="mb-4 text-xl font-semibold">Features</h2>
+      <h2 className="mb-4 text-lg font-semibold sm:text-xl">Features</h2>
       <div className="grid gap-4 md:grid-cols-2">
-        <Card className="border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-amber-500/10">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Crown className="size-5 text-amber-500" />
-              Campaign Frames
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="text-muted-foreground list-inside list-disc space-y-1 text-sm">
-              <li>Choose from pre-built frames (Witherwild, Five Banners)</li>
-              <li>Customize pitch, themes, tones, and distinctions</li>
-              <li>Define campaign mechanics and principles</li>
-              <li>Create session zero discussion questions</li>
-            </ul>
-          </CardContent>
-        </Card>
+        <Link to="/gm/campaigns/new" className="block">
+          <Card className="h-full border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-amber-500/10 transition-shadow hover:shadow-md">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Crown className="size-5 text-amber-500" />
+                Campaign Frames
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="text-muted-foreground list-inside list-disc space-y-1 text-sm">
+                <li>Choose from pre-built frames (Witherwild, Five Banners)</li>
+                <li>Customize pitch, themes, tones, and distinctions</li>
+                <li>Define campaign mechanics and principles</li>
+                <li>Create session zero discussion questions</li>
+              </ul>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card className="border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-purple-500/10">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Users className="size-5 text-purple-500" />
-              Player Management
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="text-muted-foreground list-inside list-disc space-y-1 text-sm">
-              <li>Invite players via shareable links</li>
-              <li>Track character sheets and progression</li>
-              <li>Manage party resources and inventory</li>
-            </ul>
-          </CardContent>
-        </Card>
+        <Link to="/gm/scheduling" className="block">
+          <Card className="h-full border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-purple-500/10 transition-shadow hover:shadow-md">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Users className="size-5 text-purple-500" />
+                Player Management
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="text-muted-foreground list-inside list-disc space-y-1 text-sm">
+                <li>Invite players via shareable links</li>
+                <li>Track character sheets and progression</li>
+                <li>Schedule sessions with availability polls</li>
+              </ul>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
     </>
   );
@@ -415,12 +443,17 @@ function GmDashboard() {
   }, []);
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <DashboardHeader />
-      <QuickActionsSection />
-      <CampaignStatsSection campaigns={campaigns} isLoading={isLoading} />
-      <RecentCampaignsSection campaigns={campaigns} isLoading={isLoading} />
-      <FeaturesSection />
+    <div className="relative">
+      {/* Decorative gradient header */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-64 bg-gradient-to-b from-amber-500/5 via-orange-500/3 to-transparent" />
+
+      <div className="container mx-auto px-4 py-8">
+        <DashboardHeader />
+        <QuickActionsSection />
+        <CampaignStatsSection campaigns={campaigns} isLoading={isLoading} />
+        <RecentCampaignsSection campaigns={campaigns} isLoading={isLoading} />
+        <FeaturesSection />
+      </div>
     </div>
   );
 }

@@ -9,6 +9,7 @@ import {
   ArrowDownAZ,
   ArrowUpAZ,
   ChevronDown,
+  Clock,
   FolderOpen,
   LogIn,
   Plus,
@@ -83,6 +84,40 @@ function getComplexityLabel(
   return COMPLEXITY_LABELS[complexity];
 }
 
+const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
+  active: {
+    label: 'Active',
+    color: 'bg-green-500/15 text-green-600 dark:text-green-400',
+  },
+  draft: {
+    label: 'Draft',
+    color: 'bg-zinc-500/15 text-zinc-500 dark:text-zinc-400',
+  },
+  paused: {
+    label: 'Paused',
+    color: 'bg-amber-500/15 text-amber-600 dark:text-amber-400',
+  },
+  completed: {
+    label: 'Completed',
+    color: 'bg-blue-500/15 text-blue-600 dark:text-blue-400',
+  },
+};
+
+function formatRelativeTime(dateString: string): string {
+  const now = Date.now();
+  const then = new Date(dateString).getTime();
+  const diffMs = now - then;
+  const diffMins = Math.floor(diffMs / 60_000);
+  const diffHours = Math.floor(diffMs / 3_600_000);
+  const diffDays = Math.floor(diffMs / 86_400_000);
+
+  if (diffMins < 1) return 'just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 30) return `${diffDays}d ago`;
+  return new Date(dateString).toLocaleDateString();
+}
+
 function formatDeletedDate(dateStr: string) {
   const date = new Date(dateStr);
   const now = new Date();
@@ -101,9 +136,10 @@ interface CampaignCardProps {
 
 function CampaignCard({ campaign, onDelete }: CampaignCardProps) {
   const complexity = getComplexityLabel(campaign.frame.complexity);
+  const statusCfg = STATUS_CONFIG[campaign.status] ?? STATUS_CONFIG.draft;
 
   return (
-    <Card className="group relative cursor-pointer transition-shadow hover:shadow-md">
+    <Card className="group relative cursor-pointer transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg">
       <Link
         to="/gm/campaigns/$id"
         params={{ id: campaign.id }}
@@ -115,11 +151,16 @@ function CampaignCard({ campaign, onDelete }: CampaignCardProps) {
         <div className="flex items-start justify-between">
           <div className="min-w-0 flex-1">
             <CardTitle className="truncate">{campaign.name}</CardTitle>
-            <CardDescription className="mt-1">
+            <CardDescription className="mt-1 flex items-center gap-2">
               <span
                 className={`rounded px-2 py-0.5 text-xs ${complexity.color}`}
               >
                 {complexity.label}
+              </span>
+              <span
+                className={`rounded px-2 py-0.5 text-xs ${statusCfg.color}`}
+              >
+                {statusCfg.label}
               </span>
             </CardDescription>
           </div>
@@ -146,13 +187,17 @@ function CampaignCard({ campaign, onDelete }: CampaignCardProps) {
         <p className="text-muted-foreground line-clamp-2 text-sm">
           {campaign.frame.pitch || 'No pitch defined'}
         </p>
-        <div className="text-muted-foreground mt-2 flex gap-2 text-xs">
+        <div className="text-muted-foreground mt-2 flex items-center gap-2 text-xs">
           {campaign.sessions.length > 0 && (
             <span>{campaign.sessions.length} sessions</span>
           )}
           {campaign.players.length > 0 && (
             <span>· {campaign.players.length} players</span>
           )}
+          <span className="ml-auto flex items-center gap-1">
+            <Clock className="size-3" />
+            {formatRelativeTime(campaign.updatedAt)}
+          </span>
         </div>
         {campaign.frame.themes.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-1">
@@ -179,10 +224,35 @@ function CampaignCard({ campaign, onDelete }: CampaignCardProps) {
 interface CampaignGridProps {
   campaigns: Campaign[];
   onDelete: (campaign: Campaign) => void;
+  isFiltered?: boolean;
+  onClearFilters?: () => void;
 }
 
-function CampaignGrid({ campaigns, onDelete }: CampaignGridProps) {
+function CampaignGrid({
+  campaigns,
+  onDelete,
+  isFiltered,
+  onClearFilters,
+}: CampaignGridProps) {
   if (campaigns.length === 0) {
+    if (isFiltered) {
+      return (
+        <Card className="border-dashed">
+          <CardContent className="flex flex-col items-center justify-center py-16">
+            <Search className="text-muted-foreground mb-4 h-12 w-12" />
+            <h3 className="mb-2 text-lg font-medium">No matching campaigns</h3>
+            <p className="text-muted-foreground mb-4 text-center">
+              Try adjusting your search or filters
+            </p>
+            {onClearFilters && (
+              <Button variant="outline" onClick={onClearFilters}>
+                Clear Filters
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      );
+    }
     return (
       <Card className="border-dashed">
         <CardContent className="flex flex-col items-center justify-center py-16">
@@ -510,97 +580,107 @@ function CampaignsList() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <span className="text-2xl font-bold">
-            <FolderOpen className="mr-2 inline-block size-6 text-blue-500" />
-            My Campaigns
-          </span>
-          <p className="text-muted-foreground mt-2">
-            Manage your campaign frames and settings
-          </p>
+    <div className="relative">
+      {/* Decorative gradient header */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-64 bg-gradient-to-b from-blue-500/5 via-indigo-500/3 to-transparent" />
+
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-xl font-bold sm:text-2xl lg:text-3xl">
+              <FolderOpen className="mr-2 inline-block size-6 text-blue-500" />
+              My Campaigns
+            </h1>
+            <p className="text-muted-foreground mt-2 text-sm sm:text-base">
+              Manage your campaign frames and settings
+            </p>
+          </div>
+          <Button asChild disabled={!isAuthenticated} size="lg">
+            <Link to="/gm/campaigns/new">
+              <Plus className="mr-2 size-5" />
+              New Campaign
+            </Link>
+          </Button>
         </div>
-        <Button asChild disabled={!isAuthenticated} size="lg">
-          <Link to="/gm/campaigns/new">
-            <Plus className="mr-2 size-5" />
-            New Campaign
-          </Link>
-        </Button>
-      </div>
 
-      {!isAuthLoading && !isAuthenticated && (
-        <Alert className="mb-6 border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950">
-          <LogIn className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-          <AlertTitle className="text-amber-800 dark:text-amber-200">
-            Account Required
-          </AlertTitle>
-          <AlertDescription className="text-amber-700 dark:text-amber-300">
-            You need to{' '}
-            <Link
-              to="/login"
-              className="font-medium underline hover:no-underline"
-            >
-              sign in
-            </Link>{' '}
-            to create and manage campaigns.
-          </AlertDescription>
-        </Alert>
-      )}
+        {!isAuthLoading && !isAuthenticated && (
+          <Alert className="mb-6 border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950">
+            <LogIn className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+            <AlertTitle className="text-amber-800 dark:text-amber-200">
+              Account Required
+            </AlertTitle>
+            <AlertDescription className="text-amber-700 dark:text-amber-300">
+              You need to{' '}
+              <Link
+                to="/login"
+                className="font-medium underline hover:no-underline"
+              >
+                sign in
+              </Link>{' '}
+              to create and manage campaigns.
+            </AlertDescription>
+          </Alert>
+        )}
 
-      {/* Search, Filter & Sort Controls */}
-      {campaigns.length > 0 && (
-        <CampaignSearchBar
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          complexityFilter={complexityFilter}
-          onComplexityFilterChange={setComplexityFilter}
-          sortOrder={sortOrder}
-          onSortOrderToggle={toggleSortOrder}
+        {/* Search, Filter & Sort Controls */}
+        {campaigns.length > 0 && (
+          <CampaignSearchBar
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            complexityFilter={complexityFilter}
+            onComplexityFilterChange={setComplexityFilter}
+            sortOrder={sortOrder}
+            onSortOrderToggle={toggleSortOrder}
+          />
+        )}
+
+        <CampaignGrid
+          campaigns={filteredCampaigns}
+          onDelete={campaign => setDeleteTarget(campaign)}
+          isFiltered={!!searchQuery.trim() || !!complexityFilter}
+          onClearFilters={() => {
+            setSearchQuery('');
+            setComplexityFilter(null);
+          }}
         />
-      )}
 
-      <CampaignGrid
-        campaigns={filteredCampaigns}
-        onDelete={campaign => setDeleteTarget(campaign)}
-      />
+        <RecycleBinSection
+          trashedCampaigns={trashedCampaigns}
+          trashOpen={trashOpen}
+          onTrashOpenChange={setTrashOpen}
+          onEmptyTrash={() => setShowEmptyTrashConfirm(true)}
+          onRestore={handleRestore}
+          onPermanentDelete={setPermanentDeleteTarget}
+        />
 
-      <RecycleBinSection
-        trashedCampaigns={trashedCampaigns}
-        trashOpen={trashOpen}
-        onTrashOpenChange={setTrashOpen}
-        onEmptyTrash={() => setShowEmptyTrashConfirm(true)}
-        onRestore={handleRestore}
-        onPermanentDelete={setPermanentDeleteTarget}
-      />
+        <ConfirmDialog
+          open={!!deleteTarget}
+          onOpenChange={clearDeleteTarget}
+          title="Move to Trash"
+          description={`Are you sure you want to move "${deleteTarget?.name}" to the recycle bin? You can restore it later.`}
+          actionLabel="Move to Trash"
+          onAction={handleDelete}
+        />
 
-      <ConfirmDialog
-        open={!!deleteTarget}
-        onOpenChange={clearDeleteTarget}
-        title="Move to Trash"
-        description={`Are you sure you want to move "${deleteTarget?.name}" to the recycle bin? You can restore it later.`}
-        actionLabel="Move to Trash"
-        onAction={handleDelete}
-      />
+        <ConfirmDialog
+          open={!!permanentDeleteTarget}
+          onOpenChange={clearPermanentDeleteTarget}
+          title="Delete Permanently"
+          description={`Are you sure you want to permanently delete "${permanentDeleteTarget?.name}"? This action cannot be undone.`}
+          actionLabel="Delete Forever"
+          onAction={handlePermanentDelete}
+        />
 
-      <ConfirmDialog
-        open={!!permanentDeleteTarget}
-        onOpenChange={clearPermanentDeleteTarget}
-        title="Delete Permanently"
-        description={`Are you sure you want to permanently delete "${permanentDeleteTarget?.name}"? This action cannot be undone.`}
-        actionLabel="Delete Forever"
-        onAction={handlePermanentDelete}
-      />
-
-      <ConfirmDialog
-        open={showEmptyTrashConfirm}
-        onOpenChange={setShowEmptyTrashConfirm}
-        title="Empty Recycle Bin"
-        description={`Are you sure you want to permanently delete all ${trashedCampaigns.length} campaign(s) in the recycle bin? This action cannot be undone.`}
-        actionLabel="Empty Trash"
-        onAction={handleEmptyTrash}
-      />
+        <ConfirmDialog
+          open={showEmptyTrashConfirm}
+          onOpenChange={setShowEmptyTrashConfirm}
+          title="Empty Recycle Bin"
+          description={`Are you sure you want to permanently delete all ${trashedCampaigns.length} campaign(s) in the recycle bin? This action cannot be undone.`}
+          actionLabel="Empty Trash"
+          onAction={handleEmptyTrash}
+        />
+      </div>
     </div>
   );
 }

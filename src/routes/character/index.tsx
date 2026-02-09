@@ -103,10 +103,9 @@ function CharactersError({
           Failed to load characters
         </h2>
         <p className="mb-4 text-sm text-red-600 dark:text-red-300">
-          {error instanceof Error ? error.message : 'Unknown error'}
-        </p>
-        <p className="mb-4 text-sm text-red-600 dark:text-red-300">
-          Make sure the JSON server is running on port 3001.
+          {error instanceof Error
+            ? error.message
+            : 'An unexpected error occurred.'}
         </p>
         <Button variant="outline" onClick={onRetry}>
           Retry
@@ -155,96 +154,101 @@ function CharactersContent({
   );
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <span className="text-2xl font-bold">
-            <Users className="text-primary mr-2 inline-block size-6" />
-            My Characters
-          </span>
-          <p className="text-muted-foreground mt-2">
-            Create and manage your Daggerheart characters
-          </p>
-        </div>
-        {characters && characters.length > 0 && (
-          <Button
-            onClick={onCreateNew}
-            disabled={isCreating || !isAuthenticated}
-            size="lg"
-          >
-            <Plus className="mr-2 size-5" />
-            {isCreating ? 'Creating...' : 'New Character'}
-          </Button>
-        )}
-      </div>
+    <div className="relative">
+      {/* Decorative gradient header */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-64 bg-gradient-to-b from-blue-500/5 via-indigo-500/3 to-transparent" />
 
-      {!isAuthenticated && (
-        <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
-          You are not logged in. Sign in to create and manage characters.
-        </div>
-      )}
-
-      {isCreateError && (
-        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
-          Failed to create character. {createErrorMessage}
-        </div>
-      )}
-
-      {activeCharacters.length === 0 ? (
-        <EmptyState
-          onCreateNew={onCreateNew}
-          isAuthenticated={isAuthenticated}
-        />
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {activeCharacters.map(character => (
-            <CharacterCard
-              key={character.id}
-              character={character}
-              onDelete={onDelete}
-              isDeleting={isDeleting}
-            />
-          ))}
-        </div>
-      )}
-
-      {deletedCharacters.length > 0 && (
-        <div className="mt-12 space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="bg-destructive/10 flex size-8 items-center justify-center rounded-lg">
-                <Trash2 className="text-destructive size-4" />
-              </div>
-              <h2 className="text-lg font-semibold">Recycling Bin</h2>
-              <span className="text-muted-foreground bg-muted rounded-full px-2 py-0.5 text-xs">
-                {deletedCharacters.length} deleted
-              </span>
-            </div>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={onEmptyBin}
-              disabled={isEmptyingBin || isPermanentlyDeleting}
-            >
-              <Trash2 className="mr-1 size-4" />
-              {isEmptyingBin ? 'Emptying...' : 'Empty Bin'}
-            </Button>
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-xl font-bold sm:text-2xl lg:text-3xl">
+              <Users className="text-primary mr-2 inline-block size-6" />
+              My Characters
+            </h1>
+            <p className="text-muted-foreground mt-2 text-sm sm:text-base">
+              Create and manage your Daggerheart characters
+            </p>
           </div>
+          {characters && characters.length > 0 && (
+            <Button
+              onClick={onCreateNew}
+              disabled={isCreating || !isAuthenticated}
+              size="lg"
+            >
+              <Plus className="mr-2 size-5" />
+              {isCreating ? 'Creating...' : 'New Character'}
+            </Button>
+          )}
+        </div>
+
+        {!isAuthenticated && (
+          <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
+            You are not logged in. Sign in to create and manage characters.
+          </div>
+        )}
+
+        {isCreateError && (
+          <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+            Failed to create character. {createErrorMessage}
+          </div>
+        )}
+
+        {activeCharacters.length === 0 ? (
+          <EmptyState
+            onCreateNew={onCreateNew}
+            isAuthenticated={isAuthenticated}
+          />
+        ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {deletedCharacters.map(character => (
-              <RecycleBinCard
+            {activeCharacters.map(character => (
+              <CharacterCard
                 key={character.id}
                 character={character}
-                onRestore={onRestore}
-                onPermanentDelete={onPermanentDelete}
-                isRestoring={isRestoring}
-                isDeleting={isPermanentlyDeleting}
+                onDelete={onDelete}
+                isDeleting={isDeleting}
               />
             ))}
           </div>
-        </div>
-      )}
+        )}
+
+        {deletedCharacters.length > 0 && (
+          <div className="mt-12 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="bg-destructive/10 flex size-8 items-center justify-center rounded-lg">
+                  <Trash2 className="text-destructive size-4" />
+                </div>
+                <h2 className="text-lg font-semibold">Recycling Bin</h2>
+                <span className="text-muted-foreground bg-muted rounded-full px-2 py-0.5 text-xs">
+                  {deletedCharacters.length} deleted
+                </span>
+              </div>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={onEmptyBin}
+                disabled={isEmptyingBin || isPermanentlyDeleting}
+              >
+                <Trash2 className="mr-1 size-4" />
+                {isEmptyingBin ? 'Emptying...' : 'Empty Bin'}
+              </Button>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {deletedCharacters.map(character => (
+                <RecycleBinCard
+                  key={character.id}
+                  character={character}
+                  onRestore={onRestore}
+                  onPermanentDelete={onPermanentDelete}
+                  isRestoring={isRestoring}
+                  isDeleting={isPermanentlyDeleting}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
