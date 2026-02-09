@@ -5,7 +5,6 @@ import { tanstackRouter } from '@tanstack/router-plugin/vite';
 import reactBabel from '@vitejs/plugin-react';
 import reactSwc from '@vitejs/plugin-react-swc';
 import { visualizer } from 'rollup-plugin-visualizer';
-import { compression } from 'vite-plugin-compression2';
 import { defineConfig } from 'vitest/config';
 
 // https://vite.dev/config/
@@ -24,8 +23,6 @@ export default defineConfig(({ mode }) => ({
         })
       : reactSwc(),
     tailwindcss(),
-    // Pre-compress built assets for optimal delivery (gzip + brotli)
-    compression({ algorithms: ['gzip', 'brotliCompress'], threshold: 1024 }),
     ...(process.env.ANALYZE
       ? [
           visualizer({
