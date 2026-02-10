@@ -73,21 +73,13 @@ function addModifiers(
 }
 
 /**
- * Check if a primary weapon is Two-Handed.
- */
-function isPrimaryTwoHanded(primaryWeapon: unknown): boolean {
-  if (!primaryWeapon || typeof primaryWeapon !== 'object') return false;
-  const weapon = primaryWeapon as Record<string, unknown>;
-  return weapon.burden === 'Two-Handed';
-}
-
-/**
  * Aggregate stat modifiers from all equipped items.
  *
  * Each equipment item is normalized first, then aggregated.
  * The normalization handles all equipment-type-specific logic.
  *
- * NOTE: If the primary weapon is Two-Handed, secondary weapon bonuses are skipped.
+ * Both weapons are always aggregated regardless of burden.
+ * Two-handed warnings are handled at the UI level only.
  *
  * @param armor - The equipped armor (if any)
  * @param primaryWeapon - The equipped primary weapon (if any)
@@ -99,20 +91,23 @@ export function aggregateEquipmentStats(
   armor?: unknown,
   primaryWeapon?: unknown,
   secondaryWeapon?: unknown,
-  wheelchair?: unknown
+  wheelchair?: unknown,
+  customSlots?: unknown[]
 ): AggregatedEquipmentStats {
   const stats = createEmptyAggregatedStats();
 
   // Normalize each equipment piece and aggregate
   addModifiers(stats, normalizeEquipment(armor));
   addModifiers(stats, normalizeEquipment(primaryWeapon));
-
-  // Skip secondary weapon bonuses if primary is Two-Handed
-  if (!isPrimaryTwoHanded(primaryWeapon)) {
-    addModifiers(stats, normalizeEquipment(secondaryWeapon));
-  }
-
+  addModifiers(stats, normalizeEquipment(secondaryWeapon));
   addModifiers(stats, normalizeEquipment(wheelchair));
+
+  // Process custom equipment slots (feature descriptions are parsed for modifiers)
+  if (customSlots) {
+    for (const slot of customSlots) {
+      addModifiers(stats, normalizeEquipment(slot));
+    }
+  }
 
   return stats;
 }

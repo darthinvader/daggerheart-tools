@@ -14,9 +14,20 @@ import {
   Trash2,
   Users,
 } from 'lucide-react';
+import { useState } from 'react';
 
 import { HomebrewList } from '@/components/homebrew';
 import { OfficialContentBrowser } from '@/components/homebrew/official-content-browser';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -270,6 +281,8 @@ interface CollectionsTabProps {
     description?: string | null;
   } | null;
   onSelectCollection: (id: string) => void;
+  onDeleteCollection: (id: string) => void;
+  isDeletingCollection: boolean;
   onCreateClick: () => void;
   isContentLoading: boolean;
   orderedContent: HomebrewContent[];
@@ -286,12 +299,15 @@ export function CollectionsTab({
   selectedCollectionId,
   selectedCollection,
   onSelectCollection,
+  onDeleteCollection,
+  isDeletingCollection,
   onCreateClick,
   isContentLoading,
   orderedContent,
   currentUserId,
   contentTabProps,
 }: CollectionsTabProps) {
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   if (isLoading) {
     return (
       <TabsContent value="collections">
@@ -337,25 +353,72 @@ export function CollectionsTab({
           </CardHeader>
           <div className="space-y-2 p-4 pt-0">
             {collections.map(collection => (
-              <Button
+              <div
                 key={collection.id}
-                variant={
-                  collection.id === selectedCollectionId ? 'secondary' : 'ghost'
-                }
-                className="w-full justify-start"
-                onClick={() => onSelectCollection(collection.id)}
+                className="group flex items-center gap-1"
               >
-                <div className="flex flex-col items-start text-left">
-                  <span className="text-sm font-medium">{collection.name}</span>
-                  {collection.description && (
-                    <span className="text-muted-foreground text-xs">
-                      {collection.description}
+                <Button
+                  variant={
+                    collection.id === selectedCollectionId
+                      ? 'secondary'
+                      : 'ghost'
+                  }
+                  className="min-w-0 flex-1 justify-start"
+                  onClick={() => onSelectCollection(collection.id)}
+                >
+                  <div className="flex flex-col items-start text-left">
+                    <span className="text-sm font-medium">
+                      {collection.name}
                     </span>
-                  )}
-                </div>
-              </Button>
+                    {collection.description && (
+                      <span className="text-muted-foreground text-xs">
+                        {collection.description}
+                      </span>
+                    )}
+                  </div>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-muted-foreground hover:text-destructive size-8 shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
+                  onClick={() => setDeleteTargetId(collection.id)}
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+              </div>
             ))}
           </div>
+
+          <AlertDialog
+            open={!!deleteTargetId}
+            onOpenChange={open => {
+              if (!open) setDeleteTargetId(null);
+            }}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete Collection</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to delete this collection? The homebrew
+                  items inside it will not be deleted.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  disabled={isDeletingCollection}
+                  onClick={async () => {
+                    if (deleteTargetId) {
+                      await onDeleteCollection(deleteTargetId);
+                      setDeleteTargetId(null);
+                    }
+                  }}
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </Card>
 
         <Card>

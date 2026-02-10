@@ -8,12 +8,8 @@ import { Backpack, ICON_SIZE_LG } from '@/lib/icons';
 
 interface InventoryHeaderProps {
   totalItems: number;
-  maxSlots: number;
-  unlimitedSlots: boolean;
   unlimitedQuantity: boolean;
-  onUnlimitedSlotsChange: (v: boolean) => void;
   onUnlimitedQuantityChange: (v: boolean) => void;
-  onMaxSlotsChange: (delta: number) => void;
   searchQuery: string;
   onSearchChange: (v: string) => void;
   onAddClick: () => void;
@@ -27,12 +23,8 @@ interface InventoryHeaderProps {
 
 export function InventoryHeader({
   totalItems,
-  maxSlots,
-  unlimitedSlots,
   unlimitedQuantity,
-  onUnlimitedSlotsChange,
   onUnlimitedQuantityChange,
-  onMaxSlotsChange,
   searchQuery,
   onSearchChange,
   onAddClick,
@@ -53,31 +45,7 @@ export function InventoryHeader({
         <CardTitle className="flex flex-wrap items-center gap-2">
           <Backpack size={ICON_SIZE_LG} />
           Inventory
-          {unlimitedSlots ? (
-            <Badge variant="secondary">{totalItems}/∞ items</Badge>
-          ) : (
-            <div className="flex items-center gap-1">
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-6 w-6 p-0"
-                onClick={() => onMaxSlotsChange(-5)}
-              >
-                <ChevronDown className="h-3 w-3" />
-              </Button>
-              <Badge variant="secondary">
-                {totalItems}/{maxSlots}
-              </Badge>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-6 w-6 p-0"
-                onClick={() => onMaxSlotsChange(5)}
-              >
-                <ChevronUp className="h-3 w-3" />
-              </Button>
-            </div>
-          )}
+          <Badge variant="secondary">{totalItems} items</Badge>
           {trackWeight && (
             <div className="flex items-center gap-1">
               <Scale className="text-muted-foreground h-4 w-4" />
@@ -118,14 +86,6 @@ export function InventoryHeader({
       </div>
 
       <div className="mt-3 flex flex-wrap gap-2">
-        <Button
-          size="sm"
-          variant={unlimitedSlots ? 'default' : 'outline'}
-          onClick={() => onUnlimitedSlotsChange(!unlimitedSlots)}
-          className="text-xs"
-        >
-          {unlimitedSlots ? '∞ Slots ON' : '∞ Slots'}
-        </Button>
         <Button
           size="sm"
           variant={unlimitedQuantity ? 'default' : 'outline'}

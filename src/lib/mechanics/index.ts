@@ -15,4 +15,5 @@ export {
   rollDice,
   rollDuality,
   rollEffectDie,
+  rollMultiEffectDie,
 } from './dice-engine';

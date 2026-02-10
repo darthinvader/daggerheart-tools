@@ -33,7 +33,7 @@ import {
 import { useCampaigns } from '@/features/campaigns/use-campaign-query';
 import type { BattleState } from '@/lib/schemas/battle';
 import { generateId } from '@/lib/utils';
-import { useBattleEntityHandlers } from './use-battle-entity-handlers';
+import { useBattleEntityHandlers } from './-use-battle-entity-handlers';
 
 // =====================================
 // Payload Builders (pure functions)

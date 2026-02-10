@@ -88,8 +88,6 @@ export function ClassForm({
   const {
     formData,
     selectedDomains,
-    classItems,
-    setClassItems,
     classFeatures,
     setClassFeatures,
     backgroundQuestions,
@@ -165,18 +163,6 @@ export function ClassForm({
           <Separator />
 
           {/* Class Items */}
-          <StringListSection
-            title="Class Items"
-            icon={<Sword className="size-4" />}
-            iconColor="text-orange-500"
-            description="Starting equipment options for this class."
-            items={classItems}
-            onChange={setClassItems}
-            placeholder="e.g., Longsword"
-            colorClass="orange-500"
-            displayMode="badges"
-          />
-
           <Separator />
 
           {/* Class Features */}

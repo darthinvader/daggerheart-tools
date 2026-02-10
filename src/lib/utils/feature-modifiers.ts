@@ -45,6 +45,8 @@ export interface BonusSourceEntry {
   detail?: string;
   modifiers: FeatureStatModifiers;
   experienceBonus?: { experience: string; bonus: number };
+  /** When true, the source is deactivated and excluded from stat totals */
+  disabled?: boolean;
 }
 
 export interface BonusBreakdown {
@@ -182,8 +184,11 @@ export function aggregateBonusBreakdown(params: {
       sourceName: entry.sourceName,
       detail: entry.detail,
       modifiers: entry.modifiers,
+      disabled: entry.disabled,
     });
-    addFeatureModifiers(totals, entry.modifiers);
+    if (!entry.disabled) {
+      addFeatureModifiers(totals, entry.modifiers);
+    }
   };
 
   const modifierContext = {
@@ -394,12 +399,12 @@ function collectClassSources(
 
   if (params.classSelection?.isHomebrew && homebrewClass) {
     for (const feature of homebrewClass.classFeatures ?? []) {
-      if (disabledFeatures.has(feature.name)) continue;
       pushSource({
         type: 'class-feature',
         sourceName: homebrewClass.name ?? className ?? 'Homebrew Class',
         detail: feature.name,
         modifiers: resolveModifiers(feature, context),
+        disabled: disabledFeatures.has(feature.name),
       });
     }
     return;
@@ -409,12 +414,12 @@ function collectClassSources(
   const gameClass = getClassByName(className);
   if (!gameClass) return;
   for (const feature of gameClass.classFeatures ?? []) {
-    if (disabledFeatures.has(feature.name)) continue;
     pushSource({
       type: 'class-feature',
       sourceName: className,
       detail: feature.name,
       modifiers: resolveModifiers(feature, context),
+      disabled: disabledFeatures.has(feature.name),
     });
   }
 }
@@ -435,22 +440,34 @@ function collectSubclassSources(
   const homebrewClass = params.classSelection?.homebrewClass;
   if (!className || !subclassName) return;
 
+  const disabledFeatures = new Set(
+    params.classSelection?.disabledFeatures ?? []
+  );
+
   if (params.classSelection?.isHomebrew && homebrewClass) {
     collectHomebrewSubclassSources(
       homebrewClass,
       subclassName,
+      disabledFeatures,
       context,
       pushSource
     );
     return;
   }
 
-  collectStandardSubclassSources(className, subclassName, context, pushSource);
+  collectStandardSubclassSources(
+    className,
+    subclassName,
+    disabledFeatures,
+    context,
+    pushSource
+  );
 }
 
 function collectHomebrewSubclassSources(
   homebrewClass: NonNullable<ClassSelection['homebrewClass']>,
   subclassName: string,
+  disabledFeatures: Set<string>,
   context: ModifierContext,
   pushSource: (
     entry: Omit<BonusSourceEntry, 'modifiers'> & {
@@ -468,6 +485,7 @@ function collectHomebrewSubclassSources(
       sourceName: subclassName,
       detail: feature.name,
       modifiers: resolveModifiers(feature, context),
+      disabled: disabledFeatures.has(feature.name),
     });
   }
 }
@@ -475,6 +493,7 @@ function collectHomebrewSubclassSources(
 function collectStandardSubclassSources(
   className: string,
   subclassName: string,
+  disabledFeatures: Set<string>,
   context: ModifierContext,
   pushSource: (
     entry: Omit<BonusSourceEntry, 'modifiers'> & {
@@ -490,6 +509,7 @@ function collectStandardSubclassSources(
       sourceName: subclassName,
       detail: feature.name,
       modifiers: resolveModifiers(feature, context),
+      disabled: disabledFeatures.has(feature.name),
     });
   }
 }
@@ -507,70 +527,62 @@ function collectAncestrySources(
   const disabledFeatures = new Set(ancestry.disabledFeatures ?? []);
 
   if (ancestry.mode === 'standard' && ancestry.ancestry) {
-    if (!disabledFeatures.has(ancestry.ancestry.primaryFeature.name)) {
-      pushSource({
-        type: 'ancestry-feature',
-        sourceName: ancestry.ancestry.name,
-        detail: ancestry.ancestry.primaryFeature.name,
-        modifiers: resolveModifiers(ancestry.ancestry.primaryFeature, context),
-      });
-    }
-    if (!disabledFeatures.has(ancestry.ancestry.secondaryFeature.name)) {
-      pushSource({
-        type: 'ancestry-feature',
-        sourceName: ancestry.ancestry.name,
-        detail: ancestry.ancestry.secondaryFeature.name,
-        modifiers: resolveModifiers(
-          ancestry.ancestry.secondaryFeature,
-          context
-        ),
-      });
-    }
+    pushSource({
+      type: 'ancestry-feature',
+      sourceName: ancestry.ancestry.name,
+      detail: ancestry.ancestry.primaryFeature.name,
+      modifiers: resolveModifiers(ancestry.ancestry.primaryFeature, context),
+      disabled: disabledFeatures.has(ancestry.ancestry.primaryFeature.name),
+    });
+    pushSource({
+      type: 'ancestry-feature',
+      sourceName: ancestry.ancestry.name,
+      detail: ancestry.ancestry.secondaryFeature.name,
+      modifiers: resolveModifiers(ancestry.ancestry.secondaryFeature, context),
+      disabled: disabledFeatures.has(ancestry.ancestry.secondaryFeature.name),
+    });
   }
   if (ancestry.mode === 'mixed' && ancestry.mixedAncestry) {
-    if (!disabledFeatures.has(ancestry.mixedAncestry.primaryFeature.name)) {
-      pushSource({
-        type: 'ancestry-feature',
-        sourceName: ancestry.mixedAncestry.name,
-        detail: ancestry.mixedAncestry.primaryFeature.name,
-        modifiers: resolveModifiers(
-          ancestry.mixedAncestry.primaryFeature,
-          context
-        ),
-      });
-    }
-    if (!disabledFeatures.has(ancestry.mixedAncestry.secondaryFeature.name)) {
-      pushSource({
-        type: 'ancestry-feature',
-        sourceName: ancestry.mixedAncestry.name,
-        detail: ancestry.mixedAncestry.secondaryFeature.name,
-        modifiers: resolveModifiers(
-          ancestry.mixedAncestry.secondaryFeature,
-          context
-        ),
-      });
-    }
+    pushSource({
+      type: 'ancestry-feature',
+      sourceName: ancestry.mixedAncestry.name,
+      detail: ancestry.mixedAncestry.primaryFeature.name,
+      modifiers: resolveModifiers(
+        ancestry.mixedAncestry.primaryFeature,
+        context
+      ),
+      disabled: disabledFeatures.has(
+        ancestry.mixedAncestry.primaryFeature.name
+      ),
+    });
+    pushSource({
+      type: 'ancestry-feature',
+      sourceName: ancestry.mixedAncestry.name,
+      detail: ancestry.mixedAncestry.secondaryFeature.name,
+      modifiers: resolveModifiers(
+        ancestry.mixedAncestry.secondaryFeature,
+        context
+      ),
+      disabled: disabledFeatures.has(
+        ancestry.mixedAncestry.secondaryFeature.name
+      ),
+    });
   }
   if (ancestry.mode === 'homebrew' && ancestry.homebrew) {
-    if (!disabledFeatures.has(ancestry.homebrew.primaryFeature.name)) {
-      pushSource({
-        type: 'ancestry-feature',
-        sourceName: ancestry.homebrew.name,
-        detail: ancestry.homebrew.primaryFeature.name,
-        modifiers: resolveModifiers(ancestry.homebrew.primaryFeature, context),
-      });
-    }
-    if (!disabledFeatures.has(ancestry.homebrew.secondaryFeature.name)) {
-      pushSource({
-        type: 'ancestry-feature',
-        sourceName: ancestry.homebrew.name,
-        detail: ancestry.homebrew.secondaryFeature.name,
-        modifiers: resolveModifiers(
-          ancestry.homebrew.secondaryFeature,
-          context
-        ),
-      });
-    }
+    pushSource({
+      type: 'ancestry-feature',
+      sourceName: ancestry.homebrew.name,
+      detail: ancestry.homebrew.primaryFeature.name,
+      modifiers: resolveModifiers(ancestry.homebrew.primaryFeature, context),
+      disabled: disabledFeatures.has(ancestry.homebrew.primaryFeature.name),
+    });
+    pushSource({
+      type: 'ancestry-feature',
+      sourceName: ancestry.homebrew.name,
+      detail: ancestry.homebrew.secondaryFeature.name,
+      modifiers: resolveModifiers(ancestry.homebrew.secondaryFeature, context),
+      disabled: disabledFeatures.has(ancestry.homebrew.secondaryFeature.name),
+    });
   }
 }
 
@@ -587,24 +599,22 @@ function collectCommunitySources(
   const disabledFeatures = new Set(community.disabledFeatures ?? []);
 
   if (community.mode === 'standard' && community.community) {
-    if (!disabledFeatures.has(community.community.feature.name)) {
-      pushSource({
-        type: 'community-feature',
-        sourceName: community.community.name,
-        detail: community.community.feature.name,
-        modifiers: resolveModifiers(community.community.feature, context),
-      });
-    }
+    pushSource({
+      type: 'community-feature',
+      sourceName: community.community.name,
+      detail: community.community.feature.name,
+      modifiers: resolveModifiers(community.community.feature, context),
+      disabled: disabledFeatures.has(community.community.feature.name),
+    });
   }
   if (community.mode === 'homebrew' && community.homebrew) {
-    if (!disabledFeatures.has(community.homebrew.feature.name)) {
-      pushSource({
-        type: 'community-feature',
-        sourceName: community.homebrew.name,
-        detail: community.homebrew.feature.name,
-        modifiers: resolveModifiers(community.homebrew.feature, context),
-      });
-    }
+    pushSource({
+      type: 'community-feature',
+      sourceName: community.homebrew.name,
+      detail: community.homebrew.feature.name,
+      modifiers: resolveModifiers(community.homebrew.feature, context),
+      disabled: disabledFeatures.has(community.homebrew.feature.name),
+    });
   }
 }
 

@@ -27,14 +27,7 @@ import {
   DrawerTitle,
 } from '@/components/ui/drawer';
 import { useIsMobile } from '@/hooks/use-mobile';
-import {
-  AlertTriangle,
-  Backpack,
-  Ban,
-  Check,
-  Package,
-  Wrench,
-} from '@/lib/icons';
+import { Backpack, Check, Wrench } from '@/lib/icons';
 import type {
   AnyItem,
   EquipmentTier,
@@ -92,24 +85,15 @@ interface ItemPickerModalProps {
   onAddCustomItem?: (item: AnyItem) => void;
   inventoryItems?: InventoryItemEntry[];
   unlimitedQuantity?: boolean;
-  unlimitedSlots?: boolean;
-  maxSlots?: number;
-  onConvertToHomebrew?: (item: AnyItem) => void;
   allowedTiers?: string[];
   campaignId?: string;
 }
 
 function PickerHeader({
   totalQuantity,
-  slotsRemaining,
-  isAtCapacity,
-  unlimitedSlots,
   mobile,
 }: {
   totalQuantity: number;
-  slotsRemaining: number;
-  isAtCapacity: boolean;
-  unlimitedSlots: boolean;
   mobile: boolean;
 }) {
   const Header = mobile ? DrawerHeader : DialogHeader;
@@ -121,26 +105,6 @@ function PickerHeader({
       Add Items to Inventory
       {totalQuantity > 0 && (
         <Badge className="bg-green-500">{totalQuantity} selected</Badge>
-      )}
-      {!unlimitedSlots && (
-        <Badge
-          variant="outline"
-          className={
-            isAtCapacity
-              ? 'border-red-300 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/50 dark:text-red-300'
-              : 'border-blue-300 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/50 dark:text-blue-300'
-          }
-        >
-          {slotsRemaining <= 0 ? (
-            <span className="flex items-center gap-1">
-              <Ban className="size-3" /> Full
-            </span>
-          ) : (
-            <span className="flex items-center gap-1">
-              <Package className="size-3" /> {slotsRemaining} slots left
-            </span>
-          )}
-        </Badge>
       )}
     </>
   );
@@ -178,19 +142,6 @@ function getEmptyHomebrewMessage(source: HomebrewSource): string {
   if (source === 'quicklist')
     return "You haven't added any items to your quicklist.";
   return 'No public homebrew items found.';
-}
-
-function CapacityWarning({ maxSlots }: { maxSlots: number }) {
-  return (
-    <div className="flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-950/50 dark:text-amber-200">
-      <AlertTriangle className="size-5 shrink-0" />
-      <div>
-        <span className="font-medium">Inventory Full!</span> You've reached your
-        maximum of <strong>{maxSlots} slots</strong>. Remove items or enable{' '}
-        <strong>∞ Slots</strong> to add more.
-      </div>
-    </div>
-  );
 }
 
 function PickerFooter({
@@ -238,14 +189,11 @@ function PickerFooter({
 // -- Sub-components for each mode tab --
 
 interface SharedPickerProps {
-  isAtCapacity: boolean;
-  maxSlots: number;
   tempSelected: Map<string, { item: AnyItem; quantity: number }>;
   onToggleItem: (item: AnyItem) => void;
   onQuantityChange: (item: AnyItem, delta: number, maxAllowed?: number) => void;
   inventoryItems: InventoryItemEntry[];
   unlimitedQuantity: boolean;
-  onConvertToHomebrew?: (item: AnyItem) => void;
   allowedTiers?: string[];
 }
 
@@ -255,8 +203,6 @@ interface OfficialModeContentProps extends SharedPickerProps {
 }
 
 function OfficialModeContent({
-  isAtCapacity,
-  maxSlots,
   filters,
   filteredItems,
   tempSelected,
@@ -264,7 +210,6 @@ function OfficialModeContent({
   onQuantityChange,
   inventoryItems,
   unlimitedQuantity,
-  onConvertToHomebrew,
   allowedTiers,
 }: OfficialModeContentProps) {
   const handleToggleFilters = useCallback(
@@ -274,8 +219,6 @@ function OfficialModeContent({
 
   return (
     <>
-      {isAtCapacity && <CapacityWarning maxSlots={maxSlots} />}
-
       <div className="shrink-0 space-y-4">
         <ItemSearchHeader
           search={filters.search}
@@ -310,7 +253,6 @@ function OfficialModeContent({
           onQuantityChange={onQuantityChange}
           inventoryItems={inventoryItems}
           unlimitedQuantity={unlimitedQuantity}
-          onConvertToHomebrew={onConvertToHomebrew}
         />
       </div>
     </>
@@ -324,8 +266,6 @@ interface HomebrewModeContentProps extends SharedPickerProps {
 }
 
 function HomebrewModeContent({
-  isAtCapacity,
-  maxSlots,
   homebrewData,
   showHomebrewFilters,
   onToggleHomebrewFilters,
@@ -334,7 +274,6 @@ function HomebrewModeContent({
   onQuantityChange,
   inventoryItems,
   unlimitedQuantity,
-  onConvertToHomebrew,
   allowedTiers,
 }: HomebrewModeContentProps) {
   const homebrewItems = useMemo(
@@ -344,8 +283,6 @@ function HomebrewModeContent({
 
   return (
     <>
-      {isAtCapacity && <CapacityWarning maxSlots={maxSlots} />}
-
       <div className="shrink-0 space-y-4">
         <HomebrewSourceTabs
           activeSource={homebrewData.source}
@@ -386,7 +323,6 @@ function HomebrewModeContent({
           onQuantityChange={onQuantityChange}
           inventoryItems={inventoryItems}
           unlimitedQuantity={unlimitedQuantity}
-          onConvertToHomebrew={onConvertToHomebrew}
         />
       </div>
     </>
@@ -402,7 +338,6 @@ interface HomebrewItemsListProps {
   onQuantityChange: (item: AnyItem, delta: number, maxAllowed?: number) => void;
   inventoryItems: InventoryItemEntry[];
   unlimitedQuantity: boolean;
-  onConvertToHomebrew?: (item: AnyItem) => void;
 }
 
 function HomebrewItemsList({
@@ -414,7 +349,6 @@ function HomebrewItemsList({
   onQuantityChange,
   inventoryItems,
   unlimitedQuantity,
-  onConvertToHomebrew,
 }: HomebrewItemsListProps) {
   if (isLoading) {
     return (
@@ -450,7 +384,6 @@ function HomebrewItemsList({
         onQuantityChange={onQuantityChange}
         inventoryItems={inventoryItems}
         unlimitedQuantity={unlimitedQuantity}
-        onConvertToHomebrew={onConvertToHomebrew}
       />
     </>
   );
@@ -493,9 +426,6 @@ export function ItemPickerModal({
   onAddCustomItem,
   inventoryItems = [],
   unlimitedQuantity = false,
-  unlimitedSlots = false,
-  maxSlots = 50,
-  onConvertToHomebrew,
   allowedTiers,
   campaignId,
 }: ItemPickerModalProps) {
@@ -505,14 +435,6 @@ export function ItemPickerModal({
   );
   const [showHomebrewFilters, setShowHomebrewFilters] = useState(false);
 
-  const currentInventoryQuantity = useMemo(
-    () => inventoryItems.reduce((sum, i) => sum + i.quantity, 0),
-    [inventoryItems]
-  );
-  const availableSlots = unlimitedSlots
-    ? Infinity
-    : Math.max(0, maxSlots - currentInventoryQuantity);
-
   const {
     tempSelected,
     toggleItem,
@@ -520,7 +442,7 @@ export function ItemPickerModal({
     totalQuantity,
     getItemsArray,
     reset,
-  } = useItemSelection(availableSlots);
+  } = useItemSelection();
 
   const filters = usePickerFiltersState({
     initialTiers: allowedTiers,
@@ -546,11 +468,6 @@ export function ItemPickerModal({
     allowedTiers
   );
 
-  const slotsRemaining = unlimitedSlots
-    ? Infinity
-    : availableSlots - totalQuantity;
-  const isAtCapacity = !unlimitedSlots && slotsRemaining <= 0;
-
   const handleCancel = useCallback(() => onOpenChange(false), [onOpenChange]);
 
   const handleConfirm = useCallback(() => {
@@ -575,26 +492,17 @@ export function ItemPickerModal({
   const isMobile = useIsMobile();
 
   const sharedPickerProps: SharedPickerProps = {
-    isAtCapacity,
-    maxSlots,
     tempSelected,
     onToggleItem: toggleItem,
     onQuantityChange: handleQuantityChange,
     inventoryItems,
     unlimitedQuantity,
-    onConvertToHomebrew,
     allowedTiers,
   };
 
   const pickerBody = (
     <>
-      <PickerHeader
-        totalQuantity={totalQuantity}
-        slotsRemaining={slotsRemaining}
-        isAtCapacity={isAtCapacity}
-        unlimitedSlots={unlimitedSlots}
-        mobile={isMobile}
-      />
+      <PickerHeader totalQuantity={totalQuantity} mobile={isMobile} />
 
       <ModeTabs
         modes={ITEM_PICKER_MODES}

@@ -40,13 +40,9 @@ export function InventoryDisplay({
     customFormOpen,
     editingItem,
     handleQuantityChange,
-    handleMaxSlotsChange,
-    handleUnlimitedSlotsChange,
     handleUnlimitedQuantityChange,
     handleRemove,
-    handleConvertToHomebrew,
     handleEdit,
-    handlePickerConvertToHomebrew,
     handleAddItems,
     handleAddCustomItem,
     handleCustomFormClose,
@@ -73,12 +69,7 @@ export function InventoryDisplay({
           onSearchChange={readOnly ? undefined : setSearchQuery}
           onQuantityChange={readOnly ? undefined : handleQuantityChange}
           onRemove={readOnly ? undefined : handleRemove}
-          onConvertToHomebrew={readOnly ? undefined : handleConvertToHomebrew}
           onEdit={readOnly ? undefined : handleEdit}
-          onMaxSlotsChange={readOnly ? undefined : handleMaxSlotsChange}
-          onUnlimitedSlotsChange={
-            readOnly ? undefined : handleUnlimitedSlotsChange
-          }
           onUnlimitedQuantityChange={
             readOnly ? undefined : handleUnlimitedQuantityChange
           }
@@ -97,9 +88,6 @@ export function InventoryDisplay({
             onAddCustomItem={handleAddCustomItem}
             inventoryItems={inventory.items}
             unlimitedQuantity={inventory.unlimitedQuantity}
-            unlimitedSlots={inventory.unlimitedSlots}
-            maxSlots={inventory.maxSlots}
-            onConvertToHomebrew={handlePickerConvertToHomebrew}
             allowedTiers={allowedTiers}
           />
         </Suspense>

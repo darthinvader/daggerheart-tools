@@ -88,7 +88,7 @@ import type {
   StandardArmor,
 } from '@/lib/schemas/equipment';
 import { tierColors } from '@/lib/utils/tier-colors';
-import { useCategoryExpandState } from './use-category-expand-state';
+import { useCategoryExpandState } from './-use-category-expand-state';
 
 const equipmentSearchSchema = z.object({
   q: z.string().optional().catch(undefined),

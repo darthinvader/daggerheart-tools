@@ -25,6 +25,7 @@ interface EquipmentCardsGridProps {
   onToggleSecondaryActivated?: () => void;
   onToggleArmorActivated?: () => void;
   onToggleWheelchairActivated?: () => void;
+  onToggleCustomSlotActivated?: (slotId: string) => void;
 }
 
 export function EquipmentCardsGrid({
@@ -36,6 +37,7 @@ export function EquipmentCardsGrid({
   onToggleSecondaryActivated,
   onToggleArmorActivated,
   onToggleWheelchairActivated,
+  onToggleCustomSlotActivated,
 }: EquipmentCardsGridProps) {
   const primaryData = getWeaponData(
     equipment.primaryWeaponMode,
@@ -115,7 +117,10 @@ export function EquipmentCardsGrid({
           onClick={() => openSection('custom')}
           disabled={readOnly}
         >
-          <CustomEquipmentSection customSlots={equipment.customSlots ?? []} />
+          <CustomEquipmentSection
+            customSlots={equipment.customSlots ?? []}
+            onToggleActivated={onToggleCustomSlotActivated}
+          />
         </ClickableCard>
       </div>
     </div>

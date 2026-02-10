@@ -66,7 +66,7 @@ export function EditEnvironmentDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent aria-describedby={undefined} className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Edit: {environment.source.name}</DialogTitle>
         </DialogHeader>

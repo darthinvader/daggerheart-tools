@@ -102,7 +102,10 @@ function DamageCalculatorModal({
 }: DamageCalculatorModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-lg sm:max-w-lg">
+      <DialogContent
+        aria-describedby={undefined}
+        className="w-[95vw] max-w-lg sm:max-w-lg"
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Swords className="size-5" />

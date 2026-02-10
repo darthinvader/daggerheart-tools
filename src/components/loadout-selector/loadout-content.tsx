@@ -82,56 +82,60 @@ export function LoadoutContent({
       : null;
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       <LoadoutStats selection={selection} />
       <SwapModeIndicator
         isSwapMode={isSwapMode}
         onCancel={dragDrop.handleCancelSwap}
       />
-      <ActiveLoadoutSection
-        activeCards={previewLists?.activeCards ?? selection.activeCards}
-        originalCards={selection.activeCards}
-        maxActiveCards={maxActiveCards}
-        onChangeMaxActiveCards={onChangeMaxActiveCards}
-        onSwapToVault={onSwapToVault}
-        onMoveCard={!!onMoveCard}
-        onConvertToHomebrew={onConvertToHomebrew}
-        onRemoveCard={onRemoveActiveCard}
-        onToggleActivated={onToggleActivated}
-        dragSource={dragSource}
-        dragOverTarget={dragOverTarget}
-        swapSource={swapSource}
-        isSwapMode={isSwapMode}
-        isDragging={isDragging}
-        handleDragStart={dragDrop.handleDragStart}
-        handleDragOver={dragDrop.handleDragOver}
-        handleDragLeave={dragDrop.handleDragLeave}
-        handleDragEnd={dragDrop.handleDragEnd}
-        handleDrop={dragDrop.handleDrop}
-        handleSelectForSwap={dragDrop.handleSelectForSwap}
-        handleCancelSwap={dragDrop.handleCancelSwap}
-      />
-      <VaultSection
-        vaultCards={previewLists?.vaultCards ?? selection.vaultCards}
-        originalCards={selection.vaultCards}
-        canSwapToActive={canSwapToActive}
-        onSwapToActive={onSwapToActive}
-        onMoveCard={!!onMoveCard}
-        onConvertToHomebrew={onConvertToHomebrew}
-        onRemoveCard={onRemoveVaultCard}
-        dragSource={dragSource}
-        dragOverTarget={dragOverTarget}
-        swapSource={swapSource}
-        isSwapMode={isSwapMode}
-        isDragging={isDragging}
-        handleDragStart={dragDrop.handleDragStart}
-        handleDragOver={dragDrop.handleDragOver}
-        handleDragLeave={dragDrop.handleDragLeave}
-        handleDragEnd={dragDrop.handleDragEnd}
-        handleDrop={dragDrop.handleDrop}
-        handleSelectForSwap={dragDrop.handleSelectForSwap}
-        handleCancelSwap={dragDrop.handleCancelSwap}
-      />
+      <div className="max-h-[16rem] overflow-y-auto">
+        <ActiveLoadoutSection
+          activeCards={previewLists?.activeCards ?? selection.activeCards}
+          originalCards={selection.activeCards}
+          maxActiveCards={maxActiveCards}
+          onChangeMaxActiveCards={onChangeMaxActiveCards}
+          onSwapToVault={onSwapToVault}
+          onMoveCard={!!onMoveCard}
+          onConvertToHomebrew={onConvertToHomebrew}
+          onRemoveCard={onRemoveActiveCard}
+          onToggleActivated={onToggleActivated}
+          dragSource={dragSource}
+          dragOverTarget={dragOverTarget}
+          swapSource={swapSource}
+          isSwapMode={isSwapMode}
+          isDragging={isDragging}
+          handleDragStart={dragDrop.handleDragStart}
+          handleDragOver={dragDrop.handleDragOver}
+          handleDragLeave={dragDrop.handleDragLeave}
+          handleDragEnd={dragDrop.handleDragEnd}
+          handleDrop={dragDrop.handleDrop}
+          handleSelectForSwap={dragDrop.handleSelectForSwap}
+          handleCancelSwap={dragDrop.handleCancelSwap}
+        />
+      </div>
+      <div className="max-h-[16rem] overflow-y-auto">
+        <VaultSection
+          vaultCards={previewLists?.vaultCards ?? selection.vaultCards}
+          originalCards={selection.vaultCards}
+          canSwapToActive={canSwapToActive}
+          onSwapToActive={onSwapToActive}
+          onMoveCard={!!onMoveCard}
+          onConvertToHomebrew={onConvertToHomebrew}
+          onRemoveCard={onRemoveVaultCard}
+          dragSource={dragSource}
+          dragOverTarget={dragOverTarget}
+          swapSource={swapSource}
+          isSwapMode={isSwapMode}
+          isDragging={isDragging}
+          handleDragStart={dragDrop.handleDragStart}
+          handleDragOver={dragDrop.handleDragOver}
+          handleDragLeave={dragDrop.handleDragLeave}
+          handleDragEnd={dragDrop.handleDragEnd}
+          handleDrop={dragDrop.handleDrop}
+          handleSelectForSwap={dragDrop.handleSelectForSwap}
+          handleCancelSwap={dragDrop.handleCancelSwap}
+        />
+      </div>
     </div>
   );
 }

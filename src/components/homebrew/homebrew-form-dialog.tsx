@@ -156,7 +156,10 @@ function HomebrewFormDialogBody({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="h-full w-full overflow-y-auto sm:h-auto sm:max-h-[90vh] sm:max-w-2xl">
+      <DialogContent
+        aria-describedby={undefined}
+        className="h-full w-full overflow-y-auto sm:h-auto sm:max-h-[90vh] sm:max-w-2xl"
+      >
         <DialogHeader>
           <DialogTitle>
             {initialData ? 'Edit' : 'Create'} {getContentTypeLabel(contentType)}

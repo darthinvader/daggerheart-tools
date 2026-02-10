@@ -58,8 +58,8 @@ import type { BattleState } from '@/lib/schemas/battle';
 import type { Campaign } from '@/lib/schemas/campaign';
 import { useUndoShortcuts } from '@/lib/undo';
 
-import { useCampaignBattleState } from './use-campaign-battle-state';
-import { useLinkedCharacterRefresh } from './use-linked-character-refresh';
+import { useCampaignBattleState } from './-use-campaign-battle-state';
+import { useLinkedCharacterRefresh } from './-use-linked-character-refresh';
 
 export const Route = createFileRoute('/gm/campaigns/$id/battle')({
   component: CampaignBattlePage,

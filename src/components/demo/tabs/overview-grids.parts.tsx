@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useMemo } from 'react';
 
 import { AncestryDisplay } from '@/components/ancestry-selector';
-import { BonusSummaryDisplay } from '@/components/bonus-summary';
+import {
+  BonusSummaryDisplay,
+  type ToggleBonusSourceCallback,
+} from '@/components/bonus-summary';
 import { ClassDisplay } from '@/components/class-selector';
 import { CommunityDisplay } from '@/components/community-selector';
 import { ConditionsDisplay } from '@/components/conditions';
@@ -822,12 +825,100 @@ export function ExperiencesEquipmentGrid({ state, handlers }: TabProps) {
     });
   };
 
+  const handleToggleSource: ToggleBonusSourceCallback = useCallback(
+    (sourceType, sourceName, detail) => {
+      if (
+        sourceType === 'equipment-item' ||
+        sourceType === 'equipment-feature'
+      ) {
+        // detail contains the slot label (e.g., "Armor", "Primary Weapon") or "SlotLabel::FeatureName"
+        const slotLabel = (detail ?? sourceName).split('::')[0].toLowerCase();
+        if (slotLabel === 'armor') {
+          handlers.setEquipment({
+            ...state.equipment,
+            armorActivated: state.equipment.armorActivated === false,
+          });
+        } else if (slotLabel === 'primary weapon') {
+          handlers.setEquipment({
+            ...state.equipment,
+            primaryWeaponActivated:
+              state.equipment.primaryWeaponActivated === false,
+          });
+        } else if (slotLabel === 'secondary weapon') {
+          handlers.setEquipment({
+            ...state.equipment,
+            secondaryWeaponActivated:
+              state.equipment.secondaryWeaponActivated === false,
+          });
+        } else if (slotLabel === 'combat wheelchair') {
+          handlers.setEquipment({
+            ...state.equipment,
+            wheelchairActivated: state.equipment.wheelchairActivated === false,
+          });
+        } else {
+          // Custom equipment slot — match by slot name
+          handlers.setEquipment({
+            ...state.equipment,
+            customSlots: (state.equipment.customSlots ?? []).map(slot =>
+              (slot.name || 'Custom Equipment').toLowerCase() === slotLabel
+                ? { ...slot, activated: slot.activated === false }
+                : slot
+            ),
+          });
+        }
+        return;
+      }
+
+      if (!detail) return;
+
+      const toggleInArray = (arr: string[] | undefined): string[] => {
+        const set = new Set(arr ?? []);
+        if (set.has(detail)) {
+          set.delete(detail);
+        } else {
+          set.add(detail);
+        }
+        return [...set];
+      };
+
+      if (sourceType === 'class-feature' || sourceType === 'subclass-feature') {
+        if (!state.classSelection) return;
+        handlers.setClassSelection({
+          ...state.classSelection,
+          disabledFeatures: toggleInArray(
+            state.classSelection.disabledFeatures
+          ),
+        });
+      } else if (sourceType === 'ancestry-feature') {
+        if (!state.ancestry) return;
+        handlers.setAncestry({
+          ...state.ancestry,
+          disabledFeatures: toggleInArray(state.ancestry.disabledFeatures),
+        });
+      } else if (sourceType === 'community-feature') {
+        if (!state.community) return;
+        handlers.setCommunity({
+          ...state.community,
+          disabledFeatures: toggleInArray(state.community.disabledFeatures),
+        });
+      }
+    },
+    [
+      state.classSelection,
+      state.ancestry,
+      state.community,
+      state.equipment,
+      handlers,
+    ]
+  );
+
   return (
     <div className="grid gap-3 sm:gap-6 md:grid-cols-4">
       <ExperiencesDisplay
         experiences={state.experiences}
         onChange={handlers.setExperiences}
         bonusByExperience={experienceBonuses}
+        className="max-h-[42rem]"
       />
       {selectableExperienceItems.length > 0 && (
         <div className="rounded-lg border p-4">
@@ -879,12 +970,14 @@ export function ExperiencesEquipmentGrid({ state, handlers }: TabProps) {
       <BonusSummaryDisplay
         breakdown={bonusBreakdown}
         extraSources={[...equipmentSources, ...experienceBonusSources]}
+        onToggleSource={handleToggleSource}
+        className="max-h-[42rem]"
       />
       <EquipmentDisplay
         equipment={state.equipment}
         onChange={handlers.setEquipment}
         hideDialogHeader
-        className="md:col-span-2"
+        className="max-h-[42rem] md:col-span-2"
       />
     </div>
   );
@@ -920,31 +1013,42 @@ function collectEquipmentSources(
 
   const pushStatModifiers = (
     sourceName: string,
-    modifiers?: FeatureStatModifiers
+    modifiers?: FeatureStatModifiers,
+    disabled?: boolean,
+    slotLabel?: string
   ) => {
     if (!modifiers) return;
     sources.push({
       type: 'equipment-item',
       sourceName,
+      detail: slotLabel,
       modifiers,
+      disabled,
     });
   };
 
   const pushFeatureModifiers = (
     sourceName: string,
     featureName: string,
-    modifiers?: FeatureStatModifiers
+    modifiers?: FeatureStatModifiers,
+    disabled?: boolean,
+    slotLabel?: string
   ) => {
     if (!modifiers) return;
     sources.push({
       type: 'equipment-feature',
       sourceName,
-      detail: featureName,
+      detail: `${slotLabel ?? sourceName}::${featureName}`,
       modifiers,
+      disabled,
     });
   };
 
-  const collectFromEquipment = (item: unknown, fallbackLabel: string) => {
+  const collectFromEquipment = (
+    item: unknown,
+    fallbackLabel: string,
+    disabled?: boolean
+  ) => {
     if (!item || typeof item !== 'object') return;
     const record = item as {
       name?: string;
@@ -958,45 +1062,68 @@ function collectEquipmentSources(
     );
 
     if (hasExplicitStatModifiers || hasExplicitFeatureModifiers) {
-      pushStatModifiers(name, record.statModifiers);
+      pushStatModifiers(name, record.statModifiers, disabled, fallbackLabel);
       for (const feature of record.features ?? []) {
-        pushFeatureModifiers(name, feature.name, feature.modifiers);
+        pushFeatureModifiers(
+          name,
+          feature.name,
+          feature.modifiers,
+          disabled,
+          fallbackLabel
+        );
       }
       return;
     }
 
     const normalized = normalizeEquipment(record);
     if (!hasAnyModifiers(normalized)) return;
-    pushStatModifiers(name, {
-      evasion: normalized.evasion,
-      proficiency: normalized.proficiency,
-      armorScore: normalized.armorScore,
-      majorThreshold: normalized.majorThreshold,
-      severeThreshold: normalized.severeThreshold,
-      attackRolls: normalized.attackRolls,
-      spellcastRolls: normalized.spellcastRolls,
-      traits: normalized.traits,
-    });
+    pushStatModifiers(
+      name,
+      {
+        evasion: normalized.evasion,
+        proficiency: normalized.proficiency,
+        armorScore: normalized.armorScore,
+        majorThreshold: normalized.majorThreshold,
+        severeThreshold: normalized.severeThreshold,
+        attackRolls: normalized.attackRolls,
+        spellcastRolls: normalized.spellcastRolls,
+        traits: normalized.traits,
+      },
+      disabled,
+      fallbackLabel
+    );
   };
 
+  // Always collect from all equipment, marking deactivated ones as disabled
   collectFromEquipment(
-    equipment.armorActivated !== false ? active.armor : null,
-    'Armor'
+    active.armor,
+    'Armor',
+    equipment.armorActivated === false
   );
   collectFromEquipment(
-    equipment.primaryWeaponActivated !== false ? active.primaryWeapon : null,
-    'Primary Weapon'
+    active.primaryWeapon,
+    'Primary Weapon',
+    equipment.primaryWeaponActivated === false
   );
   collectFromEquipment(
-    equipment.secondaryWeaponActivated !== false
-      ? active.secondaryWeapon
-      : null,
-    'Secondary Weapon'
+    active.secondaryWeapon,
+    'Secondary Weapon',
+    equipment.secondaryWeaponActivated === false
   );
   collectFromEquipment(
-    equipment.wheelchairActivated !== false ? active.wheelchair : null,
-    'Combat Wheelchair'
+    active.wheelchair,
+    'Combat Wheelchair',
+    equipment.wheelchairActivated === false
   );
+
+  // Process all custom equipment slots, marking deactivated ones
+  for (const slot of equipment.customSlots ?? []) {
+    collectFromEquipment(
+      slot,
+      slot.name || 'Custom Equipment',
+      slot.activated === false
+    );
+  }
 
   return sources;
 }

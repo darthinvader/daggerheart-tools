@@ -2,9 +2,7 @@ import { useMemo } from 'react';
 
 import { BeastformSection } from '@/components/beastform';
 import { CharacterNotesDisplay } from '@/components/character-notes';
-import { CountdownTracker } from '@/components/countdown-tracker';
 import { DeathMoveModal } from '@/components/death-move';
-import { DowntimeMoves } from '@/components/downtime-moves';
 import { InventoryDisplay } from '@/components/inventory';
 import { LoadoutDisplay } from '@/components/loadout-selector';
 import { SessionTracker } from '@/components/session-tracker';
@@ -158,17 +156,6 @@ export function OverviewTab({
               campaignName={campaignName}
             />
           }
-        />
-      </div>
-
-      <div className="grid gap-3 sm:gap-4 sm:gap-6 md:h-112 md:grid-cols-2">
-        <DowntimeMoves
-          activities={state.downtimeActivities}
-          onChange={handlers.setDowntimeActivities}
-        />
-        <CountdownTracker
-          countdowns={state.countdowns}
-          onChange={handlers.setCountdowns}
         />
       </div>
 

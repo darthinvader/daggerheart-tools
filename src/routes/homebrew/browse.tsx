@@ -19,8 +19,8 @@ import {
   BrowseHeaderSection,
   ForkInfoCard,
   InfiniteScrollTrigger,
-} from './browse-sections';
-import { useBrowseHomebrewState } from './use-browse-homebrew-state';
+} from './-browse-sections';
+import { useBrowseHomebrewState } from './-use-browse-homebrew-state';
 
 export const Route = createFileRoute('/homebrew/browse')({
   component: BrowseHomebrew,

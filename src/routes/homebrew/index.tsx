@@ -36,7 +36,7 @@ import {
   CreateCollectionDialog,
   InfiniteScrollLoader,
   SignInRequiredCard,
-} from './homebrew-dashboard-sections';
+} from './-homebrew-dashboard-sections';
 import {
   AllContentTab,
   CampaignLinkedTab,
@@ -47,9 +47,9 @@ import {
   PublicContentTab,
   QuicklistTab,
   RecycleBinTab,
-} from './homebrew-tabs';
-import type { PendingAction } from './use-homebrew-content-handlers';
-import { useHomebrewDashboardState } from './use-homebrew-dashboard-state';
+} from './-homebrew-tabs';
+import type { PendingAction } from './-use-homebrew-content-handlers';
+import { useHomebrewDashboardState } from './-use-homebrew-dashboard-state';
 
 export const Route = createFileRoute('/homebrew/')({
   component: HomebrewDashboard,
@@ -263,6 +263,8 @@ function HomebrewDashboard() {
     setNewCollectionDescription,
     handleCreateCollection,
     isCreatingCollection,
+    handleDeleteCollection,
+    isDeletingCollection,
     isFormOpen,
     isViewOpen,
     viewingItem,
@@ -402,6 +404,8 @@ function HomebrewDashboard() {
           selectedCollectionId={effectiveCollectionId}
           selectedCollection={selectedCollection}
           onSelectCollection={setSelectedCollectionId}
+          onDeleteCollection={handleDeleteCollection}
+          isDeletingCollection={isDeletingCollection}
           onCreateClick={handleOpenCreateCollection}
           isContentLoading={isCollectionContentLoading}
           orderedContent={orderedCollectionContent}

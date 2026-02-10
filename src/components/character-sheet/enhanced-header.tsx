@@ -27,7 +27,6 @@ interface EnhancedHeaderProps {
   lastSaved: Date | null;
   campaignSection?: ReactNode;
   settingsSection?: ReactNode;
-  statusBar?: ReactNode;
   undoControls?: ReactNode;
 }
 
@@ -131,7 +130,6 @@ export function EnhancedCharacterHeader({
   lastSaved,
   campaignSection,
   settingsSection,
-  statusBar,
   undoControls,
 }: EnhancedHeaderProps) {
   return (
@@ -196,9 +194,6 @@ export function EnhancedCharacterHeader({
 
       {/* Dagger divider */}
       <div className="dagger-divider" />
-
-      {/* Status bar */}
-      {statusBar}
     </div>
   );
 }

@@ -55,7 +55,7 @@ import type { Campaign } from '@/lib/schemas/campaign';
 import {
   type TrashedCampaign,
   useCampaignsListState,
-} from './use-campaigns-list-state';
+} from './-use-campaigns-list-state';
 
 type ComplexityLabel = { label: string; color: string };
 

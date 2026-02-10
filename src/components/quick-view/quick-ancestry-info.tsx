@@ -70,7 +70,7 @@ export function QuickAncestryInfo({
         </div>
       </div>
       {features.length > 0 && (
-        <div className="quick-identity-features">
+        <div className="quick-identity-features max-h-96 overflow-y-auto">
           <ExpandableFeaturesList features={features} />
         </div>
       )}

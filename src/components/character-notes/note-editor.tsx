@@ -1,3 +1,5 @@
+import { useEffect, useRef, useState } from 'react';
+
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -18,6 +20,49 @@ interface NoteEditorProps {
 }
 
 export function NoteEditor({ note, onChange }: NoteEditorProps) {
+  const [localContent, setLocalContent] = useState(note.content);
+  const [localTitle, setLocalTitle] = useState(note.title);
+  const [prevNoteId, setPrevNoteId] = useState(note.id);
+  const noteRef = useRef(note);
+
+  // Reset local state when note identity changes (switching notes)
+  if (prevNoteId !== note.id) {
+    setPrevNoteId(note.id);
+    setLocalContent(note.content);
+    setLocalTitle(note.title);
+  }
+
+  // Keep noteRef in sync outside of render
+  useEffect(() => {
+    noteRef.current = note;
+  });
+
+  // Debounce content changes to parent
+  useEffect(() => {
+    if (localContent === noteRef.current.content) return;
+    const timer = setTimeout(() => {
+      onChange({
+        ...noteRef.current,
+        content: localContent,
+        updatedAt: new Date().toISOString(),
+      });
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [localContent, onChange]);
+
+  // Debounce title changes to parent
+  useEffect(() => {
+    if (localTitle === noteRef.current.title) return;
+    const timer = setTimeout(() => {
+      onChange({
+        ...noteRef.current,
+        title: localTitle,
+        updatedAt: new Date().toISOString(),
+      });
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [localTitle, onChange]);
+
   const handleChange = <K extends keyof CharacterNote>(
     key: K,
     value: CharacterNote[K]
@@ -39,8 +84,8 @@ export function NoteEditor({ note, onChange }: NoteEditorProps) {
           <Input
             id="note-title"
             placeholder="Note title..."
-            value={note.title}
-            onChange={e => handleChange('title', e.target.value)}
+            value={localTitle}
+            onChange={e => setLocalTitle(e.target.value)}
             className="text-lg font-medium"
           />
         </div>
@@ -68,8 +113,8 @@ export function NoteEditor({ note, onChange }: NoteEditorProps) {
         <Textarea
           id="note-content"
           placeholder="Write your notes here..."
-          value={note.content}
-          onChange={e => handleChange('content', e.target.value)}
+          value={localContent}
+          onChange={e => setLocalContent(e.target.value)}
           className="h-full min-h-50 resize-none"
         />
       </div>

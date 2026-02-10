@@ -857,7 +857,10 @@ export function FightBuilderWizard({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-full w-full flex-col gap-0 p-0 sm:h-auto sm:max-h-[90vh] sm:max-w-[95vw]">
+      <DialogContent
+        aria-describedby={undefined}
+        className="flex h-full w-full flex-col gap-0 p-0 sm:h-auto sm:max-h-[90vh] sm:max-w-[95vw]"
+      >
         <WizardHeader onOpenCustomBuilder={handleOpenCustomBuilder} />
 
         <div className="flex min-h-0 flex-1 overflow-hidden">

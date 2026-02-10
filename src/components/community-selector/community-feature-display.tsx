@@ -3,7 +3,6 @@ import { Slash, Zap } from 'lucide-react';
 import { FeatureIcon } from '@/components/shared';
 import { Button } from '@/components/ui/button';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
-import { useCoarsePointer } from '@/hooks/use-coarse-pointer';
 import { ICON_SIZE_MD } from '@/lib/icons';
 import type { CommunityFeature } from '@/lib/schemas/identity';
 import { cn } from '@/lib/utils';
@@ -27,7 +26,6 @@ export function CommunityFeatureDisplay({
   isActivated = true,
   onToggleActivated,
 }: CommunityFeatureDisplayProps) {
-  const isCoarse = useCoarsePointer();
   const colors = communityName
     ? getCommunityColors(communityName)
     : {
@@ -48,12 +46,7 @@ export function CommunityFeatureDisplay({
     >
       {/* Activate/Deactivate button */}
       {onToggleActivated && (
-        <div
-          className={cn(
-            'absolute top-2 right-2 transition-opacity',
-            isCoarse ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-          )}
-        >
+        <div className="absolute top-2 right-2">
           <SmartTooltip
             content={isActivated ? 'Deactivate bonuses' : 'Activate bonuses'}
           >

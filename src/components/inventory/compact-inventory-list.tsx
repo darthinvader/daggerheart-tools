@@ -72,7 +72,7 @@ export function CompactInventoryList({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="max-h-[60vh] space-y-4 overflow-y-auto pr-1">
       {Object.entries(groupedByLocation).map(([location, items]) => (
         <LocationGroup
           key={location}

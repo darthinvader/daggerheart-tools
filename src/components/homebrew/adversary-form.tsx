@@ -3,7 +3,7 @@
  *
  * Form for creating and editing homebrew adversaries.
  */
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -20,6 +20,11 @@ import {
   ATTACK_NAMES,
   ROLE_COLORS,
 } from './adversary-form-sections';
+import {
+  validateDamageFormat,
+  validateModifierFormat,
+  validateThresholds,
+} from './adversary-validation';
 import { useAdversaryFormState } from './use-adversary-form-state';
 import { useThresholdHandlers } from './use-threshold-handlers';
 
@@ -36,15 +41,16 @@ function getInitialAttackNameMode(attackName?: string): 'preset' | 'custom' {
 interface FormActionsProps {
   onCancel: () => void;
   isSubmitting: boolean;
+  hasErrors: boolean;
 }
 
-function FormActions({ onCancel, isSubmitting }: FormActionsProps) {
+function FormActions({ onCancel, isSubmitting, hasErrors }: FormActionsProps) {
   return (
     <div className="flex justify-end gap-2 pt-4">
       <Button type="button" variant="outline" onClick={onCancel}>
         Cancel
       </Button>
-      <Button type="submit" disabled={isSubmitting}>
+      <Button type="submit" disabled={isSubmitting || hasErrors}>
         {isSubmitting ? 'Saving...' : 'Save Adversary'}
       </Button>
     </div>
@@ -84,9 +90,25 @@ export function AdversaryForm({
     () => getInitialAttackNameMode(initialData?.attack.name)
   );
 
+  const validationErrors = useMemo(() => {
+    const errors: Record<string, string> = {};
+    const thresholdError = validateThresholds(formData.thresholds);
+    if (thresholdError) errors.majorThreshold = thresholdError;
+    const modifierError = validateModifierFormat(
+      String(formData.attack.modifier)
+    );
+    if (modifierError) errors.modifier = modifierError;
+    const damageError = validateDamageFormat(formData.attack.damage);
+    if (damageError) errors.damage = damageError;
+    return errors;
+  }, [formData.thresholds, formData.attack.modifier, formData.attack.damage]);
+
+  const hasValidationErrors = Object.keys(validationErrors).length > 0;
+
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
+      if (hasValidationErrors) return;
 
       const content: HomebrewAdversary['content'] = {
         ...formData,
@@ -103,6 +125,7 @@ export function AdversaryForm({
       getExperiencesContent,
       tagState.tags,
       onSubmit,
+      hasValidationErrors,
     ]
   );
 
@@ -132,6 +155,7 @@ export function AdversaryForm({
             updateThreshold={updateThreshold}
             getThresholdValue={getThresholdValue}
             getMassiveThreshold={getMassiveThreshold}
+            thresholdError={validationErrors.majorThreshold}
           />
 
           <AdversaryAttackSection
@@ -139,6 +163,8 @@ export function AdversaryForm({
             setFormData={setFormData}
             attackNameMode={attackNameMode}
             setAttackNameMode={setAttackNameMode}
+            modifierError={validationErrors.modifier}
+            damageError={validationErrors.damage}
           />
 
           <AdversaryFeaturesSection {...featureState} />
@@ -149,7 +175,11 @@ export function AdversaryForm({
         </div>
       </ScrollArea>
 
-      <FormActions onCancel={onCancel} isSubmitting={isSubmitting} />
+      <FormActions
+        onCancel={onCancel}
+        isSubmitting={isSubmitting}
+        hasErrors={hasValidationErrors}
+      />
     </form>
   );
 }

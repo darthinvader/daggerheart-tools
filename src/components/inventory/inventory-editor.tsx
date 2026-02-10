@@ -163,9 +163,6 @@ export function InventoryEditor({
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const deferredSearchQuery = useDeferredValue(searchQuery);
-  const [unlimitedSlots, setUnlimitedSlots] = useState(
-    state.unlimitedSlots ?? false
-  );
   const [unlimitedQuantity, setUnlimitedQuantity] = useState(
     state.unlimitedQuantity ?? false
   );
@@ -223,14 +220,8 @@ export function InventoryEditor({
       {!hideHeader && (
         <InventoryHeader
           totalItems={totalItems}
-          maxSlots={state.maxSlots}
-          unlimitedSlots={unlimitedSlots}
           unlimitedQuantity={unlimitedQuantity}
-          onUnlimitedSlotsChange={setUnlimitedSlots}
           onUnlimitedQuantityChange={setUnlimitedQuantity}
-          onMaxSlotsChange={delta =>
-            updateState({ maxSlots: Math.max(1, state.maxSlots + delta) })
-          }
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           onAddClick={() => setPickerOpen(true)}

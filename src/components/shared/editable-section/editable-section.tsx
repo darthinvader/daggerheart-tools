@@ -87,11 +87,11 @@ export function EditableSection({
     <>
       <section
         className={cn(
-          'bg-card hover:border-primary/20 rounded-xl border shadow-sm transition-colors',
+          'bg-card hover:border-primary/20 flex flex-col rounded-xl border shadow-sm transition-colors',
           className
         )}
       >
-        <div className="flex items-center justify-between border-b px-4 py-3 sm:px-6">
+        <div className="flex shrink-0 items-center justify-between border-b px-4 py-3 sm:px-6">
           <div className="flex items-center gap-2">
             {Icon ? (
               <Icon className="size-5" />
@@ -114,12 +114,14 @@ export function EditableSection({
         </div>
 
         {description && (
-          <p className="text-muted-foreground border-b px-4 py-2 text-sm sm:px-6">
+          <p className="text-muted-foreground shrink-0 border-b px-4 py-2 text-sm sm:px-6">
             {description}
           </p>
         )}
 
-        <div className="p-4 sm:p-6">{children}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
+          {children}
+        </div>
       </section>
 
       {isEditing &&

@@ -66,6 +66,39 @@ export function rollEffectDie(notation: string): EffectDieResult {
 }
 
 /**
+ * Roll effect dice from multi-dice notation (e.g., "2d6+1d4+3").
+ * Supports multiple dice groups and flat modifiers separated by '+'.
+ *
+ * @example rollMultiEffectDie('2d6+1d4+3') → { notation: '2d6+1d4+3', rolls: [3, 5, 2, 3], total: 13 }
+ */
+export function rollMultiEffectDie(notation: string): EffectDieResult {
+  const parts = notation.split('+');
+  const allRolls: number[] = [];
+  let total = 0;
+
+  for (const part of parts) {
+    const trimmed = part.trim();
+    if (trimmed.includes('d')) {
+      const { count, sides } = parseDiceNotation(trimmed);
+      const result = rollDice(sides, count);
+      allRolls.push(...result.rolls);
+      total += result.total;
+    } else {
+      const flat = Number(trimmed);
+      if (Number.isNaN(flat)) {
+        throw new Error(
+          `Invalid component in multi-dice notation: "${trimmed}"`
+        );
+      }
+      allRolls.push(flat);
+      total += flat;
+    }
+  }
+
+  return { notation, rolls: allRolls, total };
+}
+
+/**
  * Perform a Duality Roll (2d12 + modifier).
  *
  * Per SRD Page 28:
@@ -98,7 +131,7 @@ export function rollDuality(
 
   let effectDieResult: EffectDieResult | undefined;
   if (options?.effectDie) {
-    effectDieResult = rollEffectDie(options.effectDie);
+    effectDieResult = rollMultiEffectDie(options.effectDie);
   }
 
   return {
@@ -119,18 +152,22 @@ export function rollDuality(
  *
  * Per SRD Page 28-29:
  * - Critical Success: Both dice show the same number → always success with Hope, clear 1 Stress
- * - Success with Hope: Total >= difficulty AND Hope die > Fear die → player gains 1 Hope
- * - Success with Fear: Total >= difficulty AND Fear die > Hope die → GM gains 1 Fear
- * - Failure with Fear: Total < difficulty → GM gains 1 Fear
+ * - Success with Hope: Hope die > Fear die → player gains 1 Hope
+ * - Success with Fear: Fear die > Hope die → GM gains 1 Fear
+ * - Failure with Fear: Total < difficulty (when provided) → GM gains 1 Fear
+ *
+ * When no difficulty is provided, outcome is determined purely by which die
+ * is higher (the DM handles pass/fail separately).
  *
  * @param roll - The raw duality roll result
- * @param difficulty - The target difficulty number
+ * @param difficulty - Optional target difficulty number
  */
 export function resolveDualityRoll(
   roll: DualityRollResult,
-  difficulty: number
+  difficulty?: number
 ): ResolvedDualityRoll {
-  const isSuccess = roll.total >= difficulty;
+  // When difficulty is provided, check for failure
+  const isSuccess = difficulty === undefined || roll.total >= difficulty;
 
   // Per SRD Page 29: Matching dice (doubles) = Critical Success
   if (roll.isMatching) {

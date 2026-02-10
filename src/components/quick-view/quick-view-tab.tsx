@@ -19,8 +19,6 @@ import {
 import { QuickActiveEffects } from './quick-active-effects';
 import { QuickBeastformStrip } from './quick-beastform-strip';
 import { QuickCombatSummary } from './quick-combat-summary';
-import { QuickCountdowns } from './quick-countdowns';
-import { QuickLevelBadge } from './quick-level-badge';
 import { QuickStatusBanner } from './quick-status-banner';
 import {
   QuickViewCombatSection,
@@ -171,12 +169,8 @@ export function QuickViewTab({ state, handlers }: QuickViewTabProps) {
         <QuickBeastformStrip beastform={state.beastform} />
       )}
 
-      {/* Active countdowns — threat/opportunity progress rings */}
-      <QuickCountdowns countdowns={state.countdowns ?? []} />
-
-      {/* Hero Section: Level badge + Vitals bar + Traits */}
+      {/* Hero Section: Vitals bar + Traits */}
       <div className="animate-fade-up">
-        <QuickLevelBadge progression={state.progression} />
         <QuickViewHeroSection
           state={state}
           handlers={handlers}

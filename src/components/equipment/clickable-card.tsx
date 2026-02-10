@@ -11,12 +11,19 @@ export function ClickableCard({
 }: ClickableCardProps) {
   if (disabled) return <>{children}</>;
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onClick}
-      className="block w-full cursor-pointer text-left transition-all hover:scale-[1.01] hover:shadow-md focus:ring-2 focus:ring-offset-2 focus:outline-none"
+      onKeyDown={e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      className="block h-full w-full cursor-pointer text-left transition-all hover:scale-[1.01] hover:shadow-md focus:ring-2 focus:ring-offset-2 focus:outline-none"
     >
       {children}
-    </button>
+    </div>
   );
 }

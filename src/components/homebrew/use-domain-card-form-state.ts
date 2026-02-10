@@ -96,6 +96,20 @@ export function useModifierManagement(
       : undefined;
   }, [hasModifiers, modifiers]);
 
+  /** Accepts the FeatureModifiersSection's onChange signature */
+  const setFromFeatureModifiers = useCallback(
+    (newModifiers: FeatureStatModifiers | undefined) => {
+      if (newModifiers) {
+        setHasModifiers(true);
+        setModifiers(newModifiers);
+      } else {
+        setHasModifiers(false);
+        setModifiers({});
+      }
+    },
+    []
+  );
+
   return {
     hasModifiers,
     setHasModifiers,
@@ -103,6 +117,7 @@ export function useModifierManagement(
     updateModifier,
     getModifierValue,
     cleanModifiers,
+    setFromFeatureModifiers,
   };
 }
 

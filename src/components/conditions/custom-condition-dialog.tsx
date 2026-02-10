@@ -236,7 +236,7 @@ export function CustomConditionDialog({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent aria-describedby={undefined} className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Create Custom Condition</DialogTitle>
         </DialogHeader>

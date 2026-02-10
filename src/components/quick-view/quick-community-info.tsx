@@ -54,7 +54,7 @@ export function QuickCommunityInfo({
         </div>
       </div>
       {feature && (
-        <div className="quick-identity-features">
+        <div className="quick-identity-features max-h-96 overflow-y-auto">
           <ExpandableFeature feature={feature} />
         </div>
       )}

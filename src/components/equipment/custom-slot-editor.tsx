@@ -18,6 +18,7 @@ export interface CustomEquipment {
   slotIconKey: string;
   description: string;
   features: Array<{ name: string; description: string }>;
+  activated?: boolean;
 }
 
 interface CustomSlotEditorProps {

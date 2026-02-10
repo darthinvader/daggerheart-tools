@@ -19,8 +19,6 @@ interface InventoryContentProps {
   onRemove?: (id: string) => void;
   onConvertToHomebrew?: (id: string) => void;
   onEdit?: (id: string) => void;
-  onMaxSlotsChange?: (delta: number) => void;
-  onUnlimitedSlotsChange?: (value: boolean) => void;
   onUnlimitedQuantityChange?: (value: boolean) => void;
   onAddClick?: () => void;
   readOnly?: boolean;
@@ -35,8 +33,6 @@ export function InventoryContent({
   onRemove,
   onConvertToHomebrew,
   onEdit,
-  onMaxSlotsChange,
-  onUnlimitedSlotsChange,
   onUnlimitedQuantityChange,
   onAddClick,
   readOnly,
@@ -67,8 +63,6 @@ export function InventoryContent({
         inventory={inventory}
         searchQuery={searchQuery}
         onSearchChange={onSearchChange}
-        onMaxSlotsChange={onMaxSlotsChange}
-        onUnlimitedSlotsChange={onUnlimitedSlotsChange}
         onUnlimitedQuantityChange={onUnlimitedQuantityChange}
         onAddClick={onAddClick}
         showFilters={showFilters}

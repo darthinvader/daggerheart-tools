@@ -925,6 +925,20 @@ export async function createHomebrewCollection(
   return mapCollectionRow(data as HomebrewCollectionRow);
 }
 
+export async function deleteHomebrewCollection(id: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('homebrew_collections')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error deleting homebrew collection:', error);
+    throw error;
+  }
+
+  return true;
+}
+
 export async function getOrCreateQuicklist(): Promise<HomebrewCollection> {
   const user = await getAuthenticatedUser();
 

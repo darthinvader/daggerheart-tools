@@ -92,7 +92,8 @@ const OUTCOME_CONFIG: Record<
   },
 };
 
-const DEFAULT_DIFFICULTY = 15;
+/** Regex for validating multi-dice notation like "2d6+1d4+3" or "3d8 + 2d6 + 2" */
+const MULTI_DICE_REGEX = /^(\d+d\d+|\d+)(\s*\+\s*(\d+d\d+|\d+))*$/;
 
 // =====================================================================================
 // Sub-components
@@ -208,14 +209,7 @@ const RollResultDisplay = memo(function RollResultDisplay({
 
       {/* Total and breakdown */}
       <div className="flex flex-col items-center gap-0.5">
-        <div className="flex items-baseline gap-2">
-          <span className="text-3xl font-bold tabular-nums">
-            {result.total}
-          </span>
-          <span className="text-muted-foreground text-sm">
-            vs {result.difficulty}
-          </span>
-        </div>
+        <span className="text-3xl font-bold tabular-nums">{result.total}</span>
         <span className="text-muted-foreground text-xs">{breakdown}</span>
       </div>
 
@@ -269,12 +263,10 @@ const RollResultDisplay = memo(function RollResultDisplay({
   );
 });
 
-/** Modifier/difficulty inputs and advantage/disadvantage toggles */
+/** Modifier input and advantage/disadvantage toggles */
 const RollConfigInputs = memo(function RollConfigInputs({
   modifier,
   onModifierChange,
-  difficulty,
-  onDifficultyChange,
   hasAdvantage,
   hasDisadvantage,
   onToggleAdvantage,
@@ -282,8 +274,6 @@ const RollConfigInputs = memo(function RollConfigInputs({
 }: {
   modifier: number;
   onModifierChange: (value: number) => void;
-  difficulty: number;
-  onDifficultyChange: (value: number) => void;
   hasAdvantage: boolean;
   hasDisadvantage: boolean;
   onToggleAdvantage: () => void;
@@ -291,30 +281,16 @@ const RollConfigInputs = memo(function RollConfigInputs({
 }) {
   return (
     <>
-      {/* Modifier & Difficulty */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="roll-modifier">Modifier</Label>
-          <Input
-            id="roll-modifier"
-            type="number"
-            value={modifier}
-            onChange={e => onModifierChange(Number(e.target.value) || 0)}
-            className="tabular-nums"
-          />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="roll-difficulty">Difficulty</Label>
-          <Input
-            id="roll-difficulty"
-            type="number"
-            value={difficulty}
-            onChange={e =>
-              onDifficultyChange(Number(e.target.value) || DEFAULT_DIFFICULTY)
-            }
-            className="tabular-nums"
-          />
-        </div>
+      {/* Modifier */}
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="roll-modifier">Modifier</Label>
+        <Input
+          id="roll-modifier"
+          type="number"
+          value={modifier}
+          onChange={e => onModifierChange(Number(e.target.value) || 0)}
+          className="tabular-nums"
+        />
       </div>
 
       {/* Advantage / Disadvantage toggles */}
@@ -355,8 +331,8 @@ const ResourceSpendingPanel = memo(function ResourceSpendingPanel({
   hopeSpent,
   onHopeSpentChange,
   experiences,
-  burnedExperienceId,
-  onBurnedExperienceChange,
+  burnedExperienceIds,
+  onToggleExperience,
   resourceBonus,
   resetResult,
 }: {
@@ -365,14 +341,17 @@ const ResourceSpendingPanel = memo(function ResourceSpendingPanel({
   hopeSpent: number;
   onHopeSpentChange: (value: number) => void;
   experiences: RollExperience[] | undefined;
-  burnedExperienceId: string | null;
-  onBurnedExperienceChange: (id: string | null) => void;
+  burnedExperienceIds: ReadonlySet<string>;
+  onToggleExperience: (id: string) => void;
   resourceBonus: number;
   resetResult: () => void;
 }) {
-  const burnedExperience = useMemo(
-    () => experiences?.find(e => e.id === burnedExperienceId) ?? null,
-    [experiences, burnedExperienceId]
+  const totalExperienceBonus = useMemo(
+    () =>
+      experiences
+        ?.filter(e => burnedExperienceIds.has(e.id))
+        .reduce((sum, e) => sum + e.value, 0) ?? 0,
+    [experiences, burnedExperienceIds]
   );
 
   return (
@@ -429,38 +408,38 @@ const ResourceSpendingPanel = memo(function ResourceSpendingPanel({
             <div className="flex flex-col">
               <span className="text-sm font-medium">Use Experience</span>
               <span className="text-muted-foreground text-xs">
-                Costs 1 Hope, adds experience bonus
+                Costs 1 Hope each, adds experience bonus
               </span>
             </div>
-            {burnedExperience && (
+            {totalExperienceBonus > 0 && (
               <Badge className="border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300">
-                +{burnedExperience.value}
+                +{totalExperienceBonus}
               </Badge>
             )}
           </div>
           <div className="flex flex-wrap gap-1">
-            {experiences.map(exp => (
-              <Button
-                key={exp.id}
-                variant={burnedExperienceId === exp.id ? 'default' : 'outline'}
-                size="sm"
-                className={cn(
-                  'h-7 text-xs',
-                  burnedExperienceId === exp.id &&
-                    'bg-amber-600 text-white hover:bg-amber-700'
-                )}
-                disabled={burnedExperienceId !== exp.id && availableHope <= 0}
-                onClick={() => {
-                  onBurnedExperienceChange(
-                    burnedExperienceId === exp.id ? null : exp.id
-                  );
-                  resetResult();
-                }}
-              >
-                <BookOpen className="size-3" />
-                {exp.name} (+{exp.value})
-              </Button>
-            ))}
+            {experiences.map(exp => {
+              const isActive = burnedExperienceIds.has(exp.id);
+              return (
+                <Button
+                  key={exp.id}
+                  variant={isActive ? 'default' : 'outline'}
+                  size="sm"
+                  className={cn(
+                    'h-7 text-xs',
+                    isActive && 'bg-amber-600 text-white hover:bg-amber-700'
+                  )}
+                  disabled={!isActive && availableHope <= 0}
+                  onClick={() => {
+                    onToggleExperience(exp.id);
+                    resetResult();
+                  }}
+                >
+                  <BookOpen className="size-3" />
+                  {exp.name} (+{exp.value})
+                </Button>
+              );
+            })}
           </div>
         </div>
       )}
@@ -480,7 +459,7 @@ const ResourceSpendingPanel = memo(function ResourceSpendingPanel({
   );
 });
 
-/** Effect die switch and notation input */
+/** Effect die switch and notation input with multi-dice validation */
 const EffectDieToggle = memo(function EffectDieToggle({
   effectDieEnabled,
   onEffectDieEnabledChange,
@@ -492,23 +471,37 @@ const EffectDieToggle = memo(function EffectDieToggle({
   effectDieNotation: string;
   onEffectDieNotationChange: (value: string) => void;
 }) {
+  const isValid =
+    effectDieNotation.length === 0 ||
+    MULTI_DICE_REGEX.test(effectDieNotation.trim());
+
   return (
-    <div className="flex items-center justify-between gap-3 rounded-lg border p-3">
-      <div className="flex items-center gap-2">
-        <Switch
-          id="effect-die-toggle"
-          checked={effectDieEnabled}
-          onCheckedChange={onEffectDieEnabledChange}
-        />
-        <Label htmlFor="effect-die-toggle">Effect Die</Label>
+    <div className="flex flex-col gap-1">
+      <div className="flex items-center justify-between gap-3 rounded-lg border p-3">
+        <div className="flex items-center gap-2">
+          <Switch
+            id="effect-die-toggle"
+            checked={effectDieEnabled}
+            onCheckedChange={onEffectDieEnabledChange}
+          />
+          <Label htmlFor="effect-die-toggle">Effect Die</Label>
+        </div>
+        {effectDieEnabled && (
+          <Input
+            value={effectDieNotation}
+            onChange={e => onEffectDieNotationChange(e.target.value)}
+            placeholder="2d6+1d4+3"
+            className={cn(
+              'w-32 tabular-nums',
+              !isValid && 'border-red-500 focus-visible:ring-red-500'
+            )}
+          />
+        )}
       </div>
-      {effectDieEnabled && (
-        <Input
-          value={effectDieNotation}
-          onChange={e => onEffectDieNotationChange(e.target.value)}
-          placeholder="1d8"
-          className="w-20 tabular-nums"
-        />
+      {effectDieEnabled && !isValid && (
+        <span className="text-xs text-red-500">
+          Invalid format. Use NdS+NdS+Z (e.g., "2d6+1d4+3")
+        </span>
       )}
     </div>
   );
@@ -534,7 +527,6 @@ export const DualityRollDialog = memo(function DualityRollDialog({
   const [modifier, setModifier] = useState(defaultModifier);
   const [advantage, setAdvantage] = useState(false);
   const [disadvantage, setDisadvantage] = useState(false);
-  const [difficulty, setDifficulty] = useState(DEFAULT_DIFFICULTY);
   const [effectDieEnabled, setEffectDieEnabled] = useState(false);
   const [effectDieNotation, setEffectDieNotation] = useState(defaultEffectDie);
   const [result, setResult] = useState<ResolvedDualityRoll | null>(null);
@@ -542,8 +534,8 @@ export const DualityRollDialog = memo(function DualityRollDialog({
 
   // Pre-roll resource spending
   const [hopeSpent, setHopeSpent] = useState(0);
-  const [burnedExperienceId, setBurnedExperienceId] = useState<string | null>(
-    null
+  const [burnedExperienceIds, setBurnedExperienceIds] = useState<Set<string>>(
+    () => new Set()
   );
 
   // Reset state when dialog opens with new props
@@ -556,7 +548,7 @@ export const DualityRollDialog = memo(function DualityRollDialog({
         setResult(null);
         setIsRolling(false);
         setHopeSpent(0);
-        setBurnedExperienceId(null);
+        setBurnedExperienceIds(new Set());
       }, 0);
       return () => clearTimeout(timer);
     }
@@ -565,15 +557,17 @@ export const DualityRollDialog = memo(function DualityRollDialog({
   const hasResources =
     currentHope !== undefined ||
     (experiences !== undefined && experiences.length > 0);
-  const burnedExperience = useMemo(
-    () => experiences?.find(e => e.id === burnedExperienceId) ?? null,
-    [experiences, burnedExperienceId]
+  const burnedExperienceBonus = useMemo(
+    () =>
+      experiences
+        ?.filter(e => burnedExperienceIds.has(e.id))
+        .reduce((sum, e) => sum + e.value, 0) ?? 0,
+    [experiences, burnedExperienceIds]
   );
-  const experienceHopeCost = burnedExperience ? 1 : 0;
+  const experienceHopeCost = burnedExperienceIds.size;
   const totalHopeSpent = hopeSpent + experienceHopeCost;
   const availableHope = (currentHope ?? 0) - totalHopeSpent;
-  const resourceBonus =
-    hopeSpent + (burnedExperience ? burnedExperience.value : 0);
+  const resourceBonus = hopeSpent + burnedExperienceBonus;
   const effectiveModifier = modifier + resourceBonus;
 
   const hasAdvantage = advantage && !disadvantage;
@@ -596,9 +590,12 @@ export const DualityRollDialog = memo(function DualityRollDialog({
       const rawRoll = rollDuality(effectiveModifier, {
         advantage: hasAdvantage,
         disadvantage: hasDisadvantage,
-        effectDie: effectDieEnabled ? effectDieNotation : undefined,
+        effectDie:
+          effectDieEnabled && MULTI_DICE_REGEX.test(effectDieNotation)
+            ? effectDieNotation
+            : undefined,
       });
-      const resolved = resolveDualityRoll(rawRoll, difficulty);
+      const resolved = resolveDualityRoll(rawRoll);
 
       setResult(resolved);
       setIsRolling(false);
@@ -621,7 +618,6 @@ export const DualityRollDialog = memo(function DualityRollDialog({
     hasDisadvantage,
     effectDieEnabled,
     effectDieNotation,
-    difficulty,
     onHopeChange,
     onFearChange,
     onStressClear,
@@ -652,7 +648,7 @@ export const DualityRollDialog = memo(function DualityRollDialog({
         setResult(null);
         setIsRolling(false);
         setHopeSpent(0);
-        setBurnedExperienceId(null);
+        setBurnedExperienceIds(new Set());
       }
       onOpenChange(nextOpen);
     },
@@ -663,7 +659,10 @@ export const DualityRollDialog = memo(function DualityRollDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
+      <DialogContent
+        aria-describedby={undefined}
+        className="max-h-[90vh] overflow-y-auto sm:max-w-md"
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Target className="size-5" />
@@ -676,11 +675,6 @@ export const DualityRollDialog = memo(function DualityRollDialog({
             modifier={modifier}
             onModifierChange={value => {
               setModifier(value);
-              resetResult();
-            }}
-            difficulty={difficulty}
-            onDifficultyChange={value => {
-              setDifficulty(value);
               resetResult();
             }}
             hasAdvantage={hasAdvantage}
@@ -697,8 +691,22 @@ export const DualityRollDialog = memo(function DualityRollDialog({
               hopeSpent={hopeSpent}
               onHopeSpentChange={setHopeSpent}
               experiences={experiences}
-              burnedExperienceId={burnedExperienceId}
-              onBurnedExperienceChange={setBurnedExperienceId}
+              burnedExperienceIds={burnedExperienceIds}
+              onToggleExperience={(id: string) => {
+                setBurnedExperienceIds(prev => {
+                  const next = new Set(prev);
+                  if (next.has(id)) {
+                    next.delete(id);
+                    // Auto-unspend 1 Hope when deselecting
+                    setHopeSpent(h => Math.max(0, h));
+                  } else {
+                    next.add(id);
+                    // Auto-spend 1 Hope when selecting
+                  }
+                  return next;
+                });
+                resetResult();
+              }}
               resourceBonus={resourceBonus}
               resetResult={resetResult}
             />

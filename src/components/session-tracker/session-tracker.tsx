@@ -1,5 +1,5 @@
-import { BookOpen, Coins, Plus, Star } from 'lucide-react';
-import { useState } from 'react';
+import { BookOpen, Coins, Plus, Search, Star } from 'lucide-react';
+import { useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 
 import { SessionCard } from './session-card';
 import { SessionEditor } from './session-editor';
@@ -35,9 +36,24 @@ export function SessionTracker({
   const [editingSession, setEditingSession] = useState<SessionEntry | null>(
     null
   );
+  const [searchQuery, setSearchQuery] = useState('');
 
   const stats = getSessionStats(safeSessions);
   const sorted = sortSessions(safeSessions);
+
+  const filteredSessions = useMemo(() => {
+    if (!searchQuery.trim()) return sorted;
+    const q = searchQuery.toLowerCase();
+    return sorted.filter(s =>
+      [
+        s.title,
+        s.summary,
+        s.date,
+        `session ${s.number}`,
+        ...s.notableEvents,
+      ].some(field => field?.toLowerCase().includes(q))
+    );
+  }, [sorted, searchQuery]);
 
   const handleNew = () => {
     const session = createSession(getNextSessionNumber(safeSessions));
@@ -74,7 +90,7 @@ export function SessionTracker({
 
   return (
     <>
-      <section className="bg-card hover:border-primary/20 flex h-full flex-col rounded-xl border shadow-sm transition-colors">
+      <section className="bg-card hover:border-primary/20 flex max-h-[28rem] flex-col rounded-xl border shadow-sm transition-colors">
         <div className="flex items-center justify-between border-b px-4 py-3 sm:px-6">
           <div className="flex items-center gap-2">
             <BookOpen className="size-5" />
@@ -100,14 +116,29 @@ export function SessionTracker({
             </span>
           </div>
 
+          {/* Search */}
+          {safeSessions.length > 0 && (
+            <div className="relative">
+              <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
+              <Input
+                placeholder="Search sessions..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="pl-8"
+              />
+            </div>
+          )}
+
           {/* Sessions List */}
-          {sorted.length === 0 ? (
+          {filteredSessions.length === 0 ? (
             <div className="text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm">
-              No sessions recorded yet
+              {searchQuery.trim()
+                ? 'No sessions match your search'
+                : 'No sessions recorded yet'}
             </div>
           ) : (
             <div className="space-y-3">
-              {sorted.map(session => (
+              {filteredSessions.map(session => (
                 <SessionCard
                   key={session.id}
                   session={session}
@@ -126,7 +157,10 @@ export function SessionTracker({
         open={editingSession !== null}
         onOpenChange={() => setEditingSession(null)}
       >
-        <DialogContent className="flex h-full w-full flex-col overflow-hidden sm:h-auto sm:max-h-[90vh] sm:w-[98vw] sm:max-w-4xl">
+        <DialogContent
+          aria-describedby={undefined}
+          className="flex h-full w-full flex-col overflow-hidden sm:h-auto sm:max-h-[90vh] sm:w-[98vw] sm:max-w-4xl"
+        >
           <DialogHeader>
             <DialogTitle>
               {editingSession && `Session ${editingSession.number}`}

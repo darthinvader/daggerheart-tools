@@ -89,8 +89,13 @@ function sourceLabel(entry: BonusSourceEntry) {
       return `Item Feature: ${entry.sourceName}`;
     case 'equipment-item':
       return `Equipment: ${entry.sourceName}`;
-    case 'equipment-feature':
-      return `Equipment Feature: ${entry.sourceName}`;
+    case 'equipment-feature': {
+      // detail format: "SlotLabel::FeatureName"
+      const featureName = entry.detail?.includes('::')
+        ? entry.detail.split('::')[1]
+        : entry.detail;
+      return `Equipment Feature: ${featureName ?? entry.sourceName}`;
+    }
     case 'experience-bonus':
       return `Experience Bonus: ${entry.sourceName}`;
     case 'beastform':
@@ -117,6 +122,17 @@ interface BonusSourceCardProps {
   onToggle?: () => void;
 }
 
+function displayDetail(entry: BonusSourceEntry): string | undefined {
+  if (!entry.detail) return undefined;
+  // equipment-feature detail is "SlotLabel::FeatureName" — show only the feature name
+  if (entry.type === 'equipment-feature' && entry.detail.includes('::')) {
+    return entry.detail.split('::')[1];
+  }
+  // equipment-item detail is the slot label — shown in sourceLabel, hide here
+  if (entry.type === 'equipment-item') return undefined;
+  return entry.detail;
+}
+
 function BonusSourceCard({
   entry,
   isDisabled,
@@ -129,7 +145,8 @@ function BonusSourceCard({
     <div
       className={cn(
         'rounded-lg border p-3 transition-all',
-        isDisabled && 'opacity-50'
+        isDisabled &&
+          'border-muted-foreground/30 bg-muted/30 border-dashed opacity-60'
       )}
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -154,12 +171,22 @@ function BonusSourceCard({
             </SmartTooltip>
           )}
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold">
-              {sourceLabel(entry)}
-            </p>
-            {entry.detail && (
+            <div className="flex items-center gap-2">
+              <p className="truncate text-sm font-semibold">
+                {sourceLabel(entry)}
+              </p>
+              {isDisabled && (
+                <Badge
+                  variant="outline"
+                  className="text-muted-foreground shrink-0 text-[10px]"
+                >
+                  Deactivated
+                </Badge>
+              )}
+            </div>
+            {displayDetail(entry) && (
               <p className="text-muted-foreground truncate text-xs">
-                {entry.detail}
+                {displayDetail(entry)}
               </p>
             )}
           </div>
@@ -204,21 +231,25 @@ export function BonusSummaryDisplay({
     () =>
       combinedSources.filter(
         entry =>
-          formatModifiers(entry.modifiers).length > 0 || !!entry.experienceBonus
+          formatModifiers(entry.modifiers).length > 0 ||
+          !!entry.experienceBonus ||
+          !!entry.disabled ||
+          disabledSources.has(getSourceKey(entry))
       ),
-    [combinedSources]
+    [combinedSources, disabledSources]
   );
 
   const enabledCount = useMemo(
     () =>
-      activeSources.filter(entry => !disabledSources.has(getSourceKey(entry)))
-        .length,
+      activeSources.filter(
+        entry => !entry.disabled && !disabledSources.has(getSourceKey(entry))
+      ).length,
     [activeSources, disabledSources]
   );
 
   return (
-    <div className={cn('rounded-lg border p-4', className)}>
-      <div className="mb-3 flex items-center gap-2">
+    <div className={cn('flex flex-col rounded-lg border p-4', className)}>
+      <div className="mb-3 flex shrink-0 items-center gap-2">
         <Sparkles className="size-5 text-amber-500" />
         <div>
           <p className="text-sm font-semibold">Active Bonuses</p>
@@ -235,10 +266,10 @@ export function BonusSummaryDisplay({
           No active bonuses from any source.
         </p>
       ) : (
-        <div className="space-y-2">
+        <div className="min-h-0 flex-1 space-y-2 overflow-y-auto">
           {activeSources.map(entry => {
             const key = getSourceKey(entry);
-            const isDisabled = disabledSources.has(key);
+            const isDisabled = !!entry.disabled || disabledSources.has(key);
             return (
               <BonusSourceCard
                 key={key}

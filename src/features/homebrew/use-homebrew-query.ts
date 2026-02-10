@@ -28,6 +28,7 @@ import {
   createHomebrewCollection,
   createHomebrewContent,
   type CreateHomebrewContentInput,
+  deleteHomebrewCollection,
   deleteHomebrewComment,
   deleteHomebrewContent,
   emptyRecycleBin,
@@ -520,6 +521,18 @@ export function useCreateHomebrewCollection() {
       name: string;
       description?: string;
     }) => createHomebrewCollection(name, description),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: homebrewKeys.collections() });
+    },
+  });
+}
+
+export function useDeleteHomebrewCollection() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (collectionId: string) =>
+      deleteHomebrewCollection(collectionId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: homebrewKeys.collections() });
     },

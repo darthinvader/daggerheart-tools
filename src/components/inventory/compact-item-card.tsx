@@ -46,10 +46,8 @@ export const CompactItemCard = memo(function CompactItemCard({
         'flex flex-col rounded-lg border-2 p-4 shadow-sm transition-all hover:shadow-md',
         rarityConfig?.borderColor,
         rarityConfig?.bgColor,
-        entry.isEquipped &&
-          'ring-2 ring-amber-500 ring-offset-2 dark:ring-offset-gray-900',
-        entry.isCustom &&
-          'ring-2 ring-purple-500 ring-offset-2 dark:ring-offset-gray-900'
+        entry.isEquipped && 'ring-2 ring-amber-500 dark:ring-offset-gray-900',
+        entry.isCustom && 'ring-2 ring-purple-500 dark:ring-offset-gray-900'
       )}
     >
       <div className="flex items-start justify-between gap-3">

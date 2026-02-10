@@ -97,7 +97,9 @@ export function QuickLoadoutInfo({
   }
 
   return (
-    <div className={cn('quick-loadout-card', className)}>
+    <div
+      className={cn('quick-loadout-card max-h-96 overflow-y-auto', className)}
+    >
       {/* Active cards */}
       {activeCards.length > 0 && (
         <div className="quick-loadout-section">

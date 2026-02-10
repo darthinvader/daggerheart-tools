@@ -71,7 +71,7 @@ import { ALL_DOMAIN_NAMES, getAllDomainCards } from '@/lib/data/domains';
 import { AlertTriangle, Sparkle, Sparkles, Zap } from '@/lib/icons';
 import type { DomainCard } from '@/lib/schemas/domains';
 import { getCardCosts } from '@/lib/utils/card-costs';
-import { useCategoryExpandState } from './use-category-expand-state';
+import { useCategoryExpandState } from './-use-category-expand-state';
 
 export const Route = createFileRoute('/references/domain-cards')({
   component: DomainCardsPageWrapper,

@@ -5,10 +5,12 @@ import { CustomEquipmentSummaryCard } from './summary';
 
 interface CustomEquipmentSectionProps {
   customSlots: CustomEquipment[];
+  onToggleActivated?: (slotId: string) => void;
 }
 
 export function CustomEquipmentSection({
   customSlots,
+  onToggleActivated,
 }: CustomEquipmentSectionProps) {
   return (
     <div className="rounded-lg border p-4">
@@ -26,7 +28,14 @@ export function CustomEquipmentSection({
       {customSlots.length > 0 ? (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {customSlots.map(slot => (
-            <CustomEquipmentSummaryCard key={slot.id} slot={slot} />
+            <CustomEquipmentSummaryCard
+              key={slot.id}
+              slot={slot}
+              isActivated={slot.activated !== false}
+              onToggleActivated={
+                onToggleActivated ? () => onToggleActivated(slot.id) : undefined
+              }
+            />
           ))}
         </div>
       ) : (

@@ -15,6 +15,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import type { CustomConditionDefinition } from '@/lib/schemas/character-state';
 import { CONDITION_PRESET_ICONS } from '@/lib/schemas/character-state';
 import { cn } from '@/lib/utils';
@@ -85,16 +90,43 @@ function ConditionInput({
       </div>
       {showSuggestions && filteredSuggestions.length > 0 && (
         <div className="max-h-48 overflow-auto rounded-md border">
-          {filteredSuggestions.map(suggestion => (
-            <button
-              key={suggestion}
-              type="button"
-              className="hover:bg-muted w-full px-3 py-1 text-left text-sm"
-              onClick={() => handleAdd(suggestion)}
-            >
-              {suggestion}
-            </button>
-          ))}
+          {filteredSuggestions.map(suggestion => {
+            const style = DEFAULT_CONDITION_STYLE[suggestion];
+            const iconName = style?.icon as
+              | (typeof CONDITION_PRESET_ICONS)[number]
+              | undefined;
+            const SuggestionIcon =
+              iconName && iconName in CONDITION_ICON_MAP
+                ? CONDITION_ICON_MAP[iconName]
+                : undefined;
+
+            return (
+              <Tooltip key={suggestion}>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className="hover:bg-muted flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm"
+                    onClick={() => handleAdd(suggestion)}
+                  >
+                    {SuggestionIcon && (
+                      <SuggestionIcon
+                        className="size-3.5 shrink-0"
+                        style={
+                          style?.color ? { color: style.color } : undefined
+                        }
+                      />
+                    )}
+                    {suggestion}
+                  </button>
+                </TooltipTrigger>
+                {style?.description && (
+                  <TooltipContent side="right">
+                    {style.description}
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            );
+          })}
         </div>
       )}
     </div>
@@ -120,7 +152,7 @@ function ConditionBadge({
       : undefined;
   const color = definition?.color;
 
-  return (
+  const badge = (
     <Badge
       variant="secondary"
       className="gap-1 px-3 py-1 text-sm"
@@ -134,7 +166,6 @@ function ConditionBadge({
             }
           : undefined
       }
-      title={definition?.description}
     >
       {IconComp && <IconComp className="size-3" />}
       {name}
@@ -149,6 +180,17 @@ function ConditionBadge({
       )}
     </Badge>
   );
+
+  if (definition?.description) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>{badge}</TooltipTrigger>
+        <TooltipContent>{definition.description}</TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  return badge;
 }
 
 function ConditionsDetailedDisplay({

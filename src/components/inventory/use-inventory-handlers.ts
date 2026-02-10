@@ -35,25 +35,6 @@ function useSlotHandlers(
   inventory: InventoryState,
   onChange?: (inventory: InventoryState) => void
 ) {
-  const handleMaxSlotsChange = useCallback(
-    (delta: number) => {
-      const totalQuantity = inventory.items.reduce(
-        (sum, i) => sum + i.quantity,
-        0
-      );
-      const newMax = Math.max(totalQuantity, inventory.maxSlots + delta);
-      onChange?.({ ...inventory, maxSlots: newMax });
-    },
-    [inventory, onChange]
-  );
-
-  const handleUnlimitedSlotsChange = useCallback(
-    (value: boolean) => {
-      onChange?.({ ...inventory, unlimitedSlots: value });
-    },
-    [inventory, onChange]
-  );
-
   const handleUnlimitedQuantityChange = useCallback(
     (value: boolean) => {
       onChange?.({ ...inventory, unlimitedQuantity: value });
@@ -62,8 +43,6 @@ function useSlotHandlers(
   );
 
   return {
-    handleMaxSlotsChange,
-    handleUnlimitedSlotsChange,
     handleUnlimitedQuantityChange,
   };
 }
@@ -104,13 +83,6 @@ function useItemHandlers(
       );
 
       for (const item of items) {
-        if (
-          !inventory.unlimitedSlots &&
-          currentTotalQuantity >= inventory.maxSlots
-        ) {
-          break;
-        }
-
         const existingIndex = updatedItems.findIndex(
           i => i.item.name === item.name && !i.isCustom
         );
@@ -244,8 +216,6 @@ export function useInventoryHandlers({
     customFormOpen,
     editingItem: itemHandlers.editingItem,
     handleQuantityChange,
-    handleMaxSlotsChange: slotHandlers.handleMaxSlotsChange,
-    handleUnlimitedSlotsChange: slotHandlers.handleUnlimitedSlotsChange,
     handleUnlimitedQuantityChange: slotHandlers.handleUnlimitedQuantityChange,
     handleRemove: itemHandlers.handleRemove,
     handleConvertToHomebrew,

@@ -399,7 +399,10 @@ function AddQuestionDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden">
+      <DialogContent
+        aria-describedby={undefined}
+        className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden"
+      >
         <DialogHeader>
           <DialogTitle>Add Questions</DialogTitle>
         </DialogHeader>

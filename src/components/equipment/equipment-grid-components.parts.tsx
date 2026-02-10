@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react';
 
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import type { LucideProps } from '@/lib/icons';
 import { Axe, Power, Sword, Wheelchair } from '@/lib/icons';
@@ -40,7 +41,7 @@ export function WeaponCard({
   onToggleActivated,
 }: WeaponCardProps) {
   return (
-    <div className={cn('relative', !isActivated && 'opacity-50')}>
+    <div className={cn('relative h-full', !isActivated && 'opacity-50')}>
       <ClickableCard onClick={() => openSection(section)} disabled={readOnly}>
         <WeaponSummaryCard
           icon={icon}
@@ -101,7 +102,7 @@ export function ArmorCard({
   onToggleActivated,
 }: ArmorCardProps) {
   return (
-    <div className={cn('relative', !isActivated && 'opacity-50')}>
+    <div className={cn('relative h-full', !isActivated && 'opacity-50')}>
       <ClickableCard onClick={() => openSection('armor')} disabled={readOnly}>
         <ArmorSummaryCard
           name={data.name}
@@ -165,7 +166,7 @@ export function WheelchairCard({
   onToggleActivated,
 }: WheelchairCardProps) {
   return (
-    <div className={cn('relative', !isActivated && 'opacity-50')}>
+    <div className={cn('relative h-full', !isActivated && 'opacity-50')}>
       <ClickableCard
         onClick={() => openSection('wheelchair')}
         disabled={readOnly}
@@ -236,38 +237,52 @@ export function EquipmentGrid3Col({
   onToggleSecondaryActivated,
   onToggleArmorActivated,
 }: EquipmentGridProps) {
+  const showTwoHandedWarning =
+    (primaryData.burden === 'Two-Handed' && !secondaryData.isEmpty) ||
+    (secondaryData.burden === 'Two-Handed' && !primaryData.isEmpty);
+
   return (
-    <div className="grid gap-3 lg:grid-cols-3">
-      <WeaponCard
-        icon={Sword}
-        label="Primary Weapon"
-        data={primaryData}
-        isHomebrew={equipment.primaryWeaponMode === 'homebrew'}
-        section="primary"
-        readOnly={readOnly}
-        openSection={openSection}
-        isActivated={equipment.primaryWeaponActivated !== false}
-        onToggleActivated={onTogglePrimaryActivated}
-      />
-      <WeaponCard
-        icon={Axe}
-        label="Secondary Weapon"
-        data={secondaryData}
-        isHomebrew={equipment.secondaryWeaponMode === 'homebrew'}
-        section="secondary"
-        readOnly={readOnly}
-        openSection={openSection}
-        isActivated={equipment.secondaryWeaponActivated !== false}
-        onToggleActivated={onToggleSecondaryActivated}
-      />
-      <ArmorCard
-        data={armorData}
-        isHomebrew={equipment.armorMode === 'homebrew'}
-        readOnly={readOnly}
-        openSection={openSection}
-        isActivated={equipment.armorActivated !== false}
-        onToggleActivated={onToggleArmorActivated}
-      />
+    <div className="space-y-3">
+      <div className="grid gap-3 lg:grid-cols-3">
+        <WeaponCard
+          icon={Sword}
+          label="Primary Weapon"
+          data={primaryData}
+          isHomebrew={equipment.primaryWeaponMode === 'homebrew'}
+          section="primary"
+          readOnly={readOnly}
+          openSection={openSection}
+          isActivated={equipment.primaryWeaponActivated !== false}
+          onToggleActivated={onTogglePrimaryActivated}
+        />
+        <WeaponCard
+          icon={Axe}
+          label="Secondary Weapon"
+          data={secondaryData}
+          isHomebrew={equipment.secondaryWeaponMode === 'homebrew'}
+          section="secondary"
+          readOnly={readOnly}
+          openSection={openSection}
+          isActivated={equipment.secondaryWeaponActivated !== false}
+          onToggleActivated={onToggleSecondaryActivated}
+        />
+        <ArmorCard
+          data={armorData}
+          isHomebrew={equipment.armorMode === 'homebrew'}
+          readOnly={readOnly}
+          openSection={openSection}
+          isActivated={equipment.armorActivated !== false}
+          onToggleActivated={onToggleArmorActivated}
+        />
+      </div>
+      {showTwoHandedWarning && (
+        <Alert className="border-yellow-500/50 bg-yellow-500/10">
+          <AlertDescription>
+            ⚠ Using a secondary weapon with a two-handed weapon is not
+            rules-legal.
+          </AlertDescription>
+        </Alert>
+      )}
     </div>
   );
 }
@@ -293,46 +308,60 @@ export function EquipmentGrid2x2({
   onToggleArmorActivated,
   onToggleWheelchairActivated,
 }: EquipmentGrid2x2Props) {
+  const showTwoHandedWarning =
+    (primaryData.burden === 'Two-Handed' && !secondaryData.isEmpty) ||
+    (secondaryData.burden === 'Two-Handed' && !primaryData.isEmpty);
+
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
-      <WeaponCard
-        icon={Sword}
-        label="Primary Weapon"
-        data={primaryData}
-        isHomebrew={equipment.primaryWeaponMode === 'homebrew'}
-        section="primary"
-        readOnly={readOnly}
-        openSection={openSection}
-        isActivated={equipment.primaryWeaponActivated !== false}
-        onToggleActivated={onTogglePrimaryActivated}
-      />
-      <WeaponCard
-        icon={Axe}
-        label="Secondary Weapon"
-        data={secondaryData}
-        isHomebrew={equipment.secondaryWeaponMode === 'homebrew'}
-        section="secondary"
-        readOnly={readOnly}
-        openSection={openSection}
-        isActivated={equipment.secondaryWeaponActivated !== false}
-        onToggleActivated={onToggleSecondaryActivated}
-      />
-      <ArmorCard
-        data={armorData}
-        isHomebrew={equipment.armorMode === 'homebrew'}
-        readOnly={readOnly}
-        openSection={openSection}
-        isActivated={equipment.armorActivated !== false}
-        onToggleActivated={onToggleArmorActivated}
-      />
-      <WheelchairCard
-        data={wheelchairData}
-        isHomebrew={equipment.wheelchairMode === 'homebrew'}
-        readOnly={readOnly}
-        openSection={openSection}
-        isActivated={equipment.wheelchairActivated !== false}
-        onToggleActivated={onToggleWheelchairActivated}
-      />
+    <div className="space-y-3">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <WeaponCard
+          icon={Sword}
+          label="Primary Weapon"
+          data={primaryData}
+          isHomebrew={equipment.primaryWeaponMode === 'homebrew'}
+          section="primary"
+          readOnly={readOnly}
+          openSection={openSection}
+          isActivated={equipment.primaryWeaponActivated !== false}
+          onToggleActivated={onTogglePrimaryActivated}
+        />
+        <WeaponCard
+          icon={Axe}
+          label="Secondary Weapon"
+          data={secondaryData}
+          isHomebrew={equipment.secondaryWeaponMode === 'homebrew'}
+          section="secondary"
+          readOnly={readOnly}
+          openSection={openSection}
+          isActivated={equipment.secondaryWeaponActivated !== false}
+          onToggleActivated={onToggleSecondaryActivated}
+        />
+        <ArmorCard
+          data={armorData}
+          isHomebrew={equipment.armorMode === 'homebrew'}
+          readOnly={readOnly}
+          openSection={openSection}
+          isActivated={equipment.armorActivated !== false}
+          onToggleActivated={onToggleArmorActivated}
+        />
+        <WheelchairCard
+          data={wheelchairData}
+          isHomebrew={equipment.wheelchairMode === 'homebrew'}
+          readOnly={readOnly}
+          openSection={openSection}
+          isActivated={equipment.wheelchairActivated !== false}
+          onToggleActivated={onToggleWheelchairActivated}
+        />
+      </div>
+      {showTwoHandedWarning && (
+        <Alert className="border-yellow-500/50 bg-yellow-500/10">
+          <AlertDescription>
+            ⚠ Using a secondary weapon with a two-handed weapon is not
+            rules-legal.
+          </AlertDescription>
+        </Alert>
+      )}
     </div>
   );
 }

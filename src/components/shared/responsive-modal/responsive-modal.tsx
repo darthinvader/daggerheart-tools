@@ -70,6 +70,11 @@ export function ResponsiveModal({
         <DialogHeader className="shrink-0 p-6 pb-4">
           {title && <DialogTitle>{title}</DialogTitle>}
           {description && <DialogDescription>{description}</DialogDescription>}
+          {!description && (
+            <DialogDescription className="sr-only">
+              {title ?? 'Dialog'}
+            </DialogDescription>
+          )}
         </DialogHeader>
 
         <div className="overflow-y-auto px-6 py-2">{children}</div>

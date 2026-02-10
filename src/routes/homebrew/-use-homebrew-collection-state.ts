@@ -9,6 +9,7 @@ import { useCallback, useMemo, useState } from 'react';
 import {
   useCollectionItems,
   useCreateHomebrewCollection,
+  useDeleteHomebrewCollection,
   useHomebrewCollections,
   useHomebrewContentBatch,
 } from '@/features/homebrew';
@@ -42,6 +43,10 @@ interface UseHomebrewCollectionStateResult {
   setNewCollectionDescription: (desc: string) => void;
   handleCreateCollection: () => Promise<void>;
   isCreatingCollection: boolean;
+
+  // Delete collection
+  handleDeleteCollection: (id: string) => Promise<void>;
+  isDeletingCollection: boolean;
 }
 
 /**
@@ -51,6 +56,7 @@ export function useHomebrewCollectionState(): UseHomebrewCollectionStateResult {
   const { data: collections = [], isLoading: isCollectionsLoading } =
     useHomebrewCollections();
   const createCollectionMutation = useCreateHomebrewCollection();
+  const deleteCollectionMutation = useDeleteHomebrewCollection();
 
   const visibleCollections = useMemo(
     () => collections.filter(collection => !collection.isQuicklist),
@@ -113,6 +119,16 @@ export function useHomebrewCollectionState(): UseHomebrewCollectionStateResult {
     setIsCreateCollectionOpen(false);
   }, [newCollectionName, newCollectionDescription, createCollectionMutation]);
 
+  const handleDeleteCollection = useCallback(
+    async (id: string) => {
+      await deleteCollectionMutation.mutateAsync(id);
+      if (selectedCollectionId === id) {
+        setSelectedCollectionId(null);
+      }
+    },
+    [deleteCollectionMutation, selectedCollectionId]
+  );
+
   return {
     collections,
     isCollectionsLoading,
@@ -132,5 +148,7 @@ export function useHomebrewCollectionState(): UseHomebrewCollectionStateResult {
     setNewCollectionDescription,
     handleCreateCollection,
     isCreatingCollection: createCollectionMutation.isPending,
+    handleDeleteCollection,
+    isDeletingCollection: deleteCollectionMutation.isPending,
   };
 }

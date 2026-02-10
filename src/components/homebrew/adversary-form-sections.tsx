@@ -246,6 +246,7 @@ interface CombatStatsSectionProps {
     type: 'major' | 'severe'
   ) => string;
   getMassiveThreshold: (data: AdversaryContent) => string;
+  thresholdError?: string;
 }
 
 export function AdversaryCombatStatsSection({
@@ -254,6 +255,7 @@ export function AdversaryCombatStatsSection({
   updateThreshold,
   getThresholdValue,
   getMassiveThreshold,
+  thresholdError,
 }: CombatStatsSectionProps) {
   return (
     <section className="space-y-4 rounded-lg border border-pink-500/30 bg-pink-500/5 p-4">
@@ -325,7 +327,11 @@ export function AdversaryCombatStatsSection({
               value={getThresholdValue(formData, 'major')}
               onChange={e => updateThreshold('major', e.target.value)}
               placeholder="5"
+              className={thresholdError ? 'border-destructive' : ''}
             />
+            {thresholdError && (
+              <p className="text-destructive text-xs">{thresholdError}</p>
+            )}
           </div>
           <div className="space-y-1">
             <span className="text-muted-foreground text-xs">Severe</span>
@@ -356,6 +362,8 @@ interface AttackSectionProps {
   setFormData: Dispatch<SetStateAction<AdversaryContent>>;
   attackNameMode: 'preset' | 'custom';
   setAttackNameMode: Dispatch<SetStateAction<'preset' | 'custom'>>;
+  modifierError?: string;
+  damageError?: string;
 }
 
 export function AdversaryAttackSection({
@@ -363,6 +371,8 @@ export function AdversaryAttackSection({
   setFormData,
   attackNameMode,
   setAttackNameMode,
+  modifierError,
+  damageError,
 }: AttackSectionProps) {
   return (
     <section className="space-y-4 rounded-lg border border-red-500/30 bg-red-500/5 p-4">
@@ -429,7 +439,11 @@ export function AdversaryAttackSection({
             }
             placeholder="+2"
             required
+            className={modifierError ? 'border-destructive' : ''}
           />
+          {modifierError && (
+            <p className="text-destructive text-xs">{modifierError}</p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -468,8 +482,12 @@ export function AdversaryAttackSection({
               }))
             }
             placeholder="1d6+2"
+            className={damageError ? 'border-destructive' : ''}
             required
           />
+          {damageError && (
+            <p className="text-destructive text-xs">{damageError}</p>
+          )}
         </div>
       </div>
     </section>

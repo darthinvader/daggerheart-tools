@@ -233,7 +233,7 @@ export function QuickClassInfo({
 
       {/* Features */}
       {features.length > 0 && (
-        <div className="quick-identity-features">
+        <div className="quick-identity-features max-h-96 overflow-y-auto">
           {features.map((f, i) => (
             <ExpandableFeature
               key={`${f.sourceClass}-${f.name}-${i}`}

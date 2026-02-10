@@ -48,7 +48,10 @@ function CompanionEditDialog({
 }: CompanionEditDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="h-full w-full overflow-y-auto sm:h-auto sm:max-h-[90vh] sm:w-[98vw] sm:max-w-2xl">
+      <DialogContent
+        aria-describedby={undefined}
+        className="h-full w-full overflow-y-auto sm:h-auto sm:max-h-[90vh] sm:w-[98vw] sm:max-w-2xl"
+      >
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>

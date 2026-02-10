@@ -5,16 +5,11 @@ import { Button } from '@/components/ui/button';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import { Backpack, Check, ICON_SIZE_MD, Package } from '@/lib/icons';
 import type { InventoryState } from '@/lib/schemas/equipment';
-import { cn } from '@/lib/utils';
 
 export function EmptyInventoryDisplay({
-  maxSlots,
-  unlimitedSlots,
   onAddClick,
   onCustomClick,
 }: {
-  maxSlots: number;
-  unlimitedSlots?: boolean;
   onAddClick?: () => void;
   onCustomClick?: () => void;
 }) {
@@ -30,8 +25,7 @@ export function EmptyInventoryDisplay({
           : 'Click edit to add items to your inventory'}
       </p>
       <Badge variant="outline" className="mt-3 gap-1">
-        <Backpack size={ICON_SIZE_MD} className="mr-1 inline-block" />
-        {unlimitedSlots ? '0/∞' : `0/${maxSlots}`} slots
+        <Backpack size={ICON_SIZE_MD} className="mr-1 inline-block" />0 items
       </Badge>
       {hasActions && (
         <div className="mt-4 flex gap-2">
@@ -59,7 +53,6 @@ export function InventoryStats({ inventory }: { inventory: InventoryState }) {
   const equippedItems = items.filter(i => i.isEquipped).length;
   const customItems = items.filter(i => i.isCustom).length;
   const totalQuantity = items.reduce((sum, i) => sum + i.quantity, 0);
-  const unlimitedSlots = inventory.unlimitedSlots;
 
   return (
     <div className="flex flex-wrap gap-2">
@@ -91,26 +84,10 @@ export function InventoryStats({ inventory }: { inventory: InventoryState }) {
           </Badge>
         </SmartTooltip>
       )}
-      <SmartTooltip
-        content={
-          unlimitedSlots
-            ? 'Unlimited slots'
-            : `${totalQuantity}/${inventory.maxSlots} slots used`
-        }
-      >
-        <Badge
-          variant="outline"
-          className={cn(
-            'gap-1',
-            !unlimitedSlots && totalQuantity >= inventory.maxSlots
-              ? 'border-red-300 bg-red-50 dark:border-red-700 dark:bg-red-900/30'
-              : ''
-          )}
-        >
+      <SmartTooltip content={`${totalQuantity} total items`}>
+        <Badge variant="outline" className="gap-1">
           <Backpack size={ICON_SIZE_MD} className="mr-1 inline-block" />
-          {unlimitedSlots
-            ? `${totalQuantity}/∞`
-            : `${totalQuantity}/${inventory.maxSlots}`}
+          {totalQuantity} total
         </Badge>
       </SmartTooltip>
     </div>

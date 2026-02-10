@@ -16,8 +16,8 @@ import {
   BattleHeader,
   LinkCampaignDialog,
   RosterGrid,
-} from './battle-tracker-sections';
-import { useBattleTrackerPageState } from './use-battle-tracker-page-state';
+} from './-battle-tracker-sections';
+import { useBattleTrackerPageState } from './-use-battle-tracker-page-state';
 
 const searchSchema = z.object({
   battleId: z.string().optional(),

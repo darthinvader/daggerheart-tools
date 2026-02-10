@@ -1,4 +1,6 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
+
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 import { CustomEquipmentSection } from './custom-equipment-section';
 import type { EquipmentState } from './equipment-editor';
@@ -33,6 +35,17 @@ export function EquipmentEditorSections({
     [updateState]
   );
 
+  const showTwoHandedWarning = useMemo(() => {
+    const primaryIsTwoHanded = state.primaryWeapon?.burden === 'Two-Handed';
+    const secondaryIsTwoHanded = state.secondaryWeapon?.burden === 'Two-Handed';
+    const hasPrimary = state.primaryWeapon !== null;
+    const hasSecondary = state.secondaryWeapon !== null;
+    return (
+      (primaryIsTwoHanded && hasSecondary) ||
+      (secondaryIsTwoHanded && hasPrimary)
+    );
+  }, [state.primaryWeapon, state.secondaryWeapon]);
+
   return (
     <>
       {shouldShow('primary') && (
@@ -46,6 +59,16 @@ export function EquipmentEditorSections({
           campaignId={campaignId}
         />
       )}
+
+      {showTwoHandedWarning &&
+        (shouldShow('primary') || shouldShow('secondary')) && (
+          <Alert className="border-yellow-500/50 bg-yellow-500/10">
+            <AlertDescription>
+              ⚠ Using a secondary weapon with a two-handed weapon is not
+              rules-legal.
+            </AlertDescription>
+          </Alert>
+        )}
 
       {shouldShow('secondary') && (
         <SecondaryWeaponSection

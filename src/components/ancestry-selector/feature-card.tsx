@@ -3,7 +3,6 @@ import { Slash, Zap } from 'lucide-react';
 import { FeatureIcon, SecondaryFeatureIcon } from '@/components/shared';
 import { Button } from '@/components/ui/button';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
-import { useCoarsePointer } from '@/hooks/use-coarse-pointer';
 import { ICON_SIZE_MD } from '@/lib/icons';
 import type { AncestryFeature } from '@/lib/schemas/identity';
 import { cn } from '@/lib/utils';
@@ -47,7 +46,6 @@ export function FeatureCard({
   const styles = VARIANT_STYLES[variant];
   const Icon = styles.icon;
   const label = variant === 'primary' ? 'Primary' : 'Secondary';
-  const isCoarse = useCoarsePointer();
 
   return (
     <div
@@ -59,12 +57,7 @@ export function FeatureCard({
     >
       {/* Activate/Deactivate button */}
       {onToggleActivated && (
-        <div
-          className={cn(
-            'absolute top-2 right-2 transition-opacity',
-            isCoarse ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-          )}
-        >
+        <div className="absolute top-2 right-2">
           <SmartTooltip
             content={isActivated ? 'Deactivate bonuses' : 'Activate bonuses'}
           >

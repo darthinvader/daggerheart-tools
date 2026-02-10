@@ -82,7 +82,7 @@ export function NotesListPanel({
         </SelectContent>
       </Select>
 
-      <div className="flex-1 space-y-2 overflow-y-auto">
+      <div className="max-h-96 flex-1 space-y-2 overflow-y-auto">
         {notes.length === 0 ? (
           <div className="text-muted-foreground py-8 text-center text-sm">
             {searchQuery || categoryFilter !== 'all'

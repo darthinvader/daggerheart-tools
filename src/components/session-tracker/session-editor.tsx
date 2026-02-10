@@ -7,6 +7,12 @@ import { Textarea } from '@/components/ui/textarea';
 
 import type { SessionEntry } from './types';
 
+function toDateTimeLocalValue(isoString: string): string {
+  const d = new Date(isoString);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 interface NotableEventsEditorProps {
   events: string[];
   onAdd: () => void;
@@ -31,7 +37,7 @@ function NotableEventsEditor({
       </div>
       <div className="space-y-2">
         {events.map((event, i) => (
-          <div key={`${event}-${i}`} className="flex gap-2">
+          <div key={i} className="flex gap-2">
             <Input
               value={event}
               onChange={e => onUpdate(i, e.target.value)}
@@ -81,11 +87,11 @@ export function SessionEditor({ session, onChange }: SessionEditorProps) {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="session-date">Date</Label>
+          <Label htmlFor="session-date">Date & Time</Label>
           <Input
             id="session-date"
-            type="date"
-            value={session.date.split('T')[0]}
+            type="datetime-local"
+            value={toDateTimeLocalValue(session.date)}
             onChange={e =>
               handleChange('date', new Date(e.target.value).toISOString())
             }
@@ -103,39 +109,6 @@ export function SessionEditor({ session, onChange }: SessionEditorProps) {
           className="min-h-24 resize-y sm:min-h-32"
           rows={5}
         />
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="session-xp">XP Gained</Label>
-          <Input
-            id="session-xp"
-            type="number"
-            min={0}
-            value={session.xpGained}
-            onChange={e =>
-              handleChange(
-                'xpGained',
-                Math.max(0, parseInt(e.target.value) || 0)
-              )
-            }
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="session-gold">Gold Gained</Label>
-          <Input
-            id="session-gold"
-            type="number"
-            min={0}
-            value={session.goldGained}
-            onChange={e =>
-              handleChange(
-                'goldGained',
-                Math.max(0, parseInt(e.target.value) || 0)
-              )
-            }
-          />
-        </div>
       </div>
 
       <NotableEventsEditor

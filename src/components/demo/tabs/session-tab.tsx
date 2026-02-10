@@ -1,12 +1,14 @@
-import { Moon, Sparkles } from 'lucide-react';
+import { Moon, Sparkles, Sun } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import { ActiveEffectsDisplay } from '@/components/active-effects';
+import { CountdownTracker } from '@/components/countdown-tracker';
 import { DeathMoveModal } from '@/components/death-move';
 import { DowntimeMoves } from '@/components/downtime-moves';
 import { GameActions } from '@/components/game-actions';
 import { RestModal } from '@/components/rest';
 import { SessionTracker } from '@/components/session-tracker';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { getTierFromLevel } from '@/lib/character-stats-engine';
 import type { ActiveEffect } from '@/lib/schemas/equipment';
@@ -116,20 +118,36 @@ export function SessionTab({
       </section>
 
       {/* Rest Management Section */}
-      <section className="game-card game-card-tier animate-fade-up stagger-1">
+      <section className="game-card game-card-tier animate-fade-up stagger-1 max-w-md">
         <div className="game-card-header">
           <h3>
-            <Moon className="text-fear size-5" />
+            <Moon className="text-fear size-4" />
             Rest
           </h3>
           <Button onClick={() => setIsRestModalOpen(true)} size="sm">
             Take a Rest
           </Button>
         </div>
-        <div className="game-card-body">
-          <div className="text-muted-foreground text-sm">
-            <p>Short rests allow 2 downtime moves with 1d4+Tier recovery.</p>
-            <p>Long rests allow 2 downtime moves with full recovery.</p>
+        <div className="game-card-body space-y-2">
+          <div className="flex items-center gap-2">
+            <Sun className="size-3.5 text-amber-500" />
+            <span className="text-sm">Short rests:</span>
+            <Badge
+              variant={
+                (state.restState?.shortRestsToday ?? 0) >= 3
+                  ? 'destructive'
+                  : 'secondary'
+              }
+              className="text-xs"
+            >
+              {state.restState?.shortRestsToday ?? 0}/3 available
+            </Badge>
+          </div>
+          <div className="text-muted-foreground text-xs">
+            <p>Short rest: 2 downtime moves, 1d4+Tier recovery.</p>
+            <p>
+              Long rest: 2 downtime moves, full recovery (resets short rests).
+            </p>
           </div>
         </div>
       </section>
@@ -167,6 +185,13 @@ export function SessionTab({
           activities={state.downtimeActivities}
           onChange={handlers.setDowntimeActivities}
         />
+        <CountdownTracker
+          countdowns={state.countdowns}
+          onChange={handlers.setCountdowns}
+        />
+      </div>
+
+      <div className="animate-fade-up stagger-4 grid gap-4 sm:gap-6 md:grid-cols-2">
         <SessionTracker
           sessions={state.sessions}
           currentSessionId={state.currentSessionId}

@@ -70,39 +70,58 @@ export function EquipmentDisplay({
     });
   }, [equipment, onChange]);
 
+  const handleToggleCustomSlotActivated = useCallback(
+    (slotId: string) => {
+      onChange?.({
+        ...equipment,
+        customSlots: (equipment.customSlots ?? []).map(slot =>
+          slot.id === slotId
+            ? { ...slot, activated: slot.activated === false }
+            : slot
+        ),
+      });
+    },
+    [equipment, onChange]
+  );
+
   return (
     <>
       <section
         className={cn(
-          'bg-card hover:border-primary/20 rounded-xl border shadow-sm transition-colors',
+          'bg-card hover:border-primary/20 flex flex-col rounded-xl border shadow-sm transition-colors',
           className
         )}
       >
-        <div className="flex items-center justify-between border-b px-4 py-3 sm:px-6">
+        <div className="flex shrink-0 items-center justify-between border-b px-4 py-3 sm:px-6">
           <div className="flex items-center gap-2">
             <Shield className="h-5 w-5" />
             <h3 className="text-lg font-semibold">Equipment</h3>
           </div>
         </div>
 
-        <EquipmentCardsGrid
-          equipment={equipment}
-          readOnly={readOnly}
-          openSection={openSection}
-          onToggleWheelchair={readOnly ? undefined : handleToggleWheelchair}
-          onTogglePrimaryActivated={
-            readOnly ? undefined : handleTogglePrimaryActivated
-          }
-          onToggleSecondaryActivated={
-            readOnly ? undefined : handleToggleSecondaryActivated
-          }
-          onToggleArmorActivated={
-            readOnly ? undefined : handleToggleArmorActivated
-          }
-          onToggleWheelchairActivated={
-            readOnly ? undefined : handleToggleWheelchairActivated
-          }
-        />
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <EquipmentCardsGrid
+            equipment={equipment}
+            readOnly={readOnly}
+            openSection={openSection}
+            onToggleWheelchair={readOnly ? undefined : handleToggleWheelchair}
+            onTogglePrimaryActivated={
+              readOnly ? undefined : handleTogglePrimaryActivated
+            }
+            onToggleSecondaryActivated={
+              readOnly ? undefined : handleToggleSecondaryActivated
+            }
+            onToggleArmorActivated={
+              readOnly ? undefined : handleToggleArmorActivated
+            }
+            onToggleWheelchairActivated={
+              readOnly ? undefined : handleToggleWheelchairActivated
+            }
+            onToggleCustomSlotActivated={
+              readOnly ? undefined : handleToggleCustomSlotActivated
+            }
+          />
+        </div>
       </section>
 
       <EquipmentEditDialog

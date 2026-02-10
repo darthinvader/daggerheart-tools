@@ -11,7 +11,6 @@ export { QuickCommunityInfo } from './quick-community-info';
 export { QuickCompanionInfo } from './quick-companion-info';
 export { QuickConditionsInfo } from './quick-conditions-info';
 export { QuickCoreScoresInfo } from './quick-core-scores-info';
-export { QuickCountdowns } from './quick-countdowns';
 export { QuickEquipmentInfo } from './quick-equipment-info';
 export { QuickExperiencesInfo } from './quick-experiences-info';
 export { QuickGoldInfo } from './quick-gold-info';

@@ -16,11 +16,26 @@ export const DualityOutcomeEnum = z.enum([
 ]);
 export type DualityOutcome = z.infer<typeof DualityOutcomeEnum>;
 
-/** Validates dice notation strings like "1d8", "2d6", "3d10" */
+/** Validates single dice notation strings like "1d8", "2d6", "3d10" */
 export const DiceNotationSchema = z.string().regex(/^\d+d\d+$/, {
   message: 'Invalid dice notation. Expected format: NdS (e.g., "2d6")',
 });
 export type DiceNotation = z.infer<typeof DiceNotationSchema>;
+
+/**
+ * Validates multi-dice notation like "2d6+1d4+3", "1d8", "2d6+2".
+ * Components separated by '+', each is either NdS or a flat integer.
+ */
+export const MultiDiceNotationSchema = z
+  .string()
+  .transform(s => s.trim())
+  .pipe(
+    z.string().regex(/^(\d+d\d+|\d+)(\s*\+\s*(\d+d\d+|\d+))*$/, {
+      message:
+        'Invalid multi-dice notation. Expected format: NdS+NdS+Z (e.g., "2d6+1d4+3")',
+    })
+  );
+export type MultiDiceNotation = z.infer<typeof MultiDiceNotationSchema>;
 
 /** Result of rolling one or more dice of the same type */
 export const DiceRollResultSchema = z.object({
@@ -30,10 +45,10 @@ export const DiceRollResultSchema = z.object({
 });
 export type DiceRollResult = z.infer<typeof DiceRollResultSchema>;
 
-/** Result of rolling effect/damage dice */
+/** Result of rolling effect/damage dice (supports multi-dice notation) */
 export const EffectDieResultSchema = z.object({
-  notation: DiceNotationSchema,
-  rolls: z.array(z.number().int().positive()),
+  notation: z.string(),
+  rolls: z.array(z.number().int().min(0)),
   total: z.number().int().nonnegative(),
 });
 export type EffectDieResult = z.infer<typeof EffectDieResultSchema>;
@@ -42,7 +57,7 @@ export type EffectDieResult = z.infer<typeof EffectDieResultSchema>;
 export const DualityRollOptionsSchema = z.object({
   advantage: z.boolean().default(false),
   disadvantage: z.boolean().default(false),
-  effectDie: DiceNotationSchema.optional(),
+  effectDie: MultiDiceNotationSchema.optional(),
 });
 export type DualityRollOptions = z.infer<typeof DualityRollOptionsSchema>;
 
@@ -68,7 +83,7 @@ export type DualityRollResult = z.infer<typeof DualityRollResultSchema>;
  * Per SRD Pages 28-29.
  */
 export const ResolvedDualityRollSchema = DualityRollResultSchema.extend({
-  difficulty: z.number().int(),
+  difficulty: z.number().int().optional(),
   outcome: DualityOutcomeEnum,
   hopeGenerated: z.number().int().min(0),
   fearGenerated: z.number().int().min(0),

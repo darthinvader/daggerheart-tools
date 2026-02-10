@@ -82,7 +82,7 @@ import type {
   UtilityItem,
   WeaponModification,
 } from '@/lib/schemas/equipment';
-import { useCategoryExpandState } from './use-category-expand-state';
+import { useCategoryExpandState } from './-use-category-expand-state';
 
 export const Route = createFileRoute('/references/inventory')({
   component: InventoryPageWrapper,

@@ -1,4 +1,4 @@
-import { Filter, Minus, Plus, Search, Sparkles, X } from 'lucide-react';
+import { Filter, Search, Sparkles, X } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,17 +8,12 @@ import { Backpack, ICON_SIZE_MD, Package, Sword } from '@/lib/icons';
 import type { InventoryState } from '@/lib/schemas/equipment';
 import { cn } from '@/lib/utils';
 
-import {
-  UnlimitedQuantityToggle,
-  UnlimitedSlotsToggle,
-} from './unlimited-toggles';
+import { UnlimitedQuantityToggle } from './unlimited-toggles';
 
 interface InventoryToolbarProps {
   inventory: InventoryState;
   searchQuery: string;
   onSearchChange?: (query: string) => void;
-  onMaxSlotsChange?: (delta: number) => void;
-  onUnlimitedSlotsChange?: (value: boolean) => void;
   onUnlimitedQuantityChange?: (value: boolean) => void;
   onAddClick?: () => void;
   showFilters: boolean;
@@ -33,8 +28,6 @@ export function InventoryToolbar({
   inventory,
   searchQuery,
   onSearchChange,
-  onMaxSlotsChange,
-  onUnlimitedSlotsChange,
   onUnlimitedQuantityChange,
   onAddClick,
   showFilters,
@@ -59,7 +52,6 @@ export function InventoryToolbar({
           onAddClick={onAddClick}
           onToggleFilters={onToggleFilters}
           onClearFilters={onClearFilters}
-          onUnlimitedSlotsChange={onUnlimitedSlotsChange}
           onUnlimitedQuantityChange={onUnlimitedQuantityChange}
           shopSlot={shopSlot}
         />
@@ -71,8 +63,6 @@ export function InventoryToolbar({
         totalItems={totalItems}
         searchQuery={searchQuery}
         onSearchChange={onSearchChange}
-        onMaxSlotsChange={onMaxSlotsChange}
-        readOnly={readOnly}
       />
     </div>
   );
@@ -86,7 +76,6 @@ interface ToolbarActionButtonsProps {
   onAddClick?: () => void;
   onToggleFilters: () => void;
   onClearFilters: () => void;
-  onUnlimitedSlotsChange?: (value: boolean) => void;
   onUnlimitedQuantityChange?: (value: boolean) => void;
   shopSlot?: React.ReactNode;
 }
@@ -99,7 +88,6 @@ function ToolbarActionButtons({
   onAddClick,
   onToggleFilters,
   onClearFilters,
-  onUnlimitedSlotsChange,
   onUnlimitedQuantityChange,
   shopSlot,
 }: ToolbarActionButtonsProps) {
@@ -160,12 +148,6 @@ function ToolbarActionButtons({
       )}
 
       <div className="ml-auto flex items-center gap-2">
-        {onUnlimitedSlotsChange && (
-          <UnlimitedSlotsToggle
-            enabled={inventory.unlimitedSlots ?? false}
-            onChange={onUnlimitedSlotsChange}
-          />
-        )}
         {onUnlimitedQuantityChange && (
           <UnlimitedQuantityToggle
             enabled={inventory.unlimitedQuantity ?? false}
@@ -183,8 +165,6 @@ interface ToolbarStatsRowProps {
   totalItems: number;
   searchQuery: string;
   onSearchChange?: (query: string) => void;
-  onMaxSlotsChange?: (delta: number) => void;
-  readOnly?: boolean;
 }
 
 interface StatBadgeProps {
@@ -224,66 +204,23 @@ function ToolbarStatsRow({
   totalItems,
   searchQuery,
   onSearchChange,
-  onMaxSlotsChange,
-  readOnly,
 }: ToolbarStatsRowProps) {
   const items = inventory?.items ?? [];
-  const slotsFull =
-    !inventory.unlimitedSlots && totalQuantity >= inventory.maxSlots;
   const equippedItems = items.filter(i => i.isEquipped).length;
   const customItems = items.filter(i => i.isCustom).length;
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div className="flex flex-wrap items-center gap-2">
-        <SmartTooltip
-          content={
-            inventory.unlimitedSlots
-              ? 'Unlimited inventory slots'
-              : `${totalQuantity} of ${inventory.maxSlots} slots used`
-          }
-        >
+        <SmartTooltip content={`${totalQuantity} total items`}>
           <Badge
             variant="outline"
-            className={cn(
-              'gap-1.5 px-2.5 py-1 text-sm font-medium',
-              slotsFull
-                ? 'border-red-300 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/50 dark:text-red-300'
-                : 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/50 dark:text-blue-300'
-            )}
+            className="gap-1.5 border-blue-200 bg-blue-50 px-2.5 py-1 text-sm font-medium text-blue-700 dark:border-blue-800 dark:bg-blue-950/50 dark:text-blue-300"
           >
             <Backpack size={ICON_SIZE_MD} className="mr-1 inline-block" />
-            {inventory.unlimitedSlots
-              ? `${totalQuantity}/∞`
-              : `${totalQuantity}/${inventory.maxSlots}`}
+            {totalQuantity} items
           </Badge>
         </SmartTooltip>
-
-        {!readOnly && onMaxSlotsChange && !inventory.unlimitedSlots && (
-          <div className="flex items-center gap-0.5">
-            <SmartTooltip content="Decrease max slots">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-6"
-                onClick={() => onMaxSlotsChange(-1)}
-                disabled={inventory.maxSlots <= totalQuantity}
-              >
-                <Minus className="size-3" />
-              </Button>
-            </SmartTooltip>
-            <SmartTooltip content="Increase max slots">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-6"
-                onClick={() => onMaxSlotsChange(1)}
-              >
-                <Plus className="size-3" />
-              </Button>
-            </SmartTooltip>
-          </div>
-        )}
 
         {totalItems > 0 && (
           <StatBadge

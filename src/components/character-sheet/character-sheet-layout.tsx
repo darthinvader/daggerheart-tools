@@ -1,4 +1,4 @@
-import { Check, Loader2, PawPrint, Unlink, Users } from 'lucide-react';
+import { Check, Loader2, Unlink, Users } from 'lucide-react';
 import { lazy, Suspense, useState } from 'react';
 
 import { UndoRedoControls } from '@/components/battle-tracker/undo-redo-controls';
@@ -60,13 +60,11 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SmartTooltip } from '@/components/ui/smart-tooltip';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
-import { useBeastformState } from '@/hooks/use-beastform';
 import { Backpack, BarChart3, Dice5, Swords, User, Zap } from '@/lib/icons';
 import type { Campaign, ShopSettings } from '@/lib/schemas/campaign';
 import type { UndoActions } from '@/lib/undo';
 import { cn } from '@/lib/utils';
 import { CharacterSettingsDialog } from './character-settings-dialog';
-import { CharacterStatusBar } from './character-status-bar';
 import { EnhancedCharacterHeader } from './enhanced-header';
 import { MobileBottomNav } from './mobile-bottom-nav';
 import { ResponsiveTabsList } from './responsive-tabs';
@@ -176,22 +174,10 @@ export function CharacterSheetLayout({
 }: CharacterSheetLayoutProps) {
   const tier = getTierNumber(state.progression.currentLevel);
 
-  const beastformState = useBeastformState(
-    state.classSelection?.className ?? null,
-    state.progression.currentLevel,
-    state.beastform,
-    state.beastformEnabled
-  );
-
   const isNativeDruid =
     (state.classSelection?.className ?? '').toLowerCase() === 'druid';
 
   const hasCompanionFeature = useHasCompanionFeature(state);
-
-  const beastformSlot =
-    beastformState.isActive && beastformState.activeForm ? (
-      <BeastformStatusIndicator name={beastformState.activeForm.name} />
-    ) : undefined;
 
   const settingsSection = !readOnly ? (
     <CharacterSettingsDialog
@@ -266,9 +252,6 @@ export function CharacterSheetLayout({
             />
           }
           settingsSection={settingsSection}
-          statusBar={
-            <CharacterStatusBar state={state} beastformSlot={beastformSlot} />
-          }
           undoControls={undoControls}
         />
         <CharacterSheetTabs
@@ -311,19 +294,6 @@ export function CharacterSheetLayout({
         onTabChange={onTabChange}
       />
     </div>
-  );
-}
-
-function BeastformStatusIndicator({ name }: { name: string }) {
-  return (
-    <SmartTooltip content={`Beastform: ${name}`}>
-      <div className="flex items-center">
-        <PawPrint
-          className="size-4 animate-pulse text-emerald-400"
-          aria-hidden
-        />
-      </div>
-    </SmartTooltip>
   );
 }
 

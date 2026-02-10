@@ -51,8 +51,9 @@ export function ItemPickerGrid({
   const virtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 120,
+    estimateSize: () => 200,
     overscan: 5,
+    measureElement: element => element.getBoundingClientRect().height,
   });
 
   return (
@@ -64,9 +65,10 @@ export function ItemPickerGrid({
         {virtualizer.getVirtualItems().map(virtualRow => (
           <div
             key={virtualRow.key}
+            ref={virtualizer.measureElement}
+            data-index={virtualRow.index}
             className="absolute top-0 left-0 grid w-full gap-2"
             style={{
-              height: `${virtualRow.size}px`,
               transform: `translateY(${virtualRow.start}px)`,
               gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
             }}

@@ -70,15 +70,22 @@ export function getEquipmentFeatureModifiers(
   const secondaryWeapon = getActiveSecondaryWeapon(equipment);
   const wheelchair = getActiveCombatWheelchair(equipment);
 
+  // Collect activated custom equipment slots
+  const activeCustomSlots = (equipment.customSlots ?? []).filter(
+    slot => slot.activated !== false
+  );
+
   // Unified aggregator handles:
   // - Explicit statModifiers (homebrew)
   // - Legacy armor fields (evasionModifier, agilityModifier)
   // - Feature parsing (fallback)
+  // - Custom equipment feature descriptions (parsed for modifiers)
   return aggregateEquipmentStats(
     armor,
     primaryWeapon,
     secondaryWeapon,
-    wheelchair
+    wheelchair,
+    activeCustomSlots
   );
 }
 

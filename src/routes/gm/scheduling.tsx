@@ -34,7 +34,7 @@ import {
 import type { SchedulingVoteInput } from '@/features/scheduling/scheduling-storage';
 import type { SchedulingPoll } from '@/lib/schemas/scheduling';
 
-import { useSchedulingState } from './use-scheduling-state';
+import { useSchedulingState } from './-use-scheduling-state';
 
 export const Route = createFileRoute('/gm/scheduling')({
   component: SchedulingDashboard,

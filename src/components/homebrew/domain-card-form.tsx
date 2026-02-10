@@ -5,17 +5,16 @@
  */
 import { useCallback } from 'react';
 
+import { FeatureModifiersSection } from '@/components/shared/feature-modifiers-section';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import type { HomebrewDomainCard } from '@/lib/schemas/homebrew';
-
 import {
   BasicInfoSection,
   CostsSection,
   DescriptionSection,
   DOMAIN_COLORS,
-  StatModifiersSection,
   TagsSection,
 } from './domain-card-form-sections';
 import {
@@ -48,13 +47,8 @@ export function DomainCardForm({
     addSuggestion,
     handleKeyDown,
   } = useTagManagement(initialData?.tags);
-  const {
-    hasModifiers,
-    setHasModifiers,
-    updateModifier,
-    getModifierValue,
-    cleanModifiers,
-  } = useModifierManagement(initialData?.modifiers);
+  const { modifiers, cleanModifiers, setFromFeatureModifiers } =
+    useModifierManagement(initialData?.modifiers);
 
   const buildContent = useCallback(
     (): HomebrewDomainCard['content'] => ({
@@ -115,12 +109,15 @@ export function DomainCardForm({
 
           <Separator />
 
-          <StatModifiersSection
-            hasModifiers={hasModifiers}
-            setHasModifiers={setHasModifiers}
-            getModifierValue={getModifierValue}
-            updateModifier={updateModifier}
-            domainStyle={domainStyle}
+          <FeatureModifiersSection
+            modifiers={
+              modifiers as
+                | import('@/lib/schemas/core').FeatureStatModifiers
+                | undefined
+            }
+            onChange={setFromFeatureModifiers}
+            title="Stat Modifiers"
+            showTraits
           />
         </div>
       </ScrollArea>

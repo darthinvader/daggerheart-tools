@@ -57,7 +57,7 @@ export function CharacterNotesDisplay({
   };
 
   return (
-    <section className="bg-card hover:border-primary/20 flex h-full flex-col rounded-xl border shadow-sm transition-colors">
+    <section className="bg-card hover:border-primary/20 flex max-h-[28rem] flex-col rounded-xl border shadow-sm transition-colors">
       <div className="flex items-center justify-between border-b px-4 py-3 sm:px-6">
         <div className="flex items-center gap-2">
           <Pencil className="size-5" />
@@ -65,7 +65,7 @@ export function CharacterNotesDisplay({
         </div>
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-4 p-4 sm:flex-row sm:p-6">
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4 sm:flex-row sm:p-6">
         <NotesListPanel
           notes={filteredNotes}
           selectedId={selectedId}

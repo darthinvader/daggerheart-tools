@@ -6,11 +6,11 @@ import { useNavigate } from '@tanstack/react-router';
 
 import { useAuth } from '@/components/providers';
 
-import { useHomebrewCollectionState } from './use-homebrew-collection-state';
-import { useHomebrewContentHandlers } from './use-homebrew-content-handlers';
-import { useHomebrewDashboardContent } from './use-homebrew-dashboard-content';
-import { useHomebrewDashboardDialogs } from './use-homebrew-dashboard-dialogs';
-import { useHomebrewDashboardMutations } from './use-homebrew-dashboard-mutations';
+import { useHomebrewCollectionState } from './-use-homebrew-collection-state';
+import { useHomebrewContentHandlers } from './-use-homebrew-content-handlers';
+import { useHomebrewDashboardContent } from './-use-homebrew-dashboard-content';
+import { useHomebrewDashboardDialogs } from './-use-homebrew-dashboard-dialogs';
+import { useHomebrewDashboardMutations } from './-use-homebrew-dashboard-mutations';
 
 export function useHomebrewDashboardState() {
   const { user } = useAuth();
@@ -77,6 +77,8 @@ export function useHomebrewDashboardState() {
     setNewCollectionDescription: collectionState.setNewCollectionDescription,
     handleCreateCollection: collectionState.handleCreateCollection,
     isCreatingCollection: collectionState.isCreatingCollection,
+    handleDeleteCollection: collectionState.handleDeleteCollection,
+    isDeletingCollection: collectionState.isDeletingCollection,
     // Dialog state
     isFormOpen: dialogState.isFormOpen,
     isViewOpen: dialogState.isViewOpen,

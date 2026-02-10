@@ -209,7 +209,10 @@ export function HomebrewViewDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl overflow-hidden p-0">
+      <DialogContent
+        aria-describedby={undefined}
+        className="max-w-2xl overflow-hidden p-0"
+      >
         {/* Gradient Header - matching official view */}
         <div className={`bg-gradient-to-r p-6 ${gradient}`}>
           <div className="rounded-xl bg-black/25 p-4">
